@@ -39,6 +39,7 @@ import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/action
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -158,16 +159,19 @@ function IOURequestStepDistanceOdometer({
     const delegateAccountID = useDelegateAccountID();
     const isFocused = useIsFocused();
     // Android can recycle this screen's native view while it's backgrounded, leaving KeyboardAvoidingView's internal
-    // state pointing at a stale view. Remounting is the only way to reset it. Keyed on `isFocused`, not a counter,
-    // so it only remounts on an actual focus transition.
-    const keyboardAvoidingViewInstanceKey = isFocused ? 'focused' : 'unfocused';
+    // state pointing at a stale view. Remounting is the only way to reset it. Scoped to Android, since that's the
+    // only platform where this recycling happens — iOS/web would otherwise pay for a remount they don't need.
+    let keyboardAvoidingViewInstanceKey = 'static';
+    if (getPlatform() === CONST.PLATFORM.ANDROID) {
+        keyboardAvoidingViewInstanceKey = isFocused ? 'focused' : 'unfocused';
+    }
     // KeyboardAvoidingView measures its position relative to its parent, not the screen, so without an offset it
     // under-reserves space and the buttons end up behind the keyboard. `windowHeight - ownY - ownHeight` derives
     // that offset from this view's own layout and the same window-height source the library's internal math uses.
     const {height: windowHeight} = useWindowDimensions();
     const [ownY, setOwnY] = useState(0);
     const [ownHeight, setOwnHeight] = useState(0);
-    const handleOwnLayout = useCallback((e: LayoutChangeEvent) => {
+    const measureOwnLayout = useCallback((e: LayoutChangeEvent) => {
         setOwnY(e.nativeEvent.layout.y);
         setOwnHeight(e.nativeEvent.layout.height);
     }, []);
@@ -644,7 +648,7 @@ function IOURequestStepDistanceOdometer({
                 enabled={isCreatingNewRequest}
                 keyboardVerticalOffset={keyboardVerticalOffset}
                 shouldOffsetBottomSafeAreaPadding
-                onLayout={handleOwnLayout}
+                onLayout={measureOwnLayout}
             >
                 <View
                     testID="odometerContentContainer"

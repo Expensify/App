@@ -9,6 +9,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as OdometerTransactionUtils from '@libs/actions/OdometerTransactionUtils';
+import getPlatform from '@libs/getPlatform';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TabSwitchGuardContext from '@libs/Navigation/TabSwitchGuardContext';
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
@@ -38,6 +39,24 @@ const BOTTOM_SAFE_AREA_INSET = 24;
 const mockUseIsFocused = jest.fn(() => true);
 // A plain counter, not a jest mock, so `jest.clearAllMocks()` doesn't reset it — tests reset it themselves.
 const mockKeyboardAvoidingViewMountCount = {current: 0};
+const WINDOW_HEIGHT = 800;
+
+// The factories below create their own `jest.fn()` rather than closing over an outer variable: `@libs/getPlatform`
+// and `react-native-keyboard-controller` both get required extremely early via an unrelated transitive import chain
+// (`OdometerTransactionUtils` -> ... -> `CONFIG.ts`), before this file's own top-level `const`s would be assigned,
+// so a factory reading an outer variable at that point would crash. The platform test controls `getPlatform` via
+// the imported reference instead, which `jest.mock` already routes to this same mock.
+jest.mock('@libs/getPlatform', () => ({
+    __esModule: true,
+    // Defaults to Android, the only platform where the remount-on-focus key applies, so existing tests exercise it
+    // without needing to opt in; the platform-gating test below overrides it to confirm other platforms don't remount.
+    default: jest.fn(() => 'android'),
+}));
+jest.mock('react-native-keyboard-controller', () => ({
+    ...jest.requireActual<Record<string, unknown>>('react-native-keyboard-controller/jest'),
+    // Pinned so the `keyboardVerticalOffset` test can assert an exact computed value.
+    useWindowDimensions: jest.fn(() => ({width: 400, height: 800})),
+}));
 
 // `KeyboardAvoidingView`'s real native behavior isn't observable in Jest — `react-native-keyboard-controller/jest`
 // maps it to a plain `View` with no avoidance logic, so testing the actual padding needs a device. This mock instead
@@ -318,6 +337,7 @@ describe('IOURequestStepDistanceOdometer - keyboard avoidance', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockUseIsFocused.mockReturnValue(true);
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.ANDROID);
         mockKeyboardAvoidingViewMountCount.current = 0;
         await Onyx.clear();
         await waitForBatchedUpdates();
@@ -363,6 +383,45 @@ describe('IOURequestStepDistanceOdometer - keyboard avoidance', () => {
         mockUseIsFocused.mockReturnValue(true);
         rerender(odometerStepElement(route));
         expect(mockKeyboardAvoidingViewMountCount.current).toBe(3);
+
+        unmount();
+    });
+
+    // The recycling issue the remount key works around is Android-specific, so other platforms should keep a
+    // stable key and skip the remount cost (re-running mount effects, dropping input/image state) entirely.
+    it('does not remount KeyboardAvoidingView on a focus transition on non-Android platforms', async () => {
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+        const route = createDistanceCreateRoute();
+        const {rerender, unmount} = renderOdometerStep(route);
+        await waitForBatchedUpdatesWithAct();
+        expect(mockKeyboardAvoidingViewMountCount.current).toBe(1);
+
+        mockUseIsFocused.mockReturnValue(false);
+        rerender(odometerStepElement(route));
+        expect(mockKeyboardAvoidingViewMountCount.current).toBe(1);
+
+        mockUseIsFocused.mockReturnValue(true);
+        rerender(odometerStepElement(route));
+        expect(mockKeyboardAvoidingViewMountCount.current).toBe(1);
+
+        unmount();
+    });
+
+    // KeyboardAvoidingView measures its position relative to its parent, not the screen, so without an offset it
+    // under-reserves space and the buttons end up behind the keyboard. This is the core of the fix, so a sign or
+    // order error in `windowHeight - ownY - ownHeight` needs to fail a test, not ship unnoticed.
+    it('computes keyboardVerticalOffset from its own layout', async () => {
+        const {unmount} = renderOdometerStep(createDistanceCreateRoute());
+        await waitForBatchedUpdatesWithAct();
+
+        // Before any layout event, `ownY`/`ownHeight` are still 0, so the offset is the full window height.
+        expect(screen.getByTestId('odometerKeyboardAvoidingView').props.keyboardVerticalOffset).toBe(WINDOW_HEIGHT);
+
+        const OWN_Y = 120;
+        const OWN_HEIGHT = 600;
+        fireEvent(screen.getByTestId('odometerKeyboardAvoidingView'), 'layout', {nativeEvent: {layout: {x: 0, y: OWN_Y, width: 0, height: OWN_HEIGHT}}});
+
+        expect(screen.getByTestId('odometerKeyboardAvoidingView').props.keyboardVerticalOffset).toBe(WINDOW_HEIGHT - OWN_Y - OWN_HEIGHT);
 
         unmount();
     });
