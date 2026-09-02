@@ -120,4 +120,54 @@ describe('useDefaultCardFeed', () => {
             expect(result.current).toEqual({fundID: domainFundIDWithZero, programKey: CONST.COUNTRY.GB});
         });
     });
+    it("returns the program the policy is linked to, not the fund's first program", async () => {
+        // The fund has both US and GB, but only its GB program lists this policy. Deriving the program from the fund
+        // alone would pick US (first configured) and show the workspace a feed it is not linked to.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainFundIDWithZero}`, {
+            [CONST.COUNTRY.US]: {paymentBankAccountID: 68951, linkedPolicyIDs: ['SOMEOTHERPOLICY']},
+            [CONST.COUNTRY.GB]: {paymentBankAccountID: 77777, linkedPolicyIDs: [policyID]},
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDefaultCardFeed(policyID));
+        await waitForBatchedUpdates();
+
+        await waitFor(() => {
+            expect(result.current).toEqual({fundID: domainFundIDWithZero, programKey: CONST.COUNTRY.GB});
+        });
+    });
+
+    it("does not match a fund on another program's links", async () => {
+        // Only the US program lists an unrelated policy, so this fund is not a domain match at all and the hook must
+        // fall back to the workspace fund rather than treating the fund as linked.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainFundIDWithZero}`, {
+            [CONST.COUNTRY.US]: {paymentBankAccountID: 68951, linkedPolicyIDs: ['SOMEOTHERPOLICY']},
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDefaultCardFeed(policyID));
+        await waitForBatchedUpdates();
+
+        await waitFor(() => {
+            expect(result.current.fundID).toBe(workspaceFundID);
+        });
+    });
+
+    it('scopes a nested preferredPolicy to its own program', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainFundIDWithZero}`, {
+            [CONST.COUNTRY.US]: {paymentBankAccountID: 68951},
+            [CONST.COUNTRY.GB]: {paymentBankAccountID: 77777, preferredPolicy: policyID},
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDefaultCardFeed(policyID));
+        await waitForBatchedUpdates();
+
+        await waitFor(() => {
+            expect(result.current).toEqual({fundID: domainFundIDWithZero, programKey: CONST.COUNTRY.GB});
+        });
+    });
 });

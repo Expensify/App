@@ -3,8 +3,7 @@ import {
     getCardSettings,
     getConfiguredExpensifyCardProgramKeys,
     getFundIdFromSettingsKey,
-    getLinkedPolicyIDsFromExpensifyCardSettings,
-    getPreferredPolicyFromExpensifyCardSettings,
+    getLinkedPolicyIDsForExpensifyCardProgram,
     isPolicyIDInLinkedExpensifyCardPolicyList,
     parseCardFeedKey,
 } from '@libs/CardUtils';
@@ -52,36 +51,47 @@ function useDefaultCardFeed(policyID: string | undefined): DefaultCardFeed {
     const lastSelectedFeedProgramKey = lastSelectedProgramKey ?? getConfiguredExpensifyCardProgramKeys(lastSelectedCardSettings).at(0);
     const lastSelectedProgramSettings = lastSelectedFeedProgramKey ? getCardSettings(lastSelectedCardSettings, lastSelectedFeedProgramKey) : lastSelectedCardSettings;
 
-    const getDomainFundID = useCallback(
+    const getDomainFeed = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
+            if (!policyID) {
+                return undefined;
+            }
+
+            // Search one candidate per (fund, program) rather than per fund. A domain provisioned with more than one
+            // program links each program independently, so the program that matched the policy is the one to display —
+            // deriving it afterwards from the fund alone would pick the fund's first program (US before GB) and show a
+            // GB-only workspace its US feed.
+            //
             // Compare the parsed fund ID rather than testing the raw key for a substring: a substring test
             // also excludes unrelated funds whose ID merely contains these digits, and while the workspace
             // fund is still unresolved it holds CONST.DEFAULT_NUMBER_ID, which would drop every fund whose
             // ID contains a zero.
-            const eligibleEntries = Object.entries(cardSettings ?? {}).filter(
-                ([key, settings]) => !!settings && getFundIdFromSettingsKey(key) !== workspaceAccountID && settings.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            );
+            const candidates = Object.entries(cardSettings ?? {})
+                .filter(([key, settings]) => !!settings && getFundIdFromSettingsKey(key) !== workspaceAccountID && settings.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .flatMap(([key, settings]) => {
+                    // A legacy fund keeps its single US program flat on the root with no nested block, so it configures no
+                    // program keys. Treat it as a US candidate so it stays matchable.
+                    const programKeys = getConfiguredExpensifyCardProgramKeys(settings);
+                    const candidateProgramKeys: CardProgramKey[] = programKeys.length > 0 ? programKeys : [CONST.COUNTRY.US];
+                    return candidateProgramKeys.map((programKey) => ({fundID: getFundIdFromSettingsKey(key), settings, programKey}));
+                });
 
-            if (policyID) {
-                const preferredMatch = eligibleEntries.find(([, settings]) => getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase());
-                if (preferredMatch) {
-                    return getFundIdFromSettingsKey(preferredMatch[0]);
-                }
-
-                const linkedMatch = eligibleEntries.find(([, settings]) => isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(settings), policyID));
-                if (linkedMatch) {
-                    return getFundIdFromSettingsKey(linkedMatch[0]);
-                }
+            // `getCardSettings` resolves the program's own block over the fund root, so a legacy root-level
+            // `preferredPolicy` (oldDot-only) still matches while a nested one stays scoped to its program.
+            const preferredMatch = candidates.find((candidate) => getCardSettings(candidate.settings, candidate.programKey)?.preferredPolicy?.toUpperCase() === policyID.toUpperCase());
+            if (preferredMatch) {
+                return preferredMatch;
             }
 
-            return undefined;
+            return candidates.find((candidate) => isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsForExpensifyCardProgram(candidate.settings, candidate.programKey), policyID));
         },
         [policyID, workspaceAccountID],
     );
 
-    const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
-        selector: getDomainFundID,
+    const [domainFeed] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+        selector: getDomainFeed,
     });
+    const domainFundID = domainFeed?.fundID;
 
     const isFeedPendingDelete = lastSelectedCardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isLastSelectedFeedUsable = !!lastSelectedFundID && !!lastSelectedProgramSettings?.paymentBankAccountID && !isFeedPendingDelete;
@@ -91,12 +101,17 @@ function useDefaultCardFeed(policyID: string | undefined): DefaultCardFeed {
     const fundID = (isLastSelectedFeedUsable ? lastSelectedFundID : undefined) ?? domainFundID ?? resolvedWorkspaceFundID ?? CONST.DEFAULT_NUMBER_ID;
 
     // Resolve the program against the fund actually being returned: when the last-selected feed is unusable the fallbacks
-    // above point at a different fund, whose configured programs need not include the last-selected one.
+    // below point at a different fund, whose configured programs need not include the last-selected one.
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
     const configuredProgramKeys = getConfiguredExpensifyCardProgramKeys(cardSettings);
     const storedProgramKey = configuredProgramKeys.find((key) => key === lastSelectedProgramKey);
 
-    return {fundID, programKey: storedProgramKey ?? configuredProgramKeys.at(0) ?? CONST.COUNTRY.US};
+    // A domain feed was matched per program, so that program is the answer. It outranks the stored key, which was chosen
+    // against the last-selected fund: reaching the domain fallback means that fund was unusable, so a stored key that
+    // happens to also be configured here describes a choice made about a different feed.
+    const matchedDomainProgramKey = fundID === domainFundID ? domainFeed?.programKey : undefined;
+
+    return {fundID, programKey: matchedDomainProgramKey ?? storedProgramKey ?? configuredProgramKeys.at(0) ?? CONST.COUNTRY.US};
 }
 
 export default useDefaultCardFeed;
