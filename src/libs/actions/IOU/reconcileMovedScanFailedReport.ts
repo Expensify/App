@@ -19,19 +19,20 @@ import {getAllReports} from '.';
 /** Every key this reconciliation writes to, so the updates it builds are checked against the real Onyx value types. */
 type ReconciliationUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
-const REPORT_ID_ROUTE_PREFIXES = ['/r/', '/search/view/'];
+const REPORT_ID_ROUTE_SEGMENTS = ['r', 'e', 'search/r', 'search/view'];
 
 function escapeForRegExp(value: string): string {
     return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
- * Swaps a report ID inside a route path, matching only whole `/r/<reportID>` and `/search/view/<reportID>` segments.
- * A plain substring swap would also corrupt a longer ID that merely starts with the same digits.
+ * Swaps a report ID inside a route path, matching only a whole `<report route segment>/<reportID>` pair. The leading
+ * slash is optional because the `ROUTES` helpers build paths without one while `Navigation.getActiveRoute` returns
+ * them with one. A plain substring swap would also corrupt a longer ID that merely starts with the same digits.
  */
 function replaceReportIDInPath(path: string, oldReportID: string, newReportID: string): string {
-    const pattern = new RegExp(`(${REPORT_ID_ROUTE_PREFIXES.map(escapeForRegExp).join('|')})${escapeForRegExp(oldReportID)}(?=$|[/?#])`, 'g');
-    return path.replaceAll(pattern, `$1${newReportID}`);
+    const pattern = new RegExp(`(^|/)(${REPORT_ID_ROUTE_SEGMENTS.map(escapeForRegExp).join('|')})/${escapeForRegExp(oldReportID)}(?=$|[/?#])`, 'g');
+    return path.replaceAll(pattern, `$1$2/${newReportID}`);
 }
 
 /**

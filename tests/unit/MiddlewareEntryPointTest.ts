@@ -7,11 +7,11 @@ jest.mock('@libs/Request', () => ({
 }));
 
 describe('src/setup attaches the API middlewares', () => {
-    it('registers all 13 middlewares at module scope when the composition root loads', () => {
+    it('registers all 14 middlewares at module scope when the composition root loads', () => {
         expect(jest.mocked(addMiddleware)).not.toHaveBeenCalled();
 
         require('@src/setup');
 
-        expect(jest.mocked(addMiddleware)).toHaveBeenCalledTimes(13);
+        expect(jest.mocked(addMiddleware)).toHaveBeenCalledTimes(14);
     });
 });

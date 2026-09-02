@@ -376,12 +376,23 @@ describe('HandleMovedScanFailedExpenses middleware', () => {
 describe('replaceReportIDInPath', () => {
     it('replaces a whole report route segment', () => {
         expect(replaceReportIDInPath('/r/123', '123', '456')).toBe('/r/456');
+        expect(replaceReportIDInPath('/e/123', '123', '456')).toBe('/e/456');
+        expect(replaceReportIDInPath('/search/r/123', '123', '456')).toBe('/search/r/456');
         expect(replaceReportIDInPath('/search/view/123', '123', '456')).toBe('/search/view/456');
         expect(replaceReportIDInPath('/r/123/details', '123', '456')).toBe('/r/456/details');
     });
 
+    it('replaces a segment in a path the route helpers build without a leading slash', () => {
+        expect(replaceReportIDInPath('r/123', '123', '456')).toBe('r/456');
+        expect(replaceReportIDInPath('e/123', '123', '456')).toBe('e/456');
+        expect(replaceReportIDInPath('search/r/123', '123', '456')).toBe('search/r/456');
+        expect(replaceReportIDInPath('search/view/123', '123', '456')).toBe('search/view/456');
+    });
+
     it('leaves a longer report ID that merely starts with the same digits alone', () => {
         expect(replaceReportIDInPath('/r/1234', '123', '456')).toBe('/r/1234');
+        expect(replaceReportIDInPath('/e/1234', '123', '456')).toBe('/e/1234');
+        expect(replaceReportIDInPath('/search/r/1234', '123', '456')).toBe('/search/r/1234');
     });
 
     it('leaves an unrelated path alone', () => {
