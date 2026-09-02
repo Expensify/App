@@ -945,7 +945,6 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
     const policyCategoryToUpdate = policyData.categories?.[policyCategory.oldName];
 
     const policyCategoryApproverRule = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], policyCategory.oldName);
-    const policyCategoryExpenseRule = CategoryUtils.getCategoryExpenseRule(policy?.rules?.expenseRules ?? [], policyCategory.oldName);
     const approvalRules = policy?.rules?.approvalRules ?? [];
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const mccGroup = policy?.mccGroup ?? {};
@@ -955,16 +954,22 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
     const updatedMccGroup = CategoryUtils.updateCategoryInMccGroup(clonedMccGroup, policyCategory.oldName, policyCategory.newName);
     const updatedMccGroupWithClearedPendingAction = CategoryUtils.updateCategoryInMccGroup(clonedMccGroup, policyCategory.oldName, policyCategory.newName, true);
 
-    if (policyCategoryExpenseRule) {
-        const ruleIndex = updatedExpenseRules.findIndex((rule) => rule.id === policyCategoryExpenseRule.id);
-        policyCategoryExpenseRule.applyWhen = policyCategoryExpenseRule.applyWhen.map((applyWhen) => ({
-            ...applyWhen,
-            ...(applyWhen.field === CONST.POLICY.FIELDS.CATEGORY &&
-                applyWhen.value === policyCategory.oldName && {
-                    value: policyCategory.newName,
-                }),
-        }));
-        updatedExpenseRules[ruleIndex] = policyCategoryExpenseRule;
+    // Found by its category condition rather than by `id`, because a rule created in NewDot has none: comparing ids
+    // made every rule without one equal, so a rename overwrote whichever sat earliest in the array and destroyed it.
+    // The match is rewritten as a copy for the same reason — the rule read off the policy is the live object.
+    const expenseRuleIndex = updatedExpenseRules.findIndex((rule) => matchesCategoryTaxRule(rule, policyCategory.oldName));
+    const ruleToRename = updatedExpenseRules.at(expenseRuleIndex);
+    if (expenseRuleIndex !== -1 && ruleToRename) {
+        updatedExpenseRules[expenseRuleIndex] = {
+            ...ruleToRename,
+            applyWhen: ruleToRename.applyWhen.map((applyWhen) => ({
+                ...applyWhen,
+                ...(applyWhen.field === CONST.POLICY.FIELDS.CATEGORY &&
+                    applyWhen.value === policyCategory.oldName && {
+                        value: policyCategory.newName,
+                    }),
+            })),
+        };
     }
 
     // Its related by name, so the corresponding rule has to be updated to handle offline scenario
