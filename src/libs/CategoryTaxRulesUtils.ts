@@ -34,8 +34,14 @@ function getCategoryTaxRules(expenseRules: ExpenseRule[] | undefined): ExpenseRu
     return (expenseRules ?? []).filter((rule) => !!rule.tax?.field_id_TAX?.externalID && !!getRuleCategoryName(rule));
 }
 
+/** Whether an expense rule is this category's tax default. Unlike `getCategoryTaxRule` it doesn't require a rate yet, so
+ * a write can find the rule it is about to set one on. */
+function matchesCategoryTaxRule(rule: ExpenseRule, categoryName: string): boolean {
+    return getRuleCategoryName(rule) === categoryName;
+}
+
 function getCategoryTaxRule(expenseRules: ExpenseRule[] | undefined, categoryName: string): ExpenseRule | undefined {
-    return getCategoryTaxRules(expenseRules).find((rule) => getRuleCategoryName(rule) === categoryName);
+    return getCategoryTaxRules(expenseRules).find((rule) => matchesCategoryTaxRule(rule, categoryName));
 }
 
 function categoryHasTaxRule(expenseRules: ExpenseRule[] | undefined, categoryName: string): boolean {
@@ -142,4 +148,13 @@ function getCategoryNameFromTaxRuleKey(key: string): string {
     return key.slice(CATEGORY_TAX_RULE_KEY_PREFIX.length);
 }
 
-export {categoryHasTaxRule, getCategoryNameFromTaxRuleKey, getCategoryTaxRulesTableData, getCategoryTaxRuleTaxID, getRuleCategoryName, getTaxRateDisplayName, isCategoryTaxRuleKey};
+export {
+    categoryHasTaxRule,
+    getCategoryNameFromTaxRuleKey,
+    getCategoryTaxRulesTableData,
+    getCategoryTaxRuleTaxID,
+    getRuleCategoryName,
+    getTaxRateDisplayName,
+    isCategoryTaxRuleKey,
+    matchesCategoryTaxRule,
+};

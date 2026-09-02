@@ -23,7 +23,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
-import {getRuleCategoryName} from '@libs/CategoryTaxRulesUtils';
+import {getRuleCategoryName, matchesCategoryTaxRule} from '@libs/CategoryTaxRulesUtils';
 import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1895,9 +1895,9 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
 }
 
-/** Whether an expense rule is this category's tax default. Shares `getRuleCategoryName` so writes and the table agree. */
-function matchesCategoryTaxRule(rule: ExpenseRule, categoryName: string): boolean {
-    return getRuleCategoryName(rule) === categoryName;
+/** The categories that already have a tax rule, for membership tests that would otherwise scan the array once per name. */
+function getCategoriesWithTaxRule(expenseRules: ExpenseRule[]): Set<string | undefined> {
+    return new Set(expenseRules.map(getRuleCategoryName));
 }
 
 /** Builds the expense rule that carries a category's default tax rate. */
@@ -1924,19 +1924,18 @@ function buildCategoryTaxRule(categoryName: string, taxID: string): ExpenseRule 
  */
 function withCategoryTaxRates(expenseRules: ExpenseRule[], taxRatesByCategory: Map<string, string | undefined>): ExpenseRule[] {
     const updated = expenseRules.map((rule) => {
-        const categoryName = [...taxRatesByCategory.keys()].find((name) => matchesCategoryTaxRule(rule, name));
+        const categoryName = getRuleCategoryName(rule);
         const taxID = categoryName ? taxRatesByCategory.get(categoryName) : undefined;
 
-        if (!categoryName || !taxID) {
+        if (!taxID) {
             return rule;
         }
         // eslint-disable-next-line @typescript-eslint/naming-convention
         return {...rule, tax: {field_id_TAX: {...rule.tax?.field_id_TAX, externalID: taxID}}};
     });
 
-    const added = [...taxRatesByCategory.entries()].flatMap(([categoryName, taxID]) =>
-        !taxID || expenseRules.some((rule) => matchesCategoryTaxRule(rule, categoryName)) ? [] : [buildCategoryTaxRule(categoryName, taxID)],
-    );
+    const categoriesWithRule = getCategoriesWithTaxRule(expenseRules);
+    const added = [...taxRatesByCategory.entries()].flatMap(([categoryName, taxID]) => (!taxID || categoriesWithRule.has(categoryName) ? [] : [buildCategoryTaxRule(categoryName, taxID)]));
 
     return [...updated, ...added];
 }
@@ -2015,14 +2014,19 @@ function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: str
     }
     const policyID = policy.id;
     const expenseRules = policy.rules?.expenseRules ?? [];
-    const targets = categoryNames.filter((categoryName) => expenseRules.some((rule) => matchesCategoryTaxRule(rule, categoryName)));
+    const categoriesWithRule = getCategoriesWithTaxRule(expenseRules);
+    const targets = categoryNames.filter((categoryName) => categoriesWithRule.has(categoryName));
 
     if (targets.length === 0) {
         return;
     }
 
     // Shared like the save path: the writes are enqueued together, so each needs the same end state.
-    const optimisticExpenseRules = expenseRules.filter((rule) => !targets.some((categoryName) => matchesCategoryTaxRule(rule, categoryName)));
+    const targetedCategories = new Set(targets);
+    const optimisticExpenseRules = expenseRules.filter((rule) => {
+        const categoryName = getRuleCategoryName(rule);
+        return !categoryName || !targetedCategories.has(categoryName);
+    });
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
