@@ -344,6 +344,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action789: iouAction1},
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: passedInChildReportActions,
                 },
+                allReportsList: {},
             });
             await waitForBatchedUpdates();
 

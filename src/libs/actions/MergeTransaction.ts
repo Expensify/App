@@ -659,7 +659,7 @@ function mergeTransactionRequest({
                 actionableWhisperReportActionID,
                 resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
                 shouldRemoveIOUTransaction: false,
-                transactionThread: sourceTransactionThreadReport,
+                transactionThread: sourceIOUActionThreadReport,
             });
 
             sourceTransactionOptimisticData.push(...optimisticData);
