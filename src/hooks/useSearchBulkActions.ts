@@ -2117,7 +2117,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         /**
          * Export is sometimes the only bulk action available (most commonly under "select all"). There is no main menu
          * to go back to then, so the dropdown opens directly onto the export options rather than nesting them behind
-         * an "Export" row whose submenu would render a back arrow leading nowhere.
+         * an "Export" row whose submenu would render a back arrow leading nowhere. The "Export" label is not lost:
+         * `bulkActionsMenuHeaderText` below puts it back as a plain (non-interactive) header above the options.
          */
         const openExportOptionsDirectlyIfSoleAction = (builtOptions: Array<DropdownOption<SearchHeaderOptionValue>>): Array<DropdownOption<SearchHeaderOptionValue>> => {
             const isExportTheOnlyAction = builtOptions.length === 1 && builtOptions.at(0)?.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT;
@@ -2824,6 +2825,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         shouldCalculateTotalsOnRefresh,
     ]);
 
+    // When the export options are surfaced directly there is no "Export" row above them, so on its own the list gives
+    // no clue what the options refer to. Put "Export" back as a plain header — it reads the same as the label the back
+    // button normally carries, minus the caret, since there is no menu to go back to.
+    const isShowingExportOptionsDirectly =
+        headerButtonsOptions.length > 0 && headerButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT && !option.subMenuItems);
+    const bulkActionsMenuHeaderText = isShowingExportOptionsDirectly ? translate('common.export') : undefined;
+
     const handleOfflineModalClose = useCallback(() => {
         setIsOfflineModalVisible(false);
     }, [setIsOfflineModalVisible]);
@@ -2872,6 +2880,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     return {
         headerButtonsOptions,
+        bulkActionsMenuHeaderText,
         selectedPolicyIDs,
         selectedTransactionReportIDs,
         selectedReportIDs,

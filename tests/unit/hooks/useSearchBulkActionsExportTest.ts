@@ -1171,12 +1171,14 @@ describe('useSearchBulkActions - export options', () => {
         const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
         expect(exportOption?.subMenuItems).toHaveLength(1);
         expect(exportOption?.text).toBe('common.export');
+        // The Export row itself labels the submenu here, so the dropdown must not also carry an "Export" header.
+        expect(result.current.bulkActionsMenuHeaderText).toBeUndefined();
     });
 
     it('opens directly onto the single export option when Export is the only bulk action', async () => {
         // Export is the only bulk action offered under select all, so there is no main menu to go back to. The one
         // export option is surfaced directly instead of behind an "Export" row whose submenu would render a back
-        // arrow leading nowhere.
+        // arrow leading nowhere, with "Export" kept as a plain dropdown header so the option still has context.
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction({
@@ -1195,6 +1197,7 @@ describe('useSearchBulkActions - export options', () => {
         expect(soleOption?.value).toBe(CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
         expect(soleOption?.subMenuItems).toBeUndefined();
         expect(soleOption?.backButtonText).toBeUndefined();
+        expect(result.current.bulkActionsMenuHeaderText).toBe('common.export');
     });
 
     it('opens directly onto every export option when Export is the only bulk action', async () => {
@@ -1211,6 +1214,8 @@ describe('useSearchBulkActions - export options', () => {
         expect(result.current.headerButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
         expect(result.current.headerButtonsOptions.some((option) => option.text === 'common.export')).toBe(false);
         expect(result.current.headerButtonsOptions.some((option) => !!option.subMenuItems)).toBe(false);
+        // "Export" moves to the dropdown header instead, so the options are still labeled without a back caret.
+        expect(result.current.bulkActionsMenuHeaderText).toBe('common.export');
     });
 
     it('exports the current view of a grouped search with the default expense columns', async () => {
