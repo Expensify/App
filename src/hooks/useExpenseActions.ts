@@ -21,12 +21,12 @@ import {
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
-    getAddExpenseDropdownOptions,
     getPolicyExpenseChat,
     isDM,
     isSelfDM,
     navigateOnDeleteExpense,
 } from '@libs/ReportUtils';
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {

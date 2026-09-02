@@ -9,7 +9,7 @@ import {setMoneyRequestAccountant} from '@libs/actions/IOU/MoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {createDraftWorkspaceAndNavigateToConfirmationScreen} from '@libs/ReportUtils';
+import {createDraftWorkspaceAndNavigateToConfirmationScreen} from '@userActions/IOU/StartExpenseFlows';
 
 import MoneyRequestAccountantSelector from '@pages/iou/request/MoneyRequestAccountantSelector';
 
