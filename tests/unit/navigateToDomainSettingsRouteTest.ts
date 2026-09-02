@@ -30,20 +30,38 @@ function mockDomainNavigationState(domainAccountID: number) {
         createMock<ReturnType<typeof navigationRef.getRootState>>({
             routes: [
                 {
-                    key: 'domain-split',
-                    name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
+                    key: 'tab-navigator',
+                    name: NAVIGATORS.TAB_NAVIGATOR,
                     state: {
-                        key: 'domain-split-state',
+                        key: 'tab-state',
                         routes: [
                             {
-                                key: 'domain-sidebar',
-                                name: SCREENS.DOMAIN.INITIAL,
-                                params: {domainAccountID},
-                            },
-                            {
-                                key: 'domain-members',
-                                name: SCREENS.DOMAIN.MEMBERS,
-                                params: {domainAccountID},
+                                key: 'workspace-navigator',
+                                name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                state: {
+                                    key: 'workspace-state',
+                                    routes: [
+                                        {
+                                            key: 'domain-split',
+                                            name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
+                                            state: {
+                                                key: 'domain-split-state',
+                                                routes: [
+                                                    {
+                                                        key: 'domain-sidebar',
+                                                        name: SCREENS.DOMAIN.INITIAL,
+                                                        params: {domainAccountID},
+                                                    },
+                                                    {
+                                                        key: 'domain-members',
+                                                        name: SCREENS.DOMAIN.MEMBERS,
+                                                        params: {domainAccountID},
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                },
                             },
                         ],
                     },
