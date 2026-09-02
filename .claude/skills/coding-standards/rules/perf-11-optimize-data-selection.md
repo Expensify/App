@@ -24,6 +24,8 @@ This means selectors are a double-edged sword. A well-written selector that retu
 - To filter/map entire collections into arrays — the output is still large, `deepEqual` still expensive
 - To return `Set` or `Map` — `deepEqual` is extremely slow on these types
 
+For the specific case where a collection selector returns an object graph but the consumer only reads scalars from it, see [PERF-19](perf-19-scalar-collection-selectors.md) — it applies when the reduction is provable from the call site.
+
 ### Incorrect
 
 ```tsx
