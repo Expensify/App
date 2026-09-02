@@ -2176,9 +2176,6 @@ type DualEntryExport = {
     /** Account used when exporting company card expenses. */
     creditCardAccountID: string;
 
-    /** Account used when exporting Expensify Card expenses. */
-    expensifyCardAccountID: string;
-
     /**
      * Whether card transactions should be exported to multiple
      * accounts based on card program mappings.
@@ -3079,6 +3076,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
+
+        /** Whether new uncategorized expenses get a category picked for them automatically. Defaults to true when unset. */
+        autoCategorizeNewExpenses?: boolean;
 
         /** Whether to show category GL codes when selecting a category */
         showCategoryGLCodes?: boolean;
