@@ -27,7 +27,6 @@ const basePolicy: Policy = {
     outputCurrency: 'USD',
     type: 'team',
     owner: 'user@test.com',
-    isPolicyExpenseChatEnabled: true,
     harvesting: {enabled: false},
 };
 
