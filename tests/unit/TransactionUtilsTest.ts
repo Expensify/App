@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
@@ -946,8 +947,8 @@ describe('TransactionUtils', () => {
                     policies,
                     transactionChanges: {customUnitRateID: 'ID2'},
                     personalPolicyOutputCurrency: undefined,
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
             // When the rate is changed
