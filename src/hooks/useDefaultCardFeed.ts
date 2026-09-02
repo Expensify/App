@@ -115,4 +115,3 @@ function useDefaultCardFeed(policyID: string | undefined): DefaultCardFeed {
 }
 
 export default useDefaultCardFeed;
-export type {DefaultCardFeed};
