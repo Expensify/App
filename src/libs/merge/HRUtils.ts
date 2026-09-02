@@ -1,6 +1,4 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
-
-import type useConfirmModal from '@hooks/useConfirmModal';
+import {hasSynchronizationErrorMessage} from '@libs/actions/connections';
 
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -10,8 +8,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {hasSynchronizationErrorMessage} from './actions/connections';
-import DateUtils from './DateUtils';
+import {getMergeFinalApprover, hasMergeSyncError, isMergeConnected, isMergeSyncDone} from './MergeUtils';
 
 type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
@@ -38,59 +35,16 @@ function isZenefitsConnected(policy?: OnyxEntry<Policy>) {
     return !!policy?.connections?.zenefits;
 }
 
-/** Returns true if the policy has a Merge HR integration connected. */
-function isMergeHRConnected(policy?: OnyxEntry<Policy>): boolean {
-    return !!policy?.connections?.merge_hris;
-}
-
 /** True when the admin still needs to complete the Merge HR setup (select groups). */
 function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
     const mergeHR = policy?.connections?.merge_hris;
     if (!mergeHR) {
         return false;
     }
-    const syncDone = mergeHR.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.DONE;
+    const syncDone = isMergeSyncDone(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
     const hasGroups = (mergeHR.data?.groups?.length ?? 0) > 0;
     const setupComplete = !!mergeHR.config?.groups;
     return syncDone && hasGroups && !setupComplete;
-}
-
-/**
- * Returns true when the user has already manually synced ("Sync now") the Merge HR connection the maximum number of
- * times within the rolling window (e.g. 2 times in the last 24 hours).
- */
-function isMergeHRManualSyncLimitReached(policy?: OnyxEntry<Policy>): boolean {
-    const manualSyncTimestamps = policy?.connections?.merge_hris?.lastSync?.manualSyncTimestamps;
-    if (!manualSyncTimestamps?.length) {
-        return false;
-    }
-
-    const windowStart = DateUtils.subtractMillisecondsFromDateTime(DateUtils.getDBTime(), CONST.MERGE_HR.MANUAL_SYNC_WINDOW_MS);
-    const syncsWithinWindow = manualSyncTimestamps.filter((timestamp) => timestamp > windowStart).length;
-    return syncsWithinWindow >= CONST.MERGE_HR.MANUAL_SYNC_LIMIT;
-}
-
-/**
- * When a Merge HR manual sync is blocked because the daily limit has been reached,
- * shows a confirm modal and returns `true`. Returns `false` when the sync is allowed.
- */
-function showMergeHRManualSyncLimitModalIfReached(
-    policy: OnyxEntry<Policy>,
-    connectionName: HRConnectionName,
-    translate: LocaleContextProps['translate'],
-    showConfirmModal: ReturnType<typeof useConfirmModal>['showConfirmModal'],
-): boolean {
-    if (connectionName !== CONST.POLICY.CONNECTIONS.NAME.MERGE_HR || !isMergeHRManualSyncLimitReached(policy)) {
-        return false;
-    }
-
-    showConfirmModal({
-        title: translate('workspace.hr.mergeHR.syncLimitReached.title'),
-        prompt: translate('workspace.hr.mergeHR.syncLimitReached.prompt'),
-        confirmText: translate('common.buttonConfirm'),
-        shouldShowCancelButton: false,
-    });
-    return true;
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
@@ -107,7 +61,7 @@ function getConnectedHRProvider(policy?: OnyxEntry<Policy>): HRProviderInfo | nu
             displayName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.zenefits,
         };
     }
-    if (isMergeHRConnected(policy)) {
+    if (isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)) {
         const slug = policy?.connections?.merge_hris?.config?.integration;
         const providerInfo = slug ? MERGE_HR_PROVIDERS[slug] : undefined;
         return {
@@ -122,7 +76,7 @@ function getConnectedHRProvider(policy?: OnyxEntry<Policy>): HRProviderInfo | nu
 
 /** Returns true if the policy has any HR integration connected (Gusto, Zenefits, or Merge HR). */
 function isAnyHRConnected(policy?: OnyxEntry<Policy>): boolean {
-    return isGustoConnected(policy) || isZenefitsConnected(policy) || isMergeHRConnected(policy);
+    return isGustoConnected(policy) || isZenefitsConnected(policy) || isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
 }
 
 /** Returns true if any connected HR integration uses a read-only approval mode (basic or advanced (manager)), which blocks manual workflow editing. */
@@ -136,7 +90,7 @@ function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
         return true;
     }
     const mergeMode = policy?.connections?.merge_hris?.config?.approvalMode;
-    if (mergeMode === CONST.MERGE_HR.APPROVAL_MODE.BASIC || mergeMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER) {
+    if (mergeMode === CONST.MERGE.APPROVAL_MODE.BASIC || mergeMode === CONST.MERGE.APPROVAL_MODE.MANAGER) {
         return true;
     }
     return false;
@@ -146,7 +100,7 @@ function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
 function getHRApprovalMode(
     policy?: OnyxEntry<Policy>,
     connectionName?: HRConnectionName,
-): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null {
+): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null {
     if (!connectionName || !policy?.connections) {
         return null;
     }
@@ -167,7 +121,7 @@ function isHRAdvancedMode(policy?: OnyxEntry<Policy>): boolean {
     return (
         policy?.connections?.gusto?.config?.approvalMode === CONST.GUSTO.APPROVAL_MODE.MANAGER ||
         policy?.connections?.zenefits?.config?.approvalMode === CONST.ZENEFITS.APPROVAL_MODE.MANAGER ||
-        policy?.connections?.merge_hris?.config?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER
+        policy?.connections?.merge_hris?.config?.approvalMode === CONST.MERGE.APPROVAL_MODE.MANAGER
     );
 }
 
@@ -179,19 +133,9 @@ function getHRAdvancedModeFinalApprover(policy?: OnyxEntry<Policy>): string | nu
     if (policy?.connections?.zenefits?.config?.approvalMode === CONST.ZENEFITS.APPROVAL_MODE.MANAGER) {
         return policy.connections.zenefits.config.finalApprover ?? null;
     }
-    if (policy?.connections?.merge_hris?.config?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER) {
+    if (policy?.connections?.merge_hris?.config?.approvalMode === CONST.MERGE.APPROVAL_MODE.MANAGER) {
         return policy.connections.merge_hris.config.finalApprover ?? null;
     }
-    return null;
-}
-
-/** Returns the Merge HR finalApprover when the integration is in basic or advanced (manager) mode, or null otherwise. */
-function getMergeHRFinalApprover(policy: OnyxEntry<Policy>): string | null {
-    const mergeConfig = policy?.connections?.merge_hris?.config;
-    if ((mergeConfig?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.BASIC || mergeConfig?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER) && mergeConfig?.finalApprover) {
-        return mergeConfig.finalApprover;
-    }
-
     return null;
 }
 
@@ -205,11 +149,7 @@ function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
     if ((zenefitsMode === CONST.ZENEFITS.APPROVAL_MODE.BASIC || zenefitsMode === CONST.ZENEFITS.APPROVAL_MODE.MANAGER) && policy?.connections?.zenefits?.config?.finalApprover) {
         return policy.connections.zenefits.config.finalApprover;
     }
-    const mergeMode = policy?.connections?.merge_hris?.config?.approvalMode;
-    if ((mergeMode === CONST.MERGE_HR.APPROVAL_MODE.BASIC || mergeMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER) && policy?.connections?.merge_hris?.config?.finalApprover) {
-        return policy.connections.merge_hris.config.finalApprover;
-    }
-    return null;
+    return getMergeFinalApprover(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
 }
 
 /** Checks if any HR connection on the policy is in an error state. */
@@ -226,7 +166,7 @@ function shouldShowHRConnectionError(policy: OnyxEntry<Policy>, isSyncInProgress
         return true;
     }
     if (connectedProvider.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED;
+        return hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
     }
     return hasSynchronizationErrorMessage(policy, connectedProvider.connectionName, isSyncInProgress);
 }
@@ -236,17 +176,13 @@ export {
     getHRApprovalMode,
     getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
-    getMergeHRFinalApprover,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
     isGustoConnected,
     isHRAdvancedMode,
     isMergeHRCompleteSetupNeeded,
-    isMergeHRConnected,
-    isMergeHRManualSyncLimitReached,
     isZenefitsConnected,
     shouldShowHRConnectionError,
-    showMergeHRManualSyncLimitModalIfReached,
 };
 
 export type {HRConnectionName};

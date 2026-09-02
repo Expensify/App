@@ -5,6 +5,7 @@ import DistanceField from '@components/MoneyRequestConfirmationList/sections/Dis
 import MerchantField from '@components/MoneyRequestConfirmationList/sections/MerchantField';
 import RateField from '@components/MoneyRequestConfirmationList/sections/RateField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
+import {useDetailsFields} from '@components/MoneyRequestConfirmationListFooter/DetailsFieldsContext';
 import type {AmountDisplay, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -14,8 +15,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
-
-import type {FieldVisibility} from './fieldVisibility';
 
 type TransactionDetailsFieldsProps = {
     /** Active policy (read by Amount/Description/Rate/Merchant) */
@@ -33,38 +32,16 @@ type TransactionDetailsFieldsProps = {
     /** Error state surfaced into Amount/Merchant */
     errorState: ErrorState;
 
-    /** Whether navigating to upgrade is required to proceed past blocked workspaces */
-    shouldNavigateToUpgradePath: boolean;
-
-    /** Whether the user must select a policy before submitting */
-    shouldSelectPolicy: boolean;
-
-    /** ISO currency code for the transaction */
-    iouCurrencyCode: string;
-
-    /** When true, suppresses the below-show-more entries (Amount, Rate, Merchant, Time) */
-    isCompactMode: boolean;
-
-    /** Per-field visibility decisions resolved by `computeFieldVisibility` */
-    fieldVisibility: Pick<FieldVisibility, 'amount' | 'distance' | 'rate' | 'merchant' | 'time'>;
-
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
     isParticipantPickerVisible: boolean;
 };
 
-function TransactionDetailsFields({
-    policy,
-    amountDisplay,
-    distanceData,
-    requiredFlags,
-    errorState,
-    shouldNavigateToUpgradePath,
-    shouldSelectPolicy,
-    iouCurrencyCode,
-    isCompactMode,
-    fieldVisibility,
-    isParticipantPickerVisible,
-}: TransactionDetailsFieldsProps) {
+/**
+ * The expense-type-driven half of the confirmation fields, for every type that has not migrated to a
+ * footer variant of its own.
+ */
+function TransactionDetailsFields({policy, amountDisplay, distanceData, requiredFlags, errorState, isParticipantPickerVisible}: TransactionDetailsFieldsProps) {
+    const {fieldVisibility, isCompactMode, iouCurrencyCode, shouldNavigateToUpgradePath, shouldSelectPolicy} = useDetailsFields();
     const {
         action,
         iouType,
@@ -85,22 +62,14 @@ function TransactionDetailsFields({
         <>
             {!isCompactMode && fieldVisibility.amount && (
                 <AmountField
-                    action={action}
                     amount={amountDisplay.amount}
                     formattedAmount={amountDisplay.formattedAmount}
                     distanceRateCurrency={distanceData.distanceRateCurrency}
                     iouCurrencyCode={iouCurrencyCode}
                     isDistanceRequest={fieldVisibility.distance}
-                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
-                    didConfirm={didConfirm}
-                    isReadOnly={isReadOnly}
                     shouldShowTimeRequestFields={fieldVisibility.time}
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                     formError={errorState.formError}
-                    transactionID={transactionID}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
                     policy={policy}
                     clearFormErrors={errorState.clearFormErrors}
                     setFormError={errorState.setFormError}
@@ -126,15 +95,7 @@ function TransactionDetailsFields({
             )}
 
             <DescriptionField
-                isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
-                isReadOnly={isReadOnly}
-                didConfirm={didConfirm}
                 isDescriptionRequired={requiredFlags.isDescriptionRequired}
-                transactionID={transactionID}
-                action={action}
-                iouType={iouType}
-                reportID={reportID}
-                reportActionID={reportActionID}
                 policy={policy}
             />
 
@@ -181,17 +142,7 @@ function TransactionDetailsFields({
                 />
             )}
 
-            {!isCompactMode && fieldVisibility.time && (
-                <TimeFields
-                    isReadOnly={isReadOnly}
-                    didConfirm={didConfirm}
-                    transactionID={transactionID}
-                    action={action}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
-                />
-            )}
+            {!isCompactMode && fieldVisibility.time && <TimeFields />}
         </>
     );
 }

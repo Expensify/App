@@ -103,6 +103,7 @@ import {
     getCurrency,
     getDescription,
     getDetailedExpenseTypeTranslationKey,
+    getDisplayTransactionWithoutInvalidCommuterExclusion,
     getDistanceInMeters,
     getFormattedCreated,
     getOriginalAmountForDisplay,
@@ -303,6 +304,9 @@ function MoneyRequestView({
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(transactionThreadReport, moneyRequestReport, parentReportAction);
+    const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {selector: policyTypeSelector});
+    // Collect/Control (group) policies are always tied to an expense chat, so a group policy type means this is a policy expense chat.
+    const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
 
     let iouType: ValueOf<typeof CONST.IOU.TYPE>;
     if (isTrackExpense) {
@@ -314,6 +318,13 @@ function MoneyRequestView({
     }
 
     const allowNegativeAmount = shouldEnableNegative(parentReport, policy, iouType);
+    const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
+        transaction,
+        isPolicyExpenseChat,
+        policy: distanceOriginalPolicy ?? policy,
+        translate,
+        getCurrencySymbol,
+    });
 
     const {
         created: transactionDate,
@@ -329,7 +340,7 @@ function MoneyRequestView({
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
-    } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false) ?? {};
+    } = getTransactionDetails(displayTransaction, undefined, undefined, allowNegativeAmount, false) ?? {};
     const transactionAttendees = useAttendees(transaction);
     const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -399,7 +410,6 @@ function MoneyRequestView({
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {selector: policyTypeSelector});
     const hasMultipleSplits = useHasMultipleSplitChildren(transaction?.comment?.originalTransactionID);
     const isReportOpen = isOpenReport(moneyRequestReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
@@ -487,9 +497,6 @@ function MoneyRequestView({
         }) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
-    // A flag for verifying that the current report is a sub-report of a expense chat
-    // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
-    const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
     const policyTagLists = getTagLists(policyTagList);
 
     const category = transactionCategory ?? '';
@@ -1166,7 +1173,7 @@ function MoneyRequestView({
     const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport, parentReportDerivedName);
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
-    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
+    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction, policy);
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
