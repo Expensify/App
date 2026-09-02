@@ -1167,6 +1167,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
         });
+        onyxData.optimisticData?.push(violationsOnyxData);
         onyxData.optimisticData?.push({
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
