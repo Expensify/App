@@ -105,8 +105,10 @@ function getCategoryTaxRulesTableData({
 
     return (
         getCategoryTaxRules(policy.rules?.expenseRules)
-            // Online the delete resolves in a moment, so drop the row rather than flash it greyed. Offline it stays,
-            // styled as deleting, since there is nothing to wait for.
+            // Only about the category or tax rate going away, never the rule's own delete: `expenseRules` is a plain
+            // array, so a rule carries no pending state of its own and `deletePolicyCategoryTaxes` drops it outright.
+            // While its category or rate is being deleted, online the delete resolves in a moment, so the row goes
+            // rather than flashing greyed; offline it stays, styled as deleting, since there is nothing to wait for.
             .filter((rule) => isOffline || getPendingAction(rule) !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((rule) => {
                 // `getCategoryTaxRules` already dropped the rules without a category, so this is always set.

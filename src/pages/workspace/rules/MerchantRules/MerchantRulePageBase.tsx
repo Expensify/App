@@ -596,7 +596,9 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
         return <NotFoundPage />;
     }
 
-    if (!isEditing && !!policy && !canWriteRules) {
+    // A saved rule stays readable without write access, so only creating one is gated. `isEditing` alone would miss a
+    // category rule, which is keyed by its category and so carries no ruleID, and send auditors to a not-found page.
+    if (!isEditingSavedRule && !!policy && !canWriteRules) {
         return <NotFoundPage />;
     }
 

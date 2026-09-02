@@ -1994,6 +1994,10 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
  * default rate is what clears an override, since `getCategoryDefaultTaxRate` falls back to that same rate when no rule
  * exists. The rules are dropped optimistically so the rows go straight away.
  *
+ * Dropped rather than marked as deleting, so no grey pending row offline. A rule can't carry a pending flag: clearing
+ * one on success means rewriting the whole array, `API.write` persists that snapshot, and queued writes then replay
+ * stale arrays over each other. That was the state before dc9c34f9a97 removed `pendingAction` from `ExpenseRule`.
+ *
  * Every rollback is the array as it stood before the delete, for the reason in `setPolicyCategoryTaxes`: Onyx replaces
  * the array wholesale, so per-category snapshots contradict each other and the last failure to land hides the rest.
  */
