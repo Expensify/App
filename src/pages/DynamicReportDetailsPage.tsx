@@ -286,7 +286,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const ancestors = useAncestors(report);
 
     const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived);
-    const chatRoomSubtitle = subtitle || '';
+    const chatRoomSubtitle = subtitle ?? '';
 
     const isSystemChat = isSystemChatUtil(report);
     const isGroupChat = isGroupChatUtil(report);
