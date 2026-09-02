@@ -11,6 +11,7 @@ import type {Policy} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type TransactionStateType from '@src/types/utils/TransactionStateType';
 
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
@@ -49,6 +50,9 @@ type DistanceMapTabContentProps = {
     buttonText: string;
     errorState: ErrorState;
     loadingState: LoadingState;
+
+    /** The state of the transaction being rendered, used to persist route selection to the correct Onyx key */
+    transactionState: TransactionStateType;
 };
 
 function DistanceMapTabContent({
@@ -65,6 +69,7 @@ function DistanceMapTabContent({
     buttonText,
     errorState,
     loadingState,
+    transactionState,
 }: DistanceMapTabContentProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -83,6 +88,7 @@ function DistanceMapTabContent({
                         transaction={transaction}
                         policy={policy}
                         mapContainerStyle={{minHeight: undefined}}
+                        transactionState={transactionState}
                     />
                 </View>
             )}
@@ -100,6 +106,7 @@ function DistanceMapTabContent({
                                 navigateToWaypointEditPage={navigateToWaypointEditPage}
                                 transaction={transaction}
                                 policy={policy}
+                                transactionState={transactionState}
                             />
                         ) : undefined
                     }

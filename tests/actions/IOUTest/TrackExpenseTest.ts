@@ -45,11 +45,12 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import PusherHelper from '../../utils/PusherHelper';
 import * as TestHelper from '../../utils/TestHelper';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -126,8 +127,8 @@ describe('actions/IOU/TrackExpense', () => {
 
     beforeEach(async () => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         await Onyx.clear();
         currencyListProvider = await initCurrencyListContext({
             keys: ONYXKEYS,
@@ -176,6 +177,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 reportNameValuePairs: {},
                 reportAttributes: undefined,
+                guideAccountIDs: [],
                 conciergeReportID: undefined,
             });
 
@@ -234,6 +236,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 reportNameValuePairs: {},
                 reportAttributes: undefined,
+                guideAccountIDs: [],
                 conciergeReportID: undefined,
             });
 
@@ -1109,13 +1112,13 @@ describe('actions/IOU/TrackExpense', () => {
             // Build the REPORT_PREVIEW action OUTSIDE Onyx and pass it explicitly.
             // If the implementation falls back to deprecatedAllReportActions (Onyx) instead of using this explicit param,
             // the unarchive failure-data entry will not be generated and the assertion below will fail.
-            const reportPreviewAction: ReportAction = {
+            const reportPreviewAction = createMock<ReportAction>({
                 reportActionID: 'preview-1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportID: archivedExpenseReportID,
                 created: DateUtils.getDBTime(),
                 message: [],
-            } as unknown as ReportAction;
+            });
             const explicitReportActionsList = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${accountantExpenseChatID}`]: {
                     [reportPreviewAction.reportActionID]: reportPreviewAction,
@@ -2453,6 +2456,7 @@ describe('actions/IOU/TrackExpense', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -2565,6 +2569,7 @@ describe('actions/IOU/TrackExpense', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 

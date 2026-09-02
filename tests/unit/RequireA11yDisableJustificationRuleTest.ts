@@ -1,18 +1,7 @@
+import type * as A11yDisableJustificationRule from '../../eslint-plugin-local-rules/require-a11y-disable-justification';
+
 type Report = {
     messageId?: string;
-};
-
-type RuleContext = {
-    getSourceCode: () => {
-        getAllComments: () => Comment[];
-    };
-    report: (report: Report) => void;
-};
-
-type RuleModule = {
-    create: (context: RuleContext) => {
-        Program: () => void;
-    };
 };
 
 type Comment = {
@@ -23,7 +12,7 @@ type Comment = {
     };
 };
 
-const rule = require('../../eslint-plugin-local-rules/require-a11y-disable-justification') as RuleModule;
+const rule = jest.requireActual<typeof A11yDisableJustificationRule>('../../eslint-plugin-local-rules/require-a11y-disable-justification');
 
 function createComment(value: string): Comment {
     return {

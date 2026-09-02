@@ -17,62 +17,64 @@ Looking to get more comfortable using Expensify? This page includes:
 
 ## How to register for live Expensify training webinars
 
-Expensify offers recurring live webinars to help members and Workspace Admins learn the basics of New Expensify. These live sessions focus on helping Classic members transition smoothly to New Expensify. Additional webinar topics may be added in the future.
+Expensify offers recurring live webinars to help members and Workspace Admins learn the basics of New Expensify. 
 
-Each time slot includes two training tracks:
+All sessions are recorded, and all registrants will be emailed a link to the recording after the session ends. Admins are encouraged to attend/watch all sessions.
 
- - **User Training** (45 minutes)
- - **Admin Training** (1 hour)
+ - **New User Training** 55 minutes - Monday 10pm UTC **[Register here](https://events.zoom.us/ev/AvKtsFIUfb9B05mXu2v_fSIwn6y_gEEp7TANmOodWaryasKR9Swk~ArTaELYr4Bk6ycdARl-hRGTKXM8FAz3UFiwrKrIKEkiH9-Qig7rq43e3ag)**
+ - **Workspace Administration Training** 1 hour 25 minutes - Tuesday 4pm UTC **[Register here](https://events.zoom.us/ev/Al8VkcxspHX6DHq7HjnTz_xPXIf4A5vFkO5G0ompKWWFBoRXsOfn~Ar-Fy0WyqkXoez6gGuwNS4WPK7yEx6xzllZWDg2IAa8mCjOqsY334z-zVA)**
+ - **Company Card Administration Training** 1 hour 15 minutes - Wednesday 3pm UTC **[Register here](https://events.zoom.us/ev/Ag4j3goCMv0siKhbgGi4McVwAqk1chVThYs2fuCT9dEJdPpqXpd-~ArS8snwcrQb7qzXP98cqKy03fxHx8LpazRF34OogXsHy3YpL7LeC84R4sg)**
 
-Select the date and time that works best for you. Admins are encouraged to attend both sessions.
-
-**Mondays – 23:00 UTC**
-
-(4pm Monday PDT / 12pm Tuesday NZ / 10am SYD / 7am MNL)
-
-👉 **[Register here](https://events.zoom.us/ev/AsNhZCGJb8qpCLyZC3uo6s3WuVrcCvxJK25CxoiTwKoKaTJZUuP9~AnwAZJQZuLuVfZvrvX6QRPlgfkVBTBIYRm_MuWWV3HfCDPlrxANJU0sjCw)**
-
-**Tuesdays – 18:00 UTC**
-
-(11am Tuesday PDT / 2pm EDT / 6pm GMT)
-
-👉 **[Register here](https://events.zoom.us/ev/Ag9wyeaHoM2MdgrEudeM2khDhyVlOVeoJ0em2duEOYrYoGBnu1GR~AjXo_keo4nLLLaBzstxCEOOxskKk4NqV4gurDM4MIZGA1R3dMLZUCgxoFw)**
-
-**Wednesdays – 14:00 UTC**
-
-(10am Wednesday EDT / 2pm GMT / 3pm CET)
-
-👉 **[Register here](https://events.zoom.us/ev/AhellaELKyULHHdDH1glXh7-1ELREHiDMq7lG-kvZHmgPU0Anwk0~Arf5hJl8n2CLr8mCBuQZlqWLBq_eJyKa3jXqRLM6E93zjTT7okWqXZA2Gw)**
+To watch recordings on demand, see our **[webinar recording library](https://events.zoom.us/evj/AqgMubl35rddCUtmVb6JXinrKvIS3xkoyfTYWoDa6QMrb1_l5ih7~A1dLQvAML0MYNyUw-UnzDCKI_Sw)**.
 
 ---
 
-## What You’ll Learn in User Training
+## What you’ll learn in New User Training
 
-**Duration:** 45 minutes (30-minute walkthrough + 15-minute Q&A)
+**Duration:** 55 minutes (45-minute walkthrough + 10-minute Q&A)
 
-User Training is designed for members who submit, review, or approve expenses.
+User Training is designed for new members who submit, review, or approve expenses.
 
 You’ll learn how to:
 
- - Navigate the New Expensify layout and understand where key actions and information live
+ - Navigate Expensify and understand where key actions and information live
+ - Use the mobile app to create and submit expenses
  - Use the contextual **More** button to take the right action on reports and expenses
  - Interact with Concierge AI to upload, review, and update expenses using chat
- - Understand how the **Inbox**, chat, and Concierge support work together, including AI-to-human escalation
+ - Understand how the **Inbox**, chat, and Concierge support work together—including AI-to-human escalation
 
 ---
 
-## What You’ll Learn in Admin Training
+## What you’ll learn in Workspace Administration Training
 
-**Duration:** 1 hour (45-minute walkthrough + 15-minute Q&A)
+**Duration:** 1 hour 25 minutes (75-minute walkthrough + 10-minute Q&A)
 
 Admin Training is designed for Workspace Admins and Workspace Owners.
 
 You’ll learn how to:
 
- - Navigate the New Expensify layout from an admin perspective and understand where administrative actions live
+ - Understand how to enable and configure workspace features.
+ - Navigate the Expensify layout from an admin perspective and understand how to view and interact with expenses
  - Use the contextual **More** button to manage approvals, workflows, and expense-level actions
  - Leverage the **Inbox**, chat, and Concierge AI to monitor activity, communicate with members, and make administrative changes
- - Understand key Workspace administration updates, including company cards, workflows, rules, and support escalation
+ - Understand account settings and support escalation
+
+---
+
+## What you’ll learn in Company Card Administration Training
+
+**Duration:** 1 hour 15 minutes (65-minute walkthrough + 10-minute Q&A)
+
+Company Card Admin Training is designed for Workspace Admins and Card Admins using a company card or the Expensify Card.
+
+You’ll learn how to:
+
+ - Understand how cards are connected and assigned
+ - Know how to set the statement date and map cards to export accounts
+ - Use the card table to quickly view imported card transactions
+ - Understand the data import timeline
+ - Understand how to use the built-in reports to reconcile company cards
+ - Know how to identify company cards vs cash, and troubleshoot basic issues
 
 ---
 
@@ -88,7 +90,7 @@ Use this tour if you want a high-level introduction to:
 - Where to review expenses and reports  
 - How to move between personal and Workspace settings  
 
-👉 **[Start the interactive New Expensify navigation tour](https://expensify.storylane.io/share/nfrgmfpppolt)**
+👉 **[Start the interactive New Expensify navigation tour](https://expensify.storylane.io/share/qlgnexxbsdtp)**
 
 ---
 
@@ -129,11 +131,9 @@ Learn how to protect your account and recognize suspicious activity.
 
 Attend **User Training** if you submit or approve expenses.
 
-Attend **Admin Training** if you manage a Workspace, approvals, company cards, rules, or workflows. Please attend User Training as a prerequisite.
+Attend **Workspace Admin Training** if you manage a Workspace, approvals, rules, or workflows. Please attend User Training as a prerequisite.
 
-## Are the live webinars only for Classic members?
-
-Our current live sessions focus on supporting Classic members transitioning to New Expensify. Future sessions may cover additional topics.
+Attend **Company Card Admin Training** if you assign or reconcile company cards or the Expensify Card. Please attend User Training as a prerequisite.
 
 ## Is the interactive tour a replacement for live training?
 

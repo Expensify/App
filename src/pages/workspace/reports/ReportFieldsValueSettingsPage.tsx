@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -75,7 +75,7 @@ function ReportFieldsValueSettingsPage({
     }
     const confirmAndDeleteListValue = async () => {
         const result = await showConfirmModal({
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('workspace.reportFields.deleteValue'),
             prompt: translate('workspace.reportFields.deleteValuePrompt'),
             confirmText: translate('common.delete'),
@@ -159,7 +159,7 @@ function ReportFieldsValueSettingsPage({
                         onPress={navigateToEditValue}
                     />
                     {canWriteReportFields && !hasAccountingConnections && (
-                        <MenuItem
+                        <MenuItemAction
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={confirmAndDeleteListValue}

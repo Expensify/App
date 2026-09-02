@@ -104,6 +104,10 @@ function TabSelectorBase<K extends string = string>({
                 });
 
                 const handlePress = () => {
+                    if (tab.isDisabled) {
+                        tab.disabledAction?.();
+                        return;
+                    }
                     if (isActive) {
                         onActiveTabPress(tab.key);
                         return;
@@ -116,10 +120,13 @@ function TabSelectorBase<K extends string = string>({
                     <TabSelectorItem
                         tabKey={tab.key}
                         key={tab.key}
+                        tabRef={tab.tabRef}
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
-                        onLongPress={onLongTabPress ? () => onLongTabPress(tab.key) : undefined}
+                        // Only wire the secondary interaction for tabs that opt in. Otherwise every tab would
+                        // suppress the native browser right-click menu on web (see PressableWithSecondaryInteraction).
+                        onLongPress={onLongTabPress && tab.shouldEnableLongPress ? () => onLongTabPress(tab.key) : undefined}
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
@@ -133,6 +140,7 @@ function TabSelectorBase<K extends string = string>({
                         badgeStyles={tab.badgeStyles}
                         pendingAction={tab.pendingAction}
                         isDisabled={tab.isDisabled}
+                        disabledAction={tab.disabledAction}
                     />
                 );
             })}

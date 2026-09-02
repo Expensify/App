@@ -18,7 +18,7 @@ If you'd like a guided walkthrough of the New Expensify experience, explore the 
 - [interactive mobile tour for Workspace Admins](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 **For submitters and approvers:**
-- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/v9dr1rjqsd9y)
+- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/qlgnexxbsdtp)
 - [interactive mobile tour for submitters and approvers](https://expensify.storylane.io/share/qbbob6zvapqo)
 
 
@@ -152,19 +152,21 @@ Paid Workspace Admins may have dedicated support contacts assigned to their acco
 4. Below **Concierge**, look for your assigned support contacts.
 5. Click a contact to open a direct message with them.
 
-If your Account Manager has a scheduling link set up, a **Book a call** button also appears next to them here. See **How to book a call with your Account Manager** below for details.
+If a support contact has a scheduling link set up, a **Book a call** button also appears next to them here. This works for your Account Manager, Partner Manager, and Guide. Learn [how to book a call with your support contact](#how-to-book-a-call-with-your-support-contact) below.
 
 ---
 
-## How to book a call with your Account Manager
+## How to book a call with your support contact
 
-If your Account Manager has a scheduling link set up, you can book a call with them directly using the **Book a call** button. Clicking **Book a call** opens your Account Manager's calendar in a new tab so you can pick a time. The button appears in these places:
+If your Account Manager, Partner Manager, or Guide has a scheduling link set up, you can book a call with them directly using the **Book a call** button. Clicking **Book a call** opens that person's calendar in a new tab so you can pick a time. The button appears in these places:
 
-- On the **Help** page, next to your Account Manager.
-- In the header of your direct message with your Account Manager.
+- On the **Help** page, next to each support contact that has a scheduling link (Account Manager, Partner Manager, or Guide).
+- In the header of your direct message with that support contact.
 - In the header of your **Concierge** chat.
 
-The **Book a call** button only appears if your Account Manager has a scheduling link configured. If you don't see it, you can still message your Account Manager directly or ask **Concierge** to help schedule a call.
+In **Concierge**, only one **Book a call** button appears at a time, even if more than one of your support contacts has a scheduling link.
+
+The **Book a call** button only appears if the support contact has a scheduling link configured. If you don't see it, you can still message the support contact directly or ask **Concierge** to help schedule a call.
 
 ---
 
@@ -247,7 +249,7 @@ Account Managers are typically assigned to accounts with subscriptions that incl
 
 ## Why don't I see the Book a call button?
 
-You'll only see the **Book a call** button if you have an assigned Account Manager who has a scheduling link configured. If either isn't set up, the button won't appear.
+You'll only see the **Book a call** button if you have an assigned support contact (Account Manager, Partner Manager, or Guide) who has a scheduling link configured. If no support contact is assigned or none has a scheduling link set up, the button won't appear. In **Concierge**, only one **Book a call** button shows at a time.
 
 ## Are there keyboard shortcuts for opening reports or workspaces?
 

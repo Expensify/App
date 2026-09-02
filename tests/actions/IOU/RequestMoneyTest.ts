@@ -1229,7 +1229,6 @@ describe('actions/IOU', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: RORY_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [CARLOS_EMAIL]: {
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -3148,6 +3147,7 @@ describe('actions/IOU', () => {
             return {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactions: [transaction],
+                conciergeChat: undefined,
                 iouType,
                 report,
                 currentUserAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,

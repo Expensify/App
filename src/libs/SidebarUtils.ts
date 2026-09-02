@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
+    GuideAccountIDsDerivedValue,
     PersonalDetails,
     PersonalDetailsList,
     PolicyTagLists,
@@ -36,15 +37,11 @@ import type {OptionData} from './ReportUtils';
 import {isAnonymousUser} from './actions/Session';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {formatList} from './Localize';
-import {
-    getLastActorDisplayName,
-    getLastActorDisplayNameFromLastVisibleActions,
-    getLastMessageTextForReport,
-    getPersonalDetailsForAccountIDs,
-    shouldShowLastActorDisplayName,
-} from './OptionsListUtils';
+import Log from './Log';
+import {getLastMessageTextForReport, shouldUseFullTitleForOption} from './OptionsListUtils';
+import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from './OptionsListUtils/getChatPreviewParts';
 import Parser from './Parser';
-import {getPersonalDetailsByID} from './PersonalDetailsUtils';
+import {getPersonalDetailsByID, getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -61,9 +58,11 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
+    getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
+    getDelegateSubmitMessage,
     getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
@@ -97,6 +96,8 @@ import {
     getReportActionActorAccountID,
     getReportActionMessageText,
     getRequireCompanyCardsEnabledMessage,
+    getRequiresCategoryMessage,
+    getRequiresTagMessage,
     getRoomAvatarUpdatedMessage,
     getSetAutoJoinMessage,
     getSettlementAccountLockedMessage,
@@ -146,6 +147,7 @@ import {
     getWorkspaceUpdateFieldMessage,
     isActionOfType,
     isCardIssuedAction,
+    isCategoryModificationAction,
     isInviteOrRemovedAction,
     isLeavePolicyAction,
     isOldDotReportAction,
@@ -165,7 +167,9 @@ import {
     getDisplayNamesWithTooltips,
     getIcons,
     getMovedTransactionMessage,
+    parseMovedTransactionReportIDs,
     getParticipantsAccountIDsForDisplay,
+    getPendingDeleteMemberAccountIDs,
     getPolicyChangeLogCopyMessage,
     getPolicyName,
     getReceiptUploadErrorReason,
@@ -177,6 +181,7 @@ import {
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceNameUpdatedMessage,
+    hasExpensifyGuidesEmails,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
     isAnnounceRoom,
@@ -254,6 +259,12 @@ const DIGIT_SEQUENCE = /\d+/g;
 const sortKeyCache = new Map<string, string>();
 
 /**
+ * Reports already reported by the `[ChatReportLHN]` diagnostic log, so a stuck row is logged once per session
+ * instead of on every LHN recompute.
+ */
+const loggedChatReportIDs = new Set<string>();
+
+/**
  * Builds a normalized sort key for fast string comparison using plain < / > operators.
  * Lowercases the name and zero-pads numeric segments ("Report 2" → "report 000000000000002")
  * so that numeric ordering is preserved without Intl.Collator.
@@ -296,6 +307,7 @@ type ShouldDisplayReportInLHNParams = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     currentUserLogin: string;
     currentUserAccountID: number;
+    hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
 };
 
@@ -314,6 +326,7 @@ function shouldDisplayReportInLHN({
     currentUserAccountID,
     currentUserLogin,
     conciergeReportID,
+    hasGuidesEmails,
 }: ShouldDisplayReportInLHNParams) {
     if (!report) {
         return {shouldDisplay: false};
@@ -378,6 +391,7 @@ function shouldDisplayReportInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     return {shouldDisplay};
@@ -397,6 +411,7 @@ function getReportsToDisplayInLHN({
     reportNameValuePairs,
     reportAttributes,
     conciergeReportID,
+    guideAccountIDs,
 }: {
     currentReportId: string | undefined;
     reports: OnyxCollection<Report>;
@@ -410,6 +425,7 @@ function getReportsToDisplayInLHN({
     currentUserAccountID: number;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 }) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -437,6 +453,7 @@ function getReportsToDisplayInLHN({
             isReportArchived,
             reportAttributes,
             currentUserLogin,
+            hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
         });
@@ -467,6 +484,7 @@ type UpdateReportsToDisplayInLHNProps = {
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
+    guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 };
 
@@ -486,6 +504,7 @@ function updateReportsToDisplayInLHN({
     currentUserLogin,
     currentUserAccountID,
     conciergeReportID,
+    guideAccountIDs,
 }: UpdateReportsToDisplayInLHNProps) {
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
@@ -523,6 +542,7 @@ function updateReportsToDisplayInLHN({
             isReportArchived,
             reportAttributes,
             currentUserLogin,
+            hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
         });
@@ -758,21 +778,33 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
-// TODO: Refactor to use options object parameter to reduce parameter count
-// eslint-disable-next-line @typescript-eslint/max-params
-function getReasonAndReportActionThatHasRedBrickRoad(
-    report: Report,
-    chatReport: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    hasViolations: boolean,
-    reportErrors: Errors,
-    transactions: OnyxCollection<Transaction>,
-    isOffline: boolean,
-    currentUserAccountID: number,
-    transactionViolations?: OnyxCollection<TransactionViolation[]>,
+type GetReasonAndReportActionThatHasRedBrickRoadParams = {
+    report: Report;
+    chatReport: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    hasViolations: boolean;
+    reportErrors: Errors;
+    transactions: OnyxCollection<Transaction>;
+    isOffline: boolean;
+    currentUserAccountID: number;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    isReportArchived?: boolean;
+    reports?: OnyxCollection<Report>;
+};
+
+function getReasonAndReportActionThatHasRedBrickRoad({
+    report,
+    chatReport,
+    reportActions,
+    hasViolations,
+    reportErrors,
+    transactions,
+    isOffline,
+    currentUserAccountID,
+    transactionViolations,
     isReportArchived = false,
-    reports?: OnyxCollection<Report>,
-): ReasonAndReportActionThatHasRedBrickRoad | null {
+    reports,
+}: GetReasonAndReportActionThatHasRedBrickRoadParams): ReasonAndReportActionThatHasRedBrickRoad | null {
     if (isReportArchived) {
         return null;
     }
@@ -1035,9 +1067,11 @@ function getOptionData({
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
 
-    // Specifically for concierge chats, which don't meet any of the conditions in the if statement below
+    // Specifically for concierge chats and expense reports, which don't meet any of the conditions in the if statement below
     if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
         lastMessageText = getActionableCard3DSTransactionApprovalMessage(translate, lastAction) ?? lastMessageText;
+    } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT) && !!getDelegateSubmitMessage(translate, lastAction, currentUserLogin)) {
+        lastMessageText = Parser.htmlToText(getDelegateSubmitMessage(translate, lastAction, currentUserLogin));
     }
 
     const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report, isReportArchived);
@@ -1108,12 +1142,7 @@ function getOptionData({
             result.alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
             result.alternateText = Parser.htmlToText(getPlaidBalanceFailureMessage(translate, lastAction));
-        } else if (
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY) ||
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME)
-        ) {
+        } else if (lastAction?.actionName && isCategoryModificationAction(lastAction.actionName)) {
             result.alternateText = getWorkspaceCategoryUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES)) {
             result.alternateText = getWorkspaceCategoriesUpdatedMessage(translate, lastAction);
@@ -1121,6 +1150,12 @@ function getOptionData({
             result.alternateText = translate('workspaceActions.importTags');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS)) {
             result.alternateText = translate('workspaceActions.deletedAllTags');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_RULE)) {
+            result.alternateText = translate('workspaceActions.addedRule');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULE)) {
+            result.alternateText = translate('workspaceActions.updatedRule');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_RULE)) {
+            result.alternateText = translate('workspaceActions.removedRule');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST)) {
             result.alternateText = getTagListUpdatedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED)) {
@@ -1169,6 +1204,12 @@ function getOptionData({
             result.alternateText = getWorkspaceAttendeeTrackingUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
             result.alternateText = getRequireCompanyCardsEnabledMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY) {
+            result.alternateText = getRequiresCategoryMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG) {
+            result.alternateText = getRequiresTagMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE) {
+            result.alternateText = getCurrencyConversionFeeMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
             result.alternateText = getAutoPayApprovedReportsEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
@@ -1212,7 +1253,7 @@ function getOptionData({
         } else if (isLeavePolicyAction(lastAction)) {
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, getPersonalDetailsByID(lastAction.actorAccountID, personalDetails), true);
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate, currentUserAccountID});
         } else if (lastAction && isOldDotReportAction(lastAction)) {
             result.alternateText = getMessageOfOldDotReportAction(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
@@ -1226,7 +1267,14 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastAction, reportAttributesDerived));
+            const {fromReportID} = parseMovedTransactionReportIDs(lastAction);
+            result.alternateText = Parser.htmlToText(
+                getUnreportedTransactionMessage({
+                    translate,
+                    fromReportID,
+                    derivedReportName: fromReportID ? reportAttributesDerived?.[fromReportID]?.reportName : undefined,
+                }),
+            );
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
@@ -1310,7 +1358,15 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
             result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, reportAttributesDerived));
+            const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastAction);
+            result.alternateText = Parser.htmlToText(
+                getMovedTransactionMessage({
+                    translate,
+                    fromReportID,
+                    toReportID,
+                    derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
+                }),
+            );
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
@@ -1394,7 +1450,7 @@ function getOptionData({
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
-    if (isJoinRequestInAdminRoom(report)) {
+    if (isJoinRequestInAdminRoom(report, currentUserLogin)) {
         result.isUnread = true;
     }
 
@@ -1405,6 +1461,21 @@ function getOptionData({
     }
 
     const reportName = deprecatedGetReportName(report, reportAttributesDerived);
+
+    if (reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
+        loggedChatReportIDs.delete(report.reportID);
+    } else if (!loggedChatReportIDs.has(report.reportID) && shouldUseFullTitleForOption(result)) {
+        const derivedEntry = reportAttributesDerived?.[report.reportID];
+        loggedChatReportIDs.add(report.reportID);
+        Log.info('[ChatReportLHN] Default report name is shown in LHN', false, {
+            reportID: report.reportID,
+            chatType: report.chatType,
+            rawReportName: report.reportName,
+            hasDerivedEntry: !!derivedEntry,
+            derivedReportName: derivedEntry?.reportName,
+            derivedCount: reportAttributesDerived ? Object.keys(reportAttributesDerived).length : 0,
+        });
+    }
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1421,6 +1492,7 @@ function getOptionData({
         policy,
         invoiceReceiverPolicy,
         isReportArchived,
+        getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
     );
 
     // IOU icon trimming (single vs diagonal) is handled at the component level

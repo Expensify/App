@@ -94,7 +94,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             confirmText: translate('workspace.moreFeatures.companyCards.remove'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -128,7 +128,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -217,20 +217,22 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     <CardDetailsActionButtons style={styles.mb0}>
                         {!isCSVImportedPersonalCard && (
                             <CardDetailsActionButton
-                                text={translate('workspace.moreFeatures.companyCards.updateCard')}
-                                icon={expensifyIcons.Sync}
                                 onPress={updateCard}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 isLoading={card?.isLoadingLastUpdated}
                                 style={styles.flexShrink0}
-                            />
+                            >
+                                <CardDetailsActionButton.Icon src={expensifyIcons.Sync} />
+                                <CardDetailsActionButton.Text>{translate('workspace.moreFeatures.companyCards.updateCard')}</CardDetailsActionButton.Text>
+                            </CardDetailsActionButton>
                         )}
                         <CardDetailsActionButton
-                            text={translate('workspace.common.viewTransactions')}
-                            icon={expensifyIcons.MoneySearch}
                             onPress={navigateToTransactions}
                             style={styles.flexShrink0}
-                        />
+                        >
+                            <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                            <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                        </CardDetailsActionButton>
                     </CardDetailsActionButtons>
                 </OfflineWithFeedback>
                 {isCardBroken && (
