@@ -1110,7 +1110,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategories: 'Dostosuj kategorie wydatków',
             customizeSpendCategoriesSubText: 'Porządkuj i klasyfikuj wydatki',
             customizeExpenseCategories: 'Dostosuj swoje kategorie wydatków',
-            customizeExpenseCategoriesSubText: 'Dodaj kategorie swojej firmy, aby kodować wydatki.',
+            customizeExpenseCategoriesSubText: 'Dodaj kategorie swojej firmy, aby kodować wydatki',
             createExpense: 'Dodaj wydatek',
             createExpenseSubText: 'Zeskanuj, przeciągnij i upuść lub ręcznie wprowadź wydatek za pomocą przycisku +',
             linkPersonalCard: 'Połącz kartę osobistą',

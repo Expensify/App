@@ -1096,7 +1096,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategories: 'Personalizza le categorie di spesa',
             customizeSpendCategoriesSubText: 'Organizza e classifica le spese',
             customizeExpenseCategories: 'Personalizza le tue categorie di spesa',
-            customizeExpenseCategoriesSubText: 'Aggiungi le categorie della tua azienda per codificare le tue spese.',
+            customizeExpenseCategoriesSubText: 'Aggiungi le categorie della tua azienda per codificare le tue spese',
             createExpense: 'Crea una spesa',
             createExpenseSubText: 'Scansiona, trascina e rilascia oppure inserisci manualmente una spesa usando il pulsante +',
             linkPersonalCard: 'Collega carta personale',

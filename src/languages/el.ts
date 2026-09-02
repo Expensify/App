@@ -1155,7 +1155,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeSpendCategories: 'Προσαρμόστε τις κατηγορίες δαπανών',
             customizeSpendCategoriesSubText: 'Οργανώστε και ταξινομήστε τα έξοδα',
             customizeExpenseCategories: 'Προσαρμόστε τις κατηγορίες εξόδων σας',
-            customizeExpenseCategoriesSubText: 'Προσθέστε τις κατηγορίες της εταιρείας σας για να κωδικοποιήσετε τα έξοδά σας.',
+            customizeExpenseCategoriesSubText: 'Προσθέστε τις κατηγορίες της εταιρείας σας για να κωδικοποιήσετε τα έξοδά σας',
             createExpense: 'Δημιουργία δαπάνης',
             createExpenseSubText: 'Σαρώστε, σύρετε και αποθέστε ή καταχωρίστε χειροκίνητα μία δαπάνη χρησιμοποιώντας το κουμπί +',
             linkPersonalCard: 'Συνδέστε προσωπική κάρτα',

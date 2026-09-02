@@ -110,8 +110,16 @@ async function setupTrackPersonalScenario(overrides: {policy?: Partial<Policy>; 
 }
 
 /**
+ * Builds a DB-style timestamp (UTC, no timezone suffix) the given number of days in the past, matching what
+ * `DateUtils.getDBTime` writes to `policy.created`.
+ */
+function daysAgoDBTime(days: number): string {
+    return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').replace('Z', '');
+}
+
+/**
  * The Submit intent runs on a free `submit` workspace, so unlike the other intents there is no free trial and
- * NVP_FIRST_DAY_FREE_TRIAL is unset. The 60-day window is anchored on NVP_PRIVATE_FIRST_POLICY_CREATED_DATE instead.
+ * NVP_FIRST_DAY_FREE_TRIAL is unset. The 60-day window is anchored on the Submit workspace's own creation time instead.
  */
 async function setupSubmitScenario(
     overrides: {
@@ -131,6 +139,8 @@ async function setupSubmitScenario(
         role: CONST.POLICY.ROLE.EDITOR,
         ownerAccountID: CURRENT_USER_ACCOUNT_ID,
         areCategoriesEnabled: true,
+        // The 60-day window is anchored on this, so a realistic fixture must carry a creation time.
+        created: daysAgoDBTime(7),
         ...overrides.policy,
     });
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
@@ -1962,8 +1972,8 @@ describe('useGettingStartedItems', () => {
                 expect(result.current.items).toEqual([]);
             });
 
-            it('should be hidden when no trial start, first policy creation date, or workspace creation time is available', async () => {
-                await setupSubmitScenario({firstPolicyCreatedDate: ''});
+            it('should be hidden when the workspace has no creation time', async () => {
+                await setupSubmitScenario({policy: {created: undefined}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
@@ -1971,10 +1981,9 @@ describe('useGettingStartedItems', () => {
                 expect(result.current.items).toEqual([]);
             });
 
-            it('should fall back to the workspace creation time when the first policy creation NVP has not arrived yet', async () => {
-                // A user who onboards offline has an optimistically created workspace but no NVP, because only the server writes it.
-                const createdSevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').replace('Z', '');
-                await setupSubmitScenario({firstPolicyCreatedDate: '', policy: {created: createdSevenDaysAgo}});
+            it('should render from the optimistic workspace creation time while the user is offline', async () => {
+                // A user who onboards offline has an optimistically created workspace but no NVPs, because only the server writes those.
+                await setupSubmitScenario({firstPolicyCreatedDate: '', policy: {created: daysAgoDBTime(7)}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
@@ -1982,9 +1991,8 @@ describe('useGettingStartedItems', () => {
                 expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'linkPersonalCard']);
             });
 
-            it('should be hidden when the workspace creation time is also outside the 60-day window', async () => {
-                const createdSixtyOneDaysAgo = new Date(Date.now() - 61 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').replace('Z', '');
-                await setupSubmitScenario({firstPolicyCreatedDate: '', policy: {created: createdSixtyOneDaysAgo}});
+            it('should be hidden after the 60-day Getting Started window', async () => {
+                await setupSubmitScenario({policy: {created: daysAgoDBTime(61)}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
@@ -2003,9 +2011,31 @@ describe('useGettingStartedItems', () => {
                 expect(result.current.items).toEqual([]);
             });
 
-            it('should be hidden after the 60-day Getting Started window', async () => {
+            // The account-level NVP points at the first workspace the account ever created, which can be one the user has
+            // since deleted. A Submit workspace created today must get its own full window, not the older workspace's.
+            it('should use the new workspace creation time even when the first policy creation NVP is long expired', async () => {
                 const sixtyOneDaysAgo = new Date(Date.now() - 61 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
-                await setupSubmitScenario({firstPolicyCreatedDate: sixtyOneDaysAgo});
+                await setupSubmitScenario({firstPolicyCreatedDate: sixtyOneDaysAgo, policy: {created: daysAgoDBTime(1)}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'linkPersonalCard']);
+            });
+
+            it('should ignore a stale free trial start date left over from an earlier paid workspace', async () => {
+                const sixtyOneDaysAgo = new Date(Date.now() - 61 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+                await setupSubmitScenario({firstDayTrial: sixtyOneDaysAgo, policy: {created: daysAgoDBTime(1)}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+            });
+
+            // There is no "Create a workspace" step for this intent, so a user with no Submit workspace gets nothing rather
+            // than a step that creates a paid workspace and makes the section vanish.
+            it('should be hidden on a personal (non group) policy instead of showing a create-workspace step', async () => {
+                await setupSubmitScenario({policy: {type: CONST.POLICY.TYPE.PERSONAL}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
@@ -2013,24 +2043,15 @@ describe('useGettingStartedItems', () => {
                 expect(result.current.items).toEqual([]);
             });
 
-            it('should prefer the trial start date over the first policy creation date once the user upgrades', async () => {
-                const sixtyOneDaysAgo = new Date(Date.now() - 61 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
-                const recentCreation = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
-                await setupSubmitScenario({firstDayTrial: sixtyOneDaysAgo, firstPolicyCreatedDate: recentCreation});
+            it('should be hidden when there is no active workspace', async () => {
+                await setupSubmitScenario();
+                await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, null);
+                await waitForBatchedUpdates();
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 expect(result.current.shouldShowSection).toBe(false);
-            });
-
-            it('should fall back to a single create-workspace step on a personal (non group) policy', async () => {
-                await setupSubmitScenario({policy: {type: CONST.POLICY.TYPE.PERSONAL}});
-
-                const {result} = renderHook(() => useGettingStartedItems());
-
-                expect(result.current.shouldShowSection).toBe(true);
-                expect(result.current.items.map((item) => item.key)).toEqual(['createWorkspace']);
-                expect(result.current.items.at(0)?.isComplete).toBe(false);
+                expect(result.current.items).toEqual([]);
             });
         });
 

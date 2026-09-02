@@ -6,7 +6,7 @@ const SIXTY_DAYS_MS = 60 * CONST.DATE.SECONDS_PER_DAY * CONST.MILLISECONDS_PER_S
 
 /**
  * Checks if the current date is within 60 days of the onboarding start date. Paid plans pass their trial start date.
- * Free plans such as Submit never start a trial, so they pass their first workspace creation date instead.
+ * Free plans such as Submit never start a trial, so they pass their workspace creation time instead.
  * Returns false if no start date is provided.
  */
 function isWithinGettingStartedPeriod(onboardingStartDate: string | undefined): boolean {

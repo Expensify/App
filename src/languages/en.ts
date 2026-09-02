@@ -1195,7 +1195,7 @@ const translations = {
             customizeSpendCategories: 'Customize spend categories',
             customizeSpendCategoriesSubText: 'Organize and classify expenses',
             customizeExpenseCategories: 'Customize your expense categories',
-            customizeExpenseCategoriesSubText: 'Add your company’s categories to code your expenses.',
+            customizeExpenseCategoriesSubText: 'Add your company’s categories to code your expenses',
             createExpense: 'Create an expense',
             createExpenseSubText: 'Scan, drag and drop, or manually enter an expense using the + button',
             linkPersonalCard: 'Link personal card',

@@ -17,7 +17,6 @@ import {
     hasConfiguredRules,
     hasCustomApprovalWorkflow,
     hasCustomCategories,
-    isGroupPolicy,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -71,7 +70,6 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [firstPolicyCreatedDate] = useOnyx(ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE);
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
@@ -110,20 +108,29 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return emptyResult;
     }
 
-    // Submit is a free plan, so nvp_private_firstDayFreeTrial is only ever written if the user later upgrades. Fall back to
-    // the first workspace creation date so the 60-day window has an anchor for users who never start a trial. That NVP only
-    // arrives from the server, so fall back again to the active workspace's own creation time, which createWorkspace writes
-    // optimistically. Without it a user who onboards offline would not see this section until the queued request completes.
-    const submitOnboardingStartDate = [firstDayFreeTrial, firstPolicyCreatedDate, policy?.created].find((date) => !!date);
-    if (!isWithinGettingStartedPeriod(isSubmitIntent ? submitOnboardingStartDate : firstDayFreeTrial)) {
+    // Submit is a free plan, so nvp_private_firstDayFreeTrial is only ever written if the user later upgrades, and by then the
+    // workspace is a paid one that the isSubmitPolicy gate below excludes. nvp_private_firstPolicyCreatedDate is no good
+    // either: it points at the account's very first workspace, which can be an older one the user has since deleted, so a
+    // brand-new Submit workspace would inherit an expired window. Anchor on the Submit workspace's own creation time, which
+    // createWorkspace also writes optimistically so the section still renders while the user is offline.
+    if (!isWithinGettingStartedPeriod(isSubmitIntent ? policy?.created : firstDayFreeTrial)) {
+        return emptyResult;
+    }
+
+    const hasUsableWorkspace = !!activePolicyID && !!policy && !isPendingDeletePolicy(policy);
+
+    // These steps describe a Submit workspace, and the one for this intent is auto-created by useAutoCreateSubmitWorkspace, so
+    // there is no "Create a workspace" step to offer. That step would also send the user to WORKSPACE_CONFIRMATION, which
+    // creates a paid workspace, and completing it would make the section disappear rather than advance. Hide instead. This
+    // also covers the user who already owns an editable Team or Corporate workspace, for whom useAutoCreateSubmitWorkspace
+    // deliberately creates nothing, so these steps would otherwise run against a workspace they do not describe.
+    if (isSubmitIntent && (!hasUsableWorkspace || !isSubmitPolicy(policy))) {
         return emptyResult;
     }
 
     // When there is no active workspace to run onboarding against (e.g. the user just deleted their only
     // workspace), keep the section visible with a single actionable step to create one instead of hiding it.
-    // Submit workspaces are a free group plan, so they only qualify under isGroupPolicy, not isPaidGroupPolicy.
-    const isUsablePolicy = isSubmitIntent ? isGroupPolicy(policy) : isPaidGroupPolicy(policy);
-    if (!activePolicyID || !policy || isPendingDeletePolicy(policy) || !isUsablePolicy) {
+    if (!isSubmitIntent && (!hasUsableWorkspace || !isPaidGroupPolicy(policy))) {
         return {
             shouldShowSection: true,
             items: [
@@ -138,6 +145,12 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         };
     }
 
+    // Both guards above already return when there is no usable workspace. This repeats the check so TypeScript narrows
+    // activePolicyID and policy for the rest of the hook.
+    if (!activePolicyID || !policy) {
+        return emptyResult;
+    }
+
     // Submit workspaces use a flat role model. `getRoleForCallerOnNewPolicy` hands even the creator the `editor` role, and
     // `updateWorkspaceMembersRole` refuses to change it, so `isPolicyAdmin` is never true for them. Gate the Submit intent on
     // ownership instead: true for the workspace auto-created during onboarding, false for members invited to someone else's.
@@ -145,15 +158,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return emptyResult;
     }
 
-    // These steps are written for a Submit workspace, but useAutoCreateSubmitWorkspace deliberately skips creating one when
-    // the user already owns an editable group workspace. Such a user can pick this intent and land here with a Team or
-    // Corporate workspace active. Hide the section rather than run Submit steps against a workspace they do not describe.
-    if (isSubmitIntent && !isSubmitPolicy(policy)) {
-        return emptyResult;
-    }
-
-    // The Submit workspace is auto-created for this intent, so unlike the other intents there is no "Create a workspace"
-    // step to show. It would land pre-checked and add nothing.
+    // The Submit intent has exactly two to-dos and no "Create a workspace" step, because the workspace already exists here.
     if (isSubmitIntent) {
         const submitItems: GettingStartedItem[] = [];
 
