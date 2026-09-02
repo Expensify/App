@@ -15,12 +15,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
+import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, getContactMethodsOptions} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useMemo} from 'react';
@@ -37,8 +39,13 @@ function DynamicContactMethodsPage() {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    // Strip the `contact-methods` suffix off the current URL so the back button returns to wherever this list was launched from (e.g. the card-feed selector), not a hardcoded default.
-    const backTo = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHODS.path);
+    // Strip the `contact-methods` suffix off the current URL so the back button returns to wherever this list was launched from, not a hardcoded default.
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHODS.path);
+    const repeatedContactMethodsSuffix = findAllMatchingDynamicSuffixes(backPath).find((match) => match.pattern === DYNAMIC_ROUTES.CONTACT_METHODS.path);
+    // Returning from a nested contact-method screen can leave a duplicate Contact Methods route in the stack. Remove it so Back targets the real parent instead of this screen.
+    const backTo = repeatedContactMethodsSuffix
+        ? getPathWithoutDynamicSuffix(repeatedContactMethodsSuffix.pathUsedForMatching, repeatedContactMethodsSuffix.actualSuffix, repeatedContactMethodsSuffix.pattern) || ROUTES.HOME
+        : backPath;
 
     const options = useMemo(() => getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email), [translate, formatPhoneNumber, loginList, session?.email]);
 
