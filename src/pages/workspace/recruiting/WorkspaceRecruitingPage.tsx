@@ -1,5 +1,4 @@
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import RenderHTML from '@components/RenderHTML';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +16,7 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import {getRecruitingCards} from './utils';
 
@@ -42,17 +42,12 @@ function WorkspaceRecruitingPage({
             category={CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING}
             cards={cards}
             footer={
-                <Text style={[styles.mutedTextLabel, styles.mt3]}>
-                    {translate('workspace.recruiting.dontSeeYourATS.first')}
-                    <TextLink
-                        onPress={openSidePanel}
-                        style={[styles.textLabel, styles.link]}
-                    >
-                        {' '}
-                        {translate('workspace.recruiting.dontSeeYourATS.second')}{' '}
-                    </TextLink>
-                    {translate('workspace.recruiting.dontSeeYourATS.third')}
-                </Text>
+                <View style={[styles.mt3, styles.renderHTML]}>
+                    <RenderHTML
+                        html={translate('workspace.recruiting.dontSeeYourATS')}
+                        onLinkPress={() => openSidePanel()}
+                    />
+                </View>
             }
         />
     );

@@ -7494,11 +7494,7 @@ const translations = {
             syncing: 'Syncing candidates',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import candidates.</muted-text-label>`,
-            dontSeeYourATS: {
-                first: "Don't see your ATS here?",
-                second: 'Ask Concierge',
-                third: 'and we can add it.',
-            },
+            dontSeeYourATS: `<muted-text-label>Don't see your ATS here? <a href="#">Ask Concierge</a> and we can add it.</muted-text-label>`,
             importSettings: 'Import settings',
             defaultApprover: 'Default approver',
             approverFields: {
