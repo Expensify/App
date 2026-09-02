@@ -577,7 +577,7 @@ describe('SearchPageNarrow', () => {
         mockSearch.mockClear();
 
         // An older first-page refresh responds last and replaces the results again. The list has not moved,
-        // so onEndReached does not fire; the page has to be asked for on its own.
+        // so onEndReached does not fire. The page has to be asked for on its own.
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
         });

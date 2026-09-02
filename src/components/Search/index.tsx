@@ -401,11 +401,6 @@ function Search({
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
-    // `isLoading` has to stay out of the search effect's deps below, or every completed search would start
-    // another, and onEndReached only fires on the edge, so a page we cannot fetch yet is remembered here
-    // rather than dropped. Stays set until that page actually shows up in the snapshot.
-    const wantedOffsetRef = useRef<number | undefined>(undefined);
-
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
@@ -807,6 +802,11 @@ function Search({
             }
         }
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
+
+    // `isLoading` has to stay out of the search effect's deps, or every completed search would start another,
+    // and onEndReached only fires on the edge, so a page we cannot fetch yet is remembered here rather than
+    // dropped. Stays set until that page actually shows up in the snapshot.
+    const wantedOffsetRef = useRef<number | undefined>(undefined);
 
     const fetchMoreResults = useCallback(() => {
         if (!searchResults?.search?.hasMoreResults) {
