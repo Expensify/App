@@ -76,6 +76,14 @@ function SearchPage({route}: SearchPageProps) {
 
     const [isSorting, setIsSorting] = useState(false);
 
+    // Sorting keeps the previous results on screen while the re-sorted ones load. Changing the search cancels that,
+    // and opening one no longer remounts this page, so a flag left set would render the previous query's rows under
+    // the new query. Adjusted during rendering because searchResults below consumes it in this same render.
+    const previousQueryHash = usePrevious(currentSearchQueryJSON?.hash);
+    if (isSorting && previousQueryHash !== currentSearchQueryJSON?.hash) {
+        setIsSorting(false);
+    }
+
     const isCurrentSearchResolved = isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
     let searchResults: SearchResults | undefined;
     if (isCurrentSearchResolved && currentSearchResults?.search && currentSearchResults.data === undefined) {
