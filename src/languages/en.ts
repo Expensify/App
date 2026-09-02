@@ -6470,6 +6470,8 @@ const translations = {
                         subtitle: 'Centralize all travel spend in a monthly bill instead of paying at time of purchase.',
                         learnHow: 'Learn how.',
                         setUpNewFeed: 'Set up a new travel feed',
+                        feedSelectorIntro:
+                            'Your organization already has a Consolidated Travel Billing feed set up. Select it to keep this workspace’s travel spend on the same monthly bill.',
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,

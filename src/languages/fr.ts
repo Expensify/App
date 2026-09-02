@@ -6413,6 +6413,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             sendInvoiceNowCta: 'Envoyer la facture maintenant',
                         },
                         setUpNewFeed: 'Configurer un nouveau flux de voyage',
+                        feedSelectorIntro:
+                            'Votre organisation dispose déjà d’un flux de facturation de voyage consolidée configuré. Sélectionnez-le pour conserver les dépenses de voyage de cet espace de travail sur la même facture mensuelle.',
                     },
                     disableModal: {
                         title: 'Désactiver la facturation voyage consolidée ?',

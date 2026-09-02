@@ -6350,6 +6350,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             sendInvoiceNowCta: 'Verzend factuur nu',
                         },
                         setUpNewFeed: 'Nieuwe reiskoppeling instellen',
+                        feedSelectorIntro:
+                            'Je organisatie heeft al een Consolidated Travel Billing-feed ingesteld. Selecteer die om de reiskosten van deze workspace op dezelfde maandelijkse factuur te houden.',
                     },
                     disableModal: {
                         title: 'Samengevoegde reiskostenfacturatie uitschakelen?',

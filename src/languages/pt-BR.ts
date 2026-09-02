@@ -6354,6 +6354,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             sendInvoiceNowCta: 'Enviar fatura agora',
                         },
                         setUpNewFeed: 'Configurar um novo feed de viagem',
+                        feedSelectorIntro:
+                            'Sua organização já tem um feed de Faturamento Consolidado de Viagens configurado. Selecione-o para manter os gastos de viagem deste workspace na mesma fatura mensal.',
                     },
                     disableModal: {
                         title: 'Desativar Faturamento Consolidado de Viagens?',
