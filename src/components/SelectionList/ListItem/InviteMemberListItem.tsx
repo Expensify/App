@@ -1,6 +1,6 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemContext} from '@components/SelectionList/ListItemContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -67,14 +67,11 @@ function InviteMemberListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
-            errors={item.errors}
-            pendingAction={item.pendingAction}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>{translate('workspace.people.invitedBySecondaryLogin', item.invitedSecondaryLogin)}</Text>
                 ) : undefined
             }
-            keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             shouldDisplayRBR={!(canSelectMultiple && !item.isDisabled)}
@@ -92,7 +89,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                     containerStyle={[styles.actionAvatar, styles.mr3]}
                                 />
                             ) : (
-                                <ReportActionAvatars
+                                <ReportAvatar
                                     subscriptAvatarBorderColor={hovered && !isFocusVisible ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                     secondaryAvatarContainerStyle={[
                                         StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
