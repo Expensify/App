@@ -474,7 +474,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Αντιγραφή στο πρόχειρο',
         thisIsTakingLongerThanExpected: 'Αυτό παίρνει περισσότερο χρόνο από το αναμενόμενο...',
         domains: 'Τομείς',
-        actionRequired: 'Απαιτείται ενέργεια',
         duplicate: 'Διπλότυπο',
         duplicated: 'Διπλότυπο',
         duplicateExpense: 'Διπλή δαπάνη',
@@ -6321,6 +6320,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             finishSetup: 'Ολοκληρώστε τη ρύθμιση',
             chooseBankAccount: 'Επιλέξτε τραπεζικό λογαριασμό',
             chooseExistingBank: 'Επιλέξτε έναν υπάρχοντα επαγγελματικό τραπεζικό λογαριασμό για να πληρώσετε το υπόλοιπο της Κάρτας Expensify ή προσθέστε έναν νέο τραπεζικό λογαριασμό',
+            chooseExistingBankForTravelBilling:
+                'Επιλέξτε έναν υπάρχοντα επαγγελματικό τραπεζικό λογαριασμό για να πληρώσετε το υπόλοιπο του Consolidated Travel Billing σας ή προσθέστε έναν νέο τραπεζικό λογαριασμό',
             accountEndingIn: 'Λογαριασμός που λήγει σε',
             addNewBankAccount: 'Προσθήκη νέου τραπεζικού λογαριασμού',
             settlementAccount: 'Λογαριασμός διακανονισμού',
