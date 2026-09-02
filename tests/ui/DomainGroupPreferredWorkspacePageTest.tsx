@@ -16,6 +16,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {DomainSecurityGroup, Policy} from '@src/types/onyx';
+import type Domain from '@src/types/onyx/Domain';
+import type {SecurityGroupKey} from '@src/types/onyx/Domain';
+import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -73,32 +76,35 @@ async function setUpDomainAdminWithPolicies(policyCount: number) {
 
 /** Merges a security group entry for the domain, so the edit page under test finds an existing group. */
 async function setUpSecurityGroup(groupID: string, group: Partial<DomainSecurityGroup>) {
+    const securityGroupKey: SecurityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+    const domainUpdate: Partial<Domain> = {};
+    domainUpdate[securityGroupKey] = {
+        enableRestrictedPrimaryLogin: false,
+        enableRestrictedPolicyCreation: false,
+        shared: {},
+        ...group,
+    };
     await act(async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
-            [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: {
-                enableRestrictedPrimaryLogin: false,
-                enableRestrictedPolicyCreation: false,
-                shared: {},
-                ...group,
-            },
-        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domainUpdate);
     });
     await waitForBatchedUpdatesWithAct();
 }
 
 /** Marks the security group as pending deletion, which is one of the ways the edit page blocks access. */
 async function setGroupPendingDelete(groupID: string) {
+    const securityGroupKey: SecurityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+    const pendingActionsUpdate: Partial<DomainPendingAction> = {};
+    pendingActionsUpdate[securityGroupKey] = {
+        deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    };
     await act(async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${DOMAIN_ACCOUNT_ID}`, {
-            [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: {
-                deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            },
-        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${DOMAIN_ACCOUNT_ID}`, pendingActionsUpdate);
     });
     await waitForBatchedUpdatesWithAct();
 }
 
-function renderPage(screenName: keyof SettingsNavigatorParamList, component: React.ComponentType, initialParams: Record<string, unknown>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function renderPage(screenName: keyof SettingsNavigatorParamList, component: React.ComponentType<any>, initialParams: Record<string, unknown>) {
     const result = render(
         <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
             <PortalProvider>
