@@ -319,7 +319,7 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
 
         await waitFor(() => {
-            expect(mockJoinAccessiblePolicy).toHaveBeenCalledWith('submit-policy-id');
+            expect(mockJoinAccessiblePolicy.mock.calls.at(0)?.at(0)).toBe('submit-policy-id');
         });
 
         await waitFor(() => {
