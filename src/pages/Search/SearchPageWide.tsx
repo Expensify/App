@@ -32,11 +32,17 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut, LayoutAnimationConfig} from 'react-native-reanimated';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
+
+    /** The last query whose results resolved. Drives the results area so it holds the current results while a new query loads. */
+    contentQueryJSON?: SearchQueryJSON;
+
+    /** Results for `contentQueryJSON`. */
+    contentSearchResults: OnyxEntry<SearchResults>;
 
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
@@ -51,6 +57,8 @@ type SearchPageWideProps = {
 function SearchPageWide({
     queryJSON,
     searchResults,
+    contentQueryJSON,
+    contentSearchResults,
     isMobileSelectionModeEnabled,
     handleSearchAction,
     onSortPressedCallback,
@@ -58,7 +66,7 @@ function SearchPageWide({
     searchOverlayContent,
     onSearchContentReady,
 }: SearchPageWideProps) {
-    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
+    const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
     const styles = useThemeStyles();
     const {currentSearchKey} = useSearchQueryContext();
     const {hasSelectedTransactions} = useSearchSelectionContext();
@@ -114,7 +122,7 @@ function SearchPageWide({
                     onBackButtonPress={handleOnBackButtonPress}
                     shouldShowLink={false}
                 >
-                    {!!queryJSON && (
+                    {!!queryJSON && !!contentQueryJSON && (
                         <>
                             <SearchPageHeaderWide queryJSON={queryJSON} />
                             <SearchActionsBarWide
@@ -125,19 +133,21 @@ function SearchPageWide({
                             <View style={styles.flex1}>
                                 {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                 <LayoutAnimationConfig skipEntering>
-                                    {/* A query change remounts this layer, which stays hidden for the delay before fading in. A query that
-                                        resolves inside that window swaps straight to its results without showing a skeleton. */}
+                                    {/* A resolved query change remounts this layer: the outgoing one fades out and the incoming one waits
+                                        for it to finish before fading in. Both layers are absolutely filled so the outgoing fade overlays
+                                        the incoming layer instead of sharing the column layout. */}
                                     <Animated.View
-                                        key={queryJSON.hash}
+                                        key={contentQueryJSON.hash}
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
                                         {shouldShowLoadingSkeleton ? (
                                             <SearchLoadingSkeleton />
                                         ) : (
                                             <SearchWithNavigationDeferredMount
-                                                queryJSON={queryJSON}
-                                                searchResults={searchResults}
+                                                queryJSON={contentQueryJSON}
+                                                searchResults={contentSearchResults}
                                                 handleSearch={handleSearchAction}
                                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                                 onSearchListScroll={scrollHandler}
