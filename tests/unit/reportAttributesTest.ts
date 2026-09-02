@@ -792,13 +792,13 @@ describe('reportAttributes compute — policy change code flow', () => {
     describe('reportMetadata', () => {
         const singleReport: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1};
 
-        it('forwards the report metadata collection to generateReportAttributes instead of letting it read the module cache', () => {
+        it("forwards the report's own metadata to generateReportAttributes instead of letting it read the module cache", () => {
             const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
             generateReportAttributes.mockClear();
 
-            const reportMetadata: OnyxCollection<ReportMetadata> = {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}r1`]: {pendingChatMembers: []}};
+            const reportMetadata: ReportMetadata = {pendingChatMembers: []};
             const args = buildArgs(policies, singleReport);
-            args[12] = reportMetadata;
+            args[12] = {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}r1`]: reportMetadata};
 
             config.compute(args, {
                 currentValue: undefined,

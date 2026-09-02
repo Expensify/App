@@ -1726,7 +1726,7 @@ function buildFullOption(accountID: number, item: PersonalDetails | null, report
             visibleReportActionsData,
             currentUserAccountID,
             translate,
-            // Not needed here: reportMapForAccountIDs only ever holds 1:1 DMs, so `report` is never a group chat.
+            // Passing pendingDeleteMemberAccountIDs as undefined is intentional, `report` here is always a 1:1 DM, never a group chat.
             pendingDeleteMemberAccountIDs: undefined,
         }),
         isHydrated: true,

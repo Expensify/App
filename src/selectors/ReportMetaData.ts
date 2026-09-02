@@ -37,10 +37,16 @@ const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCol
     const result: Record<string, string[]> = {};
 
     for (const [key, metadata] of Object.entries(reportMetadata ?? {})) {
-        const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(metadata?.pendingChatMembers);
+        // Reports with no pending members at all are the overwhelming majority, so skip them before doing any work.
+        if (!metadata?.pendingChatMembers?.length) {
+            continue;
+        }
+
+        const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(metadata.pendingChatMembers);
         if (pendingDeleteMemberAccountIDs.length === 0) {
             continue;
         }
+
         result[key.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '')] = pendingDeleteMemberAccountIDs;
     }
 

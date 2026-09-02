@@ -549,6 +549,7 @@ export default createOnyxDerivedValueConfig({
                 const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
                 const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
                 const isReportArchived = isArchivedReport(reportNameValuePair);
+                const reportReportMetadata = reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
                 const {
                     hasAnyViolations,
                     requiresAttention,
@@ -565,7 +566,7 @@ export default createOnyxDerivedValueConfig({
                     allTransactions: transactions,
                     reports,
                     policies,
-                    reportMetadata,
+                    reportMetadata: reportReportMetadata,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
                 });
@@ -619,7 +620,6 @@ export default createOnyxDerivedValueConfig({
                     actionTargetReportActionID = actionGreenTargetReportActionID;
                 }
 
-                const reportReportMetadata = reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
                 const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(reportReportMetadata?.pendingChatMembers);
                 // Skip computeReportName when the name can't have changed (see nameSkipKeys).
                 const cachedName = currentValue?.reports?.[report.reportID]?.reportName;
