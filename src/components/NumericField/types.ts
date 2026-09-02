@@ -7,12 +7,6 @@ import type {StyleProp, TextStyle} from 'react-native';
 type NumericFieldRef = NumericEditingRef;
 
 type NumericTextInputProps = {
-    /** Symbol displayed next to the number. */
-    symbol?: string;
-
-    /** Whether the symbol should be hidden. */
-    hideSymbol?: boolean;
-
     /** Style applied to the number input. */
     style?: StyleProp<TextStyle>;
 
@@ -35,6 +29,7 @@ type NumericTextInputProps = {
     | 'onBlur'
     | 'onFocus'
     | 'onSubmitEditing'
+    | 'prefixCharacter'
     | 'prefixContainerStyle'
     | 'prefixStyle'
     | 'shouldApplyPaddingToContainer'

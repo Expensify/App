@@ -127,8 +127,7 @@ function AmountForm({
                 onSubmitEditing={onSubmitEditing}
             >
                 <NumericField.TextInput
-                    symbol={symbol}
-                    hideSymbol={hideCurrencySymbol}
+                    prefixCharacter={hideCurrencySymbol ? '' : symbol}
                     accessibilityLabel={label}
                     label={label}
                     disabled={disabled}

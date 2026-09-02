@@ -341,7 +341,7 @@ describe('NumericField.TextInput', () => {
         const onBlur = jest.fn();
 
         // Given a TextInput with an error message, onBlur, and a ref
-        renderTextInput({symbol: '$', label: 'Amount'}, {value: '10', errorText: 'Invalid text number', onBlur, ref: inputRef});
+        renderTextInput({prefixCharacter: '$', label: 'Amount'}, {value: '10', errorText: 'Invalid text number', onBlur, ref: inputRef});
         await waitForBatchedUpdatesWithAct();
 
         expect(inputRef.current).toBeTruthy();

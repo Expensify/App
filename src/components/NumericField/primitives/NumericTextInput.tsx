@@ -12,8 +12,7 @@ import type {BlurEvent, TextInputSelectionChangeEvent} from 'react-native';
 
 /** Text input primitive connected to a NumericField root. */
 function NumericTextInput({
-    symbol = '',
-    hideSymbol = false,
+    prefixCharacter = '',
     ref,
     onKeyPress,
     onBlur,
@@ -39,8 +38,6 @@ function NumericTextInput({
 }: NumericTextInputProps) {
     const {errorText, formattedNumber, selection} = useNumericFieldState();
     const {handleBlur, handleKeyPress, handleSelectionChange, inputRef, onSubmitEditing, setNumber} = useNumericFieldActions();
-
-    const prefixCharacter = !hideSymbol ? symbol : '';
 
     const handleInputKeyPress = (event: NumericEditingKeyPressEvent) => {
         handleKeyPress(event);

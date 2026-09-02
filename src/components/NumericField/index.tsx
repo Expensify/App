@@ -17,7 +17,7 @@
  *   errorText={error}
  * >
  *   <NumericField.TextInput
- *     symbol="$"
+ *     prefixCharacter="$"
  *     label="Amount"
  *   />
  * </NumericField>
