@@ -89,6 +89,7 @@ const SCREENS = {
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmValidateCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
+        TROUBLESHOOT_SERVER: 'Settings_Troubleshoot_Server',
         HELP: 'Settings_Help',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
@@ -1094,6 +1095,7 @@ const SCREENS = {
     },
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
+        SERVER: 'TestToolsModal_Server',
     },
     WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
     WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',

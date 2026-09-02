@@ -213,6 +213,21 @@ describe('ApiUtils', () => {
         });
     });
 
+    // Switching servers signs the user out, and that LogOut has to reach the server being left.
+    describe('a request pinned to one server', () => {
+        it('routes to the pinned server rather than the active one', async () => {
+            await setActiveServer(CONST.SERVER.QA);
+
+            expect(ApiUtils.getApiRoot({server: CONST.SERVER.PRODUCTION})).toBe('https://www.expensify.com/');
+        });
+
+        it('routes to QA when QA is the pinned server and something else is active', async () => {
+            await setActiveServer(CONST.SERVER.PRODUCTION);
+
+            expect(ApiUtils.getApiRoot({server: CONST.SERVER.QA})).toBe('https://qa.exops.io/');
+        });
+    });
+
     describe('getActiveServer', () => {
         it('returns staging when the staging server is active', async () => {
             await setActiveServer(CONST.SERVER.STAGING);
