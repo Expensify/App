@@ -1,7 +1,7 @@
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {hasDomainErrors} from '@libs/DomainUtils';
-import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
+import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyAdmin,

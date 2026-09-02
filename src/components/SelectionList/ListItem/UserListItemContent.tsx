@@ -155,7 +155,7 @@ function UserListItemContent<TItem extends ListItem>({
                 <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                     <Icon
                         src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isHovered, false, false, !!isDisabled, item.isInteractive !== false))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered, isDisabled: !!isDisabled, isInteractive: item.isInteractive !== false})})}
                     />
                 </View>
             )}
