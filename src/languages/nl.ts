@@ -6160,6 +6160,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             finishSetup: 'Configuratie voltooien',
             chooseBankAccount: 'Kies bankrekening',
             chooseExistingBank: 'Kies een bestaande zakelijke bankrekening om je saldo van de Expensify Kaart te betalen, of voeg een nieuwe bankrekening toe',
+            chooseExistingBankForTravelBilling: 'Kies een bestaande zakelijke bankrekening om je geconsolideerde reissaldi te betalen, of voeg een nieuwe bankrekening toe',
             accountEndingIn: 'Rekening eindigend op',
             addNewBankAccount: 'Nieuwe bankrekening toevoegen',
             settlementAccount: 'Verrekeningsrekening',
