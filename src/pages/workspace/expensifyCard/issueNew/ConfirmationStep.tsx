@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,7 +20,6 @@ import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIs
 import {getIssuedCardFeedCountry, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -45,7 +45,7 @@ type ConfirmationStepProps = {
 };
 
 function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -58,6 +58,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const {cardRules} = useExpensifyCardRules(policyID);
 
     const data = issueNewCard?.data;
+    const cardholder = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return formatPhoneNumber(personalDetail?.displayName || data?.assigneeEmail || '');
+    });
     const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isSpendRuleApplied = !!issueNewCard?.data.spendRuleEnabled;
@@ -189,7 +193,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate(cardReadyTranslationKey)}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
-                    title={getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
+                    title={cardholder}
                     shouldShowRightIcon={!issueNewCard?.isChangeAssigneeDisabled}
                     interactive={!issueNewCard?.isChangeAssigneeDisabled}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}

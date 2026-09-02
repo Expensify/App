@@ -36,7 +36,6 @@ function createAdminPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Pol
         type: CONST.POLICY.TYPE.TEAM,
         owner: 'admin@workspace.com',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: false,
         ...overrides,
     };
 }
