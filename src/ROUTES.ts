@@ -98,7 +98,11 @@ const DYNAMIC_ROUTES = {
         path: 'verify-account',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.ADD_BANK_ACCOUNT,
             SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS,
+            SCREENS.WORKSPACE.COMPANY_CARDS,
+            SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED,
+            SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS,
             SCREENS.HOME,
             SCREENS.SEARCH.ROOT,
             SCREENS.REPORT,
@@ -156,10 +160,15 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SEARCH.ROOT,
         ],
-        // Entry points that already know the user is adding a personal deposit account (e.g. a queued reimbursement) pass true so the
-        // bank account purpose screen isn't shown after validation.
-        getRoute: (shouldSkipPurposeSelection?: boolean) => `add-bank-account/verify-account${shouldSkipPurposeSelection ? '?shouldSkipPurposeSelection=true' : ''}` as const,
-        queryParams: ['shouldSkipPurposeSelection'],
+        // Entry points that already know the user is adding a personal deposit account (e.g. a queued reimbursement).
+        getRoute: (shouldSkipPurposeSelection?: boolean, shouldSetUpUSBankAccount?: boolean) =>
+            getUrlWithParams('add-bank-account/verify-account', {
+                // If true the bank account purpose screen isn't shown after validation
+                shouldSkipPurposeSelection: shouldSkipPurposeSelection ? 'true' : undefined,
+                // If true US bank account setup flow must be started after validation
+                shouldSetUpUSBankAccount: shouldSetUpUSBankAccount ? 'true' : undefined,
+            }),
+        queryParams: ['shouldSkipPurposeSelection', 'shouldSetUpUSBankAccount'],
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
@@ -1143,6 +1152,14 @@ const DYNAMIC_ROUTES = {
         path: 'owner-change-failure',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK, SCREENS.WORKSPACE.MEMBER_DETAILS],
     },
+    WORKSPACE_HR_SYNC_RESULTS: {
+        // `policyID` is not repeated here: both entry screens are already workspace-scoped, so the
+        // suffix inherits their `:policyID` (same as WORKSPACE_INVITE above).
+        path: 'hr-sync-results',
+        // The results screen opens automatically when an HR sync finishes, and a sync can complete
+        // while the user is on either the HR page or the members list, so both are entry screens.
+        entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.MEMBERS],
+    },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
         entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACES_LIST],
@@ -1222,6 +1239,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS,
             SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS,
             SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST,
+            SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT_CARD_LIST,
         ],
         getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/export/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
     },
@@ -1984,6 +2002,7 @@ const ROUTES = {
     },
     SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
     SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
+    SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP: 'search/edit-multiple/attendees',
     SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
     MOVE_TRANSACTIONS_SEARCH_RHP: {
         route: 'search/move-transactions/search/:backTo?',
@@ -2251,7 +2270,6 @@ const ROUTES = {
             return `settings/wallet/update-personal-bank-account/${subPage}` as const;
         },
     },
-    SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
     SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
     SETTINGS_ENABLE_PAYMENTS: {
         route: 'settings/wallet/enable-payments/:page?/:subPage?/:action?',
@@ -3454,11 +3472,6 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: {
         route: 'workspaces/:policyID/company-cards/:feed/refresh-card-feed-connection',
         getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/refresh-card-feed-connection` as const,
-    },
-    WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT: {
-        route: `workspaces/:policyID/company-cards/${VERIFY_ACCOUNT}`,
-        getRoute: (policyID: string, feed?: CompanyCardFeedWithDomainID) =>
-            feed ? (`workspaces/${policyID}/company-cards/${VERIFY_ACCOUNT}?feed=${encodeURIComponent(feed)}` as const) : (`workspaces/${policyID}/company-cards/${VERIFY_ACCOUNT}` as const),
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/card-selection',
@@ -4687,13 +4700,25 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/dualentry/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/company-card-account` as const,
     },
-    POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/dualentry/export/expensify-card-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/expensify-card-account` as const,
-    },
     POLICY_ACCOUNTING_DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR: {
         route: 'workspaces/:policyID/accounting/dualentry/export/default-company-card-vendor',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/dualentry/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/dualentry/export/card-account/${encodeURIComponent(feed)}` as const,
     },
     POLICY_ACCOUNTING_DUALENTRY_ADVANCED: {
         route: 'workspaces/:policyID/accounting/dualentry/advanced',
@@ -4835,6 +4860,10 @@ const ROUTES = {
     WORKSPACES_DOMAIN_ACCESS_RESTRICTED: {
         route: 'workspaces/domain-access-restricted/:domainAccountID',
         getRoute: (domainAccountID: number) => `workspaces/domain-access-restricted/${domainAccountID}` as const,
+    },
+    WORKSPACES_DOMAIN_ALREADY_EXISTS: {
+        route: 'workspaces/domain-already-exists/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-already-exists/${domainAccountID}` as const,
     },
     DOMAIN_INITIAL: {
         route: 'domain/:domainAccountID',

@@ -308,6 +308,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Χρεώσιμη',
         nonBillable: 'Μη χρεώσιμο',
         tag: 'Ετικέτα',
+        violations: 'Παραβάσεις',
         receipt: 'Απόδειξη',
         verified: 'Επαληθευμένο',
         replace: 'Αντικατάσταση',
@@ -424,6 +425,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Έκθεση εξόδων',
         rateOutOfPolicy: 'Ποσοστό εκτός πολιτικής',
         leaveWorkspace: 'Έξοδος από τον χώρο εργασίας',
+        leaveWorkspaceTitle: (workspaceName: string) => `Έξοδος από το ${workspaceName};`,
         leaveWorkspaceConfirmation: 'Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, δεν θα μπορείτε να υποβάλλετε σε αυτόν έξοδα.',
         leaveWorkspaceConfirmationAuditor: 'Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, δεν θα μπορείτε να δείτε τις αναφορές και τις ρυθμίσεις του.',
         leaveWorkspaceConfirmationAdmin: 'Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, δεν θα μπορείτε να διαχειρίζεστε τις ρυθμίσεις του.',
@@ -4657,6 +4659,10 @@ ${amount} για ${merchant} - ${date}`,
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε σιδηροδρομικά ταξίδια απευθείας στο Expensify; Την επόμενη φορά αποφύγετε την ταλαιπωρία της χειροκίνητης δημιουργίας του εξόδου σας και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ταξίδια με τρένο απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
+            hotelBlockCard:
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
@@ -4725,6 +4731,7 @@ ${amount} για ${merchant} - ${date}`,
             settlementFrequency: 'Συχνότητα εκκαθάρισης',
             setAsDefault: 'Ορισμός ως προεπιλεγμένου χώρου εργασίας',
             defaultNote: `Οι αποδείξεις που αποστέλλονται στο ${CONST.EMAIL.RECEIPTS} θα εμφανίζονται σε αυτόν τον χώρο εργασίας.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `Διαγραφή του ${workspaceName};`,
             deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον χώρο εργασίας;',
             deleteWithCardsConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον χώρο εργασίας; Θα αφαιρεθούν όλες οι ροές καρτών και οι ανατεθειμένες κάρτες.',
             deleteOpenExpensifyCardsError: 'Η εταιρεία σας έχει ακόμη Κάρτες Expensify. Παρακαλούμε <concierge-link>επικοινωνήστε με το Concierge</concierge-link> για να τις αφαιρέσετε.',
@@ -6028,9 +6035,34 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 label: 'Λογαριασμός εταιρικής κάρτας',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
             },
-            expensifyCardAccount: {
-                label: 'Λογαριασμός Expensify Card',
-                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές της Expensify Card.',
+            exportToMultipleAccounts: 'Ρυθμίστε την εξαγωγή σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα καρτών.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} πρόγραμμα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} προγράμματα με προσαρμοσμένους λογαριασμούς`;
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παράκαμψη του λογαριασμού προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} κάρτα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} κάρτες με προσαρμοσμένους λογαριασμούς`;
+                },
             },
             autoSyncDescription: 'Συγχρονίστε αυτόματα το DualEntry και το Expensify κάθε μέρα. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
             accountingMethods: {
@@ -6186,6 +6218,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     category: 'Κατηγορία',
                     tag: 'Ετικέτα',
                     cardName: 'Όνομα κάρτας',
+                    uniqueID: 'Μοναδικό αναγνωριστικό',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Παρακαλούμε αντιστοιχίστε μια στήλη σε καθεμία από τις ιδιότητες: ${missingColumns}.`,
@@ -6362,6 +6395,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             deleteFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη διαγραφή της κατηγορίας, δοκιμάστε ξανά',
             categoryName: 'Όνομα κατηγορίας',
             requiresCategory: 'Τα μέλη πρέπει να κατηγοριοποιούν όλες τις δαπάνες',
+            autoCategorizeNewExpenses: 'Αυτόματη κατηγοριοποίηση νέων δαπανών',
             showCategoryGLCodes: 'Εμφάνιση κωδικών GL κατά την κατηγοριοποίηση δαπανών',
             needCategoryForExportToIntegration: (connectionName: string) => `Όλες οι δαπάνες πρέπει να κατηγοριοποιηθούν για να γίνει η εξαγωγή στο ${connectionName}.`,
             subtitle: 'Αποκτήστε μια καλύτερη εικόνα για το πού ξοδεύονται τα χρήματα. Χρησιμοποιήστε τις προεπιλεγμένες κατηγορίες μας ή προσθέστε τις δικές σας.',
@@ -6682,6 +6716,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             vendors: {
                 title: 'Προμηθευτές',
                 subtitle: 'Ταιριάξτε τα έξοδα κάρτας με προμηθευτές που έχουν εισαχθεί από το λογιστικό σας λογισμικό.',
+                disabledTitle: 'Όχι τόσο γρήγορα...',
+                disabledMessage: 'Για να ενεργοποιήσετε ή να απενεργοποιήσετε αυτήν τη λειτουργία, θα πρέπει να αλλάξετε τις ρυθμίσεις εισαγωγής λογιστικής.',
             },
         },
         reports: {
@@ -7505,12 +7541,14 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     title: 'Ομάδες',
                     description: 'Επιλέξτε τις ομάδες υπαλλήλων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
                 },
-                syncLimitReached: {
-                    title: 'Δοκιμάστε ξανά αύριο',
-                    prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
-                },
             },
             findIntegration: 'Βρείτε ενοποίηση',
+        },
+        merge: {
+            syncLimitReached: {
+                title: 'Δοκιμάστε ξανά αύριο',
+                prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
+            },
         },
         export: {
             notReadyHeading: 'Μη έτοιμο για εξαγωγή',
@@ -8143,6 +8181,7 @@ ${reportName}`,
                 requireItemizedReceipt: 'Απαιτείται αναλυτική απόδειξη',
                 requireAboveAmount: 'Να απαιτείται το παραπάνω ποσό',
                 emptyAmountError: 'Εισαγάγετε ένα έγκυρο ποσό πριν αποθηκεύσετε',
+                receiptAmountGreaterThanItemizedError: 'Το απαιτούμενο ποσό απόδειξης δεν μπορεί να είναι μεγαλύτερο από το απαιτούμενο ποσό αναλυτικής απόδειξης.',
                 saveRule: 'Αποθήκευση κανόνα',
             },
             requireFields: {
@@ -8375,6 +8414,10 @@ ${reportName}`,
                 confirmErrorCategory: 'Παρακαλώ επιλέξτε κατηγορία.',
                 confirmErrorAmount: 'Παρακαλώ εισαγάγετε ένα ποσό.',
                 thenFlagForReview: 'Στη συνέχεια επισημάνετε για έλεγχο όταν:',
+                thenDoTheFollowing: 'Στη συνέχεια κάντε τα εξής:',
+                flagType: 'Τύπος σημαίας',
+                flagTypeWarning: 'Προειδοποίηση',
+                flagTypeWarningDescription: 'Ο υποβάλλων θα ειδοποιηθεί, αλλά θα μπορεί ακόμα να υποβάλει την δαπάνη',
             },
             categoryRules: {
                 title: 'Κανόνες κατηγορίας',
@@ -8842,10 +8885,10 @@ ${reportName}`,
             return `πρόσθεσε τον φορολογικό συντελεστή «${newValue} (${newTaxPercentage})» στον συντελεστή απόστασης «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `άλλαξε το ανακτήσιμο φόρου τμήμα στο τιμολόγιο απόστασης «${customUnitRateName}» σε «${newValue}» (προηγουμένως «${oldValue}»)`;
+            if (oldValue !== undefined) {
+                return `άλλαξε το ανακτήσιμο φόρου τμήμα στο τιμολόγιο απόστασης «${customUnitRateName}» σε «${newValue}%» (προηγουμένως «${oldValue}%»)`;
             }
-            return `προστέθηκε φορολογικά επιστρεπτέο μέρος «${newValue}» στο χιλιομετρικό κόστος «${customUnitRateName}»`;
+            return `προστέθηκε φορολογικά επιστρεπτέο μέρος «${newValue}%» στο χιλιομετρικό κόστος «${customUnitRateName}»`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `μετονόμασε την τιμή ${customUnitName} από «${oldValue}» σε «${newValue}»`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9399,6 +9442,7 @@ ${reportName}`,
             topSpenders: 'Κορυφαίοι δαπανώντες',
             topCategories: 'Κορυφαίες κατηγορίες',
             topMerchants: 'Κορυφαίοι έμποροι',
+            violationsBySubmitter: 'Παραβάσεις από τον υποβάλλοντα',
         },
         resultsAreLimited: 'Τα αποτελέσματα αναζήτησης είναι περιορισμένα.',
         viewResults: 'Προβολή αποτελεσμάτων',
@@ -9552,6 +9596,7 @@ ${reportName}`,
             approved: 'Εγκρίθηκε',
             firstApprover: 'Πρώτος εγκρίνων',
             firstApproved: 'Πρώτη έγκριση',
+            paidBy: 'Πληρώθηκε από',
             paid: 'Πληρωμένο',
             exported: 'Έγινε εξαγωγή',
             posted: 'Καταχωρισμένο',
@@ -9853,6 +9898,8 @@ ${reportName}`,
         time: 'Ώρα (χρησιμοποιήστε 24ωρη μορφή)',
         durationAmount: 'Διάρκεια',
         durationUnit: 'Μονάδα',
+        leaveType: 'Τύπος άδειας',
+        normalOOO: 'Κανονική άδεια OOO',
         reason: 'Αιτία',
         workingPercentage: 'Ποσοστό εργασίας',
         dateRequired: 'Η ημερομηνία έναρξης είναι υποχρεωτική.',
@@ -10396,6 +10443,53 @@ ${reportName}`,
         noRoute: 'Παρακαλούμε επιλέξτε μια έγκυρη διεύθυνση',
         cannotMergeDuplicates: 'Μπορείτε να συγχωνεύετε έξοδα μόνο σε πρόχειρες ή εκκρεμείς αναφορές. Ανακαλέστε την και δοκιμάστε ξανά.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Νυχτερινή χρέωση πάνω από το όριο κατηγορίας ${formattedLimit}/άτομο`,
+        shortName: {
+            allTagLevelsRequired: 'Απαιτούνται όλες οι ετικέτες',
+            autoReportedRejectedExpense: 'Η δαπάνη απορρίφθηκε',
+            billableExpense: 'Η χρέωση δεν ισχύει πλέον',
+            cashExpenseWithNoReceipt: 'Απαιτείται απόδειξη',
+            categoryOutOfPolicy: 'Η κατηγορία δεν είναι πλέον έγκυρη',
+            companyCardRequired: 'Απαιτείται εταιρική κάρτα',
+            conversionSurcharge: 'Εφαρμόστηκε προσαύξηση μετατροπής',
+            customUnitOutOfPolicy: 'Μη έγκυρη χρέωση για τον χώρο εργασίας',
+            customUnitRateOutOfDateRange: 'Χρέωση εκτός έγκυρων ημερομηνιών',
+            duplicatedTransaction: 'Πιθανό διπλότυπο',
+            fieldRequired: 'Απαραίτητο πεδίο αναφοράς',
+            futureDate: 'Δεν επιτρέπεται μελλοντική ημερομηνία',
+            hold: 'Δαπάνη σε αναμονή',
+            inactiveVendor: 'Ο προμηθευτής δεν είναι πλέον έγκυρος',
+            increasedDistance: 'Η απόσταση υπερβαίνει τη διαδρομή',
+            invoiceMarkup: 'Το τιμολόγιο σημειώθηκε',
+            itemizedReceiptRequired: 'Απαιτείται αναλυτική απόδειξη',
+            maxAge: 'Η ημερομηνία είναι παλαιότερη από το μέγιστο επιτρεπτό όριο δαπάνης',
+            missingAttendees: 'Απαιτούνται συμμετέχοντες',
+            missingCategory: 'Λείπει κατηγορία',
+            missingComment: 'Απαιτείται περιγραφή',
+            missingTag: 'Ελλιπής ετικέτα',
+            modifiedAmount: 'Το ποσό τροποποιήθηκε',
+            modifiedDate: 'Ημερομηνία τροποποίησης',
+            noRoute: 'Μη έγκυρη διαδρομή',
+            nonExpensiworksExpense: 'Έξοδο εκτός Expensiworks',
+            overAutoApprovalLimit: 'Πάνω από το όριο αυτόματης έγκρισης',
+            overCategoryLimit: 'Πέρα από το όριο κατηγορίας',
+            overLimit: 'Υπέρβαση ορίου',
+            overTripLimit: 'Υπέρβαση ορίου ταξιδιού',
+            perDayLimit: 'Υπέρβαση ημερήσιου ορίου',
+            prohibitedExpense: 'Απαγορευμένη δαπάνη',
+            receiptGeneratedWithAI: 'Πιθανή απόδειξη που δημιουργήθηκε από AI',
+            receiptNotSmartScanned: 'Η απόδειξη προστέθηκε χειροκίνητα',
+            receiptRequired: 'Απαιτείται απόδειξη',
+            rter: 'Αναμονή αντιστοίχισης κάρτας',
+            smartscanFailed: 'Η σάρωση απόδειξης απέτυχε',
+            someTagLevelsRequired: 'Απαιτείται ετικέτα',
+            tagOutOfPolicy: 'Η ετικέτα δεν είναι πλέον έγκυρη',
+            overLimitAttendee: 'Υπέρβαση ορίου ατόμων',
+            customRules: 'Παραβίαση προσαρμοσμένου κανόνα',
+            taxAmountChanged: 'Το ποσό φόρου τροποποιήθηκε',
+            taxOutOfPolicy: 'Ο φορολογικός συντελεστής δεν είναι πλέον έγκυρος',
+            taxRateChanged: 'Ο φορολογικός συντελεστής τροποποιήθηκε',
+            taxRequired: 'Λείπει ο φορολογικός συντελεστής',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Απαιτείται το πεδίο ${fieldName}`,
@@ -10971,6 +11065,7 @@ ${reportName}`,
     domain: {
         notVerified: 'Μη επαληθευμένο',
         retry: 'Προσπαθήστε ξανά',
+        requestSent: 'Το αίτημα εστάλη',
         verifyDomain: {
             title: 'Επαλήθευση τομέα',
             beforeProceeding: ({domainName}: {domainName: string}) => `Πριν συνεχίσετε, επιβεβαιώστε ότι σας ανήκει το <strong>${domainName}</strong> ενημερώνοντας τις ρυθμίσεις DNS του.`,
@@ -11043,6 +11138,14 @@ ${reportName}`,
             subtitle: 'Εισαγάγετε το όνομα του ιδιωτικού domain που θέλετε να αποκτήσετε πρόσβαση (π.χ. expensify.com).',
             domainName: 'Όνομα τομέα',
             newDomain: 'Νέος τομέας',
+            alreadyHaveAccessError: 'Αυτός ο τομέας υπάρχει ήδη στον λογαριασμό σας.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Ο τομέας υπάρχει',
+            title: 'Ο τομέας έχει ήδη ρυθμιστεί. Αίτημα πρόσβασης;',
+            description: 'Κάποιος έχει ήδη ρυθμίσει αυτόν τον τομέα στο Expensify. Θέλετε να ζητήσετε πρόσβαση διαχειριστή;',
+            requestAccess: 'Αίτημα πρόσβασης διαχειριστή',
+            requestAccessError: 'Δεν μπορέσαμε να στείλουμε το αίτημά σου. Παρακαλώ δοκίμασε ξανά.',
         },
         domainAdded: {
             title: 'Το domain προστέθηκε',
@@ -11145,6 +11248,7 @@ ${reportName}`,
             forceTwoFactorAuthError: 'Η επιβολή ελέγχου ταυτότητας δύο παραγόντων δεν μπόρεσε να αλλάξει. Δοκιμάστε ξανά αργότερα.',
             resetTwoFactorAuth: 'Επαναφορά ελέγχου ταυτότητας δύο παραγόντων',
             error: 'Δεν ήταν δυνατή η αποθήκευση αυτής της αλλαγής. Παρακαλούμε δοκιμάστε ξανά.',
+            neverMind: 'Δεν πειράζει',
         },
         groups: {
             title: 'Ομάδες',
@@ -11158,7 +11262,6 @@ ${reportName}`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Είστε βέβαιοι ότι θέλετε να ορίσετε το ${newName} ως προεπιλεγμένη ομάδα; Τα νέα μέλη θα προσκαλούνται σε αυτήν την ομάδα αντί για την προηγούμενη προεπιλεγμένη ομάδα (${currentName}).`,
             makeDefault: 'Ορισμός ως προεπιλογή',
-            neverMind: 'Δεν πειράζει',
             createGroupError: 'Δεν είναι δυνατή η δημιουργία αυτής της ομάδας. Παρακαλούμε προσπαθήστε ξανά.',
             permissions: 'Δικαιώματα ομάδας',
             createNewGroupButton: 'Νέα ομάδα',
