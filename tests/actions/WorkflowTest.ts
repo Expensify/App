@@ -1073,7 +1073,7 @@ describe('actions/Workflow', () => {
             // The default workflow is rule-backed and routes to the owner.
             await createForwardApproveRules(policyID, [employee1Email], ownerEmail, 'default', true);
 
-            // A new workflow for employee2 whose only approver is the default approver — the same chain.
+            // A new workflow for employee2 whose only approver is the default approver. That is the same chain.
             const approvalWorkflow = {
                 members: [{email: employee2Email, displayName: employee2Email}],
                 approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
@@ -1482,7 +1482,8 @@ describe('actions/Workflow', () => {
             });
             await waitForBatchedUpdates();
 
-            // 3. Delete it, the way the edit page does — passing the default workflow the converter resolves.
+            // 3. Delete it, the way the edit page does. That means passing the default workflow the converter
+            // resolves.
             const policyAfterCreate = await getOnyxValue(policyKey);
             const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
                 policy: policyAfterCreate,
@@ -1609,7 +1610,7 @@ describe('actions/Workflow', () => {
                 id: policyID,
                 owner: ownerEmail,
                 // The default workflow was edited to approve through employee3, but employeeList still names the
-                // owner — the state a removed member would fall back to without any rule covering them.
+                // owner. That is the state a removed member would fall back to without any rule covering them.
                 approver: employee3Email,
                 employeeList: {
                     [employee1Email]: {email: employee1Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
@@ -1724,7 +1725,7 @@ describe('actions/Workflow', () => {
                 rules: {},
             };
 
-            // Only the workflow being removed is rule-backed; the default workflow still lives in employeeList,
+            // Only the workflow being removed is rule-backed. The default workflow still lives in employeeList,
             // and employee2 already submits to the default approver there.
             await createForwardApproveRules(policyID, [employee2Email], employee3Email);
 

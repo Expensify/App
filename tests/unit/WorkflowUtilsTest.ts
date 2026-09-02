@@ -1889,7 +1889,7 @@ describe('WorkflowUtils', () => {
             });
 
             it('Should prefer the default marker over the first approver when the rules carry one', () => {
-                // 5 is in the marked default workflow; 6 is in a custom workflow starting at the same approver.
+                // 5 is in the marked default workflow. 6 is in a custom workflow starting at the same approver.
                 // Matching on the first approver alone would wrongly drop 6 along with 5.
                 const rules = keyRules([...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})), ...buildApprovalWorkflowRules(buildWorkflow([6], [1, 2]))]);
 
@@ -1995,7 +1995,7 @@ describe('WorkflowUtils', () => {
 
             it('Should keep a custom workflow that starts at the default approver separate from the default one', () => {
                 // Both chains start at approver 1 (the policy's default approver) and diverge after it. Only the
-                // marked chain is the default; the other must render as its own workflow.
+                // marked chain is the default. The other must render as its own workflow.
                 const rules = keyRules([...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})), ...buildApprovalWorkflowRules(buildWorkflow([6], [1, 2]))]);
                 const employees: PolicyEmployeeList = {
                     '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
