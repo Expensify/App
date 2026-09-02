@@ -650,7 +650,7 @@ function MenuItem({
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
     const pressableRef = useRef<View>(null);
-    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
     useRemoveNonInteractiveClickHandler(pressableRef, interactive);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompactMenu = useIsCompactMenu();
@@ -837,7 +837,7 @@ function MenuItem({
     };
 
     const secondaryInteraction = (event: GestureResponderEvent | MouseEvent) => {
-        if (isTitleSelectable && isPressStartOnCopyableText(event)) {
+        if (isTitleSelectable && (shouldSuppressCopyableTextRowLongPress() || isPressStartOnCopyableText(event))) {
             return;
         }
         if (!copyValue) {
@@ -890,6 +890,9 @@ function MenuItem({
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
+                                }}
+                                onTouchStart={(event) => {
+                                    markTouchStartOnCopyableText(event, isTitleSelectable && isPressStartOnCopyableText(event));
                                 }}
                                 shouldAllowTextSelection={isTitleSelectable}
                                 preventDefaultContextMenu={(event) => deviceHasHoverSupport || !isTitleSelectable || !isPressStartOnCopyableText(event)}
