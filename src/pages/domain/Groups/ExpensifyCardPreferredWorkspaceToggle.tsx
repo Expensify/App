@@ -1,4 +1,5 @@
 import useConfirmModal from '@hooks/useConfirmModal';
+import useIsDomainUsingCard from '@hooks/useIsDomainUsingCard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,11 +41,10 @@ function ExpensifyCardPreferredWorkspaceToggle({domainAccountID, groupID}: Expen
     const preferredPolicyID = group?.restrictedPrimaryPolicyID;
     const isPreferredPolicyEnabled = !!group?.enableRestrictedPrimaryPolicy && !!preferredPolicyID;
 
-    const [domainCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
-    const isDomainUsingExpensifyCard = !!domainCardSettings;
+    const isDomainUsingCard = useIsDomainUsingCard(domainAccountID);
 
     const isActive = !!group?.overridePreferredPolicyWithCardPolicy;
-    const isDisabled = (!isPreferredPolicyEnabled || !isDomainUsingExpensifyCard) && !isActive;
+    const isDisabled = (!isPreferredPolicyEnabled || !isDomainUsingCard) && !isActive;
 
     return (
         <View style={styles.mv3}>
