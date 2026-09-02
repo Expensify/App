@@ -3,9 +3,9 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {WRITE_COMMANDS} from '@libs/API/types';
 import {showSupportalPermissionDenied} from '@libs/actions/App';
 import {startNewChat} from '@libs/actions/Report';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
