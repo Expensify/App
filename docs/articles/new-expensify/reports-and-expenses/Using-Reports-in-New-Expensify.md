@@ -47,7 +47,12 @@ Filter reports by type, status, category, or date to find specific information.
    - **Paid by:** The member who paid the report. On the **Expense Report** type, this sits directly below **Paid status**. On the **Expense** type, it sits directly below **Paid**.
 6. Click **View Results** to see the filtered results.
 
-![Spend page showing available report filtering options]({{site.url}}/assets/images/Filter-reports.png){:width="100%"}
+<!-- SCREENSHOT:
+Suggestion: The Spend tab on web with the Expense Report type selected and the Filters panel open, scrolled so that Paid status and Paid by are both visible, and with the Filters, Display, Save, and Create controls visible in the toolbar above the table.
+Location: Immediately after the filter steps in "How to filter in Spend"
+Purpose: The previous screenshot showed a Columns control that no longer exists and a filter list without Paid status or Paid by, so members hunting for those controls were sent to the wrong place. A current capture confirms the toolbar controls and where the Paid by filter sits.
+-->
+
 ---
 
 ## How to customize the Spend column view 
@@ -206,10 +211,10 @@ Expensify ensures cross-platform consistency where possible. However, certain fe
 3. Apply the **Draft** filter to view all unsubmitted reports.
 
 ## Can I change which columns appear in my reports?
-Yes! You can choose which columns to show or hide in the **Reports** and **Expenses** views on web. Use the **Columns** icon to customize your table layout.
+Yes! You can choose which columns to show or hide in the **Reports** and **Expenses** views on web. Click **Display**, then select **Edit columns**, to customize your table layout.
 
 ## Can I reorder the columns?
-Absolutely. Just drag and drop the columns in the order you prefer within the **Columns** settings panel.
+Absolutely. Just drag and drop the columns in the order you prefer within the **Edit columns** panel.
 
 ## Can I save different column views?
 Yes. Each saved search stores your column layout, filters, and sorting preferences. You can save multiple versions for different workflows.
