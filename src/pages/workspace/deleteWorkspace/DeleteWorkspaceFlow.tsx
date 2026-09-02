@@ -158,7 +158,6 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             ),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
-            success: false,
             shouldHandleNavigationBack: false,
         }).then(() => {
             dismissDeleteWorkspaceFlow();
@@ -191,7 +190,6 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
                 prompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
-                success: false,
                 shouldHandleNavigationBack: false,
             }).then(() => {
                 dismissDeleteWorkspaceFlow();
@@ -206,11 +204,11 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         const policyName = policy?.name;
 
         showConfirmModal({
-            title: translate('workspace.common.delete'),
+            title: policyName ? translate('workspace.common.deleteWorkspaceTitle', policyName) : translate('workspace.common.delete'),
             prompt: hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             ...(hasDeleteWorkspaceExpensifyCardsError ? {} : {isConfirmLoading: isPendingDelete}),
         }).then((result) => {
             if (!policyName || result.action !== ModalActions.CONFIRM) {
