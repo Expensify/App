@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
@@ -4027,10 +4029,17 @@ describe('ReportActionsUtils', () => {
                 created: '',
                 originalMessage: {member, overLimitForwardsTo: approver, limit: 20000, previousLimit: 10000, currency: 'USD'},
             } as ReportAction;
-            const translateSpy = jest.fn(translateLocal) as jest.MockedFunction<typeof translateLocal>;
-            getOverLimitForwardsToUpdateMessage(translateSpy, action, convertToDisplayString);
-            const translateCallParams = translateSpy.mock.calls.at(0)?.at(1) as {previousLimit?: string} | undefined;
-            expect(translateCallParams?.previousLimit).toBeUndefined();
+            const translate: LocalizedTranslate = jest.fn().mockReturnValue('translated');
+
+            getOverLimitForwardsToUpdateMessage(translate, action, convertToDisplayString);
+
+            expect(translate).toHaveBeenCalledWith('workspaceActions.changedOverLimitForwardsTo', {
+                member: 'member@example.com',
+                approver: 'approver@example.com',
+                limit: '$200.00',
+                previousApprover: undefined,
+                previousLimit: undefined,
+            });
         });
     });
 
