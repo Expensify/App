@@ -121,9 +121,7 @@ type ApprovalWorkflow = OnyxValueWithOfflineFeedback<{
     approvers: Approver[];
 
     /**
-     * Is this the default workflow for the policy - the one shown as approving for "Everyone". Identified by the
-     * `isDefaultApprovalWorkflow` marker on its rules, falling back to "first approver is the policy's default
-     * approver" for workflows that have no rules or whose rules predate the marker.
+     * Is this the default workflow for the policy
      */
     isDefault: boolean;
 }>;

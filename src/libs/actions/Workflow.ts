@@ -388,11 +388,8 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
 }
 
 /**
- * Change the Policy's default first approver
- *
- * `policy.approver` is what the `employeeList` fallbacks route uncovered members to, and what identifies the
- * default workflow for policies whose rules predate the default marker, so it has to track the default
- * workflow's first approver. No-op unless the workflow is the default one and its first approver changed.
+ * Change the Policy's default first approver. Used to keep `policy.approver` in sync when we change
+ * who the first approver for the default workflow is
  */
 function updatePolicyDefaultApprover(approvalWorkflow: ApprovalWorkflow, policy: Policy) {
     if (!approvalWorkflow.isDefault) {
@@ -410,8 +407,6 @@ function updatePolicyDefaultApprover(approvalWorkflow: ApprovalWorkflow, policy:
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {approver: newDefaultApprover}}];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {approver: previousDefaultApprover}}];
 
-    // Routing lives in the rules, which `setApprovalWorkflowRules` already wrote, so `employees` is empty here:
-    // UpdateWorkspaceApproval accepts a default approver change on its own.
     const parameters: UpdateWorkspaceApprovalParams = {policyID: policy.id, employees: '[]', defaultApprover: newDefaultApprover};
     write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData});
 }
@@ -475,10 +470,7 @@ type BuildReturnToDefaultWorkflowDiffParams = {
 };
 
 /**
- * List a deleted workflow's members in the default workflow's rules, so they land back in the default workflow.
- *
- * Without this they end up covered by no rule at all and resolve through the legacy `employeeList.submitsTo`,
- * which still names whoever approved for them before the default workflow was last edited
+ * List a deleted workflow's members in the default workflow's rules.
  */
 function buildReturnToDefaultWorkflowDiff({
     approvalWorkflow,
@@ -495,9 +487,6 @@ function buildReturnToDefaultWorkflowDiff({
     const isDefaultRuleBacked = hasMarkedDefaultWorkflow(existingRules);
     const buildDefaultRules = (isDefault: boolean) => buildApprovalWorkflowRules({...defaultApprovalWorkflow, members: approvalWorkflow.members, isDefault});
 
-    // Mirror the marker state of the stored default rules rather than assuming they carry one. Rules written
-    // before the marker existed do not, and building marked rules against them matches nothing, which would
-    // silently skip the fold below and strand the members.
     const foldDiff = reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(isDefaultRuleBacked), memberEmails, {existingRules});
     if (Object.keys(foldDiff).every((ruleID) => ruleID in existingRules)) {
         return foldDiff;
@@ -507,8 +496,6 @@ function buildReturnToDefaultWorkflowDiff({
         return {};
     }
 
-    // Otherwise re-establish the default workflow's rules so these members actually route through it. When the
-    // stored rules were already marked, `foldDiff` is that same rule set and only its fresh IDs are needed.
     return isDefaultRuleBacked ? foldDiff : reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(true), memberEmails, {existingRules});
 }
 

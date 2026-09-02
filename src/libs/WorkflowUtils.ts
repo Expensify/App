@@ -990,8 +990,6 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
             triggers: rule.triggers,
             filters: stripFromValues(rule.filters),
             actions: rule.actions,
-            // Part of the identity so a custom workflow is never folded into the default one's rules, which
-            // would silently move its members into the default workflow.
             isDefaultApprovalWorkflow: !!rule.isDefaultApprovalWorkflow,
         }),
     );
@@ -1584,10 +1582,7 @@ function convertApprovalWorkflowRulesToWorkflows({
     }
 
     // Keyed by a source-tagged fingerprint so a legacy chain and a rule-based chain with the same shape stay
-    // in separate workflows. Tag values: 'r' (any rule mentions the submitter) or 'l', suffixed with 'd' for
-    // the default workflow so it never merges with a custom chain of the same shape.
-    // Resolved up front: asking these per employee would re-walk every rule's filter tree on each iteration,
-    // making the loop below quadratic in the size of the workspace.
+    // in separate workflows.
     const ruleBackedSubmitters = new Set<string>();
     const defaultWorkflowSubmitters = new Set<string>();
     for (const rule of Object.values(rules)) {
@@ -1656,16 +1651,9 @@ function convertApprovalWorkflowRulesToWorkflows({
             }
         }
 
-        // A rule-based chain is the default one only when its rules say so. Matching the default approver is
-        // not enough: a custom workflow is allowed to start there and diverge later. Chains that come from
-        // `employeeList` carry no marker, so for those the default approver is still the answer.
         const hasRuleBasedChain = ruleBackedSubmitters.has(email);
         const isDefaultWorkflowChain = hasRuleBasedChain ? defaultWorkflowSubmitters.has(email) : firstApproverEmail === defaultApprover;
 
-        // Group by resolved approver chain (not by ruleID set) so submitters routing through the same chain
-        // render as one card even when their rules are stored as separate pairs. The `r`/`l` tag keeps
-        // rule-based chains separate from legacy employeeList chains, and `d` keeps the default workflow
-        // separate from a custom chain that happens to have the same shape.
         const chainKey = approverChainFingerprint(chain);
         const fingerprint = `${hasRuleBasedChain ? 'r' : 'l'}${isDefaultWorkflowChain ? 'd' : ''}|${chainKey}`;
         const existingGroup = groupedByFingerprint.get(fingerprint);

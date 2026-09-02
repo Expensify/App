@@ -116,8 +116,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const policyRules = isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID) : {};
 
     // Build a map of member emails to their existing workflow's first approver, covering non-default
-    // workflows only. With the beta on this is derived from the `ONYXKEYS.COLLECTION.RULE` rules;
-    // otherwise it falls back to the legacy employeeList `submitsTo`.
+    // workflows only.
     const membersInExistingWorkflows = (() => {
         const defaultApprover = getDefaultApprover(policy);
 

@@ -101,10 +101,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     return null;
                 }
 
-                // The legacy `submitsTo`/`forwardsTo` fields give each approver a single onward route, so a
-                // custom workflow starting at the default approver could not diverge from the default chain
-                // and would collapse into it. Per-submitter rules can represent both chains, so the rules
-                // backend lifts the restriction.
                 if (!isMultipleApproversBetaEnabled && !isDefault && approverIndex === 0 && defaultApprover === email) {
                     return null;
                 }
