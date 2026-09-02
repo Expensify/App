@@ -132,6 +132,7 @@ describe('navigateToDomainRouteWithSidebarSync', () => {
 
         expect(Navigation.setParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
+        expect(navigationRef.getRootState).not.toHaveBeenCalled();
     });
 
     it('synchronizes a sidebar with a missing Domain ID', () => {
