@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
+    GuideAccountIDsDerivedValue,
     PersonalDetails,
     PersonalDetailsList,
     PolicyTagLists,
@@ -182,6 +183,7 @@ import {
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceNameUpdatedMessage,
+    hasExpensifyGuidesEmails,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
     isAnnounceRoom,
@@ -307,6 +309,7 @@ type ShouldDisplayReportInLHNParams = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     currentUserLogin: string;
     currentUserAccountID: number;
+    hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
 };
 
@@ -325,6 +328,7 @@ function shouldDisplayReportInLHN({
     currentUserAccountID,
     currentUserLogin,
     conciergeReportID,
+    hasGuidesEmails,
 }: ShouldDisplayReportInLHNParams) {
     if (!report) {
         return {shouldDisplay: false};
@@ -389,6 +393,7 @@ function shouldDisplayReportInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     return {shouldDisplay};
@@ -408,6 +413,7 @@ function getReportsToDisplayInLHN({
     reportNameValuePairs,
     reportAttributes,
     conciergeReportID,
+    guideAccountIDs,
 }: {
     currentReportId: string | undefined;
     reports: OnyxCollection<Report>;
@@ -421,6 +427,7 @@ function getReportsToDisplayInLHN({
     currentUserAccountID: number;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 }) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -448,6 +455,7 @@ function getReportsToDisplayInLHN({
             isReportArchived,
             reportAttributes,
             currentUserLogin,
+            hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
         });
@@ -478,6 +486,7 @@ type UpdateReportsToDisplayInLHNProps = {
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
+    guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 };
 
@@ -497,6 +506,7 @@ function updateReportsToDisplayInLHN({
     currentUserLogin,
     currentUserAccountID,
     conciergeReportID,
+    guideAccountIDs,
 }: UpdateReportsToDisplayInLHNProps) {
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
@@ -534,6 +544,7 @@ function updateReportsToDisplayInLHN({
             isReportArchived,
             reportAttributes,
             currentUserLogin,
+            hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
         });
@@ -1445,7 +1456,7 @@ function getOptionData({
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
-    if (isJoinRequestInAdminRoom(report)) {
+    if (isJoinRequestInAdminRoom(report, currentUserLogin)) {
         result.isUnread = true;
     }
 

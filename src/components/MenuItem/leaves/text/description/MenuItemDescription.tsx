@@ -5,13 +5,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 
-type MenuItemDescriptionProps = {
-    /** Text to render as the description */
-    children: string | number;
-};
+import type MenuItemDescriptionProps from './types';
 
-/** The supporting text block of a `MenuItem.Content` */
-function MenuItemDescription({children}: MenuItemDescriptionProps) {
+/** The small supporting-label description of a `MenuItem.Content`, for a description that sits under a title */
+function MenuItemDescription({children, numberOfLines = 2}: MenuItemDescriptionProps) {
     const styles = useThemeStyles();
 
     useMenuItemAccessibilityLabel('description', String(children));
@@ -19,7 +16,7 @@ function MenuItemDescription({children}: MenuItemDescriptionProps) {
     return (
         <Text
             style={[styles.textLabelSupporting, styles.textLineHeightNormal, styles.breakWord]}
-            numberOfLines={2}
+            numberOfLines={numberOfLines}
         >
             {children}
         </Text>
