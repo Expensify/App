@@ -393,7 +393,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                             styles.mnh0,
                             styles.w100,
                             shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                            (isTableTab || isAgentsTab) && styles.mw100,
+                            (isTableTab || isAgentsTab || activeTab === RULES_TAB.GENERAL) && styles.mw100,
                         ]}
                     >
                         {activeTab === RULES_TAB.GENERAL && (
