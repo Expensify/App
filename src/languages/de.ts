@@ -9179,9 +9179,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 ? `hat den Genehmigungsworkflow für ${member} geändert, um Berichte über ${limit} an ${approver} weiterzuleiten`
                 : `Legen Sie den Genehmigungsworkflow für ${member} so fest, dass Berichte über ${limit} an ${approver} weitergeleitet werden`;
             if (previousApprover && previousLimit) {
-                text += `(zuvor weitergeleitete Berichte über ${previousLimit} an ${previousApprover})`;
+                text += ` (zuvor weitergeleitete Berichte über ${previousLimit} an ${previousApprover})`;
             } else if (previousApprover) {
-                text += `(zuvor weitergeleitet an ${previousApprover})`;
+                text += ` (zuvor weitergeleitet an ${previousApprover})`;
             }
             return text;
         },

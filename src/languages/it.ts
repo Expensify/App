@@ -9144,9 +9144,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 ? `ha modificato il flusso di approvazione per ${member} per inoltrare i report superiori a ${limit} a ${approver}`
                 : `imposta il flusso di approvazione per ${member} in modo da inoltrare i report oltre ${limit} a ${approver}`;
             if (previousApprover && previousLimit) {
-                text += `(in precedenza inoltrava i report superiori a ${previousLimit} a ${previousApprover})`;
+                text += ` (in precedenza inoltrava i report superiori a ${previousLimit} a ${previousApprover})`;
             } else if (previousApprover) {
-                text += `(precedentemente inoltrata a ${previousApprover})`;
+                text += ` (precedentemente inoltrata a ${previousApprover})`;
             }
             return text;
         },

@@ -9128,9 +9128,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 ? `zmienił(a) proces zatwierdzania dla ${member}, aby przekazywać raporty powyżej ${limit} do ${approver}`
                 : `ustaw proces zatwierdzania dla ${member}, aby przekazywać raporty powyżej ${limit} do ${approver}`;
             if (previousApprover && previousLimit) {
-                text += `(wcześniej przekazywał raporty powyżej ${previousLimit} do ${previousApprover})`;
+                text += ` (wcześniej przekazywał raporty powyżej ${previousLimit} do ${previousApprover})`;
             } else if (previousApprover) {
-                text += `(wcześniej przekazane do ${previousApprover})`;
+                text += ` (wcześniej przekazane do ${previousApprover})`;
             }
             return text;
         },

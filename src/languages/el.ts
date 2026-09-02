@@ -9367,9 +9367,9 @@ ${reportName}`,
                 ? `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να προωθεί αναφορές πάνω από ${limit} στον/στην ${approver}`
                 : `ορίστε τη ροή έγκρισης για τον/την ${member} ώστε να προωθεί αναφορές άνω των ${limit} στον/στην ${approver}`;
             if (previousApprover && previousLimit) {
-                text += `(μεταφέρθηκε παλαιότερα αναφορά άνω των ${previousLimit} στον/στη ${previousApprover})`;
+                text += ` (μεταφέρθηκε παλαιότερα αναφορά άνω των ${previousLimit} στον/στη ${previousApprover})`;
             } else if (previousApprover) {
-                text += `(είχε προηγουμένως προωθηθεί στον/στην ${previousApprover})`;
+                text += ` (είχε προηγουμένως προωθηθεί στον/στην ${previousApprover})`;
             }
             return text;
         },

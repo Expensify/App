@@ -9210,9 +9210,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 ? `a modifié le processus d'approbation pour ${member} afin de transférer les notes de frais supérieures à ${limit} à ${approver}`
                 : `définir le workflow d’approbation de ${member} pour transférer les notes de frais supérieures à ${limit} à ${approver}`;
             if (previousApprover && previousLimit) {
-                text += `(anciennement notes de frais transmises de plus de ${previousLimit} à ${previousApprover})`;
+                text += ` (anciennement notes de frais transmises de plus de ${previousLimit} à ${previousApprover})`;
             } else if (previousApprover) {
-                text += `(précédemment transmis à ${previousApprover})`;
+                text += ` (précédemment transmis à ${previousApprover})`;
             }
             return text;
         },

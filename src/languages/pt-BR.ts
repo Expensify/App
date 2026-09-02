@@ -9111,9 +9111,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 ? `alterou o fluxo de aprovação de ${member} para encaminhar relatórios acima de ${limit} para ${approver}`
                 : `definir o fluxo de aprovação para ${member} para encaminhar relatórios acima de ${limit} para ${approver}`;
             if (previousApprover && previousLimit) {
-                text += `(anteriormente encaminhou relatórios acima de ${previousLimit} para ${previousApprover})`;
+                text += ` (anteriormente encaminhou relatórios acima de ${previousLimit} para ${previousApprover})`;
             } else if (previousApprover) {
-                text += `(anteriormente encaminhado para ${previousApprover})`;
+                text += ` (anteriormente encaminhado para ${previousApprover})`;
             }
             return text;
         },

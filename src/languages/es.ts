@@ -9017,9 +9017,9 @@ ${reportName}`,
                 ? `cambió el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} a ${approver}`
                 : `establecer el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} a ${approver}`;
             if (previousApprover && previousLimit) {
-                text += `(previamente envió informes superiores a ${previousLimit} a ${previousApprover})`;
+                text += ` (previamente envió informes superiores a ${previousLimit} a ${previousApprover})`;
             } else if (previousApprover) {
-                text += `(previamente reenviado a ${previousApprover})`;
+                text += ` (previamente reenviado a ${previousApprover})`;
             }
             return text;
         },

@@ -9107,9 +9107,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 ? `heeft de fiatteringsworkflow voor ${member} gewijzigd zodat rapporten boven ${limit} worden doorgestuurd naar ${approver}`
                 : `stel de goedkeuringsworkflow voor ${member} in om rapporten boven ${limit} door te sturen naar ${approver}`;
             if (previousApprover && previousLimit) {
-                text += `(voorheen doorgestuurde rapporten boven ${previousLimit} naar ${previousApprover})`;
+                text += ` (voorheen doorgestuurde rapporten boven ${previousLimit} naar ${previousApprover})`;
             } else if (previousApprover) {
-                text += `(eerder doorgestuurd naar ${previousApprover})`;
+                text += ` (eerder doorgestuurd naar ${previousApprover})`;
             }
             return text;
         },
