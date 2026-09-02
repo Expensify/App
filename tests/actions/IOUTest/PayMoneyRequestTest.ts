@@ -920,7 +920,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: adminEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 employeeList: {
@@ -1000,7 +999,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 role: CONST.POLICY.ROLE.ADMIN,
-                isPolicyExpenseChatEnabled: true,
             };
             const chatReport = {
                 reportID: '456',
@@ -1891,7 +1889,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 owner: adminEmail,
                 ownerAccountID: adminAccountID,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -1965,7 +1962,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 owner: adminEmail,
                 ownerAccountID: adminAccountID,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,

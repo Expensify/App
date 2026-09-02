@@ -1,11 +1,12 @@
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,6 +20,7 @@ import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/t
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {openLink} from '@userActions/Link';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +30,8 @@ import type SCREENS from '@src/SCREENS';
 import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+
+import WrappingText from './WrappingText';
 
 // cspell:disable
 // Example CSV shared with customers so they can see how to structure a company card import file.
@@ -47,6 +51,7 @@ const CSV_TEMPLATE_CONTENT = [
 function ImportFromFileStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW>>();
@@ -89,13 +94,37 @@ function ImportFromFileStep() {
                 contentContainerStyle={styles.flexGrow1}
                 addBottomSafeAreaPadding
             >
-                <Text style={[styles.ph5, styles.mv3, styles.textSupporting]}>
-                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')}
-                    <TextLink onPress={downloadTemplate}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}</TextLink>
-                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')}
-                    <TextLink href={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}</TextLink>
-                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')}
-                </Text>
+                <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap, styles.alignItemsCenter]}>
+                    <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')} />
+                    <PressableWithoutFeedback
+                        testID="ImportFromFileStep-TemplateLink"
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}
+                        sentryLabel="ImportFromFileStep-TemplateLink"
+                        onPress={downloadTemplate}
+                        style={styles.dInlineFlex}
+                    >
+                        <Text style={[styles.textSupporting, styles.link]}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}</Text>
+                    </PressableWithoutFeedback>
+                    <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')} />
+                    <PressableWithoutFeedback
+                        testID="ImportFromFileStep-HelpGuideLink"
+                        role={CONST.ROLE.LINK}
+                        // Pass href so the link renders as a real anchor on web (native link behavior: hover URL, open in a new tab, etc.),
+                        // while onPress preventDefault()s the anchor's default navigation and routes through openLink on every platform.
+                        href={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
+                        accessibilityLabel={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}
+                        sentryLabel="ImportFromFileStep-HelpGuideLink"
+                        onPress={(event) => {
+                            event?.preventDefault();
+                            openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL);
+                        }}
+                        style={styles.dInlineFlex}
+                    >
+                        <Text style={[styles.textSupporting, styles.link]}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}</Text>
+                    </PressableWithoutFeedback>
+                    <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')} />
+                </View>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
                     title={companyCardLayoutName}
