@@ -153,10 +153,10 @@ function ReportFieldsValueSettingsPage({
                         </View>
                     </View>
                     <MenuItemField
-                        description={translate('common.value')}
+                        name={translate('common.value')}
                         onPress={canWriteReportFields && !reportFieldID ? navigateToEditValue : undefined}
                     >
-                        <MenuItem.Title>{currentValueName ?? oldValueName}</MenuItem.Title>
+                        <MenuItem.FieldValue>{currentValueName ?? oldValueName}</MenuItem.FieldValue>
                     </MenuItemField>
                     {canWriteReportFields && !hasAccountingConnections && (
                         <MenuItemAction

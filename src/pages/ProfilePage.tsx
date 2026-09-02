@@ -326,12 +326,12 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {shouldShowNotificationPreference && (
                             <MenuItemField
-                                description={translate('notificationPreferencesPage.label')}
+                                name={translate('notificationPreferencesPage.label')}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
                                 }}
                             >
-                                {!!notificationPreference && <MenuItem.Title>{notificationPreference}</MenuItem.Title>}
+                                {!!notificationPreference && <MenuItem.FieldValue>{notificationPreference}</MenuItem.FieldValue>}
                             </MenuItemField>
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (

@@ -191,7 +191,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                         <MenuItem.Icon src={icons.Sync} />
                                     </MenuItem.Leading>
                                     <MenuItem.Content>
-                                        <MenuItem.TitleStrong>{translate('workspace.companyCards.assignNewCards.title')}</MenuItem.TitleStrong>
+                                        <MenuItem.Title>{translate('workspace.companyCards.assignNewCards.title')}</MenuItem.Title>
                                         <MenuItem.Description>{translate('workspace.companyCards.assignNewCards.description')}</MenuItem.Description>
                                     </MenuItem.Content>
                                 </MenuItem.Row>

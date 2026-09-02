@@ -131,10 +131,10 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     onClose={() => clearAgentNameUpdateError(accountID)}
                 >
                     <MenuItemField
-                        description={translate('editAgentPage.agentName')}
+                        name={translate('editAgentPage.agentName')}
                         onPress={handleEditNamePress}
                     >
-                        {!!personalDetails?.displayName && <MenuItem.Title>{personalDetails.displayName}</MenuItem.Title>}
+                        {!!personalDetails?.displayName && <MenuItem.FieldValue>{personalDetails.displayName}</MenuItem.FieldValue>}
                     </MenuItemField>
                 </OfflineWithFeedback>
                 <OfflineWithFeedback

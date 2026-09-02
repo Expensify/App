@@ -235,14 +235,14 @@ function DynamicNewTaskPage() {
                                             </MenuItem.Leading>
                                         )}
                                         <MenuItem.Content>
-                                            <MenuItem.TitleStrong accessibilityLabel={assignee.displayName}>
+                                            <MenuItem.Title accessibilityLabel={assignee.displayName}>
                                                 <DisplayNames
                                                     fullTitle={assignee.displayName}
                                                     displayNamesWithTooltips={assigneeTooltipDetails}
                                                     tooltipEnabled
                                                     numberOfLines={1}
                                                 />
-                                            </MenuItem.TitleStrong>
+                                            </MenuItem.Title>
                                             {!!assignee.subtitle && <MenuItem.Description>{formatPhoneNumber(assignee.subtitle)}</MenuItem.Description>}
                                         </MenuItem.Content>
                                         <MenuItem.Trailing>
@@ -252,7 +252,7 @@ function DynamicNewTaskPage() {
                                 </MenuItemWithLabel>
                             ) : (
                                 <MenuItemEmptyField
-                                    description={translate('task.assignee')}
+                                    name={translate('task.assignee')}
                                     onPress={navigateToAssignee}
                                 />
                             )}
@@ -267,16 +267,16 @@ function DynamicNewTaskPage() {
                                         </MenuItem.Leading>
                                         <MenuItem.Content>
                                             {shareDestination.shouldUseFullTitleToDisplay || !shareDestination.displayNamesWithTooltips?.length ? (
-                                                <MenuItem.TitleStrong>{shareDestination.displayName}</MenuItem.TitleStrong>
+                                                <MenuItem.Title>{shareDestination.displayName}</MenuItem.Title>
                                             ) : (
-                                                <MenuItem.TitleStrong accessibilityLabel={shareDestination.displayName}>
+                                                <MenuItem.Title accessibilityLabel={shareDestination.displayName}>
                                                     <DisplayNames
                                                         fullTitle={shareDestination.displayName}
                                                         displayNamesWithTooltips={shareDestination.displayNamesWithTooltips}
                                                         tooltipEnabled
                                                         numberOfLines={1}
                                                     />
-                                                </MenuItem.TitleStrong>
+                                                </MenuItem.Title>
                                             )}
                                             {!!shareDestination.subtitle && <MenuItem.Description>{shareDestination.subtitle}</MenuItem.Description>}
                                         </MenuItem.Content>
@@ -289,7 +289,7 @@ function DynamicNewTaskPage() {
                                 </MenuItemWithLabel>
                             ) : (
                                 <MenuItemEmptyField
-                                    description={translate('common.share')}
+                                    name={translate('common.share')}
                                     onPress={navigateToShareDestination}
                                 >
                                     <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>

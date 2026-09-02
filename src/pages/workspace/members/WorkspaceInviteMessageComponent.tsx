@@ -316,7 +316,7 @@ function WorkspaceInviteMessageComponent({
                     <View style={styles.mb3}>
                         <View style={[styles.mhn5, styles.mb3]}>
                             {isInviteNewMemberStep && (
-                                <MenuItemField description={translate('common.member')}>{!!invitingMemberTitle && <MenuItem.Title>{invitingMemberTitle}</MenuItem.Title>}</MenuItemField>
+                                <MenuItemField name={translate('common.member')}>{!!invitingMemberTitle && <MenuItem.FieldValue>{invitingMemberTitle}</MenuItem.FieldValue>}</MenuItemField>
                             )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
@@ -330,7 +330,7 @@ function WorkspaceInviteMessageComponent({
                                 />
                             )}
                             <MenuItemField
-                                description={translate('common.role')}
+                                name={translate('common.role')}
                                 onPress={
                                     canChangeInviteRole
                                         ? () => {
@@ -342,14 +342,14 @@ function WorkspaceInviteMessageComponent({
                                         : undefined
                                 }
                             >
-                                <MenuItem.Title>{translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}</MenuItem.Title>
+                                <MenuItem.FieldValue>{translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}</MenuItem.FieldValue>
                             </MenuItemField>
                             {!!shouldShowApproverRow && (
                                 <MenuItemField
-                                    description={translate('workflowsPage.approver')}
+                                    name={translate('workflowsPage.approver')}
                                     onPress={navigateToApproverPage}
                                 >
-                                    {!!approverName && <MenuItem.Title>{approverName}</MenuItem.Title>}
+                                    {!!approverName && <MenuItem.FieldValue>{approverName}</MenuItem.FieldValue>}
                                 </MenuItemField>
                             )}
                         </View>

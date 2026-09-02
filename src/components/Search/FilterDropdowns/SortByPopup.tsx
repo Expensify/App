@@ -111,10 +111,10 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
                 <MenuItemField
-                    description={translate('search.display.sortOrder')}
+                    name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
                 >
-                    {!!sortOrder && <MenuItem.Title>{translate(`search.filters.sortOrder.${sortOrder}`)}</MenuItem.Title>}
+                    {!!sortOrder && <MenuItem.FieldValue>{translate(`search.filters.sortOrder.${sortOrder}`)}</MenuItem.FieldValue>}
                 </MenuItemField>
                 <View style={styles.dividerLine} />
                 <SelectionList

@@ -71,10 +71,10 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
                 <MenuItemField
-                    description={translate('search.display.sortOrder')}
+                    name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
                 >
-                    <MenuItem.Title>{translate(`search.filters.sortOrder.${pendingSorting.order}`)}</MenuItem.Title>
+                    <MenuItem.FieldValue>{translate(`search.filters.sortOrder.${pendingSorting.order}`)}</MenuItem.FieldValue>
                 </MenuItemField>
                 <View style={styles.dividerLine} />
                 <SelectionList
@@ -187,11 +187,11 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
     return (
         <ScrollView contentContainerStyle={[styles.pv4]}>
             <MenuItemField
-                description={translate('search.display.sortBy')}
+                name={translate('search.display.sortBy')}
                 onPress={openSortBy}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
             >
-                {!!sortByTitle && <MenuItem.Title>{sortByTitle}</MenuItem.Title>}
+                {!!sortByTitle && <MenuItem.FieldValue>{sortByTitle}</MenuItem.FieldValue>}
             </MenuItemField>
         </ScrollView>
     );

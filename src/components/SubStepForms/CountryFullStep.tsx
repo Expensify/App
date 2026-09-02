@@ -140,7 +140,7 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                 submitFlexEnabled={!showNoPolicyError}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
-                <MenuItemField description={translate('common.currency')}>{!!currency && <MenuItem.Title>{currency}</MenuItem.Title>}</MenuItemField>
+                <MenuItemField name={translate('common.currency')}>{!!currency && <MenuItem.FieldValue>{currency}</MenuItem.FieldValue>}</MenuItemField>
                 {!!policyID && (
                     <View style={styles.ph5}>
                         <Text style={[styles.mb3, styles.mutedTextLabel]}>

@@ -55,8 +55,8 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
             <MenuItem.Root onPress={!isBankAccountAdded ? handleModifyAccountNumbers : undefined}>
                 <MenuItem.Row>
                     <MenuItem.Content>
-                        {!!bankName && <MenuItem.Description>{bankName}</MenuItem.Description>}
-                        <MenuItem.Title>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.Title>
+                        {!!bankName && <MenuItem.FieldName>{bankName}</MenuItem.FieldName>}
+                        <MenuItem.FieldValue>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.FieldValue>
                     </MenuItem.Content>
                     {!isBankAccountAdded && (
                         <MenuItem.Trailing>

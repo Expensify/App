@@ -46,7 +46,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 copyable
                 interactive={false}
             />
-            <MenuItemField description={translate('common.date')}>{!!startDate.date && <MenuItem.Title>{startDate.date}</MenuItem.Title>}</MenuItemField>
+            <MenuItemField name={translate('common.date')}>{!!startDate.date && <MenuItem.FieldValue>{startDate.date}</MenuItem.FieldValue>}</MenuItemField>
 
             <MenuItemWithTopDescription
                 description={translate('travel.trainDetails.departs')}
@@ -68,15 +68,15 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
             <View style={[styles.flexRow, styles.flexWrap]}>
                 {!!reservation.coachNumber && (
                     <View style={styles.w50}>
-                        <MenuItemField description={translate('travel.trainDetails.coachNumber')}>
-                            {!!reservation.coachNumber && <MenuItem.Title>{reservation.coachNumber}</MenuItem.Title>}
+                        <MenuItemField name={translate('travel.trainDetails.coachNumber')}>
+                            <MenuItem.FieldValue>{reservation.coachNumber}</MenuItem.FieldValue>
                         </MenuItemField>
                     </View>
                 )}
                 {!!reservation.seatNumber && (
                     <View style={styles.w50}>
-                        <MenuItemField description={translate('travel.trainDetails.seat')}>
-                            {!!reservation.seatNumber && <MenuItem.Title>{reservation.seatNumber}</MenuItem.Title>}
+                        <MenuItemField name={translate('travel.trainDetails.seat')}>
+                            <MenuItem.FieldValue>{reservation.seatNumber}</MenuItem.FieldValue>
                         </MenuItemField>
                     </View>
                 )}

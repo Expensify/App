@@ -66,8 +66,8 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 helperTextStyle={[styles.pb3, styles.mtn2]}
             />
             {!!reservation.carInfo?.name && (
-                <MenuItemField description={translate('travel.carDetails.carType')}>
-                    <MenuItem.Title>{reservation.carInfo.name}</MenuItem.Title>
+                <MenuItemField name={translate('travel.carDetails.carType')}>
+                    <MenuItem.FieldValue>{reservation.carInfo.name}</MenuItem.FieldValue>
                 </MenuItemField>
             )}
             {!!cancellationText && (

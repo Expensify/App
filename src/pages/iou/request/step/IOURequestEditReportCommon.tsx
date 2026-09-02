@@ -322,7 +322,7 @@ function IOURequestEditReportCommon({
                         <MenuItem.Icon src={icons.Document} />
                     </MenuItem.Leading>
                     <MenuItem.Content>
-                        <MenuItem.TitleStrong>{translate('report.newReport.createReport')}</MenuItem.TitleStrong>
+                        <MenuItem.Title>{translate('report.newReport.createReport')}</MenuItem.Title>
                         {!!policyForMovingExpensesName && <MenuItem.Description>{policyForMovingExpensesName}</MenuItem.Description>}
                     </MenuItem.Content>
                 </MenuItem.Row>
@@ -386,7 +386,7 @@ function IOURequestEditReportCommon({
                                     <MenuItem.Icon src={icons.Close} />
                                 </MenuItem.Leading>
                                 <MenuItem.Content>
-                                    <MenuItem.TitleStrong>{translate('iou.removeFromReport')}</MenuItem.TitleStrong>
+                                    <MenuItem.Title>{translate('iou.removeFromReport')}</MenuItem.Title>
                                     <MenuItem.Description>{translate('iou.moveToPersonalSpace')}</MenuItem.Description>
                                 </MenuItem.Content>
                             </MenuItem.Row>

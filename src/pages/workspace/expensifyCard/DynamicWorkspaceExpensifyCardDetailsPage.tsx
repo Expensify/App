@@ -392,10 +392,10 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
 
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}>
                         <MenuItemField
-                            description={translate('workspace.card.issueNewCard.cardName')}
+                            name={translate('workspace.card.issueNewCard.cardName')}
                             onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path)) : undefined}
                         >
-                            {!!card?.nameValuePairs?.cardTitle && <MenuItem.Title>{card.nameValuePairs.cardTitle}</MenuItem.Title>}
+                            {!!card?.nameValuePairs?.cardTitle && <MenuItem.FieldValue>{card.nameValuePairs.cardTitle}</MenuItem.FieldValue>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     <MenuItemWithTopDescription
@@ -434,10 +434,10 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.unapprovedExpenseLimit}>
                         <MenuItemField
-                            description={translate('workspace.expensifyCard.cardLimit')}
+                            name={translate('workspace.expensifyCard.cardLimit')}
                             onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path)) : undefined}
                         >
-                            {!!formattedLimit && <MenuItem.Title>{formattedLimit}</MenuItem.Title>}
+                            {!!formattedLimit && <MenuItem.FieldValue>{formattedLimit}</MenuItem.FieldValue>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     <View style={styles.mt6}>

@@ -72,7 +72,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                             />
                         </MenuItem.Leading>
                         <MenuItem.Content>
-                            <MenuItem.TitleStrong>{delegateDisplayName}</MenuItem.TitleStrong>
+                            <MenuItem.Title>{delegateDisplayName}</MenuItem.Title>
                             {!!delegateDescription && <MenuItem.Description numberOfLines={1}>{delegateDescription}</MenuItem.Description>}
                         </MenuItem.Content>
                         <MenuItem.Trailing>
@@ -82,7 +82,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                 </MenuItemWithLabel>
             ) : (
                 <MenuItemEmptyField
-                    description={translate('common.vacationDelegate')}
+                    name={translate('common.vacationDelegate')}
                     onPress={onPress}
                 />
             )}

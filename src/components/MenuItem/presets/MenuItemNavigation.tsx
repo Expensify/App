@@ -4,7 +4,7 @@ import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
 import MenuItemIcon from '@components/MenuItem/leaves/leading/MenuItemIcon';
-import MenuItemTitleStrong from '@components/MenuItem/leaves/text/title/MenuItemTitleStrong';
+import MenuItemTitle from '@components/MenuItem/leaves/text/MenuItemTitle';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -50,7 +50,7 @@ function MenuItemNavigation({title, icon, onPress, isDisabled = false, sentryLab
                     <MenuItemIcon src={icon} />
                 </MenuItemLeading>
                 <MenuItemContent>
-                    <MenuItemTitleStrong>{title}</MenuItemTitleStrong>
+                    <MenuItemTitle>{title}</MenuItemTitle>
                 </MenuItemContent>
                 <MenuItemTrailing>
                     <MenuItemChevron />

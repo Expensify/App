@@ -67,11 +67,11 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                     </View>
                 </View>
                 <MenuItemField
-                    description={translate('timezonePage.timezone')}
+                    name={translate('timezonePage.timezone')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
                     isDisabled={!!timezone.automatic}
                 >
-                    {!!timezone.selected && <MenuItem.Title>{timezone.selected}</MenuItem.Title>}
+                    {!!timezone.selected && <MenuItem.FieldValue>{timezone.selected}</MenuItem.FieldValue>}
                 </MenuItemField>
             </View>
         </ScreenWrapper>

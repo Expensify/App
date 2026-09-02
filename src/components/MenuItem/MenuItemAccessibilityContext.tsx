@@ -2,8 +2,14 @@ import type {TupleToUnion} from 'type-fest';
 
 import {createContext, useContext, useEffect, useState} from 'react';
 
-/** The label slots a `MenuItem` row can contribute, in the order they are announced */
-const MENU_ITEM_LABEL_SLOTS = ['title', 'description'] as const;
+/**
+ * The label slots a `MenuItem` row can contribute, in the order they are announced.
+ *
+ * Keyed by the line the leaf occupies rather than by role, so the announced order always matches the
+ * visual order: a field row reads `field name, value`, a navigation row reads `title, description`.
+ * Naming these by role instead would freeze one of the two shapes and mis-announce the other.
+ */
+const MENU_ITEM_LABEL_SLOTS = ['top', 'bottom'] as const;
 
 type MenuItemLabelSlot = TupleToUnion<typeof MENU_ITEM_LABEL_SLOTS>;
 
@@ -19,7 +25,7 @@ const MenuItemAccessibilityContext = createContext<MenuItemAccessibilityActions 
 
 /**
  * Contributes text to the label `MenuItem.Root` derives. Registered under a fixed slot key so the
- * announced order is deterministic (`title`, then `description`) regardless of mount/render timing
+ * announced order is deterministic (`top`, then `bottom`) regardless of mount/render timing.
  * No-op when `text` is empty or when rendered outside a `MenuItem.Root`.
  */
 function useMenuItemAccessibilityLabel(slot: MenuItemLabelSlot, text: string | undefined) {
@@ -73,7 +79,7 @@ function useLabelSlotRegistry() {
  * Returns the props to spread on the pressable plus the value for `MenuItemAccessibilityContext.Provider`.
  */
 function useMenuItemAccessibility() {
-    // Text contributed by Title/Description children, keyed by fixed slot
+    // Text contributed by the text leaves, keyed by the line each one occupies
     const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useLabelSlotRegistry();
 
     const accessibilityActions: MenuItemAccessibilityActions = {registerLabel, unregisterLabel};
@@ -86,4 +92,5 @@ function useMenuItemAccessibility() {
 }
 
 export default MenuItemAccessibilityContext;
+export type {MenuItemLabelSlot};
 export {useMenuItemAccessibilityLabel, useMenuItemAccessibility};

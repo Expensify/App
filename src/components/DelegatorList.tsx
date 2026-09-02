@@ -45,7 +45,7 @@ function DelegatorList({delegators, message}: DelegatorListProps) {
                                     />
                                 </MenuItem.Leading>
                                 <MenuItem.Content>
-                                    <MenuItem.TitleStrong>{delegatorDetails?.displayName ?? displayLogin}</MenuItem.TitleStrong>
+                                    <MenuItem.Title>{delegatorDetails?.displayName ?? displayLogin}</MenuItem.Title>
                                     <MenuItem.Description numberOfLines={1}>{displayLogin}</MenuItem.Description>
                                 </MenuItem.Content>
                             </MenuItem.Row>

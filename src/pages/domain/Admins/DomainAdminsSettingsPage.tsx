@@ -50,10 +50,10 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 onClose={() => clearSetPrimaryContactError(domainAccountID)}
             >
                 <MenuItemField
-                    description={translate('domain.admins.primaryContact')}
+                    name={translate('domain.admins.primaryContact')}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
                 >
-                    {!!technicalContactSettings?.technicalContactEmail && <MenuItem.Title>{technicalContactSettings.technicalContactEmail}</MenuItem.Title>}
+                    {!!technicalContactSettings?.technicalContactEmail && <MenuItem.FieldValue>{technicalContactSettings.technicalContactEmail}</MenuItem.FieldValue>}
                 </MenuItemField>
             </OfflineWithFeedback>
             <ToggleSettingOptionRow

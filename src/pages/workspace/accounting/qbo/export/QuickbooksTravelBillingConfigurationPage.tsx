@@ -46,8 +46,8 @@ function QuickbooksTravelBillingConfigurationPage({policy}: WithPolicyConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
         >
-            <MenuItemField description={translate('workspace.accounting.exportAs')}>
-                <MenuItem.Title>{translate(`workspace.qbo.accounts.${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`)}</MenuItem.Title>
+            <MenuItemField name={translate('workspace.accounting.exportAs')}>
+                <MenuItem.FieldValue>{translate(`workspace.qbo.accounts.${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`)}</MenuItem.FieldValue>
             </MenuItemField>
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction(payableAccount, qboConfig?.pendingFields)}

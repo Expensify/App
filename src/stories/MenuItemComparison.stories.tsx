@@ -157,8 +157,8 @@ function Comparison() {
                     <MenuItem.Root onPress={noop}>
                         <MenuItem.Row>
                             <MenuItem.Content>
-                                <MenuItem.Description>Sort by</MenuItem.Description>
-                                <MenuItem.Title>Date</MenuItem.Title>
+                                <MenuItem.FieldName>Sort by</MenuItem.FieldName>
+                                <MenuItem.FieldValue>Date</MenuItem.FieldValue>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
@@ -195,8 +195,8 @@ function Comparison() {
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.Description>Name</MenuItem.Description>
-                                        <MenuItem.Title>Standard rate</MenuItem.Title>
+                                        <MenuItem.FieldName>Name</MenuItem.FieldName>
+                                        <MenuItem.FieldValue>Standard rate</MenuItem.FieldValue>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />
@@ -208,8 +208,8 @@ function Comparison() {
                             <MenuItem.Root>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.Description>Name</MenuItem.Description>
-                                        <MenuItem.Title>Standard rate</MenuItem.Title>
+                                        <MenuItem.FieldName>Name</MenuItem.FieldName>
+                                        <MenuItem.FieldValue>Standard rate</MenuItem.FieldValue>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />
@@ -223,15 +223,15 @@ function Comparison() {
                     <>
                         <Variant label="onPress passed">
                             <MenuItemField
-                                description="Name"
+                                name="Name"
                                 onPress={noop}
                             >
-                                <MenuItem.Title>Standard rate</MenuItem.Title>
+                                <MenuItem.FieldValue>Standard rate</MenuItem.FieldValue>
                             </MenuItemField>
                         </Variant>
                         <Variant label="onPress={undefined}">
-                            <MenuItemField description="Name">
-                                <MenuItem.Title>Standard rate</MenuItem.Title>
+                            <MenuItemField name="Name">
+                                <MenuItem.FieldValue>Standard rate</MenuItem.FieldValue>
                             </MenuItemField>
                         </Variant>
                     </>
@@ -251,15 +251,15 @@ function Comparison() {
                     <MenuItem.Root>
                         <MenuItem.Row>
                             <MenuItem.Content>
-                                <MenuItem.Description>Country</MenuItem.Description>
-                                <MenuItem.Title>United States</MenuItem.Title>
+                                <MenuItem.FieldName>Country</MenuItem.FieldName>
+                                <MenuItem.FieldValue>United States</MenuItem.FieldValue>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
                 preset={
-                    <MenuItemField description="Country">
-                        <MenuItem.Title>United States</MenuItem.Title>
+                    <MenuItemField name="Country">
+                        <MenuItem.FieldValue>United States</MenuItem.FieldValue>
                     </MenuItemField>
                 }
             />
@@ -281,19 +281,19 @@ function Comparison() {
                     >
                         <MenuItem.Row>
                             <MenuItem.Content>
-                                <MenuItem.Description>Display</MenuItem.Description>
-                                <MenuItem.Title>Comfortable</MenuItem.Title>
+                                <MenuItem.FieldName>Display</MenuItem.FieldName>
+                                <MenuItem.FieldValue>Comfortable</MenuItem.FieldValue>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
                 preset={
                     <MenuItemField
-                        description="Display"
+                        name="Display"
                         onPress={noop}
                         sentryLabel="menuItemComparisonStorySentryLabel"
                     >
-                        <MenuItem.Title>Comfortable</MenuItem.Title>
+                        <MenuItem.FieldValue>Comfortable</MenuItem.FieldValue>
                     </MenuItemField>
                 }
             />
@@ -315,19 +315,19 @@ function Comparison() {
                     >
                         <MenuItem.Row>
                             <MenuItem.Content>
-                                <MenuItem.Description>Role</MenuItem.Description>
-                                <MenuItem.Title>Admin</MenuItem.Title>
+                                <MenuItem.FieldName>Role</MenuItem.FieldName>
+                                <MenuItem.FieldValue>Admin</MenuItem.FieldValue>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
                 preset={
                     <MenuItemField
-                        description="Role"
+                        name="Role"
                         onPress={noop}
                         isDisabled
                     >
-                        <MenuItem.Title>Admin</MenuItem.Title>
+                        <MenuItem.FieldValue>Admin</MenuItem.FieldValue>
                     </MenuItemField>
                 }
             />
@@ -351,8 +351,8 @@ function Comparison() {
                     >
                         <MenuItem.Row>
                             <MenuItem.Content>
-                                <MenuItem.Description>Member</MenuItem.Description>
-                                <MenuItem.Title>John Doe</MenuItem.Title>
+                                <MenuItem.FieldName>Member</MenuItem.FieldName>
+                                <MenuItem.FieldValue>John Doe</MenuItem.FieldValue>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
@@ -362,11 +362,11 @@ function Comparison() {
                 }
                 preset={
                     <MenuItemField
-                        description="Member"
+                        name="Member"
                         onPress={noop}
                         testID="menuItemComparisonStoryPressable"
                     >
-                        <MenuItem.Title>John Doe</MenuItem.Title>
+                        <MenuItem.FieldValue>John Doe</MenuItem.FieldValue>
                     </MenuItemField>
                 }
             />
@@ -392,8 +392,8 @@ function Comparison() {
                     >
                         <MenuItem.Row>
                             <MenuItem.Content>
-                                <MenuItem.Description>Bank account</MenuItem.Description>
-                                <MenuItem.Title>Chase ••••1234</MenuItem.Title>
+                                <MenuItem.FieldName>Bank account</MenuItem.FieldName>
+                                <MenuItem.FieldValue>Chase ••••1234</MenuItem.FieldValue>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
@@ -403,12 +403,12 @@ function Comparison() {
                 }
                 preset={
                     <MenuItemField
-                        description="Bank account"
+                        name="Bank account"
                         onPress={noop}
                         isDisabled
                         testID="menuItemComparisonStoryPressableWide"
                     >
-                        <MenuItem.Title>Chase ••••1234</MenuItem.Title>
+                        <MenuItem.FieldValue>Chase ••••1234</MenuItem.FieldValue>
                     </MenuItemField>
                 }
             />
@@ -440,8 +440,8 @@ function Comparison() {
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.Description>Destination</MenuItem.Description>
-                                        <MenuItem.Title>Warsaw, Poland</MenuItem.Title>
+                                        <MenuItem.FieldName>Destination</MenuItem.FieldName>
+                                        <MenuItem.FieldValue>Warsaw, Poland</MenuItem.FieldValue>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />
@@ -453,7 +453,7 @@ function Comparison() {
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.DescriptionPlaceholder>Destination</MenuItem.DescriptionPlaceholder>
+                                        <MenuItem.FieldNamePlaceholder>Destination</MenuItem.FieldNamePlaceholder>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />
@@ -467,15 +467,15 @@ function Comparison() {
                     <>
                         <Variant label="value child">
                             <MenuItemField
-                                description="Destination"
+                                name="Destination"
                                 onPress={noop}
                             >
-                                <MenuItem.Title>Warsaw, Poland</MenuItem.Title>
+                                <MenuItem.FieldValue>Warsaw, Poland</MenuItem.FieldValue>
                             </MenuItemField>
                         </Variant>
                         <Variant label="no value child">
                             <MenuItemField
-                                description="Destination"
+                                name="Destination"
                                 onPress={noop}
                             />
                         </Variant>
@@ -513,14 +513,14 @@ function Comparison() {
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong accessibilityLabel="John Doe">
+                                <MenuItem.Title accessibilityLabel="John Doe">
                                     <DisplayNames
                                         fullTitle="John Doe"
                                         displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
                                         tooltipEnabled
                                         numberOfLines={1}
                                     />
-                                </MenuItem.TitleStrong>
+                                </MenuItem.Title>
                                 <MenuItem.Description>john@example.com</MenuItem.Description>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
@@ -556,7 +556,7 @@ function Comparison() {
                                     />
                                 </MenuItem.Leading>
                                 <MenuItem.Content>
-                                    <MenuItem.TitleStrong>John Doe</MenuItem.TitleStrong>
+                                    <MenuItem.Title>John Doe</MenuItem.Title>
                                     <MenuItem.Description numberOfLines={1}>john.doe.with.a.very.long.email.address.for.truncation@example.com</MenuItem.Description>
                                 </MenuItem.Content>
                             </MenuItem.Row>
@@ -589,7 +589,7 @@ function Comparison() {
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>John Doe</MenuItem.TitleStrong>
+                                <MenuItem.Title>John Doe</MenuItem.Title>
                                 <MenuItem.Description>john@example.com</MenuItem.Description>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
@@ -689,7 +689,7 @@ function Comparison() {
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.DescriptionPlaceholder>Vacation delegate</MenuItem.DescriptionPlaceholder>
+                                        <MenuItem.FieldNamePlaceholder>Vacation delegate</MenuItem.FieldNamePlaceholder>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />
@@ -701,7 +701,7 @@ function Comparison() {
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.TitleStrong>John Doe</MenuItem.TitleStrong>
+                                        <MenuItem.Title>John Doe</MenuItem.Title>
                                         <MenuItem.Description>Vacation delegate</MenuItem.Description>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
@@ -764,7 +764,7 @@ function Comparison() {
                                         />
                                     </MenuItem.Leading>
                                     <MenuItem.Content>
-                                        <MenuItem.TitleStrong>John Doe</MenuItem.TitleStrong>
+                                        <MenuItem.Title>John Doe</MenuItem.Title>
                                         <MenuItem.Description>john@example.com</MenuItem.Description>
                                     </MenuItem.Content>
                                 </MenuItem.Row>
@@ -781,7 +781,7 @@ function Comparison() {
                                         />
                                     </MenuItem.Leading>
                                     <MenuItem.Content>
-                                        <MenuItem.TitleStrong>John Doe</MenuItem.TitleStrong>
+                                        <MenuItem.Title>John Doe</MenuItem.Title>
                                         <MenuItem.Description>john@example.com</MenuItem.Description>
                                     </MenuItem.Content>
                                 </MenuItem.Row>
@@ -798,7 +798,7 @@ function Comparison() {
                                         />
                                     </MenuItem.Leading>
                                     <MenuItem.Content>
-                                        <MenuItem.TitleStrong>John Doe</MenuItem.TitleStrong>
+                                        <MenuItem.Title>John Doe</MenuItem.Title>
                                         <MenuItem.Description>john@example.com</MenuItem.Description>
                                     </MenuItem.Content>
                                 </MenuItem.Row>
@@ -835,7 +835,7 @@ function Comparison() {
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>Expensify Inc</MenuItem.TitleStrong>
+                                <MenuItem.Title>Expensify Inc</MenuItem.Title>
                                 <MenuItem.Description>Workspace</MenuItem.Description>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
@@ -872,14 +872,14 @@ function Comparison() {
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong accessibilityLabel="John Doe">
+                                <MenuItem.Title accessibilityLabel="John Doe">
                                     <DisplayNames
                                         fullTitle="John Doe"
                                         displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
                                         tooltipEnabled
                                         numberOfLines={1}
                                     />
-                                </MenuItem.TitleStrong>
+                                </MenuItem.Title>
                                 <MenuItem.Description>john@example.com</MenuItem.Description>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
@@ -953,7 +953,7 @@ function Comparison() {
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>John Doe</MenuItem.TitleStrong>
+                                <MenuItem.Title>John Doe</MenuItem.Title>
                                 <MenuItem.Description>john@example.com</MenuItem.Description>
                             </MenuItem.Content>
                         </MenuItem.Row>
@@ -975,7 +975,7 @@ function Comparison() {
                     <MenuItem.Root onPress={noop}>
                         <MenuItem.Row>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>Settings</MenuItem.TitleStrong>
+                                <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
@@ -998,7 +998,7 @@ function Comparison() {
                                 <MenuItem.Icon src={icons.Gear} />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>Settings</MenuItem.TitleStrong>
+                                <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
@@ -1029,7 +1029,7 @@ function Comparison() {
                                 <MenuItem.Icon src={icons.Gear} />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>Settings</MenuItem.TitleStrong>
+                                <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
@@ -1064,7 +1064,7 @@ function Comparison() {
                                 <MenuItem.Icon src={icons.Gear} />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>Settings</MenuItem.TitleStrong>
+                                <MenuItem.Title>Settings</MenuItem.Title>
                                 <MenuItem.Description>Manage your preferences</MenuItem.Description>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
@@ -1093,7 +1093,7 @@ function Comparison() {
                                 <MenuItem.Icon src={icons.Gear} />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>Create report</MenuItem.TitleStrong>
+                                <MenuItem.Title>Create report</MenuItem.Title>
                                 <MenuItem.Description>Expensify Inc</MenuItem.Description>
                             </MenuItem.Content>
                         </MenuItem.Row>
@@ -1126,7 +1126,7 @@ function Comparison() {
                     <MenuItem.Root>
                         <MenuItem.Row>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>This device</MenuItem.TitleStrong>
+                                <MenuItem.Title>This device</MenuItem.Title>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <Button
@@ -1155,7 +1155,7 @@ function Comparison() {
                     <MenuItem.Root onPress={noop}>
                         <MenuItem.Row>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>Settings</MenuItem.TitleStrong>
+                                <MenuItem.Title>Settings</MenuItem.Title>
                                 <MenuItem.Description>Manage your preferences</MenuItem.Description>
                             </MenuItem.Content>
                         </MenuItem.Row>
@@ -1179,7 +1179,7 @@ function Comparison() {
                                 <MenuItem.Icon src={icons.Gear} />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>Settings</MenuItem.TitleStrong>
+                                <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
@@ -1207,7 +1207,7 @@ function Comparison() {
                                 <MenuItem.Icon src={icons.Gear} />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>Settings</MenuItem.TitleStrong>
+                                <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
@@ -1244,7 +1244,7 @@ function Comparison() {
                                 <MenuItem.Icon src={icons.Gear} />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                <MenuItem.TitleStrong>Settings</MenuItem.TitleStrong>
+                                <MenuItem.Title>Settings</MenuItem.Title>
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
@@ -1276,7 +1276,7 @@ function Comparison() {
                                     <MenuItem.Icon src={icons.Gear} />
                                 </MenuItem.Leading>
                                 <MenuItem.Content>
-                                    <MenuItem.TitleStrong>Edit columns</MenuItem.TitleStrong>
+                                    <MenuItem.Title>Edit columns</MenuItem.Title>
                                 </MenuItem.Content>
                                 <MenuItem.Trailing>
                                     <MenuItem.Chevron />
@@ -1313,7 +1313,7 @@ function Comparison() {
                                     <MenuItem.Icon src={icons.Gear} />
                                 </MenuItem.Leading>
                                 <MenuItem.Content>
-                                    <MenuItem.TitleStrong>Edit columns</MenuItem.TitleStrong>
+                                    <MenuItem.Title>Edit columns</MenuItem.Title>
                                     <MenuItem.Description>Choose what to display</MenuItem.Description>
                                 </MenuItem.Content>
                                 <MenuItem.Trailing>

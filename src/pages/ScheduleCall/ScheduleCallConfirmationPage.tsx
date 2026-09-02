@@ -120,7 +120,7 @@ function ScheduleCallConfirmationPage() {
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
-                                {!!guideDetails?.displayName && <MenuItem.TitleStrong>{guideDetails.displayName}</MenuItem.TitleStrong>}
+                                {!!guideDetails?.displayName && <MenuItem.Title>{guideDetails.displayName}</MenuItem.Title>}
                                 {!!guideDetails?.login && <MenuItem.Description>{guideDetails.login}</MenuItem.Description>}
                             </MenuItem.Content>
                         </MenuItem.Row>
@@ -138,8 +138,8 @@ function ScheduleCallConfirmationPage() {
                             Navigation.goBack(ROUTES.SCHEDULE_CALL_BOOK.getRoute(route?.params?.reportID));
                         }}
                     />
-                    <MenuItemField description={translate('scheduledCall.confirmation.meetingLength')}>
-                        <MenuItem.Title>{translate('scheduledCall.confirmation.minutes')}</MenuItem.Title>
+                    <MenuItemField name={translate('scheduledCall.confirmation.meetingLength')}>
+                        <MenuItem.FieldValue>{translate('scheduledCall.confirmation.minutes')}</MenuItem.FieldValue>
                     </MenuItemField>
                 </ScrollView>
                 <FixedFooter>

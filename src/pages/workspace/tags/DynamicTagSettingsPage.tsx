@@ -201,10 +201,10 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                     )}
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
                         <MenuItemField
-                            description={translate(`common.name`)}
+                            name={translate(`common.name`)}
                             onPress={canWriteTags && !hasDependentTags ? navigateToEditTag : undefined}
                         >
-                            {!!cleanedTagName && <MenuItem.Title>{cleanedTagName}</MenuItem.Title>}
+                            {!!cleanedTagName && <MenuItem.FieldValue>{cleanedTagName}</MenuItem.FieldValue>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (

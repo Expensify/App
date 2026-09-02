@@ -295,11 +295,11 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
 
                                 {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
                                     <MenuItemField
-                                        description={translate('workspace.card.chooseRule')}
+                                        name={translate('workspace.card.chooseRule')}
                                         onPress={handleChooseSpendRule}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
                                     >
-                                        {!!existingSpendRuleTitle && <MenuItem.Title>{existingSpendRuleTitle}</MenuItem.Title>}
+                                        {!!existingSpendRuleTitle && <MenuItem.FieldValue>{existingSpendRuleTitle}</MenuItem.FieldValue>}
                                     </MenuItemField>
                                 )}
 

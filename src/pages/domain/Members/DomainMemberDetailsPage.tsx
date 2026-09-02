@@ -160,10 +160,10 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     onClose={() => clearChangeDomainSecurityGroupError(domainAccountID, memberLogin)}
                 >
                     <MenuItemField
-                        description={translate('domain.members.domainGroup')}
+                        name={translate('domain.members.domainGroup')}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
                     >
-                        {!!userSecurityGroup?.securityGroup?.name && <MenuItem.Title>{userSecurityGroup.securityGroup.name}</MenuItem.Title>}
+                        {!!userSecurityGroup?.securityGroup?.name && <MenuItem.FieldValue>{userSecurityGroup.securityGroup.name}</MenuItem.FieldValue>}
                     </MenuItemField>
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem

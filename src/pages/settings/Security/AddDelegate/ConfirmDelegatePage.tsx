@@ -78,7 +78,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                             />
                         </MenuItem.Leading>
                         <MenuItem.Content>
-                            <MenuItem.TitleStrong>{displayName}</MenuItem.TitleStrong>
+                            <MenuItem.Title>{displayName}</MenuItem.Title>
                             <MenuItem.Description>{formattedLogin}</MenuItem.Description>
                         </MenuItem.Content>
                     </MenuItem.Row>

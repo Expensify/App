@@ -75,7 +75,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
                         <MenuItemField
-                            description={translate('notificationPreferencesPage.label')}
+                            name={translate('notificationPreferencesPage.label')}
                             onPress={() => {
                                 if (!reportID) {
                                     return;
@@ -83,15 +83,15 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(reportID)));
                             }}
                         >
-                            {!!notificationPreference && <MenuItem.Title>{notificationPreference}</MenuItem.Title>}
+                            {!!notificationPreference && <MenuItem.FieldValue>{notificationPreference}</MenuItem.FieldValue>}
                         </MenuItemField>
                     )}
                     {shouldShowWriteCapability && shouldAllowWriteCapabilityEditing && (
                         <MenuItemField
-                            description={translate('writeCapabilityPage.label')}
+                            name={translate('writeCapabilityPage.label')}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
                         >
-                            {!!writeCapabilityText && <MenuItem.Title>{writeCapabilityText}</MenuItem.Title>}
+                            {!!writeCapabilityText && <MenuItem.FieldValue>{writeCapabilityText}</MenuItem.FieldValue>}
                         </MenuItemField>
                     )}
                     {shouldShowWriteCapability && !shouldAllowWriteCapabilityEditing && (
@@ -114,12 +114,12 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                         report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
                             <MenuItemField
-                                description={translate('newRoomPage.visibility')}
+                                name={translate('newRoomPage.visibility')}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path));
                                 }}
                             >
-                                <MenuItem.Title>{translate(`newRoomPage.visibilityOptions.${report.visibility}`)}</MenuItem.Title>
+                                <MenuItem.FieldValue>{translate(`newRoomPage.visibilityOptions.${report.visibility}`)}</MenuItem.FieldValue>
                             </MenuItemField>
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>

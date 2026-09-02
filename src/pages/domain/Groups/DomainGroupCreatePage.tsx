@@ -206,11 +206,11 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                     />
                     {hasAdminPolicies && (
                         <MenuItemField
-                            description={translate('domain.groups.preferredWorkspace')}
+                            name={translate('domain.groups.preferredWorkspace')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
                             isDisabled={!preferredWorkspace}
                         >
-                            {!!preferredWorkspaceName && <MenuItem.Title>{preferredWorkspaceName}</MenuItem.Title>}
+                            {!!preferredWorkspaceName && <MenuItem.FieldValue>{preferredWorkspaceName}</MenuItem.FieldValue>}
                         </MenuItemField>
                     )}
                     <ToggleSettingOptionRow

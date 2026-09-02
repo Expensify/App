@@ -333,15 +333,15 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemField
-                            description={translate('common.name')}
+                            name={translate('common.name')}
                             onPress={canWriteCategories ? navigateToEditCategory : undefined}
                         >
-                            {!!decodedCategoryName && <MenuItem.Title>{decodedCategoryName}</MenuItem.Title>}
+                            {!!decodedCategoryName && <MenuItem.FieldValue>{decodedCategoryName}</MenuItem.FieldValue>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
                         <MenuItemField
-                            description={translate('workspace.categories.glCode')}
+                            name={translate('workspace.categories.glCode')}
                             onPress={
                                 canWriteCategories
                                     ? () => {
@@ -366,12 +366,12 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     : undefined
                             }
                         >
-                            {!!policyCategory['GL Code'] && <MenuItem.Title>{policyCategory['GL Code']}</MenuItem.Title>}
+                            {!!policyCategory['GL Code'] && <MenuItem.FieldValue>{policyCategory['GL Code']}</MenuItem.FieldValue>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
                         <MenuItemField
-                            description={translate('workspace.categories.payrollCode')}
+                            name={translate('workspace.categories.payrollCode')}
                             onPress={
                                 canWriteCategories
                                     ? () => {
@@ -394,7 +394,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     : undefined
                             }
                         >
-                            {!!policyCategory['Payroll Code'] && <MenuItem.Title>{policyCategory['Payroll Code']}</MenuItem.Title>}
+                            {!!policyCategory['Payroll Code'] && <MenuItem.FieldValue>{policyCategory['Payroll Code']}</MenuItem.FieldValue>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                     {categoryRulesEnabled && isRulesRevampEnabled && (
@@ -429,7 +429,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                             />
                             {!!policy?.tax?.trackingEnabled && (
                                 <MenuItemField
-                                    description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                    name={translate('workspace.rules.categoryRules.defaultTaxRate')}
                                     onPress={
                                         canWriteCategories
                                             ? () => {
@@ -438,7 +438,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!defaultTaxRateText && <MenuItem.Title>{defaultTaxRateText}</MenuItem.Title>}
+                                    {!!defaultTaxRateText && <MenuItem.FieldValue>{defaultTaxRateText}</MenuItem.FieldValue>}
                                 </MenuItemField>
                             )}
                         </>
@@ -489,7 +489,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                             />
                             {!!policy?.tax?.trackingEnabled && (
                                 <MenuItemField
-                                    description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                    name={translate('workspace.rules.categoryRules.defaultTaxRate')}
                                     onPress={
                                         canWriteCategories
                                             ? () => {
@@ -498,7 +498,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!defaultTaxRateText && <MenuItem.Title>{defaultTaxRateText}</MenuItem.Title>}
+                                    {!!defaultTaxRateText && <MenuItem.FieldValue>{defaultTaxRateText}</MenuItem.FieldValue>}
                                 </MenuItemField>
                             )}
                             {/*
@@ -508,7 +508,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                              */}
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
                                 <MenuItemField
-                                    description={translate('workspace.rules.categoryRules.flagAmountsOver')}
+                                    name={translate('workspace.rules.categoryRules.flagAmountsOver')}
                                     onPress={
                                         canWriteCategories
                                             ? () => {
@@ -517,12 +517,12 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!flagAmountsOverText && <MenuItem.Title>{flagAmountsOverText}</MenuItem.Title>}
+                                    {!!flagAmountsOverText && <MenuItem.FieldValue>{flagAmountsOverText}</MenuItem.FieldValue>}
                                 </MenuItemField>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
                                 <MenuItemField
-                                    description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
+                                    name={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
                                     onPress={
                                         canWriteCategories
                                             ? () => {
@@ -531,12 +531,12 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!requireReceiptsOverText && <MenuItem.Title>{requireReceiptsOverText}</MenuItem.Title>}
+                                    {!!requireReceiptsOverText && <MenuItem.FieldValue>{requireReceiptsOverText}</MenuItem.FieldValue>}
                                 </MenuItemField>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
                                 <MenuItemField
-                                    description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
+                                    name={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
                                     onPress={
                                         canWriteCategories
                                             ? () => {
@@ -545,12 +545,12 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!requireItemizedReceiptsOverText && <MenuItem.Title>{requireItemizedReceiptsOverText}</MenuItem.Title>}
+                                    {!!requireItemizedReceiptsOverText && <MenuItem.FieldValue>{requireItemizedReceiptsOverText}</MenuItem.FieldValue>}
                                 </MenuItemField>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={requireFieldsPendingAction}>
                                 <MenuItemField
-                                    description={translate('workspace.rules.categoryRules.requireFields')}
+                                    name={translate('workspace.rules.categoryRules.requireFields')}
                                     onPress={
                                         canWriteCategories
                                             ? () => {
@@ -559,7 +559,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             : undefined
                                     }
                                 >
-                                    {!!requiredFieldsTitle && <MenuItem.Title>{requiredFieldsTitle}</MenuItem.Title>}
+                                    {!!requiredFieldsTitle && <MenuItem.FieldValue>{requiredFieldsTitle}</MenuItem.FieldValue>}
                                 </MenuItemField>
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>

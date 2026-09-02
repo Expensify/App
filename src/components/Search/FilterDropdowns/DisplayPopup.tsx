@@ -82,46 +82,46 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         return (
             <ScrollView contentContainerStyle={[styles.pv4]}>
                 <MenuItemField
-                    description={translate('search.display.sortBy')}
+                    name={translate('search.display.sortBy')}
                     onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY)}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
                 >
-                    <MenuItem.Title>{`${translate(getSearchColumnTranslationKey(sortByValue))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}</MenuItem.Title>
+                    <MenuItem.FieldValue>{`${translate(getSearchColumnTranslationKey(sortByValue))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}</MenuItem.FieldValue>
                 </MenuItemField>
                 {(isExpenseType || isTripType) && (
                     <MenuItemField
-                        description={translate('search.display.groupBy')}
+                        name={translate('search.display.groupBy')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_BY}
                     >
-                        {!!groupByValue && <MenuItem.Title>{translate(`search.filters.groupBy.${groupByValue}`)}</MenuItem.Title>}
+                        {!!groupByValue && <MenuItem.FieldValue>{translate(`search.filters.groupBy.${groupByValue}`)}</MenuItem.FieldValue>}
                     </MenuItemField>
                 )}
                 {!!groupBy && (
                     <MenuItemField
-                        description={translate('common.groupCurrency')}
+                        name={translate('common.groupCurrency')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY}
                     >
-                        {!!groupCurrencyValue && <MenuItem.Title>{groupCurrencyValue}</MenuItem.Title>}
+                        {!!groupCurrencyValue && <MenuItem.FieldValue>{groupCurrencyValue}</MenuItem.FieldValue>}
                     </MenuItemField>
                 )}
                 {isExpenseType && !!groupByValue && (
                     <MenuItemField
-                        description={translate('search.view.label')}
+                        name={translate('search.view.label')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_VIEW}
                     >
-                        {!!viewValue && <MenuItem.Title>{translate(`search.view.${viewValue}`)}</MenuItem.Title>}
+                        {!!viewValue && <MenuItem.FieldValue>{translate(`search.view.${viewValue}`)}</MenuItem.FieldValue>}
                     </MenuItemField>
                 )}
                 {isExpenseType && (
                     <MenuItemField
-                        description={translate('search.display.limitResults')}
+                        name={translate('search.display.limitResults')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_LIMIT}
                     >
-                        {!!limitValue && <MenuItem.Title>{limitValue}</MenuItem.Title>}
+                        {!!limitValue && <MenuItem.FieldValue>{limitValue}</MenuItem.FieldValue>}
                     </MenuItemField>
                 )}
                 {shouldShowColumnsButton && (

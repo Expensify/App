@@ -171,10 +171,10 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 <View style={[styles.mb3]}>
                     <View style={[styles.mhn5, styles.mb3]}>
                         <MenuItemField
-                            description={translate('common.role')}
+                            name={translate('common.role')}
                             onPress={canAssignElevatedRoles ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path)) : undefined}
                         >
-                            <MenuItem.Title>{translate(`workspace.common.roleName`, role)}</MenuItem.Title>
+                            <MenuItem.FieldValue>{translate(`workspace.common.roleName`, role)}</MenuItem.FieldValue>
                         </MenuItemField>
                     </View>
                 </View>

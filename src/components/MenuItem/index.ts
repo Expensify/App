@@ -5,7 +5,7 @@
  * imports keep working), extended with the compound sub-components following the
  * composition-over-configuration pattern.
  *
- * The row's accessibility label is derived from the `Title`/`Description` text.
+ * The row's accessibility label is derived from the text leaves, announced top line first.
  *
  * @example Simple navigation row
  * ```tsx
@@ -17,7 +17,22 @@
  *             <MenuItem.Icon src={icons.Gear} />
  *         </MenuItem.Leading>
  *         <MenuItem.Content>
- *             <MenuItem.TitleStrong>{translate('common.settings')}</MenuItem.TitleStrong>
+ *             <MenuItem.FieldValue>{translate('common.settings')}</MenuItem.FieldValue>
+ *         </MenuItem.Content>
+ *         <MenuItem.Trailing>
+ *             <MenuItem.Chevron />
+ *         </MenuItem.Trailing>
+ *     </MenuItem.Row>
+ * </MenuItem.Root>
+ * ```
+ *
+ * @example Form field row — the top line names the field, the bottom line holds its value
+ * ```tsx
+ * <MenuItem.Root onPress={onEdit}>
+ *     <MenuItem.Row>
+ *         <MenuItem.Content>
+ *             <MenuItem.FieldName>{translate('common.role')}</MenuItem.FieldName>
+ *             <MenuItem.FieldValue>{role}</MenuItem.FieldValue>
  *         </MenuItem.Content>
  *         <MenuItem.Trailing>
  *             <MenuItem.Chevron />
@@ -32,10 +47,11 @@ import MenuItemRoot from './layout/MenuItemRoot';
 import MenuItemRow from './layout/MenuItemRow';
 import MenuItemTrailing from './layout/MenuItemTrailing';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
-import MenuItemDescription from './leaves/text/description/MenuItemDescription';
-import MenuItemDescriptionPlaceholder from './leaves/text/description/MenuItemDescriptionPlaceholder';
-import MenuItemTitle from './leaves/text/title/MenuItemTitle';
-import MenuItemTitleStrong from './leaves/text/title/MenuItemTitleStrong';
+import MenuItemDescription from './leaves/text/MenuItemDescription';
+import MenuItemFieldName from './leaves/text/MenuItemFieldName';
+import MenuItemFieldNamePlaceholder from './leaves/text/MenuItemFieldNamePlaceholder';
+import MenuItemFieldValue from './leaves/text/MenuItemFieldValue';
+import MenuItemTitle from './leaves/text/MenuItemTitle';
 import MenuItemChevron from './leaves/trailing/MenuItemChevron';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
@@ -48,9 +64,10 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     Trailing: MenuItemTrailing,
     Icon: MenuItemIcon,
     Title: MenuItemTitle,
-    TitleStrong: MenuItemTitleStrong,
     Description: MenuItemDescription,
-    DescriptionPlaceholder: MenuItemDescriptionPlaceholder,
+    FieldName: MenuItemFieldName,
+    FieldNamePlaceholder: MenuItemFieldNamePlaceholder,
+    FieldValue: MenuItemFieldValue,
     Chevron: MenuItemChevron,
     RightLabel: MenuItemRightLabel,
 });

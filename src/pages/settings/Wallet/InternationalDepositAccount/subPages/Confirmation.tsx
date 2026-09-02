@@ -207,12 +207,12 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             {summaryItems.map(({id, description, title, interactive, disabled, onPress}) => (
                 <MenuItemField
                     key={id}
-                    description={description}
+                    name={description}
                     onPress={interactive === false ? undefined : onPress}
                     isDisabled={disabled}
                     testID={id}
                 >
-                    {!!title && <MenuItem.Title>{title}</MenuItem.Title>}
+                    {!!title && <MenuItem.FieldValue>{title}</MenuItem.FieldValue>}
                 </MenuItemField>
             ))}
             <FormProvider

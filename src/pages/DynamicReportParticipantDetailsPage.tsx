@@ -135,11 +135,11 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                     {isCurrentUserAdmin && (
                         <OfflineWithFeedback pendingAction={member?.pendingFields?.role ?? null}>
                             <MenuItemField
-                                description={translate('common.role')}
+                                name={translate('common.role')}
                                 onPress={openRoleSelectionModal}
                                 isDisabled={isSelectedMemberCurrentUser}
                             >
-                                <MenuItem.Title>{member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}</MenuItem.Title>
+                                <MenuItem.FieldValue>{member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}</MenuItem.FieldValue>
                             </MenuItemField>
                         </OfflineWithFeedback>
                     )}

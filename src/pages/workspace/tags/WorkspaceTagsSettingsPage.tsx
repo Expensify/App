@@ -86,7 +86,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                         errorRowStyles={styles.mh5}
                     >
                         <MenuItemField
-                            description={translate(`workspace.tags.customTagName`)}
+                            name={translate(`workspace.tags.customTagName`)}
                             onPress={() => {
                                 Navigation.navigate(
                                     isQuickSettingsFlow
@@ -95,7 +95,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                                 );
                             }}
                         >
-                            {!!customTagName && <MenuItem.Title>{customTagName}</MenuItem.Title>}
+                            {!!customTagName && <MenuItem.FieldValue>{customTagName}</MenuItem.FieldValue>}
                         </MenuItemField>
                     </OfflineWithFeedback>
                 )}
