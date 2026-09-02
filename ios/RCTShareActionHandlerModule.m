@@ -29,24 +29,29 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
     NSString *sharedFilesFolderPath = [sharedFilesFolderPathURL path];
     [defaults removeObjectForKey:ShareExtensionFilesKey];
     [defaults synchronize];
-    
-    NSError *error = nil;
-    NSArray *fileSrcPath = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:sharedFilesFolderPath error:&error];
-    if (fileSrcPath.count == 0) {
+
+    // The share extension nests each shared image in its own directory to keep the file:// URI
+    // unique per share, so walk the tree rather than listing a single flat level. Directories are
+    // skipped because processSingleFile expects a readable file with an extension.
+    NSDirectoryEnumerator<NSURL *> *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:sharedFilesFolderPathURL
+                                                                     includingPropertiesForKeys:@[NSURLIsDirectoryKey]
+                                                                                        options:NSDirectoryEnumerationSkipsHiddenFiles
+                                                                                   errorHandler:nil];
+
+    NSMutableArray *fileFinalPaths = [NSMutableArray array];
+    for (NSURL *fileURL in enumerator) {
+        NSNumber *isDirectory = nil;
+        if (![fileURL getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:NULL] || isDirectory.boolValue) {
+            continue;
+        }
+        [fileFinalPaths addObject:[fileURL path]];
+    }
+
+    if (fileFinalPaths.count == 0) {
         NSLog(@"Failed to find files in 'sharedFilesFolderPath' %@", sharedFilesFolderPath);
         return @[];
     }
-    
-    NSMutableArray *fileFinalPaths = [NSMutableArray array];
-    for (NSString *source in fileSrcPath) {
-        if (source == NULL) {
-            NSLog(@"Invalid file");
-            continue;
-        }
-        NSString *srcFileAbsolutePath = [sharedFilesFolderPath stringByAppendingPathComponent:source];
-        [fileFinalPaths addObject:srcFileAbsolutePath];
-    }
-    
+
     return fileFinalPaths;
 }
 

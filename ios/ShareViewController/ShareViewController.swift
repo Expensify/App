@@ -9,6 +9,7 @@ class ShareViewController: UIViewController {
     let APP_GROUP_ID = "group.com.expensify.new"
     let FILES_DIRECTORY_NAME = "sharedFiles"
     let READ_FROM_FILE_FILE_NAME = "text_to_read.txt"
+    let IMAGE_FILE_NAME = "shared_image.png"
     
     enum FileSaveError: String {
         case CouldNotLoad
@@ -192,11 +193,21 @@ class ShareViewController: UIViewController {
     
     private func handleImageData(_ image: UIImage, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Handling image data")
-        // Use a unique filename per share so the resulting file:// URI differs every time.
-        // A constant name produced an identical URI on every share, and the URI-keyed image
-        // cache kept serving the first decoded receipt. See https://github.com/Expensify/App/issues/95075
-        let filename = "shared_image_\(UUID().uuidString).png"
-        processAndSave(data: image.pngData(), filename: filename, folder: folder, completion: completion)
+        // Nest each shared image in its own directory so the resulting file:// URI differs on every
+        // share. A constant URI made the URI-keyed image cache keep serving the first decoded
+        // receipt. The filename itself stays constant because JS derives the user-visible receipt
+        // and attachment name from the last path component.
+        // See https://github.com/Expensify/App/issues/95075
+        let uniqueFolder = folder.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        do {
+            try FileManager.default.createDirectory(at: uniqueFolder, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            os_log("Failed to create folder: %@, error: %@", uniqueFolder.path, error.localizedDescription)
+            completion(.CouldNotLoad)
+            return
+        }
+
+        processAndSave(data: image.pngData(), filename: IMAGE_FILE_NAME, folder: uniqueFolder, completion: completion)
     }
     
     private func processAndSave(data: Data?, filename: String, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
