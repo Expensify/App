@@ -110,7 +110,7 @@ describe('Export actions', () => {
         expect(value).toEqual(expect.objectContaining({state: 'failed'}));
     });
 
-    test('clearStaleExportDownloads clears ready/failed entries but preserves preparing ones', async () => {
+    test('clearStaleExportDownloads clears failed entries but keeps preparing and ready ones', async () => {
         const key1 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1` as const;
         const key2 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2` as const;
         const key3 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-3` as const;
@@ -128,8 +128,34 @@ describe('Export actions', () => {
         const value1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1`);
         const value2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2`);
         const value3 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-3`);
-        expect(value1).toBeUndefined();
+        expect(value1).toEqual(expect.objectContaining({state: 'ready'}));
         expect(value2).toBeUndefined();
         expect(value3).toEqual(expect.objectContaining({state: 'preparing'}));
+    });
+
+    test('clearStaleExportDownloads leaves a preparing Concierge hand-off untouched', async () => {
+        const key = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-concierge` as const;
+        await Onyx.merge(key, {state: 'preparing', shouldSendFromConcierge: true});
+        await waitForBatchedUpdates();
+
+        Export.clearStaleExportDownloads();
+        await waitForBatchedUpdates();
+
+        // Concierge delivery is owned by the worker, which deletes the record when it is done, so the stale
+        // cleanup leaves the record as-is instead of clearing it.
+        const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-concierge`);
+        expect(value).toEqual({state: 'preparing', shouldSendFromConcierge: true});
+    });
+
+    test('clearStaleExportDownloads leaves a failed Concierge hand-off untouched', async () => {
+        const key = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-concierge-failed` as const;
+        await Onyx.merge(key, {state: 'failed', shouldSendFromConcierge: true});
+        await waitForBatchedUpdates();
+
+        Export.clearStaleExportDownloads();
+        await waitForBatchedUpdates();
+
+        const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-concierge-failed`);
+        expect(value).toEqual({state: 'failed', shouldSendFromConcierge: true});
     });
 });
