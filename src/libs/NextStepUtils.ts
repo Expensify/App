@@ -8,7 +8,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
+import {addMonths, endOfDay, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
@@ -210,7 +210,10 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH};
                         } else if (policy?.autoReportingOffset !== undefined) {
                             let etaDateTime = setDate(new Date(), policy?.autoReportingOffset);
-                            if (isPast(etaDateTime)) {
+                            // The eta is rendered as a date, so this has to roll forward a month only once the offset
+                            // day itself is over. Comparing the raw instant makes the offset day a coin flip against
+                            // the current time of day, since `setDate` keeps it.
+                            if (isPast(endOfDay(etaDateTime))) {
                                 etaDateTime = addMonths(etaDateTime, 1);
                             }
 

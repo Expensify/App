@@ -1,6 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import DateUtils from '@libs/DateUtils';
 import {
     buildNextStepMessage,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
@@ -19,7 +18,6 @@ import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {execFileSync} from 'child_process';
-import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -280,38 +278,66 @@ describe('libs/NextStepUtils', () => {
                     expect(result).toMatchObject(expectedResult);
                 });
 
-                test('monthly on the 2nd', () => {
-                    // Waiting for userSubmitter's expense(s) to automatically submit on the 2nd of each month
-                    const expectedResult: ReportNextStep = {
+                // Waiting for userSubmitter's expense(s) to automatically submit on the 2nd of each month.
+                // The eta is derived from the live clock, so "now" is pinned here. Deriving the expectation from a
+                // real `new Date()` made these cases pass on most days and fail on the 2nd of every month, when the
+                // eta lands on today and `isPast` degenerates into a sub-millisecond comparison against "now".
+                describe('monthly on the 2nd', () => {
+                    const buildMonthlyOnThe2ndNextStep = () =>
+                        buildOptimisticNextStep({
+                            report,
+                            policy: {
+                                ...policy,
+                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                                autoReportingOffset: 2,
+                                harvesting: {
+                                    enabled: true,
+                                },
+                            },
+                            currentUserAccountIDParam: currentUserAccountID,
+                            currentUserEmailParam: currentUserEmail,
+                            hasViolations: false,
+                            isASAPSubmitBetaEnabled: false,
+                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                            shouldFixViolations: false,
+                            isUnapprove: false,
+                            isReopen: false,
+                            isTrackIntentUser: false,
+                        });
+
+                    const expectedResultWithEtaDate = (dateTime: string): ReportNextStep => ({
                         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
                         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                         actorAccountID: currentUserAccountID,
                         eta: {
-                            dateTime: format(DateUtils.getNextNthOfMonth(2), 'yyyy-MM-dd'),
+                            dateTime,
                         },
-                    };
-                    const result = buildOptimisticNextStep({
-                        report,
-                        policy: {
-                            ...policy,
-                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
-                            autoReportingOffset: 2,
-                            harvesting: {
-                                enabled: true,
-                            },
-                        },
-                        currentUserAccountIDParam: currentUserAccountID,
-                        currentUserEmailParam: currentUserEmail,
-                        hasViolations: false,
-                        isASAPSubmitBetaEnabled: false,
-                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                        shouldFixViolations: false,
-                        isUnapprove: false,
-                        isReopen: false,
-                        isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(expectedResult);
+                    afterEach(() => {
+                        jest.useRealTimers();
+                    });
+
+                    test('is the 2nd of this month when the 2nd is still ahead', () => {
+                        jest.useFakeTimers();
+                        jest.setSystemTime(new Date('2026-01-01T12:00:00Z'));
+
+                        expect(buildMonthlyOnThe2ndNextStep()).toMatchObject(expectedResultWithEtaDate('2026-01-02'));
+                    });
+
+                    test('is today when today is the 2nd', () => {
+                        jest.useFakeTimers();
+                        jest.setSystemTime(new Date('2026-01-02T12:00:00Z'));
+
+                        expect(buildMonthlyOnThe2ndNextStep()).toMatchObject(expectedResultWithEtaDate('2026-01-02'));
+                    });
+
+                    test('is the 2nd of next month once the 2nd has passed', () => {
+                        jest.useFakeTimers();
+                        jest.setSystemTime(new Date('2026-01-15T12:00:00Z'));
+
+                        expect(buildMonthlyOnThe2ndNextStep()).toMatchObject(expectedResultWithEtaDate('2026-02-02'));
+                    });
                 });
 
                 test('monthly on the last day', () => {
