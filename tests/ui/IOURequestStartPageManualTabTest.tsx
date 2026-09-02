@@ -59,9 +59,13 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan', () => () => null);
 jest.mock('@pages/iou/request/step/IOURequestStepConfirmation', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<{View: React.ComponentType<{testID: string}>}>('react-native');
+    const ConfirmationStub = () => ReactModule.createElement(View, {testID: 'EmbeddedConfirmation'});
     return {
         __esModule: true,
-        default: () => ReactModule.createElement(View, {testID: 'EmbeddedConfirmation'}),
+        // The standalone RHP route, which brings its own ScreenWrapper.
+        default: ConfirmationStub,
+        // The bare body, which is what IOURequestStartPage composes into the trap it already owns.
+        IOURequestStepConfirmationContentWithWritableReportOrNotFound: ConfirmationStub,
     };
 });
 jest.mock('@pages/iou/request/step/IOURequestStepAmount', () => {

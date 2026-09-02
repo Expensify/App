@@ -1,11 +1,12 @@
 /**
- * Builds the top-level, Spend, Account, and Create navigation suggestions shown in the Search Router.
+ * Builds the top-level, Spend, Domain, Account, and Create navigation suggestions shown in the Search Router.
  */
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
 import {useSearchQueryActions, useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,19 +20,26 @@ import type {SearchKey, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/S
 
 import navigationRef from '@navigation/navigationRef';
 
+import getDomainMenuItems, {DOMAIN_MENU_ICON_NAMES} from '@pages/domain/getDomainMenuItems';
+import type {DomainMenuIconMap} from '@pages/domain/getDomainMenuItems';
 import useSettingsNavigationMenuData from '@pages/settings/useSettingsNavigationMenuData';
 import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isAdminSelector} from '@src/selectors/Domain';
+import type {Domain} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
 
+import {Str} from 'expensify-common';
 import React from 'react';
 
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
@@ -39,10 +47,10 @@ import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
-type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Gear', IconAsset>;
+type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Globe' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
 
-const SEARCH_ROUTER_ICON_NAMES = ['Home', 'Inbox', 'ReceiptMultiple', 'Building', 'Gear', ...SEARCH_TYPE_MENU_ICON_NAMES] as const;
+const SEARCH_ROUTER_ICON_NAMES = ['Home', 'Inbox', 'ReceiptMultiple', 'Building', 'Globe', 'Gear', ...DOMAIN_MENU_ICON_NAMES, ...SEARCH_TYPE_MENU_ICON_NAMES] as const;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
 const SAVED_SEARCHES_SECTION_PATH = 'search.savedSearchesMenuItemTitle';
@@ -54,6 +62,7 @@ type BuildTopLevelNavigationItemsParams = {
         inbox: string;
         spend: string;
         workspaces: string;
+        domains: string;
         account: string;
     };
     icons: TopLevelNavigationIcons;
@@ -68,6 +77,16 @@ type BuildSpendNavigationItemsParams = {
     getItemText: (item: SearchTypeMenuItem) => string;
     getDestinationText: (destination: string) => string;
     onSelect: (searchKey: SearchKey, searchQuery: string) => void;
+};
+
+type BuildDomainNavigationItemsParams = {
+    domains: Array<Domain | null | undefined>;
+    currentUserAccountID: number;
+    icons: DomainMenuIconMap;
+    getItemText: (translationKey: TranslationPaths) => string;
+    getDestinationText: (destination: string) => string;
+    getDomainContext: (domainName: string) => ReactNode;
+    onSelect: (route: Route) => void;
 };
 
 type BuildAccountNavigationItemsParams = {
@@ -116,6 +135,13 @@ function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinat
             matchTerms: [labels.workspaces],
         },
         {
+            text: getDestinationText(labels.domains),
+            singleIcon: icons.Globe,
+            action: () => Navigation.navigate(ROUTES.DOMAINS_LIST.route),
+            keyForList: 'topLevelDomains',
+            matchTerms: [labels.domains],
+        },
+        {
             text: getDestinationText(labels.account),
             singleIcon: icons.Gear,
             action: () => Navigation.navigate(ROUTES.SETTINGS),
@@ -143,6 +169,37 @@ function buildSpendNavigationItems({sections, icons, rightElement, getItemText, 
         );
 }
 
+function buildDomainNavigationItems({
+    domains,
+    currentUserAccountID,
+    icons,
+    getItemText,
+    getDestinationText,
+    getDomainContext,
+    onSelect,
+}: BuildDomainNavigationItemsParams): NavigationSuggestionSourceItem[] {
+    const isCurrentUserDomainAdmin = isAdminSelector(currentUserAccountID);
+    const canAdministerDomain = (domain: Domain | null | undefined): domain is Domain =>
+        !!domain?.accountID && !!domain.email && domain.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isCurrentUserDomainAdmin(domain);
+
+    return domains.filter(canAdministerDomain).flatMap((domain) => {
+        const domainName = Str.extractEmailDomain(domain.email);
+        const domainContext = getDomainContext(domainName);
+
+        return getDomainMenuItems({domainAccountID: domain.accountID, icons}).map((item) => {
+            const itemText = getItemText(item.translationKey);
+            return {
+                text: getDestinationText(itemText),
+                singleIcon: item.icon,
+                action: () => onSelect(item.route),
+                keyForList: `domain_${domain.accountID}_${item.screenName}`,
+                rightElement: domainContext,
+                matchTerms: [itemText, domainName],
+            };
+        });
+    });
+}
+
 function buildAccountNavigationItems({sections, rightElement, getItemText, getDestinationText}: BuildAccountNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return sections.flatMap((section) =>
         section.items.flatMap((item) => {
@@ -168,8 +225,10 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const createItems = useCreateNavigationSuggestions(query);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const typeMenuSections = useSearchTypeMenuSections(shouldWatchForApprovals);
@@ -183,6 +242,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             inbox: translate('common.inbox'),
             spend: translate('common.spend'),
             workspaces: translate('common.workspacesTabTitle'),
+            domains: translate('common.domains'),
             account: translate('initialSettingsPage.account'),
         },
         icons,
@@ -208,6 +268,24 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), currentSearchHash, clearSelectedTransactions, setCurrentSearchKey),
     });
 
+    const domainItems = buildDomainNavigationItems({
+        domains: Object.values(allDomains ?? {}),
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        icons,
+        getItemText: (translationKey) => translate(translationKey),
+        getDestinationText: (destination) => getGoToText(translate, destination),
+        getDomainContext: (domainName) => (
+            <TextWithIconCell
+                text={domainName}
+                icon={icons.Globe}
+                iconSize={variables.fontSizeLabel}
+                showTooltip={false}
+                textStyle={[styles.textLabelSupporting, styles.label]}
+            />
+        ),
+        onSelect: (route) => Navigation.navigate(route),
+    });
+
     const accountItems = buildAccountNavigationItems({
         sections: [accountMenuItemsData, generalMenuItemsData],
         rightElement: (
@@ -223,8 +301,8 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
 
-    return buildNavigationSuggestions(query, [topLevelItems, spendItems, accountItems, createItems], localeCompare);
+    return buildNavigationSuggestions(query, [topLevelItems, spendItems, domainItems, accountItems, createItems], localeCompare);
 }
 
 export default useNavigationSuggestions;
-export {buildTopLevelNavigationItems, buildSpendNavigationItems, buildAccountNavigationItems};
+export {buildTopLevelNavigationItems, buildSpendNavigationItems, buildDomainNavigationItems, buildAccountNavigationItems};

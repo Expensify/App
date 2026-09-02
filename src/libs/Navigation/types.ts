@@ -1305,11 +1305,22 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_COMPANY_CARD_ACCOUNT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_ACCOUNT]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_PROGRAM_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT_CARD_LIST]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_ADVANCED]: {
         policyID: string;
@@ -2702,6 +2713,9 @@ type WorkspacesDomainModalNavigatorParamList = {
         domainAccountID: number;
     };
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
+        domainAccountID: number;
+    };
+    [SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS]: {
         domainAccountID: number;
     };
 };
