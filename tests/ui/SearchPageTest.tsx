@@ -110,13 +110,13 @@ const expenseQueryJSON = SearchQueryUtils.buildSearchQueryJSON(EXPENSE_QUERY);
 
 const SUBMITTER_ACCOUNT_ID = 1;
 
-// A full first page: pagination only starts once the loaded results fill one page.
-function buildExpenseSnapshotData(): SearchResults['data'] {
+// A full page of results: pagination only starts once the loaded results fill one page.
+function buildExpenseSnapshotData(firstIndex = 1): SearchResults['data'] {
     const data: Record<string, unknown> = {
         personalDetailsList: {[SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, avatar: '', displayName: 'Submitter', login: 'submitter@expensify.com'}},
     };
 
-    for (let index = 1; index <= CONST.SEARCH.RESULTS_PAGE_SIZE; index++) {
+    for (let index = firstIndex; index < firstIndex + CONST.SEARCH.RESULTS_PAGE_SIZE; index++) {
         const id = String(index);
         data[`report_${id}`] = {
             accountID: SUBMITTER_ACCOUNT_ID,
@@ -152,6 +152,7 @@ function buildExpenseSnapshotData(): SearchResults['data'] {
 }
 
 const expenseSnapshotData = buildExpenseSnapshotData();
+const expenseSecondPageData = buildExpenseSnapshotData(CONST.SEARCH.RESULTS_PAGE_SIZE + 1);
 
 function getExpenseSnapshot(isLoading: boolean) {
     return {
@@ -495,5 +496,53 @@ describe('SearchPageNarrow', () => {
         });
 
         expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(false);
+    });
+    it('re-requests the paginated page after a first-page response replaces the loaded results', async () => {
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // The second page lands.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {
+                data: expenseSecondPageData,
+                search: {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, isLoading: false},
+            });
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        mockSearch.mockClear();
+
+        // Switching Spend sub-tabs remounts against this snapshot and refreshes it from the first page.
+        // That response replaces the results rather than appending, so the second page is gone again.
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(true);
     });
 });

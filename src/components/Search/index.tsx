@@ -405,6 +405,10 @@ function Search({
     // so a page requested while one was in flight is remembered here and fired once it resolves.
     const pendingSearchOffsetRef = useRef<number | undefined>(undefined);
 
+    // onEndReached only fires on the edge, so a page we cannot fetch yet has to be remembered rather than
+    // dropped. Stays set until that page actually shows up in the snapshot.
+    const wantedOffsetRef = useRef<number | undefined>(undefined);
+
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
@@ -842,12 +846,64 @@ function Search({
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+        if (!searchResults?.search?.hasMoreResults) {
+            wantedOffsetRef.current = undefined;
             return;
         }
 
-        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, allDataLength]);
+        // A first-page response replaces the snapshot rather than appending to it, so deriving the next page
+        // from `offset` instead of the snapshot's own cursor drifts the moment one lands mid-pagination.
+        const serverOffset = searchResults?.search?.offset ?? 0;
+        if (!isFocused || shouldShowLoadingState || serverOffset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+            return;
+        }
+
+        const nextOffset = serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        wantedOffsetRef.current = nextOffset;
+        if (searchResults?.search?.isLoading) {
+            return;
+        }
+
+        // Dispatched here rather than left to the offset effect: after a first-page response `nextOffset` can
+        // equal the offset we already hold, and that effect only runs on a change. search() dedupes the pair.
+        setOffset(nextOffset);
+        handleSearch({
+            queryJSON,
+            searchKey: currentSearchKey,
+            offset: nextOffset,
+            shouldCalculateTotals,
+            prevReportsLength: filteredDataLength,
+            isLoading: false,
+        });
+    }, [
+        isFocused,
+        searchResults?.search?.hasMoreResults,
+        searchResults?.search?.isLoading,
+        searchResults?.search?.offset,
+        shouldShowLoadingState,
+        allDataLength,
+        handleSearch,
+        queryJSON,
+        currentSearchKey,
+        shouldCalculateTotals,
+        filteredDataLength,
+    ]);
+
+    // Ask again for a page that never arrived, either because a search was still running when the list hit
+    // its end or because a first-page response replaced it. Both leave the request with nothing to retry it.
+    useEffect(() => {
+        const wantedOffset = wantedOffsetRef.current;
+        if (wantedOffset === undefined || searchResults?.search?.isLoading) {
+            return;
+        }
+
+        if ((searchResults?.search?.offset ?? 0) >= wantedOffset) {
+            wantedOffsetRef.current = undefined;
+            return;
+        }
+
+        fetchMoreResults();
+    }, [fetchMoreResults, searchResults?.search?.isLoading, searchResults?.search?.offset]);
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
