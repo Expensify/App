@@ -154,7 +154,7 @@ describe('DomainGroupPreferredWorkspacePage', () => {
         expect(getRenderedWorkspaceIDs()).toHaveLength(CONST.STANDARD_LIST_ITEM_LIMIT - 1);
     });
 
-    it('sorts the workspaces by name rather than by creation date', async () => {
+    it('keeps sorting the workspaces by creation date, in parity with OldDot', async () => {
         // Given a domain admin whose workspaces were created in the reverse order of their names
         await setUpDomainAdminWithPolicies(3);
 
@@ -162,8 +162,8 @@ describe('DomainGroupPreferredWorkspacePage', () => {
         renderPreferredWorkspacePage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the workspaces are listed alphabetically
-        expect(getRenderedWorkspaceIDs()).toEqual(['policy01', 'policy02', 'policy03']);
+        // Then the workspaces are listed oldest first, not alphabetically
+        expect(getRenderedWorkspaceIDs()).toEqual(['policy03', 'policy02', 'policy01']);
     });
 
     it('stores the picked workspace when a row is selected', async () => {

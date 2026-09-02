@@ -24,6 +24,9 @@ import React from 'react';
 type WorkspaceListItem = {
     /** The ID of the policy/workspace */
     policyID: string;
+
+    /** The timestamp of when the policy was created */
+    created?: string;
 } & ListItem;
 
 type BaseDomainGroupPreferredWorkspacePageProps = {
@@ -73,11 +76,12 @@ function BaseDomainGroupPreferredWorkspacePage({
         workspaceOptions.push({
             text: policy.name,
             policyID: policy.id,
+            created: policy.created,
             keyForList: policy.id,
             isSelected: selectedPolicyID === policy.id,
         });
     }
-    workspaceOptions.sort((a, b) => localeCompare(a.text ?? '', b.text ?? ''));
+    workspaceOptions.sort((a, b) => localeCompare(a.created ?? '', b.created ?? ''));
 
     const filteredWorkspaceOptions = tokenizedSearch(workspaceOptions, debouncedSearchTerm, (option) => [option.text ?? '']);
 
