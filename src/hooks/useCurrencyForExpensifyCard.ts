@@ -9,8 +9,8 @@ import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 
 // `programKey` is required (not optional) so callers can't silently fall back to the collapsed, US-first currency on a
-// fund that also holds a GB program. Pass the selected program (`useSelectedExpensifyCardProgram`) for fund-level currency,
-// or the card's own program (`getProgramKeyForCard`) for a specific card.
+// fund that also holds a GB program. Pass the program the UI is showing (`useDefaultCardFeed` reports it for a workspace's
+// default feed) for fund-level currency, or the card's own program (`getProgramKeyForCard`) for a specific card.
 export default function useCurrencyForExpensifyCard({policyID, fundID, programKey}: {policyID?: string; fundID?: number; programKey: CardProgramKey}) {
     const policy = usePolicy(policyID);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);

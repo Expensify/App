@@ -8,14 +8,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useCurrencyListActions} from './useCurrencyList';
-import useDefaultFundID from './useDefaultFundID';
+import useDefaultCardFeed from './useDefaultCardFeed';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
 export default function useExpensifyCardRules(policyID: string) {
     const {isOffline} = useNetwork();
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 

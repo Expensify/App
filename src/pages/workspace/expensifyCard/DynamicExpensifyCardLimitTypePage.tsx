@@ -15,7 +15,7 @@ import ValuePicker from '@components/ValuePicker';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -63,7 +63,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 

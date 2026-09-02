@@ -1,12 +1,11 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
@@ -34,8 +33,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.expensifyCard');
-    const defaultFundID = useDefaultFundID(policyID);
-    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
+    const {fundID: defaultFundID, programKey: selectedProgramKey} = useDefaultCardFeed(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings, selectedProgramKey);

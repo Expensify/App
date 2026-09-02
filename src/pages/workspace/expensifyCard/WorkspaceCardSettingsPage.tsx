@@ -5,11 +5,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import TextLink from '@components/TextLink';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
-import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
@@ -40,8 +39,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const policyID = route.params?.policyID;
-    const defaultFundID = useDefaultFundID(policyID);
-    const programKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
+    const {fundID: defaultFundID, programKey} = useDefaultCardFeed(policyID);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);

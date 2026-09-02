@@ -7,7 +7,7 @@ import SettlementAccountSelector, {BankAccountListItemLeftElement} from '@compon
 import type {BankAccountListItem} from '@components/SettlementAccountSelector';
 import Text from '@components/Text';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +37,7 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID));

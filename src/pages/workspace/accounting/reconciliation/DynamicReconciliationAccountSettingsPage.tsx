@@ -4,12 +4,11 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
@@ -126,10 +125,9 @@ function ReconciliationAccountSettingsLayout({
 
 function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, domainName, bankAccountList, goBack, connectionName, connectionBankAccounts}: DynamicReconciliationProps) {
     const {translate} = useLocalize();
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID, programKey} = useDefaultCardFeed(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const programKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
     const settings = getCardSettings(cardSettings, programKey);
     const paymentBankAccountID = settings?.paymentBankAccountID;
     const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);

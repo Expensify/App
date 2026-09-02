@@ -1,13 +1,12 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
@@ -42,8 +41,7 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
     const validateError = getLatestErrorMessageField(issueNewCard);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
-    const defaultFundID = useDefaultFundID(policyID);
-    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
+    const {fundID: defaultFundID, programKey: selectedProgramKey} = useDefaultCardFeed(policyID);
     const {isBetaEnabled} = usePermissions();
     const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;

@@ -5,14 +5,13 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
-import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchUserInServer} from '@libs/actions/Report';
@@ -91,8 +90,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         shouldInitialize: didScreenTransitionEnd,
     });
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const defaultFundID = useDefaultFundID(policyID);
-    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
+    const {fundID: defaultFundID, programKey: selectedProgramKey} = useDefaultCardFeed(policyID);
     const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID, programKey: selectedProgramKey});
     const isEditing = issueNewCard?.isEditing;
 

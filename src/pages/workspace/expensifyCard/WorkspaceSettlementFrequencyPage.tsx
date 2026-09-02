@@ -4,11 +4,10 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
@@ -35,10 +34,9 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID, programKey} = useDefaultCardFeed(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const programKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
     const {isBetaEnabled} = usePermissions();
     const settings = getCardSettings(cardSettings, programKey);
 

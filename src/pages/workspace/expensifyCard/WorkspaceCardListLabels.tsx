@@ -1,4 +1,4 @@
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,7 +26,7 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
     const {isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
 
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`);
     const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || cardManualBilling;

@@ -19,7 +19,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -104,7 +104,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const isQuickSettingsFlow = route.name === SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS;
     const backPath = isQuickSettingsFlow ? quickSettingsBackPath : workspaceBackPath;
     const {convertToDisplayString} = useCurrencyListActions();
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();

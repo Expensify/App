@@ -14,7 +14,7 @@ import Text from '@components/Text';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -79,7 +79,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID, programKey}: 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);

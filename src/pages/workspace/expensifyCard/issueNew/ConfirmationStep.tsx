@@ -5,14 +5,13 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
-import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
@@ -52,8 +51,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const defaultFundID = useDefaultFundID(policyID);
-    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
+    const {fundID: defaultFundID, programKey: selectedProgramKey} = useDefaultCardFeed(policyID);
     const {isBetaEnabled} = usePermissions();
     const {cardRules} = useExpensifyCardRules(policyID);
 

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 
 import {buildCardFeedKey} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
@@ -404,7 +404,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('useDefaultFundID', () => {
+    describe('useDefaultCardFeed', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
@@ -432,9 +432,9 @@ describe('PolicyUtils', () => {
                 preferredPolicy: '2',
                 remainingLimit: 0,
             });
-            const {result} = renderHook(() => useDefaultFundID(policy.id));
+            const {result} = renderHook(() => useDefaultCardFeed(policy.id));
 
-            expect(result?.current).toBe(18441278);
+            expect(result?.current.fundID).toBe(18441278);
         });
 
         it('should return lastSelectedExpensifyCardFeed for given policyID when lastSelectedExpensifyCardFeed is set', async () => {
@@ -450,9 +450,9 @@ describe('PolicyUtils', () => {
                     paymentBankAccountID: 1234,
                 },
             });
-            const {result} = renderHook(() => useDefaultFundID(policy.id));
+            const {result} = renderHook(() => useDefaultCardFeed(policy.id));
 
-            expect(result?.current).toBe(lastSelectedFundID);
+            expect(result?.current.fundID).toBe(lastSelectedFundID);
         });
 
         it('should return workspaceAccountID for given policyID', async () => {
@@ -461,9 +461,9 @@ describe('PolicyUtils', () => {
                 policyAccountID: 123234,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-            const {result} = renderHook(() => useDefaultFundID(policy.id));
+            const {result} = renderHook(() => useDefaultCardFeed(policy.id));
 
-            expect(result?.current).toBe(123234);
+            expect(result?.current.fundID).toBe(123234);
         });
     });
 

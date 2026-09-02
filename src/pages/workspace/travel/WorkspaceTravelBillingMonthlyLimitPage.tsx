@@ -9,7 +9,7 @@ import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +36,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
     const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const currentLimit = travelSettings?.monthlySpendLimitPerUser ?? 0;

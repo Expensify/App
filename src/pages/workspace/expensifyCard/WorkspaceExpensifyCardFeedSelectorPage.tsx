@@ -12,7 +12,7 @@ import Text from '@components/Text';
 
 import useCanEnrollNewExpensifyCardProgram from '@hooks/useCanEnrollNewExpensifyCardProgram';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,7 +20,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
-import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearIssueNewCardFlow, clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
@@ -77,9 +76,15 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const primaryContactMethod = usePrimaryContactMethod();
-    const defaultFundID = useDefaultFundID(policyID);
-    const lastSelectedExpensifyCardFeedID = parseCardFeedKey(lastSelectedExpensifyCardFeed).fundID ?? defaultFundID;
-    const selectedProgramKey = useSelectedExpensifyCardProgram(policyID, lastSelectedExpensifyCardFeedID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
+    const {fundID: parsedFeedFundID, programKey: lastSelectedProgramKey} = parseCardFeedKey(lastSelectedExpensifyCardFeed);
+    const lastSelectedExpensifyCardFeedID = parsedFeedFundID ?? defaultFundID;
+    const [lastSelectedFeedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeedID}`);
+    // The selector browses the raw last-selected fund rather than the default feed, so the program is resolved here
+    // instead of via `useDefaultCardFeed`. Honor the stored program only while it is still configured on that fund,
+    // otherwise show its first configured program (US before GB) so a GB-only fund still highlights its feed.
+    const configuredProgramKeys = getConfiguredExpensifyCardProgramKeys(lastSelectedFeedCardSettings);
+    const selectedProgramKey = configuredProgramKeys.find((key) => key === lastSelectedProgramKey) ?? configuredProgramKeys.at(0) ?? CONST.COUNTRY.US;
     const [feedWithError, setFeedWithError] = useState<{fundID?: number; error?: Errors} | undefined>(undefined);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
