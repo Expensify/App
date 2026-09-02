@@ -93,7 +93,7 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import type {AdditionalPayOnyxData} from './mergeAdditionalPayOnyxData';
+import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
 
 import {getAllReportNameValuePairs, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
