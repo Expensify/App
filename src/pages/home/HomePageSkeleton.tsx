@@ -122,8 +122,13 @@ function renderIconTwoBarWithTrailingRow(args: SkeletonRowArgs) {
 }
 
 type HomePageSkeletonCardProps = {
+    /** How many skeleton rows the card renders */
     numRows: number;
+
+    /** Draws the skeleton shapes for a single row from the geometry measured off the card */
     renderRow: (args: SkeletonRowArgs) => React.ReactNode;
+
+    /** Whether each row gets a bottom border, matching cards whose real rows are separated */
     shouldShowSeparators?: boolean;
 };
 
