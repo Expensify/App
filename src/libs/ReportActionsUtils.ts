@@ -3816,7 +3816,8 @@ function getOverLimitForwardsToUpdateMessage(translate: LocalizedTranslate, acti
     const member = formatPhoneNumber(originalMessage.member?.email ?? '');
     const previousApprover = originalMessage.previousOverLimitForwardsTo ? formatPhoneNumber(originalMessage.previousOverLimitForwardsTo.email) : undefined;
     const previousLimit = convertToDisplayString(originalMessage.previousLimit ?? 0, currency);
-    const didLimitChange = typeof originalMessage.limit === 'number' && typeof originalMessage.previousLimit === 'number' && originalMessage.limit !== originalMessage.previousLimit;
+    const didLimitChange =
+        !!previousApprover && typeof originalMessage.limit === 'number' && typeof originalMessage.previousLimit === 'number' && originalMessage.limit !== originalMessage.previousLimit;
 
     if (!originalMessage.overLimitForwardsTo) {
         return translate('workspaceActions.removedOverLimitForwardsTo', {member, previousApprover, previousLimit});

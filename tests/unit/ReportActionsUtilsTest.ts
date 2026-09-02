@@ -4019,6 +4019,19 @@ describe('ReportActionsUtils', () => {
             const result = getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed the approval workflow for member@example.com to stop forwarding reports over $100.00 (previously forwarded to oldapprover@example.com)');
         });
+
+        it('should not pass a previous limit to the translator when there is no previous approver, even if the limit field changed', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, overLimitForwardsTo: approver, limit: 20000, previousLimit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const translateSpy = jest.fn(translateLocal) as jest.MockedFunction<typeof translateLocal>;
+            getOverLimitForwardsToUpdateMessage(translateSpy, action, convertToDisplayString);
+            const translateCallParams = translateSpy.mock.calls.at(0)?.at(1) as {previousLimit?: string} | undefined;
+            expect(translateCallParams?.previousLimit).toBeUndefined();
+        });
     });
 
     describe('getApprovalLimitUpdateMessage', () => {
