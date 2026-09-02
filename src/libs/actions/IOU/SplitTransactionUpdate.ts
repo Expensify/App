@@ -2105,14 +2105,13 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    if (!isReverseSplitOperation) {
-        signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
-    }
-
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         // Returns to Search, not the expense report, so rail flags would sit unconsumed and highlight stale rows the
         // next time that report is opened from the Inbox.
         updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
+        if (!isReverseSplitOperation) {
+            signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
+        }
 
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
@@ -2156,11 +2155,16 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
     }
 
+    // When the transaction thread is the topmost report (e.g. it was opened directly from the "Expense added" growl,
+    // without the expense report beneath it), replace it instead of removing it and pushing the expense report after the
+    // dismissal animation - otherwise the stack empties down to the chat report and it flashes into view in between.
+    const shouldReplaceTransactionThread = !!transactionThreadReportID && Navigation.getTopmostReportId() === transactionThreadReportID;
+
     popReportsSplitNavigatorToReport(targetReportID);
-    Navigation.dismissModalWithReport({reportID: targetReportID});
+    Navigation.dismissModalWithReport({reportID: targetReportID}, navigationRef, {forceReplace: shouldReplaceTransactionThread});
     requestAnimationFrame(() => {
         updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
-        if (!transactionThreadReportScreen?.key) {
+        if (shouldReplaceTransactionThread || !transactionThreadReportScreen?.key) {
             return;
         }
         Navigation.removeScreenByKey(transactionThreadReportScreen.key);

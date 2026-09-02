@@ -4303,7 +4303,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Then navigation should go to the expense report since it still exists
 
-        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: expenseReport.reportID});
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: expenseReport.reportID}, expect.anything(), {forceReplace: false});
     });
 });
 
