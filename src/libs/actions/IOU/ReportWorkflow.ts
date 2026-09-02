@@ -438,6 +438,17 @@ function getIOUReportActionWithBadge(
         }
     }
 
+    // A chat's hasOutstandingChildRequest flag can flip true before its REPORT_ACTIONS are hydrated locally
+    // (e.g. pinning a previously-hidden chat pulls it into the LHN ahead of OpenReport, see
+    // https://github.com/Expensify/Expensify/issues/670825). When that happens the loop above finds no
+    // REPORT_PREVIEW action to badge, so fall back to the chat's iouReportID directly.
+    if (!actionBadge && chatReport?.hasOutstandingChildRequest && chatReport?.iouReportID) {
+        const iouReport = getReportOrDraftReport(chatReport.iouReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]);
+        if (iouReport && !isReportPendingDelete(iouReport)) {
+            actionBadge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
+        }
+    }
+
     return {reportAction: earliestAction, actionBadge};
 }
 
