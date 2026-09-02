@@ -36,7 +36,6 @@ import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
-import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
     canAccessPolicyBankAccount,
     getAccountIDForSubmitManagerEmail,
@@ -53,7 +52,6 @@ import {
     buildOptimisticIOUReportAction,
     buildOptimisticSubmittedReportAction,
     generateReportID,
-    getApprovalChain,
     getParsedComment,
     getReportOrDraftReport,
     getReportTransactions,
@@ -110,6 +108,7 @@ import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 
 import {getBankAccountList} from './BankAccounts';
+import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
@@ -1503,15 +1502,17 @@ function submitMoneyRequestOnSearch(
     }
 
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport, submitterLogin).at(0));
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin);
-    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID) : submitReportManagerAccountID;
+
+    // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
+    // accountID from the approval chain, which would point the server at someone other than the chosen approver.
+    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail) : submitReportManagerAccountID;
 
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID: resolvedManagerAccountID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        ...(resolvedManagerAccountID !== undefined ? {managerAccountID: resolvedManagerAccountID} : {}),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
     };
 
@@ -1895,6 +1896,8 @@ function queueExportSearchItemsToCSV({
         exportID,
     }) as QueueExportSearchItemsToCSVParams;
 
+    markExportInitiatedLocally(exportID);
+
     write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {
         optimisticData,
         failureData,
@@ -1945,6 +1948,10 @@ function queueExportSearchWithTemplate(
         exportName,
         ...(shouldTrackExportProgress ? {exportID} : {}),
     }) as QueueExportSearchWithTemplateParams;
+
+    if (shouldTrackExportProgress) {
+        markExportInitiatedLocally(exportID);
+    }
 
     write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
 

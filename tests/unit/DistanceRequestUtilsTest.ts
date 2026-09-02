@@ -650,6 +650,27 @@ describe('DistanceRequestUtils', () => {
         });
     });
 
+    describe('getRateByCustomUnitRateIDAcrossPolicies', () => {
+        const customUnitRateID = '222AAF6B93BCB';
+
+        it('returns the rate from the supplied policy', () => {
+            const rate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID, policy: FAKE_POLICY});
+
+            expect(rate?.customUnitRateID).toBe(customUnitRateID);
+            expect(rate?.rate).toBe(67);
+        });
+
+        it('falls back to the policy that owns the enabled rate', () => {
+            const rate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({
+                customUnitRateID,
+                policies: {[FAKE_POLICY.id]: FAKE_POLICY},
+            });
+
+            expect(rate?.customUnitRateID).toBe(customUnitRateID);
+            expect(rate?.rate).toBe(67);
+        });
+    });
+
     describe('getDistanceMerchant', () => {
         const toLocaleDigitMock = (dot: string): string => dot;
         const getCurrencySymbolMock = (currency: string): string | undefined => {
