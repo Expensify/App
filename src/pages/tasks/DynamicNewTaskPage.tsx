@@ -32,6 +32,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -288,12 +290,20 @@ function DynamicNewTaskPage() {
                                     </MenuItem.Row>
                                 </MenuItemWithLabel>
                             ) : (
-                                <MenuItemEmptyField
-                                    description={translate('common.share')}
-                                    onPress={navigateToShareDestination}
+                                <MenuItem.Root
+                                    onPress={navigateToShareDestination ? callFunctionIfActionIsAllowed(navigateToShareDestination) : undefined}
+                                    accessibilityLabel={translate('common.share')}
                                 >
-                                    <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
-                                </MenuItemEmptyField>
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.DescriptionPlaceholder>{translate('common.share')}</MenuItem.DescriptionPlaceholder>
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
+                                            {!!navigateToShareDestination && <MenuItem.Chevron />}
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItem.Root>
                             )}
                         </View>
                     </View>
