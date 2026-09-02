@@ -106,7 +106,12 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canWriteApprovals || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !canWriteApprovals ||
+        isPendingDeletePolicy(policy) ||
+        isAnyHRReadOnlyWorkflowMode(policy) ||
+        shouldHideDynamicExternalWorkflowPeople(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && !hasAnyEligibleMember;

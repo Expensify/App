@@ -75,7 +75,12 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
 
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canWriteApprovals || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !canWriteApprovals ||
+        isPendingDeletePolicy(policy) ||
+        isAnyHRReadOnlyWorkflowMode(policy) ||
+        shouldHideDynamicExternalWorkflowPeople(policy);
 
     const approverDisplayName = currentApprover ? Str.removeSMSDomain(currentApprover.displayName) : '';
     const isApproverSelected = isEditFlow ? approverDisplayName.length > 0 : true;

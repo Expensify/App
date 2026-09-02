@@ -156,7 +156,12 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
 
     const shouldShowNotFoundView =
-        (isEmptyObject(policy) && !isLoadingReportData) || !canWriteApprovals || isPendingDeletePolicy(policy) || !currentApprovalWorkflow || isAnyHRReadOnlyWorkflowMode(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !canWriteApprovals ||
+        isPendingDeletePolicy(policy) ||
+        !currentApprovalWorkflow ||
+        isAnyHRReadOnlyWorkflowMode(policy) ||
+        shouldHideDynamicExternalWorkflowPeople(policy);
 
     // Set the initial approval workflow when the page is loaded
     useEffect(() => {

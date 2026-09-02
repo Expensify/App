@@ -54,7 +54,12 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
     const {isLoading, startWithLoading} = usePressLoading();
 
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canWriteApprovals || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !canWriteApprovals ||
+        isPendingDeletePolicy(policy) ||
+        isAnyHRReadOnlyWorkflowMode(policy) ||
+        shouldHideDynamicExternalWorkflowPeople(policy);
 
     const createApprovalWorkflow = useCallback(() => {
         if (!approvalWorkflow) {
