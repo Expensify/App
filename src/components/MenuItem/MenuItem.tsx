@@ -39,7 +39,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
-import {COPYABLE_TEXT_DATA_SET, useCopyableTextRowPress} from '@libs/SelectionScraper';
+import {COPYABLE_TEXT_DATA_SET, isPressStartOnCopyableText, useCopyableTextRowPress} from '@libs/SelectionScraper';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
@@ -836,6 +836,9 @@ function MenuItem({
     };
 
     const secondaryInteraction = (event: GestureResponderEvent | MouseEvent) => {
+        if (isTitleSelectable && isPressStartOnCopyableText(event)) {
+            return;
+        }
         if (!copyValue) {
             return;
         }
@@ -888,6 +891,7 @@ function MenuItem({
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
                                 shouldAllowTextSelection={isTitleSelectable}
+                                preventDefaultContextMenu={(event) => deviceHasHoverSupport || !isTitleSelectable || !isPressStartOnCopyableText(event)}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}

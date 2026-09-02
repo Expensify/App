@@ -77,7 +77,8 @@ function PressableWithSecondaryInteraction({
             }
 
             event.stopPropagation();
-            if (preventDefaultContextMenu) {
+            const shouldPreventDefaultContextMenu = typeof preventDefaultContextMenu === 'function' ? preventDefaultContextMenu(event) : preventDefaultContextMenu;
+            if (shouldPreventDefaultContextMenu) {
                 event.preventDefault();
             }
 
