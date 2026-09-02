@@ -1,9 +1,10 @@
-import type {ButtonProps} from '@components/ButtonComposed';
-import Button from '@components/ButtonComposed';
-
 import useNetwork from '@hooks/useNetwork';
 
 import React from 'react';
+
+import type {ButtonProps} from '..';
+
+import Button from '..';
 
 type ButtonDisabledWhenOfflineProps = ButtonProps & {
     disabledWhenOffline?: boolean;
