@@ -3,6 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import {SearchQueryActionsContext, SearchQueryContext} from '@components/Search/SearchContextDefinitions';
 import SearchQueryProvider from '@components/Search/SearchQueryProvider';
 
+import type * as SearchActions from '@libs/actions/Search';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
@@ -50,6 +51,12 @@ jest.mock('@hooks/useRootNavigationState', () => ({
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string) => mockUseOnyx(key),
+}));
+
+// A query with a `category` filter makes the provider load the category data, which fires a real API request.
+jest.mock('@libs/actions/Search', () => ({
+    ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
+    openSearchCategoryFiltersPage: jest.fn(),
 }));
 
 function mockNavigationQuery(query: string | undefined, rawQuery?: string) {
