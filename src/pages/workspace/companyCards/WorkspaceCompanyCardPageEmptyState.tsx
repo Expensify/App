@@ -40,7 +40,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
 
@@ -115,7 +115,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
         if (!policy?.id) {
             return;
         }
-        if (isActingAsDelegate) {
+        if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
