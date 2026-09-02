@@ -27,7 +27,7 @@ function makePolicy(isReimbursementEnabled: boolean) {
     };
 }
 
-function makeBankAccount(type: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>, state: ValueOf<typeof CONST.BANK_ACCOUNT.STATE>) {
+function makeBankAccount(type: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE> | undefined, state: ValueOf<typeof CONST.BANK_ACCOUNT.STATE>) {
     return {
         methodID: Number(BANK_ACCOUNT_ID),
         accountData: {type, state},
@@ -56,6 +56,36 @@ describe('useTimeSensitiveAddDepositAccount', () => {
         const {result} = renderHook(() => useTimeSensitiveAddDepositAccount());
 
         await waitFor(() => expect(result.current.shouldShowAddDepositAccount).toBe(true));
+    });
+
+    it('does not show when the reimbursing policy is archived', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...makePolicy(true), archivedDate: '2026-08-01 00:00:00.000'});
+
+        const {result} = renderHook(() => useTimeSensitiveAddDepositAccount());
+        await waitForBatchedUpdates();
+
+        expect(result.current.shouldShowAddDepositAccount).toBe(false);
+    });
+
+    it('does not show when the reimbursing policy is pending deletion', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...makePolicy(true), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+        const {result} = renderHook(() => useTimeSensitiveAddDepositAccount());
+        await waitForBatchedUpdates();
+
+        expect(result.current.shouldShowAddDepositAccount).toBe(false);
+    });
+
+    it('does not show when the open account is a legacy one with no type', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, makePolicy(true));
+        await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+            [BANK_ACCOUNT_ID]: makeBankAccount(undefined, CONST.BANK_ACCOUNT.STATE.OPEN),
+        });
+
+        const {result} = renderHook(() => useTimeSensitiveAddDepositAccount());
+        await waitForBatchedUpdates();
+
+        expect(result.current.shouldShowAddDepositAccount).toBe(false);
     });
 
     it('does not show when no policy has reimbursements enabled', async () => {

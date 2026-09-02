@@ -2,6 +2,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {openDepositAccountSetup} from '@libs/actions/BankAccounts';
 import BankAccountModel from '@libs/models/BankAccount';
+import {isArchivedOrPendingDeletePolicy} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,12 +13,13 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useEffect} from 'react';
 
-const hasReimbursementPolicySelector = (policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => !!policy?.reimbursement?.enabled);
+const hasReimbursementPolicySelector = (policies: OnyxCollection<Policy>): boolean =>
+    Object.values(policies ?? {}).some((policy) => !!policy?.reimbursement?.enabled && !isArchivedOrPendingDeletePolicy(policy));
 
 const hasDepositAccountSelector = (bankAccountList: OnyxEntry<BankAccountList>): boolean =>
     Object.values(bankAccountList ?? {}).some((bankAccountJSON) => {
         const bankAccount = new BankAccountModel(bankAccountJSON);
-        return bankAccount.isOpen() && bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL;
+        return bankAccount.isOpen() && bankAccount.getType() !== CONST.BANK_ACCOUNT.TYPE.BUSINESS;
     });
 
 function useTimeSensitiveAddDepositAccount() {
