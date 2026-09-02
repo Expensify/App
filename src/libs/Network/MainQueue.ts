@@ -6,7 +6,7 @@ import type {AnyRequest} from '@src/types/onyx/Request';
 
 import type {OnyxKey} from 'react-native-onyx';
 
-import {clear, getAll, push, replaceAll} from './MainQueueStore';
+import MainQueueStore from './MainQueueStore';
 import {isAuthenticating} from './NetworkStore';
 import {isRunning as sequentialQueueIsRunning} from './SequentialQueue';
 
@@ -20,7 +20,7 @@ function canMakeRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>): boole
 }
 
 function replay<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
-    push(request);
+    MainQueueStore.push(request);
 
     process();
 }
@@ -33,7 +33,7 @@ function process() {
         return;
     }
 
-    const networkRequestQueue = getAll();
+    const networkRequestQueue = MainQueueStore.getAll();
 
     // When the queue length is empty an early return is performed since nothing needs to be processed
     if (networkRequestQueue.length === 0) {
@@ -63,7 +63,10 @@ function process() {
 
     // We clear the request queue at the end by setting the queue to requestsToProcessOnNextRun which will either have some
     // requests we want to retry or an empty array
-    replaceAll(requestsToProcessOnNextRun);
+    MainQueueStore.replaceAll(requestsToProcessOnNextRun);
 }
+
+// Re-exported so the queue keeps a single entry point for MainQueue's consumers
+const {clear, getAll} = MainQueueStore;
 
 export {clear, replay, process, getAll};

@@ -58,4 +58,6 @@ function enqueue<TKey extends OnyxKey>(command: string, data: Record<string, unk
     });
 }
 
-export {clear, push, getAll, replaceAll, enqueue};
+const MainQueueStore = {clear, push, getAll, replaceAll, enqueue};
+
+export default MainQueueStore;
