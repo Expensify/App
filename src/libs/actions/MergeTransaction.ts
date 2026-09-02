@@ -402,7 +402,6 @@ type MergeTransactionRequestParams = {
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     sourceTransaction: Transaction;
     targetTransactionThreadReport: OnyxEntry<Report>;
-    sourceTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
@@ -437,7 +436,6 @@ function mergeTransactionRequest({
     targetTransaction,
     sourceTransaction,
     targetTransactionThreadReport,
-    sourceTransactionThreadReport,
     targetTransactionThreadParentReport,
     iouReportOwnerLogin,
     allTransactionViolations,
