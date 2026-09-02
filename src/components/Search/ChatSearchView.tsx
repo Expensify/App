@@ -79,7 +79,6 @@ function ChatSearchView({
                 item={item}
                 isDisabled={isRowDeleted(item)}
                 onFocus={onFocus}
-                keyForList={item.keyForList}
             />
         </AnimatedExitRow>
     );

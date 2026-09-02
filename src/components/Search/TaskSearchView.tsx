@@ -76,7 +76,6 @@ function TaskSearchView({
                 item={item}
                 isDisabled={isRowDeleted(item)}
                 onFocus={onFocus}
-                keyForList={item.keyForList}
                 isLastItem={index === lastVisibleIndex && !ListFooterComponent}
             />
         </AnimatedExitRow>
