@@ -59,7 +59,7 @@ type SearchPageNarrowProps = {
 
     /** The last query whose results resolved. The area renders these, holding them while a new query loads. */
     contentQueryJSON?: SearchQueryJSON;
-    contentSearchResults?: SearchResults;
+    contentSearchResults: SearchResults | undefined;
 
     isMobileSelectionModeEnabled: boolean;
     onSortPressedCallback: () => void;
