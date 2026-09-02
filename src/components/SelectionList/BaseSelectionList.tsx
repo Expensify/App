@@ -252,10 +252,12 @@ function BaseSelectionListImpl({
     const isFooterConfirmEnabled = confirmButtonOptions?.isFooterConfirmEnabled ?? hasSelectedItems;
     const isCustomFooterConfirmEnabled = isFooterConfirmEnabled && confirmButtonOptions?.isDisabled !== true && confirmButtonOptions?.isFooterConfirmEnterKeyEnabled !== false;
     // Whether Enter should trigger an enabled confirm button instead of the list.
-    // Custom footers count only if they are Enter-capable and enabled; owners can override
-    // the enabled state when selection persists outside the currently rendered rows.
+    // Footer renders footerContent in place of the built-in button, so the two paths are mutually
+    // exclusive; custom footers count only if they are Enter-capable and enabled. Owners can
+    // override the enabled state when selection persists outside the currently rendered rows.
     const hasEnabledEnterConfirm =
-        (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
+        (!footerContent && !!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) ||
+        (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
     // Whether the focused row should handle plain Enter.
     // Enter selects the row when keyboard navigation/search is active, propagation should stop,
     // or there is no enabled Enter-capable confirm control that should handle the keypress instead.

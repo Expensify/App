@@ -185,6 +185,14 @@ describe.each([
         expect(getGatedFocusedIndex()).toBe(-1);
     });
 
+    it('keeps plain Enter on the focused row when a custom footer hides the built-in confirm button and the footer cannot handle Enter', () => {
+        // Footer renders footerContent instead of the built-in button, so the built-in button's Enter
+        // listener never mounts. The footer path must govern, otherwise Enter reaches nothing at all.
+        renderList({footerContent, confirmButtonOptions: {showButton: true, onConfirm: jest.fn(), text: 'Next', isFooterConfirmEnterKeyEnabled: false}});
+
+        expect(getGatedFocusedIndex()).toBeGreaterThanOrEqual(0);
+    });
+
     it('keeps plain Enter on the focused row while a search query is typed', () => {
         renderList({footerContent, confirmButtonOptions: {onConfirm: jest.fn()}, searchText: 'Item 1'});
 
