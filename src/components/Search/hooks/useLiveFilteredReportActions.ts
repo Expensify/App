@@ -20,7 +20,9 @@ function useLiveFilteredReportActions(reportIDs?: string[]): Record<string, Repo
             reportIDs ? selectFilteredReportActionsForReports(reportActions, reportActionsKeys) : selectFilteredReportActions(reportActions),
         [reportIDs, reportActionsKeys],
     );
-    const [liveReportActions] = useOnyxWithoutSnapshots<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector});
+    const [liveReportActions] = useOnyxWithoutSnapshots<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector,
+    });
     return liveReportActions;
 }
 
