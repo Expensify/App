@@ -1,3 +1,4 @@
+/** Query builders for the suggested searches and the expense-status matching they rely on. */
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {SearchQueryJSON} from '@components/Search/types';
 
