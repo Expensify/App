@@ -902,7 +902,7 @@ function signIn(
     twoFactorAuthCode: string | undefined,
     login: string | undefined,
     storedValidateCode: string | undefined,
-    storedAuthToken: string | undefined,
+    storedAuthToken?: string,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
