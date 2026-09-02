@@ -27,7 +27,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {approverChainFingerprint, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
+import {getApproverChainKey, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -139,11 +139,11 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         return map;
     })();
 
-    // Beta only: identity (full approver-chain fingerprint) of each submitter's current workflow, plus the
-    // identity of the workflow being edited. Comparing these — instead of just first approvers — lets us warn
-    // before moving a member out of a workflow that merely shares its first approver with this one.
+    // Beta only: a key covering each submitter's full current approver chain, plus the same key for the
+    // workflow being edited. Comparing whole chains rather than just first approvers lets us warn before
+    // moving a member out of a workflow that merely shares its first approver with this one.
     const submitterToWorkflowKey = isMultipleApproversBetaEnabled ? new Map(Object.entries(getRulesSubmitterToWorkflowKey(policyRules, policy?.employeeList ?? {}))) : undefined;
-    const currentWorkflowKey = approverChainFingerprint(approvalWorkflow?.originalApprovers ?? []);
+    const currentWorkflowKey = getApproverChainKey(approvalWorkflow?.originalApprovers ?? []);
 
     const selectedMembers = ((): SelectionListApprover[] => {
         if (!approvalWorkflow?.members) {
