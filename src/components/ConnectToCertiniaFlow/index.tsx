@@ -116,6 +116,7 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
             anchorPosition={connectionOptionsPopoverPosition}
             anchorAlignment={anchorAlignment}
             anchorRef={threeDotsMenuContainerRef}
+            enableEdgeToEdgeBottomSafeAreaPadding
         />
     );
 }

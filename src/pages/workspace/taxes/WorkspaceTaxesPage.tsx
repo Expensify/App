@@ -234,6 +234,7 @@ function WorkspaceTaxesPage({
                 icon: icons.Trashcan,
                 text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.taxes.actions.delete'),
@@ -243,7 +244,7 @@ function WorkspaceTaxesPage({
                                 : translate('workspace.taxes.deleteTaxConfirmation'),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         deleteTaxes();
@@ -408,16 +409,13 @@ function WorkspaceTaxesPage({
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {hasVisibleTaxes && headerContent}
-
-                        <WorkspaceTaxesTable
-                            taxes={taxRows}
-                            selectionEnabled={canWriteTaxes}
-                            selectedKeys={selectedTaxesIDs}
-                            onRowSelectionChange={setSelectedTaxesIDs}
-                        />
-                    </>
+                    <WorkspaceTaxesTable
+                        taxes={taxRows}
+                        selectionEnabled={canWriteTaxes}
+                        selectedKeys={selectedTaxesIDs}
+                        onRowSelectionChange={setSelectedTaxesIDs}
+                        headerComponent={hasVisibleTaxes ? headerContent : undefined}
+                    />
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
