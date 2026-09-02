@@ -13,12 +13,8 @@ This guide explains where to find each tab and what it’s used for.
 
 If you'd like a guided walkthrough of the New Expensify experience, explore the interactive product tours:
 
-**For workspace admins:**
-- [interactive web tour for Workspace Admins](https://expensify.storylane.io/share/qlgnexxbsdtp)
+- [interactive web tour of New Expensify](https://expensify.storylane.io/share/qlgnexxbsdtp) — one web tour covers Workspace Admins, submitters, and approvers
 - [interactive mobile tour for Workspace Admins](https://expensify.storylane.io/share/em54uaq7wbgk)
-
-**For submitters and approvers:**
-- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/qlgnexxbsdtp)
 - [interactive mobile tour for submitters and approvers](https://expensify.storylane.io/share/qbbob6zvapqo)
 
 
