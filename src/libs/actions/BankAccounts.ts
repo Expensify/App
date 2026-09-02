@@ -41,7 +41,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
-import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
+import type {BankAccountList, InitiatingBankAccountUnlock, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -1859,7 +1859,17 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
     return API.write(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, {bankAccountID, authToken, optimisticReportActionID}, onyxData);
 }
 
-function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTranslate, conciergeReportID: string | undefined, delegateAccountID: number | undefined) {
+function pressLockedBankAccount(
+    bankAccountID: number,
+    translate: LocalizedTranslate,
+    conciergeReportID: string | undefined,
+    delegateAccountID: number | undefined,
+    initiatingBankAccountUnlock: OnyxEntry<InitiatingBankAccountUnlock>,
+) {
+    if (initiatingBankAccountUnlock?.isLoading && initiatingBankAccountUnlock?.bankAccountIDToUnlock === bankAccountID) {
+        return;
+    }
+
     let optimisticReportActionID: string | undefined;
 
     if (conciergeReportID) {

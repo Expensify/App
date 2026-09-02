@@ -3857,6 +3857,8 @@ ${amount} pour ${merchant} - ${date}`,
                 'Ce compte bancaire ne peut pas être supprimé car il est utilisé pour les paiements par Carte Expensify. Si vous souhaitez tout de même supprimer ce compte, veuillez contacter Concierge.',
             sameDepositAndWithdrawalAccount: 'Les comptes de dépôt et de retrait sont identiques.',
         },
+        unlockAlreadyRequestedTitle: 'Demande déjà soumise',
+        unlockAlreadyRequestedDescription: 'Votre demande de déverrouillage de ce compte bancaire a déjà été envoyée. Concierge vous contactera si autre chose est nécessaire.',
     },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Où se situe votre compte bancaire ?',

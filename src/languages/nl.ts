@@ -3831,6 +3831,8 @@ ${amount} voor ${merchant} - ${date}`,
                 'Deze bankrekening kan niet worden verwijderd omdat hij wordt gebruikt voor betalingen met de Expensify Kaart. Als je deze rekening toch wilt verwijderen, neem dan contact op met Concierge.',
             sameDepositAndWithdrawalAccount: 'De stortings- en opname­rekeningen zijn hetzelfde.',
         },
+        unlockAlreadyRequestedTitle: 'Verzoek al ingediend',
+        unlockAlreadyRequestedDescription: 'Je verzoek om deze bankrekening te deblokkeren is al verzonden. Concierge neemt contact met je op als er nog iets anders nodig is.',
     },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Waar is je bankrekening gevestigd?',

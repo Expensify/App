@@ -3849,6 +3849,8 @@ ${amount} für ${merchant} – ${date}`,
                 'Dieses Bankkonto kann nicht gelöscht werden, da es für Zahlungen mit der Expensify Karte verwendet wird. Wenn Sie dieses Konto trotzdem löschen möchten, wenden Sie sich bitte an Concierge.',
             sameDepositAndWithdrawalAccount: 'Die Einzahlungs- und Auszahlungskonten sind identisch.',
         },
+        unlockAlreadyRequestedTitle: 'Anfrage bereits eingereicht',
+        unlockAlreadyRequestedDescription: 'Ihre Anfrage zur Entsperrung dieses Bankkontos wurde bereits gesendet. Concierge meldet sich bei Ihnen, falls noch etwas benötigt wird.',
     },
     addPersonalBankAccount: {
         countrySelectionStepHeader: 'Wo befindet sich dein Bankkonto?',
