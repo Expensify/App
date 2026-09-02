@@ -1219,7 +1219,6 @@
         "tests/unit/usePersonalDetailSearchSelectorTest.tsx",
         "config/eslint/eslint.seatbelt.tsv",
         "tests/unit/BankAccountUtilsTest.ts",
-        "tests/unit/__snapshots__/ReportAlternateTextParityTest.ts.snap",
         "evals/proposalPolice/fixtures/**"
     ],
     "ignoreRegExpList": ["@assets/.*"],
