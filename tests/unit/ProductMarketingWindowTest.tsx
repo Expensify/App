@@ -288,6 +288,8 @@ describe('ProductMarketingWindowManager', () => {
                 email: SECOND_USER_EMAIL,
                 accountID: SECOND_USER_ACCOUNT_ID,
             });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, null);
             await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
             await waitForBatchedUpdatesWithAct();
         });
@@ -308,6 +310,8 @@ describe('ProductMarketingWindowManager', () => {
                 email: USER_EMAIL,
                 accountID: USER_ACCOUNT_ID,
             });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             await Onyx.set(ONYXKEYS.BETAS, []);
             await waitForBatchedUpdatesWithAct();
         });
