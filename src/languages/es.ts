@@ -8252,6 +8252,7 @@ ${reportName}`,
                 requireAboveAmount: 'Requerir importe superior',
                 saveRule: 'Guardar regla',
                 emptyAmountError: 'Introduce una cantidad válida antes de guardar',
+                receiptAmountGreaterThanItemizedError: 'El importe para solicitar recibo no puede ser mayor que el importe para solicitar recibo desglosado.',
             },
             requireFields: {title: 'Exigir campos para todos los gastos', category: 'Categoría', tag: 'Etiqueta', save: 'Guardar regla'},
             newRule: {
