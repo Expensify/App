@@ -22,6 +22,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -307,6 +308,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Χρεώσιμη',
         nonBillable: 'Μη χρεώσιμο',
         tag: 'Ετικέτα',
+        violations: 'Παραβάσεις',
         receipt: 'Απόδειξη',
         verified: 'Επαληθευμένο',
         replace: 'Αντικατάσταση',
@@ -330,7 +332,6 @@ const translations: TranslationDeepObject<typeof en> = {
         automatic: 'Αυτόματο',
         showing: 'Εμφανίζονται',
         of: 'του',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} από ${total}`,
         default: 'Προεπιλογή',
         update: 'Ενημέρωση',
         member: 'Μέλος',
@@ -424,6 +425,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Έκθεση εξόδων',
         rateOutOfPolicy: 'Ποσοστό εκτός πολιτικής',
         leaveWorkspace: 'Έξοδος από τον χώρο εργασίας',
+        leaveWorkspaceTitle: (workspaceName: string) => `Έξοδος από το ${workspaceName};`,
         leaveWorkspaceConfirmation: 'Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, δεν θα μπορείτε να υποβάλλετε σε αυτόν έξοδα.',
         leaveWorkspaceConfirmationAuditor: 'Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, δεν θα μπορείτε να δείτε τις αναφορές και τις ρυθμίσεις του.',
         leaveWorkspaceConfirmationAdmin: 'Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, δεν θα μπορείτε να διαχειρίζεστε τις ρυθμίσεις του.',
@@ -1021,6 +1023,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Λογαριασμός',
                 cta: 'Επικυρώστε',
             },
+            addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθήκη διεύθυνσης'},
             fixFailedBilling: {
                 title: 'Δεν μπορέσαμε να χρεώσουμε την αποθηκευμένη κάρτα σας',
                 subtitle: 'Συνδρομή',
@@ -1341,6 +1344,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Δημιουργία χρονοχρέωσης',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Απαιτείται η διεύθυνση κατοικίας σας',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Πριν καταγράψετε αποστάσεις, πρέπει να προσθέσετε τη διεύθυνση κατοικίας σας στο ιδιωτικό προφίλ σας. Το ${workspaceName} χρησιμοποιεί αυτή τη διεύθυνση για εκπτώσεις μετακίνησης.`
+                    : 'Πριν καταγράψετε αποστάσεις, πρέπει να προσθέσετε τη διεύθυνση κατοικίας σας στο ιδιωτικό προφίλ σας. Αυτός ο χώρος εργασίας χρησιμοποιεί αυτή τη διεύθυνση για εκπτώσεις μετακίνησης.',
+            cta: 'Προσθήκη οικιακής διεύθυνσης',
+        },
         amount: 'Ποσό',
         percent: 'Ποσοστό',
         date: 'Ημερομηνία',
@@ -2345,6 +2356,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Καταγραφή αιτημάτων Sentry στην κονσόλα',
             sentryHighlightedSpanOps: 'Επισημασμένα ονόματα span',
             sentryHighlightedSpanOpsPlaceholder: 'κλικ αλληλεπίδρασης διεπαφής, πλοήγηση, φόρτωση διεπαφής',
+            qaAuth: 'Έλεγχος ταυτότητας QA (Cloudflare)',
+            qaAuthRunProbe: 'Εκτέλεση δοκιμής',
+            qaAuthSession: 'Δοκιμαστική συνεδρία ελέγχου ταυτότητας',
+            qaAuthClearSession: 'Εκκαθάριση συνεδρίας',
+            qaAuthStatusSuccess: 'Η δοκιμή ανίχνευσης ήταν επιτυχής',
+            qaAuthStatusReauthRequired: 'Η περίοδος σύνδεσης έληξε — εκτελέστε ξανά για να συνδεθείτε',
+            qaAuthStatusSignInFailed: 'Η σύνδεση δεν ολοκληρώθηκε — εκτελέστε ξανά για επανάληψη',
+            qaAuthStatusError: 'Η δοκιμή απέτυχε',
         },
         security: 'Ασφάλεια',
         signOut: 'Αποσύνδεση',
@@ -3056,7 +3075,6 @@ ${amount} για ${merchant} - ${date}`,
         cardLastFour: 'Κάρτα που λήγει σε',
         addFirstPaymentMethod: 'Προσθέστε έναν τρόπο πληρωμής για να στέλνετε και να λαμβάνετε πληρωμές απευθείας στην εφαρμογή.',
         defaultPaymentMethod: 'Προεπιλογή',
-        bankAccountLastFour: (lastFour: string) => `Τραπεζικός λογαριασμός • ${lastFour}`,
     },
     agentsPage: {
         title: 'Πράκτορες',
@@ -3679,7 +3697,8 @@ ${amount} για ${merchant} - ${date}`,
         legalName: 'Νομικό όνομα',
         legalFirstName: 'Επίσημο μικρό όνομα',
         legalLastName: 'Επώνυμο (όπως αναγράφεται στα επίσημα έγγραφα)',
-        address: 'Διεύθυνση',
+        address: 'Οικιακή διεύθυνση',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `Το ${workspaceName} χρησιμοποιεί αυτή τη διεύθυνση για εξαιρέσεις μετακίνησης.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Η ημερομηνία πρέπει να είναι πριν από ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Η ημερομηνία πρέπει να είναι μετά από ${dateString}`,
@@ -3802,6 +3821,11 @@ ${amount} για ${merchant} - ${date}`,
         return result;
     },
     bankAccount: {
+        internationalBankAccountDetails: 'Στοιχεία διεθνούς τραπεζικού λογαριασμού',
+        internationalBankAccountDetailsTitle: 'Ποια είναι τα στοιχεία του διεθνούς λογαριασμού σας;',
+        internationalBankAccountDetailsSubtitle: 'Ένας από τους χώρους εργασίας σας χρειάζεται στοιχεία διεθνούς λογαριασμού για την επεξεργασία των αποζημιώσεων',
+        iban: 'IBAN',
+        swiftBicCode: 'Κωδικός SWIFT/BIC',
         bankInfo: 'Στοιχεία τράπεζας',
         confirmBankInfo: 'Επιβεβαίωση στοιχείων τράπεζας',
         manuallyAdd: 'Προσθέστε χειροκίνητα τον τραπεζικό σας λογαριασμό',
@@ -3861,6 +3885,8 @@ ${amount} για ${merchant} - ${date}`,
             restrictedBusiness: 'Παρακαλούμε επιβεβαιώστε ότι η επιχείρηση δεν βρίσκεται στη λίστα με τις περιορισμένες επιχειρήσεις',
             routingNumber: 'Παρακαλούμε εισαγάγετε έναν έγκυρο αριθμό δρομολόγησης',
             accountNumber: 'Παρακαλούμε εισαγάγετε έναν έγκυρο αριθμό λογαριασμού',
+            iban: 'Παρακαλούμε εισαγάγετε έναν έγκυρο IBAN',
+            swiftCode: 'Παρακαλούμε εισαγάγετε έναν έγκυρο κωδικό SWIFT/BIC',
             routingAndAccountNumberCannotBeSame: 'Οι αριθμοί δρομολόγησης και λογαριασμού δεν μπορούν να είναι ίδιοι',
             companyType: 'Παρακαλώ επιλέξτε έναν έγκυρο τύπο εταιρείας',
             tooManyAttempts: 'Λόγω μεγάλου αριθμού προσπαθειών σύνδεσης, αυτή η επιλογή έχει απενεργοποιηθεί για 24 ώρες. Δοκιμάστε ξανά αργότερα ή εισαγάγετε τα στοιχεία χειροκίνητα.',
@@ -4633,6 +4659,10 @@ ${amount} για ${merchant} - ${date}`,
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε σιδηροδρομικά ταξίδια απευθείας στο Expensify; Την επόμενη φορά αποφύγετε την ταλαιπωρία της χειροκίνητης δημιουργίας του εξόδου σας και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ταξίδια με τρένο απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
+            hotelBlockCard:
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
@@ -4701,6 +4731,7 @@ ${amount} για ${merchant} - ${date}`,
             settlementFrequency: 'Συχνότητα εκκαθάρισης',
             setAsDefault: 'Ορισμός ως προεπιλεγμένου χώρου εργασίας',
             defaultNote: `Οι αποδείξεις που αποστέλλονται στο ${CONST.EMAIL.RECEIPTS} θα εμφανίζονται σε αυτόν τον χώρο εργασίας.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `Διαγραφή του ${workspaceName};`,
             deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον χώρο εργασίας;',
             deleteWithCardsConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον χώρο εργασίας; Θα αφαιρεθούν όλες οι ροές καρτών και οι ανατεθειμένες κάρτες.',
             deleteOpenExpensifyCardsError: 'Η εταιρεία σας έχει ακόμη Κάρτες Expensify. Παρακαλούμε <concierge-link>επικοινωνήστε με το Concierge</concierge-link> για να τις αφαιρέσετε.',
@@ -6004,10 +6035,59 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 label: 'Λογαριασμός εταιρικής κάρτας',
                 description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
             },
-            expensifyCardAccount: {
-                label: 'Λογαριασμός Expensify Card',
-                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές της Expensify Card.',
+            exportToMultipleAccounts: 'Ρυθμίστε την εξαγωγή σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα καρτών.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} πρόγραμμα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} προγράμματα με προσαρμοσμένους λογαριασμούς`;
+                },
             },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παράκαμψη του λογαριασμού προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} κάρτα με προσαρμοσμένο λογαριασμό`;
+                    }
+                    return `${customAccountsCount} κάρτες με προσαρμοσμένους λογαριασμούς`;
+                },
+            },
+            autoSyncDescription: 'Συγχρονίστε αυτόματα το DualEntry και το Expensify κάθε μέρα. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
+            accountingMethods: {
+                label: 'Μέθοδος εξαγωγής',
+                description: 'Επιλέξτε πότε θα εξαχθούν οι δαπάνες.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Δεδουλευμένο',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Μετρητά',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Οι δαπάνες από την τσέπη σας θα εξαχθούν όταν εγκριθούν οριστικά',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν εξοφληθούν',
+                },
+            },
+            syncReimbursedReports: 'Συγχρονισμός εξοφλημένων αναφορών',
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
+            billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνετε λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
+            syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
+            settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
+            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
+            travelInvoicingSettlementAccount: {
+                label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
+                description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.',
+            },
+            travelInvoicingPayableAccount: {label: 'Λογαριασμός πληρωτέων τιμολόγησης ταξιδιών'},
         },
         type: {
             free: 'Δωρεάν',
@@ -6138,6 +6218,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     category: 'Κατηγορία',
                     tag: 'Ετικέτα',
                     cardName: 'Όνομα κάρτας',
+                    uniqueID: 'Μοναδικό αναγνωριστικό',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Παρακαλούμε αντιστοιχίστε μια στήλη σε καθεμία από τις ιδιότητες: ${missingColumns}.`,
@@ -6314,6 +6395,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             deleteFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη διαγραφή της κατηγορίας, δοκιμάστε ξανά',
             categoryName: 'Όνομα κατηγορίας',
             requiresCategory: 'Τα μέλη πρέπει να κατηγοριοποιούν όλες τις δαπάνες',
+            autoCategorizeNewExpenses: 'Αυτόματη κατηγοριοποίηση νέων δαπανών',
             showCategoryGLCodes: 'Εμφάνιση κωδικών GL κατά την κατηγοριοποίηση δαπανών',
             needCategoryForExportToIntegration: (connectionName: string) => `Όλες οι δαπάνες πρέπει να κατηγοριοποιηθούν για να γίνει η εξαγωγή στο ${connectionName}.`,
             subtitle: 'Αποκτήστε μια καλύτερη εικόνα για το πού ξοδεύονται τα χρήματα. Χρησιμοποιήστε τις προεπιλεγμένες κατηγορίες μας ή προσθέστε τις δικές σας.',
@@ -6634,6 +6716,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             vendors: {
                 title: 'Προμηθευτές',
                 subtitle: 'Ταιριάξτε τα έξοδα κάρτας με προμηθευτές που έχουν εισαχθεί από το λογιστικό σας λογισμικό.',
+                disabledTitle: 'Όχι τόσο γρήγορα...',
+                disabledMessage: 'Για να ενεργοποιήσετε ή να απενεργοποιήσετε αυτήν τη λειτουργία, θα πρέπει να αλλάξετε τις ρυθμίσεις εισαγωγής λογιστικής.',
             },
         },
         reports: {
@@ -7158,11 +7242,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
-                            return 'Γίνεται εισαγωγή πελατών';
+                            return 'Εισαγωγή πελατών';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
@@ -7173,43 +7257,43 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Εισαγωγή λογαριασμών';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Εισαγωγή κλάσεων';
+                            return 'Εισαγωγή κατηγοριών';
                         case 'quickbooksOnlineImportLocations':
-                            return 'Γίνεται εισαγωγή τοποθεσιών';
+                            return 'Εισαγωγή τοποθεσιών';
                         case 'quickbooksOnlineImportProcessing':
-                            return 'Γίνεται επεξεργασία των εισαγόμενων δεδομένων';
+                            return 'Επεξεργασία εισαγόμενων δεδομένων';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
                             return 'Συγχρονισμός αποζημιωμένων αναφορών και πληρωμών λογαριασμών';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Εισαγωγή κωδικών φόρου';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Γίνεται έλεγχος σύνδεσης με το ${integrationName}`;
+                            return `Έλεγχος σύνδεσης ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
+                            return `Γίνεται εισαγωγή δεδομένων ${integrationName}`;
                         case 'startingImportXero':
-                            return 'Εισαγωγή δεδομένων Xero';
+                            return 'Γίνεται εισαγωγή δεδομένων Xero';
                         case 'startingImportQBO':
-                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
+                            return `Γίνεται εισαγωγή δεδομένων ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Εισαγωγή δεδομένων από το QuickBooks Desktop';
+                            return 'Εισαγωγή δεδομένων QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
-                            return 'Εισαγωγή τίτλου';
+                            return 'Γίνεται εισαγωγή τίτλου';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Εισαγωγή πιστοποιητικού έγκρισης';
+                            return 'Γίνεται εισαγωγή πιστοποιητικού έγκρισης';
                         case 'quickbooksDesktopImportDimensions':
                             return 'Γίνεται εισαγωγή διαστάσεων';
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Γίνεται εισαγωγή πολιτικής αποθήκευσης';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Συνεχίζεται ο συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι το Web Connector εκτελείται';
+                            return 'Γίνεται ακόμη συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι το Web Connector εκτελείται';
                         case 'quickbooksOnlineSyncTitle':
-                            return `Συγχρονισμός δεδομένων ${integrationName}`;
+                            return `Γίνεται συγχρονισμός δεδομένων ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
-                            return 'Φόρτωση δεδομένων';
+                            return 'Γίνεται φόρτωση δεδομένων';
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Ενημέρωση κατηγοριών';
                         case 'quickbooksOnlineSyncApplyCustomers':
@@ -7221,7 +7305,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'jobDone':
                             return 'Αναμονή για τη φόρτωση των εισαγόμενων δεδομένων';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Γίνεται συγχρονισμός του λογιστικού σχεδίου';
+                            return 'Συγχρονισμός λογιστικού σχεδίου';
                         case 'xeroSyncImportCategories':
                             return 'Γίνεται συγχρονισμός κατηγοριών';
                         case 'xeroSyncImportCustomers':
@@ -7229,23 +7313,23 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Σήμανση αναφορών Expensify ως αποζημιωμένων';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Σήμανση των Xero λογαριασμών και τιμολογίων ως εξοφλημένων';
+                            return 'Σήμανση λογαριασμών και τιμολογίων Xero ως εξοφλημένων';
                         case 'xeroSyncImportTrackingCategories':
-                            return 'Γίνεται συγχρονισμός κατηγοριών παρακολούθησης';
+                            return 'Συγχρονισμός κατηγοριών παρακολούθησης';
                         case 'xeroSyncImportBankAccounts':
                             return 'Συγχρονισμός τραπεζικών λογαριασμών';
                         case 'xeroSyncImportTaxRates':
-                            return 'Γίνεται συγχρονισμός φορολογικών συντελεστών';
+                            return 'Συγχρονισμός φορολογικών συντελεστών';
                         case 'xeroCheckConnection':
-                            return 'Έλεγχος σύνδεσης με το Xero';
+                            return 'Γίνεται έλεγχος σύνδεσης με το Xero';
                         case 'xeroSyncTitle':
-                            return 'Συγχρονισμός δεδομένων Xero';
+                            return 'Γίνεται συγχρονισμός δεδομένων Xero';
                         case 'netSuiteSyncConnection':
-                            return 'Γίνεται αρχικοποίηση σύνδεσης με το NetSuite';
+                            return 'Αρχικοποίηση σύνδεσης με το NetSuite';
                         case 'netSuiteSyncCustomers':
-                            return 'Γίνεται εισαγωγή πελατών';
+                            return 'Εισαγωγή πελατών';
                         case 'netSuiteSyncInitData':
-                            return 'Γίνεται λήψη δεδομένων από το NetSuite';
+                            return 'Γίνεται ανάκτηση δεδομένων από το NetSuite';
                         case 'netSuiteSyncImportTaxes':
                             return 'Εισαγωγή φόρων';
                         case 'netSuiteSyncImportItems':
@@ -7255,7 +7339,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'netSuiteSyncAccounts':
                             return 'Συγχρονισμός λογαριασμών';
                         case 'netSuiteSyncCurrencies':
-                            return 'Γίνεται συγχρονισμός νομισμάτων';
+                            return 'Συγχρονισμός νομισμάτων';
                         case 'netSuiteSyncCategories':
                             return 'Γίνεται συγχρονισμός κατηγοριών';
                         case 'netSuiteSyncReportFields':
@@ -7280,23 +7364,23 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'quickbooksDesktopImportVendors':
                             return 'Εισαγωγή προμηθευτών';
                         case 'intacctCheckConnection':
-                            return 'Έλεγχος σύνδεσης με το Sage Intacct';
+                            return 'Έλεγχος σύνδεσης Sage Intacct';
                         case 'intacctImportDimensions':
                             return 'Εισαγωγή διαστάσεων Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Εισαγωγή δεδομένων Sage Intacct';
                         case 'financialForceSyncTitle':
-                            return 'Συγχρονισμός δεδομένων Certinia';
+                            return 'Γίνεται συγχρονισμός δεδομένων Certinia';
                         case 'financialForceSyncStep':
                             return 'Γίνεται συγχρονισμός της σύνδεσης Certinia';
                         case 'financialForceSyncCategories':
-                            return 'Γίνεται εισαγωγή κατηγοριών';
+                            return 'Εισαγωγή κατηγοριών';
                         case 'financialForceSyncTags':
                             return 'Γίνεται εισαγωγή ετικετών';
                         case 'financialForceSyncVendors':
                             return 'Εισαγωγή προμηθευτών';
                         case 'financialForceSyncContacts':
-                            return 'Γίνεται εισαγωγή επαφών';
+                            return 'Εισαγωγή επαφών';
                         case 'financialForceSyncCompanies':
                             return 'Εισαγωγή εταιρειών';
                         case 'financialForceSyncUsers':
@@ -7306,19 +7390,25 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'financialForceMarkAsReimbursed':
                             return 'Σήμανση αναφορών ως αποζημιωμένων';
                         case 'rilletSyncTitle':
-                            return 'Συγχρονισμός δεδομένων Rillet';
+                            return 'Γίνεται συγχρονισμός δεδομένων Rillet';
                         case 'rilletSyncConnection':
-                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Rillet';
+                            return 'Γίνεται προετοιμασία σύνδεσης με το Rillet';
                         case 'rilletSyncImportData':
-                            return 'Φόρτωση δεδομένων';
+                            return 'Γίνεται φόρτωση δεδομένων';
                         case 'dualEntrySyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων DualEntry';
+                            return 'Συγχρονισμός δεδομένων DualEntry';
                         case 'dualEntrySyncConnection':
                             return 'Γίνεται προετοιμασία σύνδεσης με το DualEntry';
                         case 'dualEntrySyncImportData':
-                            return 'Φόρτωση δεδομένων';
+                            return 'Γίνεται φόρτωση δεδομένων';
+                        case 'dualEntrySyncPayments':
+                            return 'Γίνεται συγχρονισμός πληρωμών προμηθευτών';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Γίνεται συγχρονισμός των διακανονισμών κάρτας';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Γίνεται συγχρονισμός των διακανονισμών ταξιδιού';
                         default: {
-                            return `Λείπει μετάφραση για το στάδιο: ${stage}`;
+                            return `Λείπει η μετάφραση για το στάδιο: ${stage}`;
                         }
                     }
                 },
@@ -7451,12 +7541,14 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     title: 'Ομάδες',
                     description: 'Επιλέξτε τις ομάδες υπαλλήλων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
                 },
-                syncLimitReached: {
-                    title: 'Δοκιμάστε ξανά αύριο',
-                    prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
-                },
             },
             findIntegration: 'Βρείτε ενοποίηση',
+        },
+        merge: {
+            syncLimitReached: {
+                title: 'Δοκιμάστε ξανά αύριο',
+                prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
+            },
         },
         export: {
             notReadyHeading: 'Μη έτοιμο για εξαγωγή',
@@ -7506,17 +7598,31 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         distanceRates: {
             oopsNotSoFast: 'Ουπς! Όχι τόσο γρήγορα...',
             workspaceNeeds: 'Ένας χώρος εργασίας χρειάζεται τουλάχιστον έναν ενεργοποιημένο συντελεστή απόστασης.',
+            requireMapOrGPSDescription: 'Η χειροκίνητη καταχώριση και η καταχώριση χιλιομετρητή θα απενεργοποιηθούν.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Η εξαίρεση μετακινήσεων από και προς την εργασία απαιτεί δεδομένα διαδρομής, επομένως η απόσταση από χάρτη ή GPS είναι πάντα απαραίτητη όταν είναι ενεργή. Για να αλλάξετε αυτήν τη ρύθμιση, ορίστε το «Εξαίρεση μετακινήσεων από και προς την εργασία» σε «Να μην εξαιρούνται οι μετακινήσεις από και προς την εργασία».',
             commuterExclusions: {
                 title: 'Εξαίρεση μετακινήσεων από και προς την εργασία',
                 summaryDisabled: 'Χωρίς εξαίρεση μετακίνησης',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Εξαίρεση ${distance} ${unit} ανά αίτημα`,
+                summaryHomeAndOffice: 'Χρησιμοποιήστε τις τοποθεσίες σπιτιού και γραφείου',
                 optionDisabledTitle: 'Να μην εξαιρούνται οι μετακινήσεις από και προς την εργασία',
-                optionDisabledHelp: 'Δεν εφαρμόζεται καμία εξαίρεση μετακίνησης.',
+                optionDisabledHelp: 'Καμία μετακίνηση από και προς την εργασία δεν αφαιρείται από τις αιτήσεις.',
                 optionFixedDistanceTitle: 'Εξαίρεση σταθερής απόστασης ανά αίτημα',
                 optionFixedDistanceHelp: 'Αφαιρέστε την ίδια απόσταση μετακίνησης από κάθε αίτημα. Ιδανικό για μέλη που υποβάλλουν ένα αίτημα ανά εργάσιμη ημέρα.',
+                optionHomeAndOfficeTitle: 'Υπολογισμός ανά σπίτι και γραφείο',
+                optionHomeAndOfficeHelp: 'Χρησιμοποιήστε τη διεύθυνση κατοικίας, τη ρύθμιση εργασίας και την ανάθεση γραφείου του μέλους για να υπολογίσετε τις εξαιρέσεις μετακίνησης.',
                 distanceLabel: 'Απόσταση',
+                workspaceAddressRequired: {
+                    title: 'Όχι τόσο γρήγορα...',
+                    promptStart: 'Δεν μπορείτε να ενεργοποιήσετε τη ρύθμιση υπολογισμού ανά σπίτι και γραφείο μέχρι να προσθέσετε πρώτα μια τοποθεσία γραφείου στο',
+                    linkText: 'Επισκόπηση',
+                    promptEnd: '.',
+                    cta: 'Εντάξει',
+                },
                 errors: {
                     distanceMustBePositive: 'Η απόσταση πρέπει να είναι ένας θετικός ακέραιος αριθμός.',
+                    invalidAddress: 'Παρακαλούμε εισαγάγετε έγκυρη διεύθυνση',
                     distanceTooLarge: 'Η απόσταση είναι πολύ μεγάλη.',
                 },
             },
@@ -8075,6 +8181,7 @@ ${reportName}`,
                 requireItemizedReceipt: 'Απαιτείται αναλυτική απόδειξη',
                 requireAboveAmount: 'Να απαιτείται το παραπάνω ποσό',
                 emptyAmountError: 'Εισαγάγετε ένα έγκυρο ποσό πριν αποθηκεύσετε',
+                receiptAmountGreaterThanItemizedError: 'Το απαιτούμενο ποσό απόδειξης δεν μπορεί να είναι μεγαλύτερο από το απαιτούμενο ποσό αναλυτικής απόδειξης.',
                 saveRule: 'Αποθήκευση κανόνα',
             },
             requireFields: {
@@ -8307,6 +8414,10 @@ ${reportName}`,
                 confirmErrorCategory: 'Παρακαλώ επιλέξτε κατηγορία.',
                 confirmErrorAmount: 'Παρακαλώ εισαγάγετε ένα ποσό.',
                 thenFlagForReview: 'Στη συνέχεια επισημάνετε για έλεγχο όταν:',
+                thenDoTheFollowing: 'Στη συνέχεια κάντε τα εξής:',
+                flagType: 'Τύπος σημαίας',
+                flagTypeWarning: 'Προειδοποίηση',
+                flagTypeWarningDescription: 'Ο υποβάλλων θα ειδοποιηθεί, αλλά θα μπορεί ακόμα να υποβάλει την δαπάνη',
             },
             categoryRules: {
                 title: 'Κανόνες κατηγορίας',
@@ -8773,10 +8884,10 @@ ${reportName}`,
             return `πρόσθεσε τον φορολογικό συντελεστή «${newValue} (${newTaxPercentage})» στον συντελεστή απόστασης «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `άλλαξε το ανακτήσιμο φόρου τμήμα στο τιμολόγιο απόστασης «${customUnitRateName}» σε «${newValue}» (προηγουμένως «${oldValue}»)`;
+            if (oldValue !== undefined) {
+                return `άλλαξε το ανακτήσιμο φόρου τμήμα στο τιμολόγιο απόστασης «${customUnitRateName}» σε «${newValue}%» (προηγουμένως «${oldValue}%»)`;
             }
-            return `προστέθηκε φορολογικά επιστρεπτέο μέρος «${newValue}» στο χιλιομετρικό κόστος «${customUnitRateName}»`;
+            return `προστέθηκε φορολογικά επιστρεπτέο μέρος «${newValue}%» στο χιλιομετρικό κόστος «${customUnitRateName}»`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `μετονόμασε την τιμή ${customUnitName} από «${oldValue}» σε «${newValue}»`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9053,33 +9164,35 @@ ${reportName}`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
-                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} κατηγορίες`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} κατηγορίες`;
                 case 'tags':
-                    return `ετικέτες ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} ετικέτες`;
                 case 'workflows':
-                    return `ροές εργασίας ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
+                    return `ροές εργασιών ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
                 case 'distance rates':
-                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} χρεώσεις απόστασης`;
+                    return `τιμές χρέωσης απόστασης ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
                 case 'accounting':
-                    return `λογιστική ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} λογιστική`;
                 case 'Expensify Cards':
-                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} Κάρτες Expensify`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} κάρτες Expensify`;
                 case 'travel invoicing':
-                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} ενοποιημένη χρέωση ταξιδιών`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} ενοποιημένη χρέωση ταξιδιών`;
                 case 'company cards':
-                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} εταιρικές κάρτες`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} εταιρικές κάρτες`;
                 case 'invoicing':
-                    return `τιμολόγηση ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
+                    return `τιμολόγηση ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
                 case 'per diem':
-                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} ημερήσια αποζημίωση`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} ημερήσιο επίδομα`;
                 case 'receipt partners':
-                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} συνεργάτες αποδείξεων`;
+                    return `συνεργάτες αποδείξεων ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
                 case 'rules':
-                    return `κανόνες ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
+                    return `κανόνες ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
                 case 'tax tracking':
-                    return `παρακολούθηση φόρου ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`;
+                    return `παρακολούθηση φόρων ${enabled ? 'ενεργοποιημένο' : 'ανενεργό'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'ενεργοποιήθηκε' : 'απενεργοποιήθηκε'} απαιτούν GPS ή καταχώριση σε χάρτη για χρεώσεις απόστασης`;
                 default:
-                    return `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} ${featureName}`;
+                    return `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `παρακολούθηση συμμετεχόντων ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`,
@@ -9328,6 +9441,7 @@ ${reportName}`,
             topSpenders: 'Κορυφαίοι δαπανώντες',
             topCategories: 'Κορυφαίες κατηγορίες',
             topMerchants: 'Κορυφαίοι έμποροι',
+            violationsBySubmitter: 'Παραβάσεις από τον υποβάλλοντα',
         },
         resultsAreLimited: 'Τα αποτελέσματα αναζήτησης είναι περιορισμένα.',
         viewResults: 'Προβολή αποτελεσμάτων',
@@ -9481,6 +9595,7 @@ ${reportName}`,
             approved: 'Εγκρίθηκε',
             firstApprover: 'Πρώτος εγκρίνων',
             firstApproved: 'Πρώτη έγκριση',
+            paidBy: 'Πληρώθηκε από',
             paid: 'Πληρωμένο',
             exported: 'Έγινε εξαγωγή',
             posted: 'Καταχωρισμένο',
@@ -9782,6 +9897,8 @@ ${reportName}`,
         time: 'Ώρα (χρησιμοποιήστε 24ωρη μορφή)',
         durationAmount: 'Διάρκεια',
         durationUnit: 'Μονάδα',
+        leaveType: 'Τύπος άδειας',
+        normalOOO: 'Κανονική άδεια OOO',
         reason: 'Αιτία',
         workingPercentage: 'Ποσοστό εργασίας',
         dateRequired: 'Η ημερομηνία έναρξης είναι υποχρεωτική.',
@@ -9969,7 +10086,7 @@ ${reportName}`,
         error: {
             selectSuggestedAddress: 'Παρακαλείστε να επιλέξετε μια προτεινόμενη διεύθυνση ή να χρησιμοποιήσετε την τρέχουσα τοποθεσία',
             mapOrGpsDistanceRequired: {
-                title: 'Απαιτείται απόσταση από χάρτη ή GPS',
+                title: 'Απαίτηση GPS ή καταχώρισης χάρτη',
                 description: 'Αυτός ο χώρος εργασίας απαιτεί έξοδα απόστασης είτε με βάση χάρτη είτε με παρακολούθηση GPS.',
             },
         },
@@ -10324,6 +10441,53 @@ ${reportName}`,
         companyCardRequired: 'Απαιτούνται αγορές με εταιρική κάρτα',
         noRoute: 'Παρακαλούμε επιλέξτε μια έγκυρη διεύθυνση',
         cannotMergeDuplicates: 'Μπορείτε να συγχωνεύετε έξοδα μόνο σε πρόχειρες ή εκκρεμείς αναφορές. Ανακαλέστε την και δοκιμάστε ξανά.',
+        shortName: {
+            allTagLevelsRequired: 'Απαιτούνται όλες οι ετικέτες',
+            autoReportedRejectedExpense: 'Η δαπάνη απορρίφθηκε',
+            billableExpense: 'Η χρέωση δεν ισχύει πλέον',
+            cashExpenseWithNoReceipt: 'Απαιτείται απόδειξη',
+            categoryOutOfPolicy: 'Η κατηγορία δεν είναι πλέον έγκυρη',
+            companyCardRequired: 'Απαιτείται εταιρική κάρτα',
+            conversionSurcharge: 'Εφαρμόστηκε προσαύξηση μετατροπής',
+            customUnitOutOfPolicy: 'Μη έγκυρη χρέωση για τον χώρο εργασίας',
+            customUnitRateOutOfDateRange: 'Χρέωση εκτός έγκυρων ημερομηνιών',
+            duplicatedTransaction: 'Πιθανό διπλότυπο',
+            fieldRequired: 'Απαραίτητο πεδίο αναφοράς',
+            futureDate: 'Δεν επιτρέπεται μελλοντική ημερομηνία',
+            hold: 'Δαπάνη σε αναμονή',
+            inactiveVendor: 'Ο προμηθευτής δεν είναι πλέον έγκυρος',
+            increasedDistance: 'Η απόσταση υπερβαίνει τη διαδρομή',
+            invoiceMarkup: 'Το τιμολόγιο σημειώθηκε',
+            itemizedReceiptRequired: 'Απαιτείται αναλυτική απόδειξη',
+            maxAge: 'Η ημερομηνία είναι παλαιότερη από το μέγιστο επιτρεπτό όριο δαπάνης',
+            missingAttendees: 'Απαιτούνται συμμετέχοντες',
+            missingCategory: 'Λείπει κατηγορία',
+            missingComment: 'Απαιτείται περιγραφή',
+            missingTag: 'Ελλιπής ετικέτα',
+            modifiedAmount: 'Το ποσό τροποποιήθηκε',
+            modifiedDate: 'Ημερομηνία τροποποίησης',
+            noRoute: 'Μη έγκυρη διαδρομή',
+            nonExpensiworksExpense: 'Έξοδο εκτός Expensiworks',
+            overAutoApprovalLimit: 'Πάνω από το όριο αυτόματης έγκρισης',
+            overCategoryLimit: 'Πέρα από το όριο κατηγορίας',
+            overLimit: 'Υπέρβαση ορίου',
+            overTripLimit: 'Υπέρβαση ορίου ταξιδιού',
+            perDayLimit: 'Υπέρβαση ημερήσιου ορίου',
+            prohibitedExpense: 'Απαγορευμένη δαπάνη',
+            receiptGeneratedWithAI: 'Πιθανή απόδειξη που δημιουργήθηκε από AI',
+            receiptNotSmartScanned: 'Η απόδειξη προστέθηκε χειροκίνητα',
+            receiptRequired: 'Απαιτείται απόδειξη',
+            rter: 'Αναμονή αντιστοίχισης κάρτας',
+            smartscanFailed: 'Η σάρωση απόδειξης απέτυχε',
+            someTagLevelsRequired: 'Απαιτείται ετικέτα',
+            tagOutOfPolicy: 'Η ετικέτα δεν είναι πλέον έγκυρη',
+            overLimitAttendee: 'Υπέρβαση ορίου ατόμων',
+            customRules: 'Παραβίαση προσαρμοσμένου κανόνα',
+            taxAmountChanged: 'Το ποσό φόρου τροποποιήθηκε',
+            taxOutOfPolicy: 'Ο φορολογικός συντελεστής δεν είναι πλέον έγκυρος',
+            taxRateChanged: 'Ο φορολογικός συντελεστής τροποποιήθηκε',
+            taxRequired: 'Λείπει ο φορολογικός συντελεστής',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Απαιτείται το πεδίο ${fieldName}`,
@@ -10899,6 +11063,7 @@ ${reportName}`,
     domain: {
         notVerified: 'Μη επαληθευμένο',
         retry: 'Προσπαθήστε ξανά',
+        requestSent: 'Το αίτημα εστάλη',
         verifyDomain: {
             title: 'Επαλήθευση τομέα',
             beforeProceeding: ({domainName}: {domainName: string}) => `Πριν συνεχίσετε, επιβεβαιώστε ότι σας ανήκει το <strong>${domainName}</strong> ενημερώνοντας τις ρυθμίσεις DNS του.`,
@@ -10971,6 +11136,14 @@ ${reportName}`,
             subtitle: 'Εισαγάγετε το όνομα του ιδιωτικού domain που θέλετε να αποκτήσετε πρόσβαση (π.χ. expensify.com).',
             domainName: 'Όνομα τομέα',
             newDomain: 'Νέος τομέας',
+            alreadyHaveAccessError: 'Αυτός ο τομέας υπάρχει ήδη στον λογαριασμό σας.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Ο τομέας υπάρχει',
+            title: 'Ο τομέας έχει ήδη ρυθμιστεί. Αίτημα πρόσβασης;',
+            description: 'Κάποιος έχει ήδη ρυθμίσει αυτόν τον τομέα στο Expensify. Θέλετε να ζητήσετε πρόσβαση διαχειριστή;',
+            requestAccess: 'Αίτημα πρόσβασης διαχειριστή',
+            requestAccessError: 'Δεν μπορέσαμε να στείλουμε το αίτημά σου. Παρακαλώ δοκίμασε ξανά.',
         },
         domainAdded: {
             title: 'Το domain προστέθηκε',
@@ -11073,6 +11246,7 @@ ${reportName}`,
             forceTwoFactorAuthError: 'Η επιβολή ελέγχου ταυτότητας δύο παραγόντων δεν μπόρεσε να αλλάξει. Δοκιμάστε ξανά αργότερα.',
             resetTwoFactorAuth: 'Επαναφορά ελέγχου ταυτότητας δύο παραγόντων',
             error: 'Δεν ήταν δυνατή η αποθήκευση αυτής της αλλαγής. Παρακαλούμε δοκιμάστε ξανά.',
+            neverMind: 'Δεν πειράζει',
         },
         groups: {
             title: 'Ομάδες',
@@ -11086,7 +11260,6 @@ ${reportName}`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Είστε βέβαιοι ότι θέλετε να ορίσετε το ${newName} ως προεπιλεγμένη ομάδα; Τα νέα μέλη θα προσκαλούνται σε αυτήν την ομάδα αντί για την προηγούμενη προεπιλεγμένη ομάδα (${currentName}).`,
             makeDefault: 'Ορισμός ως προεπιλογή',
-            neverMind: 'Δεν πειράζει',
             createGroupError: 'Δεν είναι δυνατή η δημιουργία αυτής της ομάδας. Παρακαλούμε προσπαθήστε ξανά.',
             permissions: 'Δικαιώματα ομάδας',
             createNewGroupButton: 'Νέα ομάδα',

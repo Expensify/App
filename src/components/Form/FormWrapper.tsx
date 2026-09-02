@@ -71,12 +71,6 @@ type FormWrapperProps = ChildrenProps &
         /** Whether the submit button should stick to the bottom of the screen. */
         shouldSubmitButtonStickToBottom?: boolean;
 
-        /**
-         * Whether the button should have a background layer in the color of theme.appBG.
-         * This is needed for buttons that allow content to display under them.
-         */
-        shouldSubmitButtonBlendOpacity?: boolean;
-
         /** Fires at most once per frame during scrolling. */
         onScroll?: () => void;
 
@@ -98,7 +92,7 @@ function FormWrapper({
     submitButtonStyles,
     submitFlexEnabled = true,
     enabledWhenOffline,
-    isSubmitActionDangerous = false,
+    buttonVariant,
     formID,
     shouldUseScrollView = true,
     scrollContextEnabled = false,
@@ -114,7 +108,6 @@ function FormWrapper({
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
-    shouldSubmitButtonBlendOpacity = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
     forwardedFSClass,
@@ -216,11 +209,10 @@ function FormWrapper({
                 shouldSubmitButtonStickToBottom && [styles.stickToBottom, style],
             ]}
             enabledWhenOffline={enabledWhenOffline}
-            isSubmitActionDangerous={isSubmitActionDangerous}
+            buttonVariant={buttonVariant}
             disablePressOnEnter={disablePressOnEnter}
             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
             shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
-            shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
             sentryLabel={sentryLabel}
         />
