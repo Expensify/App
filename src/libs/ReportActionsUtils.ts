@@ -471,12 +471,17 @@ function getPersonalCardName(card: Card | undefined, originalCardName: string | 
     return originalCardName ?? card?.cardName ?? getBankName(card?.bank as CompanyCardFeed);
 }
 
-function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
-    return translate('personalCard.conciergeBrokenConnection', getPersonalCardName(card, originalCardName), connectionLink);
-}
-
-function getCardConnectionBroken30DaysMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
-    return translate('personalCard.conciergeBrokenConnection30Days', getPersonalCardName(card, originalCardName), connectionLink);
+function getCardConnectionBrokenMessage(
+    card: Card | undefined,
+    originalCardName: string | undefined,
+    translate: LocaleContextProps['translate'],
+    is30DaysReminder: boolean,
+    connectionLink?: string,
+) {
+    const cardName = getPersonalCardName(card, originalCardName);
+    return is30DaysReminder
+        ? translate('personalCard.conciergeBrokenConnection30Days', cardName, connectionLink)
+        : translate('personalCard.conciergeBrokenConnection', cardName, connectionLink);
 }
 
 function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, originalMessage: OriginalMessageIOU | undefined, payer?: string): string {
@@ -5046,7 +5051,6 @@ export {
     getSortedReportActionsForDisplay,
     isCardBrokenConnectionAction,
     getCardConnectionBrokenMessage,
-    getCardConnectionBroken30DaysMessage,
     getTextFromHtml,
     getTrackExpenseActionableWhisper,
     getWhisperedTo,

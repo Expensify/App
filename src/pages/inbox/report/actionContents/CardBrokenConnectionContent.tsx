@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {isPersonalCardBrokenConnection} from '@libs/CardUtils';
-import {getCardConnectionBroken30DaysMessage, getCardConnectionBrokenMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getCardConnectionBrokenMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -33,10 +33,8 @@ function CardBrokenConnectionContent({action}: CardBrokenConnectionContentProps)
 
     const connectionLink = cardID && isPersonalCardBrokenConnection(card) ? `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(cardID))}` : undefined;
 
-    const brokenConnectionMessage =
-        action.actionName === CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS
-            ? getCardConnectionBroken30DaysMessage(card, cardName, translate, connectionLink)
-            : getCardConnectionBrokenMessage(card, cardName, translate, connectionLink);
+    const is30DaysReminder = action.actionName === CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS;
+    const brokenConnectionMessage = getCardConnectionBrokenMessage(card, cardName, translate, is30DaysReminder, connectionLink);
 
     return (
         <ReportActionItemBasicMessage message="">
