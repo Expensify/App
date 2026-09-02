@@ -4,7 +4,7 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import Navigation from '@libs/Navigation/Navigation';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import '@libs/actions/IOU/MoneyRequest';
-import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
