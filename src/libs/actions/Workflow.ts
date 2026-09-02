@@ -388,12 +388,11 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
 }
 
 /**
- * Promote an edited workflow's first approver to the policy's default approver.
+ * Change the Policy's default first approver
  *
- * The default workflow has no rules of its own: it is the workflow whose first approver matches
- * `policy.approver`, so leaving the policy untouched would make the edited chain read as a brand new
- * workflow while a default workflow is synthesized around the previous approver. No-op unless the
- * workflow is the default one and its first approver actually changed.
+ * `policy.approver` is what the `employeeList` fallbacks route uncovered members to, and what identifies the
+ * default workflow for policies whose rules predate the default marker, so it has to track the default
+ * workflow's first approver. No-op unless the workflow is the default one and its first approver changed.
  */
 function updatePolicyDefaultApprover(approvalWorkflow: ApprovalWorkflow, policy: Policy) {
     if (!approvalWorkflow.isDefault) {
@@ -493,12 +492,13 @@ function buildReturnToDefaultWorkflowDiff({
         return {};
     }
 
+    const isDefaultRuleBacked = hasMarkedDefaultWorkflow(existingRules);
     const buildDefaultRules = (isDefault: boolean) => buildApprovalWorkflowRules({...defaultApprovalWorkflow, members: approvalWorkflow.members, isDefault});
 
     // Mirror the marker state of the stored default rules rather than assuming they carry one. Rules written
     // before the marker existed do not, and building marked rules against them matches nothing, which would
     // silently skip the fold below and strand the members.
-    const foldDiff = reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(hasMarkedDefaultWorkflow(existingRules)), memberEmails, {existingRules});
+    const foldDiff = reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(isDefaultRuleBacked), memberEmails, {existingRules});
     if (Object.keys(foldDiff).every((ruleID) => ruleID in existingRules)) {
         return foldDiff;
     }
@@ -507,8 +507,9 @@ function buildReturnToDefaultWorkflowDiff({
         return {};
     }
 
-    // Otherwise re-establish the default workflow's rules so these members actually route through it.
-    return reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(true), memberEmails, {existingRules});
+    // Otherwise re-establish the default workflow's rules so these members actually route through it. When the
+    // stored rules were already marked, `foldDiff` is that same rule set and only its fresh IDs are needed.
+    return isDefaultRuleBacked ? foldDiff : reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(true), memberEmails, {existingRules});
 }
 
 /**
