@@ -1,7 +1,7 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions, public receipt visibility, share receipt link, receipt URL]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions, public receipt visibility, share receipt link, receipt URL, future date not allowed, future dated expense, expense date violation]
 internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, merchant rules, prohibited expenses, category rules, tag rules, report rules, and Expensify Card spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
@@ -200,6 +200,14 @@ This violation is triggered when an expense meets **any** of the following condi
 - It’s created as cash and is older than seven days  
 - It’s imported from a personal card feed  
 - It’s manually changed from a card expense to a cash expense
+
+## When does the “Future date not allowed” violation appear?
+
+This violation appears on **Control** workspaces when an expense is dated too far in the future. It applies to every expense on the workspace and can’t be turned on or off, so it isn’t listed with the Expense Rule options above.
+
+An expense date is a calendar date with no time or time zone attached, so Expensify allows a date up to 14 hours ahead of the current UTC time before flagging it. That buffer covers members in time zones ahead of UTC who date an expense with their own local date. Because the buffer is measured against UTC, whether tomorrow’s date is flagged depends on the current UTC time.
+
+Any date past that point stays flagged until the expense date is changed to a date within the allowed range. Invoices are never flagged by this rule.
 
 ## Why don’t I see the toggle for the company card rule?
 
