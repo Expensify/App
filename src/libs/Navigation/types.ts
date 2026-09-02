@@ -1688,7 +1688,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAG]: {
         policyID: string;
-        orderWeight: number;
+        orderWeight: number | string;
         ruleID?: undefined;
     };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAX]: {

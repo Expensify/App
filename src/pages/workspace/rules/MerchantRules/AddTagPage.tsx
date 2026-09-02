@@ -25,7 +25,9 @@ import useMerchantRuleRoute from './useMerchantRuleRoute';
 type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAG | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAG>;
 
 function AddTagPage({route}: AddTagPageProps) {
-    const {policyID, ruleID, orderWeight} = route.params;
+    const {policyID, ruleID, orderWeight: orderWeightParam} = route.params;
+    // Dynamic routes hand their path params over as strings, so the tag list lookup below would miss without this.
+    const orderWeight = Number(orderWeightParam);
     const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TAG_FROM_EXPENSE.path, policyID, ruleID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
