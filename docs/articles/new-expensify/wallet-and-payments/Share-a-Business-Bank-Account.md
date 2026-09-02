@@ -48,7 +48,7 @@ The receiving admin must validate their copy (required for US accounts) before u
 - The account appears in their **Wallet**.
 
 **For US accounts:**
-- The account shows an **Action required** badge
+- The account shows a **Pending** badge with the message **Please confirm test transactions**
 - The admin must validate the account with the test transactions before using it.
 - After validation, the account is ready to use
  

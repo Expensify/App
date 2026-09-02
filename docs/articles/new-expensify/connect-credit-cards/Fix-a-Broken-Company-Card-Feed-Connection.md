@@ -18,6 +18,8 @@ Workspace Admins see indicators in Expensify when a company card feed is broken:
 - Concierge sends a message to the #admins room
 - A red dot appears on the card feed with the message “Card feed connection is broken”
 
+Members who are assigned a card from the broken feed see an **Inactive** badge on that card in **Account > Wallet**. Admins see the message **Please fix this connection in company cards**, which links to **Company cards** for that workspace. Members who are not admins see **Please ask an admin to fix this connection**.
+
 These reminders appear while the connection has recently broken. If a company card feed has gone 90 days or more without a successful sync, the **Time Sensitive** notification on **Home** and the red dot on the workspace row stop showing. The “Card feed connection is broken” banner remains on the **Company cards** page for direct (bank-connected) feeds, so a Workspace Admin can still reconnect the feed at any time.
 
 ---
