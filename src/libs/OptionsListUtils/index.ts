@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getLoginByAccountID, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -82,6 +82,7 @@ import {
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceTaxUpdateMessage,
     hasPendingDEWApprove,
@@ -146,9 +147,11 @@ import {
     getReportTransactions,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
+    hasExpensifyGuidesEmails,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
     isChatThread,
+    isDefaultRoom,
     isDM,
     isExpenseReport,
     isHiddenForCurrentUser,
@@ -165,6 +168,7 @@ import {
     isOneOnOneChat as reportUtilsIsOneOnOneChat,
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
+    isSystemChat as reportUtilsIsSystemChat,
     isTaskReport as reportUtilsIsTaskReport,
     shouldReportBeInOptionList,
     shouldShowMarkAsDone,
@@ -203,7 +207,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {SetNonNullable} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
@@ -309,44 +312,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
 });
-
-/** Single-account lookup without the allocations required by the plural helper. */
-function getPersonalDetailForAccountID(accountID: number, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetails | undefined {
-    const cleanAccountID = Number(accountID);
-    if (!personalDetails || !cleanAccountID) {
-        return undefined;
-    }
-
-    const personalDetail: PersonalDetails = personalDetails[accountID] ?? ({} as PersonalDetails);
-
-    if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
-    }
-
-    personalDetail.accountID = cleanAccountID;
-    return personalDetail;
-}
-
-/**
- * Returns the personal details for an array of accountIDs
- * @returns keys of the object are emails, values are PersonalDetails objects.
- */
-function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): SetNonNullable<PersonalDetailsList> {
-    const personalDetailsForAccountIDs: SetNonNullable<PersonalDetailsList> = {};
-    if (!personalDetails) {
-        return personalDetailsForAccountIDs;
-    }
-    if (accountIDs) {
-        for (const accountID of accountIDs) {
-            const personalDetail = getPersonalDetailForAccountID(accountID, personalDetails);
-            if (!personalDetail) {
-                continue;
-            }
-            personalDetailsForAccountIDs[personalDetail.accountID] = personalDetail;
-        }
-    }
-    return personalDetailsForAccountIDs;
-}
 
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
@@ -961,6 +926,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
         lastMessageTextFromReport = getMccGroupCategoryMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
+        lastMessageTextFromReport = getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, lastReportAction);
     }
     if (lastReportAction?.actionName && isCategoryModificationAction(lastReportAction.actionName)) {
         lastMessageTextFromReport = getWorkspaceCategoryUpdateMessage(translate, lastReportAction, policy);
@@ -2385,6 +2353,7 @@ function getUserToInviteOption({
         [optimisticAccountID]: {
             accountID: optimisticAccountID,
             login: searchValue,
+            displayName: displayValue,
         },
     };
     const userToInvite = createOption({
@@ -2427,7 +2396,14 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, config: IsValidReportsConfig, draftComment: string | undefined, chatReport: OnyxEntry<Report>): boolean {
+function isValidReport(
+    option: SearchOption<Report>,
+    policy: OnyxEntry<Policy>,
+    config: IsValidReportsConfig,
+    draftComment: string | undefined,
+    chatReport: OnyxEntry<Report>,
+    hasGuidesEmails: boolean,
+): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -2471,6 +2447,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     if (!shouldBeInOptionList) {
@@ -2866,6 +2843,8 @@ function getValidOptions(
                 },
                 draftComment,
                 chatReport,
+                // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
+                isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
             );
         };
 
@@ -3681,6 +3660,23 @@ function shouldUseBoldText(report: SearchOptionData): boolean {
 }
 
 /**
+ * Whether the LHN option title is rendered as-is instead of the participant display names.
+ */
+function shouldUseFullTitleForOption(option: OptionData): boolean {
+    return (
+        !!option.isChatRoom ||
+        !!option.isPolicyExpenseChat ||
+        !!option.isTaskReport ||
+        !!option.isThread ||
+        !!option.isMoneyRequestReport ||
+        !!option.isInvoiceReport ||
+        !!option.private_isArchived ||
+        reportUtilsIsGroupChat(option) ||
+        reportUtilsIsSystemChat(option)
+    );
+}
+
+/**
  * Process a search string into normalized search terms
  * @param searchString - The raw search string to process
  * @returns Array of normalized search terms
@@ -3714,7 +3710,6 @@ export {
     getLastMessageTextForReport,
     getNoneOption,
     getParticipantsOption,
-    getPersonalDetailsForAccountIDs,
     getPolicyExpenseReportOption,
     getReportDisplayOption,
     getReportOption,
@@ -3735,6 +3730,7 @@ export {
     orderWorkspaceOptions,
     recentReportComparator,
     shouldUseBoldText,
+    shouldUseFullTitleForOption,
     sortAlphabetically,
     personalDetailsComparator,
     processSearchString,

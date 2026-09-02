@@ -280,7 +280,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedSubRateKeys.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         handleDeletePerDiemRates();
@@ -361,7 +361,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                           }
                           Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
                       },
-                      success: true,
+                      buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   },
               ]
             : [],

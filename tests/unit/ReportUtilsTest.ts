@@ -73,6 +73,7 @@ import {
     canEditWriteCapability,
     canFlagReportAction,
     canHoldUnholdReportAction,
+    canInviteMembersToReport,
     canJoinChat,
     canLeaveChat,
     canMergeReports,
@@ -165,6 +166,7 @@ import {
     hasReportBeenForwardedSinceLastSubmit,
     hasEmptyReportsForPolicy,
     hasExportError,
+    hasExpensifyGuidesEmails,
     hasNonReimbursableTransactions,
     hasReceiptError,
     hasSmartscanError,
@@ -182,6 +184,7 @@ import {
     isDeprecatedGroupDM,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
+    isJoinRequestInAdminRoom,
     isMoneyRequestReportEligibleForMerge,
     isOneOnOneChat,
     isPayer,
@@ -277,6 +280,7 @@ import {
     createGroupChat,
     createInvoiceReport,
     createInvoiceRoom,
+    createIOUReport,
     createPolicyExpenseChat,
     createPolicyExpenseChatTask,
     createPolicyExpenseChatThread,
@@ -291,7 +295,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type ClosedReportActionMessage = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>['message'];
@@ -544,7 +548,6 @@ const policy: Policy = {
     type: CONST.POLICY.TYPE.TEAM,
     owner: '',
     outputCurrency: '',
-    isPolicyExpenseChatEnabled: false,
 };
 
 describe('ReportUtils', () => {
@@ -4629,7 +4632,6 @@ describe('ReportUtils', () => {
                         role: 'user',
                         owner: '',
                         outputCurrency: '',
-                        isPolicyExpenseChatEnabled: false,
                     } as const;
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(
                         report,
@@ -4690,7 +4692,6 @@ describe('ReportUtils', () => {
                     role: 'user',
                     owner: '',
                     outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
                     employeeList: {
                         [currentUserEmail]: {
                             email: currentUserEmail,
@@ -4759,7 +4760,6 @@ describe('ReportUtils', () => {
                     role: 'user',
                     owner: currentUserEmail,
                     outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
                 };
                 Promise.all([
                     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
@@ -6033,7 +6033,6 @@ describe('ReportUtils', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 owner: '',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     'lagertha2@vikings.net': {
                         email: 'lagertha2@vikings.net',
@@ -6296,7 +6295,6 @@ describe('ReportUtils', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 owner: '',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     'lagertha2@vikings.net': {
                         email: 'lagertha2@vikings.net',
@@ -6388,7 +6386,6 @@ describe('ReportUtils', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 owner: '',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     'lagertha2@vikings.net': {
                         email: 'lagertha2@vikings.net',
@@ -6988,7 +6985,6 @@ describe('ReportUtils', () => {
             role: CONST.POLICY.ROLE.USER,
             owner: `owner${ownerAccountID}@test.com`,
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
             approver: approverEmail,
             employeeList: {
@@ -7851,6 +7847,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
@@ -7876,6 +7873,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
@@ -7906,6 +7904,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -7970,6 +7969,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
@@ -7994,6 +7994,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
@@ -8018,6 +8019,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: 'fake draft',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
@@ -8042,6 +8044,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
@@ -8079,6 +8082,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
@@ -8111,6 +8115,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
                     draftComment: '',
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
@@ -8143,6 +8148,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
                     draftComment: '',
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8169,6 +8175,7 @@ describe('ReportUtils', () => {
                     includeSelfDM,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
@@ -8197,6 +8204,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8218,6 +8226,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8242,6 +8251,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8295,6 +8305,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8316,6 +8327,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8345,6 +8357,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -8373,6 +8386,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     isReportArchived: undefined,
                     conciergeReportID,
+                    hasGuidesEmails: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -8399,6 +8413,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     isReportArchived: undefined,
                     conciergeReportID: 'some-other-report-id',
+                    hasGuidesEmails: false,
                 }),
             ).toBeNull();
         });
@@ -8425,6 +8440,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
             };
 
             // When the param identifies this report as Concierge, the empty chat is kept in the option list...
@@ -8451,6 +8467,7 @@ describe('ReportUtils', () => {
                     includeDomainEmail: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8498,6 +8515,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8519,6 +8537,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8554,6 +8573,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     betas: undefined,
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8586,6 +8606,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
@@ -8616,6 +8637,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8639,6 +8661,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
@@ -8684,6 +8707,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8736,6 +8760,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
@@ -8759,6 +8784,7 @@ describe('ReportUtils', () => {
                     includeSelfDM: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeNull();
@@ -8781,6 +8807,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeTruthy();
@@ -8803,6 +8830,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8825,6 +8853,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8847,6 +8876,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8865,6 +8895,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 }),
             ).toBeFalsy();
@@ -8932,6 +8963,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -9745,7 +9777,7 @@ describe('ReportUtils', () => {
             const reportNameValuePairsCollection = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             };
-            const result = findLastAccessedReport(false, false, undefined, reportNameValuePairsCollection);
+            const result = findLastAccessedReport(false, undefined, false, undefined, reportNameValuePairsCollection);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -9798,7 +9830,7 @@ describe('ReportUtils', () => {
         });
 
         it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
-            const result = findLastAccessedReport(false);
+            const result = findLastAccessedReport(false, undefined);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -9837,33 +9869,33 @@ describe('ReportUtils', () => {
 
         it('should resolve a report from the passed collection while the stored reports are still empty', () => {
             // Nothing is in Onyx yet, so the copy the function reads by default holds no reports.
-            expect(findLastAccessedReport(false)).toBeUndefined();
+            expect(findLastAccessedReport(false, undefined)).toBeUndefined();
 
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
             };
 
-            expect(findLastAccessedReport(false, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
         });
 
         it('should prefer the passed collection over the stored reports', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
             await waitForBatchedUpdates();
 
-            expect(findLastAccessedReport(false)?.reportID).toBe(storedReport.reportID);
+            expect(findLastAccessedReport(false, undefined)?.reportID).toBe(storedReport.reportID);
 
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
             };
 
-            expect(findLastAccessedReport(false, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
         });
 
         it('should fall back to the stored reports when no collection is passed', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
             await waitForBatchedUpdates();
 
-            expect(findLastAccessedReport(false)?.reportID).toBe(storedReport.reportID);
+            expect(findLastAccessedReport(false, undefined)?.reportID).toBe(storedReport.reportID);
         });
     });
 
@@ -12189,6 +12221,96 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canInviteMembersToReport', () => {
+        const submitterAccountID = 80001;
+        const otherAccountID = 80002;
+        const adminPolicy: Policy = {...createRandomPolicy(80100), role: CONST.POLICY.ROLE.ADMIN};
+        const memberPolicy: Policy = {...createRandomPolicy(80100), role: CONST.POLICY.ROLE.USER};
+        const openExpenseReport: Report = {
+            ...createExpenseReport(80200),
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        it('lets any participant of a group chat invite', () => {
+            // Given a group chat, which has no submitter/admin distinction
+            const groupChat = createGroupChat(80201, [submitterAccountID, otherAccountID]);
+
+            // Then a plain participant can invite, and no policy is needed to decide that
+            expect(canInviteMembersToReport(groupChat, undefined, false, otherAccountID)).toBe(true);
+        });
+
+        it('lets the submitter invite on an open expense report', () => {
+            // Given an open expense report owned by the current user on a workspace where they are only a member
+            // Then the submitter can invite
+            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, submitterAccountID)).toBe(true);
+        });
+
+        it('lets a policy admin invite on an open expense report they did not submit', () => {
+            // Given an open expense report submitted by somebody else
+            // Then a policy admin can still invite
+            expect(canInviteMembersToReport(openExpenseReport, adminPolicy, false, otherAccountID)).toBe(true);
+        });
+
+        it('blocks a workspace member who is neither the submitter nor a policy admin', () => {
+            // Given an open expense report submitted by somebody else
+            // Then a plain workspace member cannot invite, because invitees gain visibility of every expense on the report
+            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, otherAccountID)).toBe(false);
+        });
+
+        it('blocks the submitter once the expense report is no longer open', () => {
+            // Given an expense report the current user submitted that has already been submitted for approval
+            const submittedExpenseReport: Report = {
+                ...openExpenseReport,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            // Then neither the submitter nor a policy admin can invite
+            expect(canInviteMembersToReport(submittedExpenseReport, memberPolicy, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(submittedExpenseReport, adminPolicy, false, otherAccountID)).toBe(false);
+        });
+
+        it('blocks inviting on an archived report', () => {
+            // Given an archived group chat and an archived open expense report
+            const groupChat = createGroupChat(80202, [submitterAccountID, otherAccountID]);
+
+            // Then nobody can invite, regardless of report type or role
+            expect(canInviteMembersToReport(groupChat, undefined, true, otherAccountID)).toBe(false);
+            expect(canInviteMembersToReport(openExpenseReport, adminPolicy, true, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks inviting on an IOU report', () => {
+            // Given an open IOU report, i.e. a 1:1 expense that is not owned by a workspace
+            const iouReport: Report = {
+                ...createIOUReport(80203, submitterAccountID, otherAccountID),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // Then the submitter cannot invite, because there is no workspace to widen visibility to
+            expect(canInviteMembersToReport(iouReport, undefined, false, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks inviting on report types that have no members to manage', () => {
+            // Given a regular chat and a self DM
+            const regularChat = createRegularChat(80204, [submitterAccountID, otherAccountID]);
+            const selfDM = createSelfDM(80205, submitterAccountID);
+
+            // Then inviting is not offered on either
+            expect(canInviteMembersToReport(regularChat, undefined, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(selfDM, undefined, false, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks the submitter while the session account ID has not loaded yet', () => {
+            // Given an open expense report but no resolved current user account ID
+            // Then the submitter check cannot pass, though an admin is still recognized from the policy alone
+            expect(canInviteMembersToReport(openExpenseReport, memberPolicy, false, undefined)).toBe(false);
+            expect(canInviteMembersToReport(openExpenseReport, adminPolicy, false, undefined)).toBe(true);
+        });
+    });
+
     describe('shouldDisableRename', () => {
         it('should return true for archived reports', async () => {
             // Given an archived policy room
@@ -13080,6 +13202,26 @@ describe('ReportUtils', () => {
             expect(canJoinChat(report, undefined, undefined, undefined)).toBe(true);
         });
 
+        it('should return false if the report is a transaction thread under an invoice report', async () => {
+            const parentInvoiceReport = createInvoiceReport(1);
+            const report: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+                parentReportID: parentInvoiceReport.reportID,
+                parentReportActionID: '67890',
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canJoinChat(report, undefined, undefined, parentInvoiceReport)).toBe(false);
+        });
+
         it('should respect workspace membership for restricted visibility rooms', async () => {
             const policyID = '123456';
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
@@ -13887,7 +14029,6 @@ describe('ReportUtils', () => {
             role: CONST.POLICY.ROLE.ADMIN,
             owner: 'test@example.com',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             autoReporting: true,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
             harvesting: {
@@ -14031,7 +14172,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
             };
-            expect(canSeeDefaultRoom(report, betas, true)).toBe(true);
+            expect(canSeeDefaultRoom(report, betas, false, true)).toBe(true);
         });
         it('should return true if the room has an assigned guide', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -14040,15 +14181,68 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 8]),
             };
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
-                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+                expect(canSeeDefaultRoom(report, betas, true, false)).toBe(true);
             });
         });
         it('should return true if the report is admin room', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const report: Report = createRandomReport(40002, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
-                expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
+                expect(canSeeDefaultRoom(report, betas, false, false)).toBe(true);
             });
+        });
+    });
+
+    describe('hasExpensifyGuidesEmails', () => {
+        it('should use the passed guideAccountIDs when provided', () => {
+            expect(hasExpensifyGuidesEmails([8], [8])).toBe(true);
+            expect(hasExpensifyGuidesEmails([1], [8])).toBe(false);
+        });
+
+        it('should not consult the personal details list when guideAccountIDs is provided', async () => {
+            // Account 8 is a guide according to the personal details list, but the passed guide list is authoritative.
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+            expect(hasExpensifyGuidesEmails([8], [])).toBe(false);
+            await Onyx.clear();
+        });
+
+        it('should fall back to module-level allPersonalDetails when guideAccountIDs is undefined', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+            expect(hasExpensifyGuidesEmails([8], undefined)).toBe(true);
+            expect(hasExpensifyGuidesEmails([1], undefined)).toBe(false);
+            await Onyx.clear();
+        });
+    });
+
+    describe('isJoinRequestInAdminRoom', () => {
+        it('should use the passed currentUserLogin instead of the module-level fallback', async () => {
+            const policyID = '50500';
+            const adminReport = {...createAdminRoom(50500), policyID};
+            const joinRequestReportAction = createMock<ReportAction>({
+                ...createRandomReportAction(50500),
+                originalMessage: {
+                    // @ts-expect-error pending join requests use an empty choice until the admin responds
+                    choice: '',
+                    policyID,
+                },
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(50500, CONST.POLICY.TYPE.TEAM),
+                owner: 'owner@test.com',
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${adminReport.reportID}`, adminReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReport.reportID}`, {
+                [joinRequestReportAction.reportActionID]: joinRequestReportAction,
+            });
+            await waitForBatchedUpdates();
+
+            expect(isJoinRequestInAdminRoom(adminReport, `guide@${CONST.EMAIL.GUIDES_DOMAIN}`)).toBe(false);
+            expect(isJoinRequestInAdminRoom(adminReport, 'owner@test.com')).toBe(true);
+            await Onyx.clear();
         });
     });
 
@@ -15221,19 +15415,27 @@ describe('ReportUtils', () => {
         });
 
         it('should return false if the user is not the report manager', () => {
-            expect(canRejectReportAction(buildReportToReject(), 2)).toBe(false);
+            expect(canRejectReportAction(buildReportToReject(), 2, undefined)).toBe(false);
         });
 
         it('should return false when no account ID is passed', () => {
-            expect(canRejectReportAction(buildReportToReject(), undefined)).toBe(false);
+            expect(canRejectReportAction(buildReportToReject(), undefined, undefined)).toBe(false);
         });
 
         it('should return true if the passed user is the manager of a report being processed', () => {
-            expect(canRejectReportAction(buildReportToReject(), managerAccountID)).toBe(true);
+            expect(canRejectReportAction(buildReportToReject(), managerAccountID, undefined)).toBe(true);
         });
 
         it('should return false for IOU reports even when the passed user is the manager', () => {
-            expect(canRejectReportAction({...buildReportToReject(), type: CONST.REPORT.TYPE.IOU}, managerAccountID)).toBe(false);
+            expect(canRejectReportAction({...buildReportToReject(), type: CONST.REPORT.TYPE.IOU}, managerAccountID, undefined)).toBe(false);
+        });
+
+        it('should return false when the policy is archived', () => {
+            expect(canRejectReportAction(buildReportToReject(), managerAccountID, {...createRandomPolicy(0), archivedDate: '2026-08-19 00:00:00'})).toBe(false);
+        });
+
+        it('should return false when the policy is pending deletion', () => {
+            expect(canRejectReportAction(buildReportToReject(), managerAccountID, {...createRandomPolicy(0), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})).toBe(false);
         });
     });
 
@@ -15390,6 +15592,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBeDefined();
@@ -15411,6 +15614,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBeDefined();
@@ -15428,6 +15632,7 @@ describe('ReportUtils', () => {
                 reportAction,
                 linkedTransaction: undefined,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('parentReportAction.reversedTransaction'));
@@ -15444,6 +15649,7 @@ describe('ReportUtils', () => {
                 reportAction,
                 linkedTransaction: undefined,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('parentReportAction.deletedExpense'));
@@ -15464,6 +15670,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBeDefined();
@@ -15477,6 +15684,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: undefined,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('iou.expense'));
@@ -15492,6 +15700,7 @@ describe('ReportUtils', () => {
                 reportAction,
                 linkedTransaction: undefined,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('iou.createExpense'));
@@ -15510,6 +15719,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('iou.receiptScanning', {count: 1}));
@@ -15528,6 +15738,7 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toBe(translateLocal('iou.receiptMissingDetails'));
@@ -15550,10 +15761,104 @@ describe('ReportUtils', () => {
                 reportAction: undefined,
                 linkedTransaction: transaction,
                 report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(result).toContain('Coffee Shop');
             expect(result).toContain('$25.00');
+        });
+
+        test('uses full route values for personal distance expenses with invalid commuter metadata', async () => {
+            const policyID = 'distance-policy';
+            const policyWithDistanceRate: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {
+                                customUnitRateID: 'rate1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 76,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithDistanceRate);
+            await waitForBatchedUpdates();
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                modifiedAmount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                convertToDisplayString,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: {...mockTransactionReport, type: CONST.REPORT.TYPE.CHAT},
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(result).toContain('$4.91');
+            expect(result).toContain('6.46 mi');
+            expect(result).not.toContain('5.46 mi');
+        });
+
+        test('keeps commuter values for policy distance expenses', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: -415,
+                modifiedAmount: -415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                convertToDisplayString,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(result).toContain('$4.15');
+            expect(result).toContain('5.46 mi');
         });
     });
 
@@ -15950,6 +16255,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+
+            hasGuidesEmails: false,
             conciergeReportID: undefined,
         });
 
@@ -16009,6 +16316,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+
+            hasGuidesEmails: false,
             conciergeReportID: undefined,
         });
 
@@ -16201,6 +16510,8 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -16245,6 +16556,8 @@ describe('ReportUtils', () => {
                 draftComment: undefined,
                 betas: undefined,
                 isReportArchived: undefined,
+
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -16415,7 +16728,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16503,7 +16815,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16600,7 +16911,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16710,7 +17020,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16799,7 +17108,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16886,7 +17194,6 @@ describe('ReportUtils', () => {
                     },
                 },
                 owner: currentUserEmail,
-                isPolicyExpenseChatEnabled: true,
             };
 
             const chatReport: Report = {
@@ -16951,6 +17258,111 @@ describe('ReportUtils', () => {
 
             await Onyx.clear();
         });
+
+        it('should return null for a processing report whose remaining notice is RECEIPT_NOT_SMART_SCANNED (hidden from the submitter)', async () => {
+            await Onyx.clear();
+
+            const policyID = 'policy-rbr-receipt-notice-processing';
+            const chatReportID = 'chat-rbr-receipt-notice-processing';
+            const expenseReportID = 'expense-rbr-receipt-notice-processing';
+            const completeTransactionID = 'transaction-rbr-receipt-notice-complete';
+            const incompleteTransactionID = 'transaction-rbr-receipt-notice-incomplete';
+
+            const policyData: Policy = {
+                id: policyID,
+                name: 'Receipt Notice Processing Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+                outputCurrency: CONST.CURRENCY.USD,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+                owner: currentUserEmail,
+            };
+
+            const chatReport: Report = {
+                ...createPolicyExpenseChat(824),
+                reportID: chatReportID,
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                iouReportID: expenseReportID,
+            };
+
+            const expenseReport: Report = {
+                ...createExpenseReport(825),
+                reportID: expenseReportID,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                managerID: 42,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const completeTransaction: Transaction = {
+                ...createRandomTransaction(824),
+                transactionID: completeTransactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                reimbursable: true,
+            };
+            const incompleteTransaction: Transaction = {
+                ...createRandomTransaction(825),
+                transactionID: incompleteTransactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                reimbursable: true,
+            };
+
+            const completeViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${completeTransactionID}` as OnyxKey;
+            const incompleteViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${incompleteTransactionID}` as OnyxKey;
+            const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+                [completeViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                        type: CONST.VIOLATION_TYPES.NOTICE,
+                        showInReview: true,
+                    },
+                ],
+                [incompleteViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                        type: CONST.VIOLATION_TYPES.NOTICE,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await waitForBatchedUpdates();
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyData),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${completeTransaction.transactionID}`, completeTransaction),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${incompleteTransaction.transactionID}`, incompleteTransaction),
+                Onyx.merge(completeViolationsKey, transactionViolationsCollection[completeViolationsKey]),
+                Onyx.merge(incompleteViolationsKey, transactionViolationsCollection[incompleteViolationsKey]),
+            ]);
+            await waitForBatchedUpdates();
+
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            expect(result).toBeNull();
+
+            await Onyx.clear();
+        });
     });
 
     it('should surface a GBR for the admin who placed the hold on an all-held report requiring approval, and avoid showing an RBR', async () => {
@@ -16979,7 +17391,6 @@ describe('ReportUtils', () => {
                 },
             },
             owner: currentUserEmail,
-            isPolicyExpenseChatEnabled: true,
         };
 
         const chatReport: Report = {
@@ -17094,6 +17505,8 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+
+            hasGuidesEmails: false,
             conciergeReportID: undefined,
             currentUserAccountID: adminAccountID,
         });
@@ -17125,7 +17538,6 @@ describe('ReportUtils', () => {
                 },
             },
             owner: currentUserEmail,
-            isPolicyExpenseChatEnabled: true,
         };
 
         const chatReport: Report = {
@@ -17253,7 +17665,6 @@ describe('ReportUtils', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: currentUserEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
         };
 
@@ -17279,6 +17690,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: undefined,
+            hasGuidesEmails: false,
             conciergeReportID: undefined,
         });
 
@@ -17305,6 +17717,7 @@ describe('ReportUtils', () => {
 
         expect(optimisticInvoiceReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         expect(optimisticInvoiceReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+        expect(optimisticInvoiceReport.transactionCount).toBe(1);
     });
 
     it('should surface a GBR when copiloted into an approver account with a report with outstanding child request', async () => {
@@ -17473,6 +17886,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+            hasGuidesEmails: false,
             conciergeReportID: undefined,
         });
 
@@ -17496,6 +17910,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: archiveState.current,
+            hasGuidesEmails: false,
             conciergeReportID: undefined,
         });
 
@@ -17524,7 +17939,6 @@ describe('ReportUtils', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: approverEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             approver: approverEmail,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             employeeList: {
@@ -17598,6 +18012,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedBefore.current,
+            hasGuidesEmails: false,
             conciergeReportID: undefined,
         });
 
@@ -17639,6 +18054,7 @@ describe('ReportUtils', () => {
             excludeEmptyChats: false,
             draftComment: '',
             isReportArchived: isReportArchivedAfter.current,
+            hasGuidesEmails: false,
             conciergeReportID: undefined,
         });
 
@@ -18738,6 +19154,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -18792,6 +19209,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -21007,6 +21425,8 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -21077,6 +21497,8 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 isReportArchived: false,
                 draftComment: '',
+
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -21098,7 +21520,6 @@ describe('ReportUtils', () => {
             type: CONST.POLICY.TYPE.CORPORATE,
             owner: 'test@test.com',
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             taxRates: {
                 taxes: {
                     TAX_CODE_1: {
@@ -22290,6 +22711,34 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
         });
 
+        it('should NOT flag a report-preview action when its linked transaction is pending deletion', async () => {
+            // Mirrors the split/track guard for the report-preview path (getReportActionWithMissingSmartscanFields).
+            // Same missing-merchant shape as the positive test above, but the transaction is queued for deletion,
+            // so the RBR red-dot must clear instead of persisting until the server confirms removal (#96967).
+            const transactionMissingMerchant: Transaction = {
+                ...transaction,
+                merchant: '',
+                modifiedMerchant: '',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transactionMissingMerchant);
+            await waitForBatchedUpdates();
+
+            const reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transactionMissingMerchant,
+            };
+
+            expect(hasSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBe(false);
+            expect(getReportActionWithSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBeUndefined();
+
+            // Restore original transaction for subsequent tests (Onyx.set fully replaces, clearing pendingAction)
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+        });
+
         it('should NOT flag settled (reimbursed) expense reports even with missing fields', async () => {
             const settledExpenseReport: Report = {
                 ...expenseReport,
@@ -22352,6 +22801,108 @@ describe('ReportUtils', () => {
 
             expect(hasSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBe(true);
             expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toEqual(splitAction);
+        });
+
+        it('should NOT flag a split-bill action when its linked transaction is pending deletion (revert split / delete)', () => {
+            // The missing-smartscan-fields path never excluded DELETE-pending transactions (#97706 only fixed
+            // the violations path), so a reverted expense with missing fields kept lighting the RBR (#96967).
+            const splitTransactionID = '550';
+            const splitAction: ReportAction = {
+                ...createRandomReportAction(Number(splitTransactionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: splitTransactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [currentUserAccountID],
+                },
+            };
+            // Same missing-fields shape as the positive test above, but the transaction is queued for deletion.
+            const splitTransaction: Transaction = {
+                ...createRandomTransaction(Number(splitTransactionID)),
+                transactionID: splitTransactionID,
+                amount: 0,
+                merchant: 'Lunch',
+                modifiedMerchant: '',
+                created: testDate,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`]: splitTransaction,
+            };
+
+            expect(hasSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBe(false);
+            expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBeUndefined();
+        });
+
+        it('should NOT flag a track-expense action when its linked transaction is pending deletion (revert / delete)', () => {
+            // isSplitOrTrackAction also covers the track-expense branch, so a DELETE-pending track transaction with
+            // missing fields must clear the RBR too. Guards the OR against a future refactor that splits the paths.
+            const trackTransactionID = '575';
+            const trackAction: ReportAction = {
+                ...createRandomReportAction(Number(trackTransactionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: trackTransactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [currentUserAccountID],
+                },
+            };
+            // Same missing-fields shape as the split test above, but the transaction is queued for deletion.
+            const trackTransaction: Transaction = {
+                ...createRandomTransaction(Number(trackTransactionID)),
+                transactionID: trackTransactionID,
+                amount: 0,
+                merchant: 'Lunch',
+                modifiedMerchant: '',
+                created: testDate,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${trackTransactionID}`]: trackTransaction,
+            };
+
+            expect(hasSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toBe(false);
+            expect(getReportActionWithSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toBeUndefined();
+        });
+
+        it('should flag a track-expense action when its linked transaction has missing smartscan fields', () => {
+            // Positive control for the track branch: a non-DELETE track transaction with missing fields still lights the RBR.
+            const trackTransactionID = '585';
+            const trackAction: ReportAction = {
+                ...createRandomReportAction(Number(trackTransactionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: trackTransactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [currentUserAccountID],
+                },
+            };
+            const trackTransaction: Transaction = {
+                ...createRandomTransaction(Number(trackTransactionID)),
+                transactionID: trackTransactionID,
+                amount: 0,
+                merchant: 'Lunch',
+                modifiedMerchant: '',
+                created: testDate,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${trackTransactionID}`]: trackTransaction,
+            };
+
+            expect(hasSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toBe(true);
+            expect(getReportActionWithSmartscanError([trackAction], chatReport, allTransactions, currentUserAccountID)).toEqual(trackAction);
         });
 
         it('should NOT flag a split-bill action when its linked transaction has all required fields', () => {
