@@ -2,6 +2,7 @@ import RenderHTML from '@components/RenderHTML';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useSidePanelActions from '@hooks/useSidePanelActions';
@@ -33,6 +34,7 @@ function WorkspaceRecruitingPage({
     const policy = usePolicy(policyID);
     const policyEmployeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
     const {openSidePanel} = useSidePanelActions();
+    const {isBetaEnabled} = usePermissions();
 
     const cards = getRecruitingCards({policy, policyEmployeePersonalDetails, policyID, icons, translate, formatPhoneNumber});
 
@@ -41,6 +43,7 @@ function WorkspaceRecruitingPage({
             policyID={policyID}
             category={CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING}
             cards={cards}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.MERGE_ATS)}
             footer={
                 <View style={[styles.mt3, styles.renderHTML]}>
                     <RenderHTML

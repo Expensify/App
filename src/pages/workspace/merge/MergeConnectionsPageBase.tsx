@@ -60,13 +60,16 @@ type MergeConnectionsPageBaseProps = {
 
     /** Category-specific content rendered under the provider list while nothing is connected, e.g. what to do when the provider isn't listed. */
     footer?: React.ReactNode;
+
+    /** Whether to block access to the page, e.g. when the category is still behind a beta. */
+    shouldBeBlocked?: boolean;
 };
 
 /**
  * The shared workspace page listing every provider for one connection category, connected ones first and the rest
  * under a collapsed "Other" section. Only one provider per category may be connected at a time.
  */
-function MergeConnectionsPageBase({policyID, category, cards, footer}: MergeConnectionsPageBaseProps) {
+function MergeConnectionsPageBase({policyID, category, cards, footer, shouldBeBlocked}: MergeConnectionsPageBaseProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -152,6 +155,7 @@ function MergeConnectionsPageBase({policyID, category, cards, footer}: MergeConn
             policyID={policyID}
             featureName={featureName}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            shouldBeBlocked={shouldBeBlocked}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
