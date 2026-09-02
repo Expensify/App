@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -281,18 +281,12 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onClose={() => clearErrorFields('taxRateExternalID')}
                         >
                             <View style={styles.w100}>
-                                {taxRate ? (
-                                    <MenuItemField
-                                        description={translate('workspace.taxes.taxRate')}
-                                        title={taxRate}
-                                        onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
-                                    />
-                                ) : (
-                                    <MenuItemEmptyField
-                                        description={translate('workspace.taxes.taxRate')}
-                                        onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
-                                    />
-                                )}
+                                <MenuItemField
+                                    description={translate('workspace.taxes.taxRate')}
+                                    onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                >
+                                    {!!taxRate && <MenuItem.TitleBasic>{taxRate}</MenuItem.TitleBasic>}
+                                </MenuItemField>
                             </View>
                         </OfflineWithFeedback>
                     )}

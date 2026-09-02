@@ -4,7 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
@@ -333,14 +333,9 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                     </View>
                     {isLocked ? (
                         <View style={[styles.mhn5]}>
-                            {lockedPolicy?.name ? (
-                                <MenuItemField
-                                    description={translate('workspace.common.workspace')}
-                                    title={lockedPolicy.name}
-                                />
-                            ) : (
-                                <MenuItemEmptyField description={translate('workspace.common.workspace')} />
-                            )}
+                            <MenuItemField description={translate('workspace.common.workspace')}>
+                                {!!lockedPolicy?.name && <MenuItem.TitleBasic>{lockedPolicy.name}</MenuItem.TitleBasic>}
+                            </MenuItemField>
                         </View>
                     ) : (
                         <View style={[styles.mhn5]}>

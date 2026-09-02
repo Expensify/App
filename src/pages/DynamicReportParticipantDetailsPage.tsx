@@ -2,6 +2,7 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -135,10 +136,11 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                         <OfflineWithFeedback pendingAction={member?.pendingFields?.role ?? null}>
                             <MenuItemField
                                 description={translate('common.role')}
-                                title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
                                 onPress={openRoleSelectionModal}
                                 isDisabled={isSelectedMemberCurrentUser}
-                            />
+                            >
+                                <MenuItem.TitleBasic>{member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}</MenuItem.TitleBasic>
+                            </MenuItemField>
                         </OfflineWithFeedback>
                     )}
                     <MenuItemNavigation

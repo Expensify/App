@@ -1,4 +1,4 @@
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
@@ -72,9 +72,10 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
             >
                 <MenuItemField
                     description={translate('search.display.sortOrder')}
-                    title={translate(`search.filters.sortOrder.${pendingSorting.order}`)}
                     onPress={onSortOrderPress}
-                />
+                >
+                    <MenuItem.TitleBasic>{translate(`search.filters.sortOrder.${pendingSorting.order}`)}</MenuItem.TitleBasic>
+                </MenuItemField>
                 <View style={styles.dividerLine} />
                 <SelectionList
                     data={options}
@@ -185,20 +186,13 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
 
     return (
         <ScrollView contentContainerStyle={[styles.pv4]}>
-            {sortByTitle ? (
-                <MenuItemField
-                    description={translate('search.display.sortBy')}
-                    title={sortByTitle}
-                    onPress={openSortBy}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
-                />
-            ) : (
-                <MenuItemEmptyField
-                    description={translate('search.display.sortBy')}
-                    onPress={openSortBy}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
-                />
-            )}
+            <MenuItemField
+                description={translate('search.display.sortBy')}
+                onPress={openSortBy}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
+            >
+                {!!sortByTitle && <MenuItem.TitleBasic>{sortByTitle}</MenuItem.TitleBasic>}
+            </MenuItemField>
         </ScrollView>
     );
 }

@@ -2,7 +2,6 @@ import Button from '@components/ButtonComposed';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -160,18 +159,12 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.changeDomainSecurityGroupErrors)}
                     onClose={() => clearChangeDomainSecurityGroupError(domainAccountID, memberLogin)}
                 >
-                    {userSecurityGroup?.securityGroup?.name ? (
-                        <MenuItemField
-                            description={translate('domain.members.domainGroup')}
-                            title={userSecurityGroup.securityGroup.name}
-                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
-                        />
-                    ) : (
-                        <MenuItemEmptyField
-                            description={translate('domain.members.domainGroup')}
-                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
-                        />
-                    )}
+                    <MenuItemField
+                        description={translate('domain.members.domainGroup')}
+                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
+                    >
+                        {!!userSecurityGroup?.securityGroup?.name && <MenuItem.TitleBasic>{userSecurityGroup.securityGroup.name}</MenuItem.TitleBasic>}
+                    </MenuItemField>
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem
                     vacationDelegate={vacationDelegate}

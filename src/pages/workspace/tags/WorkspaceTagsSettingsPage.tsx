@@ -1,6 +1,6 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -85,30 +85,18 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                         pendingAction={policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction}
                         errorRowStyles={styles.mh5}
                     >
-                        {customTagName ? (
-                            <MenuItemField
-                                description={translate(`workspace.tags.customTagName`)}
-                                title={customTagName}
-                                onPress={() => {
-                                    Navigation.navigate(
-                                        isQuickSettingsFlow
-                                            ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(policyTagLists.at(0)?.orderWeight ?? 0))
-                                            : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyTagLists.at(0)?.orderWeight ?? 0)),
-                                    );
-                                }}
-                            />
-                        ) : (
-                            <MenuItemEmptyField
-                                description={translate(`workspace.tags.customTagName`)}
-                                onPress={() => {
-                                    Navigation.navigate(
-                                        isQuickSettingsFlow
-                                            ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(policyTagLists.at(0)?.orderWeight ?? 0))
-                                            : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyTagLists.at(0)?.orderWeight ?? 0)),
-                                    );
-                                }}
-                            />
-                        )}
+                        <MenuItemField
+                            description={translate(`workspace.tags.customTagName`)}
+                            onPress={() => {
+                                Navigation.navigate(
+                                    isQuickSettingsFlow
+                                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(policyTagLists.at(0)?.orderWeight ?? 0))
+                                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyTagLists.at(0)?.orderWeight ?? 0)),
+                                );
+                            }}
+                        >
+                            {!!customTagName && <MenuItem.TitleBasic>{customTagName}</MenuItem.TitleBasic>}
+                        </MenuItemField>
                     </OfflineWithFeedback>
                 )}
                 {!isRulesRevampEnabled && (

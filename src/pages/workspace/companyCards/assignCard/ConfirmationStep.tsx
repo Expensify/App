@@ -1,7 +1,7 @@
 import Button from '@components/ButtonComposed';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import MenuItem from '@components/MenuItem';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
@@ -189,14 +189,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 >
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.letsDoubleCheck')}</Text>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
-                    {cardNameTitle ? (
-                        <MenuItemField
-                            description={translate('workspace.companyCards.card')}
-                            title={cardNameTitle}
-                        />
-                    ) : (
-                        <MenuItemEmptyField description={translate('workspace.companyCards.card')} />
-                    )}
+                    <MenuItemField description={translate('workspace.companyCards.card')}>{!!cardNameTitle && <MenuItem.TitleBasic>{cardNameTitle}</MenuItem.TitleBasic>}</MenuItemField>
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                     </View>
@@ -208,30 +201,18 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         testID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                     />
-                    {transactionStartDateTitle ? (
-                        <MenuItemField
-                            description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                            title={transactionStartDateTitle}
-                            onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
-                        />
-                    ) : (
-                        <MenuItemEmptyField
-                            description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                            onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
-                        />
-                    )}
-                    {cardToAssign?.customCardName ? (
-                        <MenuItemField
-                            description={translate('workspace.companyCards.cardName')}
-                            title={cardToAssign.customCardName}
-                            onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
-                        />
-                    ) : (
-                        <MenuItemEmptyField
-                            description={translate('workspace.companyCards.cardName')}
-                            onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
-                        />
-                    )}
+                    <MenuItemField
+                        description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                        onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
+                    >
+                        {!!transactionStartDateTitle && <MenuItem.TitleBasic>{transactionStartDateTitle}</MenuItem.TitleBasic>}
+                    </MenuItemField>
+                    <MenuItemField
+                        description={translate('workspace.companyCards.cardName')}
+                        onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
+                    >
+                        {!!cardToAssign?.customCardName && <MenuItem.TitleBasic>{cardToAssign.customCardName}</MenuItem.TitleBasic>}
+                    </MenuItemField>
                     <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                         <OfflineWithFeedback
                             shouldDisplayErrorAbove

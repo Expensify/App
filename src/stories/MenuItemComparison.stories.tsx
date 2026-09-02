@@ -8,7 +8,6 @@ import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
@@ -225,15 +224,15 @@ function Comparison() {
                         <Variant label="onPress passed">
                             <MenuItemField
                                 description="Name"
-                                title="Standard rate"
                                 onPress={noop}
-                            />
+                            >
+                                <MenuItem.TitleBasic>Standard rate</MenuItem.TitleBasic>
+                            </MenuItemField>
                         </Variant>
                         <Variant label="onPress={undefined}">
-                            <MenuItemField
-                                description="Name"
-                                title="Standard rate"
-                            />
+                            <MenuItemField description="Name">
+                                <MenuItem.TitleBasic>Standard rate</MenuItem.TitleBasic>
+                            </MenuItemField>
                         </Variant>
                     </>
                 }
@@ -259,10 +258,9 @@ function Comparison() {
                     </MenuItem.Root>
                 }
                 preset={
-                    <MenuItemField
-                        description="Country"
-                        title="United States"
-                    />
+                    <MenuItemField description="Country">
+                        <MenuItem.TitleBasic>United States</MenuItem.TitleBasic>
+                    </MenuItemField>
                 }
             />
 
@@ -292,10 +290,11 @@ function Comparison() {
                 preset={
                     <MenuItemField
                         description="Display"
-                        title="Comfortable"
                         onPress={noop}
                         sentryLabel="menuItemComparisonStorySentryLabel"
-                    />
+                    >
+                        <MenuItem.TitleBasic>Comfortable</MenuItem.TitleBasic>
+                    </MenuItemField>
                 }
             />
 
@@ -325,10 +324,11 @@ function Comparison() {
                 preset={
                     <MenuItemField
                         description="Role"
-                        title="Admin"
                         onPress={noop}
                         isDisabled
-                    />
+                    >
+                        <MenuItem.TitleBasic>Admin</MenuItem.TitleBasic>
+                    </MenuItemField>
                 }
             />
 
@@ -363,10 +363,11 @@ function Comparison() {
                 preset={
                     <MenuItemField
                         description="Member"
-                        title="John Doe"
                         onPress={noop}
                         testID="menuItemComparisonStoryPressable"
-                    />
+                    >
+                        <MenuItem.TitleBasic>John Doe</MenuItem.TitleBasic>
+                    </MenuItemField>
                 }
             />
 
@@ -403,11 +404,12 @@ function Comparison() {
                 preset={
                     <MenuItemField
                         description="Bank account"
-                        title="Chase ••••1234"
                         onPress={noop}
                         isDisabled
                         testID="menuItemComparisonStoryPressableWide"
-                    />
+                    >
+                        <MenuItem.TitleBasic>Chase ••••1234</MenuItem.TitleBasic>
+                    </MenuItemField>
                 }
             />
 
@@ -463,15 +465,16 @@ function Comparison() {
                 }
                 preset={
                     <>
-                        <Variant label="title present">
+                        <Variant label="value child">
                             <MenuItemField
                                 description="Destination"
-                                title="Warsaw, Poland"
                                 onPress={noop}
-                            />
+                            >
+                                <MenuItem.TitleBasic>Warsaw, Poland</MenuItem.TitleBasic>
+                            </MenuItemField>
                         </Variant>
-                        <Variant label="title={undefined}">
-                            <MenuItemEmptyField
+                        <Variant label="no value child">
+                            <MenuItemField
                                 description="Destination"
                                 onPress={noop}
                             />

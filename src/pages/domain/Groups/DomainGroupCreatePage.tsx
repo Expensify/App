@@ -2,7 +2,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -204,21 +204,15 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         wrapperStyle={[styles.ph5, styles.mv3]}
                         shouldPlaceSubtitleBelowSwitch
                     />
-                    {hasAdminPolicies &&
-                        (preferredWorkspaceName ? (
-                            <MenuItemField
-                                description={translate('domain.groups.preferredWorkspace')}
-                                title={preferredWorkspaceName}
-                                onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
-                                isDisabled={!preferredWorkspace}
-                            />
-                        ) : (
-                            <MenuItemEmptyField
-                                description={translate('domain.groups.preferredWorkspace')}
-                                onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
-                                isDisabled={!preferredWorkspace}
-                            />
-                        ))}
+                    {hasAdminPolicies && (
+                        <MenuItemField
+                            description={translate('domain.groups.preferredWorkspace')}
+                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
+                            isDisabled={!preferredWorkspace}
+                        >
+                            {!!preferredWorkspaceName && <MenuItem.TitleBasic>{preferredWorkspaceName}</MenuItem.TitleBasic>}
+                        </MenuItemField>
+                    )}
                     <ToggleSettingOptionRow
                         title={translate('domain.groups.expensifyCardPreferredWorkspace')}
                         subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}

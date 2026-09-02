@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -91,54 +91,30 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="always"
                 >
-                    {selectedRate?.name ? (
-                        <MenuItemField
-                            description={translate('common.destination')}
-                            title={selectedRate.name}
-                            onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID)) : undefined}
-                        />
-                    ) : (
-                        <MenuItemEmptyField
-                            description={translate('common.destination')}
-                            onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID)) : undefined}
-                        />
-                    )}
-                    {selectedSubRate?.name ? (
-                        <MenuItemField
-                            description={translate('common.subrate')}
-                            title={selectedSubRate.name}
-                            onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID)) : undefined}
-                        />
-                    ) : (
-                        <MenuItemEmptyField
-                            description={translate('common.subrate')}
-                            onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID)) : undefined}
-                        />
-                    )}
-                    {amountValue ? (
-                        <MenuItemField
-                            description={translate('workspace.perDiem.amount')}
-                            title={amountValue}
-                            onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.getRoute(policyID, rateID, subRateID)) : undefined}
-                        />
-                    ) : (
-                        <MenuItemEmptyField
-                            description={translate('workspace.perDiem.amount')}
-                            onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.getRoute(policyID, rateID, subRateID)) : undefined}
-                        />
-                    )}
-                    {currencyValue ? (
-                        <MenuItemField
-                            description={translate('common.currency')}
-                            title={currencyValue}
-                            onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.getRoute(policyID, rateID, subRateID)) : undefined}
-                        />
-                    ) : (
-                        <MenuItemEmptyField
-                            description={translate('common.currency')}
-                            onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.getRoute(policyID, rateID, subRateID)) : undefined}
-                        />
-                    )}
+                    <MenuItemField
+                        description={translate('common.destination')}
+                        onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID)) : undefined}
+                    >
+                        {!!selectedRate?.name && <MenuItem.TitleBasic>{selectedRate.name}</MenuItem.TitleBasic>}
+                    </MenuItemField>
+                    <MenuItemField
+                        description={translate('common.subrate')}
+                        onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID)) : undefined}
+                    >
+                        {!!selectedSubRate?.name && <MenuItem.TitleBasic>{selectedSubRate.name}</MenuItem.TitleBasic>}
+                    </MenuItemField>
+                    <MenuItemField
+                        description={translate('workspace.perDiem.amount')}
+                        onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.getRoute(policyID, rateID, subRateID)) : undefined}
+                    >
+                        {!!amountValue && <MenuItem.TitleBasic>{amountValue}</MenuItem.TitleBasic>}
+                    </MenuItemField>
+                    <MenuItemField
+                        description={translate('common.currency')}
+                        onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.getRoute(policyID, rateID, subRateID)) : undefined}
+                    >
+                        {!!currencyValue && <MenuItem.TitleBasic>{currencyValue}</MenuItem.TitleBasic>}
+                    </MenuItemField>
                     {canWritePerDiem && (
                         <MenuItemAction
                             icon={icons.Trashcan}

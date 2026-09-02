@@ -4,7 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -315,15 +315,11 @@ function WorkspaceInviteMessageComponent({
                     </View>
                     <View style={styles.mb3}>
                         <View style={[styles.mhn5, styles.mb3]}>
-                            {isInviteNewMemberStep &&
-                                (invitingMemberTitle ? (
-                                    <MenuItemField
-                                        description={translate('common.member')}
-                                        title={invitingMemberTitle}
-                                    />
-                                ) : (
-                                    <MenuItemEmptyField description={translate('common.member')} />
-                                ))}
+                            {isInviteNewMemberStep && (
+                                <MenuItemField description={translate('common.member')}>
+                                    {!!invitingMemberTitle && <MenuItem.TitleBasic>{invitingMemberTitle}</MenuItem.TitleBasic>}
+                                </MenuItemField>
+                            )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
                                     title={memberNames}
@@ -337,7 +333,6 @@ function WorkspaceInviteMessageComponent({
                             )}
                             <MenuItemField
                                 description={translate('common.role')}
-                                title={translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}
                                 onPress={
                                     canChangeInviteRole
                                         ? () => {
@@ -348,20 +343,17 @@ function WorkspaceInviteMessageComponent({
                                           }
                                         : undefined
                                 }
-                            />
-                            {!!shouldShowApproverRow &&
-                                (approverName ? (
-                                    <MenuItemField
-                                        description={translate('workflowsPage.approver')}
-                                        title={approverName}
-                                        onPress={navigateToApproverPage}
-                                    />
-                                ) : (
-                                    <MenuItemEmptyField
-                                        description={translate('workflowsPage.approver')}
-                                        onPress={navigateToApproverPage}
-                                    />
-                                ))}
+                            >
+                                <MenuItem.TitleBasic>{translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}</MenuItem.TitleBasic>
+                            </MenuItemField>
+                            {!!shouldShowApproverRow && (
+                                <MenuItemField
+                                    description={translate('workflowsPage.approver')}
+                                    onPress={navigateToApproverPage}
+                                >
+                                    {!!approverName && <MenuItem.TitleBasic>{approverName}</MenuItem.TitleBasic>}
+                                </MenuItemField>
+                            )}
                         </View>
                         <View style={[styles.mb3]}>
                             <Text style={[styles.textSupportingNormal]}>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>

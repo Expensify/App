@@ -1,3 +1,4 @@
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -65,10 +66,9 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 helperTextStyle={[styles.pb3, styles.mtn2]}
             />
             {!!reservation.carInfo?.name && (
-                <MenuItemField
-                    description={translate('travel.carDetails.carType')}
-                    title={reservation.carInfo.name}
-                />
+                <MenuItemField description={translate('travel.carDetails.carType')}>
+                    <MenuItem.TitleBasic>{reservation.carInfo.name}</MenuItem.TitleBasic>
+                </MenuItemField>
             )}
             {!!cancellationText && (
                 <MenuItemWithTopDescription

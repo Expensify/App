@@ -1,4 +1,4 @@
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -49,18 +49,12 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
                 onClose={() => clearSetPrimaryContactError(domainAccountID)}
             >
-                {technicalContactSettings?.technicalContactEmail ? (
-                    <MenuItemField
-                        description={translate('domain.admins.primaryContact')}
-                        title={technicalContactSettings.technicalContactEmail}
-                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
-                    />
-                ) : (
-                    <MenuItemEmptyField
-                        description={translate('domain.admins.primaryContact')}
-                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
-                    />
-                )}
+                <MenuItemField
+                    description={translate('domain.admins.primaryContact')}
+                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
+                >
+                    {!!technicalContactSettings?.technicalContactEmail && <MenuItem.TitleBasic>{technicalContactSettings.technicalContactEmail}</MenuItem.TitleBasic>}
+                </MenuItemField>
             </OfflineWithFeedback>
             <ToggleSettingOptionRow
                 wrapperStyle={[styles.mv3, styles.ph5]}

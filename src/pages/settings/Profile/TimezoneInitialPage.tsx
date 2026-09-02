@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
@@ -66,20 +66,13 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                         />
                     </View>
                 </View>
-                {timezone.selected ? (
-                    <MenuItemField
-                        description={translate('timezonePage.timezone')}
-                        title={timezone.selected}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
-                        isDisabled={!!timezone.automatic}
-                    />
-                ) : (
-                    <MenuItemEmptyField
-                        description={translate('timezonePage.timezone')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
-                        isDisabled={!!timezone.automatic}
-                    />
-                )}
+                <MenuItemField
+                    description={translate('timezonePage.timezone')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
+                    isDisabled={!!timezone.automatic}
+                >
+                    {!!timezone.selected && <MenuItem.TitleBasic>{timezone.selected}</MenuItem.TitleBasic>}
+                </MenuItemField>
             </View>
         </ScreenWrapper>
     );

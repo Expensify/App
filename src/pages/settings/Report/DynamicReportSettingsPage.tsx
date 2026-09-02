@@ -1,6 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -73,43 +73,27 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView style={[styles.flex1]}>
-                    {shouldShowNotificationPref &&
-                        (notificationPreference ? (
-                            <MenuItemField
-                                description={translate('notificationPreferencesPage.label')}
-                                title={notificationPreference}
-                                onPress={() => {
-                                    if (!reportID) {
-                                        return;
-                                    }
-                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(reportID)));
-                                }}
-                            />
-                        ) : (
-                            <MenuItemEmptyField
-                                description={translate('notificationPreferencesPage.label')}
-                                onPress={() => {
-                                    if (!reportID) {
-                                        return;
-                                    }
-                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(reportID)));
-                                }}
-                            />
-                        ))}
-                    {shouldShowWriteCapability &&
-                        shouldAllowWriteCapabilityEditing &&
-                        (writeCapabilityText ? (
-                            <MenuItemField
-                                description={translate('writeCapabilityPage.label')}
-                                title={writeCapabilityText}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
-                            />
-                        ) : (
-                            <MenuItemEmptyField
-                                description={translate('writeCapabilityPage.label')}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
-                            />
-                        ))}
+                    {shouldShowNotificationPref && (
+                        <MenuItemField
+                            description={translate('notificationPreferencesPage.label')}
+                            onPress={() => {
+                                if (!reportID) {
+                                    return;
+                                }
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(reportID)));
+                            }}
+                        >
+                            {!!notificationPreference && <MenuItem.TitleBasic>{notificationPreference}</MenuItem.TitleBasic>}
+                        </MenuItemField>
+                    )}
+                    {shouldShowWriteCapability && shouldAllowWriteCapabilityEditing && (
+                        <MenuItemField
+                            description={translate('writeCapabilityPage.label')}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
+                        >
+                            {!!writeCapabilityText && <MenuItem.TitleBasic>{writeCapabilityText}</MenuItem.TitleBasic>}
+                        </MenuItemField>
+                    )}
                     {shouldShowWriteCapability && !shouldAllowWriteCapabilityEditing && (
                         <View style={[styles.ph5, styles.pv3]}>
                             <Text
@@ -131,11 +115,12 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                         (shouldAllowChangeVisibility ? (
                             <MenuItemField
                                 description={translate('newRoomPage.visibility')}
-                                title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path));
                                 }}
-                            />
+                            >
+                                <MenuItem.TitleBasic>{translate(`newRoomPage.visibilityOptions.${report.visibility}`)}</MenuItem.TitleBasic>
+                            </MenuItemField>
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>
                                 <Text

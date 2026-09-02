@@ -1,4 +1,4 @@
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -46,14 +46,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 copyable
                 interactive={false}
             />
-            {startDate.date ? (
-                <MenuItemField
-                    description={translate('common.date')}
-                    title={startDate.date}
-                />
-            ) : (
-                <MenuItemEmptyField description={translate('common.date')} />
-            )}
+            <MenuItemField description={translate('common.date')}>{!!startDate.date && <MenuItem.TitleBasic>{startDate.date}</MenuItem.TitleBasic>}</MenuItemField>
 
             <MenuItemWithTopDescription
                 description={translate('travel.trainDetails.departs')}
@@ -75,26 +68,16 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
             <View style={[styles.flexRow, styles.flexWrap]}>
                 {!!reservation.coachNumber && (
                     <View style={styles.w50}>
-                        {reservation.coachNumber ? (
-                            <MenuItemField
-                                description={translate('travel.trainDetails.coachNumber')}
-                                title={reservation.coachNumber}
-                            />
-                        ) : (
-                            <MenuItemEmptyField description={translate('travel.trainDetails.coachNumber')} />
-                        )}
+                        <MenuItemField description={translate('travel.trainDetails.coachNumber')}>
+                            {!!reservation.coachNumber && <MenuItem.TitleBasic>{reservation.coachNumber}</MenuItem.TitleBasic>}
+                        </MenuItemField>
                     </View>
                 )}
                 {!!reservation.seatNumber && (
                     <View style={styles.w50}>
-                        {reservation.seatNumber ? (
-                            <MenuItemField
-                                description={translate('travel.trainDetails.seat')}
-                                title={reservation.seatNumber}
-                            />
-                        ) : (
-                            <MenuItemEmptyField description={translate('travel.trainDetails.seat')} />
-                        )}
+                        <MenuItemField description={translate('travel.trainDetails.seat')}>
+                            {!!reservation.seatNumber && <MenuItem.TitleBasic>{reservation.seatNumber}</MenuItem.TitleBasic>}
+                        </MenuItemField>
                     </View>
                 )}
             </View>

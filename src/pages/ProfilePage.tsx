@@ -5,7 +5,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -325,23 +324,16 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={() => switchToDelegator(login)}
                             />
                         )}
-                        {shouldShowNotificationPreference &&
-                            (notificationPreference ? (
-                                <MenuItemField
-                                    description={translate('notificationPreferencesPage.label')}
-                                    title={notificationPreference}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
-                                    }}
-                                />
-                            ) : (
-                                <MenuItemEmptyField
-                                    description={translate('notificationPreferencesPage.label')}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
-                                    }}
-                                />
-                            ))}
+                        {shouldShowNotificationPreference && (
+                            <MenuItemField
+                                description={translate('notificationPreferencesPage.label')}
+                                onPress={() => {
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
+                                }}
+                            >
+                                {!!notificationPreference && <MenuItem.TitleBasic>{notificationPreference}</MenuItem.TitleBasic>}
+                            </MenuItemField>
+                        )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}

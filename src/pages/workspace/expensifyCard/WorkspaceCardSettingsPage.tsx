@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -83,18 +83,12 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                 >
                     <View>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
-                            {bankAccountNumber ? (
-                                <MenuItemField
-                                    description={translate('workspace.expensifyCard.settlementAccount')}
-                                    title={`${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(bankAccountNumber)}`}
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path))}
-                                />
-                            ) : (
-                                <MenuItemEmptyField
-                                    description={translate('workspace.expensifyCard.settlementAccount')}
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path))}
-                                />
-                            )}
+                            <MenuItemField
+                                description={translate('workspace.expensifyCard.settlementAccount')}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path))}
+                            >
+                                {!!bankAccountNumber && <MenuItem.TitleBasic>{`${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(bankAccountNumber)}`}</MenuItem.TitleBasic>}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItemWithTopDescription

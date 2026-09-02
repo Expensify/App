@@ -4,7 +4,6 @@ import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -412,44 +411,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             {isControlPolicy(policy) && (
                                 <>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
-                                        {member?.employeeUserID ? (
-                                            <MenuItemField
-                                                description={translate('workspace.common.customField1')}
-                                                title={member.employeeUserID}
-                                                onPress={
-                                                    canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')) : undefined
-                                                }
-                                                testID="member-customField1-menu-item"
-                                            />
-                                        ) : (
-                                            <MenuItemEmptyField
-                                                description={translate('workspace.common.customField1')}
-                                                onPress={
-                                                    canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')) : undefined
-                                                }
-                                                testID="member-customField1-menu-item"
-                                            />
-                                        )}
+                                        <MenuItemField
+                                            description={translate('workspace.common.customField1')}
+                                            onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')) : undefined}
+                                            testID="member-customField1-menu-item"
+                                        >
+                                            {!!member?.employeeUserID && <MenuItem.TitleBasic>{member.employeeUserID}</MenuItem.TitleBasic>}
+                                        </MenuItemField>
                                     </OfflineWithFeedback>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
-                                        {member?.employeePayrollID ? (
-                                            <MenuItemField
-                                                description={translate('workspace.common.customField2')}
-                                                title={member.employeePayrollID}
-                                                onPress={
-                                                    canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')) : undefined
-                                                }
-                                                testID="member-customField2-menu-item"
-                                            />
-                                        ) : (
-                                            <MenuItemEmptyField
-                                                description={translate('workspace.common.customField2')}
-                                                onPress={
-                                                    canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')) : undefined
-                                                }
-                                                testID="member-customField2-menu-item"
-                                            />
-                                        )}
+                                        <MenuItemField
+                                            description={translate('workspace.common.customField2')}
+                                            onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')) : undefined}
+                                            testID="member-customField2-menu-item"
+                                        >
+                                            {!!member?.employeePayrollID && <MenuItem.TitleBasic>{member.employeePayrollID}</MenuItem.TitleBasic>}
+                                        </MenuItemField>
                                     </OfflineWithFeedback>
                                 </>
                             )}

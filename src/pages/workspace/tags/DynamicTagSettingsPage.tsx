@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -200,18 +200,12 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
-                        {cleanedTagName ? (
-                            <MenuItemField
-                                description={translate(`common.name`)}
-                                title={cleanedTagName}
-                                onPress={canWriteTags && !hasDependentTags ? navigateToEditTag : undefined}
-                            />
-                        ) : (
-                            <MenuItemEmptyField
-                                description={translate(`common.name`)}
-                                onPress={canWriteTags && !hasDependentTags ? navigateToEditTag : undefined}
-                            />
-                        )}
+                        <MenuItemField
+                            description={translate(`common.name`)}
+                            onPress={canWriteTags && !hasDependentTags ? navigateToEditTag : undefined}
+                        >
+                            {!!cleanedTagName && <MenuItem.TitleBasic>{cleanedTagName}</MenuItem.TitleBasic>}
+                        </MenuItemField>
                     </OfflineWithFeedback>
                     {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (
                         <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>

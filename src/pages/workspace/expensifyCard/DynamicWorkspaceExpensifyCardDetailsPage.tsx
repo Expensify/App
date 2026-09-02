@@ -7,7 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -392,18 +391,12 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     )}
 
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}>
-                        {card?.nameValuePairs?.cardTitle ? (
-                            <MenuItemField
-                                description={translate('workspace.card.issueNewCard.cardName')}
-                                title={card.nameValuePairs.cardTitle}
-                                onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path)) : undefined}
-                            />
-                        ) : (
-                            <MenuItemEmptyField
-                                description={translate('workspace.card.issueNewCard.cardName')}
-                                onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path)) : undefined}
-                            />
-                        )}
+                        <MenuItemField
+                            description={translate('workspace.card.issueNewCard.cardName')}
+                            onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path)) : undefined}
+                        >
+                            {!!card?.nameValuePairs?.cardTitle && <MenuItem.TitleBasic>{card.nameValuePairs.cardTitle}</MenuItem.TitleBasic>}
+                        </MenuItemField>
                     </OfflineWithFeedback>
                     <MenuItemWithTopDescription
                         description={translate(isVirtual ? 'cardPage.virtualCardNumber' : 'cardPage.physicalCardNumber')}
@@ -440,18 +433,12 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.unapprovedExpenseLimit}>
-                        {formattedLimit ? (
-                            <MenuItemField
-                                description={translate('workspace.expensifyCard.cardLimit')}
-                                title={formattedLimit}
-                                onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path)) : undefined}
-                            />
-                        ) : (
-                            <MenuItemEmptyField
-                                description={translate('workspace.expensifyCard.cardLimit')}
-                                onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path)) : undefined}
-                            />
-                        )}
+                        <MenuItemField
+                            description={translate('workspace.expensifyCard.cardLimit')}
+                            onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path)) : undefined}
+                        >
+                            {!!formattedLimit && <MenuItem.TitleBasic>{formattedLimit}</MenuItem.TitleBasic>}
+                        </MenuItemField>
                     </OfflineWithFeedback>
                     <View style={styles.mt6}>
                         {canEditSpendRules && (

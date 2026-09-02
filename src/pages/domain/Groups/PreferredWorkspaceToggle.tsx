@@ -1,5 +1,5 @@
 import ConfirmModal from '@components/ConfirmModal';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -121,20 +121,13 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                     onClose={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'restrictedPrimaryPolicyIDErrors')}
                     errorRowStyles={[styles.mh5]}
                 >
-                    {preferredWorkspaceName ? (
-                        <MenuItemField
-                            description={translate('domain.groups.preferredWorkspace')}
-                            title={preferredWorkspaceName}
-                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
-                            isDisabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
-                        />
-                    ) : (
-                        <MenuItemEmptyField
-                            description={translate('domain.groups.preferredWorkspace')}
-                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
-                            isDisabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
-                        />
-                    )}
+                    <MenuItemField
+                        description={translate('domain.groups.preferredWorkspace')}
+                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
+                        isDisabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
+                    >
+                        {!!preferredWorkspaceName && <MenuItem.TitleBasic>{preferredWorkspaceName}</MenuItem.TitleBasic>}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             )}
         </>

@@ -1,6 +1,6 @@
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
@@ -33,18 +33,12 @@ function Confirmation({onNext}: ConfirmationProps) {
     return (
         <View style={[styles.flexGrow1]}>
             <Text style={[styles.ph5, styles.pb3]}>{translate('subscription.subscriptionSize.confirmDetails')}</Text>
-            <MenuItemField
-                description={translate('subscription.subscriptionSize.subscriptionSize')}
-                title={translate('subscription.subscriptionSize.activeMembers', subscriptionSize)}
-            />
-            {subscriptionRenewalDate ? (
-                <MenuItemField
-                    description={translate('subscription.subscriptionSize.subscriptionRenews')}
-                    title={subscriptionRenewalDate}
-                />
-            ) : (
-                <MenuItemEmptyField description={translate('subscription.subscriptionSize.subscriptionRenews')} />
-            )}
+            <MenuItemField description={translate('subscription.subscriptionSize.subscriptionSize')}>
+                <MenuItem.TitleBasic>{translate('subscription.subscriptionSize.activeMembers', subscriptionSize)}</MenuItem.TitleBasic>
+            </MenuItemField>
+            <MenuItemField description={translate('subscription.subscriptionSize.subscriptionRenews')}>
+                {!!subscriptionRenewalDate && <MenuItem.TitleBasic>{subscriptionRenewalDate}</MenuItem.TitleBasic>}
+            </MenuItemField>
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
