@@ -48,14 +48,7 @@ function GroupChildrenContainer({
     }
 
     return (
-        <Animated.View
-            style={[
-                styles.mh5,
-                StyleUtils.getSearchRowBackgroundStyle(isSelected),
-                isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                hasBorder && styles.tableBorder,
-            ]}
-        >
+        <View style={[styles.mh5, StyleUtils.getSearchRowBackgroundStyle(isSelected), isLastItem && [styles.tableBottomRadius, styles.overflowHidden], hasBorder && styles.tableBorder]}>
             <Animated.View style={animatedStyle}>
                 {isContentVisible ? (
                     <Animated.View

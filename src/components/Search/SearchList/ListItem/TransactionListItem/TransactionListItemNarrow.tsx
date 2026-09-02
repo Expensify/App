@@ -65,7 +65,17 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         onSelectRow(item, transactionPreviewData, event);
     };
 
-    const pressableStyle = [styles.transactionListItemStyle, styles.p4, styles.noBorderRadius, isSelected && styles.activeComponentBG, {...styles.flexColumn, ...styles.alignItemsStretch}];
+    const pressableStyle = [
+        styles.transactionListItemStyle,
+        styles.p4,
+        styles.noBorderRadius,
+        isSelected && styles.activeComponentBG,
+        // A selected row paints an opaque background here, on top of the rounded wrapper below, so the outer
+        // corners have to be rounded on this element too or the list's top/bottom corners look square.
+        isFirstItem && styles.tableTopRadius,
+        isLastItem && styles.tableBottomRadius,
+        {...styles.flexColumn, ...styles.alignItemsStretch},
+    ];
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
