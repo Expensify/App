@@ -121,6 +121,20 @@ describe('useNumericSelection', () => {
             expect(result.current.selection).toEqual({start: 1, end: 1});
         });
 
+        it('collapses a selection to its start after a forward-delete', () => {
+            const {result} = renderSelection('123');
+
+            act(() => {
+                result.current.handleNativeSelectionChange(1, 2);
+            });
+            act(() => {
+                result.current.handleKeyPress(buildKeyPressEvent('Delete'));
+                result.current.syncAfterEdit({previousText: '123', nextText: '13'});
+            });
+
+            expect(result.current.selection).toEqual({start: 1, end: 1});
+        });
+
         it('shifts the caret back when backspace shrinks the text', () => {
             const {result} = renderSelection('123');
 

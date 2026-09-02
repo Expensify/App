@@ -72,7 +72,11 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
         const isForwardDelete = forwardDeletePressedRef.current && previousText.length > nextText.length;
         forwardDeletePressedRef.current = false;
         const previousLength = isForwardDelete ? nextText.length : previousText.length;
-        setSelection((currentSelection) => getNewSelection(currentSelection, previousLength, nextText.length));
+        setSelection((currentSelection) => {
+            // Deleting a selection collapses the caret to the selection start, including for forward-delete.
+            const selectionToSync = isForwardDelete && currentSelection.start !== currentSelection.end ? getSelectionAtOffset(currentSelection.start) : currentSelection;
+            return getNewSelection(selectionToSync, previousLength, nextText.length);
+        });
     };
 
     // Restores the last valid caret after a rejected edit.
