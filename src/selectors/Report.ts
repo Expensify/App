@@ -121,11 +121,11 @@ function expenseReportAvatarSelector(report: OnyxEntry<Report>): ExpenseReportAv
 }
 
 /** Policy fallbacks a child report's workspace icon reads off its parent chat. */
-function reportPolicyFieldsSelector(report: OnyxEntry<Report>): Pick<Report, 'policyName' | 'oldPolicyName' | 'policyAvatar'> | undefined {
+function reportPolicyFieldsSelector(report: OnyxEntry<Report>): Pick<Report, 'policyID' | 'policyName' | 'oldPolicyName' | 'policyAvatar'> | undefined {
     if (!report) {
         return undefined;
     }
-    return {policyName: report.policyName, oldPolicyName: report.oldPolicyName, policyAvatar: report.policyAvatar};
+    return {policyID: report.policyID, policyName: report.policyName, oldPolicyName: report.oldPolicyName, policyAvatar: report.policyAvatar};
 }
 
 const policyIDsWithEmptyReportsSelector =

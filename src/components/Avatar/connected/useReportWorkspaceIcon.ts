@@ -18,10 +18,13 @@ type WorkspaceIconReportFields = Pick<Report, 'policyID' | 'policyAvatar' | 'pol
 /** Resolves a report's workspace icon from its policy row, falling back to the policy fields carried on the report and its workspace chat. */
 function useReportWorkspaceIcon(report: WorkspaceIconReportFields | undefined): Icon {
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {selector: policyAvatarFieldsSelector});
     // An expense report links its workspace chat via `chatReportID`. `parentReportID` covers shapes that only carry the parent link, which normally points at the same chat.
     const chatReportID = getNonEmptyStringOnyxID(report?.chatReportID) ?? getNonEmptyStringOnyxID(report?.parentReportID);
     const [parentChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: reportPolicyFieldsSelector});
+    // The report may omit `policyID` while its workspace chat carries it, so fall back to the chat's.
+    const parentChatPolicyID = parentChat?.policyID === CONST.POLICY.ID_FAKE ? undefined : parentChat?.policyID;
+    const policyID = getNonEmptyStringOnyxID(report?.policyID) ?? getNonEmptyStringOnyxID(parentChatPolicyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyAvatarFieldsSelector});
 
     // '' (no name) falls through to the next fallback
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -31,7 +34,7 @@ function useReportWorkspaceIcon(report: WorkspaceIconReportFields | undefined): 
     const avatarURL = policy ? policy.avatarURL : report?.policyAvatar || parentChat?.policyAvatar;
 
     return {
-        id: report?.policyID,
+        id: policyID,
         type: CONST.ICON_TYPE_WORKSPACE,
         name: workspaceName,
         // '' (no uploaded avatar) falls through to the default

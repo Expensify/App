@@ -209,6 +209,22 @@ describe('ExpenseReportAvatar (connected)', () => {
         },
     );
 
+    it('should reach the policy row through the workspace chat when the report has no policyID', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport({policyID: undefined}));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, {reportID: PARENT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, policyID: POLICY_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: POLICY_NAME, avatarURL: POLICY_AVATAR_URL});
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ExpenseReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(expect.objectContaining({id: POLICY_ID, name: POLICY_NAME, source: POLICY_AVATAR_URL}));
+    });
+
     it('should resolve the workspace chat through chatReportID when parentReportID is absent', async () => {
         const chatReportID = 'workspaceChat789';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport({parentReportID: undefined, chatReportID}));
