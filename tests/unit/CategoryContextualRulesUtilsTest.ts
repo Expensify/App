@@ -6,8 +6,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PolicyCategory} from '@src/types/onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {convertToDisplayString} from '../utils/TestHelper';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const policy = {

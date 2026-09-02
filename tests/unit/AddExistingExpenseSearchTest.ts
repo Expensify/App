@@ -9,7 +9,7 @@ import createMock from '../utils/createMock';
 // Mock the dependencies
 jest.mock('@libs/TransactionUtils');
 
-const mockConvertToDisplayString: jest.Mock<string, [number | undefined, string | undefined]> = jest.fn();
+const mockConvertToDisplayString = jest.fn<string, [number | undefined, string | undefined]>();
 const mockGetMerchant = jest.mocked(getMerchant);
 const mockGetDescription = jest.mocked(getDescription);
 const mockGetAmount = jest.mocked(getAmount);

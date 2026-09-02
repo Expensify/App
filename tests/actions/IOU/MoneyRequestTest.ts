@@ -796,7 +796,19 @@ describe('MoneyRequest', () => {
             isTrackIntentUser: false,
             formatPhoneNumber,
             delegateAccountID: undefined,
-            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal, convertToDisplayString, undefined),
+            participants: getMoneyRequestParticipantOptions({
+                currentUserAccountID: 1,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: false,
+                reportAttributesDerived: {},
+                reportDraft: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+            }),
             participantsPolicyTags: {},
         };
         const splitShares: SplitShares = {
@@ -1712,53 +1724,53 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants when conciergeReportID is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                translateLocal,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                translate: translateLocal,
                 convertToDisplayString,
-                undefined,
-            );
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should return participants when conciergeReportID is provided', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                'concierge123',
-                undefined,
-                undefined,
-                undefined,
-                translateLocal,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: 'concierge123',
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                translate: translateLocal,
                 convertToDisplayString,
-                undefined,
-            );
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should pass conciergeReportID through to getReportOption for policy expense chat participants', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                'concierge456',
-                undefined,
-                undefined,
-                undefined,
-                translateLocal,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: 'concierge456',
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                translate: translateLocal,
                 convertToDisplayString,
-                undefined,
-            );
+                dateFnsLocale: undefined,
+            });
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
             expect(Array.isArray(participants)).toBe(true);
@@ -1766,19 +1778,19 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants with privateIsArchived passed through', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                undefined,
-                true,
-                undefined,
-                undefined,
-                translateLocal,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: true,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                translate: translateLocal,
                 convertToDisplayString,
-                undefined,
-            );
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
@@ -1787,74 +1799,74 @@ describe('MoneyRequest', () => {
                 ...createRandomReport(2, undefined),
                 participants: {},
             };
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                dmReport,
-                fakePolicy,
-                {},
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                translateLocal,
+                report: dmReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                translate: translateLocal,
                 convertToDisplayString,
-                undefined,
-            );
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                undefined,
-                undefined,
-                undefined,
-                fakeReport,
-                translateLocal,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: fakeReport,
+                translate: translateLocal,
                 convertToDisplayString,
-                undefined,
-            );
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: true});
         });
 
         it('should not mark participant as disabled when reportDraft is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                translateLocal,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                translate: translateLocal,
                 convertToDisplayString,
-                undefined,
-            );
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
 
         it('should not mark participant as disabled when reportDrafts is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                translateLocal,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                translate: translateLocal,
                 convertToDisplayString,
-                undefined,
-            );
+                dateFnsLocale: undefined,
+            });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly

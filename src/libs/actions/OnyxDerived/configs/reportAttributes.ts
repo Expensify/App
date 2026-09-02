@@ -322,7 +322,10 @@ export default createOnyxDerivedValueConfig({
             (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) && preferredLocale !== currentValue?.locale) ||
             displayNameChanges === RECOMPUTE_ALL ||
             hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, triggeredKeys) ||
-            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
+            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys) ||
+            // Amount-bearing report names format with the currency list's decimals/symbols, so names computed before
+            // the list arrived (or with a stale list) must all be redone. This loads roughly once per session.
+            hasKeyTriggeredCompute(ONYXKEYS.CURRENCY_LIST, triggeredKeys);
 
         const policyChangedReportKeys: string[] = [];
         // Reports whose policy change touched only fields that don't feed the report name (type, approvalMode,

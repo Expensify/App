@@ -4789,8 +4789,11 @@ function getActionableCard3DSTransactionApprovalMessage(
         return undefined;
     }
     const {amount, currency, merchant} = originalMessage;
-    // Show the amount without any currency symbol when the message carries no currency, rather than defaulting to USD.
-    const formattedAmount = amount ? (currency ? convertToDisplayString(amount, currency) : convertToDisplayStringWithoutCurrency(amount)) : '';
+    let formattedAmount = '';
+    if (amount) {
+        // Show the amount without any currency symbol when the message carries no currency, rather than defaulting to USD.
+        formattedAmount = currency ? convertToDisplayString(amount, currency) : convertToDisplayStringWithoutCurrency(amount);
+    }
     return translate('report.actions.type.actionableCard3DSTransactionApproval', formattedAmount, merchant);
 }
 
