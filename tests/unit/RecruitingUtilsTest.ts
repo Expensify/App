@@ -102,7 +102,7 @@ function makeGetRecruitingCardsParams(overrides: Partial<GetRecruitingCardsParam
         policyID: POLICY_ID,
         icons: {Download: STUB_ICON},
         translate: translateLocal,
-        formatPhoneNumber: formatPhoneNumber,
+        formatPhoneNumber,
         ...overrides,
     };
 }
