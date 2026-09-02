@@ -17508,9 +17508,9 @@ describe('ReportUtils', () => {
                     {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
                 ]);
 
-                expect(
-                    ViolationsUtils.hasVisibleViolationsForUser(expenseReport, transactionViolationsCollection, currentUserEmail, currentUserAccountID, policyData, [transaction]),
-                ).toBe(true);
+                expect(ViolationsUtils.hasVisibleViolationsForUser(expenseReport, transactionViolationsCollection, currentUserEmail, currentUserAccountID, policyData, [transaction])).toBe(
+                    true,
+                );
 
                 await Onyx.clear();
             });
