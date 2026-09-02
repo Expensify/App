@@ -22,6 +22,7 @@ jest.mock('@hooks/useTransactionViolations', () => ({
     __esModule: true,
     default: (...args: unknown[]) => mockUseTransactionViolations(...args),
 }));
+jest.mock('@hooks/useEnvironment', () => jest.fn(() => ({environmentURL: ''})));
 
 const renderDescription = () =>
     render(
