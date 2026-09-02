@@ -49,7 +49,7 @@ function DeleteGroupRow({domainAccountID, groupID}: DeleteGroupRowProps) {
             title: translate('domain.groups.deleteGroupDangerConfirmationModal'),
             prompt: translate('domain.groups.deleteGroupDangerConfirmationModalDescription', defaultSecurityGroup?.name ?? ''),
             confirmText: translate('domain.groups.deleteGroup'),
-            cancelText: translate('domain.groups.neverMind'),
+            cancelText: translate('domain.common.neverMind'),
             shouldShowCancelButton: true,
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
