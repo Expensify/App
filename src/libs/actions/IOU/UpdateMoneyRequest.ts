@@ -5,6 +5,7 @@ import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getChangedTagLevels} from '@libs/MerchantRuleSuggestionUtils';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isGroupPolicy, isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -28,6 +29,7 @@ import {
     getClearedPendingFields,
     getDistanceRateTaxUpdates,
     getMerchant,
+    getTag,
     getUpdatedTransaction,
     hasLocallyKnownDistance,
     hasSubmissionBlockingViolationInReport,
@@ -887,7 +889,15 @@ function updateMoneyRequestTag({
         getCurrencySymbol,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, transactionThreadReport?.reportID, policy, policyCategories);
+    // `transaction` still holds the tag as it was, so comparing it with the new one says which levels the user edited.
+    trackMerchantRuleSuggestion(
+        transactionID,
+        CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG,
+        transactionThreadReport?.reportID,
+        policy,
+        policyCategories,
+        transaction ? getChangedTagLevels(getTag(transaction), tag) : undefined,
+    );
 }
 
 /** Updates the created tax amount of an expense */

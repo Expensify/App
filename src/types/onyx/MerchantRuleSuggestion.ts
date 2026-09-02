@@ -23,6 +23,12 @@ type MerchantRuleSuggestion = {
      */
     editedFields: Record<string, Partial<Record<MerchantRuleSuggestionField, boolean>>>;
 
+    /**
+     * Which levels of a multi-level tag were edited, keyed by expense then by level. Only these levels seed the rule,
+     * so editing one level does not commit the rule to the levels the user left alone.
+     */
+    editedTagLevels?: Record<string, Record<string, boolean>>;
+
     /** Expenses dismissed this session. Kept alongside the current offer, so a dismissal survives later edits. */
     dismissedTransactionIDs?: string[];
 

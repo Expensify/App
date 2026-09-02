@@ -55,7 +55,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
-    const {suggestion, fields, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
+    const {suggestion, fields, editedTagLevels, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
 
     if (!suggestion || !policyID) {
         return null;
@@ -64,7 +64,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
     const dismiss = () => dismissMerchantRuleSuggestion(suggestion);
 
     const createRule = () => {
-        const draft = getMerchantRuleDraftFromTransaction(transaction, fields, policy);
+        const draft = getMerchantRuleDraftFromTransaction(transaction, fields, policy, editedTagLevels);
         if (!draft) {
             return;
         }

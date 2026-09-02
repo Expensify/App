@@ -21,6 +21,7 @@ function trackMerchantRuleSuggestion(
     reportID: string | undefined,
     policy: OnyxEntry<Policy>,
     policyCategories: OnyxEntry<PolicyCategories>,
+    editedTagLevels?: number[],
 ) {
     // Skip workspaces that could not hold a merchant rule, otherwise an edit made with Rules off would surface the
     // moment somebody turned Rules on.
@@ -37,6 +38,8 @@ function trackMerchantRuleSuggestion(
         transactionID,
         reportID,
         editedFields: {[transactionID]: {[field]: true}},
+        // Keyed by level so editing several levels of one tag accumulates, the same way fields do.
+        ...(editedTagLevels?.length ? {editedTagLevels: {[transactionID]: Object.fromEntries(editedTagLevels.map((level) => [level, true]))}} : {}),
         isRetired: null,
     });
 }

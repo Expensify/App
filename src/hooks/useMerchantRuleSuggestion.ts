@@ -20,6 +20,9 @@ type MerchantRuleSuggestionResult = {
     /** Every field edited on that expense so far, which the rule is pre-seeded from */
     fields: MerchantRuleSuggestionField[];
 
+    /** Which levels of a multi-level tag were edited, so untouched levels stay out of the rule */
+    editedTagLevels: Record<string, boolean> | undefined;
+
     /** The edited expense, needed to pre-seed the rule */
     transaction: Transaction | undefined;
 
@@ -62,10 +65,10 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     // A rule matches on merchant, so an expense without one (a receipt still scanning) can't seed one. Nor can an
     // offer with nothing recorded, which is how an expense reads once its fields are cleared.
     if (!suggestion || !transaction || isMerchantMissing(transaction) || fields.length === 0) {
-        return {suggestion: undefined, fields: [], transaction: undefined, policy: undefined};
+        return {suggestion: undefined, fields: [], editedTagLevels: undefined, transaction: undefined, policy: undefined};
     }
 
-    return {suggestion, fields, transaction, policy};
+    return {suggestion, fields, editedTagLevels: suggestion.editedTagLevels?.[suggestion.transactionID], transaction, policy};
 }
 
 export default useMerchantRuleSuggestion;
