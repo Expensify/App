@@ -163,9 +163,14 @@ function MoneyRequestReportActionsListWrapper() {
 
 test('[MoneyRequestReportActionsList] should render the unified list with 500 reportActions and 10 transactions stored', async () => {
     const scenario = async () => {
+        // Then the unified list should be rendered
         await screen.findByTestId('money-request-report-actions-list');
     };
+
+    // Given an expense report with 500 report actions and 10 transactions seeded in Onyx
     await waitForBatchedUpdates();
+
+    // When the list is mounted
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 });
 
@@ -176,7 +181,10 @@ test('[MoneyRequestReportActionsList] should measure re-renders when an unrelate
     // already-present data and measure a no-op instead of the advertised transition.
     let run = 0;
     const scenario = async () => {
+        // Given the unified list is rendered for the seeded report
         await screen.findByTestId('money-request-report-actions-list');
+
+        // When 5 new report actions arrive on a different, unrelated report
         for (let i = 0; i < 5; i++) {
             const newAction = ReportTestUtils.getFakeReportAction(600 + run * 5 + i, {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -190,13 +198,18 @@ test('[MoneyRequestReportActionsList] should measure re-renders when an unrelate
         run++;
     };
     await waitForBatchedUpdates();
+
+    // Then reassure should measure the re-renders caused by the unrelated updates (ideally none)
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 });
 
 test('[MoneyRequestReportActionsList] should re-render the unified list when a new report action arrives', async () => {
     let run = 0;
     const scenario = async () => {
+        // Given the unified list is rendered for the seeded report
         await screen.findByTestId('money-request-report-actions-list');
+
+        // When a new report action arrives on this report
         const newAction = ReportTestUtils.getFakeReportAction(501 + run, {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             created: `2023-09-13 00:00:${String(run).padStart(2, '0')}.000`,
@@ -208,25 +221,34 @@ test('[MoneyRequestReportActionsList] should re-render the unified list when a n
         });
     };
     await waitForBatchedUpdates();
+
+    // Then reassure should measure the re-renders caused by the new action
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 });
 
 test('[MoneyRequestReportActionsList] should measure re-renders when a transaction under the report changes', async () => {
     let run = 0;
     const scenario = async () => {
+        // Given the unified list is rendered for the seeded report
         await screen.findByTestId('money-request-report-actions-list');
         run++;
+
+        // When a transaction that belongs to the report changes its amount and merchant
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactions.at(0)?.transactionID}`, {amount: 20000 + run * 100, merchant: `Updated Merchant ${run}`});
             await waitForBatchedUpdates();
         });
     };
     await waitForBatchedUpdates();
+
+    // Then reassure should measure the re-renders caused by the transaction update
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 });
 
 test('[MoneyRequestReportActionsList] should render the unified list with 500 reportActions and 100 transactions stored', async () => {
     const LARGE_TRANSACTIONS_COUNT = 100;
+
+    // Given the report is topped up to 100 transactions in Onyx
     await act(async () => {
         const extraTransactions: OnyxMultiSetInput = {};
         for (let index = TRANSACTIONS_COUNT; index < LARGE_TRANSACTIONS_COUNT; index++) {
@@ -238,8 +260,11 @@ test('[MoneyRequestReportActionsList] should render the unified list with 500 re
         await waitForBatchedUpdates();
     });
     const scenario = async () => {
+        // Then the unified list should be rendered
         await screen.findByTestId('money-request-report-actions-list');
     };
     await waitForBatchedUpdates();
+
+    // When the list is mounted
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 });
