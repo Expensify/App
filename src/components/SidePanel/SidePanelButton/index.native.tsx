@@ -44,8 +44,8 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={() => {
                     // Capture the report the user is viewing (still topmost at press time) so Concierge can act on it
-                    // after we navigate away. This is the ONLY entry that threads a source report, so context is
-                    // scoped to Concierge opened via this sidebar button — search/LHN/deep links never carry it.
+                    // after we navigate away. This is the only entry that threads a source report, so context is scoped
+                    // to Concierge opened via this sidebar button. Search, LHN, and deep links never carry it.
                     const sourceReportID = Navigation.getTopmostReportId();
                     navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, undefined, undefined, undefined, {
                         sourceReportID: sourceReportID && sourceReportID !== conciergeReportID ? sourceReportID : undefined,

@@ -2210,6 +2210,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // eslint-disable-next-line
                                 reportID: (reportID: string | undefined) => reportID ?? '',
                                 secureKey: (secureKey: string | undefined) => secureKey ?? '',
+                                // parse must return a string, so an absent sourceReportID maps to an empty string, which consumers read as absent.
                                 // eslint-disable-next-line rulesdir/no-default-id-values
                                 sourceReportID: (sourceReportID: string | undefined) => sourceReportID ?? '',
                             },
@@ -2217,6 +2218,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // eslint-disable-next-line
                                 reportID: (reportID: string | undefined) => reportID ?? '',
                                 secureKey: (secureKey: string | undefined) => secureKey ?? '',
+                                // stringify must return a string, so an absent sourceReportID maps to an empty string, which drops it from the route.
                                 // eslint-disable-next-line rulesdir/no-default-id-values
                                 sourceReportID: (sourceReportID: string | undefined) => sourceReportID ?? '',
                             },
