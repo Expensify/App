@@ -176,6 +176,8 @@ function DistanceRequestStartPage({
                         lazyLoadEnabled
                         // The Odometer tab has text inputs, and Android keeps the keyboard up after the focused input
                         // goes away, so without this the next tab lays out while the keyboard still occupies the screen.
+                        // Applied on every platform rather than gated to Android: `Keyboard.isVisible()` already
+                        // makes this a no-op wherever the keyboard isn't up, so iOS only waits when it actually needs to.
                         shouldDismissKeyboardBeforeTabSwitch
                     >
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>
