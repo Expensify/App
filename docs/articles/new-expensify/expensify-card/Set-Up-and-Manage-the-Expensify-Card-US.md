@@ -102,6 +102,12 @@ Your workspace also has built-in default protections that automatically block ce
 
 ![Click Settings to adjust the settlement account or frequency]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_08.png){:width="100%"}
 
+## When your Expensify Cards settle each month
+
+When your settlement frequency is set to **Monthly**, the **Settings** page shows the recurring day of the month your cards settle. On the Expensify Card **Settings** page, the **Settlement frequency** row displays supporting text below it, such as *Expensify cards will settle on the 27th of each month.*
+
+This date is shown for reference only and cannot be changed. If your settlement frequency is set to **Daily**, no monthly settlement date is shown because balances settle automatically every business day.
+
 ## What the Status column shows in the Expensify Card list
 
 The Expensify Card list includes a **Status** column so you can see each card's lifecycle state at a glance without opening the card. Click the **Status** column header to sort the list by status.
@@ -114,6 +120,8 @@ Each card shows one of the following statuses:
 - **Inactive** — The card is frozen or otherwise not currently usable.
 
 **Note:** The **Status** column is hidden on narrow and medium screens. Widen your browser window or view the list on a larger screen to see it.
+
+![The Expensify Card list with the Status column visible, showing the badges (Pending order, Shipped, Active, Inactive]({{site.url}}/assets/images/Expensify_Card_Status_Column.png){:width="100%"}
 
 ---
 
@@ -146,6 +154,8 @@ You can bulk-select cards and export their details to a CSV file for reporting o
 4. Select **Export as CSV**.
 
 The downloaded CSV file includes the following columns for each selected card: email, name, last four digits, type (virtual or physical), limit type, and limit amount.
+
+![The card list with several rows checkbox-selected and the "selected" dropdown open showing Export as CSV]({{site.url}}/assets/images/Expensify_Card_Export_CSV.png){:width="100%"}
 
 ---
 
