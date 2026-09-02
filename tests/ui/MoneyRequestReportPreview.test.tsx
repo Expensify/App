@@ -85,7 +85,7 @@ jest.mock('@hooks/useReportTransactionsCollection', () => ({
     default: () => mockUseReportTransactionsCollection(),
 }));
 
-type OnHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
+type OnHoldMenuOpen = (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
 
 // Capture the onHoldMenuOpen callback the preview passes to the pay button so a held-expense payment can be triggered
 // directly with a selected bank account, mirroring a user picking an account in the dropdown for a held report.
@@ -107,7 +107,9 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewA
 });
 
 // Capture the props the preview forwards to the hold menu so the selected bank account that reaches it can be asserted.
-const mockHoldMenuPropsHolder: {current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}} = {current: undefined};
+const mockHoldMenuPropsHolder: {
+    current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number};
+} = {current: undefined};
 jest.mock('@components/ProcessMoneyReportHoldMenu', () => ({
     __esModule: true,
     default: (props: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}) => {
