@@ -126,6 +126,4 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
     );
 }
 
-ExpenseDefaultTypePage.displayName = 'ExpenseDefaultTypePage';
-
 export default ExpenseDefaultTypePage;

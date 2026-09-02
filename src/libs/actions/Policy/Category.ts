@@ -1895,8 +1895,11 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
 }
 
-/** The categories that already have a tax rule, for membership tests that would otherwise scan the array once per name. */
-function getCategoriesWithTaxRule(expenseRules: ExpenseRule[]): Set<string | undefined> {
+/**
+ * The categories an expense rule already matches on, for membership tests that would otherwise scan the array once per
+ * name. A rate isn't required, since a rule is found here to have one written to it.
+ */
+function getCategoriesWithExpenseRule(expenseRules: ExpenseRule[]): Set<string | undefined> {
     return new Set(expenseRules.map(getRuleCategoryName));
 }
 
@@ -1934,8 +1937,10 @@ function withCategoryTaxRates(expenseRules: ExpenseRule[], taxRatesByCategory: M
         return {...rule, tax: {field_id_TAX: {...rule.tax?.field_id_TAX, externalID: taxID}}};
     });
 
-    const categoriesWithRule = getCategoriesWithTaxRule(expenseRules);
-    const added = [...taxRatesByCategory.entries()].flatMap(([categoryName, taxID]) => (!taxID || categoriesWithRule.has(categoryName) ? [] : [buildCategoryTaxRule(categoryName, taxID)]));
+    const categoriesWithExpenseRule = getCategoriesWithExpenseRule(expenseRules);
+    const added = [...taxRatesByCategory.entries()].flatMap(([categoryName, taxID]) =>
+        !taxID || categoriesWithExpenseRule.has(categoryName) ? [] : [buildCategoryTaxRule(categoryName, taxID)],
+    );
 
     return [...updated, ...added];
 }
@@ -2014,8 +2019,8 @@ function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: str
     }
     const policyID = policy.id;
     const expenseRules = policy.rules?.expenseRules ?? [];
-    const categoriesWithRule = getCategoriesWithTaxRule(expenseRules);
-    const targets = categoryNames.filter((categoryName) => categoriesWithRule.has(categoryName));
+    const categoriesWithExpenseRule = getCategoriesWithExpenseRule(expenseRules);
+    const targets = categoryNames.filter((categoryName) => categoriesWithExpenseRule.has(categoryName));
 
     if (targets.length === 0) {
         return;

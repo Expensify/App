@@ -20,6 +20,4 @@ function EditCategoryTaxRulePage({route}: EditCategoryTaxRulePageProps) {
     );
 }
 
-EditCategoryTaxRulePage.displayName = 'EditCategoryTaxRulePage';
-
 export default EditCategoryTaxRulePage;
