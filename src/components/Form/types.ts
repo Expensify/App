@@ -164,6 +164,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         /** Should fix the errors alert be displayed when there is an error in the form */
         shouldHideFixErrorsAlert?: boolean;
 
+        /** Hides the server error banner even when `formState.errors` is set */
+        shouldHideServerError?: boolean;
+
         /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
         scrollContextEnabled?: boolean;
 
