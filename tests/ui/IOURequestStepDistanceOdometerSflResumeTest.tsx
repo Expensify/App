@@ -177,7 +177,9 @@ function createOdometerTransaction(withImage: boolean): Transaction {
     };
 }
 
-function createDistanceCreateRoute(): PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route'] {
+type DistanceCreateRoute = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route'];
+
+function createDistanceCreateRoute(): DistanceCreateRoute {
     // The DISTANCE_CREATE route types `action`/`backTo` as `never` (unused for navigation but read at runtime here), so the params object can't be built without one assertion.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see comment above
     const params = {
@@ -194,7 +196,7 @@ function createDistanceCreateRoute(): PlatformStackScreenProps<MoneyRequestNavig
 }
 
 // `isEditing` is derived from the route's `action`, so the edit flow is reachable without extra navigation setup.
-function createDistanceEditRoute(): PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route'] {
+function createDistanceEditRoute(): DistanceCreateRoute {
     const route = createDistanceCreateRoute();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- same `never`-typed params as the create route
     const params = {...route.params, action: CONST.IOU.ACTION.EDIT} as unknown as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE];
@@ -207,7 +209,7 @@ function getKeyboardAvoidingViewEnabled(): boolean | undefined {
     return typeof enabled === 'boolean' ? enabled : undefined;
 }
 
-function odometerStepElement(route: PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route']) {
+function odometerStepElement(route: DistanceCreateRoute): React.ReactElement {
     return (
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
@@ -223,7 +225,7 @@ function odometerStepElement(route: PlatformStackScreenProps<MoneyRequestNavigat
     );
 }
 
-function renderOdometerStep(route: PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route']) {
+function renderOdometerStep(route: DistanceCreateRoute): ReturnType<typeof render> {
     return render(odometerStepElement(route));
 }
 
