@@ -103,11 +103,13 @@ If a receipt was added to the report comments instead of the expense:
 
 Approved and Paid reports are locked for editing. To make changes:
 
-1. (Admins only) Open the report.
-2. Click **More > Cancel Payment** (if Paid).
+1. Open the report.
+2. Click **More > Cancel payment** (if Paid).
 3. Then click **More > Unapprove**.
 4. The member can then click **More > Undo Submit**.
 5. Now the expense and receipt can be updated.
+
+**Cancel payment** is only offered to the report’s **Payer**, or — on a workspace that tracks payments made elsewhere — to a member with edit access to the **Payments** section of **Workflows**. Learn more about [who can cancel a payment on a report](articles/new-expensify/reports-and-expenses/Expense-and-Report-Actions#who-can-cancel-a-payment-on-a-report).
 
 **Note:** If the report was exported to accounting, delete the export before resubmitting.
 
