@@ -39,12 +39,9 @@ type SidebarLinksProps = {
 
     /** The chat priority mode */
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
-
-    /** Method to change currently active report */
-    isActiveReport: (reportID: string) => boolean;
 };
 
-function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
@@ -67,15 +64,18 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
             const reportActionID = Navigation.getTopmostReportActionId();
             const actionTargetReportActionID = option.actionTargetReportActionID;
 
-            // Prevent opening a new Report page if the user quickly taps on another conversation
-            // before the first one is displayed.
-            const shouldBlockReportNavigation = Navigation.getActiveRoute() !== `/${ROUTES.INBOX}` && shouldUseNarrowLayout;
+            // On narrow layout the sidebar is only visible on the Inbox screen, where no report is displayed.
+            // getTopmostReportId can still point at a report left in the reports split stack
+            // (e.g. after opening a report, jumping to a Settings RHP, then returning to Inbox), which would
+            // wrongly treat the tap as re-opening the active report and block it. When the sidebar is focused,
+            // a tap must always navigate.
+            // Otherwise, block navigation until the first conversation is displayed. On wide layouts, only block
+            // navigation when the selected report is already open.
+            const shouldBlockReportNavigation = shouldUseNarrowLayout
+                ? Navigation.getActiveRoute() !== `/${ROUTES.INBOX}`
+                : option.reportID === Navigation.getTopmostReportId() && !reportActionID && !actionTargetReportActionID;
 
-            if (
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID && !actionTargetReportActionID) ||
-                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID && !actionTargetReportActionID) ||
-                shouldBlockReportNavigation
-            ) {
+            if (shouldBlockReportNavigation) {
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
@@ -83,7 +83,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
             setStickyReportID(option.reportID);
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, actionTargetReportActionID));
         },
-        [shouldUseNarrowLayout, isActiveReport, setStickyReportID],
+        [shouldUseNarrowLayout, setStickyReportID],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
