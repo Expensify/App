@@ -1093,6 +1093,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1206,6 +1207,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1226,6 +1228,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1248,6 +1251,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1272,6 +1276,7 @@ describe('SidebarUtils', () => {
                 isOffline: true,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1297,6 +1302,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
 
@@ -1344,6 +1350,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID,
             });
 
@@ -1383,6 +1390,7 @@ describe('SidebarUtils', () => {
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
                 conciergeReportID: 'a-different-report-id',
             });
 
@@ -1432,6 +1440,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 });
 
@@ -1463,6 +1472,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 });
 
@@ -1494,6 +1504,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
                     conciergeReportID: undefined,
                 });
 
@@ -2781,6 +2792,55 @@ describe('SidebarUtils', () => {
             });
 
             expect(disabledResult?.alternateText).toBe('disabled the expense categorization requirement');
+        });
+
+        it('returns the correct alternate text for UPDATE_CUSTOM_UNIT_RATE action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const action: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.5,
+                    newValue: 0.7,
+                },
+            };
+            const reportActions: ReportActions = {[action.reportActionID]: action};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                localeCompare,
+                lastAction: action,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+            });
+
+            expect(result?.alternateText).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "70%" (previously "50%")');
         });
 
         it('returns the correct alternate text for UPDATE_REQUIRES_TAG action', async () => {
@@ -5043,6 +5103,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5068,6 +5129,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5091,6 +5153,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5111,6 +5174,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5135,6 +5199,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5163,6 +5228,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5192,6 +5258,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5221,6 +5288,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5260,6 +5328,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5290,6 +5359,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5318,6 +5388,7 @@ describe('SidebarUtils', () => {
                     isOffline: true,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5344,6 +5415,7 @@ describe('SidebarUtils', () => {
                     isOffline: true,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
@@ -5381,6 +5453,7 @@ describe('SidebarUtils', () => {
                     isOffline: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
                     conciergeReportID: undefined,
                 });
 
