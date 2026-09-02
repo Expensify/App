@@ -4757,6 +4757,7 @@ const translations = {
             rooms: 'Rooms',
             accounting: 'Accounting',
             hr: 'HR',
+            recruiting: 'Recruiting',
             receiptPartners: 'Receipt partners',
             rules: 'Rules',
             displayedAs: 'Displayed as',
@@ -7416,30 +7417,14 @@ const translations = {
         },
         hr: {
             title: 'HR',
-            connections: 'Connections',
             connectionsSubtitle:
                 "Connect to your HR system to sync employee data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
             subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            connect: 'Connect',
-            findIntegration: 'Find integration',
-            syncNow: 'Sync now',
-            disconnect: 'Disconnect',
-            disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
-            disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
             alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
             alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
-            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
-            notSync: 'Not synced',
-            syncError: (providerName: string) => `Can't connect to ${providerName}`,
-            authenticationError: (providerName: string) => `Can't connect to ${providerName} due to an expired connection.`,
-            reconnect: 'Reconnect',
-            reconnectLink: 'Reconnect.',
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
-            approvalMode: 'Approval mode',
             providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
-            finalApprover: 'Final approver',
             providerFinalApprover: (providerName: string) => `${providerName} final approver`,
-            notSet: 'Not set',
             syncing: 'Syncing employees',
             syncingModalTitle: 'Your connection is syncing',
             syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
@@ -7448,13 +7433,10 @@ const translations = {
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Are you sure you would like to change the approval mode for this workspace? Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
             approvalModeWarningConfirm: 'Change approval mode',
-            approvalModes: {
-                basic: {label: 'Basic approval', description: 'All users submit to a single person for processing and approval.'},
-                manager: {
-                    label: 'Manager approval',
-                    description: (providerName: string) => `Employees submit reports to their direct manager configured in ${providerName}.`,
-                },
-                custom: {label: 'Custom approval', description: "I'll manually setup approval workflows in Expensify."},
+            approvalModeDescriptions: {
+                basic: 'All users submit to a single person for processing and approval.',
+                manager: (providerName: string) => `Employees submit reports to their direct manager configured in ${providerName}.`,
+                custom: "I'll manually setup approval workflows in Expensify.",
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -7494,17 +7476,61 @@ const translations = {
             zenefits: {
                 title: 'TriNet',
             },
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import employees.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Complete setup',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import employees.</muted-text-label>`,
                 groups: {
                     title: 'Groups',
                     description: 'Choose the groups of employees you would like to sync with this workspace',
                 },
             },
         },
+        recruiting: {
+            title: 'Recruiting',
+            connectionsSubtitle:
+                "Connect to your recruiting system to sync candidate data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
+            alreadyConnectedTitle: 'Cannot connect to multiple ATS platforms',
+            alreadyConnectedPrompt: 'You must disconnect your current ATS before connecting another.',
+            syncing: 'Syncing candidates',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import candidates.</muted-text-label>`,
+            dontSeeYourATS: {
+                first: "Don't see your ATS here?",
+                second: 'Ask Concierge',
+                third: 'and we can add it.',
+            },
+            importSettings: 'Import settings',
+            defaultApprover: 'Default approver',
+            approverField: 'Approver field',
+            approverFields: {
+                recruiter: 'Recruiter',
+                recruitingCoordinator: 'Recruiting coordinator',
+            },
+        },
         merge: {
+            connections: 'Connections',
+            connect: 'Connect',
+            findIntegration: 'Find integration',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
+            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            notSync: 'Not synced',
+            syncError: (providerName: string) => `Can't connect to ${providerName}`,
+            authenticationError: (providerName: string) => `Can't connect to ${providerName} due to an expired connection.`,
+            reconnect: 'Reconnect',
+            reconnectLink: 'Reconnect.',
+            notSet: 'Not set',
+            completeSetup: 'Complete setup',
+            approvalMode: 'Approval mode',
+            finalApprover: 'Final approver',
+            approvalModes: {
+                basic: 'Basic approval',
+                manager: 'Manager approval',
+                advanced: 'Advanced approval',
+                custom: 'Custom approval',
+            },
             syncLimitReached: {
                 title: 'Try again tomorrow',
                 prompt: "You've reached your sync limit for the day.",

@@ -3316,6 +3316,31 @@ const ROUTES = {
         route: 'workspaces/:policyID/hr/merge/groups',
         getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/groups` as const,
     },
+    WORKSPACE_RECRUITING: {
+        route: 'workspaces/:policyID/recruiting',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECRUITING route');
+            }
+            return `workspaces/${policyID}/recruiting` as const;
+        },
+    },
+    WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS: {
+        route: 'workspaces/:policyID/recruiting/merge/import-settings',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/import-settings` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/recruiting/merge/approval-mode',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/approval-mode` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_APPROVER_FIELD: {
+        route: 'workspaces/:policyID/recruiting/merge/approver-field',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/approver-field` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/recruiting/merge/final-approver',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/final-approver` as const,
+    },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',
         getRoute: (policyID: string | undefined) => {

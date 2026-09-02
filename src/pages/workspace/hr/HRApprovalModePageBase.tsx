@@ -66,22 +66,22 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
 
     const approvalModeOptions: Array<ApprovalModeListItem<T>> = [
         {
-            text: translate('workspace.hr.approvalModes.basic.label'),
-            alternateText: translate('workspace.hr.approvalModes.basic.description'),
+            text: translate('workspace.merge.approvalModes.basic'),
+            alternateText: translate('workspace.hr.approvalModeDescriptions.basic'),
             keyForList: config.approvalModes.BASIC,
             value: config.approvalModes.BASIC,
             isSelected: selectedApprovalMode === config.approvalModes.BASIC,
         },
         {
-            text: translate('workspace.hr.approvalModes.manager.label'),
-            alternateText: translate('workspace.hr.approvalModes.manager.description', providerName),
+            text: translate('workspace.merge.approvalModes.manager'),
+            alternateText: translate('workspace.hr.approvalModeDescriptions.manager', providerName),
             keyForList: config.approvalModes.MANAGER,
             value: config.approvalModes.MANAGER,
             isSelected: selectedApprovalMode === config.approvalModes.MANAGER,
         },
         {
-            text: translate('workspace.hr.approvalModes.custom.label'),
-            alternateText: translate('workspace.hr.approvalModes.custom.description'),
+            text: translate('workspace.merge.approvalModes.custom'),
+            alternateText: translate('workspace.hr.approvalModeDescriptions.custom'),
             keyForList: config.approvalModes.CUSTOM,
             value: config.approvalModes.CUSTOM,
             isSelected: selectedApprovalMode === config.approvalModes.CUSTOM,

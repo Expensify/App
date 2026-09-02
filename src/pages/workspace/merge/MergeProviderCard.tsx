@@ -23,33 +23,32 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
 
 import React from 'react';
 import {View} from 'react-native';
 
-import type {HRCardDescriptor} from './utils';
+import type {MergeProviderCardDescriptor} from './types';
 
-type HRProviderCardProps = {
-    /** Descriptor object containing the HR provider's display info, connection state, and sync status. */
-    card: HRCardDescriptor;
+type MergeProviderCardProps = {
+    /** Descriptor object containing the Merge provider's display info, connection state, and sync status. */
+    card: MergeProviderCardDescriptor;
 
-    /** The workspace policy that owns this HR integration. */
+    /** The workspace policy that owns this Merge integration. */
     policy: Policy | undefined;
 
     /** Callback invoked when the user taps the "Connect" or "Reconnect" button. */
     handleConnect: () => void;
 
-    /** Whether the current user can edit this HR connection. */
+    /** Whether the current user can edit this Merge connection. */
     canWriteMoreFeatures: boolean;
 
     /** Shows the read-only action modal. */
     showReadOnlyModal: () => void;
 };
 
-function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, showReadOnlyModal}: HRProviderCardProps) {
+function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, showReadOnlyModal}: MergeProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -58,33 +57,32 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
     const {showConfirmModal} = useConfirmModal();
 
     const fallbackIcon = icons.Building;
-    // Some integrations have a hardcoded icon, others are passing icon url.
-    const cardIcon = typeof card.icon === 'string' && card.icon.startsWith('http') ? card.icon : (card.icon as IconAsset) || fallbackIcon;
+    const cardIcon = card.icon || fallbackIcon;
 
-    let connectionDescription: string | undefined;
+    let connectionDescription: string;
     if (card.isSyncInProgress) {
-        connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', card.syncStageInProgress) : translate('workspace.hr.syncing');
+        connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', card.syncStageInProgress) : translate(`workspace.${card.category}.syncing`);
     } else if (!card.successfulDate) {
-        connectionDescription = translate('workspace.hr.notSync');
+        connectionDescription = translate('workspace.merge.notSync');
     } else {
-        connectionDescription = translate('workspace.hr.lastSync', datetimeToRelative(card.successfulDate));
+        connectionDescription = translate('workspace.merge.lastSync', datetimeToRelative(card.successfulDate));
     }
 
     let lastSyncErrorMessage: ReactNode | undefined;
     if (card.needsReconnect) {
         lastSyncErrorMessage = (
             <>
-                {`${translate('workspace.hr.authenticationError', card.displayName)} `}
+                {`${translate('workspace.merge.authenticationError', card.displayName)} `}
                 <TextLink
                     style={[styles.link, styles.fontSizeLabel]}
                     onPress={handleConnect}
                 >
-                    {translate('workspace.hr.reconnectLink')}
+                    {translate('workspace.merge.reconnectLink')}
                 </TextLink>
             </>
         );
     } else if (card.hasError) {
-        const genericError = translate('workspace.hr.syncError', card.displayName);
+        const genericError = translate('workspace.merge.syncError', card.displayName);
         lastSyncErrorMessage = card.lastSyncErrorMessage ? `${genericError} ("${card.lastSyncErrorMessage}")` : genericError;
     }
 
@@ -92,7 +90,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
         if (card.needsReconnect) {
             return {
                 icon: icons.Sync,
-                text: translate('workspace.hr.reconnect'),
+                text: translate('workspace.merge.reconnect'),
                 onSelected: handleConnect,
                 disabled: isOffline,
             };
@@ -100,7 +98,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
         if (card.completeSetupRoute) {
             return {
                 icon: icons.CheckCircle,
-                text: translate('workspace.hr.mergeHR.completeSetup'),
+                text: translate('workspace.merge.completeSetup'),
                 onSelected: () => {
                     if (!canWriteMoreFeatures) {
                         showReadOnlyModal();
@@ -115,7 +113,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
         }
         return {
             icon: icons.Sync,
-            text: translate('workspace.hr.syncNow'),
+            text: translate('workspace.merge.syncNow'),
             onSelected: () => {
                 if (showMergeManualSyncLimitModalIfReached(policy, card.connectionName, translate, showConfirmModal)) {
                     return;
@@ -131,12 +129,12 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
         getPrimaryMenuItem(),
         {
             icon: icons.Trashcan,
-            text: translate('workspace.hr.disconnect'),
+            text: translate('workspace.merge.disconnect'),
             onSelected: () => {
                 showConfirmModal({
-                    title: translate('workspace.hr.disconnectTitle', card.displayName),
-                    prompt: translate('workspace.hr.disconnectPrompt', card.displayName),
-                    confirmText: translate('workspace.hr.disconnect'),
+                    title: translate('workspace.merge.disconnectTitle', card.displayName),
+                    prompt: translate('workspace.merge.disconnectPrompt', card.displayName),
+                    confirmText: translate('workspace.merge.disconnect'),
                     cancelText: translate('common.cancel'),
                     buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 }).then((result) => {
@@ -160,7 +158,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                 hoverStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                 isDisabled={isOffline}
             >
-                <Button.Text>{translate('workspace.hr.connect')}</Button.Text>
+                <Button.Text>{translate('workspace.merge.connect')}</Button.Text>
             </Button>
         );
     } else if (card.isSyncInProgress) {
@@ -180,6 +178,9 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
 
     const rightComponent = <View style={styles.alignSelfCenter}>{rightInset}</View>;
 
+    // While the setup is incomplete only the rows that failed to save are shown, so the admin is steered to the setup flow first.
+    const visibleConfigRows = card.isConnected && !card.isInitialSyncInProgress ? (card.configRows ?? []).filter((row) => !card.completeSetupRoute || !!row.errors) : [];
+
     return (
         <>
             <MenuItem
@@ -191,7 +192,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                 description={!card.completeSetupRoute && card.isConnected ? connectionDescription : undefined}
                 descriptionAddon={
                     card.completeSetupRoute ? (
-                        <RenderHTML html={translate('workspace.hr.mergeHR.setupIncomplete', canWriteMoreFeatures ? `${environmentURL}/${card.completeSetupRoute}` : undefined)} />
+                        <RenderHTML html={translate(`workspace.${card.category}.setupIncomplete`, canWriteMoreFeatures ? `${environmentURL}/${card.completeSetupRoute}` : undefined)} />
                     ) : undefined
                 }
                 errorText={lastSyncErrorMessage}
@@ -202,20 +203,22 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
-            {card.isConnected && !card.isInitialSyncInProgress && !!card.configRows?.some((row) => !card.completeSetupRoute || !!row.errors) && (
+            {visibleConfigRows.length > 0 && (
                 <View style={styles.mt2}>
-                    {card.configRows
-                        .filter((row) => !card.completeSetupRoute || !!row.errors)
-                        .map((row) => (
+                    {visibleConfigRows.map((row) => {
+                        const RowMenuItem = row.shouldRenderAsMenuItem ? MenuItem : MenuItemWithTopDescription;
+
+                        return (
                             <OfflineWithFeedback
                                 key={row.field}
                                 pendingAction={row.pendingAction}
                                 errors={row.errors}
                                 onClose={() => clearMergeConnectionErrorField(policy?.id, card.connectionName, row.field)}
                             >
-                                <MenuItemWithTopDescription
+                                <RowMenuItem
                                     description={row.description}
                                     title={row.title}
+                                    icon={row.icon}
                                     style={styles.sectionMenuItemTopDescription}
                                     shouldShowRightIcon={canWriteMoreFeatures}
                                     brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -223,11 +226,12 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                                     interactive={canWriteMoreFeatures}
                                 />
                             </OfflineWithFeedback>
-                        ))}
+                        );
+                    })}
                 </View>
             )}
         </>
     );
 }
 
-export default HRProviderCard;
+export default MergeProviderCard;

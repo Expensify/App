@@ -4,7 +4,6 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import {getMergeSetupLink} from '@libs/actions/connections/merge';
-import type {MergeConnectionErrorFieldName} from '@libs/actions/connections/merge';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {formatList} from '@libs/Localize';
 import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
@@ -12,90 +11,17 @@ import type {HRConnectionName} from '@libs/merge/HRUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 
+import type {MergeProviderCardDescriptor, MergeProviderConfigRow} from '@pages/workspace/merge/types';
+
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {ConnectionName, GustoConnectionConfig, MergeHRConnectionConfig, PolicyConnectionSyncProgress, PolicyConnectionSyncStage, ZenefitsConnectionConfig} from '@src/types/onyx/Policy';
+import type {ConnectionName, GustoConnectionConfig, MergeHRConnectionConfig, PolicyConnectionSyncProgress, ZenefitsConnectionConfig} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxEntry} from 'react-native-onyx';
-
-type HRCardConfig = MergeHRConnectionConfig | GustoConnectionConfig | ZenefitsConnectionConfig | undefined;
-
-/** A single editable configuration row (approval mode, final approver, groups) shown on a connected HR card. */
-type HRConfigRow = {
-    /** Onyx field this row maps to. */
-    field: MergeConnectionErrorFieldName;
-
-    /** Translated label shown as the row's top description. */
-    description: string;
-
-    /** Current value shown as the row title, or undefined when nothing is set yet. */
-    title?: string;
-
-    /** Route opened when the row is tapped. */
-    route: Route;
-
-    /** Pending action for this field while an update is in progress. */
-    pendingAction?: PendingAction;
-
-    /** Errors for this field when the last update failed. */
-    errors?: Errors | null;
-};
-
-type HRCardDescriptor = {
-    /** Unique identifier for this card. */
-    key: string;
-
-    /** The Onyx connection name that identifies this HR provider. */
-    connectionName: HRConnectionName;
-
-    /** Human-readable provider name shown in the UI (e.g. "Gusto", "Zenefits"). */
-    displayName: string;
-
-    /** Provider logo — either a remote URL string or a local icon asset. */
-    icon: string | IconAsset;
-
-    /** URL to open to start the connection flow for this HR provider. */
-    setupLink?: string;
-
-    /** Whether this provider is currently connected to the workspace. */
-    isConnected: boolean;
-
-    /** Whether a sync operation is currently running for this provider. */
-    isSyncInProgress: boolean;
-
-    /** Whether this provider's first-ever (initial) sync is currently running (Merge HR only). */
-    isInitialSyncInProgress?: boolean;
-
-    /** Navigation route to the post-connect setup RHP (group selection). Set only while the admin still needs to finish setup. */
-    completeSetupRoute?: Route;
-
-    /** ISO date string of the last successful sync, used for "last synced" display. */
-    successfulDate?: string;
-
-    /** Whether the last sync resulted in an error. */
-    hasError: boolean;
-
-    /** Whether the card should switch into "reconnect mode". Shows the error message and the Reconnect link. */
-    needsReconnect: boolean;
-
-    /** Human-readable error message from the last failed sync attempt. */
-    lastSyncErrorMessage?: string;
-
-    /** Current stage of an in-progress sync, used to show step-level progress. */
-    syncStageInProgress?: PolicyConnectionSyncStage;
-
-    /** Persisted configuration for the HR connection (approval mode, final approver, pending/error state). */
-    config?: HRCardConfig;
-
-    /** Editable configuration rows shown on a connected card, in display order. */
-    configRows?: HRConfigRow[];
-};
 
 type GetHRCardStateParams = {
     /** The workspace policy to derive HR card state from. */
@@ -169,24 +95,24 @@ function getApprovalModeLabel(policy: OnyxEntry<Policy>, connectionName: HRConne
     const approvalMode = getHRApprovalMode(policy, connectionName);
 
     if (!approvalMode) {
-        return translate('workspace.hr.notSet');
+        return translate('workspace.merge.notSet');
     }
 
     switch (approvalMode) {
         case CONST.GUSTO.APPROVAL_MODE.BASIC:
         case CONST.MERGE.APPROVAL_MODE.BASIC:
         case CONST.ZENEFITS.APPROVAL_MODE.BASIC:
-            return translate('workspace.hr.approvalModes.basic.label');
+            return translate('workspace.merge.approvalModes.basic');
         case CONST.GUSTO.APPROVAL_MODE.MANAGER:
         case CONST.MERGE.APPROVAL_MODE.MANAGER:
         case CONST.ZENEFITS.APPROVAL_MODE.MANAGER:
-            return translate('workspace.hr.approvalModes.manager.label');
+            return translate('workspace.merge.approvalModes.manager');
         case CONST.GUSTO.APPROVAL_MODE.CUSTOM:
         case CONST.MERGE.APPROVAL_MODE.CUSTOM:
         case CONST.ZENEFITS.APPROVAL_MODE.CUSTOM:
-            return translate('workspace.hr.approvalModes.custom.label');
+            return translate('workspace.merge.approvalModes.custom');
         default:
-            return translate('workspace.hr.notSet');
+            return translate('workspace.merge.notSet');
     }
 }
 
@@ -209,7 +135,7 @@ function getFinalApproverDisplayName(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     if (!finalApprover) {
-        return translate('workspace.hr.notSet');
+        return translate('workspace.merge.notSet');
     }
     return temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: policyEmployeePersonalDetails[finalApprover],
@@ -294,8 +220,8 @@ function getHRCards({
     formatPhoneNumber,
     policyID,
     ...iconParams
-}: GetHRCardsParams): HRCardDescriptor[] {
-    const cards: HRCardDescriptor[] = [];
+}: GetHRCardsParams): MergeProviderCardDescriptor[] {
+    const cards: MergeProviderCardDescriptor[] = [];
 
     for (const provider of STATIC_HR_PROVIDERS) {
         const {connectionName} = provider;
@@ -303,17 +229,17 @@ function getHRCards({
         const config = getCardConfig(policy, connectionName);
         cards.push({
             key: provider.key,
+            category: CONST.POLICY.CONNECTIONS.CATEGORY.HR,
             connectionName,
             displayName: translate(provider.titleKey),
             icon: iconParams[provider.iconParam],
             setupLink: provider.getSetupLink?.(policyID),
-            config,
             configRows:
                 state.isConnected && !state.needsReconnect
                     ? [
                           {
                               field: 'approvalMode',
-                              description: translate('workspace.hr.approvalMode'),
+                              description: translate('workspace.merge.approvalMode'),
                               title: getApprovalModeLabel(policy, connectionName, translate),
                               route: provider.approvalModeRoute.getRoute(policyID),
                               pendingAction: config?.pendingFields?.approvalMode,
@@ -321,7 +247,7 @@ function getHRCards({
                           },
                           {
                               field: 'finalApprover',
-                              description: translate('workspace.hr.finalApprover'),
+                              description: translate('workspace.merge.finalApprover'),
                               title: getFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
                               route: provider.finalApproverRoute.getRoute(policyID),
                               pendingAction: config?.pendingFields?.finalApprover,
@@ -342,7 +268,7 @@ function getHRCards({
         const needsSetup = state.isConnected && !state.needsReconnect && isMergeHRCompleteSetupNeeded(policy);
         const groupsRoute = ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID);
 
-        const configRows: HRConfigRow[] =
+        const configRows: MergeProviderConfigRow[] =
             state.isConnected && !state.needsReconnect
                 ? [
                       {
@@ -355,7 +281,7 @@ function getHRCards({
                       },
                       {
                           field: 'approvalMode',
-                          description: translate('workspace.hr.approvalMode'),
+                          description: translate('workspace.merge.approvalMode'),
                           title: getApprovalModeLabel(policy, mergeConnectionName, translate),
                           route: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
                           pendingAction: mergeConfig?.pendingFields?.approvalMode,
@@ -363,7 +289,7 @@ function getHRCards({
                       },
                       {
                           field: 'finalApprover',
-                          description: translate('workspace.hr.finalApprover'),
+                          description: translate('workspace.merge.finalApprover'),
                           title: getFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
                           route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                           pendingAction: mergeConfig?.pendingFields?.finalApprover,
@@ -374,13 +300,13 @@ function getHRCards({
 
         cards.push({
             key: `merge_${slug}`,
+            category: CONST.POLICY.CONNECTIONS.CATEGORY.HR,
             connectionName: mergeConnectionName,
             displayName: providerEntry.displayName,
             icon: providerEntry.iconUrl,
             setupLink: getMergeSetupLink(policyID, slug),
             ...(state.isConnected ? state : disconnectedState),
             completeSetupRoute: needsSetup ? groupsRoute : undefined,
-            config: mergeConfig,
             configRows,
         });
     }
@@ -388,5 +314,4 @@ function getHRCards({
     return cards;
 }
 
-export type {HRCardDescriptor};
 export {getHRCardState, getHRCards, getApprovalModeLabel};

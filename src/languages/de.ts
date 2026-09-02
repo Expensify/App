@@ -8421,37 +8421,26 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         hr: {
             title: 'Personalwesen',
-            connections: 'Verbindungen',
             connectionsSubtitle:
                 'Verbinden Sie sich mit Ihrem HR-System, um Mitarbeiterdaten zu synchronisieren, Erstattungen automatisch den richtigen Personen zuzuordnen und die Ausgaben Ihres Teams ohne manuellen Aufwand korrekt zu halten.',
             subtitle: 'HR-Tools verbinden und Mitarbeitergenehmigungen synchron halten.',
-            connect: 'Verbinden',
-            syncNow: 'Jetzt synchronisieren',
-            disconnect: 'Trennen',
-            disconnectTitle: (providerName: string) => `${providerName} trennen`,
-            disconnectPrompt: (providerName: string) => `Möchten Sie ${providerName} wirklich trennen?`,
             alreadyConnectedTitle: 'Es kann keine Verbindung zu mehreren HR-Plattformen hergestellt werden',
             alreadyConnectedPrompt: 'Sie müssen Ihre aktuelle HR-Plattform trennen, bevor Sie eine andere verbinden.',
-            lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
-            syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
             connectionDescription: (providerName: string) => `Verbinden Sie ${providerName}, um Mitarbeitergenehmigungen mit Ihrem Workspace zu synchronisieren.`,
-            approvalMode: 'Genehmigungsmodus',
             providerApprovalMode: (providerName: string) => `${providerName}-Genehmigungsmodus`,
-            finalApprover: 'Endgültige:r Genehmiger:in',
             providerFinalApprover: (providerName: string) => `${providerName} Endgenehmigende*r`,
-            notSet: 'Nicht festgelegt',
+            syncing: 'Mitarbeitende werden synchronisiert',
+            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
+            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             approvalModeDescription: (providerName: string) => `Mitglieder und Manager sind für die Synchronisation mit ${providerName} eingerichtet.`,
             approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Möchten Sie den Genehmigungsmodus für diesen Workspace wirklich ändern? Erfahren Sie mehr über die verschiedenen ${providerName}-aktivierten Workflow-Modi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
             approvalModeWarningConfirm: 'Genehmigungsmodus ändern',
-            approvalModes: {
-                basic: {label: 'Einfache Genehmigung', description: 'Alle Benutzer reichen zur Bearbeitung und Genehmigung bei einer einzigen Person ein.'},
-                manager: {
-                    label: 'Manager-Genehmigung',
-                    description: (providerName: string) => `Mitarbeitende reichen Berichte bei ihrer in ${providerName} hinterlegten direkten Führungskraft ein.`,
-                },
-                custom: {label: 'Benutzerdefinierte Genehmigung', description: 'Ich richte Genehmigungs-Workflows in Expensify manuell ein.'},
+            approvalModeDescriptions: {
+                basic: 'Alle Benutzer reichen zur Bearbeitung und Genehmigung bei einer einzigen Person ein.',
+                manager: (providerName: string) => `Mitarbeitende reichen Berichte bei ihrer in ${providerName} hinterlegten direkten Führungskraft ein.`,
+                custom: 'Ich richte Genehmigungs-Workflows in Expensify manuell ein.',
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -8491,22 +8480,35 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             zenefits: {
                 title: 'TriNet',
             },
-            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
-            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
-            syncing: 'Mitarbeitende werden synchronisiert',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Einrichtung abschließen',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
                 groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
             },
+        },
+        merge: {
+            connections: 'Verbindungen',
+            connect: 'Verbinden',
+            findIntegration: 'Integration finden',
+            syncNow: 'Jetzt synchronisieren',
+            disconnect: 'Trennen',
+            disconnectTitle: (providerName: string) => `${providerName} trennen`,
+            disconnectPrompt: (providerName: string) => `Möchten Sie ${providerName} wirklich trennen?`,
+            lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
             notSync: 'Nicht synchronisiert',
+            syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
             authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
             reconnect: 'Erneut verbinden',
             reconnectLink: 'Erneut verbinden.',
-            findIntegration: 'Integration finden',
-        },
-        merge: {
+            notSet: 'Nicht festgelegt',
+            completeSetup: 'Einrichtung abschließen',
+            approvalMode: 'Genehmigungsmodus',
+            finalApprover: 'Endgültige:r Genehmiger:in',
+            approvalModes: {
+                basic: 'Einfache Genehmigung',
+                manager: 'Manager-Genehmigung',
+                custom: 'Benutzerdefinierte Genehmigung',
+            },
             syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
         },
         emptyDomain: {
