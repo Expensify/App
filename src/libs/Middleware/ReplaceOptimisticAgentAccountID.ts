@@ -110,7 +110,7 @@ function isValidAgentAccountIDMappingEntry(optimisticAccountIDKey: string, realA
     return isValidAgentAccountID(realAccountID) && optimisticAccountID !== realAccountID;
 }
 
-const replaceOptimisticAgentAccountIDInPersistedRequests: Middleware = (requestResponse, request, isFromSequentialQueue) =>
+const replaceOptimisticAgentAccountID: Middleware = (requestResponse, request, isFromSequentialQueue) =>
     requestResponse.then((response) => {
         const responseOnyxData = response?.onyxData ?? [];
         for (const onyxData of responseOnyxData) {
@@ -152,4 +152,4 @@ const replaceOptimisticAgentAccountIDInPersistedRequests: Middleware = (requestR
         return response;
     });
 
-export default replaceOptimisticAgentAccountIDInPersistedRequests;
+export default replaceOptimisticAgentAccountID;

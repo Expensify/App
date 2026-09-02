@@ -8,13 +8,13 @@ import Logging from './Logging';
 import {Pagination} from './Pagination';
 import Reauthentication from './Reauthentication';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
-import ReplaceOptimisticAgentAccountIDInPersistedRequests from './ReplaceOptimisticAgentAccountIDInPersistedRequests';
+import ReplaceOptimisticAgentAccountID from './ReplaceOptimisticAgentAccountID';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
 import SentryServerTiming from './SentryServerTiming';
 import SupportalPermission from './SupportalPermission';
 
 export {
-    ReplaceOptimisticAgentAccountIDInPersistedRequests,
+    ReplaceOptimisticAgentAccountID,
     HandleUnusedOptimisticID,
     LoadTest,
     Logging,

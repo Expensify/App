@@ -1,4 +1,4 @@
-import replaceOptimisticAgentAccountIDInPersistedRequests from '@libs/Middleware/ReplaceOptimisticAgentAccountIDInPersistedRequests';
+import replaceOptimisticAgentAccountID from '@libs/Middleware/ReplaceOptimisticAgentAccountID';
 
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {clear, getAll, getOngoingRequest, processNextRequest, save} from '@userActions/PersistedRequests';
@@ -54,14 +54,14 @@ afterEach(async () => {
     await Onyx.clear();
 });
 
-describe('ReplaceOptimisticAgentAccountIDInPersistedRequests middleware', () => {
+describe('ReplaceOptimisticAgentAccountID middleware', () => {
     it('rewrites the numeric agentAccountID of persisted agent update requests to the real accountID', async () => {
         const request = buildUpdateAgentPromptRequest(optimisticAccountID);
         save(request);
         await waitForBatchedUpdates();
 
         const response = buildMappingResponse({[optimisticAccountID]: realAccountID});
-        const resolvedResponse = await replaceOptimisticAgentAccountIDInPersistedRequests(Promise.resolve(response), buildUpdateAgentPromptRequest(optimisticAccountID), false);
+        const resolvedResponse = await replaceOptimisticAgentAccountID(Promise.resolve(response), buildUpdateAgentPromptRequest(optimisticAccountID), false);
 
         expect(resolvedResponse).toBe(response);
         const persistedData = getAll().at(0)?.data;
@@ -87,7 +87,7 @@ describe('ReplaceOptimisticAgentAccountIDInPersistedRequests middleware', () => 
         save(request);
         await waitForBatchedUpdates();
 
-        await replaceOptimisticAgentAccountIDInPersistedRequests(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), request, false);
+        await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), request, false);
 
         const persistedData = getAll().at(0)?.data;
         expect(persistedData?.optimisticAccountID).toBe(String(realAccountID));
@@ -116,7 +116,7 @@ describe('ReplaceOptimisticAgentAccountIDInPersistedRequests middleware', () => 
         save(request);
         await waitForBatchedUpdates();
 
-        await replaceOptimisticAgentAccountIDInPersistedRequests(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), request, false);
+        await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), request, false);
 
         const persistedRequest = getAll().at(0);
         expect(persistedRequest?.data?.agentAccountID).toBe(realAccountID);
@@ -139,7 +139,7 @@ describe('ReplaceOptimisticAgentAccountIDInPersistedRequests middleware', () => 
         if (!ongoingRequest) {
             return;
         }
-        await replaceOptimisticAgentAccountIDInPersistedRequests(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), ongoingRequest, true);
+        await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), ongoingRequest, true);
 
         const ongoingData = getOngoingRequest()?.data;
         expect(ongoingData?.agentAccountID).toBe(realAccountID);
@@ -155,8 +155,8 @@ describe('ReplaceOptimisticAgentAccountIDInPersistedRequests middleware', () => 
             jsonCode: 200,
             onyxData: [{onyxMethod: 'merge', key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[realAccountID]: {firstName: 'Concierge'}}}],
         };
-        await replaceOptimisticAgentAccountIDInPersistedRequests(Promise.resolve(responseWithOtherKey), buildUpdateAgentPromptRequest(optimisticAccountID), false);
-        await replaceOptimisticAgentAccountIDInPersistedRequests(Promise.resolve({jsonCode: 200}), buildUpdateAgentPromptRequest(optimisticAccountID), false);
+        await replaceOptimisticAgentAccountID(Promise.resolve(responseWithOtherKey), buildUpdateAgentPromptRequest(optimisticAccountID), false);
+        await replaceOptimisticAgentAccountID(Promise.resolve({jsonCode: 200}), buildUpdateAgentPromptRequest(optimisticAccountID), false);
 
         expect(getAll()).toStrictEqual(requestsBefore);
     });
@@ -166,11 +166,7 @@ describe('ReplaceOptimisticAgentAccountIDInPersistedRequests middleware', () => 
         await waitForBatchedUpdates();
         const requestsBefore = cloneDeep(getAll());
 
-        await replaceOptimisticAgentAccountIDInPersistedRequests(
-            Promise.resolve(buildMappingResponse({[optimisticAccountID]: null})),
-            buildUpdateAgentPromptRequest(optimisticAccountID),
-            false,
-        );
+        await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: null})), buildUpdateAgentPromptRequest(optimisticAccountID), false);
 
         expect(getAll()).toStrictEqual(requestsBefore);
     });
@@ -182,11 +178,7 @@ describe('ReplaceOptimisticAgentAccountIDInPersistedRequests middleware', () => 
         await waitForBatchedUpdates();
         const otherAgentRequestBefore = cloneDeep(otherAgentRequest);
 
-        await replaceOptimisticAgentAccountIDInPersistedRequests(
-            Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})),
-            buildUpdateAgentPromptRequest(optimisticAccountID),
-            false,
-        );
+        await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), buildUpdateAgentPromptRequest(optimisticAccountID), false);
 
         expect(getAll().at(0)?.data?.agentAccountID).toBe(realAccountID);
         expect(getAll().at(1)).toStrictEqual(otherAgentRequestBefore);
@@ -220,7 +212,7 @@ describe('ReplaceOptimisticAgentAccountIDInPersistedRequests middleware', () => 
             await waitForBatchedUpdates();
             const requestsBefore = cloneDeep(getAll());
 
-            await replaceOptimisticAgentAccountIDInPersistedRequests(Promise.resolve(buildMappingResponse({[mappingKey]: mappedAccountID})), buildDigitHeavyRequest(), false);
+            await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[mappingKey]: mappedAccountID})), buildDigitHeavyRequest(), false);
 
             expect(getAll()).toStrictEqual(requestsBefore);
         }
@@ -265,7 +257,7 @@ describe('ReplaceOptimisticAgentAccountIDInPersistedRequests middleware', () => 
             save(buildUpdateAgentPromptRequest(shortOptimisticAccountID));
             await waitForBatchedUpdates();
 
-            await replaceOptimisticAgentAccountIDInPersistedRequests(
+            await replaceOptimisticAgentAccountID(
                 Promise.resolve(buildMappingResponse({[shortOptimisticAccountID]: realAccountID})),
                 buildUpdateAgentPromptRequest(shortOptimisticAccountID),
                 false,
