@@ -922,16 +922,18 @@ function getUpdatedTransaction({
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
         const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
         const quantity = transaction?.comment?.customUnit?.quantity;
-        // `quantity` is the route distance rounded to 2dp, so it differs from the exact conversion by
-        // at most 0.005. A gap larger than this rounding tolerance means the user manually edited the
-        // distance, so we must convert their quantity instead of snapping back to the exact route.
+        const hasCommuterExclusion = hasAppliedCommuterExclusion(transaction);
+        // For transactions with an applied commuter exclusion, `quantity` is the route distance rounded
+        // to 2dp, so it differs from the exact conversion by at most 0.005. A gap larger than this rounding
+        // tolerance means the user manually edited the distance, so we must convert their quantity instead.
         const ROUNDING_TOLERANCE = 0.01;
         const isDistanceManuallyEdited =
+            hasCommuterExclusion &&
             typeof routeDistanceMeters === 'number' &&
             typeof quantity === 'number' &&
             !!existingDistanceUnit &&
             Math.abs(quantity - DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, existingDistanceUnit)) > ROUNDING_TOLERANCE;
-        const shouldUseExactRouteDistance = typeof routeDistanceMeters === 'number' && !isDistanceManuallyEdited;
+        const shouldUseExactRouteDistance = hasCommuterExclusion && typeof routeDistanceMeters === 'number' && !isDistanceManuallyEdited;
 
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});

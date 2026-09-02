@@ -974,6 +974,19 @@ describe('TransactionUtils', () => {
             expect(updatedManuallyOverriddenTransaction.modifiedAmount).toBe(241);
             expect(updatedManuallyOverriddenTransaction.modifiedMerchant).toBe('8.04 km @ €0.30 / km');
 
+            const transactionWithoutAppliedCommuterExclusion = {
+                ...transaction,
+                comment: {
+                    customUnit: {
+                        ...transaction.comment?.customUnit,
+                        commuterExclusion: undefined,
+                        reimbursableDistance: undefined,
+                        commuterExclusionMethod: undefined,
+                    },
+                },
+            };
+            expect(updateRate(transactionWithoutAppliedCommuterExclusion, fakePolicy).comment?.customUnit?.quantity).toBe(9.99);
+
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy};
             expect(updateRate(transaction, undefined, policies).comment?.customUnit?.quantity).toBe(10);
             expect(updateRate(manuallyOverriddenTransaction, undefined, policies).comment?.customUnit?.quantity).toBe(12.87);
