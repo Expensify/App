@@ -8,7 +8,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {RefObject} from 'react';
+import type {ReactNode, RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -56,6 +56,15 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     shouldShowLoadingSpinnerIcon?: boolean;
     /** Whether to render a divider before this option */
     addSeparatorBefore?: boolean;
+
+    /** A component rendered on the right side of the option, e.g. a Switch for an inline toggle row */
+    rightComponent?: ReactNode;
+
+    /** Whether to show the rightComponent */
+    shouldShowRightComponent?: boolean;
+
+    /** Whether to show the default right chevron icon (e.g. for a row that opens another page) */
+    shouldShowRightIcon?: boolean;
     /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     /** Whether selecting this option should bypass the delete confirmation modal */

@@ -9,6 +9,7 @@ import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSo
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Switch from '@components/Switch';
 import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTable';
 import WorkspaceTagsTable from '@components/Tables/WorkspaceTagsTable';
 import Text from '@components/Text';
@@ -39,6 +40,7 @@ import {
     downloadMultiLevelTagsCSV,
     downloadTagsCSV,
     openPolicyTagsPage,
+    setPolicyShowTagGLCodes,
     setPolicyTagsRequired,
     setWorkspaceTagEnabled,
     setWorkspaceTagRequired,
@@ -460,6 +462,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path));
     }, [isQuickSettingsFlow]);
 
+    const navigateToCustomTagName = useCallback(() => {
+        const orderWeight = policyTagLists.at(0)?.orderWeight ?? 0;
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(orderWeight) : DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(orderWeight)));
+    }, [isQuickSettingsFlow, policyTagLists]);
+
     const navigateToCreateTagPage = () => {
         Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path));
     };
@@ -497,7 +504,38 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        if (shouldShowTagsSettings) {
+        // Under the revamp the Settings page is gone, so its remaining rows (custom tag name and the GL codes toggle)
+        // are surfaced directly in this menu using the same visibility rules the Settings page used.
+        if (isRulesRevampEnabled) {
+            if (canWriteTags && !isMultiLevelTags) {
+                menuItems.push({
+                    text: translate('workspace.tags.customTagName'),
+                    description: policyTagLists.at(0)?.name ?? '',
+                    onSelected: navigateToCustomTagName,
+                    shouldShowRightIcon: true,
+                    value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+                });
+            }
+            if (canWriteTags && !!policy?.glCodes) {
+                menuItems.push({
+                    text: translate('workspace.tags.showTagGLCodes'),
+                    value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+                    // The row itself is inert; only the Switch handles the toggle so the menu stays open.
+                    interactive: false,
+                    shouldShowRightComponent: true,
+                    shouldCloseModalOnSelect: false,
+                    pendingAction: policy?.pendingFields?.showTagGLCodes,
+                    rightComponent: (
+                        <Switch
+                            isOn={policy?.showTagGLCodes ?? false}
+                            accessibilityLabel={translate('workspace.tags.showTagGLCodes')}
+                            onToggle={(value) => setPolicyShowTagGLCodes(policyID, value, policy?.showTagGLCodes)}
+                            disabled={!policy?.areTagsEnabled}
+                        />
+                    ),
+                });
+            }
+        } else if (shouldShowTagsSettings) {
             menuItems.push({
                 icon: expensifyIcons.Gear,
                 text: translate('common.settings'),
@@ -512,6 +550,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: navigateToImportSpreadsheet,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+                // Group the settings rows apart from the spreadsheet actions under the revamp.
+                addSeparatorBefore: isRulesRevampEnabled,
             });
         }
 
@@ -570,6 +610,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         expensifyIcons,
         showConfirmModal,
         canWriteTags,
+        isRulesRevampEnabled,
+        policyTagLists,
+        navigateToCustomTagName,
+        policy?.glCodes,
+        policy?.showTagGLCodes,
+        policy?.areTagsEnabled,
+        policy?.pendingFields?.showTagGLCodes,
     ]);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
