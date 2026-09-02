@@ -1043,8 +1043,6 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
             deviceInfo,
         };
 
-        // If this is the 2FA step and Auth issued a short-lived continuation authToken on the earlier call, send it
-        // so Auth can complete the login without needing to re-verify the (now-expired) validateCode.
         if (twoFactorAuthCode && storedAuthToken) {
             params.authToken = storedAuthToken;
         }
