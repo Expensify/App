@@ -34,9 +34,19 @@ type WorkspaceMembersTableRowProps = {
 
     /** Whether the custom field 2 column is visible on web screens or not */
     shouldShowCustomField2Column: boolean;
+
+    /** Whether the approver column is visible on web screens or not */
+    shouldShowApproverColumn: boolean;
 };
 
-export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCustomField1Column, shouldShowCustomField2Column, shouldUseNarrowTableLayout}: WorkspaceMembersTableRowProps) {
+export default function WorkspaceMembersTableRow({
+    item,
+    rowIndex,
+    shouldShowCustomField1Column,
+    shouldShowCustomField2Column,
+    shouldShowApproverColumn,
+    shouldUseNarrowTableLayout,
+}: WorkspaceMembersTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -46,7 +56,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
-    const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
+    const accessibilityLabel = [item.name, item.email, item.approverName, roleLabel].filter(Boolean).join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
@@ -90,6 +100,31 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             />
                         </View>
                     </View>
+
+                    {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.approverName && (
+                                <>
+                                    <AccountAvatar
+                                        size={CONST.AVATAR_SIZE.XXX_SMALL}
+                                        containerStyle={styles.mr2}
+                                        accountID={item.approverAccountID ?? CONST.DEFAULT_NUMBER_ID}
+                                        accountEmail={item.approverLogin}
+                                        fallbackDisplayName={item.approverName}
+                                    />
+                                    <TextWithTooltip
+                                        shouldShowTooltip
+                                        numberOfLines={1}
+                                        text={item.approverName}
+                                        style={[styles.optionDisplayName, styles.pre, styles.flex1]}
+                                    />
+                                </>
+                            )}
+                        </View>
+                    )}
 
                     {!shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
                         <View

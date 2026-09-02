@@ -12,6 +12,7 @@ import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHRSyncResultsPage from '@hooks/useHRSyncResultsPage';
@@ -66,13 +67,14 @@ import {
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
+    isSubmitAndClose,
     isSubmitPolicy,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import getShouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {generateAccountID} from '@libs/UserUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {getFirstApproverByMemberEmail, hasMultiLevelApprovalWorkflow, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
@@ -119,7 +121,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevIsOffline = usePrevious(isOffline);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
@@ -150,15 +152,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const invitedEmails = useMemo(() => Object.keys(invitedEmailsToAccountIDsDraft ?? {}), [invitedEmailsToAccountIDsDraft]);
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const {approvalWorkflows} = useMemo(
-        () =>
-            convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails: personalDetails ?? {},
-                localeCompare,
-            }),
-        [personalDetails, policy, localeCompare],
-    );
+    const {approvalWorkflows} = useApprovalWorkflows({policy});
 
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
@@ -373,6 +367,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
 
+    // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
+    const firstApproverByMemberEmail = useMemo(() => (isSubmitAndClose(policy) ? {} : getFirstApproverByMemberEmail(approvalWorkflows)), [approvalWorkflows, policy]);
+    const shouldShowApproverColumn = !shouldUseNarrowLayout && Object.keys(firstApproverByMemberEmail).length > 0;
+    const hasMultiLevelWorkflow = useMemo(() => hasMultiLevelApprovalWorkflow(approvalWorkflows), [approvalWorkflows]);
+
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
 
@@ -385,8 +384,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
+            const firstApprover = firstApproverByMemberEmail[login];
+            const approverLogin = firstApprover?.email;
 
             return {
+                approverLogin,
+                approverName: firstApprover?.displayName,
+                approverAccountID: approverLogin ? Number(policyMemberEmailsToAccountIDs[approverLogin] ?? CONST.DEFAULT_NUMBER_ID) : undefined,
                 keyForList: login,
                 role,
                 login,
@@ -424,6 +428,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         session?.accountID,
         shouldShowCustomField1Column,
         shouldShowCustomField2Column,
+        firstApproverByMemberEmail,
+        policyMemberEmailsToAccountIDs,
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
         dismissError,
@@ -849,6 +855,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         selectedKeys={selectedEmployees}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
+                        shouldShowApproverColumn={shouldShowApproverColumn}
+                        hasMultiLevelWorkflow={hasMultiLevelWorkflow}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
                     />

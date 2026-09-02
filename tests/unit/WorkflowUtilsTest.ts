@@ -14,7 +14,9 @@ import {
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,
+    getFirstApproverByMemberEmail,
     getRulesSubmitterToFirstApprover,
+    hasMultiLevelApprovalWorkflow,
     getRulesSubmitterToWorkflowKey,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
@@ -2037,6 +2039,42 @@ describe('WorkflowUtils', () => {
         it('returns an empty collection when there is no policy or no rules', () => {
             expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
             expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
+        });
+    });
+
+    describe('getFirstApproverByMemberEmail', () => {
+        it('maps every member of a workflow to that workflow first approver', () => {
+            const workflows = [buildWorkflow([1, 2], [3, 4]), buildWorkflow([5], [6])];
+
+            expect(getFirstApproverByMemberEmail(workflows)).toEqual({
+                '1@example.com': buildApprover(3),
+                '2@example.com': buildApprover(3),
+                '5@example.com': buildApprover(6),
+            });
+        });
+
+        it('leaves out a member who is their own first approver, such as the workspace owner', () => {
+            const workflows = [buildWorkflow([1, 2], [1])];
+
+            expect(getFirstApproverByMemberEmail(workflows)).toEqual({'2@example.com': buildApprover(1)});
+        });
+
+        it('leaves out workflows that have no approvers', () => {
+            expect(getFirstApproverByMemberEmail([buildWorkflow([1], [])])).toEqual({});
+        });
+    });
+
+    describe('hasMultiLevelApprovalWorkflow', () => {
+        it('is false when every workflow has at most one approver', () => {
+            expect(hasMultiLevelApprovalWorkflow([buildWorkflow([1], [2]), buildWorkflow([3], [4])])).toBe(false);
+        });
+
+        it('is true as soon as one workflow has two or more approvers', () => {
+            expect(hasMultiLevelApprovalWorkflow([buildWorkflow([1], [2]), buildWorkflow([3], [4, 5])])).toBe(true);
+        });
+
+        it('is false for an empty list', () => {
+            expect(hasMultiLevelApprovalWorkflow([])).toBe(false);
         });
     });
 });
