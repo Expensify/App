@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
-import {hasTravelEnabledPolicySelector} from '@src/selectors/Policy';
+import {createHasTravelEnabledPolicySelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -78,7 +78,7 @@ function QuickCreationActionsBar() {
 
     const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
-    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasTravelEnabledPolicySelector});
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasTravelEnabledPolicySelector(email)});
 
     const shouldShowBookTravel = !!hasTravelEnabledPolicy;
 

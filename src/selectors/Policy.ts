@@ -14,8 +14,10 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPerDiemEligiblePolicy,
+    isPolicyAccessible,
     isPolicyAdmin,
     isArchivedPolicy,
+    isWorkspaceProvisionedForTravel,
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
@@ -225,10 +227,13 @@ const createHasAdminPolicyWithXeroConnectionSelector =
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
 
 /**
- * Whether the user belongs to any workspace with the travel feature switched on, so subscribers only re-render when
- * that answer changes rather than on every policy collection change.
+ * Creates a selector for whether the user belongs to any workspace provisioned for travel, so subscribers only
+ * re-render when that answer changes rather than on every policy collection change.
  */
-const hasTravelEnabledPolicySelector = (policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => !!policy?.isTravelEnabled);
+const createHasTravelEnabledPolicySelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some((policy) => isWorkspaceProvisionedForTravel(policy?.travelSettings) && isPolicyAccessible(policy, currentUserLogin ?? ''));
 
 /**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
@@ -519,7 +524,7 @@ export {
     hasActiveAdminPoliciesSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
-    hasTravelEnabledPolicySelector,
+    createHasTravelEnabledPolicySelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
