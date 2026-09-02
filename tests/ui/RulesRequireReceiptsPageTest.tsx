@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -73,6 +74,17 @@ const getItemizedToggleLabel = () => TestHelper.translateLocal('workspace.rules.
 const getAmountLabel = () => TestHelper.translateLocal('workspace.rules.requireReceipts.requireAboveAmount');
 const getSaveLabel = () => TestHelper.translateLocal('workspace.rules.requireReceipts.saveRule');
 
+/** The error shown on the receipt amount, naming the itemized amount it may not exceed. */
+const getReceiptTooHighError = (itemizedAmountInCents: number) =>
+    TestHelper.translateLocal('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {amount: convertToDisplayString(itemizedAmountInCents, 'USD')});
+
+/** The error shown on the itemized amount, naming the receipt amount it may not fall below. */
+const getItemizedTooLowError = (receiptAmountInCents: number) =>
+    TestHelper.translateLocal('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {amount: convertToDisplayString(receiptAmountInCents, 'USD')});
+
+/** The single message shown below both amounts when they break their shared constraint. */
+const getSharedAmountError = () => TestHelper.translateLocal('workspace.rules.requireReceipts.receiptAmountGreaterThanItemizedError');
+
 /** The page is gated behind the rulesRevamp beta, and its wrapper needs an admin on a Control workspace with Rules on. */
 const setupPolicy = async (policyOverrides: Partial<Policy>) => {
     await TestHelper.signInWithTestUser();
@@ -118,6 +130,15 @@ const toggle = async (label: string) => {
 
 const save = () => {
     fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: getSaveLabel()}));
+};
+
+/** FormProvider debounces its submit on the leading edge for a second, so a second save needs to wait that out. */
+const waitPastSubmitDebounce = async () => {
+    await act(async () => {
+        await new Promise((resolve) => {
+            setTimeout(resolve, 1100);
+        });
+    });
 };
 
 /** True when the itemized amount was sent to the server before the receipt amount. */
@@ -306,6 +327,103 @@ describe('RulesRequireReceiptsPage save order', () => {
         // Then neither amount is sent
         expect(mockSetReceipt).not.toHaveBeenCalled();
         expect(mockSetItemized).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+});
+
+describe('RulesRequireReceiptsPage validation errors', () => {
+    it('shows one message for the shared constraint instead of flagging either amount', async () => {
+        // Given a receipt amount of 30.00 and an itemized amount of 31.00
+        const policy = await setupPolicy({maxExpenseAmountNoReceipt: 3000, maxExpenseAmountNoItemizedReceipt: 3100});
+        const {unmount} = renderPage(policy.id);
+        await waitForForm();
+
+        // When the receipt amount is raised above the itemized amount and the rule is saved
+        setAmount(0, '45.00');
+        save();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a single message appears and neither field carries an error of its own
+        expect(screen.getByText(getSharedAmountError())).toBeOnTheScreen();
+        expect(screen.queryByText(getReceiptTooHighError(3100))).not.toBeOnTheScreen();
+        expect(screen.queryByText(getItemizedTooLowError(4500))).not.toBeOnTheScreen();
+        expect(mockSetReceipt).not.toHaveBeenCalled();
+        expect(mockSetItemized).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('shows the same message no matter which amount was edited into the conflict', async () => {
+        // Given a receipt amount of 45.00 and an itemized amount of 50.00
+        const policy = await setupPolicy({maxExpenseAmountNoReceipt: 4500, maxExpenseAmountNoItemizedReceipt: 5000});
+        const {unmount} = renderPage(policy.id);
+        await waitForForm();
+
+        // When the itemized amount is lowered below the receipt amount and the rule is saved
+        setAmount(1, '31.00');
+        save();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the message is the same one shown when the receipt amount is the edited field
+        expect(screen.getByText(getSharedAmountError())).toBeOnTheScreen();
+        expect(screen.queryByText(getItemizedTooLowError(4500))).not.toBeOnTheScreen();
+        expect(mockSetReceipt).not.toHaveBeenCalled();
+        expect(mockSetItemized).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('clears the message as soon as either amount is edited, even while the conflict stands', async () => {
+        // Given a save blocked by the shared constraint
+        const policy = await setupPolicy({maxExpenseAmountNoReceipt: 3000, maxExpenseAmountNoItemizedReceipt: 3100});
+        const {unmount} = renderPage(policy.id);
+        await waitForForm();
+        setAmount(0, '45.00');
+        save();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(getSharedAmountError())).toBeOnTheScreen();
+
+        // When the itemized amount is edited to another value that still breaks the constraint
+        setAmount(1, '40.00');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the message goes away immediately, and comes back only on the next save attempt
+        expect(screen.queryByText(getSharedAmountError())).not.toBeOnTheScreen();
+        await waitPastSubmitDebounce();
+        save();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(getSharedAmountError())).toBeOnTheScreen();
+        expect(mockSetReceipt).not.toHaveBeenCalled();
+        expect(mockSetItemized).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('saves once the edit resolves the conflict', async () => {
+        // Given a save blocked by the shared constraint
+        const policy = await setupPolicy({maxExpenseAmountNoReceipt: 3000, maxExpenseAmountNoItemizedReceipt: 3100});
+        const {unmount} = renderPage(policy.id);
+        await waitForForm();
+        setAmount(0, '45.00');
+        save();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(getSharedAmountError())).toBeOnTheScreen();
+
+        // When the itemized amount is raised above the receipt amount and the rule is saved again
+        setAmount(1, '50.00');
+        await waitPastSubmitDebounce();
+        save();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both amounts are sent and no message is left behind
+        expect(screen.queryByText(getSharedAmountError())).not.toBeOnTheScreen();
+        expect(mockSetItemized).toHaveBeenCalledWith(policy.id, '50.00', 3100);
+        expect(mockSetReceipt).toHaveBeenCalledWith(policy.id, '45.00', 3000, {});
 
         unmount();
         await waitForBatchedUpdatesWithAct();
