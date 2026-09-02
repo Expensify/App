@@ -130,3 +130,4 @@ jobs:
     secrets: inherit
     with:
       TARGET_BRANCH: staging
+      SOURCE_SHA: ${{ needs.createNewPatchVersion.outputs.NEW_SHA }}

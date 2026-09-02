@@ -21,6 +21,9 @@ on:
       NEW_VERSION:
         description: The new version string
         value: ${{ jobs.createNewVersion.outputs.NEW_VERSION }}
+      NEW_SHA:
+        description: The SHA containing the new version
+        value: ${{ jobs.createNewVersion.outputs.NEW_SHA }}
 
     secrets:
       SLACK_WEBHOOK:
@@ -49,6 +52,7 @@ jobs:
     runs-on: blacksmith-6vcpu-macos-latest
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
+      NEW_SHA: ${{ steps.getNewSHA.outputs.NEW_SHA }}
     steps:
       - name: Check out
         # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
@@ -169,6 +173,10 @@ jobs:
             exit 1
           fi
           echo "::notice::Versions verified: $APP_VERSION"
+
+      - name: Get new SHA
+        id: getNewSHA
+        run: echo "NEW_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}

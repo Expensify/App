@@ -7,6 +7,10 @@ on:
         description: 'Which branch to update. Should be one of: [staging, production]'
         required: true
         type: string
+      SOURCE_SHA:
+        description: 'Exact source SHA to use instead of resolving the source branch'
+        required: false
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ inputs.TARGET_BRANCH }}
@@ -30,7 +34,7 @@ jobs:
       - name: Checkout source branch
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
-          ref: ${{ steps.getSourceBranch.outputs.SOURCE_BRANCH }}
+          ref: ${{ inputs.SOURCE_SHA || steps.getSourceBranch.outputs.SOURCE_BRANCH }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           submodules: true
 
