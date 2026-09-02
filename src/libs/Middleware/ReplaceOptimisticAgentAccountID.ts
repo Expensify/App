@@ -1,11 +1,12 @@
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import type {Middleware} from '@libs/Request';
 
-import {getAll, getOngoingRequest, update, updateOngoingRequest} from '@userActions/PersistedRequests';
+import {getAll, update} from '@userActions/PersistedRequests';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate, AnyRequest} from '@src/types/onyx/Request';
 
+import {deepEqual} from 'fast-equals';
 import clone from 'lodash/clone';
 
 /**
@@ -13,6 +14,10 @@ import clone from 'lodash/clone';
  * response maps the client's optimistic accountID to the real one on OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING. Requests
  * queued offline after creating the agent (UpdateAgentName, DeleteAgent, ...) still reference the optimistic
  * accountID and would 404, so this middleware rewrites them to the real accountID when that mapping arrives.
+ *
+ * Only the requests queued behind the one that produced the mapping are rewritten. The CreateAgent itself is left
+ * untouched: it has already succeeded, and if the app closes or the queue retries before it is removed, resending it
+ * with the real accountID in place of the optimistic one would create a second agent.
  */
 
 // deepReplaceKeysAndValues only rewrites strings, but the optimistic accountID is also sent as a number
@@ -110,7 +115,7 @@ function isValidAgentAccountIDMappingEntry(optimisticAccountIDKey: string, realA
     return isValidAgentAccountID(realAccountID) && optimisticAccountID !== realAccountID;
 }
 
-const replaceOptimisticAgentAccountID: Middleware = (requestResponse, request, isFromSequentialQueue) =>
+const replaceOptimisticAgentAccountID: Middleware = (requestResponse) =>
     requestResponse.then((response) => {
         const responseOnyxData = response?.onyxData ?? [];
         for (const onyxData of responseOnyxData) {
@@ -136,16 +141,15 @@ const replaceOptimisticAgentAccountID: Middleware = (requestResponse, request, i
                 const optimisticAccountID = Number(optimisticAccountIDKey);
                 const realAccountIDString = String(realAccountID);
 
-                if (isFromSequentialQueue) {
-                    const ongoingRequest = getOngoingRequest();
-                    const ongoingRequestAgentAccountIDParam = ongoingRequest?.data?.agentAccountID ?? ongoingRequest?.data?.optimisticAccountID;
-                    if (ongoingRequest && (ongoingRequestAgentAccountIDParam === optimisticAccountID || ongoingRequestAgentAccountIDParam === optimisticAccountIDKey)) {
-                        updateOngoingRequest(rewriteRequest(ongoingRequest, optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID));
-                    }
-                }
-
+                // The sequential queue moves the request being processed out of the persisted list before its response
+                // reaches this middleware, so only the requests queued behind it are visited here. Each update() re-persists
+                // the whole queue, so requests that don't reference the optimistic agent are left alone.
                 for (const [index, persistedRequest] of getAll().entries()) {
-                    update(index, rewriteRequest(persistedRequest, optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID));
+                    const rewrittenRequest = rewriteRequest(persistedRequest, optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID);
+                    if (deepEqual(rewrittenRequest, persistedRequest)) {
+                        continue;
+                    }
+                    update(index, rewrittenRequest);
                 }
             }
         }

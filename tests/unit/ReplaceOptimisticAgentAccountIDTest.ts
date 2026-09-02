@@ -32,6 +32,16 @@ function buildUpdateAgentPromptRequest(agentAccountID: number): AnyRequest {
     };
 }
 
+// createAgent() sends the optimistic accountID as a string.
+function buildCreateAgentRequest(agentAccountID: number): AnyRequest {
+    requestIndex += 1;
+    return {
+        command: 'CreateAgent',
+        data: {firstName: 'Concierge', prompt: 'Book my flights', optimisticAccountID: String(agentAccountID), isPersonalAgent: true, apiRequestType: 'write'},
+        requestIndex,
+    };
+}
+
 function buildMappingResponse(mapping: Record<string, number | null>): Response<MappingKey> {
     return {
         jsonCode: 200,
@@ -73,7 +83,7 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
     it('rewrites the optimistic accountID inside string values and object keys of persisted request data', async () => {
         requestIndex += 1;
         const request: AnyRequest = {
-            command: 'CreateAgent',
+            command: 'UpdateAgentPrompt',
             data: {
                 firstName: 'Concierge',
                 optimisticAccountID: String(optimisticAccountID),
@@ -87,7 +97,7 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
         save(request);
         await waitForBatchedUpdates();
 
-        await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), request, false);
+        await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), buildCreateAgentRequest(optimisticAccountID), false);
 
         const persistedData = getAll().at(0)?.data;
         expect(persistedData?.optimisticAccountID).toBe(String(realAccountID));
@@ -130,20 +140,29 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
         ]);
     });
 
-    it('rewrites the ongoing request when the response is processed from the sequential queue', async () => {
+    it('leaves the CreateAgent that produced the mapping untouched and only rewrites the requests queued behind it', async () => {
+        save(buildCreateAgentRequest(optimisticAccountID));
         save(buildUpdateAgentPromptRequest(optimisticAccountID));
         await waitForBatchedUpdates();
+
+        // The sequential queue moves the request being processed out of the persisted list before its response reaches the middleware.
         const ongoingRequest = processNextRequest();
-        expect(ongoingRequest).not.toBeNull();
+        expect(ongoingRequest?.command).toBe('CreateAgent');
 
         if (!ongoingRequest) {
             return;
         }
+        const ongoingRequestBefore = cloneDeep(ongoingRequest);
+
         await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), ongoingRequest, true);
 
-        const ongoingData = getOngoingRequest()?.data;
-        expect(ongoingData?.agentAccountID).toBe(realAccountID);
-        expect(ongoingData?.prompt).toBe('Book my flights');
+        // The CreateAgent has already succeeded: rewriting it with the real accountID would create a second agent if the app
+        // closes or the queue retries before it is removed, so it must keep its optimistic accountID.
+        expect(getOngoingRequest()?.data?.optimisticAccountID).toBe(String(optimisticAccountID));
+        expect(getOngoingRequest()).toStrictEqual(ongoingRequestBefore);
+
+        expect(getAll()).toHaveLength(1);
+        expect(getAll().at(0)?.data?.agentAccountID).toBe(realAccountID);
     });
 
     it('leaves persisted requests untouched when the response carries no accountID mapping', async () => {
@@ -171,17 +190,21 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
         expect(getAll()).toStrictEqual(requestsBefore);
     });
 
-    it('does not touch requests that reference a different agent accountID', async () => {
+    it('only re-persists the requests that reference the optimistic accountID', async () => {
         save(buildUpdateAgentPromptRequest(optimisticAccountID));
         const otherAgentRequest = buildUpdateAgentPromptRequest(otherAgentAccountID);
         save(otherAgentRequest);
         await waitForBatchedUpdates();
         const otherAgentRequestBefore = cloneDeep(otherAgentRequest);
+        const updateSpy = jest.spyOn(PersistedRequests, 'update');
 
         await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), buildUpdateAgentPromptRequest(optimisticAccountID), false);
 
         expect(getAll().at(0)?.data?.agentAccountID).toBe(realAccountID);
         expect(getAll().at(1)).toStrictEqual(otherAgentRequestBefore);
+        expect(updateSpy).toHaveBeenCalledTimes(1);
+        expect(updateSpy).toHaveBeenCalledWith(0, expect.objectContaining({command: 'UpdateAgentPrompt'}));
+        updateSpy.mockRestore();
     });
 
     describe('mapping entry validation', () => {
