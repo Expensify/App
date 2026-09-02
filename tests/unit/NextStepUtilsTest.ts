@@ -328,6 +328,13 @@ describe('libs/NextStepUtils', () => {
                         expect(buildMonthlyOnThe2ndNextStep()).toMatchObject(expectedResultWithEtaDate('2026-01-02'));
                     });
 
+                    test('is still today late on the 2nd', () => {
+                        jest.useFakeTimers();
+                        jest.setSystemTime(new Date('2026-01-02T23:59:59.999Z'));
+
+                        expect(buildMonthlyOnThe2ndNextStep()).toMatchObject(expectedResultWithEtaDate('2026-01-02'));
+                    });
+
                     test('is the 2nd of next month once the 2nd has passed', () => {
                         jest.useFakeTimers();
                         jest.setSystemTime(new Date('2026-01-15T12:00:00Z'));
