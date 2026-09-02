@@ -119,7 +119,7 @@ function InsightsSectionContent() {
                 />
             )}
             {(state === INSIGHT_STATE.LOADING || state === INSIGHT_STATE.READY) && (
-                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
+                <View style={[shouldUseNarrowLayout ? styles.ph6 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}

@@ -3,6 +3,8 @@ import Composer from '@components/Composer';
 import type {ComposerRef} from '@components/Composer/types';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
+import Lottie from '@components/Lottie';
+import LottieAnimations from '@components/LottieAnimations';
 import PopoverMenu from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
@@ -52,6 +54,10 @@ import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 
 // Max number of lines before the input starts scrolling internally.
 const MAX_INPUT_LINES = 5;
+
+// The coin animation's canvas has empty space under the coin. It spans the card at its own aspect ratio and its
+// container clips it to this height, cropping that space away rather than scaling the animation down.
+const COIN_ANIMATION_VISIBLE_HEIGHT = 172;
 
 // A single line of placeholder text is one lineHeightXLarge tall. Anything meaningfully taller has wrapped.
 const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = variables.lineHeightXLarge * 1.5;
@@ -193,9 +199,25 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
 
     return (
         <View style={styles.gap6}>
-            <View style={styles.gap1}>
-                <Text style={styles.textLabelSupporting}>{dateLabel}</Text>
-                <Text style={styles.textHeadlineH1}>{greeting}</Text>
+            <View style={[styles.gap2, shouldUseNarrowLayout && styles.alignItemsCenter]}>
+                {shouldUseNarrowLayout && (
+                    <View style={[styles.w100, styles.pRelative, styles.overflowHidden, {height: COIN_ANIMATION_VISIBLE_HEIGHT}]}>
+                        {/* Pinning the animation in a wrapper takes it out of the clipping container's layout, so that
+                            container's height can't squeeze it. It keeps the full card width at its own aspect ratio
+                            and whatever hangs below the container is clipped. */}
+                        <View style={[styles.pAbsolute, styles.t0, styles.l0, styles.w100]}>
+                            <Lottie
+                                source={LottieAnimations.Coin}
+                                // LottieView styles its web DOM node from webStyle, not style.
+                                webStyle={{width: '100%'}}
+                                loop
+                                autoPlay
+                            />
+                        </View>
+                    </View>
+                )}
+                <Text style={[styles.textLabelSupporting, shouldUseNarrowLayout && styles.textAlignCenter]}>{dateLabel}</Text>
+                <Text style={[styles.textHeadlineH1, shouldUseNarrowLayout && styles.textAlignCenter]}>{greeting}</Text>
             </View>
             <View style={styles.pRelative}>
                 <View

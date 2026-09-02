@@ -9,8 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -25,10 +23,7 @@ function AddBankAccount() {
     return (
         <BaseWidgetItem
             icon={icons.Bank}
-            iconBackgroundColor={colors.green100}
-            iconFill={colors.green500}
             title={translate('homePage.timeSensitiveSection.addBankAccount.title')}
-            subtitle={translate('common.wallet')}
             ctaText={translate('common.add')}
             onCtaPress={() => openPersonalBankAccountSetupView({isUserValidated})}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}

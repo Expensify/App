@@ -240,7 +240,7 @@ function CardSection() {
             title={translate('subscription.cardSection.title')}
             subtitle={sectionSubtitle}
             isCentralPane
-            titleStyles={styles.textStrong}
+            titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
             banner={BillingBanner}
         >

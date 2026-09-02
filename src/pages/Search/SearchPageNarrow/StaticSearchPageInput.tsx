@@ -27,7 +27,7 @@ function StaticSearchPageInput() {
             ]}
         >
             <Text
-                style={[{color: theme.textSupporting}]}
+                style={[styles.fontSizeLabel, {color: theme.textSupporting}]}
                 numberOfLines={1}
             >
                 {translate('search.searchPlaceholder')}

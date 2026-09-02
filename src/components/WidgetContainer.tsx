@@ -40,7 +40,9 @@ function WidgetContainer({children, title, titleContent, containerStyles, titleR
                 </View>
                 {titleRightContent}
             </View>
-            {children}
+            {/* Wrapping the content adds the card's bottom padding on top of whatever bottom spacing a widget
+                passes through containerStyles, rather than replacing it. */}
+            <View style={styles.pb3}>{children}</View>
         </View>
     );
 }

@@ -203,7 +203,7 @@ function SearchStaticList({
             >
                 <View
                     style={[
-                        styles.mh5,
+                        styles.mh4,
                         styles.flex1,
                         styles.userSelectNone,
                         {backgroundColor: theme.highlightBG},

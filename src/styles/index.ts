@@ -3154,8 +3154,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
@@ -3175,7 +3173,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...textVariants.labelStrong,
         },
 
         borderedContentCard: {
@@ -4171,9 +4169,9 @@ const staticStyles = (theme: ThemeColors) =>
             // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
             // vertical footprint to the title line-height so every card header keeps the same height. The matching
             // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
-            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+            marginTop: (variables.lineHeightNormal - variables.componentSizeNormal) / 2,
+            marginBottom: (variables.lineHeightNormal - variables.componentSizeNormal) / 2,
+            marginRight: (variables.lineHeightNormal - variables.componentSizeNormal) / 2,
         },
 
         widgetItemSubtitle: {
@@ -4184,7 +4182,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemTitle: {
-            ...textVariants.textStrong,
+            ...textVariants.text,
             color: theme.text,
         },
 
@@ -4226,13 +4224,6 @@ const staticStyles = (theme: ThemeColors) =>
         quickCreationActionsBarButtonText: {
             fontSize: variables.fontSizeSmall,
             lineHeight: 14,
-        },
-
-        homePageContentContainer: {
-            flexGrow: 1,
-            paddingTop: 0,
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -5465,7 +5456,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Extra 2 to account for the borders
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
-        searchPageInputNarrowTouchableWrapper: {height: 46},
+        // 44 matches the h11 height the search input above every other table uses on mobile.
+        searchPageInputNarrowTouchableWrapper: {height: 44},
 
         // Compact search inputs that appear above lists/popovers. Matches the smaller
         // "above the table" search input heights (34 on web/desktop, 46 on mobile).
@@ -7231,9 +7223,7 @@ const plainStyles = (theme: ThemeColors) =>
 
         getWidgetContainerTitleStyle: (color: string) =>
             ({
-                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-                fontSize: 17,
-                lineHeight: variables.widgetHeaderTitleLineHeight,
+                ...textVariants.labelStrong,
                 color,
             }) satisfies TextStyle,
 
@@ -7241,9 +7231,9 @@ const plainStyles = (theme: ThemeColors) =>
             ({
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginBottom: 20,
-                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
-                marginTop: shouldUseNarrowLayout ? 20 : 32,
+                marginBottom: 12,
+                marginHorizontal: shouldUseNarrowLayout ? 24 : 32,
+                marginTop: shouldUseNarrowLayout ? 24 : 32,
             }) satisfies ViewStyle,
 
         // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
@@ -7274,14 +7264,19 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
-        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
+        widgetItemIconContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+        } satisfies ViewStyle,
+
+        homePageContentContainer: (shouldUseNarrowLayout: boolean) =>
             ({
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: variables.componentBorderRadiusNormal,
-                width: variables.componentSizeNormal,
-                height: variables.componentSizeNormal,
-                backgroundColor,
+                flexGrow: 1,
+                paddingTop: 0,
+                paddingHorizontal: shouldUseNarrowLayout ? 16 : 20,
+                paddingBottom: 20,
             }) satisfies ViewStyle,
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>

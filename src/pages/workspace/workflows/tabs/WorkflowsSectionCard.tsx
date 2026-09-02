@@ -26,7 +26,7 @@ function WorkflowsSectionCard(item: ToggleSettingOptionRowProps) {
 
     return (
         <Section
-            containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+            containerStyles={isSmallScreenWidth ? styles.p6 : styles.p8}
             renderTitle={() => <View />}
         >
             <ToggleSettingOptionRow

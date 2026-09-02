@@ -79,7 +79,7 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
             }}
             containerStyles={[shouldUseNarrowLayout ? styles.flex1 : undefined]}
             textInputContainerStyles={[styles.pb0, shouldUseNarrowLayout ? styles.ph3 : styles.ph2]}
-            inputStyle={[styles.w100, styles.lineHeightUndefined, shouldUseNarrowLayout ? undefined : styles.fontSizeLabel]}
+            inputStyle={[styles.w100, styles.lineHeightUndefined, styles.fontSizeLabel]}
             touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.searchPageInputNarrowTouchableWrapper : styles.searchPageInputWideTouchableWrapper}
             clearButtonStyle={shouldUseNarrowLayout ? undefined : styles.mh0}
             clearButtonIconSize={shouldUseNarrowLayout ? undefined : variables.iconSizeSmall}

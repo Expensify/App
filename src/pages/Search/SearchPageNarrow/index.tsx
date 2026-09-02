@@ -266,7 +266,7 @@ function SearchPageNarrow({
                                             showStatic={!isHeaderInteractive}
                                             queryJSON={queryJSON}
                                         />
-                                        <View style={[styles.flex1, styles.flexRow, styles.pt1, styles.mh5, styles.mb4, styles.gap3]}>
+                                        <View style={[styles.flex1, styles.flexRow, styles.mh4, styles.mb4, styles.gap3]}>
                                             <SearchPageInputSwitch
                                                 showStatic={!isHeaderInteractive}
                                                 queryJSON={queryJSON}

@@ -107,7 +107,7 @@ function InboxTabSelector() {
     ];
 
     return (
-        <View>
+        <View style={styles.pt1}>
             <TabSelectorContextProvider activeTabKey={activeTab}>
                 <TabSelectorBase
                     tabs={tabs}

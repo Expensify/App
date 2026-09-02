@@ -12,8 +12,6 @@ import {getCompanyCardFeedWithDomainIDForCard, getCustomOrFormattedFeedName} fro
 import Navigation from '@libs/Navigation/Navigation';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,10 +34,9 @@ type FixCompanyCardConnectionProps = {
     policyID: string;
 
     /** The policy name associated with this card */
-    policyName: string;
 };
 
-function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardConnectionProps) {
+function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
     const policy = usePolicy(policyID);
@@ -92,17 +89,10 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
 
     const customFeedName = cardFeeds?.settings?.companyCardNicknames?.[card.bank as CompanyCardFeed];
     const feedName = getCustomOrFormattedFeedName(translate, card.bank as CompanyCardFeed, customFeedName, false) ?? '';
-    const subtitle = policyName
-        ? translate('homePage.timeSensitiveSection.fixCompanyCardConnection.subtitle', {policyName})
-        : translate('homePage.timeSensitiveSection.fixCompanyCardConnection.defaultSubtitle');
-
     return (
         <BaseWidgetItem
             icon={icons.Connect}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
-            subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => {
                 // The Company cards page opens the last selected feed, so select this card's broken feed before going there.

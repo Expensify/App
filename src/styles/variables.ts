@@ -113,7 +113,6 @@ export default {
     receiptPreviewMaxWidth: 440,
     receiptPreviewMaxHeight: 440,
     receiptPreviewWidth: 380,
-    widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
     centeredContentMaxWidth: 1200,
     minScanTooltipWidth: 320,
@@ -410,11 +409,11 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -118,
-    minimalTopBarWithFiltersOffset: -162,
+    minimalTopBarOffset: -122,
+    minimalTopBarWithFiltersOffset: -166,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 118,
-    searchListContentWithFiltersMarginTop: 162,
+    searchListContentMarginTop: 122,
+    searchListContentWithFiltersMarginTop: 166,
     searchTopBarZIndex: 9,
 
     searchAutocompleteInputSkeletonHeight: 8,

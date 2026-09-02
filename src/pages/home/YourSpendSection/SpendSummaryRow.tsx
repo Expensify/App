@@ -110,11 +110,11 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
             <MenuItemWithTopDescription
                 description={description}
                 title={totals.total !== undefined ? convertToDisplayString(totals.total, totals.currency) : undefined}
-                titleStyle={[styles.textBold, isStale && styles.offlineFeedbackPending]}
+                titleStyle={isStale ? styles.offlineFeedbackPending : undefined}
                 onPress={onPress}
                 shouldShowRightIcon
                 leftComponent={
-                    <View style={styles.getWidgetItemIconContainerStyle(theme.border)}>
+                    <View style={styles.widgetItemIconContainer}>
                         <Icon
                             src={iconSrc}
                             fill={theme.icon}

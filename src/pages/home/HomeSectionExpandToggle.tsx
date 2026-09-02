@@ -27,7 +27,7 @@ type HomeSectionExpandToggleProps = {
     /** Label rendered when the section is collapsed (e.g. "See 24 more") */
     collapsedLabel: string;
 
-    /** Optional override for the wrapper style. Defaults to the standard ph5/ph8 padding used by home sections. */
+    /** Optional override for the wrapper style. Defaults to the standard ph6/ph8 padding used by home sections. */
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
@@ -46,7 +46,7 @@ function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, wrapperSt
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={label}
             sentryLabel="HomeSectionExpandToggle"
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, wrapperStyle]}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph6 : styles.ph8, wrapperStyle]}
         >
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.componentSizeNormal, height: variables.componentSizeNormal}]}>
                 <Icon

@@ -47,7 +47,7 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
             sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_ROW}
         >
             {({hovered}) => (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.pv3, hovered && styles.hoveredComponentBG]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldUseNarrowLayout ? styles.ph6 : styles.ph8, styles.pv3, hovered && styles.hoveredComponentBG]}>
                     <View style={styles.gettingStartedRowIconContainer}>
                         <Checkbox
                             isChecked={item.isComplete}
