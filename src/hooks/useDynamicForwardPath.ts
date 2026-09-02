@@ -1,5 +1,7 @@
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import isDynamicRouteSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteSuffix';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -23,12 +25,15 @@ import useRootNavigationState from './useRootNavigationState';
  *
  * - dynamicSuffix: The path suffix registered in DYNAMIC_ROUTES (e.g. 'verify-account').
  * - entryScreen: The screen that the dynamic suffix is appended to (e.g. 'Settings_Wallet').
- * - forwardRoute: The destination route to navigate forward to from the dynamic route page.
+ * - forwardRoute: The destination route to navigate forward to from the dynamic route page. Can be a
+ *   static `Route`, or another `DynamicRouteSuffix` - in which case it's appended onto the resolved
+ *   base path (the target has no standalone URL of its own).
  */
-const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route>> = {
+const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route | DynamicRouteSuffix>> = {
     [DYNAMIC_ROUTES.VERIFY_ACCOUNT.path]: {
         [SCREENS.SETTINGS.WALLET.ROOT]: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
-        [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS]: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.route,
+        [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS]: DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.path,
+        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT,
     },
     [DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path]: {
         [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: ROUTES.WORKSPACE_ACCOUNTING.route,
@@ -81,7 +86,12 @@ function useDynamicForwardPath(dynamicRouteSuffix: DynamicRouteSuffix): Route | 
         return undefined;
     }
 
-    return suffixMappings[focusedRoute.name];
+    const mappedRoute = suffixMappings[focusedRoute.name];
+    if (mappedRoute === undefined) {
+        return undefined;
+    }
+
+    return isDynamicRouteSuffix(mappedRoute) ? createDynamicRoute(mappedRoute, basePath) : mappedRoute;
 }
 
 export default useDynamicForwardPath;

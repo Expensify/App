@@ -12,7 +12,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
-import {translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 5;
@@ -170,6 +170,9 @@ describe('AmountSubmission', () => {
             return {
                 report: baseReport,
                 translate: translateLocal,
+                dateFnsLocale: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 transaction: undefined,
                 splitDraftTransaction: undefined,
                 policy: undefined,
@@ -195,6 +198,7 @@ describe('AmountSubmission', () => {
                 navigateBack: jest.fn(),
                 amount: '10',
                 paymentMethod: undefined,
+                formatPhoneNumber,
                 allPersonalDetails: {},
                 allReports: {},
                 allReportDrafts: {},
@@ -217,6 +221,7 @@ describe('AmountSubmission', () => {
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
                 conciergeReportID: undefined,
+                conciergeChat: undefined,
                 isTrackIntentUser: false,
                 ...overrides,
             };
@@ -501,7 +506,6 @@ describe('AmountSubmission', () => {
                 name: 'Test Workspace',
                 owner: 'me@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 autoReporting: false,
             } as Policy;
 

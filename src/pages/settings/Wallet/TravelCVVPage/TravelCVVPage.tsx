@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,6 +16,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -116,24 +117,26 @@ function TravelCVVPage() {
     if (hasRevealedCVV) {
         actionButton = (
             <Button
-                icon={isCopyButtonActive ? icons.Copy : icons.Checkmark}
-                text={isCopyButtonActive ? translate('cardPage.cardDetails.copyCvv') : translate('common.copied')}
                 onPress={() => {
                     Clipboard.setString(cvv);
                     setCopyButtonInactive();
                 }}
                 style={[styles.mt10, styles.alignSelfCenter]}
-            />
+            >
+                <Button.Icon src={isCopyButtonActive ? icons.Copy : icons.Checkmark} />
+                <Button.Text>{isCopyButtonActive ? translate('cardPage.cardDetails.copyCvv') : translate('common.copied')}</Button.Text>
+            </Button>
         );
     } else if (!cvv && !isSignedInAsDelegate) {
         actionButton = (
             <Button
-                text={translate('cardPage.cardDetails.revealDetails')}
                 onPress={handleRevealDetailsPress}
                 isDisabled={isOffline}
                 style={[styles.mt10, styles.alignSelfCenter]}
-                success
-            />
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+            >
+                <Button.Text>{translate('cardPage.cardDetails.revealDetails')}</Button.Text>
+            </Button>
         );
     }
 

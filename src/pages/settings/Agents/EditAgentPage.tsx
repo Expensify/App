@@ -1,6 +1,7 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -66,7 +67,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
             prompt: translate('editAgentPage.deleteAgentMessage'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
         if (result.action !== ModalActions.CONFIRM) {
@@ -87,6 +88,14 @@ function EditAgentPage({route}: EditAgentPageProps) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS)} />;
     }
 
+    const agentAvatar = personalDetails?.avatar ? (
+        <UserAvatar
+            source={personalDetails.avatar}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            accountID={accountID}
+        />
+    ) : null;
+
     return (
         <ScreenWrapper
             testID={EditAgentPage.displayName}
@@ -106,11 +115,8 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     <View style={[styles.alignItemsCenter, styles.pv5]}>
                         <AvatarButtonWithIcon
                             text={translate('editAgentAvatarPage.title')}
-                            source={personalDetails?.avatar ?? ''}
-                            avatarID={accountID}
+                            avatar={agentAvatar}
                             onPress={handleEditAvatarPress}
-                            size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                            avatarStyle={styles.alignSelfCenter}
                             pendingAction={personalDetails?.pendingFields?.avatar}
                             sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.AVATAR}
                             editIconStyle={styles.smallEditIconAccount}
@@ -138,25 +144,26 @@ function EditAgentPage({route}: EditAgentPageProps) {
                         description={translate('editAgentPage.instructions')}
                         title={Str.htmlDecode(agent?.prompt?.trim() ?? '')}
                         shouldParseTitle
+                        excludedMarkdownRules={['reportMentions']}
                         shouldTruncateTitle
                         characterLimit={CONST.AGENT_PROMPT_LIMIT}
                         shouldShowRightIcon
                         onPress={handleEditPromptPress}
                     />
                 </OfflineWithFeedback>
-                <MenuItem
+                <MenuItemAction
                     title={translate('editAgentPage.chatWithAgent')}
                     icon={icons.ChatBubble}
                     onPress={handleChatPress}
-                    disabled={areActionsDisabled}
+                    isDisabled={areActionsDisabled}
                 />
-                <MenuItem
+                <MenuItemAction
                     title={translate('editAgentPage.copilotIntoAccount')}
                     icon={icons.Users}
                     onPress={handleCopilotPress}
-                    disabled={areActionsDisabled}
+                    isDisabled={areActionsDisabled}
                 />
-                <MenuItem
+                <MenuItemAction
                     title={translate('editAgentPage.deleteAgent')}
                     icon={icons.Trashcan}
                     onPress={handleDeletePress}

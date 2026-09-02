@@ -40,7 +40,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
             displayName="QuickbooksClassesPage"
             headerTitle="workspace.qbo.classes"
             title="workspace.qbo.classesDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.classesDescription', {integrationName})}
+            titleAlreadyTranslated={translate('workspace.qbo.classesDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

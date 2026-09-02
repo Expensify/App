@@ -85,16 +85,6 @@ function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD, currencies?:
 }
 
 /**
- * Returns the currency's minor unit quantity
- * e.g. Cent in USD
- *
- * @param currency - IOU currency
- */
-function getCurrencyUnit(currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
-    return 10 ** getCurrencyDecimals(currency, currencies);
-}
-
-/**
  * Get localized currency symbol for currency(ISO 4217) Code
  */
 function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
@@ -202,6 +192,35 @@ function convertToDisplayStringEnLocale(amountInCents: number, currency: string 
     });
 }
 
+/**
+ * Same as convertToDisplayStringWithoutCurrency but always formats with the `en` locale, with decimals
+ * injected. Used alongside convertToDisplayStringEnLocale for stored values (e.g. formula-computed
+ * report titles) that must not depend on the viewer's locale or this module's Onyx fallback.
+ */
+function convertToDisplayStringWithoutCurrencyEnLocale(
+    amountInCents: number,
+    currency: string | undefined,
+    getCurrencyDecimalsImpl: CurrencyListActionsContextType['getCurrencyDecimals'],
+): string {
+    const sanitizedCurrency = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimalsImpl(sanitizedCurrency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+    return formatToParts(CONST.LOCALES.EN, convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: decimals,
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
+    })
+        .filter((x) => x.type !== 'currency')
+        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+        .map((x) => x.value)
+        .join('');
+}
+
 /** Same intended use as convertToDisplayString, but purposely omit currency symbol if not provided */
 function convertToDisplayStringWithExplicitCurrency(amountInCents: number, currency: string | undefined, currencies?: CurrencyList): string {
     if (!currency) {
@@ -275,9 +294,8 @@ export {
     sanitizeCurrencyCode,
     resetInvalidCurrencyWarningsForTesting,
     getCurrencyDecimals,
-    getCurrencyUnit,
-    getLocalizedCurrencySymbol,
     getCurrencySymbol,
+    getLocalizedCurrencySymbol,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
@@ -285,6 +303,7 @@ export {
     convertToDisplayStringEnLocale,
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    convertToDisplayStringWithoutCurrencyEnLocale,
     convertToDisplayStringWithExplicitCurrency,
     convertToShortDisplayString,
 };

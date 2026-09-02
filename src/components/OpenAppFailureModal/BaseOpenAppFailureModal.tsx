@@ -1,9 +1,10 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Header from '@components/Header';
 import Modal from '@components/Modal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,6 +31,8 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.p6});
+
     return (
         <Modal
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
@@ -37,8 +40,9 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
             shouldTreatModalAsCovering
             innerContainerStyle={styles.pv0}
             onClose={() => setIsOpenAppFailureModalOpen(false)}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[styles.p6]}>
+            <View style={bottomSafeAreaPaddingStyle}>
                 <Header
                     title={translate('openAppFailureModal.title')}
                     textStyles={[styles.mb2]}
@@ -53,17 +57,19 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
                     </TextLink>
                 </Text>
                 <Button
-                    large
-                    success
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     style={[styles.mb3]}
-                    text={translate('openAppFailureModal.refreshAndTryAgain')}
                     onPress={onRefreshAndTryAgainButtonPress}
-                />
+                >
+                    <Button.Text>{translate('openAppFailureModal.refreshAndTryAgain')}</Button.Text>
+                </Button>
                 <Button
-                    large
-                    text={translate('common.close')}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => setIsOpenAppFailureModalOpen(false)}
-                />
+                >
+                    <Button.Text>{translate('common.close')}</Button.Text>
+                </Button>
             </View>
         </Modal>
     );

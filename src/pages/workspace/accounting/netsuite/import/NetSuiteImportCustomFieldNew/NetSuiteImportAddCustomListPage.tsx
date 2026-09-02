@@ -17,7 +17,7 @@ function NetSuiteImportAddCustomListPage({policy, route}: WithPolicyConnectionsP
     const isLoading = isLoadingOnyxValue(draftValuesMetadata);
 
     if (isLoading) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'NetSuiteImportAddCustomListPage'}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

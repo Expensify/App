@@ -15,10 +15,10 @@ import {
     isValidExpirationDate,
     isValidInputLength,
     isValidLegalName,
-    isValidNANPPhone,
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
+    isValidPhoneNumber,
     isValidPIN,
     isValidRegistrationNumber,
     isValidRoomName,
@@ -30,11 +30,8 @@ import {
 } from '@src/libs/ValidationUtils';
 
 import {addDays, format, startOfDay, subYears} from 'date-fns';
-import {TextEncoder} from 'util';
 
 import {translateLocal} from '../utils/TestHelper';
-
-global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('ValidationUtils', () => {
     beforeAll(() => {
@@ -607,7 +604,7 @@ describe('ValidationUtils', () => {
 
     describe('isValidRegistrationNumber', () => {
         describe('EU countries', () => {
-            test.each([
+            test.each<[Country, string, boolean]>([
                 ['AT', 'FN123456', true],
                 ['AT', 'FN654321a', true],
                 ['AT', '123456', false],
@@ -623,12 +620,12 @@ describe('ValidationUtils', () => {
                 ['ES', 'B87654321', true],
                 ['ES', '12345678A', false],
             ])('validates EU country registration number', (country, value, expected) => {
-                expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
+                expect(isValidRegistrationNumber(value, country)).toBe(expected);
             });
         });
 
         describe('Non-EU countries', () => {
-            test.each([
+            test.each<[Country, string, boolean]>([
                 ['AU', '51824753556', true],
                 ['AU', '004085616', true],
                 ['AU', '123456789', false],
@@ -642,7 +639,7 @@ describe('ValidationUtils', () => {
                 ['CA', '12345678', false],
                 ['CA', '123456789XX123', false],
             ])('validates Non-EU country registration number', (country, value, expected) => {
-                expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
+                expect(isValidRegistrationNumber(value, country)).toBe(expected);
             });
         });
     });
@@ -681,37 +678,33 @@ describe('ValidationUtils', () => {
         });
     });
 
-    describe('isValidNANPPhone', () => {
-        test('Should return true for a standard US phone number', () => {
-            expect(isValidNANPPhone('+12018675309')).toBe(true);
-        });
-
-        test('Should return true for a Puerto Rico phone number', () => {
-            expect(isValidNANPPhone('+17873464732')).toBe(true);
-        });
-
-        test('Should return true for a US Virgin Islands phone number', () => {
-            expect(isValidNANPPhone('+13405551234')).toBe(true);
-        });
-
-        test('Should return true for a Guam phone number', () => {
-            expect(isValidNANPPhone('+16715551234')).toBe(true);
-        });
-
-        test('Should return true for a Northern Mariana Islands phone number', () => {
-            expect(isValidNANPPhone('+16705551234')).toBe(true);
+    describe('isValidPhoneNumber', () => {
+        test('Should return true for a US phone number', () => {
+            expect(isValidPhoneNumber('+12018675309')).toBe(true);
         });
 
         test('Should return true for a Canadian phone number', () => {
-            expect(isValidNANPPhone('+14165551234')).toBe(true);
+            expect(isValidPhoneNumber('+14165551234')).toBe(true);
         });
 
-        test('Should return false for a UK phone number', () => {
-            expect(isValidNANPPhone('+442071234567')).toBe(false);
+        test('Should return true for a UK phone number', () => {
+            expect(isValidPhoneNumber('+442071234567')).toBe(true);
+        });
+
+        test('Should return true for an Australian phone number', () => {
+            expect(isValidPhoneNumber('+61255501234')).toBe(true);
+        });
+
+        test('Should return false for a number that is too short to be possible', () => {
+            expect(isValidPhoneNumber('123')).toBe(false);
+        });
+
+        test('Should return false for letters', () => {
+            expect(isValidPhoneNumber('abcdefg')).toBe(false);
         });
 
         test('Should return false for an empty string', () => {
-            expect(isValidNANPPhone('')).toBe(false);
+            expect(isValidPhoneNumber('')).toBe(false);
         });
     });
 

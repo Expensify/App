@@ -43,6 +43,7 @@ const secureNgrokURL = addTrailingForwardSlash(get(Config, 'SECURE_NGROK_URL', '
 const secureExpensifyUrl = addTrailingForwardSlash(get(Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/'));
 const useNgrok = get(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = get(Config, 'USE_WEB_PROXY', 'true') === 'true';
+const qaExpensifyURL = get(Config, 'QA_EXPENSIFY_URL', '');
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
 
 // Throw errors on dev if config variables are not set correctly
@@ -133,10 +134,22 @@ export default {
     },
     // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
     USE_REACT_STRICT_MODE_IN_DEV: false,
+    // Turn off locally when profiling to keep the Activity gate's StrictMode double renders out of the measurements
+    USE_ACTIVITY_SCREEN_STRICT_MODE_IN_DEV: true,
     ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     IS_TEST_ENV: process.env.NODE_ENV === 'test',
     SKIP_ONBOARDING: get(Config, 'SKIP_ONBOARDING', 'false') === 'true',
     // eslint-disable-next-line no-restricted-properties
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
+    // Auth for the Cloudflare Access-protected QA server. Empty values disable the feature entirely
+    QA_AUTH: {
+        // Only normalize a non-empty value: addTrailingForwardSlash('') returns '/' and would look configured
+        API_ROOT: qaExpensifyURL ? addTrailingForwardSlash(qaExpensifyURL) : '',
+        TEAM_DOMAIN: get(Config, 'QA_CF_TEAM_DOMAIN', ''),
+        CLIENT_ID: get(Config, 'QA_CF_OAUTH_CLIENT_ID', ''),
+        // Which Access-protected endpoint the test tool calls to verify auth is a property of the
+        // environment. The dev worker exposes an echo route, another QA host will offer something else
+        CHECK_PATH: get(Config, 'QA_AUTH_CHECK_PATH', '').replace(/^\/+/, ''),
+    },
     SENTRY_DSN: get(Config, 'SENTRY_DSN', 'https://7b463fb4d4402d342d1166d929a62f4e@o4510228013121536.ingest.us.sentry.io/4510228107427840'),
 } as const;

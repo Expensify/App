@@ -60,6 +60,8 @@ function EditAgentRulePage({
             return;
         }
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
+            event.preventDefault();
             formRef.current?.submit();
         }
     };
@@ -91,7 +93,7 @@ function EditAgentRulePage({
             prompt: translate('workspace.rules.agentRules.deleteRuleConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -158,6 +160,8 @@ function EditAgentRulePage({
                                 label={describeRuleLabel}
                                 accessibilityLabel={describeRuleLabel}
                                 role={CONST.ROLE.PRESENTATION}
+                                type="markdown"
+                                excludedMarkdownStyles={['mentionReport']}
                                 onKeyPress={submitFormOnModEnter}
                                 defaultValue={agentRule.prompt}
                                 multiline

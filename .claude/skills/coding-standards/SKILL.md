@@ -37,6 +37,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [PERF-16](rules/perf-16-guard-double-init.md) — Guard double initialization
 - [PERF-17](rules/perf-17-pass-raw-index-on-demand.md) — Pass raw source, index on demand (no pre-built digest)
 - [PERF-18](rules/perf-18-use-pre-mount-destination.md) — Use usePreMountDestination for RHP pre-mounting
+- [PERF-19](rules/perf-19-scalar-collection-selectors.md) — Collection selectors return only what the consumer uses
 
 ### Consistency
 - [CONSISTENCY-1](rules/consistency-1-no-platform-checks.md) — No platform-specific checks in components
@@ -55,6 +56,8 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CONSISTENCY-14](rules/consistency-14-new-file-header.md) — Non-trivial new files start with a header description
 - [CONSISTENCY-15](rules/consistency-15-comment-why.md) — Comments explain why the code exists, not what it does
 - [CONSISTENCY-16](rules/consistency-16-plain-comment-style.md) — Write comments as plain, natural sentences
+- [CONSISTENCY-17](rules/consistency-17-no-ai-jargon.md) — No AI-generated jargon in code or comments
+- [CONSISTENCY-18](rules/consistency-18-plural-form.md) — Pluralize with PluralForm, not ternaries on a count
 
 ### Clean React Patterns
 - [CLEAN-REACT-PATTERNS-0](rules/clean-react-0-compiler.md) — React Compiler compliance

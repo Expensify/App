@@ -1,10 +1,11 @@
 import {clearPersonalBankAccount, connectBankAccountWithPlaid, openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
@@ -45,8 +46,8 @@ describe('actions/BankAccounts', () => {
     });
 
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -101,10 +102,17 @@ describe('actions/BankAccounts', () => {
                 // Then we should call the existing API command
                 TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, 1);
                 const call = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID).at(0);
-                const body = (call?.at(1) as RequestInit)?.body;
-                const params = body instanceof FormData ? Object.fromEntries(body) : {};
+                if (!call) {
+                    throw new Error('Expected ConnectBankAccountWithPlaid fetch call');
+                }
 
-                expect(params).toEqual(
+                const [, options] = call;
+                const body = options?.body;
+                if (!(body instanceof FormData)) {
+                    throw new Error('Expected ConnectBankAccountWithPlaid request body to be FormData');
+                }
+
+                expect(Object.fromEntries(body)).toEqual(
                     expect.objectContaining({
                         bankAccountID: `${bankAccountID}`,
                         routingNumber: selectedPlaidBankAccount.routingNumber,
@@ -166,6 +174,14 @@ describe('actions/BankAccounts', () => {
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
+        });
+
+        test('carries shouldSetUpUSBankAccount to the verify account page when the user is not validated', async () => {
+            openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: true, isUserValidated: false});
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, true)));
+            expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('shouldSetUpUSBankAccount=true'));
         });
     });
 
