@@ -6,7 +6,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isProcessingReport} from '@libs/ReportUtils';
-import {isBrokenConnectionViolation} from '@libs/TransactionUtils';
+import {getUnsuppressibleBrokenConnectionTransactionID} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -34,6 +34,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const {transactions: reportTransactionsMap, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
@@ -99,12 +100,8 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION) {
-        // A multi-expense report has no single transaction, so fall back to any report transaction
-        // whose violations include a broken connection to drive the description.
-        const brokenConnectionTransactionID =
-            iouTransactionID ??
-            transactions.find((transaction) => (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? []).some(isBrokenConnectionViolation))
-                ?.transactionID;
+        // A multi-expense report has no single transaction, so use one whose broken connection cannot be suppressed.
+        const brokenConnectionTransactionID = iouTransactionID ?? getUnsuppressibleBrokenConnectionTransactionID(transactions, violations, cardList);
         if (!brokenConnectionTransactionID) {
             return null;
         }

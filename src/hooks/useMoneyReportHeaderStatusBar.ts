@@ -1,4 +1,3 @@
-import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -12,14 +11,13 @@ import {
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
     isScanning,
+    shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, TransactionViolation} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
@@ -40,25 +38,6 @@ type StatusBarResult = {
     shouldShowStatusBar: boolean;
     statusBarType: StatusBarType | undefined;
 };
-
-/**
- * Suppresses the report-level status only when every broken connection belongs to a personal card.
- * Reports with company-card or retry-later violations must retain a status so their required action is visible.
- */
-function shouldSuppressBrokenConnectionStatus(brokenConnectionViolations: TransactionViolation[], cardList: OnyxEntry<CardList>) {
-    return (
-        brokenConnectionViolations.length > 0 &&
-        brokenConnectionViolations.every((violation) => {
-            if (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
-                return false;
-            }
-
-            const cardID = violation.data?.cardID;
-            const card = cardID ? cardList?.[cardID] : undefined;
-            return !!card && isPersonalCard(card);
-        })
-    );
-}
 
 function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportID: string | undefined): StatusBarResult {
     const {isOffline} = useNetwork();
@@ -175,4 +154,3 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
 }
 
 export default useMoneyReportHeaderStatusBar;
-export {shouldSuppressBrokenConnectionStatus};
