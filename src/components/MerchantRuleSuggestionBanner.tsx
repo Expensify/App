@@ -20,7 +20,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Animated, {FadeInDown, FadeInUp, FadeOutDown, FadeOutUp} from 'react-native-reanimated';
 
@@ -56,27 +56,6 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const {suggestion, fields, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
-
-    // The offer ends once the user has seen it and navigated away. Retiring leaves the expense itself untouched, so
-    // editing it again offers afresh. Only the close button silences an expense for the session.
-    const hasBeenShownRef = useRef(false);
-
-    useEffect(() => {
-        if (!suggestion) {
-            return;
-        }
-        hasBeenShownRef.current = true;
-    }, [suggestion]);
-
-    useEffect(
-        () => () => {
-            if (!hasBeenShownRef.current) {
-                return;
-            }
-            retireMerchantRuleSuggestion();
-        },
-        [],
-    );
 
     if (!suggestion || !policyID) {
         return null;
@@ -146,6 +125,9 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
  */
 function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
+    // A full-size composer leaves no room for the callout, and on narrow layouts it would sit over the button that
+    // collapses the composer again.
+    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     // A wide RHP reports a narrow layout but lays the expense out like a wide screen, so it belongs to the composer
     // mount alongside the genuinely wide layouts.
@@ -160,7 +142,7 @@ function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, over
 
     // Nothing is stored for most of a session, so skip the inner component and its many Onyx subscriptions until
     // there is an edit to offer.
-    if (!isMountForThisLayout || !isMerchantRuleSuggestionLive(storedSuggestion)) {
+    if (!isMountForThisLayout || isComposerFullSize || !isMerchantRuleSuggestionLive(storedSuggestion)) {
         return null;
     }
 

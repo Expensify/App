@@ -107,9 +107,8 @@ function ReportFooter() {
                 <ReportActionCompose reportID={reportIDFromRoute} />
             </SwipeableView>
         );
-        // The callout decides for itself whether this mount suits the layout. A full-size composer leaves no room
-        // for it either way.
-        const merchantRuleBanner = !isComposerFullSize && (
+        // The callout decides for itself whether this mount suits the layout and the composer size.
+        const merchantRuleBanner = (
             <MerchantRuleSuggestionBanner
                 reportID={reportIDFromRoute}
                 policyID={report.policyID}

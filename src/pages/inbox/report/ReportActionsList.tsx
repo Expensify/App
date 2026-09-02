@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -144,6 +145,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     }, [reportID]);
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
+
+    // Owned here rather than by the callout, which mounts and unmounts as the layout and the composer change size.
+    useRetireMerchantRuleSuggestionOnLeave(reportID);
 
     // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
     const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
