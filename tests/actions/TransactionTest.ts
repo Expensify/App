@@ -663,9 +663,12 @@ describe('actions/Transaction', () => {
                 expect(countMovedActions(actions)).toBe(1);
             });
 
-            it('should create an UNREPORTED_TRANSACTION action when the expense is moved to personal space from a draft report', async () => {
-                // Given an expense in a draft report, when it is moved to personal space (no destination report)
-                const actions = await moveExpenseFromTo(draftReportStatus, undefined);
+            it.each([
+                ['draft', draftReportStatus],
+                ['submitted', submittedReportStatus],
+            ])('should create an UNREPORTED_TRANSACTION action when the expense is moved to personal space from a %s report', async (_sourceLabel, sourceReportStatus) => {
+                // Given an expense being moved to personal space (no destination report), which the backend always creates the message on
+                const actions = await moveExpenseFromTo(sourceReportStatus, undefined);
 
                 // Then the moved message is still created, because the expense leaves the report entirely
                 expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)).toHaveLength(1);
