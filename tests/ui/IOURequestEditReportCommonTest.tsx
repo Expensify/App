@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SearchResultsContext} from '@components/Search/SearchContext';
 
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 
@@ -10,7 +11,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, SearchResults} from '@src/types/onyx';
 
 import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
@@ -43,6 +44,8 @@ const renderIOURequestEditReportCommon = ({
     isOdometerDistanceRequest = false,
     selectReport = jest.fn(),
     createReport,
+    targetOwnerAccountID,
+    searchResults,
 }: {
     selectedReportID: string;
     selectedPolicyID?: string;
@@ -52,22 +55,37 @@ const renderIOURequestEditReportCommon = ({
     isOdometerDistanceRequest?: boolean;
     selectReport?: jest.Mock;
     createReport?: jest.Mock;
+    targetOwnerAccountID?: number;
+    searchResults?: SearchResults;
 }) =>
     render(
         <NavigationContainer>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <IOURequestEditReportCommon
-                    selectedReportID={selectedReportID}
-                    selectedPolicyID={selectedPolicyID}
-                    transactionPolicyID={transactionPolicyID}
-                    transactionIDs={transactionIDs}
-                    isManualDistanceRequest={isManualDistanceRequest}
-                    isOdometerDistanceRequest={isOdometerDistanceRequest}
-                    selectReport={selectReport}
-                    createReport={createReport}
-                    backTo=""
-                    isPerDiemRequest={false}
-                />
+                <SearchResultsContext
+                    value={{
+                        currentSearchResults: searchResults,
+                        currentSearchTransactionsByReportID: new Map(),
+                        currentSearchViolations: {},
+                        shouldUseLiveData: false,
+                        sortedReportIDs: [],
+                        shouldShowFiltersBarLoading: false,
+                        lastSearchType: undefined,
+                    }}
+                >
+                    <IOURequestEditReportCommon
+                        selectedReportID={selectedReportID}
+                        selectedPolicyID={selectedPolicyID}
+                        transactionPolicyID={transactionPolicyID}
+                        transactionIDs={transactionIDs}
+                        isManualDistanceRequest={isManualDistanceRequest}
+                        isOdometerDistanceRequest={isOdometerDistanceRequest}
+                        selectReport={selectReport}
+                        createReport={createReport}
+                        targetOwnerAccountID={targetOwnerAccountID}
+                        backTo=""
+                        isPerDiemRequest={false}
+                    />
+                </SearchResultsContext>
             </ComposeProviders>
         </NavigationContainer>,
     );
@@ -207,6 +225,88 @@ describe('IOURequestEditReportCommon', () => {
 
             expect(createReport).not.toHaveBeenCalled();
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('Search snapshot', () => {
+        const MEMBER_ACCOUNT_ID = 3;
+        const OPENED_REPORT_ID = '20';
+        const SNAPSHOT_ONLY_REPORT_ID = '21';
+
+        const buildMemberReport = (reportID: string, reportName: string): Report => ({
+            reportID,
+            reportName,
+            ownerAccountID: MEMBER_ACCOUNT_ID,
+            policyID: FAKE_POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+
+        beforeAll(() => {
+            Onyx.init({
+                keys: ONYXKEYS,
+                initialKeyStates: {
+                    [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL},
+                },
+            });
+            initOnyxDerivedValues();
+            return waitForBatchedUpdatesWithAct();
+        });
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: {
+                        ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        pendingAction: undefined,
+                    },
+                    // Only the report the admin already opened is in Onyx. The rest of the member's reports live in the search snapshot.
+                    [`${ONYXKEYS.COLLECTION.REPORT}${OPENED_REPORT_ID}` as const]: buildMemberReport(OPENED_REPORT_ID, 'Opened Report'),
+                });
+            });
+            return waitForBatchedUpdatesWithAct();
+        });
+
+        afterEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+            jest.clearAllMocks();
+            return waitForBatchedUpdatesWithAct();
+        });
+
+        it("should list the member's reports that are only in the search snapshot", async () => {
+            // Given a member's draft report that the admin has not opened, so it exists only in the search snapshot
+            const searchResults: SearchResults = {
+                search: {
+                    offset: 0,
+                    hash: 1,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    hasMoreResults: false,
+                    hasResults: true,
+                    isLoading: false,
+                },
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${SNAPSHOT_ONLY_REPORT_ID}` as const]: buildMemberReport(SNAPSHOT_ONLY_REPORT_ID, 'Snapshot Report'),
+                },
+            };
+
+            // When the admin opens the report picker from the report they opened
+            renderIOURequestEditReportCommon({
+                selectedReportID: OPENED_REPORT_ID,
+                selectedPolicyID: FAKE_POLICY_ID,
+                targetOwnerAccountID: MEMBER_ACCOUNT_ID,
+                searchResults,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both the opened report and the one from the search snapshot are offered as destinations
+            expect(screen.getByText('Opened Report')).toBeTruthy();
+            expect(screen.getByText('Snapshot Report')).toBeTruthy();
         });
     });
 
