@@ -13,8 +13,7 @@ import CONST from '@src/CONST';
 import type {ComponentProps} from 'react';
 
 import React from 'react';
-import {StyleSheet} from 'react-native';
-import Animated, {FadeOut} from 'react-native-reanimated';
+import {StyleSheet, View} from 'react-native';
 
 import Search from './index';
 
@@ -32,7 +31,12 @@ function handleSkeletonLayout() {
     }
 }
 
-function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>) {
+type SearchWithNavigationDeferredMountProps = ComponentProps<typeof Search> & {
+    /** True when this mount replaces results already on screen, which renders the placeholder invisibly. */
+    isReplacingContent?: boolean;
+};
+
+function SearchWithNavigationDeferredMount({isReplacingContent = false, ...props}: SearchWithNavigationDeferredMountProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
@@ -41,18 +45,17 @@ function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>)
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                // Absolutely filled so the exit fade overlays the incoming Search content rather than sharing
-                // the parent's column layout with it, which would halve both heights for the fade duration.
-                <Animated.View
-                    exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                    style={[styles.flex1, StyleSheet.absoluteFill]}
-                >
+                // Absolutely filled so it never shares the parent's column layout with the incoming Search content.
+                // When it is replacing results already on screen it renders invisibly rather than being skipped: the
+                // skeleton would read as a flash between them, but its onLayout still ends the navigate-to-Search
+                // spans, and keeping the mount deferred lets it yield to the press that triggered the swap.
+                <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContent && styles.opacity0]}>
                     <SearchRowSkeleton
                         shouldAnimate
                         onLayout={handleSkeletonLayout}
                         containerStyle={containerStyle}
                     />
-                </Animated.View>
+                </View>
             }
         >
             <Search {...props} />

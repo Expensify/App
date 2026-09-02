@@ -19,6 +19,7 @@ import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -43,7 +44,7 @@ import type {SearchResults} from '@src/types/onyx';
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {clamp, FadeIn, FadeOut, LayoutAnimationConfig, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, FadeIn, LayoutAnimationConfig, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import {SearchActionsBarSwitch, SearchFiltersBarSwitch, SearchPageInputSwitch, SearchTypeMenuSwitch} from './Switches';
@@ -56,10 +57,8 @@ type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     searchResults?: SearchResults;
 
-    /** The last query whose results resolved. Drives the results area so it holds the current results while a new query loads. */
+    /** The last query whose results resolved. The area renders these, holding them while a new query loads. */
     contentQueryJSON?: SearchQueryJSON;
-
-    /** Results for `contentQueryJSON`. */
     contentSearchResults?: SearchResults;
 
     isMobileSelectionModeEnabled: boolean;
@@ -89,6 +88,11 @@ function SearchPageNarrow({
     isOverlayActive,
 }: SearchPageNarrowProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
+
+    // A layer replacing results already on screen renders its hydrate placeholder invisibly, since a skeleton there
+    // reads as a flash between two sets of results.
+    const previousContentHash = usePrevious(contentQueryJSON?.hash);
+    const isReplacingPreviousContent = previousContentHash !== contentQueryJSON?.hash;
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -217,7 +221,6 @@ function SearchPageNarrow({
         }, [isHeaderInteractive, isInteractive, startTransition]),
     );
 
-    // contentQueryJSON falls back to queryJSON upstream, so the two are always absent together.
     if (!queryJSON || !contentQueryJSON) {
         return (
             <ScreenWrapper
@@ -352,13 +355,13 @@ function SearchPageNarrow({
                                     <Animated.View
                                         key={contentQueryJSON.hash}
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                                        exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
                                         {shouldShowLoadingSkeleton ? (
                                             <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
                                         ) : (
                                             <SearchWithNavigationDeferredMount
+                                                isReplacingContent={isReplacingPreviousContent}
                                                 searchResults={contentSearchResults}
                                                 queryJSON={contentQueryJSON}
                                                 onSearchListScroll={scrollHandler}
