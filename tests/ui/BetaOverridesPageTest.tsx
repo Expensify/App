@@ -26,6 +26,18 @@ jest.mock('@hooks/useEnvironment', () => ({
     default: () => ({isProduction: mockIsProduction}),
 }));
 
+// The page also checks the compiled environment, read through a getter so it stays settable per test
+let mockConfigEnvironment: string = CONST.ENVIRONMENT.DEV;
+jest.mock('@src/CONFIG', () => ({
+    __esModule: true,
+    default: {
+        ...jest.requireActual<{default: Record<string, unknown>}>('@src/CONFIG').default,
+        get ENVIRONMENT() {
+            return mockConfigEnvironment;
+        },
+    },
+}));
+
 const mockSetBetaOverride = jest.fn<void, [string, boolean]>();
 const mockClearBetaOverrides = jest.fn<void, []>();
 jest.mock('@userActions/User', () => ({
@@ -69,6 +81,7 @@ describe('BetaOverridesPage', () => {
 
     afterEach(() => {
         mockIsProduction = false;
+        mockConfigEnvironment = CONST.ENVIRONMENT.DEV;
     });
 
     it('renders a switch for every beta except the "all" beta', async () => {
@@ -134,6 +147,7 @@ describe('BetaOverridesPage', () => {
     it('shows the not found page in production, since the route can still be reached by a deep link', async () => {
         // Given A production build, where overrides are ignored anyway
         mockIsProduction = true;
+        mockConfigEnvironment = CONST.ENVIRONMENT.PRODUCTION;
 
         // When The page is opened, which a deep link still allows even though the row is hidden
         renderBetaOverridesPage();
@@ -142,5 +156,18 @@ describe('BetaOverridesPage', () => {
         // Then The not found page is shown, so nobody can pin values that would never apply
         expect(screen.queryAllByRole(CONST.ROLE.SWITCH).length).toBe(0);
         expect(screen.queryByText('Reset all overrides')).toBeNull();
+    });
+
+    it('renders outside production even before the environment context resolves', async () => {
+        // Given A staging build whose environment context has not resolved, so it still reports production
+        mockIsProduction = true;
+        mockConfigEnvironment = CONST.ENVIRONMENT.STAGING;
+
+        // When The page is opened
+        renderBetaOverridesPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then The betas are listed rather than the not found page, so the page does not flash on open
+        expect(screen.getAllByRole(CONST.ROLE.SWITCH).length).toBe(Object.values(CONST.BETAS).length - 1);
     });
 });
