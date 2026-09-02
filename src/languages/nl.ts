@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Factureerbaar',
         nonBillable: 'Niet-factureerbaar',
         tag: 'Label',
+        violations: 'Overtredingen',
         receipt: 'Bonnetje',
         verified: 'Geverifieerd',
         replace: 'Vervangen',
@@ -5883,9 +5884,34 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 label: 'Bedrijfskaartrekening',
                 description: 'Kies waar je transacties van bedrijfskaarten naartoe wilt exporteren.',
             },
-            expensifyCardAccount: {
-                label: 'Expensify Card-account',
-                description: 'Kies waar je Expensify Card-transacties naartoe wilt exporteren.',
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
+            cardProgramAccount: {
+                label: 'Kaartprogramma-account',
+                description: "Overschrijf de werkruimte-account voor deze kaartprogramma's.",
+                descriptionLevel2: 'Overschrijf het werkruimteaccount voor dit kaartprogramma.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle programma’s gebruiken de standaardrekening';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programma met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} programma's met aangepaste rekeningen`;
+                },
+            },
+            cardAccount: {
+                label: 'Account per kaart',
+                description: 'Overschrijf de programmarekening voor individuele kaarten.',
+                descriptionLevel2: 'Stel een andere programmarekening in voor deze kaarten.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle kaarten gebruiken programmarekeningen';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} kaart met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} kaarten met aangepaste rekeningen`;
+                },
             },
             autoSyncDescription: 'Synchroniseer DualEntry en Expensify automatisch, elke dag. Rapporten worden in realtime gesynchroniseerd.',
             accountingMethods: {
@@ -6206,6 +6232,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             deleteFailureMessage: 'Er is een fout opgetreden bij het verwijderen van de categorie, probeer het opnieuw',
             categoryName: 'Categorienaam',
             requiresCategory: 'Leden moeten alle uitgaven categoriseren',
+            autoCategorizeNewExpenses: 'Nieuwe uitgaven automatisch categoriseren',
             showCategoryGLCodes: 'Toon GL-codes bij het categoriseren van uitgaven',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle onkosten moeten worden gecategoriseerd om te kunnen exporteren naar ${connectionName}.`,
             subtitle: 'Krijg beter inzicht in waar geld wordt uitgegeven. Gebruik onze standaardcategorieën of voeg je eigen categorieën toe.',
@@ -8209,6 +8236,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 requireAboveAmount: 'Bovenstaand bedrag verplicht stellen',
                 saveRule: 'Regel opslaan',
                 emptyAmountError: 'Voer een geldig bedrag in voordat je opslaat',
+                receiptAmountGreaterThanItemizedError: 'Het vereiste bonbedrag mag niet hoger zijn dan het vereiste gespecificeerde bonbedrag.',
             },
             requireFields: {title: 'Velden vereisen voor alle uitgaven', category: 'Categorie', tag: 'Label', save: 'Regel opslaan'},
             newRule: {
@@ -9414,6 +9442,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             topSpenders: 'Grootste uitgaven doeners',
             topCategories: 'Topcategorieën',
             topMerchants: 'Topverkopers',
+            violationsBySubmitter: 'Overtredingen door indiener',
         },
     },
     genericErrorPage: {
@@ -9591,6 +9620,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         time: 'Tijd (24-uursnotatie)',
         durationAmount: 'Duur',
         durationUnit: 'Eenheid',
+        leaveType: 'Type verlof',
+        normalOOO: 'Normale OOO',
         reason: 'Reden',
         workingPercentage: 'Werkpercentage',
         dateRequired: 'Startdatum is verplicht.',
@@ -10117,6 +10148,53 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Tarief is alleen geldig vanaf ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Tarief is alleen geldig tot ${endDate}`,
         cannotMergeDuplicates: 'Je kunt alleen onkosten samenvoegen op concept- of openstaande rapporten. Trek het rapport in en probeer het opnieuw.',
+        shortName: {
+            allTagLevelsRequired: 'Alle labels verplicht',
+            autoReportedRejectedExpense: 'Uitgave afgekeurd',
+            billableExpense: 'Doorbelastbaar niet langer geldig',
+            cashExpenseWithNoReceipt: 'Bon nodig',
+            categoryOutOfPolicy: 'Categorie niet meer geldig',
+            companyCardRequired: 'Bedrijfskaart vereist',
+            conversionSurcharge: 'Toeslag voor omrekening toegepast',
+            customUnitOutOfPolicy: 'Tarief niet geldig voor werkruimte',
+            customUnitRateOutOfDateRange: 'Tarief buiten geldige datums',
+            duplicatedTransaction: 'Mogelijke duplicaat',
+            fieldRequired: 'Rapportveld verplicht',
+            futureDate: 'Toekomstige datum niet toegestaan',
+            hold: 'Declaratie in de wacht',
+            inactiveVendor: 'Leverancier niet meer geldig',
+            increasedDistance: 'Afstand overschrijdt route',
+            invoiceMarkup: 'Factuur gecorrigeerd',
+            itemizedReceiptRequired: 'Gespecificeerde bon vereist',
+            maxAge: 'Datum ouder dan maximale onkostendatum',
+            missingAttendees: 'Deelnemers verplicht',
+            missingCategory: 'Ontbrekende categorie',
+            missingComment: 'Beschrijving vereist',
+            missingTag: 'Ontbrekende tag',
+            modifiedAmount: 'Bedrag aangepast',
+            modifiedDate: 'Wijzigingsdatum',
+            noRoute: 'Geen geldige route',
+            nonExpensiworksExpense: 'Niet-Expensiworks-uitgave',
+            overAutoApprovalLimit: 'Boven automatische goedkeuringslimiet',
+            overCategoryLimit: 'Bovencategorie-limiet',
+            overLimit: 'Bovengrens overschreden',
+            overTripLimit: 'Bovengrens per rit',
+            perDayLimit: 'Boven daglimiet',
+            prohibitedExpense: 'Verboden uitgave',
+            receiptGeneratedWithAI: 'Mogelijke AI-gegenereerde bon',
+            receiptNotSmartScanned: 'Bon toegevoegd handmatig',
+            receiptRequired: 'Bon nodig',
+            rter: 'Wachten op kaartovereenkomst',
+            smartscanFailed: 'Bonnetjesscan mislukt',
+            someTagLevelsRequired: 'Label vereist',
+            tagOutOfPolicy: 'Tag niet meer geldig',
+            overLimitAttendee: 'Limiet aantal personen overschreden',
+            customRules: 'Schending van aangepaste regel',
+            taxAmountChanged: 'Belastingbedrag gewijzigd',
+            taxOutOfPolicy: 'Belastingtarief niet meer geldig',
+            taxRateChanged: 'Belastingtarief gewijzigd',
+            taxRequired: 'Ontbrekend belastingtarief',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is verplicht`,
