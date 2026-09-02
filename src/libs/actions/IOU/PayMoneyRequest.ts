@@ -50,11 +50,12 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
+
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
-import {getReportPreviewReportAction} from './MoneyRequestBuilder';
 import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
-import type {AdditionalPayOnyxData} from './mergeAdditionalPayOnyxData';
+import {getReportPreviewReportAction} from './MoneyRequestBuilder';
 
 type PayInvoiceArgs = {
     paymentMethodType: PaymentMethodType;
@@ -1207,5 +1208,4 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, mergeAdditionalPayOnyxData, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
-export type {AdditionalPayOnyxData};
+export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
