@@ -84,7 +84,7 @@ function BaseSelectListItem<TItem extends ListItem>({
             selectionButtonPosition={selectionButtonPosition}
         >
             <>
-                {!!rowLeftElement && rowLeftElement}
+                {rowLeftElement}
                 <View style={[styles.flex1, styles.alignItemsStart, !!item.rightElement && styles.pr3]}>
                     <ListItemComposed.Title
                         text={fullTitle ?? ''}

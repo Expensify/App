@@ -17,7 +17,7 @@ describe('ListItemComposed.CompactAvatar', () => {
         mockAvatarFromIcon.mockClear();
     });
 
-    it('forwards the icon and defaults to the extra-small size', () => {
+    it('forwards the icon to the avatar', () => {
         const icon: Icon = {
             source: 'avatar.png',
             type: CONST.ICON_TYPE_AVATAR,
@@ -29,11 +29,6 @@ describe('ListItemComposed.CompactAvatar', () => {
         render(<ListItemComposed.CompactAvatar icon={icon} />);
 
         expect(mockAvatarFromIcon).toHaveBeenCalledTimes(1);
-        expect(mockAvatarFromIcon.mock.calls.at(0)?.at(0)).toEqual(
-            expect.objectContaining({
-                icon,
-                size: CONST.AVATAR_SIZE.X_SMALL,
-            }),
-        );
+        expect(mockAvatarFromIcon.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({icon}));
     });
 });

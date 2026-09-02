@@ -39,7 +39,7 @@ function MentionSuggestionItem({item, prefix}: MentionSuggestionItemProps) {
         <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
             {!!icon &&
                 (isIcon ? (
-                    <View style={styles.mentionSuggestionsAvatarContainer}>
+                    <View style={styles.compactAvatarContainer}>
                         <Icon
                             src={typeof icon.source === 'string' ? undefined : icon.source}
                             width={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXX_SMALL)}

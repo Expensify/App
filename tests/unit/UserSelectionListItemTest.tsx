@@ -62,7 +62,7 @@ describe('UserSelectionListItem', () => {
         });
 
         afterEach(() => {
-            mockSelectableListItem.mockImplementation(() => <View />);
+            mockSelectableListItem.mockImplementation(() => null);
         });
 
         it.each([
