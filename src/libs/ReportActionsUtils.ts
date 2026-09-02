@@ -3838,10 +3838,15 @@ function getApprovalLimitUpdateMessage(translate: LocalizedTranslate, action: Re
 
     const originalMessage = getOriginalMessage(action) ?? {};
     const currency = originalMessage.currency ?? CONST.CURRENCY.USD;
+
+    if (typeof originalMessage.limit !== 'number' || typeof originalMessage.previousLimit !== 'number') {
+        return getReportActionText(action);
+    }
+
     return translate('workspaceActions.changedApprovalLimit', {
         member: formatPhoneNumber(originalMessage.member?.email ?? ''),
-        limit: convertToDisplayString(originalMessage.limit ?? 0, currency),
-        previousLimit: convertToDisplayString(originalMessage.previousLimit ?? 0, currency),
+        limit: convertToDisplayString(originalMessage.limit, currency),
+        previousLimit: convertToDisplayString(originalMessage.previousLimit, currency),
     });
 }
 

@@ -4037,6 +4037,21 @@ describe('ReportActionsUtils', () => {
             const result = getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString);
             expect(result).toBe('changed the approval workflow for member@example.com to forward reports over $200.00 (previously $100.00)');
         });
+
+        it('should fall back to the report action text when limit or previousLimit is missing', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                reportActionID: '1',
+                created: '',
+                message: [{type: 'COMMENT', text: 'fallback text'}],
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe('fallback text');
+        });
     });
 
     describe('getPolicyChangeLogMaxExpenseAgeMessage', () => {
