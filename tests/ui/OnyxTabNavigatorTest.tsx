@@ -3,6 +3,7 @@ import {act, render} from '@testing-library/react-native';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import getPlatform from '@libs/getPlatform';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 
@@ -61,7 +62,20 @@ jest.mock('@userActions/Tab', () => ({setSelectedTab: jest.fn()}));
 
 jest.mock('@src/utils/keyboard', () => ({
     __esModule: true,
-    default: {dismiss: jest.fn(() => Promise.resolve())},
+    default: {
+        dismiss: jest.fn(() => Promise.resolve()),
+        dismissKeyboardAndExecute: jest.fn((cb: () => void) => {
+            cb();
+            return Promise.resolve();
+        }),
+    },
+}));
+
+// Self-contained (no outer variable), since `@libs/getPlatform` can get required before any outer variable here
+// would be assigned. Defaults to iOS so existing tests keep exercising the `dismiss()`-based path.
+jest.mock('@libs/getPlatform', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'ios'),
 }));
 
 jest.mock('@react-navigation/material-top-tabs', () => {
@@ -172,6 +186,11 @@ describe('OnyxTabNavigator keyboard dismissal before tab switch', () => {
         jest.clearAllMocks();
         mockScreenListeners = undefined;
         mockedKeyboardUtils.dismiss.mockImplementation(() => Promise.resolve());
+        mockedKeyboardUtils.dismissKeyboardAndExecute.mockImplementation((cb) => {
+            cb();
+            return Promise.resolve();
+        });
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
         mockKeyboardVisible(true);
     });
 
@@ -263,6 +282,33 @@ describe('OnyxTabNavigator keyboard dismissal before tab switch', () => {
         expect(mockedKeyboardUtils.dismiss).not.toHaveBeenCalled();
         expect(mockDispatch).not.toHaveBeenCalled();
     });
+
+    it('reuses dismissKeyboardAndExecute on Android instead of waiting on dismiss', async () => {
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.ANDROID);
+        let resolveDismissAndExecute: () => void = () => {};
+        mockedKeyboardUtils.dismissKeyboardAndExecute.mockImplementation(
+            (cb) =>
+                new Promise<void>((resolve) => {
+                    resolveDismissAndExecute = () => {
+                        cb();
+                        resolve();
+                    };
+                }),
+        );
+        renderTabNavigator(false, true);
+
+        const event = pressTargetTab();
+
+        expect(event.preventDefault).toHaveBeenCalledTimes(1);
+        expect(mockedKeyboardUtils.dismiss).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+
+        await act(async () => {
+            resolveDismissAndExecute();
+        });
+
+        expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
 });
 
 describe('OnyxTabNavigator keyboard dismissal after discarding changes', () => {
@@ -272,6 +318,9 @@ describe('OnyxTabNavigator keyboard dismissal after discarding changes', () => {
         jest.clearAllMocks();
         mockScreenListeners = undefined;
         mockedKeyboardUtils.dismiss.mockImplementation(() => Promise.resolve());
+        // `restoreAllMocks` below only restores `jest.spyOn` mocks, not this factory-created one, so a prior test
+        // overriding it (e.g. the Android `dismissKeyboardAndExecute` test) would otherwise leak in here.
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
         jest.spyOn(Keyboard, 'isVisible').mockReturnValue(true);
         jest.spyOn(ComposerFocusManager, 'blurActiveInput').mockImplementation();
     });

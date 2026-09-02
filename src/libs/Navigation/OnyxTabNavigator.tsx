@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import getPlatform from '@libs/getPlatform';
 import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 
@@ -230,6 +231,15 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         }
 
         isTabSwitchPendingRef.current = true;
+
+        // dismissKeyboardAndExecute only actually waits for the keyboard to close on Android; elsewhere it runs the
+        // callback immediately, so iOS/web keep the dismiss()-based wait below instead.
+        if (getPlatform() === CONST.PLATFORM.ANDROID) {
+            await KeyboardUtils.dismissKeyboardAndExecute(callback);
+            isTabSwitchPendingRef.current = false;
+            return;
+        }
+
         // No `finally`: the React Compiler (Babel) can't lower a `try` with a `finally` clause, so the pending-ref
         // reset is duplicated into both branches instead.
         try {
