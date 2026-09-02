@@ -570,6 +570,12 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                       name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
                                       create: true,
                                       setCommits: {auto: true},
+                                      // Don't inject SENTRY_RELEASE into every chunk: the SDK only reads it as a
+                                      // fallback, and setupSentry.ts passes `release` to Sentry.init explicitly.
+                                      // The injected snippet embeds the app version into all bundles, rotating
+                                      // every contenthash on each version bump and defeating the service worker's
+                                      // precache reuse across deploys (measured: 94/94 JS bundles, ~40MB per user).
+                                      inject: false,
                                   },
                                   sourcemaps: {
                                       assets: './dist/**/*.{js,map}',
