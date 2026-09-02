@@ -51,6 +51,8 @@ Each row represents a member and shows:
 
 Select a row to view the member’s individual expenses. The **Violations** column shows the violations associated with each expense, such as a missing receipt or an amount over a workspace limit. If an expense has multiple violations, they are separated by commas.
 
+![Violations by submitter report showing expanded row]({{site.url}}/assets/images/violations_by_submitter.png){:width="100%"}
+
 ---
 
 # FAQ
