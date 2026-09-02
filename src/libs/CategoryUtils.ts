@@ -252,7 +252,6 @@ export {
     formatRequireReceiptsOverText,
     formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
-    getCategoryExpenseRule,
     getCategoryDefaultTaxRate,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
