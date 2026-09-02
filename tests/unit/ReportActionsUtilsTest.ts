@@ -2429,7 +2429,8 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return false for the add expense on submitted violations snapshot action', () => {
-            // Given an add-expense-on-submitted action, which only carries a violations snapshot, but does have message content
+            // Given an add-expense-on-submitted action. It is given message content so that the assertion below covers
+            // the action type being excluded: an action with an empty message is hidden anyway, as a deleted action.
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
                 reportActionID: '1',
