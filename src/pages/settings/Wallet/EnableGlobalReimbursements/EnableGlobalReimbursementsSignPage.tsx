@@ -25,10 +25,19 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
     const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const defaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM] ?? [];
+    const bankStatement = enableGlobalReimbursementsDraft?.[INPUT_IDS.BANK_STATEMENT];
 
     const goBack = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
     };
+
+    useEffect(() => {
+        if (bankStatement?.length) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
+    }, [bankAccountID, bankStatement]);
 
     const onSubmit = () => {
         enableGlobalReimbursementsForUSDBankAccount({
@@ -48,7 +57,7 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
             }),
             achAuthorizationForm: enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM].at(0),
-            bankStatement: enableGlobalReimbursementsDraft?.[INPUT_IDS.BANK_STATEMENT]?.at(0),
+            bankStatement: bankStatement?.at(0),
             bankAccountID: Number(bankAccountID),
         });
     };
