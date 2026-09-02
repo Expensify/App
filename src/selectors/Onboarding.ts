@@ -13,7 +13,7 @@ import type {OnyxValue} from 'react-native-onyx';
  * `false` means the user has not completed the NewDot onboarding flow
  *
  * This never returns `undefined`: an unloaded NVP answers `true`, so `false` is the only value a caller can
- * trust — "not loaded yet" and "onboarded" are indistinguishable.
+ * trust, because "not loaded yet" and "onboarded" are indistinguishable.
  */
 function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
     // Onboarding is an empty object for old accounts and accounts migrated from OldDot
