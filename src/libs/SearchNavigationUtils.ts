@@ -5,6 +5,7 @@ import SCREENS from '@src/SCREENS';
 import {setSearchContext} from './actions/Search';
 import Navigation from './Navigation/Navigation';
 import navigationRef from './Navigation/navigationRef';
+import {clearQueryRefinement} from './SearchQueryRefinement';
 
 /**
  * Opens a Spend search, changing the params of the Search screen already on screen where possible.
@@ -17,6 +18,10 @@ import navigationRef from './Navigation/navigationRef';
  * whole navigator, so it is also visible over a report, where the params belong to a different route.
  */
 function navigateToSpendSearch(query: string, name?: string) {
+    // Opening a search is never a refinement. Clearing the mark stops a query the filters built earlier from being
+    // held for later, when the same query string arrives from the sidebar or a saved search instead.
+    clearQueryRefinement();
+
     if (navigationRef.isReady() && navigationRef.getCurrentRoute()?.name === SCREENS.SEARCH.ROOT) {
         navigationRef.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,

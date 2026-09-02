@@ -8,8 +8,8 @@ import type {SearchQueryString} from '@components/Search/types';
  * different search, where holding the old results would show rows unrelated to the destination. A query alone can't
  * tell the two apart — both arrive as a new `q` on the same screen — so the filter path records its query here.
  *
- * Only the most recent query is kept: an unknown query is treated as a different search, so a missed mark costs a
- * skeleton rather than showing stale results.
+ * Only the most recent query is kept, and opening a search clears it: an unknown query is treated as a different
+ * search, so a missed mark costs a skeleton rather than showing stale results.
  */
 let refinedQuery: SearchQueryString | undefined;
 
@@ -17,8 +17,12 @@ function markQueryAsRefinement(query: SearchQueryString) {
     refinedQuery = query;
 }
 
+function clearQueryRefinement() {
+    refinedQuery = undefined;
+}
+
 function isQueryARefinement(query: SearchQueryString | undefined) {
     return !!query && refinedQuery === query;
 }
 
-export {markQueryAsRefinement, isQueryARefinement};
+export {markQueryAsRefinement, clearQueryRefinement, isQueryARefinement};
