@@ -2296,7 +2296,7 @@ const CONST = {
         SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
         SPAN_SEND_MESSAGE_PHASE: {
             PROPAGATE: 'ManualSendMessagePropagate',
-            PAINT: 'ManualSendMessagePaint',
+            POST_COMMIT: 'ManualSendMessagePostCommit',
         },
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',

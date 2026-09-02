@@ -39,7 +39,7 @@ function markSendMessageCommitted(reportActionID: string | undefined) {
         return;
     }
     endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
-    startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PAINT);
+    startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT);
 }
 
 // Call before ending the parent. Sentry drops a child still running when its parent ends.
@@ -48,12 +48,12 @@ function endSendMessagePhases(reportActionID: string | undefined) {
         return;
     }
     for (const phase of Object.values(CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE)) {
-        if (phase === CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PAINT) {
+        if (phase === CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT) {
             continue;
         }
         cancelSpan(getPhaseSpanID(reportActionID, phase));
     }
-    endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PAINT);
+    endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT);
 }
 
 // Call before cancelling the parent. Sentry drops a child still running when its parent ends.
