@@ -1,8 +1,8 @@
 ---
 title: Import Company Card Transactions From a Spreadsheet 
 description: Learn how Workspace Admins can upload company card transactions manually from a spreadsheet file.
-keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import]
-internalScope: Audience is Workspace Admins. Covers how to import, update, and delete company card CSV feeds. Does not cover personal card imports or Plaid connections.
+keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import, copilot import company card transactions]
+internalScope: Audience is Workspace Admins and their Copilots. Covers how to import, update, and delete company card CSV feeds. Does not cover personal card imports or Plaid connections.
 ---
 
 # Import Company Card Transactions From a Spreadsheet 
@@ -15,18 +15,22 @@ If your bank does support a direct connection, you can connect your account to a
 
 ## Who can import company card transactions from a spreadsheet 
 
-Only **Workspace Admins** can import transactions for company cards.
+Workspace Admins can import transactions for company cards.
 
-**Company Cards** must be enabled in the workspace before you can import transactions. If you don't see **Company Cards**, enable it under **More features > Company Cards**.
+A Copilot with **Full Access** can also import transactions on behalf of a Workspace Admin. A Copilot with **Limited Access** can't, and sees a no-access message when they select **Add cards**.
+
+[Learn how to act as a Copilot](/articles/new-expensify/settings/Act-as-a-Copilot).
+
+**Company cards** must be enabled in the workspace before you can import transactions. If you don't see **Company cards**, enable it under **More features > Company cards**.
 
 ---
 
 ## How to import company card transactions from a spreadsheet
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to the **Workspaces** and select your workspace.
-2. Click **Company Cards**.
-3. Click on **Add card**.
- - If you already have a company card feed set up, click the feed name to see **Add Card**.
+2. Click **Company cards**.
+3. Click on **Add cards**.
+ - If you already have a company card feed set up, click the feed name to see **Add cards**.
 5. Choose **Import transactions from file**.
 6. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 7. Enter a name for the card feed.
@@ -50,7 +54,7 @@ You must map at least one card-identity column — a **Card number** or a **Card
 
 ## How to upload additional transactions to an existing card feed
 
-1. Go to **Workspaces > Company Cards**.
+1. Go to **Workspaces > Company cards**.
 2. Select the name of the card feed you want to update.
 3. Click **Settings**.
 4. Choose **Import spreadsheet**.
@@ -64,7 +68,7 @@ You must map at least one card-identity column — a **Card number** or a **Card
 
 ## How to delete a company card CSV feed
 
-1. Go to **Workspaces > Company Cards**.
+1. Go to **Workspaces > Company cards**.
 2. Select the name of the card feed you want to delete. 
 3. Click **Settings**.
 4. Select **Remove card feed**.

@@ -94,6 +94,12 @@ The account owner chooses your Copilot access level when granting access.
 
 If you need additional permissions, contact the account owner and ask them to update your Copilot access level.
 
+## Can I add a company card feed as a Copilot?
+
+Yes, if you've been granted Full Access. A Copilot with Limited Access can't add a company card feed and sees a no-access message when they select **Add cards** on the workspace **Company cards** page.
+
+Assigning cards from an existing feed is available to both access levels. [Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/Assign-Company-Cards).
+
 ## How are Copilot actions tracked?
 
 Actions performed as a Copilot are labeled as being completed on behalf of the account owner.
