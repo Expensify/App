@@ -204,8 +204,8 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
-    const isSplitPerDiemRequest = isPerDiemRequest(splitExpenseDraftTransaction) || isPerDiemRequest(transaction);
-    const isSplitTimeRequest = isTimeRequest(splitExpenseDraftTransaction) || isTimeRequest(transaction);
+    const isSplitPerDiemRequest = isPerDiemRequest(transaction);
+    const isSplitTimeRequest = isTimeRequest(transaction);
     const isTaxEnabled =
         (isPolicyExpenseChat || isExpenseUnreported) &&
         isTaxTrackingEnabled(true, effectivePolicy, isDistanceRequest(splitExpenseDraftTransaction), isSplitPerDiemRequest, isSplitTimeRequest);
