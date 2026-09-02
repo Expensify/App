@@ -7207,9 +7207,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             defaultVendor: 'Fornecedor padrão',
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
-                    ? `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão.`
-                    : `Despesas que não tiverem correspondência automática serão atribuídas a este fornecedor por padrão. Caso contrário, serão exportadas como ${fallbackVendorName}.`,
-            defaultVendorSelectHeader: `Escolha um fornecedor padrão para despesas que não sejam correspondidas automaticamente.`,
+                    ? `Despesas que não tiverem correspondência automática serão associadas a este fornecedor por padrão.`
+                    : `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão. Caso contrário, serão exportadas como ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Escolha um fornecedor padrão para as despesas que não forem correspondidas automaticamente.`,
             defaultAccount: 'Conta padrão',
             autoSync: 'Sincronização automática',
             autoSyncDescription: 'Sincronize NetSuite e Expensify automaticamente, todos os dias. Exporte relatórios finalizados em tempo real',

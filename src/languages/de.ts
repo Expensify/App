@@ -7255,7 +7255,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             defaultVendor: 'Standardanbieter',
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
-                    ? `Ausgaben, die nicht automatisch zugeordnet werden, werden standardmäßig diesem Lieferanten zugewiesen.`
+                    ? `Ausgaben, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Lieferanten zugeordnet.`
                     : `Ausgaben, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Lieferanten zugeordnet. Andernfalls werden sie als „${fallbackVendorName}.“ exportiert.`,
             defaultVendorSelectHeader: `Wählen Sie einen Standardanbieter für Ausgaben, die nicht automatisch zugeordnet werden.`,
             defaultAccount: 'Standardkonto',

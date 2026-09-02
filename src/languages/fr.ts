@@ -7276,7 +7276,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
                     ? `Les dépenses qui ne correspondent pas automatiquement seront par défaut associées à ce fournisseur.`
-                    : `Les dépenses qui ne sont pas appariées automatiquement seront associées par défaut à ce fournisseur. Sinon, elles seront exportées comme ${fallbackVendorName}.`,
+                    : `Les dépenses qui ne se rapprochent pas automatiquement utiliseront par défaut ce fournisseur. Sinon, elles seront exportées sous ${fallbackVendorName}.`,
             defaultVendorSelectHeader: `Choisissez un fournisseur par défaut pour les dépenses qui ne correspondent pas automatiquement.`,
             defaultAccount: 'Compte par défaut',
             autoSync: 'Synchronisation automatique',
