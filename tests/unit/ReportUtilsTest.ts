@@ -19778,15 +19778,21 @@ describe('ReportUtils', () => {
                 );
 
             it('opens the report when the beta is enabled', () => {
+                // Given a policy that would otherwise submit the report instantly
+                // When an empty report is built with the beta enabled
                 const optimisticReport = buildEmptyReportWithBeta(true);
 
+                // Then the report is left open
                 expect(optimisticReport.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
                 expect(optimisticReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             });
 
             it('falls back to the policy behaviour when the beta is disabled', () => {
+                // Given a policy that submits the report instantly
+                // When an empty report is built with the beta disabled
                 const optimisticReport = buildEmptyReportWithBeta(false);
 
+                // Then the policy decides and the report is submitted
                 expect(optimisticReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
                 expect(optimisticReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
             });

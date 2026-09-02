@@ -140,7 +140,7 @@ Onyx.connectWithoutView({
     },
 });
 
-// Without this the 'all' beta would enable a beta here that usePermissions reports as disabled
+// Without this the 'all' beta enables betas that usePermissions treats as disabled, since only it applied the config
 let betaConfiguration: BetaConfiguration | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.BETA_CONFIGURATION,

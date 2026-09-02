@@ -100,6 +100,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             report,
             chatReport,
             currentReportId: currentReportID,
+            // This list never had the beta, it used to pass an empty betas array, so it stays off on purpose
             isDefaultRoomsBetaEnabled: false,
             doesReportHaveViolations: false,
             isInFocusMode: false,

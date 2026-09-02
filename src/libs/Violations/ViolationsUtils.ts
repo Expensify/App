@@ -70,7 +70,7 @@ Onyx.connectWithoutView({
     },
 });
 
-// Read here for the same reason as the betas above: getViolationsOnyxData only runs from optimistic data builders, never during render
+// Same reason as the betas above: getViolationsOnyxData runs only from optimistic data builders, never during render
 let betaOverrides: OnyxEntry<BetaOverrides>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.BETA_OVERRIDES,
@@ -79,7 +79,7 @@ Onyx.connectWithoutView({
     },
 });
 
-// Without this the 'all' beta would enable a beta here that usePermissions reports as disabled, since only usePermissions applied the configuration before
+// Without this the 'all' beta enables betas that usePermissions treats as disabled, since only it applied the config
 let betaConfiguration: OnyxEntry<BetaConfiguration>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.BETA_CONFIGURATION,

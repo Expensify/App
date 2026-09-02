@@ -121,6 +121,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   dateFnsLocale,
                   options,
                   draftComments,
+                  // This list never had the beta, it used to pass no betas at all, so it stays off on purpose
                   isDefaultRoomsBetaEnabled: false,
                   isUsedInChatFinder: false,
                   countryCode,

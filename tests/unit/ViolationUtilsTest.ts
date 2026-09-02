@@ -3190,19 +3190,29 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('applies the violation when the beta is off on the account but pinned on locally', async () => {
+            // Given an account without the beta that pinned it on locally
             await Onyx.set(ONYXKEYS.BETAS, []);
             await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.VENDOR_MATCHING]: true});
             await waitForBatchedUpdates();
 
-            expect(getViolationsForMissingSupplier().value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+            // When violations are recomputed for a transaction whose supplier is missing
+            const result = getViolationsForMissingSupplier();
+
+            // Then the override wins and the violation is added
+            expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
         });
 
         it('skips the violation when the beta is on for the account but pinned off locally', async () => {
+            // Given an account with the beta that pinned it off locally
             await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.VENDOR_MATCHING]: false});
             await waitForBatchedUpdates();
 
-            expect(getViolationsForMissingSupplier().value).not.toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+            // When violations are recomputed for a transaction whose supplier is missing
+            const result = getViolationsForMissingSupplier();
+
+            // Then the override wins and the violation is left out
+            expect(result.value).not.toEqual(expect.arrayContaining([inactiveSupplierViolation]));
         });
     });
 
