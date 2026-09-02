@@ -1,5 +1,3 @@
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
@@ -110,7 +108,6 @@ function MoneyRequestReportPreviewProvider({
         return pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT && (pending?.reportID === chatReportID || pending?.reportID === iouReportID);
     });
     const [holdMenu, setHoldMenu] = useState<{
-        requestType: ActionHandledType;
         paymentType: PaymentMethodType | undefined;
         canPay: boolean;
         methodID: number | undefined;
@@ -226,11 +223,9 @@ function MoneyRequestReportPreviewProvider({
         }
     }, [iouReportID, isSmallScreenWidth]);
 
-    const onHoldMenuOpen = useCallback((requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
-        if (requestType !== CONST.IOU.REPORT_ACTION_TYPE.PAY && requestType !== CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-            return;
-        }
-        setHoldMenu({requestType, paymentType, canPay: !!canPay, methodID});
+    // Only the pay flow opens this menu; approve surfaces its partial/full choice in the approve dropdown instead.
+    const onHoldMenuOpen = useCallback((paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
+        setHoldMenu({paymentType, canPay: !!canPay, methodID});
     }, []);
     const onHoldMenuClose = useCallback(() => setHoldMenu(null), []);
 

@@ -246,9 +246,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const submitButtonText = shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
     const approveButtonText = shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
 
-    const selectionModeReportLevelActions: Array<
-        DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuHeaderText' | 'shouldCallOnSelectedForSubMenuItem'>
-    > = [
+    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuHeaderText'>> = [
         ...(hasSubmitAction && !shouldBlockSubmit
             ? [
                   {
@@ -266,16 +264,11 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                       icon: expensifyIcons.ThumbsUp,
                       value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                       rightIcon: shouldShowApproveSubMenu ? expensifyIcons.ArrowRight : undefined,
-                      backButtonText: shouldShowApproveSubMenu ? translate('iou.approve') : undefined,
+                      backButtonText: shouldShowApproveSubMenu ? approveButtonText : undefined,
                       subMenuItems: shouldShowApproveSubMenu ? approveSubMenuItems : undefined,
                       subMenuHeaderText: shouldShowApproveSubMenu ? approveSubMenuHeaderText : undefined,
-                      shouldCallOnSelectedForSubMenuItem: true,
-                      onSelected: () => {
-                          if (shouldShowApproveSubMenu) {
-                              return;
-                          }
-                          confirmApproval(true);
-                      },
+                      // Only reached when there is no submenu; otherwise PopoverMenu opens the submenu instead.
+                      onSelected: () => confirmApproval(true),
                   },
               ]
             : []),

@@ -57,9 +57,6 @@ type PopoverMenuItem = MenuItemProps & {
     /** A callback triggered when this item is selected */
     onSelected?: () => void;
 
-    /** Whether to call onSelected for items with sub menu */
-    shouldCallOnSelectedForSubMenuItem?: boolean;
-
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
 
@@ -495,9 +492,6 @@ function BasePopoverMenu({
             return;
         }
         if (selectedItem?.subMenuItems) {
-            if (selectedItem?.shouldCallOnSelectedForSubMenuItem) {
-                selectedItem.onSelected?.();
-            }
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);

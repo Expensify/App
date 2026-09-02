@@ -44,9 +44,6 @@ type ExpenseHeaderApprovalButtonProps = {
 
     /** Whether to disable the approve button */
     isDisabled?: boolean;
-
-    /** Whether to show the Mark as Done */
-    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 type ApprovalOption = {
@@ -118,7 +115,6 @@ function ExpenseHeaderApprovalButton({
     transactions,
     shouldShowPayButton,
     isDisabled,
-    shouldShowMarkAsDoneCopy,
 }: ExpenseHeaderApprovalButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -169,7 +165,7 @@ function ExpenseHeaderApprovalButton({
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
             isDisabled={isDisabled}
         >
-            <Button.Text>{shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}</Button.Text>
+            <Button.Text>{translate('iou.approve')}</Button.Text>
         </Button>
     );
 }

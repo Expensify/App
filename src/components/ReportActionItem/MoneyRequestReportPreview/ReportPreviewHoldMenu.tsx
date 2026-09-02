@@ -4,8 +4,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 
-import CONST from '@src/CONST';
-
 import React from 'react';
 
 import {useReportPreviewActions, useReportPreviewData, useReportPreviewHoldMenu} from './MoneyRequestReportPreviewContext';
@@ -17,7 +15,7 @@ import {useReportPreviewActions, useReportPreviewData, useReportPreviewHoldMenu}
 function ReportPreviewHoldMenu() {
     const holdMenu = useReportPreviewHoldMenu();
     const {iouReport, chatReport, transactions} = useReportPreviewData();
-    const {startAnimation, startApprovedAnimation, onHoldMenuClose} = useReportPreviewActions();
+    const {startAnimation, onHoldMenuClose} = useReportPreviewActions();
     const {convertToDisplayString} = useCurrencyListActions();
 
     if (!holdMenu || !iouReport) {
@@ -39,13 +37,7 @@ function ReportPreviewHoldMenu() {
             moneyRequestReport={iouReport}
             transactionCount={transactions.length}
             hasNonHeldExpenses={!hasOnlyHeldExpenses}
-            onConfirm={() => {
-                if (holdMenu.requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                    startApprovedAnimation();
-                } else {
-                    startAnimation();
-                }
-            }}
+            onConfirm={startAnimation}
         />
     );
 }

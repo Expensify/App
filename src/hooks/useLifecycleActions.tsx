@@ -347,13 +347,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             subMenuItems: secondaryApprovalActions,
             shouldUpdateSelectedIndex: true,
             subMenuHeaderText: shouldShowApprovalSecondaryActions ? approvalOptionsHeaderText : undefined,
-            onSelected: () => {
-                if (shouldShowApprovalSecondaryActions) {
-                    return;
-                }
-                confirmApproval();
-            },
-            shouldCallOnSelectedForSubMenuItem: true,
+            // Only reached when there is no submenu; otherwise PopoverMenu opens the submenu instead.
+            onSelected: () => confirmApproval(),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT,

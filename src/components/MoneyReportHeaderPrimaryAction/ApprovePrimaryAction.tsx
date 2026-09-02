@@ -12,13 +12,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {
-    getNextApproverAccountID,
-    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
-    hasViolations as hasViolationsReportUtils,
-    isReportOwner,
-    shouldShowMarkAsDone,
-} from '@libs/ReportUtils';
+import {getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils, isReportOwner} from '@libs/ReportUtils';
 
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 
@@ -65,12 +59,6 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
         `${ONYXKEYS.COLLECTION.POLICY}${iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : ''}`,
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-
-    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
-        isTrackIntentUser,
-        report: iouReport,
-        policy: expenseReportPolicy,
-    });
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
@@ -136,7 +124,6 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
             moneyRequestReport={iouReport}
             transactions={transactions}
             shouldShowPayButton={shouldShowPayButton}
-            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             isDisabled={isBlockSubmitDueToPreventSelfApproval}
         />
     );

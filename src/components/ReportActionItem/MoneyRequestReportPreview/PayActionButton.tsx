@@ -78,7 +78,7 @@ function PayActionButton() {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
-            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, shouldShowPayButton, methodID);
+            onHoldMenuOpen(type, shouldShowPayButton, methodID);
         } else if (chatReport && iouReport) {
             const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {

@@ -233,8 +233,7 @@ function useSelectionModeReportActions({
 
     // Build report-level action menu
     const selectionModeReportLevelActions = (() => {
-        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'subMenuHeaderText' | 'shouldCallOnSelectedForSubMenuItem'>> =
-            [];
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'subMenuHeaderText'>> = [];
         let idx = 0;
         if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {
@@ -253,13 +252,8 @@ function useSelectionModeReportActions({
                 backButtonText: shouldShowApproveSubMenu ? translate('iou.approve') : undefined,
                 subMenuItems: shouldShowApproveSubMenu ? approveSubMenuItems : undefined,
                 subMenuHeaderText: shouldShowApproveSubMenu ? approveSubMenuHeaderText : undefined,
-                shouldCallOnSelectedForSubMenuItem: true,
-                onSelected: () => {
-                    if (shouldShowApproveSubMenu) {
-                        return;
-                    }
-                    confirmApproval();
-                },
+                // Only reached when there is no submenu; otherwise PopoverMenu opens the submenu instead.
+                onSelected: () => confirmApproval(),
             };
         }
         if (hasPayAction && !(isOffline && !canAllowSettlement)) {
