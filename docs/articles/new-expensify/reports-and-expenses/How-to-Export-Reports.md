@@ -120,7 +120,13 @@ When you download multiple reports as PDFs, a message tells you how many of the 
 
 Your download keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Select **Download file** once it shows **Your file is ready!**.
 
-This applies to downloads you start from the **Reports** page and from a report's **More** menu. It does not apply when you select **Send me the file when it's ready** — Concierge sends that file to you in a chat message instead, so no status window reappears.
+This applies to the downloads that show a preparing status window, whether you start them from the **Reports** page or from a report's **More** menu: **Export** with any template other than **Basic export**, **Download receipts**, and **Download as PDF** when you selected more than one report.
+
+It does not apply to:
+
+- **Basic export**, which downloads straight to your device without a status window.
+- **Download as PDF** for a single report, which uses its own window that does not reappear after a refresh. Start the download again to get a new PDF.
+- **Send me the file when it's ready** — Concierge sends that file to you in a chat message instead, so no status window reappears.
 
 ## Why don't I see Download receipts on a report?
 
