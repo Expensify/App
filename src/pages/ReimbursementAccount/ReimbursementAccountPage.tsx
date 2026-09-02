@@ -121,6 +121,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const hasClearedStalePlaidErrorsRef = useRef(false);
     const isChangingBankAccountRef = useRef(isChangingBankAccount);
     const hasShownConnectedBankAccountRef = useRef(false);
+    // Latches the pending-USD redirect below so the effect dispatches the navigation at most once per mount, even
+    // though its dependencies change again while the transition is in flight.
+    const hasRedirectedToPendingValidationRef = useRef(false);
+    // Set once this page has actually been covered by the validation step. The redirect ref alone cannot tell that
+    // apart from the redirect still being in flight, because it flips while this page is still focused.
+    const hasBlurredAfterPendingRedirectRef = useRef(false);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const achData = reimbursementAccount?.achData;
@@ -184,7 +190,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     useEffect(() => {
         const isChangingBankAccountInstance = isChangingBankAccountRef.current;
         return () => {
-            if (!isChangingBankAccountInstance) {
+            // Don't wipe the account when this instance unmounts only because it redirected into the validation step of
+            // the same flow. ConnectBankAccount reads achData.state and does no fetching, so clearing here resets it to
+            // DEFAULT_DATA underneath it and renders a blank header-only RHP.
+            if (!isChangingBankAccountInstance && !hasRedirectedToPendingValidationRef.current) {
                 clearReimbursementAccountDraft();
                 clearReimbursementAccount();
             }
@@ -228,6 +237,28 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     const isDefaultReimbursementAccountData = deepEqual(reimbursementAccount, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
     const hasLoadedData = reimbursementAccount?.achData && !isDefaultReimbursementAccountData && !reimbursementAccount?.isLoading;
+    // For a pending USD account this page only redirects, so it must never paint the entry point. Derived during render
+    // because effects run after paint. Not latched on the redirect ref: that flips mid-transition and the next render
+    // would fall through to the entry point. policyID must match because REIMBURSEMENT_ACCOUNT is persisted, so on a
+    // cold load achData can still describe another policy's account. Entry points that pass no policyID at all (the
+    // Wallet ones) are excluded outright, since there is nothing to match them against.
+    const shouldRedirectToPendingValidation =
+        policyCurrency === CONST.CURRENCY.USD &&
+        achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING &&
+        !!hasLoadedData &&
+        !isChangingBankAccount &&
+        !!policyIDParam &&
+        achData?.policyID === policyIDParam;
+
+    // Leaves the setup flow entirely. Used everywhere the pending-validation redirect needs an exit, because going back
+    // to this page would only redirect again.
+    const leavePendingValidationFlow = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.dismissModal();
+    }, [backTo]);
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
      Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
@@ -358,11 +389,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        // If USD bank account is in pending state, we should navigate straight to the validation step and skip Continue step
-        if (policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
-            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
-            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
-            setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
+        // Navigate straight to the validation step and skip the Continue step. Done from inside this page so that
+        // openReimbursementAccountPage has already populated the achData that ConnectBankAccount reads.
+        if (shouldRedirectToPendingValidation && !hasRedirectedToPendingValidationRef.current) {
+            hasRedirectedToPendingValidationRef.current = true;
+            // A push, not a forceReplace: replacing unmounts this page and its cleanup wipes REIMBURSEMENT_ACCOUNT,
+            // leaving ConnectBankAccount with state 'SETUP' and a blank RHP.
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION, backTo}));
             return;
         }
 
@@ -378,7 +411,38 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // achData changes — not to local USDBankAccountStep updates — otherwise it races with prepareNextStep
         // and briefly pulls USDBankAccountStep back to the server value before the Onyx merge lands.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policyIDParam, achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDSetup, isPreviousPolicy, achData?.state, policyCurrency]);
+    }, [
+        policyIDParam,
+        achData?.currentStep,
+        shouldShowContinueSetupButtonValue,
+        isNonUSDSetup,
+        isPreviousPolicy,
+        achData?.state,
+        policyCurrency,
+        shouldRedirectToPendingValidation,
+        backTo,
+    ]);
+
+    // Declared after the redirect effect so that on the commit where the redirect fires this runs with the blur flag
+    // still unset and bails out, rather than racing the navigation it is meant to follow.
+    useEffect(() => {
+        if (!hasRedirectedToPendingValidationRef.current) {
+            return;
+        }
+
+        if (!isFocused) {
+            hasBlurredAfterPendingRedirectRef.current = true;
+            return;
+        }
+
+        // The user navigated back onto this page, which the back handler cannot intercept for browser back. This page
+        // only redirects for a pending account, so it would otherwise sit on the loader forever. Leave the flow.
+        if (!hasBlurredAfterPendingRedirectRef.current || !shouldRedirectToPendingValidation) {
+            return;
+        }
+
+        leavePendingValidationFlow();
+    }, [isFocused, shouldRedirectToPendingValidation, leavePendingValidationFlow]);
 
     useEffect(() => {
         if (!prevPolicyCurrency || policyCurrency === prevPolicyCurrency) {
@@ -646,6 +710,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 isNonUSDWorkspace={isNonUSDSetup}
             />
         );
+    }
+
+    // Keep the loader on screen for a pending USD account so the "Continue setup / Start over" entry point is never
+    // painted on the way to the validation step. The back button leaves the flow rather than using goBack, which
+    // switches on achData.currentStep and performs no navigation at all for several of its cases.
+    if (shouldRedirectToPendingValidation) {
+        return <ReimbursementAccountLoadingIndicator onBackButtonPress={leavePendingValidationFlow} />;
     }
 
     // Once fresh data has loaded, trust the live value to avoid a one-frame flash from the effect-synced state lagging achData.
