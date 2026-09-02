@@ -140,6 +140,8 @@ export default {
     },
     // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
     USE_REACT_STRICT_MODE_IN_DEV: false,
+    // Turn off locally when profiling to keep the Activity gate's StrictMode double renders out of the measurements
+    USE_ACTIVITY_SCREEN_STRICT_MODE_IN_DEV: true,
     ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     IS_TEST_ENV: process.env.NODE_ENV === 'test',
     SKIP_ONBOARDING: get(Config, 'SKIP_ONBOARDING', 'false') === 'true',
