@@ -1030,18 +1030,6 @@ let deprecatedCurrentUserPrivateDomain: string | undefined;
 let deprecatedCurrentUserAccountID: number | undefined;
 let deprecatedIsAnonymousUser = false;
 
-/**
- * Session values mirrored from Onyx at module scope. Exposed as accessors rather than as exported
- * `let` bindings so consumers outside this file cannot depend on a mutable export.
- */
-function getDeprecatedCurrentUserEmail(): string | undefined {
-    return deprecatedCurrentUserEmail;
-}
-
-function getDeprecatedCurrentUserAccountID(): number | undefined {
-    return deprecatedCurrentUserAccountID;
-}
-
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
@@ -3243,7 +3231,6 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
     const isOwnReportAndRetracted = isReportOwner(iouReport) && hasBeenReopenedOrRetracted;
     return isOwnReportAndRetracted || isWaitingForSubmissionFromCurrentUser(chatReport, policy);
 }
-
 
 /**
  * Checks whether the card transaction support deleting based on liability type
@@ -12037,7 +12024,6 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, curr
     );
 }
 
-
 /**
  * Check if a report is forwarded or not
  */
@@ -14188,8 +14174,6 @@ export {
     canDeleteCardTransactionByLiabilityType,
     isTeachersUniteReport,
     getTaskAssigneeChatOnyxData,
-    getDeprecatedCurrentUserAccountID,
-    getDeprecatedCurrentUserEmail,
     getTransactionCommentObject,
     getTransactionDetails,
     getTransactionReportName,

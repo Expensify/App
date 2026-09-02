@@ -1,23 +1,16 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {
-    getDeprecatedCurrentUserAccountID,
-    getDeprecatedCurrentUserEmail,
-    getPolicyExpenseChat,
-    getReportOrDraftReport,
-    getTransactionCommentObject,
-    getTransactionDetails,
-} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionCommentObject, getTransactionDetails} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
-import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 
 import {createDraftWorkspace} from '@userActions/Policy/Policy';
 import {openUnreportedExpense} from '@userActions/Report';
@@ -282,8 +275,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             return;
         }
 
-        if (activePolicy && shouldShowPolicy(activePolicy, false, getDeprecatedCurrentUserEmail())) {
-            const policyExpenseReportID = getPolicyExpenseChat(getDeprecatedCurrentUserAccountID(), activePolicy.id)?.reportID;
+        if (activePolicy && shouldShowPolicy(activePolicy, false, currentUserEmail)) {
+            const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, activePolicy.id)?.reportID;
             setMoneyRequestParticipants(transactionID, [
                 {
                     selected: true,
@@ -323,7 +316,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             return;
         }
 
-        const policyExpenseReportID = getPolicyExpenseChat(getDeprecatedCurrentUserAccountID(), firstPolicyID)?.reportID;
+        const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, firstPolicyID)?.reportID;
         setMoneyRequestParticipants(transactionID, [
             {
                 selected: true,
@@ -381,14 +374,14 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 
         // Exactly one accessible workspace: skip the destination picker and submit straight to that workspace.
         if (filteredPoliciesCount === 1 && firstPolicyID) {
-            const policyExpenseReport = getPolicyExpenseChat(getDeprecatedCurrentUserAccountID(), firstPolicyID);
+            const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, firstPolicyID);
             if (policyExpenseReport) {
                 // The draft inherits the source expense's unreported ID from the self DM. The picker we skip here is what
                 // normally rebinds it to the destination chat, so without this the confirmation page still reads the draft
                 // as unreported: it renders "None" for the report and resolves the policy from the self DM instead of the
                 // destination workspace.
                 setMoneyRequestReportID(transactionID, policyExpenseReport.reportID);
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, getDeprecatedCurrentUserAccountID()).then(() => {
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, currentUserAccountID).then(() => {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReport.reportID));
                 });
                 return;
@@ -414,12 +407,12 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     if (actionName === CONST.IOU.ACTION.SUBMIT || filteredPoliciesCount > 0) {
         // Check if user is restricted to preferred workspace for submit tracked expenses
         if (isRestrictedToPreferredPolicy && preferredPolicyID) {
-            const policyExpenseReport = getPolicyExpenseChat(getDeprecatedCurrentUserAccountID(), preferredPolicyID);
+            const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, preferredPolicyID);
 
             if (policyExpenseReport) {
                 // Same picker-skip as the single-workspace branch above, so the draft needs the same rebinding.
                 setMoneyRequestReportID(transactionID, policyExpenseReport.reportID);
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, getDeprecatedCurrentUserAccountID()).then(() => {
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, currentUserAccountID).then(() => {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReport.reportID));
                 });
                 return;
