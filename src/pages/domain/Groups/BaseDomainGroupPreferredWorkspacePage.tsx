@@ -1,3 +1,8 @@
+/**
+ * Shared preferred-workspace selector for domain groups. Both the group-create and group-edit
+ * pages delegate to this component; it renders the admin workspace list with a search field and
+ * gates access behind DomainNotFoundPageWrapper.
+ */
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
