@@ -7006,8 +7006,7 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
             minWidth += (isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK) ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
-            // "Created" is wider than "Date", so it uses 72 like the sibling date columns (Submitted/Approved/Posted) instead of 48.
-            minWidth += isCreatedDateType(type) ? 72 : 48;
+            minWidth += isCreatedDateType(type) ? 80 : 62;
         } else if (
             column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
             column === CONST.SEARCH.TABLE_COLUMNS.APPROVED ||
