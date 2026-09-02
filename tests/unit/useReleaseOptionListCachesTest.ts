@@ -65,13 +65,16 @@ beforeEach(() => {
 
 describe('useReleaseOptionListCaches', () => {
     it('releases the cached lists when another tab takes over from Search', () => {
-        renderReleaseHook();
+        const {unmount} = renderReleaseHook();
 
         leaveSearch();
 
         // Both caches, because releasing only one of them leaves the other holding the lists it was built from.
         expect(mockReleaseOptions).toHaveBeenCalled();
         expect(mockReleaseSearchSelector).toHaveBeenCalled();
+
+        unmount();
+        expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
     it('keeps the cached lists while Search is still the tab on top', () => {

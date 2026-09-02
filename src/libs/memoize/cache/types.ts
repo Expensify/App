@@ -15,7 +15,7 @@ type Cache<K, V> = {
      * @returns The value for the key
      */
     getSet: (key: K, valueProducer: () => V) => BoxedValue<V>;
-    /** Drops every entry, so cached values can be released once they are no longer worth holding */
+    /** Drops every entry */
     clear: () => void;
     snapshot: {
         keys: () => K[];

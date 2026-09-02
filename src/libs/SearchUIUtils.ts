@@ -5873,10 +5873,9 @@ function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey
 }
 
 /**
- * Everything the content of `baseFilterKey` is given out of the form, tagged with the kind of content it is.
- * `SearchAdvancedFiltersContent` builds its props from this and `hasFilterContentValuesChanged` compares two of them,
- * so which values a content reads is decided in one place and the two cannot drift apart. The key is handed back
- * narrowed to the kind that was matched, which is what the matching content requires of it.
+ * Everything the content of `baseFilterKey` reads out of the form, tagged with the kind of content it is and with the
+ * key narrowed to that kind. `SearchAdvancedFiltersContent` builds its props from this and
+ * `hasFilterContentValuesChanged` compares two of them.
  */
 function getFilterContentValues(baseFilterKey: SearchFilter['key'], values: Partial<SearchAdvancedFiltersForm> | undefined) {
     if (isAmountFilterKey(baseFilterKey)) {
@@ -5924,7 +5923,7 @@ function getFilterContentValues(baseFilterKey: SearchFilter['key'], values: Part
     } as const;
 }
 
-/** Whether the values the content of `baseFilterKey` reads differ between two versions of the form, so a change to a filter it doesn't read leaves it alone. */
+/** Whether the values the content of `baseFilterKey` reads differ between two versions of the form. */
 function hasFilterContentValuesChanged(
     baseFilterKey: SearchFilter['key'],
     previousValues: Partial<SearchAdvancedFiltersForm> | undefined,

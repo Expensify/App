@@ -48,8 +48,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         return acc;
     }, new Set<string>());
 
-    // getExpensifyTeamExclusions walks every personal detail, and it only narrows options that are not being built while
-    // the selector stands as its own loading state, so it is skipped until then.
+    // getExpensifyTeamExclusions walks every personal detail, so it is skipped while the selector withholds its options.
     const expensifyTeamExclusions = ready ? getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email) : CONST.EMPTY_OBJECT;
 
     // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
@@ -153,8 +152,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                     footerContent={footer}
                 />
             ) : (
-                // One spinner while the contact list is not being built yet. A skeleton of rows would draw a list that
-                // is not there and flicker row by row as the cursor moves from filter to filter.
+                // One spinner while the contact list is not being built yet.
                 <LoadingIndicator />
             )}
         </ListFilterWrapper>

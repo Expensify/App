@@ -154,12 +154,9 @@ const defaultListOptions = {
 
 /**
  * How many option lists the caches below hold. Consumers mount one selector at a time, except the Search filters
- * popover, which keeps its people filters alive next to each other - three of them, which is the most a single search
- * type offers at once (from, to and attendee, on expense searches). Fewer entries cost more than the memory they save:
- * the result of `buildSelectedOptions` is an argument of `getValidOptions` compared by identity, so an eviction in the
- * first cache makes the second one miss as well. What the entries cost in memory is bounded by
- * `useReleaseOptionListCaches`, which drops both caches once another tab takes over from Search, so this number only
- * has to cover how many lists are wanted at once rather than how long any of them lives.
+ * popover, which keeps three people filters alive next to each other (from, to and attendee, on expense searches).
+ * An eviction in the first cache makes the second one miss, because its result is an identity-compared argument of
+ * `getValidOptions`.
  */
 const MAX_CACHED_OPTION_LISTS = 3;
 
@@ -183,14 +180,13 @@ const memoizedBuildSelectedOptions = memoize(buildSelectedOptions, {
     monitoringName: 'usePersonalDetailSearchSelector.buildSelectedOptions',
 });
 
-/** Releases the cached lists. The next consumer derives them again, so callers pay that price for the memory back. */
+/** Releases the cached lists. */
 function clearPersonalDetailSearchSelectorCaches() {
     memoizedGetValidOptions.cache.clear();
     memoizedBuildSelectedOptions.cache.clear();
 }
 
-// Both caches hold option lists built for the signed-in account, released when Search is left
-// (`useReleaseOptionListCaches`) and on sign-out.
+// Both caches hold option lists built for the signed-in account.
 registerSessionCleanupCallback(clearPersonalDetailSearchSelectorCaches);
 
 /**

@@ -107,9 +107,7 @@ const createReportAttributesSelector =
 /**
  * Building an option per personal details entry is the expensive step of this hook and depends only on Onyx values.
  * Arguments are compared one level deep because the maps are rebuilt each render from those same unchanged values.
- * A single entry is held because the whole contact list is the expensive case. A consumer narrowing it with
- * `includeLoginsOnly` evicts that entry, but both its own build and the next whole-list one are cheap enough to be
- * worth the memory saved.
+ * A single entry is held, so a consumer narrowing the list with `includeLoginsOnly` evicts the whole-list one.
  */
 const memoizedCreateOptionList = memoize(createOptionList, {
     maxSize: 1,
@@ -117,13 +115,12 @@ const memoizedCreateOptionList = memoize(createOptionList, {
     monitoringName: 'usePersonalDetailOptions.createOptionList',
 });
 
-/** Releases the cached options. The next consumer builds them again, so callers pay that price for the memory back. */
+/** Releases the cached options. */
 function clearPersonalDetailOptionsCache() {
     memoizedCreateOptionList.cache.clear();
 }
 
-// The cached options describe the signed-in account's contacts, released when Search is left
-// (`useReleaseOptionListCaches`) and on sign-out.
+// The cached options describe the signed-in account's contacts.
 registerSessionCleanupCallback(clearPersonalDetailOptionsCache);
 
 /**
