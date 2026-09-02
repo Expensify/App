@@ -2348,7 +2348,8 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
-                    currentUserLogin: 'test@example.com',
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(result).toEqual('changed the attendees to Alice, Bob (previously Alice)');
@@ -2370,7 +2371,8 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
-                    currentUserLogin: 'test@example.com',
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(result).toEqual('set the attendees to Alice');
@@ -2392,7 +2394,8 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
-                    currentUserLogin: 'test@example.com',
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(result).toEqual('removed the attendees (previously Alice)');
