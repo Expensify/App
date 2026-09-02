@@ -1,3 +1,5 @@
+import scalePixels from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scalePixels';
+
 import type {RoundedCorners} from 'victory-native';
 
 import lodashIsObject from 'lodash/isObject';
@@ -45,10 +47,10 @@ function parseCornerRadius(attribute: string, pixelScale = 1): RoundedCorners | 
             bottomRight = Number(cornerRadius.bottom);
         }
         return {
-            topLeft: topLeft === undefined ? undefined : topLeft * pixelScale,
-            topRight: topRight === undefined ? undefined : topRight * pixelScale,
-            bottomLeft: bottomLeft === undefined ? undefined : bottomLeft * pixelScale,
-            bottomRight: bottomRight === undefined ? undefined : bottomRight * pixelScale,
+            topLeft: scalePixels(topLeft, pixelScale),
+            topRight: scalePixels(topRight, pixelScale),
+            bottomLeft: scalePixels(bottomLeft, pixelScale),
+            bottomRight: scalePixels(bottomRight, pixelScale),
         };
     }
     return undefined;

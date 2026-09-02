@@ -6,6 +6,7 @@ import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRendere
 import parseCornerRadius from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseCornerRadius';
 import parseOffset from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseOffset';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+import scalePixels from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scalePixels';
 
 import type {TNode} from 'react-native-render-html';
 
@@ -28,7 +29,7 @@ function VictoryChartBarGroup({tnode, isHorizontal}: VictoryChartBarGroupProps) 
 
     const roundedCorners = parseCornerRadius(firstBarChild?.attributes?.cornerradius ?? '', pixelScale);
     const rawBarWidth = parseAttributeAsNumber(firstBarChild.attributes.barwidth);
-    const barWidth = rawBarWidth === undefined ? undefined : rawBarWidth * pixelScale;
+    const barWidth = scalePixels(rawBarWidth, pixelScale);
     const betweenGroupPadding = barWidth
         ? parseOffset(tnode.attributes.offset, chartBounds, barChildren.length, barWidth, points[getYKey(firstBarChild)].length, isHorizontal ?? false, pixelScale)
         : undefined;

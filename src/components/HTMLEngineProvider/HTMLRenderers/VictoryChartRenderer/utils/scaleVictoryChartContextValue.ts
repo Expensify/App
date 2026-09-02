@@ -1,5 +1,6 @@
 import type {VictoryChartContextValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import type {LabelItem, LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import scalePixels from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scalePixels';
 
 import type {SkFont, SkTypeface} from '@shopify/react-native-skia';
 
@@ -34,12 +35,12 @@ function scaleLegendItem(legendItem: LegendItem, scale: number): LegendItem {
         ...legendItem,
         x: legendItem.x * scale,
         y: legendItem.y * scale,
-        gutter: legendItem.gutter === undefined ? undefined : legendItem.gutter * scale,
-        symbolSpacer: legendItem.symbolSpacer === undefined ? undefined : legendItem.symbolSpacer * scale,
+        gutter: scalePixels(legendItem.gutter, scale),
+        symbolSpacer: scalePixels(legendItem.symbolSpacer, scale),
         entries: legendItem.entries.map((entry) => ({
             ...entry,
-            fontSize: entry.fontSize === undefined ? undefined : entry.fontSize * scale,
-            symbolSize: entry.symbolSize === undefined ? undefined : entry.symbolSize * scale,
+            fontSize: scalePixels(entry.fontSize, scale),
+            symbolSize: scalePixels(entry.symbolSize, scale),
         })),
     };
 }
@@ -48,15 +49,15 @@ type SidedPixelValues = {left?: number; right?: number; top?: number; bottom?: n
 
 function scaleSidedPixelValues(sides: SidedPixelValues, scale: number): SidedPixelValues {
     return {
-        left: sides.left === undefined ? undefined : sides.left * scale,
-        right: sides.right === undefined ? undefined : sides.right * scale,
-        top: sides.top === undefined ? undefined : sides.top * scale,
-        bottom: sides.bottom === undefined ? undefined : sides.bottom * scale,
+        left: scalePixels(sides.left, scale),
+        right: scalePixels(sides.right, scale),
+        top: scalePixels(sides.top, scale),
+        bottom: scalePixels(sides.bottom, scale),
     };
 }
 
-/** Padding can be a plain number or a per-side object — scale every numeric part. */
-function scalePadding(padding: VictoryChartContextValue['padding'], scale: number): VictoryChartContextValue['padding'] {
+/** (Domain) padding can be a plain number or a per-side object — scale every numeric part. */
+function scalePadding(padding: number | SidedPixelValues | undefined, scale: number): number | SidedPixelValues | undefined {
     if (padding === undefined) {
         return undefined;
     }
@@ -64,17 +65,6 @@ function scalePadding(padding: VictoryChartContextValue['padding'], scale: numbe
         return padding * scale;
     }
     return scaleSidedPixelValues(padding, scale);
-}
-
-/** Domain padding can be a plain number or a per-side object — scale every numeric part. */
-function scaleDomainPadding(domainPadding: VictoryChartContextValue['domainPadding'], scale: number): VictoryChartContextValue['domainPadding'] {
-    if (domainPadding === undefined) {
-        return undefined;
-    }
-    if (typeof domainPadding === 'number') {
-        return domainPadding * scale;
-    }
-    return scaleSidedPixelValues(domainPadding, scale);
 }
 
 /**
@@ -95,8 +85,8 @@ function scaleAxis<TAxis extends {lineWidth?: number; labelOffset?: number; font
     }
     return {
         ...axis,
-        lineWidth: axis.lineWidth === undefined ? undefined : axis.lineWidth * scale,
-        labelOffset: axis.labelOffset === undefined ? undefined : axis.labelOffset * scale,
+        lineWidth: scalePixels(axis.lineWidth, scale),
+        labelOffset: scalePixels(axis.labelOffset, scale),
         font: scaleFont(axis.font, scale, typeface),
     };
 }
@@ -113,7 +103,7 @@ function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: n
         ...value,
         xAxis: scaleAxis(value.xAxis, scale, typeface),
         yAxis: value.yAxis?.map((axis) => scaleAxis(axis, scale, typeface)),
-        domainPadding: scaleDomainPadding(value.domainPadding, scale),
+        domainPadding: scalePadding(value.domainPadding, scale),
         padding: scalePadding(value.padding, scale),
         labelItems: value.labelItems.map((labelItem) => scaleLabelItem(labelItem, scale)),
         legendItems: value.legendItems.map((legendItem) => scaleLegendItem(legendItem, scale)),

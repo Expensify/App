@@ -5,6 +5,7 @@ import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRe
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseCornerRadius from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseCornerRadius';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+import scalePixels from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scalePixels';
 
 import type {TNode} from 'react-native-render-html';
 
@@ -25,7 +26,7 @@ function VictoryChartBar({tnode}: VictoryChartBarProps) {
             color={nodeStyles.fill ?? VictoryTheme.colors.default}
             innerPadding={BAR_INNER_PADDING}
             roundedCorners={parseCornerRadius(tnode.attributes.cornerradius, pixelScale)}
-            barWidth={barWidth === undefined ? undefined : barWidth * pixelScale}
+            barWidth={scalePixels(barWidth, pixelScale)}
         />
     );
 }

@@ -8,7 +8,9 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {ColorValue} from 'react-native';
 
-// The zoomed render is capped so the canvas never exceeds a safe texture size.
+// The zoom headroom shrinks (down to 1, i.e. no zoom) once the fitted render approaches this
+// size, so zooming never allocates an excessively large canvas. The fitted render itself is
+// never reduced — the chart must at least fill the viewport.
 const MAX_CANVAS_DIMENSION = 2048;
 // 2x headroom covers typical zoom depth without paying for a larger render surface.
 const MAX_ZOOM_HEADROOM = 2;

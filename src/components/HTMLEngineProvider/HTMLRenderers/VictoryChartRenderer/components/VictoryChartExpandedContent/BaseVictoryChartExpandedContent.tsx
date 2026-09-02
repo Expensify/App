@@ -15,7 +15,7 @@ import useExpandedChartLayout from './useExpandedChartLayout';
  * single transform for fitting, centering, and pinch/double-tap zooming — no manual transforms of
  * our own, since nested transforms rasterize the inner layer and blur it on native.
  */
-function BaseVictoryChartExpandedContent({availableSize, isVisible}: VictoryChartExpandedContentProps) {
+function BaseVictoryChartExpandedContent({availableSize, isVisible, onSwipeDown}: VictoryChartExpandedContentProps) {
     const {hasLayout, fitScale, zoomHeadroom, renderWidth, renderHeight, clippedRenderHeight, backgroundColor, borderRadius, isPolar} = useExpandedChartLayout(availableSize);
     // No pager wraps this canvas, so scrolling never needs to be handed back to one.
     const isPagerScrollEnabled = useSharedValue(false);
@@ -29,15 +29,18 @@ function BaseVictoryChartExpandedContent({availableSize, isVisible}: VictoryChar
             isActive={isVisible}
             canvasSize={availableSize}
             contentSize={{width: renderWidth, height: clippedRenderHeight}}
+            // Zooming past the rendered resolution would upscale pixels and blur the chart — cap
+            // the zoom at the headroom the chart was actually rendered with.
+            zoomRange={{max: zoomHeadroom}}
             isUsedInCarousel={false}
             isPagerScrollEnabled={isPagerScrollEnabled}
+            onSwipeDown={onSwipeDown}
         >
             <ExpandedChartBox
                 width={renderWidth}
                 height={renderHeight}
                 clippedHeight={clippedRenderHeight}
                 providerScale={fitScale * zoomHeadroom}
-                isVisible={isVisible}
                 backgroundColor={backgroundColor}
                 borderRadius={borderRadius}
                 isPolar={isPolar}

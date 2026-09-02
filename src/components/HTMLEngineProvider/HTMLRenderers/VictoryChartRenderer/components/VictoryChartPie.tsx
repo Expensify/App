@@ -14,6 +14,7 @@ import convertAngleToArcLength from '@components/HTMLEngineProvider/HTMLRenderer
 import {parseAttributeAsNumber, parseAttributeAsStringArray} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+import scalePixels from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scalePixels';
 import {scaleLabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scaleVictoryChartContextValue';
 
 import useTheme from '@hooks/useTheme';
@@ -56,12 +57,12 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const baseLabelItem = rawBaseLabelItem && pixelScale !== 1 ? scaleLabelItem(rawBaseLabelItem, pixelScale) : rawBaseLabelItem;
     const pieLabels = parseAttributeAsStringArray(tnode.attributes.labels);
     const rawLabelRadius = parseAttributeAsNumber(tnode.attributes.labelradius);
-    const labelRadius = rawLabelRadius === undefined ? undefined : rawLabelRadius * pixelScale;
+    const labelRadius = scalePixels(rawLabelRadius, pixelScale);
     const rawInnerRadius = parseAttributeAsNumber(tnode.attributes.innerradius);
-    const innerRadius = rawInnerRadius === undefined ? undefined : rawInnerRadius * pixelScale;
+    const innerRadius = scalePixels(rawInnerRadius, pixelScale);
     const padAngle = parseAttributeAsNumber(tnode.attributes.padangle);
     const rawRadius = parseAttributeAsNumber(tnode.attributes.radius);
-    const radius = rawRadius === undefined ? undefined : rawRadius * pixelScale;
+    const radius = scalePixels(rawRadius, pixelScale);
     const effectiveLabelRadius = labelRadius ?? radius;
     const size = radius ? radius * 2 : undefined;
     const angularStrokeWidth = padAngle && radius ? 2 * convertAngleToArcLength(padAngle, radius) : 0;
@@ -70,14 +71,14 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const labelIndicatorNode = parseComponent(tnode.attributes.labelindicator, renderEngine, 'shiftedlinesegment', HTMLContentModel.block);
     const labelIndicatorStyles = labelIndicatorNode ? parseShiftedLineSegmentNode(labelIndicatorNode) : undefined;
     const {xShift: rawIndicatorXShift, yShift: rawIndicatorYShift, strokeWidth: rawIndicatorStrokeWidth} = labelIndicatorStyles ?? {};
-    const labelIndicatorXShift = rawIndicatorXShift === undefined ? undefined : rawIndicatorXShift * pixelScale;
-    const labelIndicatorYShift = rawIndicatorYShift === undefined ? undefined : rawIndicatorYShift * pixelScale;
-    const labelIndicatorStrokeWidth = rawIndicatorStrokeWidth === undefined ? undefined : rawIndicatorStrokeWidth * pixelScale;
+    const labelIndicatorXShift = scalePixels(rawIndicatorXShift, pixelScale);
+    const labelIndicatorYShift = scalePixels(rawIndicatorYShift, pixelScale);
+    const labelIndicatorStrokeWidth = scalePixels(rawIndicatorStrokeWidth, pixelScale);
     const labelIndicatorStroke = resolveChartThemeColor(labelIndicatorStyles?.stroke, theme);
     const rawIndicatorInnerOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorinneroffset);
-    const labelIndicatorInnerOffset = rawIndicatorInnerOffset === undefined ? undefined : rawIndicatorInnerOffset * pixelScale;
+    const labelIndicatorInnerOffset = scalePixels(rawIndicatorInnerOffset, pixelScale);
     const rawIndicatorOuterOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorouteroffset);
-    const labelIndicatorOuterOffset = rawIndicatorOuterOffset === undefined ? undefined : rawIndicatorOuterOffset * pixelScale;
+    const labelIndicatorOuterOffset = scalePixels(rawIndicatorOuterOffset, pixelScale);
 
     const customLabelByDataLabel: Record<string, string | undefined> = {};
     const sliceValues: PieSliceValue[] = [];

@@ -1,6 +1,4 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 import Modal from '@components/Modal';
 
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +17,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 import VictoryChartContent from './VictoryChartContent';
 import VictoryChartExpandedContent from './VictoryChartExpandedContent';
+import useExpandedChartLayout from './VictoryChartExpandedContent/useExpandedChartLayout';
 
 type VictoryChartExpandModalProps = {
     /** Whether the modal is visible */
@@ -40,8 +39,8 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
     const [availableSize, setAvailableSize] = useState({width: 0, height: 0});
+    const layout = useExpandedChartLayout(availableSize);
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
         // Ignore layout changes while the modal is closing — re-measuring mid-animation
@@ -54,18 +53,15 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
         setAvailableSize((prev) => (prev.width === width && prev.height === height ? prev : {width, height}));
     };
 
-    const hasDesignDimensions = typeof chartContentStyles.width === 'number' && typeof chartContentStyles.height === 'number';
     const isMeasured = availableSize.width > 0 && availableSize.height > 0;
-
-    // Visual styles for the fluid fallback, resolved the same way the inline container resolves them.
-    const backgroundColor = resolveChartContainerBgColor(chartContainerStyles.backgroundColor, theme);
-    const borderRadius = chartContainerStyles.borderRadius;
 
     return (
         <Modal
             isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={onClose}
+            // On web, the device/browser back button should close only this modal, not the report page behind it.
+            shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             {/* GestureHandlerRootView is required for MultiGestureCanvas gestures to work inside a
@@ -91,10 +87,11 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                         onLayout={onContainerLayout}
                     >
                         {isMeasured &&
-                            (hasDesignDimensions ? (
+                            (layout.hasLayout ? (
                                 <VictoryChartExpandedContent
                                     availableSize={availableSize}
                                     isVisible={isVisible}
+                                    onSwipeDown={onClose}
                                 />
                             ) : (
                                 // Charts without design dimensions have no design-based label coordinates, so fluid
@@ -104,12 +101,12 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                                     style={[
                                         styles.w100,
                                         styles.flex1,
-                                        backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(backgroundColor),
-                                        typeof borderRadius === 'number' && StyleUtils.getBorderRadiusStyle(borderRadius),
+                                        layout.backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(layout.backgroundColor),
+                                        layout.borderRadius !== undefined && StyleUtils.getBorderRadiusStyle(layout.borderRadius),
                                         styles.overflowHidden,
                                     ]}
                                 >
-                                    {isVisible && <VictoryChartContent />}
+                                    <VictoryChartContent />
                                 </View>
                             ))}
                     </View>
