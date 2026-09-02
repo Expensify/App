@@ -17363,6 +17363,123 @@ describe('ReportUtils', () => {
 
             await Onyx.clear();
         });
+
+        describe('companyCardRequired on a submitted report', () => {
+            /**
+             * Builds a submitted (or open) expense report owned by the current user, carrying the supplied violations on a
+             * single transaction, and returns the pieces needed to call getViolatingReportIDForRBRInLHN.
+             */
+            async function setUpCompanyCardRequiredScenario(scenarioKey: string, violations: TransactionViolation[], isOpen = false) {
+                const policyID = `policy-rbr-company-card-${scenarioKey}`;
+                const chatReportID = `chat-rbr-company-card-${scenarioKey}`;
+                const expenseReportID = `expense-rbr-company-card-${scenarioKey}`;
+                const transactionID = `transaction-rbr-company-card-${scenarioKey}`;
+
+                const policyData: Policy = {
+                    id: policyID,
+                    name: 'Company Card Required Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                    outputCurrency: CONST.CURRENCY.USD,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    employeeList: {[currentUserEmail]: {role: CONST.POLICY.ROLE.USER}},
+                    owner: currentUserEmail,
+                };
+
+                const chatReport: Report = {
+                    ...createPolicyExpenseChat(830),
+                    reportID: chatReportID,
+                    ownerAccountID: currentUserAccountID,
+                    policyID,
+                    iouReportID: expenseReportID,
+                };
+
+                const expenseReport: Report = {
+                    ...createExpenseReport(831),
+                    reportID: expenseReportID,
+                    chatReportID,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: 42,
+                    policyID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    total: 2500,
+                    stateNum: isOpen ? CONST.REPORT.STATE_NUM.OPEN : CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: isOpen ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+
+                const transaction: Transaction = {
+                    ...createRandomTransaction(830),
+                    transactionID,
+                    reportID: expenseReportID,
+                    amount: 2500,
+                    currency: CONST.CURRENCY.USD,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    reimbursable: true,
+                };
+
+                const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as OnyxKey;
+                const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {[transactionViolationsKey]: violations};
+
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+                await waitForBatchedUpdates();
+
+                await Promise.all([
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyData),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
+                    Onyx.merge(transactionViolationsKey, violations),
+                ]);
+                await waitForBatchedUpdates();
+
+                return {chatReport, expenseReportID, transactionViolationsCollection};
+            }
+
+            // The back end owns the violation type, so the LHN exclusion has to hold for every bucket it could land in.
+            it.each([CONST.VIOLATION_TYPES.VIOLATION, CONST.VIOLATION_TYPES.NOTICE, CONST.VIOLATION_TYPES.WARNING])(
+                'should not surface RBR when the only violation is a companyCardRequired %s',
+                async (violationType) => {
+                    await Onyx.clear();
+
+                    const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(`only-${violationType}`, [
+                        {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: violationType, showInReview: true},
+                    ]);
+
+                    expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+
+                    await Onyx.clear();
+                },
+            );
+
+            it('should still surface RBR on an open expense report whose only violation is companyCardRequired', async () => {
+                await Onyx.clear();
+
+                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                    'open',
+                    [{name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                    true,
+                );
+
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+
+                await Onyx.clear();
+            });
+
+            it('should still surface RBR on a submitted report when a resolvable violation sits next to companyCardRequired', async () => {
+                await Onyx.clear();
+
+                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario('alongside-resolvable', [
+                    {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                ]);
+
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+
+                await Onyx.clear();
+            });
+        });
     });
 
     it('should surface a GBR for the admin who placed the hold on an all-held report requiring approval, and avoid showing an RBR', async () => {
