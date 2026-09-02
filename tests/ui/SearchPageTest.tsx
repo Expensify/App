@@ -545,4 +545,41 @@ describe('SearchPageNarrow', () => {
 
         expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(true);
     });
+    it('holds a page reached while offline and requests it once back online', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Nothing goes on the wire offline: the request would only fail and leave an error on the snapshot.
+        const wasSearchedAtNextPage = () => mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE);
+        expect(wasSearchedAtNextPage()).toBe(false);
+
+        // Back online, the reconnect refresh runs and settles.
+        mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: true}});
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: false}});
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(wasSearchedAtNextPage()).toBe(true);
+    });
 });

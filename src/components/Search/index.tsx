@@ -823,7 +823,8 @@ function Search({
 
         const nextOffset = serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
         wantedOffsetRef.current = nextOffset;
-        if (searchResults?.search?.isLoading) {
+        // Offline, the request would only fail and leave an error on the snapshot. Hold the page until reconnect.
+        if (searchResults?.search?.isLoading || isOffline) {
             return;
         }
 
@@ -840,6 +841,7 @@ function Search({
         });
     }, [
         isFocused,
+        isOffline,
         searchResults?.search?.hasMoreResults,
         searchResults?.search?.isLoading,
         searchResults?.search?.offset,
