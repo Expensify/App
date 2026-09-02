@@ -27,7 +27,6 @@ const baseParams: Params = {
     receiptPath: '',
     isDistanceRequestWithPendingRoute: false,
     isPerDiemRequest: false,
-    isNewManualExpenseFlowEnabled: false,
 };
 
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -62,14 +61,10 @@ describe('useConfirmationCtaText', () => {
         expect(result.current.at(0)?.text.toLowerCase()).toContain('expense');
     });
 
-    it('uses createExpense copy when new manual expense flow is enabled', () => {
-        const {result} = renderHook(() => useConfirmationCtaText({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
-        expect(result.current.at(0)?.text.toLowerCase()).toContain('expense');
-    });
-
-    it('includes formatted amount in createExpenseWithAmount copy', () => {
+    it('uses createExpense copy without the amount for a submit with a non-zero amount', () => {
         const {result} = renderHook(() => useConfirmationCtaText({...baseParams, formattedAmount: '$42.00'}), {wrapper: Wrapper});
-        expect(result.current.at(0)?.text).toContain('$42.00');
+        expect(result.current.at(0)?.text.toLowerCase()).toContain('expense');
+        expect(result.current.at(0)?.text).not.toContain('$42.00');
     });
 
     it('uses next copy for invoice without invoicing details', () => {
@@ -94,7 +89,7 @@ describe('useConfirmationCtaText', () => {
         expect(result.current.at(0)?.text).toContain('$50.00');
     });
 
-    it('includes formatted amount for track expense with non-zero amount', () => {
+    it('uses createExpense copy without the amount for track expense with non-zero amount', () => {
         const {result} = renderHook(
             () =>
                 useConfirmationCtaText({
@@ -106,7 +101,8 @@ describe('useConfirmationCtaText', () => {
                 }),
             {wrapper: Wrapper},
         );
-        expect(result.current.at(0)?.text).toContain('$1.23');
+        expect(result.current.at(0)?.text.toLowerCase()).toContain('expense');
+        expect(result.current.at(0)?.text).not.toContain('$1.23');
     });
 
     it('uses createExpense for distance request with pending route', () => {
@@ -123,7 +119,7 @@ describe('useConfirmationCtaText', () => {
         expect(result.current.at(0)?.text.toLowerCase()).toContain('expense');
     });
 
-    it('uses createExpenseWithAmount for per-diem request with non-zero amount', () => {
+    it('uses createExpense copy without the amount for per-diem request with non-zero amount', () => {
         const {result} = renderHook(
             () =>
                 useConfirmationCtaText({
@@ -134,10 +130,11 @@ describe('useConfirmationCtaText', () => {
                 }),
             {wrapper: Wrapper},
         );
-        expect(result.current.at(0)?.text).toContain('$2.00');
+        expect(result.current.at(0)?.text.toLowerCase()).toContain('expense');
+        expect(result.current.at(0)?.text).not.toContain('$2.00');
     });
 
-    it('uses splitAmount with formatted amount for split with non-zero amount when manual flow is disabled', () => {
+    it('uses splitExpense copy for split with non-zero amount', () => {
         const {result} = renderHook(
             () =>
                 useConfirmationCtaText({
@@ -145,11 +142,11 @@ describe('useConfirmationCtaText', () => {
                     isTypeSplit: true,
                     iouAmount: 500,
                     formattedAmount: '$5.00',
-                    isNewManualExpenseFlowEnabled: false,
                 }),
             {wrapper: Wrapper},
         );
-        expect(result.current.at(0)?.text).toContain('$5.00');
+        expect(result.current.at(0)?.text.toLowerCase()).toContain('split');
+        expect(result.current.at(0)?.text).not.toContain('$5.00');
     });
 
     it('uses createExpense for default zero-amount fallback', () => {

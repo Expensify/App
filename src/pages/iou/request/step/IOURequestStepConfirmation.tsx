@@ -26,7 +26,6 @@ import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
@@ -243,8 +242,6 @@ function IOURequestStepConfirmationContent({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
     // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
@@ -361,8 +358,8 @@ function IOURequestStepConfirmationContent({
         const transactionParticipants = transaction?.participants ?? [];
         const hasTransactionParticipants = transactionParticipants.length > 0;
         const hasDefaultParticipants = defaultParticipants.length > 0;
-        return !hasTransactionParticipants && !hasDefaultParticipants && !isLoadingDefaultParticipants && isNewManualExpenseFlowEnabled && isManualRequest;
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isLoadingDefaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest]);
+        return !hasTransactionParticipants && !hasDefaultParticipants && !isLoadingDefaultParticipants && isManualRequest;
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isLoadingDefaultParticipants, isManualRequest]);
     const activeTransactionID = transaction?.transactionID;
     const [manuallyOpenedParticipantPickerForTransactionID, setManuallyOpenedParticipantPickerForTransactionID] = useState<string | undefined>();
     const [dismissedAutoOpenParticipantPickerForTransactionID, setDismissedAutoOpenParticipantPickerForTransactionID] = useState<string | undefined>();
@@ -513,7 +510,7 @@ function IOURequestStepConfirmationContent({
         } else if (firstDefault?.reportID) {
             setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isManualRequest, navigation]);
 
     const isPolicyExpenseChat = useMemo(() => {
         const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
@@ -1045,25 +1042,23 @@ function IOURequestStepConfirmationContent({
                                 />
                             )}
                         </SubmitExpenseOrchestrator>
-                        {isNewManualExpenseFlowEnabled && (
-                            <ParticipantPicker
-                                participants={participants}
-                                iouType={participantPickerIOUType}
-                                action={action}
-                                isPerDiemRequest={isPerDiemRequest}
-                                isTimeRequest={isTimeRequest}
-                                isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
-                                shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
-                                onParticipantsAdded={handleParticipantsAdded}
-                                onFinish={closeParticipantPicker}
-                                isVisible={isParticipantPickerVisible}
-                                onClose={closeParticipantPicker}
-                                // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
-                                // matching standard RHP behavior, not just close the stacked participant picker.
-                                onBackdropPress={() => Navigation.dismissModal()}
-                                shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
-                            />
-                        )}
+                        <ParticipantPicker
+                            participants={participants}
+                            iouType={participantPickerIOUType}
+                            action={action}
+                            isPerDiemRequest={isPerDiemRequest}
+                            isTimeRequest={isTimeRequest}
+                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
+                            onParticipantsAdded={handleParticipantsAdded}
+                            onFinish={closeParticipantPicker}
+                            isVisible={isParticipantPickerVisible}
+                            onClose={closeParticipantPicker}
+                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
+                            // matching standard RHP behavior, not just close the stacked participant picker.
+                            onBackdropPress={() => Navigation.dismissModal()}
+                            shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
+                        />
                     </View>
                 </View>
             </DragAndDropProvider>
