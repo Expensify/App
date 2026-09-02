@@ -9048,7 +9048,13 @@ const translations = {
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added "${prohibitedExpense}" to prohibited expenses`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
         commuterExclusions: {
-            changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `changed exclude commutes to a fixed distance per claim (previously ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `changed exclude commutes to calculate by home and office (previously ${previousMethod})`,
+            previousMethod: {
+                disabled: 'do not exclude commutes',
+                fixedDistance: 'fixed distance per claim',
+                homeAndOffice: 'home and office',
+            },
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `set fixed distance exclusion to ${formattedDistance} per claim`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `changed fixed distance exclusion to ${formattedNewDistance} per claim (previously ${formattedOldDistance})`,

@@ -486,6 +486,10 @@ describe('DistanceRequestUtils', () => {
                 },
             },
         } as Transaction;
+        const policyWithHomeAndOfficeExclusion: Policy = {
+            ...FAKE_POLICY,
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+        };
 
         it('uses the policy commuter exclusion when no stored custom unit exists', () => {
             const getCurrencySymbolMock = (currency: string): string | undefined => (currency === CONST.CURRENCY.USD ? '$' : undefined);
@@ -549,8 +553,53 @@ describe('DistanceRequestUtils', () => {
             expect(result?.customUnit.reimbursableDistance).toBe(3);
         });
 
+        it('excludes the whole trip when the backend says the trip is a home to office commute', () => {
+            const transaction: Transaction = {
+                ...distanceTransaction,
+                commuterExclusionPreview: {policyID: FAKE_POLICY.id, hasExclusion: true},
+            };
+
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction,
+                policy: policyWithHomeAndOfficeExclusion,
+            });
+
+            expect(result?.modifiedAmount).toBe(0);
+            expect(result?.customUnit.quantity).toBe(4);
+            expect(result?.customUnit.commuterExclusion).toBe(4);
+            expect(result?.customUnit.reimbursableDistance).toBe(0);
+            expect(result?.customUnit.commuterExclusionMethod).toBe(CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE);
+        });
+
+        it('keeps the exclusion stored on an existing expense rather than re-deciding it against the home and office policy', () => {
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction: distanceTransaction,
+                policy: policyWithHomeAndOfficeExclusion,
+                storedCustomUnit: {
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 1,
+                    commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                },
+            });
+
+            expect(result?.customUnit.commuterExclusion).toBe(1);
+            expect(result?.customUnit.reimbursableDistance).toBe(3);
+            expect(result?.customUnit.commuterExclusionMethod).toBe(CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE);
+        });
+
         it.each([
             ['manual distance requests', {...distanceTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL}, policyWithCommuterExclusion],
+            ['a home and office trip with no preview fetched yet', distanceTransaction, policyWithHomeAndOfficeExclusion],
+            [
+                'a home and office trip the backend did not recognise as a commute',
+                {...distanceTransaction, commuterExclusionPreview: {policyID: FAKE_POLICY.id, hasExclusion: false}},
+                policyWithHomeAndOfficeExclusion,
+            ],
+            [
+                'a preview left behind by a workspace the member switched away from',
+                {...distanceTransaction, commuterExclusionPreview: {policyID: 'ANOTHERWORKSPACE', hasExclusion: true}},
+                policyWithHomeAndOfficeExclusion,
+            ],
             ['odometer distance requests', {...distanceTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}, policyWithCommuterExclusion],
             ['missing route distance', {...distanceTransaction, comment: {customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}}}, policyWithCommuterExclusion],
             ['missing commuter exclusion settings', distanceTransaction, FAKE_POLICY],

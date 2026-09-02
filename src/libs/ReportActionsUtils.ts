@@ -4370,8 +4370,23 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
     }
     const {newValue, unit, oldValue, updatedField} = getOriginalMessage(reportAction) ?? {};
 
-    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD && newValue === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
-        return translate('workspaceActions.commuterExclusions.changedToFixedDistance');
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD) {
+        let previousMethod: string;
+        if (oldValue === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
+            previousMethod = translate('workspaceActions.commuterExclusions.previousMethod.homeAndOffice');
+        } else if (oldValue === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
+            previousMethod = translate('workspaceActions.commuterExclusions.previousMethod.fixedDistance');
+        } else {
+            previousMethod = translate('workspaceActions.commuterExclusions.previousMethod.disabled');
+        }
+
+        if (newValue === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
+            return translate('workspaceActions.commuterExclusions.changedToFixedDistance', {previousMethod});
+        }
+
+        if (newValue === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
+            return translate('workspaceActions.commuterExclusions.changedToHomeAndOffice', {previousMethod});
+        }
     }
 
     if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.FIXED_DISTANCE) {

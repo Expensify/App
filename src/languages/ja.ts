@@ -8828,7 +8828,13 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
         commuterExclusions: {
-            changedToFixedDistance: '通勤分を除外する設定を、申請ごとの固定距離に変更しました',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `通勤分を除外する設定を、申請ごとの固定距離に変更しました（以前は${previousMethod}）`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `通勤分を除外する設定を、自宅と勤務先から計算に変更しました（以前は${previousMethod}）`,
+            previousMethod: {
+                disabled: '通勤分を除外しない',
+                fixedDistance: '申請ごとの固定距離',
+                homeAndOffice: '自宅と勤務先',
+            },
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `請求ごとに固定距離の除外を ${formattedDistance} に設定します`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `1件あたりの固定距離控除を${formattedNewDistance}に変更しました（以前は${formattedOldDistance}）`,

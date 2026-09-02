@@ -365,10 +365,11 @@ function stringifyWaypointsForAPI(waypoints: WaypointCollection): string {
  * Used so we can generate a map view of the provided waypoints
  */
 
-function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
+function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT, policyID?: string) {
     const parameters: GetRouteParams = {
         transactionID,
         waypoints: stringifyWaypointsForAPI(waypoints),
+        policyID,
     };
 
     let command;

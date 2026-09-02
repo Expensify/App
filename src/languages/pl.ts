@@ -8940,7 +8940,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `dodano „${prohibitedExpense}” do zabronionych wydatków`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
         commuterExclusions: {
-            changedToFixedDistance: 'zmieniono wykluczanie dojazdów na stałą odległość na zgłoszenie',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `zmieniono wykluczanie dojazdów na stałą odległość na zgłoszenie (wcześniej ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `zmieniono wykluczanie dojazdów na obliczanie na podstawie domu i biura (wcześniej ${previousMethod})`,
+            previousMethod: {
+                disabled: 'nie wykluczaj dojazdów',
+                fixedDistance: 'stała odległość na zgłoszenie',
+                homeAndOffice: 'dom i biuro',
+            },
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `ustaw stałe wyłączenie dystansu na ${formattedDistance} na zgłoszenie`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `zmieniono stałe wykluczenie odległości na ${formattedNewDistance} na zgłoszenie (wcześniej ${formattedOldDistance})`,

@@ -103,7 +103,7 @@ function IOURequestStepDistanceMap({
     const reportAttributesDerived = useReportAttributes();
 
     const transactionState: TransactionStateType = shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT;
-    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(transaction, waypoints, action, transactionState);
+    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(transaction, waypoints, action, transactionState, policy);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
     const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;

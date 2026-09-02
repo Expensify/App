@@ -539,7 +539,7 @@ function IOURequestStepConfirmationContent({
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT, policy);
 
     const policyExpenseChatPolicyID =
         transaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID ??

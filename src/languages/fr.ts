@@ -9019,7 +9019,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
         commuterExclusions: {
-            changedToFixedDistance: 'a modifié l’exclusion des trajets domicile-travail en une distance fixe par demande',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
+                `a modifié l’exclusion des trajets domicile-travail en une distance fixe par demande (auparavant ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>
+                `a modifié l’exclusion des trajets domicile-travail en un calcul selon le domicile et le bureau (auparavant ${previousMethod})`,
+            previousMethod: {
+                disabled: 'ne pas exclure les trajets domicile-travail',
+                fixedDistance: 'distance fixe par demande',
+                homeAndOffice: 'domicile et bureau',
+            },
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `définir l’exclusion de distance fixe à ${formattedDistance} par demande`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `a modifié l'exclusion de distance fixe à ${formattedNewDistance} par demande (auparavant ${formattedOldDistance})`,

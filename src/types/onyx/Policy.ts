@@ -2620,7 +2620,7 @@ type ACHAccount = {
 
 /** Commuter exclusion configuration for a policy */
 type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** How commuter mileage is excluded - R2 will add 'homeAndOffice' */
+    /** How commuter mileage is excluded */
     method: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
 
     /** Distance subtracted from each claim when method is 'fixedDistance' */

@@ -3,7 +3,7 @@ import {getValidWaypoints, hasRoute as hasRouteTransactionUtils, isDistanceTypeR
 
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 
@@ -20,6 +20,7 @@ export default function useFetchRoute(
     waypoints: WaypointCollection | undefined,
     action: IOUAction,
     transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
+    policy?: OnyxEntry<Policy>,
 ) {
     const {isOffline} = useNetwork();
     const hasRouteError = !!transaction?.errorFields?.route;
@@ -30,15 +31,27 @@ export default function useFetchRoute(
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !deepEqual(previousValidatedWaypoints, validatedWaypoints);
     const isMapDistanceRequest = isMapDistanceRequestTransactionUtils(transaction) || isDistanceTypeRequest(transaction);
-    const shouldFetchRoute = isMapDistanceRequest && (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
+
+    // Only the backend can tell whether a trip is a commute under the home and office method, and it answers on the
+    // route response, so a route we already hold can be missing that answer: it was fetched before a workspace was
+    // picked, or the member has since switched workspace. Requiring a route (and no route error) keeps this to the
+    // states where the response is known to land back on this transaction, so it cannot drive a fetch per render.
+    const homeAndOfficeExclusionPolicyID = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE ? policy.id : undefined;
+    const isCommuterExclusionPreviewStale =
+        !!homeAndOfficeExclusionPolicyID && hasRoute && !hasRouteError && transaction?.commuterExclusionPreview?.policyID !== homeAndOfficeExclusionPolicyID;
+    const shouldFetchRoute =
+        isMapDistanceRequest &&
+        (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged || isCommuterExclusionPreviewStale) &&
+        !isLoadingRoute &&
+        Object.keys(validatedWaypoints).length > 1;
 
     useEffect(() => {
         if (isOffline || !shouldFetchRoute || !transaction?.transactionID) {
             return;
         }
 
-        getRoute(transaction.transactionID, validatedWaypoints, transactionState);
-    }, [shouldFetchRoute, transaction?.transactionID, validatedWaypoints, isOffline, action, transactionState]);
+        getRoute(transaction.transactionID, validatedWaypoints, transactionState, policy?.id);
+    }, [shouldFetchRoute, transaction?.transactionID, validatedWaypoints, isOffline, action, transactionState, policy?.id]);
 
     return {shouldFetchRoute, validatedWaypoints};
 }
