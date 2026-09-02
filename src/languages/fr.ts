@@ -10251,6 +10251,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Le taux n’est valable qu’à partir du ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Le taux n’est valable que jusqu’au ${endDate}`,
         cannotMergeDuplicates: 'Vous ne pouvez fusionner des dépenses que sur des notes de frais à l’état de brouillon ou en circulation. Retirez-la puis réessayez.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Tarif de nuit supérieur à la limite de catégorie de ${formattedLimit}/personne`,
         shortName: {
             allTagLevelsRequired: 'Tous les tags sont obligatoires',
             autoReportedRejectedExpense: 'Dépense rejetée',

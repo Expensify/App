@@ -837,6 +837,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                hotelReservationStartDate: 'string',
+                hotelReservationEndDate: 'string',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -1206,6 +1208,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                hotelReservationStartDate: 'string',
+                hotelReservationEndDate: 'string',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
@@ -1403,6 +1407,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 isSupplierViolation: 'boolean',
                 startDate: 'string',
                 endDate: 'string',
+                nights: 'number',
             });
         case 'showInReview':
             return validateBoolean(value);

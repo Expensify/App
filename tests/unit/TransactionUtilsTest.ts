@@ -5464,3 +5464,31 @@ describe('getDistanceInMeters', () => {
         expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1000);
     });
 });
+
+describe('getReservationNights', () => {
+    const originalTimezone = process.env.TZ;
+
+    afterEach(() => {
+        process.env.TZ = originalTimezone;
+    });
+
+    it('returns 0 when the receipt has no reservation dates', () => {
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {}}))).toBe(0);
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-01'}}))).toBe(0);
+    });
+
+    it('returns 0 when the reservation ends on or before it starts', () => {
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-06', hotelReservationEndDate: '2026-03-06'}}))).toBe(0);
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-06', hotelReservationEndDate: '2026-03-01'}}))).toBe(0);
+    });
+
+    it('counts the calendar days between check-in and check-out', () => {
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'}}))).toBe(5);
+    });
+
+    it('counts a one-night stay that crosses a DST change west of UTC', () => {
+        // Los Angeles falls back on 2026-11-01, so anchoring these dates to UTC would put check-out an hour before check-in
+        process.env.TZ = 'America/Los_Angeles';
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-11-01', hotelReservationEndDate: '2026-11-02'}}))).toBe(1);
+    });
+});

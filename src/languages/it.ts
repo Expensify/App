@@ -7995,7 +7995,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 expenseLimitTypes: {
                     expense: 'Spesa individuale',
                     expenseSubtitle:
-                        'Contrassegna gli importi delle spese per categoria. Questa regola sostituisce la regola generale dello spazio di lavoro per l’importo massimo della spesa.',
+                        'Contrassegna gli importi delle spese per categoria. Questa regola sostituisce la regola generale dello spazio di lavoro per l’importo massimo della spesa. Le prenotazioni di più giorni vengono valutate usando la media per notte.',
                     daily: 'Totale categoria',
                     dailySubtitle: 'Contrassegna la spesa giornaliera totale per categoria per ogni report spese.',
                 },
@@ -10186,6 +10186,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tariffa è valida solo a partire dal ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tariffa è valida solo fino al ${endDate}`,
         cannotMergeDuplicates: 'Puoi unire le spese solo nei report in bozza o in sospeso. Revoca il report e riprova.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Tariffa per notte oltre il limite di categoria di ${formattedLimit}/persona`,
         shortName: {
             allTagLevelsRequired: 'Tutti i tag obbligatori',
             autoReportedRejectedExpense: 'Spesa rifiutata',

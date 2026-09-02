@@ -8375,7 +8375,8 @@ const translations = {
                 flagAmountsOverSubtitle: 'This overrides the max amount for all expenses.',
                 expenseLimitTypes: {
                     expense: 'Individual expense',
-                    expenseSubtitle: 'Flag expense amounts by category. This rule overrides the general workspace rule for max expense amount.',
+                    expenseSubtitle:
+                        'Flag expense amounts by category. This rule overrides the general workspace rule for max expense amount. Multi-day reservations are evaluated using the per-night average.',
                     daily: 'Category total',
                     dailySubtitle: 'Flag total daily category spend per expense report.',
                 },
@@ -10219,6 +10220,7 @@ const translations = {
         overAutoApprovalLimit: (formattedLimit: string) => `Expense exceeds auto-approval limit of ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Amount over ${formattedLimit}/person category limit`,
         overLimit: (formattedLimit: string) => `Amount over ${formattedLimit}/person limit`,
+        overCategoryLimitPerNight: (formattedLimit: string) => `Nightly rate over ${formattedLimit}/person category limit`,
         overTripLimit: (formattedLimit: string) => `Amount over ${formattedLimit}/trip limit`,
         overLimitAttendee: (formattedLimit: string) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: (formattedLimit: string) => `Amount over daily ${formattedLimit}/person category limit`,
