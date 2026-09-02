@@ -90,6 +90,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -537,7 +538,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldShowOfflineMessage
                     wrapperStyle={styles.searchRouterBorder}
                     wrapperFocusedStyle={styles.borderColorFocus}
-                    isSearchingForReports={!!isSearchingForReports}
+                    isSearchingForReports={!!isSearchingForReports || !!isSearchingForUsers}
                     selection={selection}
                     substitutionMap={autocompleteSubstitutions}
                     ref={textInputRef}

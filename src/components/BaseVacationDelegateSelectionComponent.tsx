@@ -61,7 +61,7 @@ function BaseVacationDelegateSelectionComponent({
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
 
     const currentVacationDelegate = vacationDelegate?.delegate ?? '';
     const initialVacationDelegate = useInitialSelection(currentVacationDelegate || undefined, {resetOnFocus: true});
@@ -230,7 +230,7 @@ function BaseVacationDelegateSelectionComponent({
                             }}
                             textInputOptions={textInputOptions}
                             shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                            isLoadingNewOptions={!!isSearchingForReports}
+                            isLoadingNewOptions={!!isSearchingForUsers}
                             searchValueForFocusSync={debouncedSearchTerm}
                             initiallyFocusedItemKey={initialVacationDelegate ? `vacationDelegate-${pinnedDelegateLogin}` : undefined}
                             initialScrollIndex={0}

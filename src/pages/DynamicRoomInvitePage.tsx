@@ -74,7 +74,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     });
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const isReportArchived = useReportIsArchived(report.reportID);
     const {isLoading, startWithLoading} = usePressLoading();
 
@@ -252,7 +252,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
                     shouldUpdateFocusedIndex
                     shouldPreventAutoScrollOnSelect
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                    isLoadingNewOptions={!!isSearchingForReports}
+                    isLoadingNewOptions={!!isSearchingForUsers}
                     shouldShowTextInput
                     canSelectMultiple
                     footerContent={footerContent}

@@ -67,7 +67,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const currentAssigneeFirstName = usePersonalDetailByLogin(issueNewCard?.data?.assigneeEmail, (personalDetail) => {
@@ -251,7 +251,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                 onSelectRow={submit}
                 ListItem={UserListItem}
                 textInputOptions={textInputOptions}
-                isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
+                isLoadingNewOptions={canInviteMembers && !!isSearchingForUsers}
                 initiallyFocusedItemKey={initialAssigneeEmail}
                 shouldScrollToFocusedIndexOnMount={false}
                 disableMaintainingScrollPosition
