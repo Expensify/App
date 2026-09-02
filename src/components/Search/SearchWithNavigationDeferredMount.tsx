@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 
 import type {ComponentProps} from 'react';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import Search from './index';
@@ -37,6 +37,9 @@ type SearchWithNavigationDeferredMountProps = ComponentProps<typeof Search> & {
 };
 
 function SearchWithNavigationDeferredMount({isReplacingContent = false, ...props}: SearchWithNavigationDeferredMountProps) {
+    // Captured once: the prop is derived from usePrevious, so it flips back on the render after the query changes,
+    // while this placeholder can still be showing. Reading it live makes the skeleton appear partway through hydrate.
+    const [isReplacingContentAtMount] = useState(isReplacingContent);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
@@ -49,7 +52,7 @@ function SearchWithNavigationDeferredMount({isReplacingContent = false, ...props
                 // When it is replacing results already on screen it renders invisibly rather than being skipped: the
                 // skeleton would read as a flash between them, but its onLayout still ends the navigate-to-Search
                 // spans, and keeping the mount deferred lets it yield to the press that triggered the swap.
-                <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContent && styles.opacity0]}>
+                <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
                     <SearchRowSkeleton
                         shouldAnimate
                         onLayout={handleSkeletonLayout}
