@@ -21,11 +21,11 @@ import TimeFooter from './variants/TimeFooter';
  * all of which confirm as a plain expense.
  */
 function MoneyRequestConfirmationListFooter(props: MoneyRequestConfirmationListFooterProps) {
-    const {action, isTypeInvoice, isScanRequest, isPerDiemRequest, isTimeRequest, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} = useConfirmationFields();
+    const {action, iouType, isScanRequest, isPerDiemRequest, isTimeRequest, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} = useConfirmationFields();
 
     // Invoice is the one branch keyed on `iouType` rather than the request type, so it is checked first. That is
     // safe because an invoice can never also be a distance or scan request.
-    if (isTypeInvoice) {
+    if (iouType === CONST.IOU.TYPE.INVOICE) {
         return <InvoiceFooter {...props} />;
     }
 
