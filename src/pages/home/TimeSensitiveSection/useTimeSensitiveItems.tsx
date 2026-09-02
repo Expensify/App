@@ -18,10 +18,12 @@ import useTimeSensitiveAddBankAccount from './hooks/useTimeSensitiveAddBankAccou
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
+import useTimeSensitiveHomeAddress from './hooks/useTimeSensitiveHomeAddress';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
 import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import ActivateCard from './items/ActivateCard';
 import AddBankAccount from './items/AddBankAccount';
+import AddHomeAddress from './items/AddHomeAddress';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import AddVirtualCardPersonalDetails from './items/AddVirtualCardPersonalDetails';
@@ -61,6 +63,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         virtualCardsNeedingPersonalDetails,
     } = useTimeSensitiveCards();
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
+    const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
 
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     // the selector derives both, so this never deep-compares employeeList/connections/customUnits per policy
@@ -114,6 +117,10 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // Priority 1: Validate account
     if (shouldShowValidateAccount) {
         items.push(<ValidateAccount key="validate-account" />);
+    }
+    // Priority 1b: Add home address (commuter exclusions, homeAndOffice method)
+    if (shouldShowAddHomeAddress) {
+        items.push(<AddHomeAddress key="add-home-address" />);
     }
     // Priority 2: Failed billing for existing customers
     if (shouldShowFixFailedBilling) {

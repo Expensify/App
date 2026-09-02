@@ -106,7 +106,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                         width={variables.iconSizeMedium}
                         height={variables.iconSizeMedium}
                         src={icons.AddReaction}
-                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed})})}
                     />
                 )}
             </BaseMiniContextMenuItem>
