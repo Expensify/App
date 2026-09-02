@@ -6291,10 +6291,9 @@ function getReportPreviewReportActionMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
-            // A VBBA payment is always described as "paid with bank account 1234", so it has to win over the personal/
-            // business account wording below — that's the order `PaymentContent` renders the action itself in. Any
-            // payment can name an account now that a paying admin picks one, so `bankAccountID` alone no longer
-            // implies an invoice paid outside VBBA, and keying off it would label a workspace payment as personal.
+            // `bankAccountID` alone doesn't imply the invoice was paid outside VBBA, since a paying admin can pick a
+            // bank account for any payment type. The VBBA check must be evaluated first (see below) so a VBBA
+            // payment always renders as "paid with bank account 1234" rather than being mislabeled as personal.
             const isFromInvoice = originalMessage?.paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA && !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
