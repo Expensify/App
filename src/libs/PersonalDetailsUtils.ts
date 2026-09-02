@@ -473,14 +473,6 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
     return {firstName: '', lastName: ''};
 }
 
-function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
-    const userDetails = getPersonalDetailByEmail(email);
-    if (userDetails) {
-        return userDetails[nameToDisplay] ? Str.removeSMSDomain(userDetails[nameToDisplay]) : Str.removeSMSDomain(userDetails.login ?? '');
-    }
-    return Str.removeSMSDomain(email);
-}
-
 const getShortMentionIfFound = (displayText: string, userAccountID: string, currentUserPersonalDetails: OnyxEntry<PersonalDetails>, userLogin = '') => {
     // If the userAccountID does not exist, this is an email-based mention so the displayText must be an email.
     // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
@@ -576,7 +568,6 @@ export {
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
-    getUserNameByEmail,
     getShortMentionIfFound,
     getLoginByAccountID,
     getPhoneNumber,

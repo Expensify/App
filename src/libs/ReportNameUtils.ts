@@ -26,7 +26,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
-import {convertToDisplayString} from './CurrencyUtils';
+import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
@@ -273,6 +273,7 @@ function getGroupChatName(
     shouldApplyLimit = false,
     report?: OnyxEntry<Report>,
     pendingDeleteMemberAccountIDs?: string[],
+    personalDetailsData?: Partial<PersonalDetailsList>,
 ): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
@@ -300,8 +301,13 @@ function getGroupChatName(
         return participantAccountIDs
             .map(
                 (participantAccountID, index) =>
-                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber, hiddenTranslation: hiddenText}) ||
-                    formatPhoneNumber(participants?.[index]?.login ?? ''),
+                    getDisplayNameForParticipant({
+                        accountID: participantAccountID,
+                        shouldUseShortForm: isMultipleParticipantReport,
+                        personalDetailsData,
+                        formatPhoneNumber,
+                        hiddenTranslation: hiddenText,
+                    }) || formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
             .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
             .filter(Boolean)
@@ -309,7 +315,10 @@ function getGroupChatName(
             .slice(0, CONST.REPORT_NAME_LIMIT)
             .concat(shouldAddEllipsis ? '...' : '');
     }
-    return translate('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber, hiddenTranslation: translate('common.hidden')}));
+    return translate(
+        'groupChat.defaultReportName',
+        getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), personalDetailsData, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}),
+    );
 }
 
 /**
@@ -993,8 +1002,9 @@ function computeChatThreadReportName(
         const linkedTransactionReport = linkedTransaction?.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTransaction.reportID}`] : undefined;
         let formattedName = getTransactionReportName({
             translate,
-            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+            // Non-React call path: pass the standalone utils until this file's own currency-context threading PR.
             convertToDisplayString,
+            getCurrencySymbol,
             reportAction: parentReportAction,
             linkedTransaction,
             report: linkedTransactionReport,
