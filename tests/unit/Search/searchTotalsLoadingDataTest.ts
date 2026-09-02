@@ -191,7 +191,10 @@ describe('search loading totals handling', () => {
         expect(queuedQuery).toEqual(expect.objectContaining({shouldCalculateTotals: true}));
     });
 
-    it('keeps the original expense-report deduplication when a totals request collides with an in-flight request', async () => {
+    it('queues a totals request for expense-report when a non-totals search is already in flight', async () => {
+        // The totals upgrade is no longer gated to the EXPENSE type: an expense-report totals request that
+        // collides with an in-flight non-totals request must still re-fire, otherwise reportCount never
+        // arrives and the bulk-actions button spins forever.
         const queryJSON = getQueryJSON('type:expense-report');
         const response = buildSearchResponse(50, true);
         let resolveFirstRequest: (value: SearchResponse) => void = () => {};
@@ -222,7 +225,9 @@ describe('search loading totals handling', () => {
         await firstSearch;
         await Promise.resolve();
 
-        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(2);
+        const queuedQuery: unknown = JSON.parse(getLastSearchRequestJSON());
+        expect(queuedQuery).toEqual(expect.objectContaining({shouldCalculateTotals: true}));
     });
 
     it('does not queue another request when the in-flight search already calculates totals', async () => {
