@@ -308,8 +308,9 @@ function useReportActionsScroll({
         return () => handle?.cancel();
     }, []);
 
-    // Drop the "X Replies" flag once the mount scroll above has consumed it, so a later remount of this report doesn't
-    // pull the user down again. MoneyRequestReportActionsList clears it the same way for the multi-expense view.
+    // Clear the shouldScrollToLatest route param once the mount scroll above has consumed it, so a later remount of
+    // this report doesn't pull the user down again. MoneyRequestReportActionsList clears it the same way for the
+    // multi-expense view.
     useEffect(() => {
         if (!shouldScrollToLatestOnOpen) {
             return;

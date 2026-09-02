@@ -2817,7 +2817,7 @@ function navigateToAndOpenChildReport(
     // A money-request/expense/invoice child report must open in the wide/super-wide RHP (SEARCH_MONEY_REQUEST_REPORT in
     // the Search context, EXPENSE_REPORT_RHP in the inbox), mirroring how report links are routed in Link.ts and
     // ParentNavigationSubtitle. Invoice reports render in that same wide RHP, and the invoice preview card already opens
-    // them there, so they must pass this guard too, which isMoneyRequestReport (IOU || Expense) alone does not do.
+    // them there, so they must pass this guard too.
     // Other child reports keep the standard SEARCH_REPORT / REPORT_WITH_ID navigation.
     // These reports open scrolled to the top. Opening from the "X Replies" link should instead land on the latest
     // message, so we append the shouldScrollToLatest flag for the money-request branches.
