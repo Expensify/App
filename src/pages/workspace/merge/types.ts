@@ -1,4 +1,4 @@
-import {MenuItemProps} from '@components/MenuItem';
+import type {MenuItemProps} from '@components/MenuItem';
 
 import type {MergeConnectionErrorFieldName} from '@libs/actions/connections/merge';
 import type {HRConnectionName} from '@libs/merge/HRUtils';

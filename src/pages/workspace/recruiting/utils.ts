@@ -13,7 +13,7 @@ import MERGE_ATS_PROVIDERS from '@src/CONST/MERGE_ATS_PROVIDERS';
 import type {MergeATSProviderSlug} from '@src/CONST/MERGE_ATS_PROVIDERS';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -159,4 +159,5 @@ function getRecruitingCards({policy, policyEmployeePersonalDetails, policyID, ic
     });
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export {getRecruitingCards};
