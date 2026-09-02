@@ -1,9 +1,11 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getReportIDForTransaction, hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {getReportIDForTransaction, isBillableEnabledOnPolicy, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
+
+import createMock from '../utils/createMock';
 
 const policyBaseMock: Policy = {
     id: '123456789A',
@@ -12,7 +14,6 @@ const policyBaseMock: Policy = {
     outputCurrency: 'USD',
     type: 'team',
     owner: 'admin@test.com',
-    isPolicyExpenseChatEnabled: true,
 };
 
 const reportBaseMock: Report = {
@@ -155,37 +156,51 @@ describe('MoneyRequestReportUtils', () => {
         });
 
         test('returns true when policy is paid group and defaultBillable is enabled', () => {
-            const policy = {type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: false}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: false}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(true);
         });
 
         test('returns true when policy is paid group and defaultBillable is missing', () => {
-            const policy = {type: CONST.POLICY.TYPE.CORPORATE, disabledFields: {}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.CORPORATE, disabledFields: {}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(true);
         });
 
         test('returns false when policy is paid group and defaultBillable is disabled', () => {
-            const policy = {type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: true}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: true}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
         });
 
         test('returns false when policy is non-paid group', () => {
-            const policy = {type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
         });
     });
 
-    describe('hasNonReimbursableTransactions', () => {
-        test('returns false when all transactions are reimbursable by default', () => {
-            const t1 = {reimbursable: undefined} as unknown as Transaction;
-            const t2 = {reimbursable: true} as unknown as Transaction;
-            expect(hasNonReimbursableTransactions([t1, t2])).toBe(false);
+    describe('shouldWaitForTransactions', () => {
+        const zeroTotalReport = {...reportBaseMock, total: 0};
+
+        test('ignores a stored loading flag when no report load is pending', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, false, false)).toBe(false);
         });
 
-        test('returns true when any transaction is non-reimbursable', () => {
-            const reimbursable = {reimbursable: true} as unknown as Transaction;
-            const nonReimbursable = {reimbursable: false} as unknown as Transaction;
-            expect(hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
+        test('waits for transactions when a report load is pending despite a false stored loading flag', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, true, false)).toBe(true);
+        });
+
+        test('does not wait after report actions have loaded successfully', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, true, false)).toBe(false);
+        });
+
+        test('still waits for a nonzero report total when no transactions are available', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(true);
         });
     });
 });

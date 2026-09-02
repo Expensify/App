@@ -89,6 +89,13 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether HTML is allowed in form inputs */
     allowHTML?: boolean;
 
+    /**
+     * When true, FormProvider will not replace an existing custom validate() error for a field
+     * with the generic HTML/invalid-character error. Required, length, and other custom rules
+     * keep showing their own messages. Fields without a custom error still get HTML validation.
+     */
+    shouldPreserveCustomValidationErrors?: boolean;
+
     /** Whether to render the submit button above the footer. */
     shouldRenderFooterAboveSubmit?: boolean;
 
@@ -141,11 +148,13 @@ function FormProvider({
     onSubmit,
     shouldTrimValues = true,
     allowHTML = false,
+    shouldPreserveCustomValidationErrors = false,
     isLoading: isOnyxLoading = false,
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     shouldHideFixErrorsAlert = false,
+    shouldHideServerError = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
     shouldShowLoadingImmediatelyOnPress = true,
@@ -178,7 +187,7 @@ function FormProvider({
     // Cancel any in-flight blur transition callback on unmount so it doesn't fire after the form is gone.
     useEffect(() => () => blurTransitionHandle.current?.cancel(), []);
 
-    const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
+    const errorMessage = formState && !shouldHideServerError ? getLatestErrorMessage(formState) : undefined;
     const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
     const firstFieldErrorMessage = useMemo(() => {
         for (const errorMsg of Object.values(errors)) {
@@ -208,12 +217,18 @@ function FormProvider({
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues, translate) ?? {};
 
             if (!allowHTML) {
-                // Validate the input for html tags. It should supersede any other error
+                // Validate the input for html tags. It should supersede any other error unless
+                // shouldPreserveCustomValidationErrors is set and the field already has a custom error.
                 for (const [inputID, inputValue] of Object.entries(trimmedStringValues)) {
                     // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
                     if (!inputValue || typeof inputValue !== 'string') {
                         continue;
                     }
+
+                    if (shouldPreserveCustomValidationErrors && validateErrors[inputID]) {
+                        continue;
+                    }
+
                     const validateForHtmlTagRegex = shouldUseStrictHtmlTagValidation ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
                     const foundHtmlTagIndex = inputValue.search(validateForHtmlTagRegex);
                     const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
@@ -260,7 +275,7 @@ function FormProvider({
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, translate, allowHTML, shouldUseStrictHtmlTagValidation, hasServerError, hasServerErrorFields],
+        [shouldTrimValues, formID, validate, translate, allowHTML, shouldPreserveCustomValidationErrors, shouldUseStrictHtmlTagValidation, hasServerError, hasServerErrorFields],
     );
 
     // When locales change from another session of the same account,

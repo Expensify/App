@@ -18,7 +18,7 @@ import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/Tr
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -28,10 +28,11 @@ import type {OnyxEntry} from 'react-native-onyx';
  * than being duplicated across every surface that renders a transaction.
  */
 import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useCallback, useRef} from 'react';
+import {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useNetwork from './useNetwork';
@@ -81,6 +82,7 @@ type UseTransactionInlineEditReturn = {
 };
 
 function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
@@ -94,14 +96,13 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const linkedReportActionID = linkedReportAction?.reportActionID;
 
-    const parentReportActionSelector = useCallback(
-        (reportActions: ReportActions | undefined) =>
-            linkedReportActionID ? reportActions?.[linkedReportActionID] : getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID),
-        [linkedReportActionID, transactionID],
-    );
-    const [resolvedParentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`, {
-        selector: parentReportActionSelector,
-    });
+    // Use original Onyx here because the useOnyx wrapper can read the partial Search snapshot report actions, which may miss
+    // the workflow (submitted/forwarded) actions that canEditMoneyRequest needs to evaluate for the submitter.
+    const [parentReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
+    const resolvedParentReportAction = linkedReportActionID
+        ? parentReportActions?.[linkedReportActionID]
+        : getIOUActionForTransactionID(Object.values(parentReportActions ?? {}), transactionID);
+
     const parentReportAction = resolvedParentReportAction ?? linkedReportAction;
 
     const transactionThreadReportID = linkedReportAction?.childReportID ?? parentReportAction?.childReportID ?? transaction?.transactionThreadReportID;
@@ -130,7 +131,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     // Use original Onyx here because the useOnyx wrapper can read partial Search snapshot policy data instead of the full policy object.
     const [completePolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
@@ -159,6 +159,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         transaction,
         parentReportAction,
         parentReport: effectiveParentReport,
+        parentReportActions,
         policy: completePolicy ?? policy,
         transactionThreadReport,
         policyCategories,
@@ -177,6 +178,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         return {
             hash,
             transactionID,
+            transaction,
             parentReport: effectiveParentReport,
             parentReportAction,
             transactionThreadReport,
@@ -187,7 +189,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             reportPolicyTags,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
-            parentReportNextStep,
             isOffline,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
@@ -195,6 +196,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             personalDetailsList,
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         };
     };
 

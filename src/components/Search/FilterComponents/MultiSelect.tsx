@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -30,6 +29,9 @@ type MultiSelectItem<T> = {
     icons?: Icon[];
     leftElement?: ReactNode;
     searchableText?: string;
+
+    /** Optional supporting text rendered on a second line beneath `text` */
+    alternateText?: string;
 };
 
 type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
@@ -38,6 +40,9 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
 
     /** Whether the search input should be displayed. */
     isSearchable?: boolean;
+
+    /** Custom height for each item in the list */
+    itemHeight?: number;
 
     /** Search input placeholder. Defaults to 'common.search' when not provided. */
     searchPlaceholder?: string;
@@ -55,6 +60,8 @@ function MultiSelect<T extends string>({
     value,
     items,
     isSearchable,
+    isNegatable,
+    itemHeight,
     searchPlaceholder,
     selectionListTextInputStyle,
     selectionListStyle,
@@ -82,6 +89,7 @@ function MultiSelect<T extends string>({
         : orderedItems;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
+        alternateText: item.alternateText,
         keyForList: item.value,
         isSelected: !!selectedItems.find((i) => i.value === item.value),
         icons: item.icons,
@@ -118,19 +126,18 @@ function MultiSelect<T extends string>({
         disableAutoFocus: !autoFocus,
     };
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectDataLoading'};
-
     return (
         <ListFilterView
             itemCount={listData.length}
+            itemHeight={itemHeight}
             isSearchable={isSearchable}
+            isNegatable={isNegatable}
         >
             {loading ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
                         color={theme.spinner}
-                        reasonAttributes={reasonAttributes}
                     />
                 </View>
             ) : (

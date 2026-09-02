@@ -6,7 +6,7 @@ import AttachmentView, {checkIsFileImage} from '@components/Attachments/Attachme
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -71,6 +72,7 @@ function AttachmentModalBaseContent({
     shouldAllowDownloadOutsideReportContext = false,
     onClose,
     onConfirm,
+    confirmLeavesScreen = false,
     AttachmentContent,
     onCarouselAttachmentChange = () => {},
     transaction: transactionProp,
@@ -177,13 +179,28 @@ function AttachmentModalBaseContent({
             return;
         }
 
+        const confirm = () => onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
+
+        // Sequence close and confirm so the screen underneath never flashes between them. On native the modal must close
+        // first, otherwise the back navigation latches onto the confirm navigation and loops.
+        if (confirmLeavesScreen) {
+            const platform = getPlatform();
+            const isNativePlatform = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+            if (isNativePlatform) {
+                onClose?.({shouldCallDirectly: true});
+                confirm();
+            } else {
+                confirm();
+                onClose?.();
+            }
+            return;
+        }
+
         onClose?.();
 
         // Defer onConfirm to the next frame so the target screen has time to unfreeze and re-mount its refs (e.g. composerRef.clearWorklet)
-        requestAnimationFrame(() => {
-            onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
-        });
-    }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
+        requestAnimationFrame(confirm);
+    }, [isConfirmButtonDisabled, onConfirm, onClose, files, source, confirmLeavesScreen]);
 
     // Close the modal when the escape key is pressed
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose?.(), {shouldBubble: true});
@@ -351,7 +368,6 @@ function AttachmentModalBaseContent({
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             testID="attachment-loading-spinner"
-                            reasonAttributes={{context: 'AttachmentModalBaseContent'}}
                         />
                     </View>
                 )}
@@ -388,16 +404,16 @@ function AttachmentModalBaseContent({
                         >
                             <Button
                                 ref={submitRef ? viewRef(submitRef) : undefined}
-                                success
-                                large
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                textStyles={[styles.buttonConfirmText]}
-                                text={translate('common.send')}
                                 onPress={submitAndClose}
                                 isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
-                                pressOnEnter
                                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_MODAL.SEND_BUTTON}
-                            />
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text style={[styles.buttonConfirmText]}>{translate('common.send')}</Button.Text>
+                            </Button>
                         </Animated.View>
                     )}
                 </LayoutAnimationConfig>

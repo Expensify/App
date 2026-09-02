@@ -4,10 +4,9 @@ import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions} from '@src/types/onyx';
-import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
 
-import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -16,26 +15,31 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal, getRequiredOnyxUpdates, getRequiredWriteCall} from '../../utils/TestHelper';
+import {isObject, parseJSONRecord} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const RORY_ACCOUNT_ID = 3;
 
 function isPartialReport(value: unknown): value is Partial<Report> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
+    return isObject(value) && !Array.isArray(value);
 }
 
-function isOnyxData(value: unknown): value is OnyxData<OnyxKey> {
-    return typeof value === 'object' && value !== null && 'optimisticData' in value;
+function getBulkEditUpdates(writeSpy: jest.SpiedFunction<typeof API.write>, callIndex = 0): Record<string, unknown> {
+    const [, parameters] = getRequiredWriteCall(writeSpy.mock.calls, callIndex);
+    return parseJSONRecord(parameters.updates, 'bulk-edit updates');
 }
 
-function getOptimisticReportNamesFromWriteSpy(writeSpy: jest.SpyInstance, reportID: string): Array<string | undefined> {
+function getOptimisticReportNamesFromWriteSpy(writeSpy: jest.SpiedFunction<typeof API.write>, reportID: string): Array<string | undefined> {
     const targetKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-    return (writeSpy.mock.calls as ReadonlyArray<readonly unknown[]>).flatMap((call) => {
-        const onyxData = call.at(2);
-        if (!isOnyxData(onyxData)) {
-            return [];
-        }
-        return (onyxData.optimisticData ?? []).filter((update) => update.key === targetKey).map((update) => (isPartialReport(update.value) ? update.value.reportName : undefined));
+    return writeSpy.mock.calls.flatMap((_, callIndex) => {
+        const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, callIndex);
+        return getRequiredOnyxUpdates(onyxData, 'optimisticData').flatMap((update) => {
+            if (!isObject(update) || update.key !== targetKey) {
+                return [];
+            }
+            return [isPartialReport(update.value) ? update.value.reportName : undefined];
+        });
     });
 }
 
@@ -96,10 +100,11 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number};
+            const updates = getBulkEditUpdates(writeSpy);
             expect(updates.amount).toBe(1000);
             expect(buildOptimisticSpy).toHaveBeenCalledWith(
                 transactionThread,
@@ -170,6 +175,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).not.toHaveBeenCalled();
@@ -232,12 +239,14 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const getOptimisticTotal = (callIndex: number) => {
-                const onyxData = writeSpy.mock.calls.at(callIndex)?.[2] as {optimisticData: Array<{key: string; value?: {total?: number}}>};
-                const reportUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-                return reportUpdate?.value?.total;
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, callIndex);
+                const reportUpdate = getRequiredOnyxUpdates(onyxData, 'optimisticData').find((update) => isObject(update) && update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+                return isObject(reportUpdate) && isPartialReport(reportUpdate.value) ? reportUpdate.value.total : undefined;
             };
 
             expect(getOptimisticTotal(0)).toBe(-2300);
@@ -303,10 +312,11 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number};
+            const updates = getBulkEditUpdates(writeSpy);
             expect(updates.amount).toBe(-1000);
             expect(buildOptimisticSpy).toHaveBeenCalledWith(
                 transactionThread,
@@ -379,10 +389,11 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {billable: boolean; reimbursable: boolean};
+            const updates = getBulkEditUpdates(writeSpy);
             expect(updates.billable).toBe(true);
             expect(updates.reimbursable).toBe(false);
 
@@ -445,10 +456,11 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number};
+            const updates = getBulkEditUpdates(writeSpy);
             expect(updates.amount).toBe(1000);
             expect(buildOptimisticSpy).toHaveBeenCalledWith(
                 transactionThread,
@@ -510,11 +522,12 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {merchant: string};
+            const updates = getBulkEditUpdates(writeSpy);
             expect(updates.merchant).toBe('New merchant');
 
             writeSpy.mockRestore();
@@ -581,6 +594,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -638,6 +653,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -698,6 +715,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -765,6 +784,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -832,6 +853,8 @@ describe('actions/IOU/BulkEdit', () => {
                 },
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -910,6 +933,8 @@ describe('actions/IOU/BulkEdit', () => {
                 },
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -976,6 +1001,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -1054,6 +1081,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -1113,6 +1142,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // category/billable changes must be silently dropped for IOUs —
@@ -1179,11 +1210,12 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as Record<string, unknown>;
+            const updates = getBulkEditUpdates(writeSpy);
             expect(updates.category).toBe('Food');
             expect(updates.amount).toBeUndefined();
             expect(updates.currency).toBeUndefined();
@@ -1269,20 +1301,24 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // Then: the optimistic transaction update should use the transaction's own policy for tax resolution.
             // Check the optimistic Onyx data passed to API.write (3rd argument) for the TRANSACTION merge.
             const writeCall = writeSpy.mock.calls.at(0);
             expect(writeCall).toBeDefined();
-
-            const onyxData = writeCall?.[2] as {optimisticData: Array<{key: string; value: Partial<Transaction>}>} | undefined;
-            const transactionOnyxUpdate = onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const transactionOnyxUpdate = getRequiredOnyxUpdates(onyxData, 'optimisticData').find(
+                (update) => isObject(update) && update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            );
             expect(transactionOnyxUpdate).toBeDefined();
 
             // The tax code should resolve from the transaction's policy (which has the expense rule),
             // NOT from the shared bulk-edit policy (which has no expense rules)
-            expect(transactionOnyxUpdate?.value?.taxCode).toBe(expectedTaxCode);
+            const transactionOnyxValue = isObject(transactionOnyxUpdate) && isObject(transactionOnyxUpdate.value) ? transactionOnyxUpdate.value : undefined;
+            expect(transactionOnyxValue?.taxCode).toBe(expectedTaxCode);
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1361,6 +1397,8 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
@@ -1432,17 +1470,21 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number; taxAmount?: number};
+            const updates = getBulkEditUpdates(writeSpy);
             expect(updates.amount).toBe(-2000);
             expect(updates.taxAmount).toBe(95);
 
             // Optimistic transaction merge should store the flipped sign for expense reports.
-            const onyxData = writeSpy.mock.calls.at(0)?.[2] as {optimisticData: Array<{key: string; value: Partial<Transaction>}>} | undefined;
-            const transactionOnyxUpdate = onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-            expect(transactionOnyxUpdate?.value?.taxAmount).toBe(-95);
+            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const transactionOnyxUpdate = getRequiredOnyxUpdates(onyxData, 'optimisticData').find(
+                (update) => isObject(update) && update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            );
+            const transactionOnyxValue = isObject(transactionOnyxUpdate) && isObject(transactionOnyxUpdate.value) ? transactionOnyxUpdate.value : undefined;
+            expect(transactionOnyxValue?.taxAmount).toBe(-95);
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1501,10 +1543,11 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number; taxAmount?: number};
+            const updates = getBulkEditUpdates(writeSpy);
             expect(updates.amount).toBe(-2000);
             expect(updates.taxAmount).toBeUndefined();
 
@@ -1566,10 +1609,11 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number; taxAmount?: number};
+            const updates = getBulkEditUpdates(writeSpy);
             expect(updates.amount).toBe(-2000);
             // No taxAmount should be queued — we couldn't resolve a rate to recompute from.
             expect(updates.taxAmount).toBeUndefined();
@@ -1602,7 +1646,7 @@ describe('actions/IOU/BulkEdit', () => {
                 amount: 500,
                 currency: CONST.CURRENCY.USD,
             };
-            delete (transaction as Partial<Transaction>).transactionThreadReportID;
+            delete transaction.transactionThreadReportID;
             const transactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
             };
@@ -1625,24 +1669,29 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-            const onyxData = writeSpy.mock.calls.at(0)?.[2] as any;
-            const optimisticData = onyxData?.optimisticData as any[];
+            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
 
             // An optimistic thread report should be created via SET
             const optimisticReportSet = optimisticData.find(
-                (entry: any) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+                (entry) =>
+                    isObject(entry) && String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
             );
             expect(optimisticReportSet).toBeDefined();
+            if (!isObject(optimisticReportSet)) {
+                throw new Error('Expected an optimistic thread report SET update');
+            }
             const optimisticThreadReportID = String(optimisticReportSet.key).replace(ONYXKEYS.COLLECTION.REPORT, '');
 
             // The transaction optimistic data should link back to the new thread via transactionThreadReportID
-            const transactionMerge = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-            expect(transactionMerge?.value?.transactionThreadReportID).toBe(optimisticThreadReportID);
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const transactionMerge = optimisticData.find((entry) => isObject(entry) && entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transactionMergeValue = isObject(transactionMerge) && isObject(transactionMerge.value) ? transactionMerge.value : undefined;
+            expect(transactionMergeValue?.transactionThreadReportID).toBe(optimisticThreadReportID);
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1728,27 +1777,28 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-            const onyxData = writeSpy.mock.calls.at(0)?.[2] as any;
-            const optimisticData = onyxData?.optimisticData as any[];
+            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
 
             // No optimistic thread report should be created — the existing thread from childReportID should be used
             const optimisticReportSet = optimisticData.find(
-                (entry: any) => String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+                (entry) =>
+                    isObject(entry) && String(entry.key).startsWith(ONYXKEYS.COLLECTION.REPORT) && entry.onyxMethod === 'set' && entry.key !== `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
             );
             expect(optimisticReportSet).toBeUndefined();
 
             // The MODIFIED_EXPENSE report action should be written to the childReportID thread, not the transactionThreadReportID thread
-            const reportActionMerge = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`);
+            const reportActionMerge = optimisticData.find((entry) => isObject(entry) && entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`);
             expect(reportActionMerge).toBeDefined();
 
             // No report action should be written to the transactionThreadReportID thread
-            const wrongThreadReportAction = optimisticData.find((entry: any) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`);
+            const wrongThreadReportAction = optimisticData.find((entry) => isObject(entry) && entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`);
             expect(wrongThreadReportAction).toBeUndefined();
-            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1823,6 +1873,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -1907,6 +1959,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2006,6 +2060,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2089,6 +2145,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2165,6 +2223,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2243,6 +2303,8 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
                 personalDetailsList: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2254,10 +2316,320 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
             await Onyx.clear();
         });
+
+        it('writes attendees via UpdateMoneyRequestAttendees and updates the optimistic transaction', () => {
+            const transactionID = 'transaction-attendees-1';
+            const transactionThreadReportID = 'thread-attendees-1';
+            const iouReportID = 'iou-attendees-1';
+            const policy = {
+                ...createRandomPolicy(100, CONST.POLICY.TYPE.CORPORATE),
+                isAttendeeTrackingEnabled: true,
+            };
+
+            const transactionThread: Report = {
+                ...createRandomReport(100, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(101, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(100),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    attendees: [{avatarUrl: '', displayName: 'Original Attendee', email: 'original@example.com'}],
+                },
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const nextAttendees = [
+                {avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'},
+                {avatarUrl: '', displayName: 'Bob', email: 'bob@example.com'},
+            ];
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert the attendees command and optimistic data.
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {attendees: nextAttendees},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                allPolicies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+                },
+            });
+
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            expect(writeSpy.mock.calls.at(0)?.[0]).toBe('UpdateMoneyRequestAttendees');
+            expect(writeSpy.mock.calls.at(0)?.[1]).toEqual(
+                expect.objectContaining({
+                    transactionID,
+                    reportID: iouReportID,
+                    attendees: JSON.stringify([
+                        {avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'},
+                        {avatarUrl: '', displayName: 'Bob', email: 'bob@example.com'},
+                    ]),
+                }),
+            );
+            expect(writeSpy.mock.calls.at(0)?.[2]).toEqual(
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                            value: expect.objectContaining({
+                                comment: expect.objectContaining({attendees: nextAttendees}),
+                                pendingFields: expect.objectContaining({attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                            }),
+                        }),
+                    ]),
+                }),
+            );
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('omits reportActionID for attendees-only edits when the transaction thread was created only locally', () => {
+            const transactionID = 'transaction-attendees-no-thread-1';
+            const iouReportID = 'iou-attendees-no-thread-1';
+            const policy = {
+                ...createRandomPolicy(102, CONST.POLICY.TYPE.CORPORATE),
+                isAttendeeTrackingEnabled: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(104, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(102),
+                transactionID,
+                reportID: iouReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    attendees: [{avatarUrl: '', displayName: 'Original Attendee', email: 'original@example.com'}],
+                },
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const nextAttendees = [{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}];
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert attendees params omit phantom reportActionID.
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {attendees: nextAttendees},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                allPolicies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+                },
+            });
+
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            expect(writeSpy.mock.calls.at(0)?.[0]).toBe('UpdateMoneyRequestAttendees');
+            expect(writeSpy.mock.calls.at(0)?.[1]).toEqual({
+                transactionID,
+                reportID: iouReportID,
+                attendees: JSON.stringify([{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}]),
+            });
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('writes generic fields and attendees as separate commands when both change', () => {
+            const transactionID = 'transaction-attendees-mixed-1';
+            const transactionThreadReportID = 'thread-attendees-mixed-1';
+            const iouReportID = 'iou-attendees-mixed-1';
+            const policy = {
+                ...createRandomPolicy(101, CONST.POLICY.TYPE.CORPORATE),
+                isAttendeeTrackingEnabled: true,
+            };
+
+            const transactionThread: Report = {
+                ...createRandomReport(102, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(103, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(101),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                category: 'Travel',
+                comment: {
+                    attendees: [{avatarUrl: '', displayName: 'Original Attendee', email: 'original@example.com'}],
+                },
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const nextAttendees = [{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}];
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert both persist commands.
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {category: 'Meals', attendees: nextAttendees},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                allPolicies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+                },
+            });
+
+            expect(writeSpy).toHaveBeenCalledTimes(2);
+            expect(writeSpy.mock.calls.at(0)?.[0]).toBe('UpdateMoneyRequest');
+            expect(writeSpy.mock.calls.at(0)?.[1]).toEqual(
+                expect.objectContaining({
+                    transactionID,
+                    updates: JSON.stringify({category: 'Meals'}),
+                }),
+            );
+            expect(writeSpy.mock.calls.at(1)?.[0]).toBe('UpdateMoneyRequestAttendees');
+            expect(writeSpy.mock.calls.at(1)?.[1]).toEqual(
+                expect.objectContaining({
+                    transactionID,
+                    reportID: iouReportID,
+                    attendees: JSON.stringify([{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}]),
+                }),
+            );
+
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            const anyError: unknown = expect.anything();
+            expect(writeSpy.mock.calls.at(0)?.[2]).toEqual(
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({comment: {}, pendingFields: {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}),
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([expect.objectContaining({key: transactionKey, value: {pendingFields: {category: null}}})]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({comment: {}, pendingFields: {category: null}, errorFields: expect.objectContaining({category: anyError})}),
+                        }),
+                    ]),
+                }),
+            );
+
+            expect(writeSpy.mock.calls.at(1)?.[2]).toEqual(
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({
+                                comment: {attendees: nextAttendees},
+                                pendingFields: {attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            }),
+                        }),
+                    ]),
+                    successData: [expect.objectContaining({key: transactionKey, value: {pendingFields: {attendees: null}}})],
+                    failureData: [
+                        expect.objectContaining({
+                            key: transactionKey,
+                            value: expect.objectContaining({
+                                comment: {attendees: transaction.comment?.attendees},
+                                pendingFields: {attendees: null},
+                                errorFields: expect.objectContaining({attendees: anyError}),
+                            }),
+                        }),
+                    ],
+                }),
+            );
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
     });
 
     describe('bulk edit draft transaction', () => {
-        const draftKey = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}` as OnyxKey;
+        const draftKey: `${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}` = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`;
 
         it('initializes the bulk edit draft transaction', async () => {
             await Onyx.set(draftKey, {amount: 1000});

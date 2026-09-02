@@ -1,6 +1,9 @@
 import type TransactionType from '@src/types/onyx/Transaction';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+/** Resolves the original (container) transaction ID that a split child points to. */
+const originalTransactionIDSelector = (transaction: OnyxEntry<TransactionType>): string | undefined => transaction?.comment?.originalTransactionID;
 
 const transactionsByReportIDSelector = (transactions: OnyxCollection<TransactionType>): Record<string, TransactionType[]> => {
     const result: Record<string, TransactionType[]> = {};
@@ -15,5 +18,4 @@ const transactionsByReportIDSelector = (transactions: OnyxCollection<Transaction
     }
     return result;
 };
-// eslint-disable-next-line import/prefer-default-export -- this file will include more selectors, so we want don't want to export single selector as default
-export {transactionsByReportIDSelector};
+export {transactionsByReportIDSelector, originalTransactionIDSelector};

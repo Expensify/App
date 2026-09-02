@@ -2,7 +2,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -15,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {saveWalletTransferAccountTypeAndID} from '@userActions/PaymentMethods';
@@ -102,8 +101,7 @@ function ChooseTransferAccountPage() {
     }, [bankAccountOptions, selectedAccountID]);
 
     if (isLoadingOnyxValue(walletTransferResult)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'ChooseTransferAccountPage', walletTransferLoaded: false};
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     return (
@@ -125,7 +123,7 @@ function ChooseTransferAccountPage() {
                 shouldUpdateFocusedIndex
                 initiallyFocusedItemKey={initiallyFocusedItemKey}
                 listFooterContent={
-                    <MenuItem
+                    <MenuItemAction
                         onPress={navigateToAddPaymentMethodPage}
                         title={
                             walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT

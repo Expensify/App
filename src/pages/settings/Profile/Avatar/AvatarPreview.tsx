@@ -1,6 +1,6 @@
 import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
-import Button from '@components/Button';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
 
@@ -36,7 +36,7 @@ type AvatarPreviewProps = {
     /** The image data */
     imageData: ImageData;
     /** The function to set the error */
-    setError: (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => void;
+    setError: (error: TranslationPaths | null, phraseParam?: Record<string, unknown>) => void;
     /** Opens the avatar crop screen for the picked image */
     openCropper: (image: FileObject) => void;
 };
@@ -54,7 +54,7 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
+    const avatarStyle = [styles.alignSelfStart, styles.alignSelfCenter];
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {initials} = useLetterAvatars();
@@ -97,16 +97,16 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     return;
                 }
 
-                setError(null, {});
+                setError(null);
                 openCropper(image);
             })
             .catch(() => {
-                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment');
             });
     };
 
     const clearError = () => {
-        setError(null, {});
+        setError(null);
     };
 
     const {createMenuItems} = useAvatarMenu({
@@ -126,18 +126,17 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     <UserInitialsAvatar
                         text={initials}
                         colors={selectedLetterScheme}
-                        size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.X_LARGE)}
+                        size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXXX_LARGE)}
                     />
                 </View>
             ) : (
-                <Avatar
+                <UserAvatar
                     containerStyles={avatarStyle}
                     imageStyles={avatarStyle}
                     source={avatarURL}
-                    avatarID={accountID}
+                    accountID={accountID}
                     fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
-                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                 />
             )}
             <AttachmentPicker
@@ -149,15 +148,16 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     if (menuItems?.length <= 1) {
                         return (
                             <Button
-                                icon={icons.Upload}
-                                text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                     });
                                 }}
-                            />
+                            >
+                                <Button.Icon src={icons.Upload} />
+                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                            </Button>
                         );
                     }
 

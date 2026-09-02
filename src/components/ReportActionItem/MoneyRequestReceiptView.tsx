@@ -9,7 +9,6 @@ import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import ReceiptHoverZoom from '@components/ReceiptHoverZoom';
 import Tooltip from '@components/Tooltip';
 
-import useActiveRoute from '@hooks/useActiveRoute';
 import useAncestors from '@hooks/useAncestors';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -36,12 +35,15 @@ import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {
+    canCurrentUserEditExpense,
     canEditFieldOfMoneyRequest,
+    canUserInteractWithReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getCreationReportErrors,
     isInvoiceReport,
@@ -72,7 +74,7 @@ import {clearError, getLastModifiedExpense, revert} from '@userActions/Transacti
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -138,11 +140,10 @@ function MoneyRequestReceiptView({
     hasParentPendingAction = false,
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const {getReportRHPActiveRoute} = useActiveRoute();
     const route = useRoute();
     const routeBackTo = (route.params as {backTo?: string} | undefined)?.backTo;
     const parentReportID = report?.parentReportID;
@@ -175,6 +176,7 @@ function MoneyRequestReceiptView({
     }, [parentReportAction]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -236,7 +238,8 @@ function MoneyRequestReceiptView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
-    const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction);
+    const canInteractWithReport = !!canUserInteractWithReport(report, isReportArchived);
+    const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction, currentUserAccountID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
@@ -271,7 +274,7 @@ function MoneyRequestReceiptView({
         });
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal: AttachmentErrorModal} = useFilesValidation(onAttachmentFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onAttachmentFilesValidated);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -325,6 +328,7 @@ function MoneyRequestReceiptView({
                 const cardID = violation.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
                 const violationMessage = ViolationsUtils.getViolationTranslation({
+                    dateFnsLocale,
                     violation,
                     translate,
                     convertToDisplayString,
@@ -355,6 +359,7 @@ function MoneyRequestReceiptView({
         isMarkAsCash,
         routeDistanceMeters,
         distanceUnit,
+        dateFnsLocale,
     ]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
@@ -476,18 +481,19 @@ function MoneyRequestReceiptView({
             if (parentReportAction) {
                 const backToRoute = routeBackTo ?? Navigation.getActiveRoute();
                 setDeleteTransactionNavigateBackUrl(backToRoute);
-                cleanUpMoneyRequest(
-                    transaction?.transactionID ?? linkedTransactionID,
-                    parentReportAction,
-                    report.reportID,
-                    parentReportActionChildReport,
+                cleanUpMoneyRequest({
+                    transactionID: transaction?.transactionID ?? linkedTransactionID,
+                    reportAction: parentReportAction,
+                    reportID: report.reportID,
+                    transactionThreadReport: parentReportActionChildReport,
                     iouReport,
-                    chatIOUReport,
+                    chatReport: chatIOUReport,
                     isChatIOUReportArchived,
                     originalReportID,
-                    true,
+                    getCurrencyDecimals,
+                    isSingleTransactionView: true,
                     policy,
-                );
+                });
                 return;
             }
         }
@@ -540,7 +546,11 @@ function MoneyRequestReceiptView({
     const showBorderlessLoading = isLoading && fillSpace;
 
     // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
-    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
+    // Adding a receipt changes the expense, so it takes the same expense-level permission the rest of the edit flow uses.
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && canCurrentUserEditExpense(parentReportAction, moneyRequestReport, policy) && !mergeTransactionID;
+
+    // Expanding only opens the receipt to look at, so it asks for none of the permission above
+    const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -568,6 +578,7 @@ function MoneyRequestReceiptView({
             transactionPolicyCategories: policyCategories,
             transactionPolicyTagList: policyTagList,
             transactionViolations: rawTransactionViolations,
+            transactionReport,
         });
     };
 
@@ -597,7 +608,7 @@ function MoneyRequestReceiptView({
                                 return;
                             }
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID)),
                             );
                         }}
                         isThumbnail={!canEditReceipt}
@@ -610,7 +621,7 @@ function MoneyRequestReceiptView({
             )}
             {(hasReceipt || !isEmptyObject(errors)) && (
                 <OfflineWithFeedback
-                    shouldDisableOpacity={canShowReceiptActions}
+                    shouldDisableOpacity={canExpandReceipt}
                     pendingAction={receiptPendingAction}
                     errors={errors}
                     errorRowStyles={[styles.mh4, !shouldShowReceiptEmptyState && styles.mt3]}
@@ -634,7 +645,7 @@ function MoneyRequestReceiptView({
                             confirmText: translate('common.dismiss'),
                             cancelText: translate('common.cancel'),
                             shouldShowCancelButton: true,
-                            danger: true,
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                         }).then((result) => {
                             if (result.action !== ModalActions.CONFIRM) {
                                 return;
@@ -697,46 +708,48 @@ function MoneyRequestReceiptView({
                                     )}
                                 </ReceiptHoverZoom>
                             </View>
-                            {canShowReceiptActions && (
+                            {canExpandReceipt && (
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isPickerOpen && deviceHasHoverSupport && styles.opacity0]}>
-                                    <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
-                                        {({openPicker}) => (
-                                            <Tooltip text={translate('receipt.addAdditionalReceipt')}>
-                                                <PressableWithoutFeedback
-                                                    ref={addButtonRef}
-                                                    onPress={() => {
-                                                        setIsPickerOpen(true);
-                                                        resetButtonHoverState(addButtonRef);
-                                                        const onPickerClosed = () => {
-                                                            setIsPickerOpen(false);
-                                                            if (isElementHovered(receiptContainerRef)) {
-                                                                hoverBind.onMouseEnter();
-                                                            }
-                                                        };
-                                                        openPicker({
-                                                            onPicked: (files) => {
-                                                                onPickerClosed();
-                                                                validateFiles(files, undefined, {isValidatingReceipts: false});
-                                                            },
-                                                            onCanceled: onPickerClosed,
-                                                        });
-                                                    }}
-                                                    style={styles.receiptActionButton}
-                                                    hoverStyle={styles.buttonDefaultHovered}
-                                                    accessibilityLabel={translate('receipt.addAdditionalReceipt')}
-                                                    role={CONST.ROLE.BUTTON}
-                                                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
-                                                >
-                                                    <Icon
-                                                        src={lazyIcons.ReceiptPlus}
-                                                        height={variables.iconSizeSmall}
-                                                        width={variables.iconSizeSmall}
-                                                        fill={theme.icon}
-                                                    />
-                                                </PressableWithoutFeedback>
-                                            </Tooltip>
-                                        )}
-                                    </AttachmentPicker>
+                                    {canShowReceiptActions && (
+                                        <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
+                                            {({openPicker}) => (
+                                                <Tooltip text={translate('receipt.addAdditionalReceipt')}>
+                                                    <PressableWithoutFeedback
+                                                        ref={addButtonRef}
+                                                        onPress={() => {
+                                                            setIsPickerOpen(true);
+                                                            resetButtonHoverState(addButtonRef);
+                                                            const onPickerClosed = () => {
+                                                                setIsPickerOpen(false);
+                                                                if (isElementHovered(receiptContainerRef)) {
+                                                                    hoverBind.onMouseEnter();
+                                                                }
+                                                            };
+                                                            openPicker({
+                                                                onPicked: (files) => {
+                                                                    onPickerClosed();
+                                                                    validateFiles(files, undefined, {isValidatingReceipts: false});
+                                                                },
+                                                                onCanceled: onPickerClosed,
+                                                            });
+                                                        }}
+                                                        style={styles.receiptActionButton}
+                                                        hoverStyle={styles.buttonDefaultHovered}
+                                                        accessibilityLabel={translate('receipt.addAdditionalReceipt')}
+                                                        role={CONST.ROLE.BUTTON}
+                                                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
+                                                    >
+                                                        <Icon
+                                                            src={lazyIcons.ReceiptPlus}
+                                                            height={variables.iconSizeSmall}
+                                                            width={variables.iconSizeSmall}
+                                                            fill={theme.icon}
+                                                        />
+                                                    </PressableWithoutFeedback>
+                                                </Tooltip>
+                                            )}
+                                        </AttachmentPicker>
+                                    )}
                                     <Tooltip text={translate('reportActionCompose.expand')}>
                                         <PressableWithoutFocus
                                             onPress={() =>
@@ -771,7 +784,6 @@ function MoneyRequestReceiptView({
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
             {!hasReceiptUploadError && !!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
-            {AttachmentErrorModal}
             {PDFValidationComponent}
         </View>
     );

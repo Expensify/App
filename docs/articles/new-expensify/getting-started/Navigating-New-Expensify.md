@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
-description: Learn how to move around New Expensify using the navigation tabs, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs and primary action buttons. Does not explain the detailed behavior of the Home tab sections.
+description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
@@ -18,7 +18,7 @@ If you'd like a guided walkthrough of the New Expensify experience, explore the 
 - [interactive mobile tour for Workspace Admins](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 **For submitters and approvers:**
-- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/v9dr1rjqsd9y)
+- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/qlgnexxbsdtp)
 - [interactive mobile tour for submitters and approvers](https://expensify.storylane.io/share/qbbob6zvapqo)
 
 
@@ -152,19 +152,21 @@ Paid Workspace Admins may have dedicated support contacts assigned to their acco
 4. Below **Concierge**, look for your assigned support contacts.
 5. Click a contact to open a direct message with them.
 
-If your Account Manager has a scheduling link set up, a **Book a call** button also appears next to them here. See **How to book a call with your Account Manager** below for details.
+If a support contact has a scheduling link set up, a **Book a call** button also appears next to them here. This works for your Account Manager, Partner Manager, and Guide. Learn [how to book a call with your support contact](#how-to-book-a-call-with-your-support-contact) below.
 
 ---
 
-## How to book a call with your Account Manager
+## How to book a call with your support contact
 
-If your Account Manager has a scheduling link set up, you can book a call with them directly using the **Book a call** button. Clicking **Book a call** opens your Account Manager's calendar in a new tab so you can pick a time. The button appears in these places:
+If your Account Manager, Partner Manager, or Guide has a scheduling link set up, you can book a call with them directly using the **Book a call** button. Clicking **Book a call** opens that person's calendar in a new tab so you can pick a time. The button appears in these places:
 
-- On the **Help** page, next to your Account Manager.
-- In the header of your direct message with your Account Manager.
+- On the **Help** page, next to each support contact that has a scheduling link (Account Manager, Partner Manager, or Guide).
+- In the header of your direct message with that support contact.
 - In the header of your **Concierge** chat.
 
-The **Book a call** button only appears if your Account Manager has a scheduling link configured. If you don't see it, you can still message your Account Manager directly or ask **Concierge** to help schedule a call.
+In **Concierge**, only one **Book a call** button appears at a time, even if more than one of your support contacts has a scheduling link.
+
+The **Book a call** button only appears if the support contact has a scheduling link configured. If you don't see it, you can still message the support contact directly or ask **Concierge** to help schedule a call.
 
 ---
 
@@ -191,11 +193,30 @@ If you’re not sure where to go:
 
 ---
 
+## How to jump to a destination using Search
+
+You can move to a top-level destination without using the navigation tabs by typing its name in **Search**.
+
+1. Select **Search** (the magnifying glass icon).
+2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
+3. Select the destination to open it.
+
+You can also use keyboard shortcuts on web to jump directly to specific items:
+
+- Press **⌘+Shift+G** (Mac) or **Ctrl+Shift+G** (Windows/Linux), then enter a report ID to open that report.
+- Press **⌘+Shift+P** (Mac) or **Ctrl+Shift+P** (Windows/Linux), from a report, to jump directly to the workspace that the report belongs to.
+
+---
+
 # FAQ
 
 ## Where are navigation tabs located in Expensify?
 
 On web, navigation tabs appear on the left. On mobile, navigation tabs appear on the bottom.
+
+## Can I use Search to move between sections of Expensify?
+
+Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
 
 ## Where do I manage workspace settings?
 
@@ -228,4 +249,11 @@ Account Managers are typically assigned to accounts with subscriptions that incl
 
 ## Why don't I see the Book a call button?
 
-You'll only see the **Book a call** button if you have an assigned Account Manager who has a scheduling link configured. If either isn't set up, the button won't appear.
+You'll only see the **Book a call** button if you have an assigned support contact (Account Manager, Partner Manager, or Guide) who has a scheduling link configured. If no support contact is assigned or none has a scheduling link set up, the button won't appear. In **Concierge**, only one **Book a call** button shows at a time.
+
+## Are there keyboard shortcuts for opening reports or workspaces?
+
+Yes. On web:
+
+- Press **⌘+Shift+G** (Mac) or **Ctrl+Shift+G** (Windows/Linux) to search for and open a report by its report ID.
+- Press **⌘+Shift+P** (Mac) or **Ctrl+Shift+P** (Windows/Linux) to jump to the workspace that a report belongs to by entering its report ID.

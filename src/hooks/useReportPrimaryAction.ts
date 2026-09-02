@@ -14,6 +14,7 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {ValueOf} from 'type-fest';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -21,6 +22,7 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
 function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning} = usePaymentAnimationsContext();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
@@ -49,7 +51,8 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => !isTransactionPendingDelete(t));
+    // While offline, keep pending-delete transactions so a queued-for-delete expense still counts as a real transaction until the delete syncs.
+    const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => isOffline || !isTransactionPendingDelete(t));
 
     return getReportPrimaryAction({
         currentUserLogin: currentUserLogin ?? '',
@@ -66,6 +69,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
         isChatReportArchived,
         invoiceReceiverPolicy,
         ownerLogin,
+        isOffline,
     });
 }
 

@@ -15,7 +15,7 @@ function ValidateCodeActionForm({
     descriptionSecondaryStyles,
     validatePendingAction,
     validateError,
-    hasMagicCodeBeenSent,
+    hasValidateCodeBeenSent,
     handleSubmitForm,
     clearError,
     sendValidateCode,
@@ -53,7 +53,7 @@ function ValidateCodeActionForm({
             {!!descriptionSecondary && <Text style={[themeStyles.mb6, descriptionSecondaryStyles]}>{descriptionSecondary}</Text>}
             <ValidateCodeForm
                 isLoading={isLoading}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                 validatePendingAction={validatePendingAction}
                 validateCodeActionErrorField="validateLogin"
                 validateError={validateError}

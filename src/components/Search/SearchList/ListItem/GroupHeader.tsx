@@ -2,7 +2,6 @@ import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -22,11 +21,11 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
-import {isDeletedTransaction} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {NativeSyntheticEvent} from 'react-native';
@@ -48,6 +47,7 @@ import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
+import {useGroupCheckboxState} from './useGroupChildren';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -68,7 +68,6 @@ type GroupHeaderProps = SearchListActionProps & {
     isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
-    originalKey: string;
     visibleColumns?: SearchCustomColumnIds[];
 };
 
@@ -88,7 +87,6 @@ function GroupHeader({
     isFocused,
     isFirstItem,
     isLastItem,
-    originalKey,
     lastPaymentMethod,
     personalPolicyID,
     userBillingGracePeriodEnds,
@@ -99,7 +97,6 @@ function GroupHeader({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions} = useSearchSelectionContext();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -172,52 +169,20 @@ function GroupHeader({
 
     const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
 
-    const hasSnapshotTransactions = !isExpenseReportType && !!snapshotData && Object.keys(snapshotData).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
-    const isEmpty = groupItem.transactions.length === 0 && !hasSnapshotTransactions && !groupItem.transactionsQueryJSON;
+    // A group with a query of its own is not empty, it just has not been fetched yet.
+    const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
-    const effectiveTransactions = useMemo((): TransactionListItemType[] => {
-        if (isExpenseReportType || groupItem.transactions.length > 0) {
-            return groupItem.transactions;
-        }
-        if (!snapshotData) {
-            return [];
-        }
-        const items: TransactionListItemType[] = [];
-        for (const key of Object.keys(snapshotData)) {
-            if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-                continue;
-            }
-            const transaction = snapshotData[key as keyof typeof snapshotData] as Transaction;
-            if (!transaction?.transactionID) {
-                continue;
-            }
-            const report = snapshotData[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-            items.push({
-                ...transaction,
-                keyForList: transaction.transactionID,
-                report,
-            } as TransactionListItemType);
-        }
-        return items;
-    }, [isExpenseReportType, groupItem.transactions, snapshotData]);
-
-    const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
-        const selectedTransactionIDsSet = new Set(Object.keys(selectedTransactions));
-        const filteredTransactions = effectiveTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const selectedCount = filteredTransactions.reduce((acc, transaction) => (selectedTransactionIDsSet.has(transaction.transactionID) ? acc + 1 : acc), 0);
-        const isEmptyReportSelected = effectiveTransactions.length === 0 && originalKey && selectedTransactions[originalKey]?.isSelected;
-        const allChecked = !!isEmptyReportSelected || (selectedCount === filteredTransactions.length && filteredTransactions.length > 0);
-        const indeterminate = selectedCount > 0 && selectedCount !== filteredTransactions.length;
-        return {isSelectAllChecked: allChecked, isIndeterminate: indeterminate};
-    }, [selectedTransactions, effectiveTransactions, originalKey]);
+    // The same derivation the narrow layout reads, so the two cannot disagree about what a group's checkbox shows.
+    const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: groupItem.transactions});
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
+    // The row this half renders carries a prefixed key, so anything handed back to the selection gets the group's own.
     const withOriginalKey = <T extends SearchListItem>(rowItem: T): T => ({
         ...rowItem,
-        keyForList: originalKey,
+        keyForList: item.groupKeyForList,
     });
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -228,12 +193,12 @@ function GroupHeader({
     });
 
     const handleSelectionButtonPress = () => {
-        onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions);
+        onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
 
     const pendingAction =
         item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined);
 
@@ -384,7 +349,7 @@ function GroupHeader({
     };
 
     const handleLongPress = () => {
-        onLongPressRow?.(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions);
+        onLongPressRow?.(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
 
     return (
@@ -399,7 +364,7 @@ function GroupHeader({
                 role={getButtonRole(true)}
                 isNested
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
                 onFocus={onFocus}

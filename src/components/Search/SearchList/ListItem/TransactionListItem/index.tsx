@@ -11,6 +11,7 @@ import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLi
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,13 +24,14 @@ import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/acti
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
     isDeletedTransaction as isDeletedTransactionUtil,
     isViolationDismissed,
     mergeProhibitedViolations,
     shouldShowAttendees,
     shouldShowViolation,
+    showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 
@@ -37,10 +39,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 // NOTE: The narrow-layout rendering of this component has a static twin in
@@ -120,7 +122,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
 
     const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
-    const exportedReportActions = actionsData ? Object.values(actionsData) : [];
+    const reportActions = actionsData ? Object.values(actionsData) : [];
 
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
@@ -131,18 +133,24 @@ function TransactionListItemInner<TItem extends ListItem>({
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(transactionItem?.report?.ownerAccountID)});
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
-    const [transactionViolationsForRow] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
+    const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}` as const;
+    const [transactionViolationsForRow] = originalUseOnyx(transactionViolationsKey);
+    const allViolations: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolationsForRow};
     const parentReportActionID = transactionItem?.reportAction?.reportActionID;
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {
-        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${parentReportActionID}`],
+        selector: (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => actions?.[`${parentReportActionID}`],
     });
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
-    const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? snapshotReport?.parentReportID)}`);
-    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, delegateEmail, delegateAccountID} =
+    const chatReportID = snapshotReport?.chatReportID ?? snapshotReport?.parentReportID;
+    const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(chatReportID)}`);
+    // Fall back to the search snapshot when the chat report isn't in live Onyx yet (e.g. offline or not fetched),
+    // matching the grouped-report path in ReportListItemHeader so the Pay flow can still resolve the chat report.
+    const snapshotChatReport = chatReportID ? snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+    const chatReport = parentChatReport ?? snapshotChatReport;
+    const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? chatReportID)}`);
+    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID, conciergeChat} =
         useReportPaymentContext({
-            reportID: transactionItem.reportID,
-            chatReportPolicyID: parentChatReport?.policyID,
+            chatReportPolicyID: chatReport?.policyID,
         });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -151,7 +159,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         reportID: transactionItem.reportID,
         itemKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`,
         snapshotData,
-        snapshotActions: exportedReportActions,
+        snapshotActions: reportActions,
         enabled: !!snapshotData,
     });
     const transactionPreviewData: TransactionPreviewData = {
@@ -166,12 +174,18 @@ function TransactionListItemInner<TItem extends ListItem>({
     // Use snapshotReport/snapshotPolicy as fallbacks to fix offline issues where
     // newly created reports aren't in the search snapshot yet
     const policyForViolations = parentPolicy ?? snapshotPolicy;
+    const rowPolicy = parentPolicy || snapshotPolicy.id || transactionItem.policy ? {...transactionItem.policy, ...snapshotPolicy, ...parentPolicy} : undefined;
     const reportForViolations = parentReport ?? snapshotReport;
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy: rowPolicy ?? liveTransactionItem.policy,
+        report: liveTransactionItem.report,
+        isTrackIntentUser,
+    });
 
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>
             !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, submitterLogin, policyForViolations) &&
-            shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transactionItem),
+            shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', currentUserDetails.accountID, false, transactionItem),
     );
 
     const isInvoice = isInvoiceReport(reportForViolations) || reportForViolations.type === CONST.REPORT.TYPE.INVOICE;
@@ -193,12 +207,14 @@ function TransactionListItemInner<TItem extends ListItem>({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
     const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
+            getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveTransactionItem,
             goToItem: () => onSelectRow(item, transactionPreviewData, event),
@@ -218,21 +234,23 @@ function TransactionListItemInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
-            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             introSelected,
             betas,
             isSelfTourViewed,
             activePolicy,
-            chatReport: parentChatReport,
+            chatReport,
             chatReportPolicy,
-            iouReportCurrentNextStepDeprecated: nextStep,
             searchData: currentSearchResults?.data,
             chatReportActions,
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            allViolations,
+            conciergeChat,
         });
     };
 
@@ -255,11 +273,13 @@ function TransactionListItemInner<TItem extends ListItem>({
         handleActionButtonPress,
         shouldDisableActionPointerEvents: shouldDisableSearchSubmitPress,
         transactionPreviewData,
-        exportedReportActions,
+        reportActions,
         policyCategories,
         policyTagLists,
+        rowPolicy,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
+        chatReport,
     };
 
     if (!isLargeScreenWidth) {

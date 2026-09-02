@@ -114,7 +114,7 @@ const Log = new Logger({
     clientLoggingCallback: (message, extraData) => {
         console.debug(message, extraData);
     },
-    maxLogLinesBeforeFlush: 150,
+    maxLogLinesBeforeFlush: 500,
     isDebug: true,
     getContextEmail: getCurrentUserEmail,
 });

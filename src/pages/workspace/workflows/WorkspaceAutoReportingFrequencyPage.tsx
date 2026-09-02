@@ -8,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -29,7 +30,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 
 type AutoReportingFrequencyKey = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
@@ -68,19 +69,33 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
 
     const {translate, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
+    const policyID = policy?.id;
+
+    const [userSelectedFrequency, setUserSelectedFrequency] = useState<AutoReportingFrequencyKey | undefined>();
+    const selectedFrequency = userSelectedFrequency ?? autoReportingFrequency;
 
     const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
-        if (!policy?.id) {
-            return;
-        }
-        setWorkspaceAutoReportingFrequency(policy.id, item.keyForList as AutoReportingFrequencyKey, policy.autoReportingFrequency, policy.harvesting);
-
-        if (item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
-            return;
-        }
-
-        Navigation.goBack();
+        setUserSelectedFrequency(item.keyForList as AutoReportingFrequencyKey);
     };
+
+    const saveAutoReportingFrequency = useCallback(() => {
+        if (!policyID || !selectedFrequency) {
+            return;
+        }
+        setWorkspaceAutoReportingFrequency(policyID, selectedFrequency, policy?.autoReportingFrequency, policy?.harvesting, getReviewWorkspaceSettingsTaskCompletion());
+        Navigation.goBack();
+    }, [policyID, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency, getReviewWorkspaceSettingsTaskCompletion]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveAutoReportingFrequency,
+            isDisabled: selectedFrequency === autoReportingFrequency,
+        }),
+        [saveAutoReportingFrequency, translate, selectedFrequency, autoReportingFrequency],
+    );
 
     const getDescriptionText = () => {
         if (policy?.autoReportingOffset === undefined) {
@@ -121,8 +136,8 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(autoReportingFrequencyDisplayNames).map((frequencyKey) => ({
         text: autoReportingFrequencyDisplayNames[frequencyKey as AutoReportingFrequencyKey] ?? '',
         keyForList: frequencyKey,
-        isSelected: frequencyKey === autoReportingFrequency,
-        footerContent: frequencyKey === autoReportingFrequency && frequencyKey === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null,
+        isSelected: frequencyKey === selectedFrequency,
+        footerContent: frequencyKey === selectedFrequency && frequencyKey === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null,
     }));
 
     return (
@@ -156,6 +171,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                             ListItem={SingleSelectListItem}
                             data={autoReportingFrequencyItems}
                             onSelectRow={onSelectAutoReportingFrequency}
+                            confirmButtonOptions={confirmButtonOptions}
                             initiallyFocusedItemKey={autoReportingFrequency}
                             addBottomSafeAreaPadding
                         />

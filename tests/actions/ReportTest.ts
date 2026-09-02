@@ -13,12 +13,15 @@ import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actio
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {appendParam} from '@libs/Url';
 
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 
@@ -37,6 +40,7 @@ import type * as SearchQueryUtilsType from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -61,9 +65,13 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
-    buildNextStepNew: jest.fn(),
     buildOptimisticNextStep: jest.fn(),
 }));
+
+// Only the layout-specific tests below override this, so it keeps the real implementation as its default and every
+// other test in this file keeps behaving exactly as it did before.
+jest.mock('@libs/getIsNarrowLayout', () => jest.fn(jest.requireActual<{default: () => boolean}>('@libs/getIsNarrowLayout').default));
+const mockGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 
 const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
 
@@ -649,7 +657,7 @@ describe('actions/Report', () => {
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
-                Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+                Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: USER_1_ACCOUNT_ID});
                 Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
@@ -806,7 +814,7 @@ describe('actions/Report', () => {
             .then(() => {
                 rerender(report);
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(report, {...reportActions[200]}, undefined, ancestors.current, undefined, undefined, USER_1_LOGIN);
+                Report.deleteReportComment(report, {...reportActions[200]}, undefined, undefined, ancestors.current, undefined, undefined, USER_1_LOGIN);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -825,7 +833,7 @@ describe('actions/Report', () => {
 
                 rerender(report);
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
-                Report.deleteReportComment(report, {...reportActions[400]}, undefined, ancestors.current, undefined, undefined, USER_1_LOGIN);
+                Report.deleteReportComment(report, {...reportActions[400]}, undefined, undefined, ancestors.current, undefined, undefined, USER_1_LOGIN);
                 return waitForBatchedUpdates();
             })
             .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))
@@ -1035,7 +1043,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add a reaction to the comment
-                    toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
+                    toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, undefined);
                 }
                 return waitForBatchedUpdates();
             })
@@ -1055,7 +1063,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Now we remove the reaction
-                    toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
+                    toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, undefined);
                 }
                 return waitForBatchedUpdates();
             })
@@ -1070,7 +1078,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add the same reaction to the same report action with a different skin tone
-                    toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
+                    toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, undefined);
                 }
                 return waitForBatchedUpdates()
                     .then(() => {
@@ -1078,7 +1086,7 @@ describe('actions/Report', () => {
 
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                         if (reportAction) {
-                            toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE, TEST_USER_ACCOUNT_ID);
+                            toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE, TEST_USER_ACCOUNT_ID, undefined);
                         }
                         return waitForBatchedUpdates();
                     })
@@ -1103,7 +1111,7 @@ describe('actions/Report', () => {
 
                         if (reportAction) {
                             // Now we remove the reaction, and expect that both variations are removed
-                            toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
+                            toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, undefined);
                         }
                         return waitForBatchedUpdates();
                     })
@@ -1173,7 +1181,7 @@ describe('actions/Report', () => {
 
                 if (resultAction) {
                     // Add a reaction to the comment
-                    toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
+                    toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, undefined);
                 }
                 return waitForBatchedUpdates();
             })
@@ -1185,7 +1193,7 @@ describe('actions/Report', () => {
                 // should get removed instead of added again.
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
                 if (resultAction) {
-                    toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, reportActionReaction, 2, TEST_USER_ACCOUNT_ID);
+                    toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, reportActionReaction, 2, TEST_USER_ACCOUNT_ID, undefined);
                 }
                 return waitForBatchedUpdates();
             })
@@ -1216,6 +1224,7 @@ describe('actions/Report', () => {
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
+                currentUserAccountID: 1,
             });
         }
 
@@ -1235,7 +1244,7 @@ describe('actions/Report', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined});
+        Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined, currentUserAccountID: 1});
         await waitForBatchedUpdates();
 
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
@@ -1259,6 +1268,7 @@ describe('actions/Report', () => {
             newReportObject: {
                 reportID: REPORT_ID,
             },
+            currentUserAccountID: 1,
         });
         await waitForBatchedUpdates();
 
@@ -1274,6 +1284,22 @@ describe('actions/Report', () => {
 
         setHasRadio(true);
         await waitForBatchedUpdates();
+    });
+
+    it('markLocalReportActionsAsLoaded settles the initial-load state for an optimistic report', async () => {
+        const REPORT_ID = '96925001';
+
+        // Given the RAM-only loading state was dropped by an app restart, leaving the report re-armed as loading
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false});
+        await waitForBatchedUpdates();
+
+        // When the readiness stamp is reconstructed on open (ReportFetchHandler's optimistic-report skip path)
+        Report.markLocalReportActionsAsLoaded(REPORT_ID);
+        await waitForBatchedUpdates();
+
+        // Then both flags settle so the report can never hang on the loading skeleton
+        const loadingState = await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`);
+        expect(loadingState).toMatchObject({isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true});
     });
 
     it('openReport legacy preview fallback stores action under correct Onyx key and preserves existing actions', async () => {
@@ -1333,6 +1359,7 @@ describe('actions/Report', () => {
             betas: undefined,
             transaction: transaction ?? undefined,
             parentReportID: SELF_DM_ID,
+            currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
         await waitForBatchedUpdates();
 
@@ -1387,6 +1414,7 @@ describe('actions/Report', () => {
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
+                currentUserAccountID: 1,
             });
         }
 
@@ -1465,7 +1493,7 @@ describe('actions/Report', () => {
         });
 
         rerender(originalReport);
-        Report.deleteReportComment(originalReport, newReportAction, undefined, ancestors.current, undefined, undefined, '');
+        Report.deleteReportComment(originalReport, newReportAction, undefined, undefined, ancestors.current, undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1522,7 +1550,7 @@ describe('actions/Report', () => {
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
 
         rerender(originalReport);
-        Report.deleteReportComment(originalReport, newReportAction, undefined, ancestors.current, undefined, undefined, currentUserEmail);
+        Report.deleteReportComment(originalReport, newReportAction, undefined, undefined, ancestors.current, undefined, undefined, currentUserEmail);
         await waitForBatchedUpdates();
 
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1592,7 +1620,7 @@ describe('actions/Report', () => {
         });
 
         rerender(originalReport);
-        Report.deleteReportComment(originalReport, reportAction, undefined, ancestors.current, undefined, undefined, '');
+        Report.deleteReportComment(originalReport, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1651,7 +1679,7 @@ describe('actions/Report', () => {
                 }),
             );
 
-        Report.deleteReportComment(REPORT, reportAction, undefined, [], undefined, undefined, '');
+        Report.deleteReportComment(REPORT, reportAction, undefined, undefined, [], undefined, undefined, '');
 
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
@@ -1727,7 +1755,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT, newReportAction, undefined, [], undefined, undefined, '');
+        Report.deleteReportComment(REPORT, newReportAction, undefined, undefined, [], undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1811,7 +1839,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT, newReportAction, undefined, [], undefined, undefined, '');
+        Report.deleteReportComment(REPORT, newReportAction, undefined, undefined, [], undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -2028,7 +2056,7 @@ describe('actions/Report', () => {
             }),
         };
 
-        Report.deleteReportComment(REPORT, commentAction, reportActionsForReport, [], undefined, undefined, '', undefined);
+        Report.deleteReportComment(REPORT, commentAction, reportActionsForReport, undefined, [], undefined, undefined, '', undefined);
         await waitForBatchedUpdates();
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
@@ -2114,7 +2142,7 @@ describe('actions/Report', () => {
         };
 
         // Delete comment B — only whisper B (at commentB + 1) should be marked deleted
-        Report.deleteReportComment(REPORT, commentBAction, reportActionsForReport, [], undefined, undefined, '', undefined);
+        Report.deleteReportComment(REPORT, commentBAction, reportActionsForReport, undefined, [], undefined, undefined, '', undefined);
         await waitForBatchedUpdates();
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
@@ -2158,7 +2186,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
+        toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, undefined);
         toggleEmojiReaction(
             REPORT_ID,
             newReportAction,
@@ -2180,6 +2208,7 @@ describe('actions/Report', () => {
             },
             CONST.EMOJI_DEFAULT_SKIN_TONE,
             TEST_USER_ACCOUNT_ID,
+            undefined,
         );
 
         await waitForBatchedUpdates();
@@ -2211,7 +2240,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT, newReportAction, undefined, [], undefined, undefined, '');
+        Report.deleteReportComment(REPORT, newReportAction, undefined, undefined, [], undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -2274,7 +2303,7 @@ describe('actions/Report', () => {
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
 
-        toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
+        toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, undefined);
         toggleEmojiReaction(
             REPORT_ID,
             reportAction,
@@ -2296,6 +2325,7 @@ describe('actions/Report', () => {
             },
             CONST.EMOJI_DEFAULT_SKIN_TONE,
             TEST_USER_ACCOUNT_ID,
+            undefined,
         );
 
         await waitForBatchedUpdates();
@@ -2311,7 +2341,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT, reportAction, undefined, [], undefined, undefined, '');
+        Report.deleteReportComment(REPORT, reportAction, undefined, undefined, [], undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -2366,13 +2396,14 @@ describe('actions/Report', () => {
                 reportID: '2',
             },
             parentReportActionID: reportActionID,
+            currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
 
         await waitForBatchedUpdates();
 
         const {result: ancestors} = renderHook(() => useAncestors({reportID: REPORT_ID}));
 
-        Report.deleteReportComment(REPORT, reportAction, undefined, ancestors.current, undefined, undefined, '');
+        Report.deleteReportComment(REPORT, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '');
 
         expect(PersistedRequests.getAll().length).toBe(3);
 
@@ -2619,8 +2650,8 @@ describe('actions/Report', () => {
 
         const {result: ancestors} = renderHook(() => useAncestors(report));
 
-        Report.deleteReportComment(report, mentionAction, undefined, ancestors.current, undefined, undefined, '');
-        Report.deleteReportComment(report, mentionAction2, undefined, ancestors.current, undefined, undefined, '');
+        Report.deleteReportComment(report, mentionAction, undefined, undefined, ancestors.current, undefined, undefined, '');
+        Report.deleteReportComment(report, mentionAction2, undefined, undefined, ancestors.current, undefined, undefined, '');
 
         await waitForBatchedUpdates();
 
@@ -2657,7 +2688,7 @@ describe('actions/Report', () => {
             mockNavigation.getTopmostSearchReportRouteParams.mockReturnValue({reportID: CHILD_REPORT_ID});
 
             const {result: ancestors} = renderHook(() => useAncestors(parentReport));
-            Report.deleteReportComment(parentReport, reportAction, undefined, ancestors.current, undefined, undefined, '');
+            Report.deleteReportComment(parentReport, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '');
             await waitForBatchedUpdates();
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -2675,10 +2706,78 @@ describe('actions/Report', () => {
             mockNavigation.getTopmostSearchReportRouteParams.mockReturnValue({reportID: CHILD_REPORT_ID, reportActionID: 'action-999'});
 
             const {result: ancestors} = renderHook(() => useAncestors(parentReport));
-            Report.deleteReportComment(parentReport, reportAction, undefined, ancestors.current, undefined, undefined, '');
+            Report.deleteReportComment(parentReport, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '');
             await waitForBatchedUpdates();
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
+        });
+    });
+
+    describe('saveReportActionDraft', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+
+        it('saves the draft under the given report when the edited action belongs to it', async () => {
+            const reportID = '9101';
+            const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+            const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, 'draft-local-action');
+
+            Report.saveReportActionDraft(reportID, reportAction, {[reportAction.reportActionID]: reportAction}, 'edited message');
+            await waitForBatchedUpdates();
+
+            const drafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
+            expect(drafts?.['draft-local-action']?.message).toBe('edited message');
+        });
+
+        it('saves the draft under the parent report when editing a thread parent message from the child thread', async () => {
+            const parentReportID = '9102';
+            const threadReportID = '9103';
+            const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+            const parentReportAction = {...TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, 'draft-thread-parent-action'), childReportID: threadReportID};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {reportID: threadReportID, parentReportID, parentReportActionID: parentReportAction.reportActionID});
+            await waitForBatchedUpdates();
+
+            // The parent message is not part of the child thread's own actions, so the draft must be stored under the parent report
+            Report.saveReportActionDraft(threadReportID, parentReportAction, {}, 'edited thread parent');
+            await waitForBatchedUpdates();
+
+            const parentDrafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${parentReportID}`);
+            expect(parentDrafts?.['draft-thread-parent-action']?.message).toBe('edited thread parent');
+            const threadDrafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${threadReportID}`);
+            expect(threadDrafts?.['draft-thread-parent-action']).toBeUndefined();
+        });
+
+        it('does nothing when reportAction is null', async () => {
+            const reportID = '9104';
+
+            Report.saveReportActionDraft(reportID, null, undefined, 'should not be saved');
+            await waitForBatchedUpdates();
+
+            const drafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
+            expect(drafts).toBeFalsy();
+        });
+    });
+
+    describe('toggleEmojiReaction', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+
+        it('adds the reaction to a thread parent message using the parent report actions', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const parentReportID = '9105';
+            const threadReportID = '9106';
+            const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+            const parentReportAction = {...TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, 'react-thread-parent-action'), childReportID: threadReportID};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {reportID: threadReportID, parentReportID, parentReportActionID: parentReportAction.reportActionID});
+            // Seed the parent report's actions so the reaction can resolve the action under its owning report
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportAction.reportActionID]: parentReportAction});
+            await waitForBatchedUpdates();
+
+            // The child thread's own actions do not contain the parent message, so the original report must be resolved from the thread's parent
+            toggleEmojiReaction(threadReportID, parentReportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, {});
+            await waitForBatchedUpdates();
+
+            const reactions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${parentReportAction.reportActionID}`);
+            expect(reactions?.smile?.users?.[TEST_USER_ACCOUNT_ID]).toBeDefined();
         });
     });
 
@@ -2690,7 +2789,6 @@ describe('actions/Report', () => {
         // Given a policy with harvesting is disabled
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReporting: false,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
@@ -2701,7 +2799,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -2767,7 +2865,7 @@ describe('actions/Report', () => {
             type: CONST.POLICY.TYPE.TEAM,
         };
 
-        Report.createNewReport({accountID: 1234}, true, false, policy, [CONST.BETAS.ALL], false, false, undefined, {managedCardTransactionID});
+        Report.createNewReport({accountID: 1234}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, false, undefined, {managedCardTransactionID});
 
         expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_APP_REPORT, expect.objectContaining({managedCardTransactionID}), expect.anything());
     });
@@ -2779,7 +2877,6 @@ describe('actions/Report', () => {
         global.fetch = mockFetchData;
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             harvesting: {
                 enabled: false,
@@ -2788,7 +2885,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -2812,7 +2909,6 @@ describe('actions/Report', () => {
         // Given a policy with harvesting is enabled
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
             harvesting: {
@@ -2826,7 +2922,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -2849,7 +2945,6 @@ describe('actions/Report', () => {
         // Given a policy with instant submission and approval disabled
         const policy: OnyxTypes.Policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
@@ -2861,7 +2956,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
@@ -2893,7 +2988,6 @@ describe('actions/Report', () => {
 
         const policy = {
             ...createRandomPolicy(Number(policyID)),
-            isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
             autoReporting: false,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
@@ -2903,7 +2997,7 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -2937,6 +3031,7 @@ describe('actions/Report', () => {
             const {onboardingMessages} = getOnboardingMessages();
 
             Report.completeOnboarding({
+                conciergeChat: undefined,
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID,
@@ -2972,6 +3067,7 @@ describe('actions/Report', () => {
             const selectedInterestedFeatures = [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED, CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED];
 
             Report.completeOnboarding({
+                conciergeChat: undefined,
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID: '7957055873634068',
@@ -2994,6 +3090,75 @@ describe('actions/Report', () => {
             }
             const formEntries = Object.fromEntries(body);
             expect(formEntries.selectedInterestedFeatures).toBe(JSON.stringify(selectedInterestedFeatures));
+        });
+
+        it('should forward the user-reported integration name to the CompleteGuidedSetup API call', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            jest.mocked(global.fetch).mockClear();
+            await waitForBatchedUpdates();
+
+            const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            Report.completeOnboarding({
+                conciergeChat: undefined,
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                adminsChatReportID: '7957055873634069',
+                onboardingPolicyID: 'A70D00C752416809',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: 'other',
+                userReportedIntegrationName: 'Acme Books',
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            const calls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
+            expect(calls.length).toBeGreaterThan(0);
+            const body = calls.at(-1)?.[1]?.body;
+            expect(body).toBeInstanceOf(FormData);
+            if (!(body instanceof FormData)) {
+                throw new Error('Expected CompleteGuidedSetup request body to be FormData');
+            }
+            const formEntries = Object.fromEntries(body);
+            expect(formEntries.userReportedIntegration).toBe('other');
+            expect(formEntries.userReportedIntegrationName).toBe('Acme Books');
+        });
+
+        it('should omit the user-reported integration name from CompleteGuidedSetup when it is undefined', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            jest.mocked(global.fetch).mockClear();
+            await waitForBatchedUpdates();
+
+            const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            Report.completeOnboarding({
+                conciergeChat: undefined,
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                adminsChatReportID: '7957055873634070',
+                onboardingPolicyID: 'A70D00C752416810',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: 'other',
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            const calls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
+            expect(calls.length).toBeGreaterThan(0);
+            const body = calls.at(-1)?.[1]?.body;
+            expect(body).toBeInstanceOf(FormData);
+            if (!(body instanceof FormData)) {
+                throw new Error('Expected CompleteGuidedSetup request body to be FormData');
+            }
+            const formEntries = Object.fromEntries(body);
+            expect(formEntries.userReportedIntegration).toBe('other');
+            expect(formEntries.userReportedIntegrationName).toBeUndefined();
         });
 
         it('should post onboarding tasks to the existing Concierge chat', async () => {
@@ -3134,7 +3299,7 @@ describe('actions/Report', () => {
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
 
             // When mark all reports as read
-            markAllMessagesAsRead({});
+            markAllMessagesAsRead(undefined);
 
             await waitForBatchedUpdates();
 
@@ -3262,6 +3427,7 @@ describe('actions/Report', () => {
                 reportTransactions: {},
                 allTransactionViolations: {},
                 bankAccountList: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3374,6 +3540,7 @@ describe('actions/Report', () => {
                 },
                 allTransactionViolations: {},
                 bankAccountList: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3446,6 +3613,7 @@ describe('actions/Report', () => {
                 reportTransactions: {},
                 allTransactionViolations: {},
                 bankAccountList: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3465,6 +3633,47 @@ describe('actions/Report', () => {
     });
 
     describe('changeReportPolicy', () => {
+        it('blocks manual distance using the provided transaction list', async () => {
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'sourcePolicy',
+            };
+            const targetPolicy = {
+                ...createRandomPolicy(2),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            };
+            const manualDistanceTransaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            };
+
+            Report.changeReportPolicy({
+                report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                parentReport: undefined,
+                policy: targetPolicy,
+                currentUserAccountID: 1,
+                email: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isChangePolicyTrainingModalDismissed: false,
+                ownerLogin: undefined,
+                isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
+                isTrackIntentUser: false,
+                reportTransactions: [manualDistanceTransaction],
+            });
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CHANGE_REPORT_POLICY, 0);
+        });
+
         it('should unarchive the expense report', async () => {
             // Given an archived expense report
             const expenseReport: OnyxTypes.Report = {
@@ -3482,6 +3691,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3493,6 +3703,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3542,6 +3753,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3553,6 +3765,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3612,6 +3825,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3623,6 +3837,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3708,6 +3923,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3719,6 +3935,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3792,6 +4009,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3803,6 +4021,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3844,6 +4063,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -3856,10 +4076,10 @@ describe('actions/Report', () => {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3901,7 +4121,6 @@ describe('actions/Report', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [adminEmail]: {
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -3936,6 +4155,7 @@ describe('actions/Report', () => {
             // Call changeReportPolicyAndInviteSubmitter
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUser: {accountID: 1},
@@ -3946,10 +4166,10 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList,
                 isReportLastVisibleArchived: false,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3981,6 +4201,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -3991,10 +4212,10 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4012,6 +4233,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1},
@@ -4022,10 +4244,10 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4042,6 +4264,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4052,10 +4275,10 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4072,6 +4295,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4082,10 +4306,10 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4104,6 +4328,7 @@ describe('actions/Report', () => {
             // Do not set personal details for ownerAccountID so getLoginByAccountID returns empty
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4114,10 +4339,10 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4140,7 +4365,6 @@ describe('actions/Report', () => {
                 id: 'targetPolicy',
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [existingAdminEmail]: {email: existingAdminEmail, role: CONST.POLICY.ROLE.ADMIN},
                     [existingUserEmail]: {email: existingUserEmail, role: CONST.POLICY.ROLE.USER},
@@ -4157,6 +4381,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1, email: 'current-user@expensifail.com'},
@@ -4167,10 +4392,10 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: targetPolicy.employeeList,
                 isReportLastVisibleArchived: false,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4214,7 +4439,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace
-            Report.moveIOUReportToPolicy(iouReport, policy, undefined);
+            Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4236,7 +4461,7 @@ describe('actions/Report', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicy(expenseReport, policy, undefined);
+            const result = Report.moveIOUReportToPolicy(expenseReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal);
             expect(result).toBeUndefined();
         });
 
@@ -4261,7 +4486,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
             await waitForBatchedUpdates();
 
-            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, false);
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, false);
             expect(result).toBeUndefined();
         });
 
@@ -4298,7 +4523,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When isFromSettlementButton is true, it should proceed despite hasRequestFromCurrentAccount being true
-            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, true);
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, true);
             expect(result).toBeDefined();
             expect(result?.policyExpenseChatReportID).toBeDefined();
         });
@@ -4328,7 +4553,7 @@ describe('actions/Report', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
 
                 // When converting IOU report to expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat123', undefined, []);
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat123', undefined, TestHelper.getCurrencyDecimalsLocal, []);
 
                 // Then the report name should be set to the default formula result ("New Report")
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -4360,7 +4585,7 @@ describe('actions/Report', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
 
                 // When converting IOU report to expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat124', undefined, []);
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat124', undefined, TestHelper.getCurrencyDecimalsLocal, []);
 
                 // Then the report name should be set to the default formula result ("New Report")
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -4392,7 +4617,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4431,7 +4656,6 @@ describe('actions/Report', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     'admin@test.com': {
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -4458,7 +4682,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -4516,7 +4740,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with reportTransactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the transaction amounts should be negated optimistically
@@ -4562,7 +4786,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with transactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the report should be converted to an expense report with the new policyID
@@ -4590,7 +4814,7 @@ describe('actions/Report', () => {
 
         it('should return undefined when iouReport is missing', () => {
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, {}, undefined, TEST_USER_ACCOUNT_ID, '', false);
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, {}, undefined, TEST_USER_ACCOUNT_ID, '', false, TestHelper.getCurrencyDecimalsLocal);
             expect(result).toBeUndefined();
         });
     });
@@ -4605,6 +4829,7 @@ describe('actions/Report', () => {
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4617,7 +4842,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
             });
-            expect(buildNextStepNew).toHaveBeenCalledWith({
+            expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
                 policy,
                 currentUserAccountIDParam: 1,
@@ -4659,6 +4884,7 @@ describe('actions/Report', () => {
 
             const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4723,6 +4949,7 @@ describe('actions/Report', () => {
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4771,6 +4998,7 @@ describe('actions/Report', () => {
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4832,6 +5060,7 @@ describe('actions/Report', () => {
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4896,6 +5125,7 @@ describe('actions/Report', () => {
 
             const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport,
                 policy,
                 currentUserAccountID: 1,
@@ -4959,7 +5189,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
             await waitForBatchedUpdates();
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -4970,7 +5200,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '2';
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -4981,10 +5211,33 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '3';
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+    });
+
+    describe('openReport with participants', () => {
+        it('should send passed participants as emailList/accountIDList so the server can resolve a stale optimistic reportID', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'dm1';
+
+            Report.openReport({
+                reportID: REPORT_ID,
+                introSelected: undefined,
+                betas: undefined,
+                hasReportActions: true,
+                currentUserAccountID: 1,
+                participants: [{login: 'other@test.com', accountID: 2}],
+            });
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
+                reportID: REPORT_ID,
+                emailList: 'other@test.com',
+                accountIDList: '2',
+            });
         });
     });
 
@@ -5471,10 +5724,102 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
+        });
+
+        it('should open a money-request child report in the expense report wide RHP scrolled to the latest message', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT: OnyxTypes.Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE};
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            mockGetIsNarrowLayout.mockReturnValueOnce(false);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                appendParam(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: EXISTING_CHILD_REPORT.reportID}), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'),
+            );
+        });
+
+        it('should open a money-request child report in the full report view on narrow layouts, still scrolled to the latest message', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT: OnyxTypes.Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE};
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            mockGetIsNarrowLayout.mockReturnValueOnce(true);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                appendParam(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'),
+            );
+        });
+
+        it('should open an invoice child report in the expense report wide RHP scrolled to the latest message', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT: OnyxTypes.Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.INVOICE};
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            mockGetIsNarrowLayout.mockReturnValueOnce(false);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                appendParam(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: EXISTING_CHILD_REPORT.reportID}), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'),
+            );
+        });
+
+        it('should open an invoice child report in the full report view on narrow layouts, still scrolled to the latest message', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT: OnyxTypes.Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.INVOICE};
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            mockGetIsNarrowLayout.mockReturnValueOnce(true);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                appendParam(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'),
+            );
         });
 
         it('should work with undefined child report ID (new thread scenario)', async () => {
@@ -5490,10 +5835,36 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
+        });
+
+        it('threads the conciergeChat report into the guided setup data sent with OpenReport', async () => {
+            // Given a signed-in user with onboarding still pending and an existing Concierge chat
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-child-thread-1'};
+            await waitForBatchedUpdates();
+
+            // When a new thread is created with the conciergeChat threaded through
+            const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false};
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, introSelected, undefined, undefined, undefined, conciergeChat);
+            await waitForBatchedUpdates();
+
+            // Then the optimistic onboarding actions target the threaded Concierge chat, not the deprecated module-level lookup
+            const conciergeReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChat.reportID}`);
+            expect(Object.keys(conciergeReportActions ?? {}).length).toBeGreaterThan(0);
         });
 
         it('should work with empty parent report action', async () => {
@@ -5511,6 +5882,7 @@ describe('actions/Report', () => {
                 PARENT_REPORT,
                 TEST_USER_ACCOUNT_ID,
                 INTRO_SELECTED,
+                undefined,
                 undefined,
                 undefined,
                 undefined,
@@ -5533,7 +5905,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
@@ -5552,7 +5924,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             // Verify navigation happened with the new thread report
@@ -5577,7 +5949,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, undefined);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -5597,7 +5969,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, testBetas, undefined, undefined);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, testBetas, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5631,7 +6003,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, introSelected, undefined, undefined, isSelfTourViewed);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, introSelected, undefined, undefined, isSelfTourViewed, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5668,7 +6040,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -5702,37 +6074,39 @@ describe('actions/Report', () => {
                 actorAccountID: TEST_USER_ACCOUNT_ID,
             };
 
-            const result = Report.explain(
-                undefined,
-                undefined,
-                REPORT_ACTION,
-                TestHelper.translateLocal,
-                TEST_USER_ACCOUNT_ID,
-                INTRO_SELECTED,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.DEFAULT_TIME_ZONE,
-            );
+            const result = Report.explain({
+                childReport: undefined,
+                originalReport: undefined,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: INTRO_SELECTED,
+                betas: undefined,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+            });
 
             expect(result).toBeUndefined();
         });
 
         it('should return early if reportAction is not provided', () => {
-            const result = Report.explain(
-                undefined,
-                undefined,
-                undefined,
-                TestHelper.translateLocal,
-                TEST_USER_ACCOUNT_ID,
-                INTRO_SELECTED,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.DEFAULT_TIME_ZONE,
-            );
+            const result = Report.explain({
+                childReport: undefined,
+                originalReport: undefined,
+                reportAction: undefined,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: INTRO_SELECTED,
+                betas: undefined,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+            });
 
             expect(result).toBeUndefined();
         });
@@ -5751,19 +6125,20 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(
-                EXISTING_CHILD_REPORT,
-                PARENT_REPORT,
-                REPORT_ACTION,
-                TestHelper.translateLocal,
-                TEST_USER_ACCOUNT_ID,
-                INTRO_SELECTED,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.DEFAULT_TIME_ZONE,
-            );
+            Report.explain({
+                childReport: EXISTING_CHILD_REPORT,
+                originalReport: PARENT_REPORT,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: INTRO_SELECTED,
+                betas: undefined,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+            });
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -5782,19 +6157,20 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(
-                undefined,
-                PARENT_REPORT,
-                REPORT_ACTION,
-                TestHelper.translateLocal,
-                TEST_USER_ACCOUNT_ID,
-                INTRO_SELECTED,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.DEFAULT_TIME_ZONE,
-            );
+            Report.explain({
+                childReport: undefined,
+                originalReport: PARENT_REPORT,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: INTRO_SELECTED,
+                betas: undefined,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+            });
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
@@ -5818,7 +6194,19 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
+            Report.explain({
+                childReport: EXISTING_CHILD_REPORT,
+                originalReport: PARENT_REPORT,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: INTRO_SELECTED,
+                betas: undefined,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+            });
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -5838,19 +6226,20 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(
-                EXISTING_CHILD_REPORT,
-                PARENT_REPORT,
-                REPORT_ACTION,
-                TestHelper.translateLocal,
-                TEST_USER_ACCOUNT_ID,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.DEFAULT_TIME_ZONE,
-            );
+            Report.explain({
+                childReport: EXISTING_CHILD_REPORT,
+                originalReport: PARENT_REPORT,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: undefined,
+                betas: undefined,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+            });
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -5870,19 +6259,20 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(
-                undefined,
-                PARENT_REPORT,
-                REPORT_ACTION,
-                TestHelper.translateLocal,
-                TEST_USER_ACCOUNT_ID,
-                INTRO_SELECTED,
-                testBetas,
-                undefined,
-                undefined,
-                undefined,
-                CONST.DEFAULT_TIME_ZONE,
-            );
+            Report.explain({
+                childReport: undefined,
+                originalReport: PARENT_REPORT,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: INTRO_SELECTED,
+                betas: testBetas,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+            });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5916,19 +6306,20 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(
-                undefined,
-                PARENT_REPORT,
-                REPORT_ACTION,
-                TestHelper.translateLocal,
-                TEST_USER_ACCOUNT_ID,
+            Report.explain({
+                childReport: undefined,
+                originalReport: PARENT_REPORT,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected,
-                undefined,
+                betas: undefined,
+                conciergeChat: undefined,
                 isSelfTourViewed,
-                undefined,
-                undefined,
-                CONST.DEFAULT_TIME_ZONE,
-            );
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+            });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5965,19 +6356,20 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(
-                EXISTING_CHILD_REPORT,
-                PARENT_REPORT,
-                REPORT_ACTION,
-                TestHelper.translateLocal,
-                TEST_USER_ACCOUNT_ID,
-                INTRO_SELECTED,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.DEFAULT_TIME_ZONE,
-            );
+            Report.explain({
+                childReport: EXISTING_CHILD_REPORT,
+                originalReport: PARENT_REPORT,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: INTRO_SELECTED,
+                betas: undefined,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+            });
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -6006,18 +6398,20 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    CHILD_REPORT_ID,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    false,
-                    undefined,
-                    undefined,
-                    'hidden',
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    conciergeChat: undefined,
+                    prevNotificationPreference: 'hidden',
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6035,7 +6429,20 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined, undefined, undefined, undefined);
+                Report.toggleSubscribeToChildReport({
+                    childReportID: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    conciergeChat: undefined,
+                    prevNotificationPreference: undefined,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6053,7 +6460,20 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, undefined, true, undefined, undefined, 'hidden', undefined);
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: undefined,
+                    isSelfTourViewed: true,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    conciergeChat: undefined,
+                    prevNotificationPreference: 'hidden',
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6071,18 +6491,20 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    CHILD_REPORT_ID,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    true,
-                    undefined,
-                    undefined,
-                    CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: true,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    conciergeChat: undefined,
+                    prevNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6100,7 +6522,20 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, true, undefined, undefined, undefined, undefined);
+                Report.toggleSubscribeToChildReport({
+                    childReportID: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: true,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    conciergeChat: undefined,
+                    prevNotificationPreference: undefined,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6118,7 +6553,20 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined, undefined, undefined, undefined);
+                Report.toggleSubscribeToChildReport({
+                    childReportID: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    conciergeChat: undefined,
+                    prevNotificationPreference: undefined,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6136,18 +6584,20 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    CHILD_REPORT_ID,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    true,
-                    undefined,
-                    undefined,
-                    'hidden',
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: true,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    conciergeChat: undefined,
+                    prevNotificationPreference: 'hidden',
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6165,18 +6615,20 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    CHILD_REPORT_ID,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    false,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    conciergeChat: undefined,
+                    prevNotificationPreference: undefined,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6195,18 +6647,20 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    CHILD_REPORT_ID,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    undefined,
-                    undefined,
-                    testBetas,
-                    'hidden',
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: testBetas,
+                    conciergeChat: undefined,
+                    prevNotificationPreference: 'hidden',
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6225,18 +6679,20 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    undefined,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    undefined,
-                    undefined,
-                    testBetas,
-                    undefined,
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: testBetas,
+                    conciergeChat: undefined,
+                    prevNotificationPreference: undefined,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
     });
@@ -6563,7 +7019,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When the user picks one of the Concierge-suggested category options
-            Report.resolveConciergeCategoryOptions(report, REPORT_ID, '5150', 'Food', CONST.DEFAULT_TIME_ZONE, 1, undefined);
+            Report.resolveConciergeCategoryOptions(report, REPORT_ID, '5150', 'Food', CONST.DEFAULT_TIME_ZONE, 1, undefined, REPORT_ID);
             await waitForBatchedUpdates();
 
             // Then the selection is posted back to Concierge as a comment
@@ -6597,7 +7053,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, TEST_CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_GROUP_CHAT, 1);
@@ -6616,7 +7072,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`, groupChatReport);
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             // After success, the report should be removed from Onyx (set to null)
@@ -6641,7 +7097,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, true, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, true, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -6668,7 +7124,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, quickActionValue);
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -6690,7 +7146,7 @@ describe('actions/Report', () => {
 
             // Should not throw an error with undefined conciergeReportID
             expect(() => {
-                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, undefined);
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -6722,7 +7178,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, TEST_CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_ROOM, 1);
@@ -6741,7 +7197,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, true);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, true);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
@@ -6765,7 +7221,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             // After success, the report should only have reportName (all other fields removed)
@@ -6799,7 +7255,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             const updatedParentReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}` as const);
@@ -6821,7 +7277,7 @@ describe('actions/Report', () => {
 
             // Should not throw an error with undefined conciergeReportID
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, undefined, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -6846,7 +7302,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, threadReport);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
@@ -6869,7 +7325,7 @@ describe('actions/Report', () => {
 
             // Should not throw when introSelected is provided
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -6900,7 +7356,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Should not throw and should call the API
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_GROUP_CHAT, 1);
@@ -6923,7 +7379,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, undefined);
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -6945,7 +7401,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, undefined);
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -6977,7 +7433,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, undefined, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -6998,7 +7454,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, undefined, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -7019,7 +7475,68 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, {}, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, {}, undefined, undefined, false);
+            }).not.toThrow();
+
+            await waitForBatchedUpdates();
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_ROOM, 1);
+        });
+    });
+
+    describe('leaveGroupChat with isSelfTourViewed', () => {
+        const GROUP_CHAT_REPORT_ID = '1001';
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it.each([true, false, undefined])('should pass isSelfTourViewed=%s through to navigateToMostRecentReport', async (isSelfTourViewed) => {
+            TestHelper.getGlobalFetchMock();
+
+            const groupChatReport = {
+                ...createRandomReport(Number(GROUP_CHAT_REPORT_ID), CONST.REPORT.CHAT_TYPE.GROUP),
+                participants: {
+                    [TEST_CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`, groupChatReport);
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, TEST_CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            expect(() => {
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, isSelfTourViewed, undefined);
+            }).not.toThrow();
+
+            await waitForBatchedUpdates();
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_GROUP_CHAT, 1);
+        });
+    });
+
+    describe('leaveRoom with isSelfTourViewed', () => {
+        const ROOM_REPORT_ID = '2001';
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it.each([true, false, undefined])('should pass isSelfTourViewed=%s through to navigateToMostRecentReport', async (isSelfTourViewed) => {
+            TestHelper.getGlobalFetchMock();
+
+            const roomReport = {
+                ...createRandomReport(Number(ROOM_REPORT_ID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                participants: {
+                    [TEST_CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
+            await waitForBatchedUpdates();
+
+            expect(() => {
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, isSelfTourViewed, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -7064,7 +7581,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_CURRENT_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             // Should navigate via goBack since there's another report to navigate to
@@ -7093,7 +7610,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Chat thread with no other report → navigateToMostRecentReport calls navigateToConciergeChat without goBack
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             // For chat threads, goBack should NOT be called before navigating to concierge (the isChatThread branch)
@@ -7136,7 +7653,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_CURRENT_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -7157,7 +7674,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_CURRENT_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             // With no other reports, navigateToMostRecentReport calls goBack (not a chat thread) then navigateToConciergeChat
@@ -7191,7 +7708,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // isWorkspaceMemberLeavingWorkspaceRoom=true and report is NOT a chat thread → should dismissModal
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, true);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, true);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.dismissModal).toHaveBeenCalled();
@@ -7222,7 +7739,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // isWorkspaceMemberLeavingWorkspaceRoom=true but report IS a chat thread → should NOT dismissModal, should navigateToMostRecentReport instead
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, true);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, true);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.dismissModal).not.toHaveBeenCalled();
@@ -7296,7 +7813,7 @@ describe('actions/Report', () => {
                 optimisticReportID: GROUP_CHAT_REPORT_ID,
                 introSelected: TEST_INTRO_SELECTED,
                 isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: undefined,
+                hasCompletedGuidedSetupFlow: false,
                 betas: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
@@ -7352,7 +7869,7 @@ describe('actions/Report', () => {
                 optimisticReportID: GROUP_CHAT_REPORT_ID,
                 introSelected: TEST_INTRO_SELECTED,
                 isSelfTourViewed: true,
-                hasCompletedGuidedSetupFlow: undefined,
+                hasCompletedGuidedSetupFlow: false,
                 betas: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 avatarUri: AVATAR_URI,
@@ -7388,7 +7905,7 @@ describe('actions/Report', () => {
                 optimisticReportID: GROUP_CHAT_REPORT_ID,
                 introSelected: {...TEST_INTRO_SELECTED, isInviteOnboardingComplete: true},
                 isSelfTourViewed: true,
-                hasCompletedGuidedSetupFlow: undefined,
+                hasCompletedGuidedSetupFlow: true,
                 betas: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
@@ -7416,7 +7933,7 @@ describe('actions/Report', () => {
                 optimisticReportID: GROUP_CHAT_REPORT_ID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: undefined,
+                hasCompletedGuidedSetupFlow: true,
                 betas: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 avatarFile,
@@ -7456,7 +7973,7 @@ describe('actions/Report', () => {
                 optimisticReportID: GROUP_CHAT_REPORT_ID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: undefined,
+                hasCompletedGuidedSetupFlow: true,
                 betas: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
@@ -7670,7 +8187,16 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with a participant that doesn't have an existing chat
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -7715,14 +8241,80 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            // When navigateToAndOpenReport is called with the participant that has an existing chat
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined);
+            // When navigateToAndOpenReport is called with the participant that has an existing chat and onboarding is
+            // already complete (so no onboarding OpenReport needs to be enqueued)
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: true,
+                betas: undefined,
+            });
             await waitForBatchedUpdates();
 
-            // Then verify OpenReport API was NOT called since the chat already exists
+            // Then verify OpenReport API was NOT called since the chat already exists and onboarding is complete
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
 
             // Then verify navigation was called to the existing report
+            expect(Navigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should enqueue an onboarding OpenReport on the existing chat when onboarding is still pending', async () => {
+            // Given a test user with initial data
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            const PARTICIPANT_LOGIN = 'participant@test.com';
+            const PARTICIPANT_ACCOUNT_ID = 2;
+            const EXISTING_REPORT_ID = '123';
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [PARTICIPANT_ACCOUNT_ID]: {
+                    accountID: PARTICIPANT_ACCOUNT_ID,
+                    login: PARTICIPANT_LOGIN,
+                    displayName: 'Participant',
+                },
+            });
+
+            // When there is an existing chat report with the participant
+            const existingReport: OnyxTypes.Report = {
+                reportID: EXISTING_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [TEST_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    [PARTICIPANT_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXISTING_REPORT_ID}`, existingReport);
+
+            const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
+
+            // When navigateToAndOpenReport is called with onboarding still pending (guided setup not yet completed)
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
+                betas: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then OpenReport is enqueued once on the existing chat so the pending onboarding OpenReport lands (the create
+            // path's assumption holds even though the DM already exists)
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+
+            // Then verify navigation was still called to the existing report
             expect(Navigation.navigate).toHaveBeenCalled();
         });
 
@@ -7754,7 +8346,18 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, false, true);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                shouldDismissModal: false,
+                shouldRevalidateExistingChat: true,
+            });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -7781,7 +8384,16 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
 
             // When navigateToAndOpenReport is called with introSelected
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called (new chat created)
@@ -7789,6 +8401,35 @@ describe('actions/Report', () => {
 
             // Then verify navigation was called
             expect(Navigation.navigate).toHaveBeenCalled();
+        });
+
+        it('threads the conciergeChat report into the guided setup data sent with OpenReport', async () => {
+            // Given a signed-in user with a pending invite onboarding and an existing Concierge chat
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            const PARTICIPANT_LOGIN = 'participant@test.com';
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-navigate-open-1'};
+            await waitForBatchedUpdates();
+
+            // When navigateToAndOpenReport creates a new chat with introSelected and the conciergeChat threaded through
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false},
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
+                betas: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic onboarding actions target the threaded Concierge chat, not the deprecated module-level lookup
+            const conciergeReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChat.reportID}`);
+            expect(Object.keys(conciergeReportActions ?? {}).length).toBeGreaterThan(0);
         });
 
         it('should respect shouldDismissModal parameter', async () => {
@@ -7811,7 +8452,17 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with shouldDismissModal=false
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, false);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                shouldDismissModal: false,
+            });
             await waitForBatchedUpdates();
 
             // Then verify navigation was called
@@ -7837,7 +8488,16 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=true
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, true, undefined, undefined);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -7866,7 +8526,16 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=undefined
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, undefined, undefined, undefined);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -7895,7 +8564,17 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=true and shouldDismissModal=false
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, true, undefined, undefined, false);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                shouldDismissModal: false,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -7924,7 +8603,16 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const testBetas = [CONST.BETAS.ALL];
 
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, testBetas);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: testBetas,
+            });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -7966,7 +8654,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, isSelfTourViewed, undefined, undefined, undefined);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, isSelfTourViewed, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -7993,7 +8681,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, undefined);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
@@ -8020,7 +8708,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, true);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, undefined, true);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -8053,7 +8741,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, true);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, undefined, true);
             await waitForBatchedUpdates();
 
             const openReportCalls = mockFetch.mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.OPEN_REPORT}?`);
@@ -8110,7 +8798,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: true};
 
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, undefined, undefined);
             expect(result).toBeUndefined();
         });
 
@@ -8120,7 +8808,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, undefined, undefined);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -8135,7 +8823,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, undefined, undefined);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -8154,7 +8842,7 @@ describe('actions/Report', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
                 isInviteOnboardingComplete: false,
             };
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, undefined, undefined);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toContain(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
@@ -8171,10 +8859,24 @@ describe('actions/Report', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
                 isInviteOnboardingComplete: false,
             };
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, undefined, undefined);
 
             expect(result).toBeDefined();
             expect(result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING)?.value).toEqual({hasCompletedGuidedSetupFlow: true});
+        });
+
+        it('threads the conciergeChat report into the guided setup onboarding data', async () => {
+            await setupUserWithConciergeChat();
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-guided-setup-1'};
+            const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false};
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, conciergeChat, false);
+
+            expect(result).toBeDefined();
+            // The onboarding data must target the threaded Concierge chat, not the deprecated module-level lookup.
+            expect(result?.optimisticData.some((update) => update.key.includes(conciergeChat.reportID))).toBe(true);
         });
 
         it('should return undefined for completed regular onboarding when invite onboarding is not pending', async () => {
@@ -8183,7 +8885,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, undefined, undefined);
 
             expect(result).toBeUndefined();
         });
@@ -8197,7 +8899,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, isSelfTourViewed);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, isSelfTourViewed);
 
             expect(result).toBeDefined();
             const guidedSetupData = parseGuidedSetupData(result?.guidedSetupData ?? '[]');
@@ -8219,7 +8921,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, true);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, undefined, true);
 
             expect(result).toBeUndefined();
         });
@@ -8230,7 +8932,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, false);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, undefined, false);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -8245,7 +8947,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, undefined, undefined, undefined);
 
             expect(result).toBeUndefined();
         });
@@ -8264,9 +8966,11 @@ describe('actions/Report', () => {
         it('should return undefined when no valid report is provided', () => {
             const result = Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
             });
             expect(result).toBeUndefined();
         });
@@ -8275,9 +8979,11 @@ describe('actions/Report', () => {
             const reportWithoutID = createMock<OnyxTypes.Report>({});
             const result = Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: reportWithoutID,
             });
             expect(result).toBeUndefined();
@@ -8301,9 +9007,11 @@ describe('actions/Report', () => {
 
             const result = Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
@@ -8337,9 +9045,11 @@ describe('actions/Report', () => {
             // Should not throw when called with introSelected and return a valid thread report
             const result = Report.createTransactionThreadReport({
                 introSelected,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
@@ -8367,9 +9077,11 @@ describe('actions/Report', () => {
             // Should work fine with undefined introSelected - it's OnyxEntry<IntroSelected> which allows undefined
             const result = Report.createTransactionThreadReport({
                 introSelected: undefined,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
@@ -8403,9 +9115,11 @@ describe('actions/Report', () => {
 
             const result = Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
                 transaction,
@@ -8435,15 +9149,100 @@ describe('actions/Report', () => {
             const testBetas = [CONST.BETAS.ALL];
             Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: testBetas,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+
+        it('threads the conciergeChat report into the guided setup data sent with OpenReport', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-thread-1'};
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(502, undefined),
+                reportID: '502',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(7),
+                reportActionID: 'action-7',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                betas: undefined,
+                personalDetails: undefined,
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            // The optimistic onboarding messages must land in the threaded Concierge chat, not the deprecated module-level lookup.
+            const conciergeActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChat.reportID}`);
+            expect(Object.keys(conciergeActions ?? {}).length).toBeGreaterThan(0);
+        });
+
+        it('should resolve participant logins from the passed personalDetails rather than the Onyx personal details list', async () => {
+            const ACTOR_ACCOUNT_ID = 600;
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(501, undefined),
+                reportID: '501',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // Given a stale login for the actor in the Onyx personal details list
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'stale@test.com'},
+            });
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(6),
+                reportActionID: 'action-6',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: ACTOR_ACCOUNT_ID,
+            };
+
+            // When creating the thread with personal details that carry a different login for that actor
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                betas: undefined,
+                personalDetails: {
+                    [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'passed@test.com'},
+                },
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            if (!result) {
+                throw new Error('Expected a transaction thread report to be created');
+            }
+
+            // Then OpenReport is sent the login from the passed personal details, not the one in Onyx
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
+                reportID: result.reportID,
+                emailList: `${TEST_USER_LOGIN},passed@test.com`,
+            });
         });
     });
 
@@ -9144,11 +9943,75 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('buildOptimisticModifiedExpenseReportAction attendees', () => {
+        const TRANSACTION_ID = '888';
+        const ownerAttendee: Attendee = {email: 'owner@example.com', displayName: 'Owner', avatarUrl: ''};
+        const otherAttendee: Attendee = {email: 'other@example.com', displayName: 'Other', avatarUrl: ''};
+
+        const getAttendeesOriginalMessage = (oldTransaction: OnyxTypes.Transaction, newAttendees: Attendee[]) => {
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {attendees: newAttendees}, false, undefined, undefined);
+            return getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+        };
+
+        it('treats oldAttendees as empty (set message) on the first edit, when attendees have never been modified', () => {
+            // Only the auto-added default attendee is present (comment.attendees), with no modifiedAttendees history.
+            const oldTransaction = createMock<OnyxTypes.Transaction>({transactionID: TRANSACTION_ID, comment: {attendees: [ownerAttendee]}});
+            const originalMessage = getAttendeesOriginalMessage(oldTransaction, [otherAttendee]);
+            expect(originalMessage?.oldAttendees).toEqual([]);
+            expect(originalMessage?.newAttendees).toEqual([otherAttendee]);
+        });
+
+        it('keeps oldAttendees (changed message) on subsequent edits, even when the previous value is just the owner', () => {
+            // After previous edits, modifiedAttendees holds the last value - here it happens to be only the owner.
+            const oldTransaction = createMock<OnyxTypes.Transaction>({transactionID: TRANSACTION_ID, modifiedAttendees: [ownerAttendee], comment: {attendees: [ownerAttendee]}});
+            const originalMessage = getAttendeesOriginalMessage(oldTransaction, [ownerAttendee, otherAttendee]);
+            expect(originalMessage?.oldAttendees).toEqual([ownerAttendee]);
+            expect(originalMessage?.newAttendees).toEqual([ownerAttendee, otherAttendee]);
+        });
+    });
+
+    describe('buildOptimisticModifiedExpenseReportAction distance currency', () => {
+        it('keeps the expense currency when a route switch leaves modifiedCurrency unset', () => {
+            const oldTransaction = createMock<OnyxTypes.Transaction>({
+                transactionID: '1',
+                reportID: '2',
+                amount: -1000,
+                currency: 'EUR',
+                merchant: '10.00 km @ €1.00 / km',
+                created: '2026-07-01',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        quantity: 10,
+                        routeDistanceMeters: 10000,
+                    },
+                },
+            });
+
+            // A pure route switch recalculates the amount but not the currency, so `modifiedCurrency` stays unset.
+            const updatedTransaction = createMock<OnyxTypes.Transaction>({
+                ...oldTransaction,
+                modifiedAmount: -2000,
+                modifiedMerchant: '20.00 km @ €1.00 / km',
+                comment: {customUnit: {...oldTransaction.comment?.customUnit, quantity: 20}},
+            });
+
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {selectedRouteKey: 'route1'}, true, undefined, undefined, updatedTransaction);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.currency).toBe('EUR');
+            expect(originalMessage?.oldCurrency).toBe('EUR');
+            expect(originalMessage?.amount).toBe(2000);
+        });
+    });
+
     describe('buildOptimisticIOUReportAction delegateAccountID forwarding', () => {
         const DELEGATE_ACCOUNT_ID = 998;
 
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
             const result = ReportUtils.buildOptimisticIOUReportAction({
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: CONST.CURRENCY.USD,
@@ -9162,6 +10025,7 @@ describe('actions/Report', () => {
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const result = ReportUtils.buildOptimisticIOUReportAction({
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: CONST.CURRENCY.USD,
@@ -9180,14 +10044,14 @@ describe('actions/Report', () => {
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat1'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou1', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, DELEGATE_ACCOUNT_ID);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, DELEGATE_ACCOUNT_ID);
             expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat2'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou2', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
         });
     });
@@ -9290,6 +10154,9 @@ describe('actions/Report', () => {
             },
         });
 
+        const sourceReport1Actions = {someAction: createRandomReportAction(203)};
+        const sourceReport2Actions = {someAction: createRandomReportAction(204)};
+
         const transaction1 = createMock<OnyxTypes.Transaction>({
             ...createRandomTransaction(0),
             transactionID: TRANSACTION_1_ID,
@@ -9323,12 +10190,8 @@ describe('actions/Report', () => {
                 [REPORT_PREVIEW_ACTION_1_ID]: reportPreviewAction1,
                 [REPORT_PREVIEW_ACTION_2_ID]: reportPreviewAction2,
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_1_ID}`, {
-                someAction: createRandomReportAction(203),
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_2_ID}`, {
-                someAction: createRandomReportAction(204),
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_1_ID}`, sourceReport1Actions);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_2_ID}`, sourceReport2Actions);
             await waitForBatchedUpdates();
 
             mockFetch = TestHelper.createGlobalFetchMock();
@@ -9358,10 +10221,21 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
                 },
+                sourceReportActions: {
+                    [SOURCE_REPORT_1_ID]: sourceReport1Actions,
+                    [SOURCE_REPORT_2_ID]: sourceReport2Actions,
+                },
+                sourceParentReportActions: {
+                    [SOURCE_REPORT_1_ID]: reportPreviewAction1,
+                    [SOURCE_REPORT_2_ID]: reportPreviewAction2,
+                },
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -9425,10 +10299,21 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
                 },
+                sourceReportActions: {
+                    [SOURCE_REPORT_1_ID]: sourceReport1Actions,
+                    [SOURCE_REPORT_2_ID]: sourceReport2Actions,
+                },
+                sourceParentReportActions: {
+                    [SOURCE_REPORT_1_ID]: reportPreviewAction1,
+                    [SOURCE_REPORT_2_ID]: reportPreviewAction2,
+                },
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -9481,11 +10366,22 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
                 },
+                sourceReportActions: {
+                    [SOURCE_REPORT_1_ID]: sourceReport1Actions,
+                    [SOURCE_REPORT_2_ID]: sourceReport2Actions,
+                },
+                sourceParentReportActions: {
+                    [SOURCE_REPORT_1_ID]: reportPreviewAction1,
+                    [SOURCE_REPORT_2_ID]: reportPreviewAction2,
+                },
                 hash: SNAPSHOT_HASH,
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 

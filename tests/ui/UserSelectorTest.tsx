@@ -85,6 +85,7 @@ describe('UserSelector', () => {
         render(
             <UserSelector
                 value={[preselectedKey]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );
@@ -109,6 +110,7 @@ describe('UserSelector', () => {
         const {rerender} = render(
             <UserSelector
                 value={[preselectedKey]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );
@@ -117,6 +119,7 @@ describe('UserSelector', () => {
         rerender(
             <UserSelector
                 value={[preselectedKey, toggledKey]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );
@@ -147,6 +150,7 @@ describe('UserSelector', () => {
         render(
             <UserSelector
                 value={[preselectedKey]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );

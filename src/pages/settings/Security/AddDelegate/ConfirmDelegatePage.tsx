@@ -1,4 +1,5 @@
-import Button from '@components/Button';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Button from '@components/ButtonComposed';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import MenuItem from '@components/MenuItem';
@@ -8,12 +9,12 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -34,23 +35,26 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const {isOffline} = useNetwork();
 
-    const personalDetails = getPersonalDetailByEmail(login);
+    const personalDetails = usePersonalDetailByLogin(login);
     const avatarIcon = personalDetails?.avatar ?? icons.FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
-    const displayName = personalDetails?.displayName ?? formattedLogin;
+    // An account that never set a name carries its login in `displayName`, which for SMS is the full
+    // `@expensify.sms` string. Format the resolved value so the title matches the description below it.
+    const displayName = formatPhoneNumber(personalDetails?.displayName ?? login ?? '');
 
     const submitButton = (
         <Button
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             isDisabled={isOffline}
-            large
-            text={translate('delegate.addCopilot')}
+            size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
-            pressOnEnter
             onPress={() => {
-                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM_MAGIC_CODE.getRoute(login, role));
+                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM_VALIDATE_CODE.getRoute(login, role));
             }}
-        />
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{translate('delegate.addCopilot')}</Button.Text>
+        </Button>
     );
 
     return (
@@ -65,18 +69,24 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <Text style={styles.ph5}>{translate('delegate.confirmCopilot')}</Text>
-                <MenuItem
-                    avatarID={personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    icon={avatarIcon}
-                    title={displayName}
-                    description={formattedLogin}
-                    interactive={false}
-                />
+                <MenuItem.Root>
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <UserAvatar
+                                source={avatarIcon}
+                                accountID={personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                            />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{displayName}</MenuItem.Title>
+                            <MenuItem.Description>{formattedLogin}</MenuItem.Description>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
                 <MenuItemWithTopDescription
-                    title={translate('delegate.role', {role})}
+                    title={translate('delegate.role', role)}
                     description={translate('delegate.accessLevel')}
-                    helperText={translate('delegate.roleDescription', {role})}
+                    helperText={translate('delegate.roleDescription', role)}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role)))}
                     shouldShowRightIcon
                 />

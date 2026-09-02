@@ -111,6 +111,12 @@ function selectKeys(...keys: string[]): Record<string, {isSelected: boolean}> {
     return Object.fromEntries(keys.map((key) => [key, {isSelected: true}]));
 }
 
+// Counts rows whose AnimatedExitRow has a live FadeOutUp `exiting` animation. Each row's Animated.View always
+// receives an `entering` prop (identifying the wrapper) and an `exiting` prop that is only non-null when armed.
+function countArmedExitAnimations(root: ReturnType<typeof render>['UNSAFE_root']): number {
+    return root.findAll((node) => typeof node.type !== 'string' && !!node.props && 'entering' in node.props && node.props.exiting != null).length;
+}
+
 const STABLE_QUERY_JSON: SearchQueryJSON = {
     hash: 0,
     recentSearchHash: 0,
@@ -305,5 +311,22 @@ describe('ExpenseFlatSearchView', () => {
 
         expect(onSelectRow).toHaveBeenCalledTimes(1);
         expect(mockToggle).not.toHaveBeenCalled();
+    });
+
+    it('does not arm the FadeOutUp exit on a stable row, so it cannot flicker on remount', async () => {
+        // Two expenses, none deleted: the first row must carry no armed exit animation, otherwise a remount
+        // (e.g. switching Inbox -> Spend) replays FadeOutUp and the row flickers.
+        const {UNSAFE_root: root} = renderView({data: createMockData(2)});
+        await waitForBatchedUpdates();
+
+        expect(countArmedExitAnimations(root)).toBe(0);
+    });
+
+    it('keeps the FadeOutUp exit armed only for a pending-delete row', async () => {
+        // First row pending delete: its exit stays armed so the delete animation still plays; the stable last row does not.
+        const {UNSAFE_root: root} = renderView({data: createMockData(2, new Set(['transaction-0']))});
+        await waitForBatchedUpdates();
+
+        expect(countArmedExitAnimations(root)).toBe(1);
     });
 });

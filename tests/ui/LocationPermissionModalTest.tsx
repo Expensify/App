@@ -5,6 +5,8 @@ import AndroidLocationPermissionModal from '@components/LocationPermissionModal/
 
 import getPlatform from '@libs/getPlatform';
 
+import type * as LocationPermissionModule from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -15,8 +17,8 @@ import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
 
 import {getShowConfirmModalOption, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
 
-const mockGetLocationPermission = jest.fn();
-const mockRequestLocationPermission = jest.fn();
+const mockGetLocationPermission = jest.fn<ReturnType<typeof LocationPermissionModule.getLocationPermission>, Parameters<typeof LocationPermissionModule.getLocationPermission>>();
+const mockRequestLocationPermission = jest.fn<ReturnType<typeof LocationPermissionModule.requestLocationPermission>, Parameters<typeof LocationPermissionModule.requestLocationPermission>>();
 const mockUpdateLastLocationPermissionPrompt = jest.fn();
 
 jest.mock('@hooks/useConfirmModal', () => {
@@ -59,8 +61,8 @@ jest.mock('@libs/Visibility', () => ({
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/LocationPermission', () => ({
-    getLocationPermission: (...args: unknown[]) => mockGetLocationPermission(...args) as Promise<string>,
-    requestLocationPermission: (...args: unknown[]) => mockRequestLocationPermission(...args) as Promise<string>,
+    getLocationPermission: (...args: Parameters<typeof LocationPermissionModule.getLocationPermission>) => mockGetLocationPermission(...args),
+    requestLocationPermission: (...args: Parameters<typeof LocationPermissionModule.requestLocationPermission>) => mockRequestLocationPermission(...args),
 }));
 
 jest.mock('@userActions/IOU/MoneyRequest', () => ({
@@ -74,7 +76,7 @@ jest.mock('react-native-permissions', () => ({
 }));
 
 const originalOpenSettings = Linking.openSettings?.bind(Linking);
-const mockGetPlatform = getPlatform as jest.MockedFunction<typeof getPlatform>;
+const mockGetPlatform = jest.mocked(getPlatform);
 
 function setOpenSettings(openSettings: typeof Linking.openSettings | undefined) {
     Object.defineProperty(Linking, 'openSettings', {

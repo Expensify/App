@@ -14,7 +14,7 @@ This guide explains where familiar features and workflows now live so you can ge
 If you want to see what's new, what's better, and how to take advantage of it, see [Explore what's changed in New Expensify](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Explore-whats-changed-in-New-Expensify). A few of the most popular improvements include **customizable, savable searches**, **full approver visibility into direct reports' activity in every status**, **expense-level commenting**, and **better Insights reporting**.
 
 If you'd like a guided walkthrough of the New Expensify experience, explore the interactive product tours:
-- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/v9dr1rjqsd9y)
+- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/qlgnexxbsdtp)
 - [Launch the New Expensify interactive tour for mobile](https://expensify.storylane.io/share/qbbob6zvapqo)
 
 You can find additional training resources in [How to Access Expensify Training](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training).
@@ -32,6 +32,8 @@ Many core Expensify concepts stay the same in New Expensify, but the navigation 
 | System alerts and operational issues | **Time sensitive** section on the **Home** tab | Important issues like failed reimbursements and broken bank connections are highlighted directly in the **Time sensitive** section so they are easier to find and resolve quickly. |
 | Manual navigation and menu hunting | Concierge-assisted workflows | Instead of remembering where features live, you can ask Concierge questions, get guidance, or have Concierge help complete actions for you directly inside Expensify. |
 
+![Home on New Expensify]({{site.url}}/assets/images/home.png){:width="100%"}
+
 ---
 
 ## How to complete familiar Expensify Classic tasks in New Expensify
@@ -46,6 +48,8 @@ Use the examples below to understand where common Expensify Classic workflows no
 | View expenses and reports | Open the **Spend** tab and switch between the **Expenses** and **Reports** views to review expenses and reports in one place. Apply filters like `from:me` to focus on your own expenses and reports. | Apply advanced filters, create saved searches, and use custom reporting views.<br><br>[Learn how to use advanced search operators to filter and analyze expenses](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze). |
 | Split an expense | Within the expense, select the three dots **(⋮)** and choose **Split expense**. | Split expenses evenly, by percentage, or by custom amounts.<br><br>[Learn how to split expenses](/articles/new-expensify/reports-and-expenses/Split-Expenses). |
 | Chat with Concierge | Select the **Concierge** icon in the upper-right corner | Ask questions directly inside expenses, reports, or chats while you work.<br><br>[Learn more about the Concierge support agent](/articles/new-expensify/concierge-ai/Support-Agent#where-to-find-concierge-support-agent). |
+
+![Spend tab with needs approval highlighted]({{site.url}}/assets/images/ExpensiHelp-Spend-tab-with-needs-approval-highlighted.png){:width="100%"}
 
 ---
 

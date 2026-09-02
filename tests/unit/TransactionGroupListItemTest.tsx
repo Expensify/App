@@ -1,3 +1,4 @@
+import '@libs/Middleware/register';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -5,7 +6,14 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
-import type {TransactionGroupListItemProps, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemProps,
+    TransactionListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
+
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
 import CONST from '@src/CONST';
@@ -32,6 +40,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
     getSuggestedSearchesVisibility: jest.fn(() => ({topSpendersPolicyIDs: []})),
+    getSubmittedViolationsForTransaction: jest.fn(() => ''),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -130,7 +139,6 @@ const mockTransaction: TransactionListItemType = {
         owner: 'test@test.com',
         name: 'Policy',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: true,
     },
     reportAction: {
         reportActionID: '2454187434077044186',
@@ -328,7 +336,6 @@ describe('TransactionGroupListItem', () => {
         onSelectRow: mockOnSelectRow,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
-        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
@@ -452,7 +459,6 @@ describe('Empty Report Selection', () => {
         onSelectionButtonPress: mockOnCheckboxPress,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
-        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
@@ -632,5 +638,92 @@ describe('Empty Report Selection', () => {
         // The collapsible content should not be rendered for empty reports
         const collapsibleContent = screen.queryByTestId(CONST.ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID);
         expect(collapsibleContent).toBeNull();
+    });
+});
+
+describe('Lazily loaded group selection', () => {
+    const mockOnSelectRow = jest.fn();
+    const mockOnCheckboxPress = jest.fn();
+
+    // A `group-by:category` group whose child transactions are only fetched once the group is expanded,
+    // so `transactions` is still empty on first render even though the group is not actually empty.
+    const mockCategoryGroup: TransactionCategoryGroupListItemType = {
+        groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+        category: 'Advertising',
+        formattedCategory: 'Advertising',
+        count: 3,
+        total: -1284,
+        currency: 'USD',
+        transactions: [],
+        transactionsQueryJSON: buildSearchQueryJSON('type:expense category:Advertising'),
+        keyForList: 'Advertising',
+    };
+
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+        jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        return act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    const defaultProps: TransactionGroupListItemProps<TransactionCategoryGroupListItemType> = {
+        item: mockCategoryGroup,
+        showTooltip: false,
+        onSelectRow: mockOnSelectRow,
+        onSelectionButtonPress: mockOnCheckboxPress,
+        searchType: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+        canSelectMultiple: true,
+    };
+
+    function TestWrapper({children}: {children: React.ReactNode}) {
+        return (
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <ScreenWrapper testID="test">
+                    <SearchContextProvider>{children}</SearchContextProvider>
+                </ScreenWrapper>
+            </ComposeProviders>
+        );
+    }
+
+    const renderCategoryGroup = () => render(<TransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
+
+    it('should select the group when tapping the checkbox before the group has been expanded', async () => {
+        renderCategoryGroup();
+        await waitForBatchedUpdatesWithAct();
+
+        // The checkbox of a group whose transactions have not been fetched yet should still be enabled
+        const checkbox = screen.getByRole(CONST.ROLE.CHECKBOX);
+        expect(checkbox).not.toBeDisabled();
+
+        // When pressing it
+        fireEvent.press(checkbox);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the group should be selected
+        expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
+        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockCategoryGroup, []);
+    });
+
+    it('should expand the group instead of selecting it when tapping the expand arrow', async () => {
+        renderCategoryGroup();
+        await waitForBatchedUpdatesWithAct();
+
+        // When pressing the expand arrow of a group whose transactions have not been fetched yet
+        fireEvent.press(screen.getByLabelText('Expand'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the group should expand, and not be selected
+        expect(screen.getByLabelText('Collapse')).toBeTruthy();
+        expect(mockOnSelectRow).not.toHaveBeenCalled();
     });
 });

@@ -28,7 +28,6 @@ import {getHeaderMessage, getUserToInviteOption} from '@libs/PersonalDetailOptio
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, getSoftExclusionsForGuideAndAccountManager, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -271,6 +270,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
                     ListItem={InviteMemberListItem}
                     onSelectRow={handleToggleSelection}
                     shouldShowTextInput
+                    shouldClearInputOnSelect={false}
                     textInputOptions={textInputOptions}
                     shouldUpdateFocusedIndex
                     shouldPreventAutoScrollOnSelect
@@ -293,12 +293,7 @@ function DynamicWorkspaceInvitePage(props: WorkspaceInvitePageProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${props.route.params.policyID}`);
     if (isLoadingOnyxValue(policyMetadata, invitedEmailsToAccountIDsDraftMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'DynamicWorkspaceInvitePage',
-            isLoadingPolicy: !!isLoadingOnyxValue(policyMetadata),
-            isLoadingInvitedEmailsToAccountIDsDraft: !!isLoadingOnyxValue(invitedEmailsToAccountIDsDraftMetadata),
-        };
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator />;
     }
     return (
         <DynamicWorkspaceInvitePageContent

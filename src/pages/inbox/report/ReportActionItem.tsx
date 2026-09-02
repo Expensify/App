@@ -13,10 +13,11 @@ import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@compo
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
-import useReportTransactions from '@hooks/useReportTransactions';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -65,7 +66,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {expandURLPreview} from '@userActions/Report';
-import {clearError} from '@userActions/Transaction';
+import {clearErrorWithOriginalTransactionError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -190,7 +191,7 @@ function ReportActionItem({
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
+    const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
     const getLinkedTransactionRouteError = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
@@ -204,8 +205,11 @@ function ReportActionItem({
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, datetimeToCalendarTime} = useLocalize();
-    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate)});
+    const {translate, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate, formatPhoneNumber),
+    });
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
@@ -253,14 +257,26 @@ function ReportActionItem({
     const dismissError = () => {
         const transactionIDToDismiss = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionIDToDismiss && reportID) {
-            cleanUpMoneyRequest(transactionIDToDismiss, action, reportID, transactionThreadReport, report, chatReport, undefined, originalReportID, true, iouPolicy);
+            cleanUpMoneyRequest({
+                transactionID: transactionIDToDismiss,
+                reportAction: action,
+                reportID,
+                transactionThreadReport,
+                iouReport: report,
+                chatReport,
+                isChatIOUReportArchived: undefined,
+                originalReportID,
+                getCurrencyDecimals,
+                isSingleTransactionView: true,
+                policy: iouPolicy,
+            });
             return;
         }
         if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
             navigation.setParams({reportActionID: ''});
         }
         if (transactionIDToDismiss) {
-            clearError(transactionIDToDismiss);
+            clearErrorWithOriginalTransactionError(transactionIDToDismiss);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID);
     };
@@ -272,7 +288,7 @@ function ReportActionItem({
             confirmText: translate('common.dismiss'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action === ModalActions.CONFIRM) {
             dismissError();

@@ -33,7 +33,7 @@ const makeAction = (isVisible: boolean, modalId: string): ToggleModalWithHistory
 const route = (key: string, name = 'Screen'): CustomHistoryEntry => ({key, name}) as CustomHistoryEntry;
 
 describe('handleToggleModalWithHistoryAction', () => {
-    it('appends a uniquely-tagged sentinel on open', () => {
+    it('appends a uniquely-tagged entry on open', () => {
         const state = makeState([route('page')]);
 
         const result = handleToggleModalWithHistoryAction(state, makeAction(true, 'a'));
@@ -41,7 +41,7 @@ describe('handleToggleModalWithHistoryAction', () => {
         expect(result.history).toEqual([route('page'), tag('a')]);
     });
 
-    it('appends one sentinel per nested modal (no dedupe)', () => {
+    it('appends one entry per nested modal (no dedupe)', () => {
         const state = makeState([route('page'), tag('a')]);
 
         const result = handleToggleModalWithHistoryAction(state, makeAction(true, 'b'));
@@ -49,7 +49,7 @@ describe('handleToggleModalWithHistoryAction', () => {
         expect(result.history).toEqual([route('page'), tag('a'), tag('b')]);
     });
 
-    it('removes only its own tag on close, keeping sibling/nested modal sentinels (LIFO)', () => {
+    it('removes only its own tag on close, keeping sibling/nested modal entries (LIFO)', () => {
         const state = makeState([route('page'), tag('a'), tag('b')]);
 
         // Closing the inner modal (b) leaves the outer one (a) intact.

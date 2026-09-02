@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import Text from '@components/Text';
@@ -12,6 +12,7 @@ import {getTagLists} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -20,12 +21,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {AmountDisplay, CompactState, DistanceData, ErrorState, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
+import type {AmountDisplay, CompactState, ErrorState, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
 
+import DetailsFieldsContext from './DetailsFieldsContext';
 import ClassificationFields from './fieldGroups/ClassificationFields';
 import computeFieldVisibility, {hasBelowShowMore} from './fieldGroups/fieldVisibility';
 import SettingsFields from './fieldGroups/SettingsFields';
-import TransactionDetailsFields from './fieldGroups/TransactionDetailsFields';
 import useFooterDerivedFlags from './hooks/useFooterDerivedFlags';
 import useFooterTagVisibility from './hooks/useFooterTagVisibility';
 
@@ -39,14 +40,15 @@ type ConfirmationFieldListProps = {
     /** Selected participants (drives ReportField presentation) */
     selectedParticipants: Participant[];
 
-    /** Distance-rate metadata */
-    distanceData: DistanceData;
-
     /** Pre-formatted amount values */
     amountDisplay: AmountDisplay;
 
     /** Per-field "required" flags */
     requiredFlags: RequiredFlags;
+
+    /** The expense-type-driven fields, supplied by the footer variant. Rendered above the classification
+     *  fields, and reads what this component derives from `DetailsFieldsContext`. */
+    children: React.ReactNode;
 
     /** Caller-supplied visibility decisions */
     visibilityFlags: VisibilityFlags;
@@ -58,20 +60,20 @@ type ConfirmationFieldListProps = {
     toggleHandlers: ToggleHandlers;
 
     /** Compact-mode bookkeeping */
-    compactState: CompactState;
+    compactState?: CompactState;
 };
 
 function ConfirmationFieldList({
     policy,
     policyTags,
     selectedParticipants,
-    distanceData,
     amountDisplay,
     requiredFlags,
+    children,
     visibilityFlags,
     errorState,
     toggleHandlers,
-    compactState,
+    compactState = {isCompactMode: false, setShowMoreFields: () => {}},
 }: ConfirmationFieldListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -121,74 +123,72 @@ function ConfirmationFieldList({
     });
     const shouldShowMoreButton = hasBelowShowMore(fieldVisibility);
 
+    const detailsFields = {
+        fieldVisibility,
+        isCompactMode: compactState.isCompactMode,
+        iouCurrencyCode: flags.iouCurrencyCode,
+        shouldNavigateToUpgradePath: flags.shouldNavigateToUpgradePath,
+        shouldSelectPolicy: flags.shouldSelectPolicy,
+    };
+
     return (
-        <View style={[styles.mb5, styles.mt2]}>
-            {compactState.isCompactMode && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.pr10]}>
-                    <Icon
-                        src={icons.Sparkles}
-                        fill={theme.icon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
-                    <Text style={styles.rightLabelMenuItem}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
-                </View>
-            )}
+        <DetailsFieldsContext.Provider value={detailsFields}>
+            <View style={[styles.mb5, styles.mt2]}>
+                {compactState.isCompactMode && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.pr10]}>
+                        <Icon
+                            src={icons.Sparkles}
+                            fill={theme.icon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                        <Text style={styles.rightLabelMenuItem}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
+                    </View>
+                )}
 
-            <TransactionDetailsFields
-                policy={policy}
-                amountDisplay={amountDisplay}
-                distanceData={distanceData}
-                requiredFlags={requiredFlags}
-                errorState={errorState}
-                shouldNavigateToUpgradePath={flags.shouldNavigateToUpgradePath}
-                shouldSelectPolicy={flags.shouldSelectPolicy}
-                iouCurrencyCode={flags.iouCurrencyCode}
-                isCompactMode={compactState.isCompactMode}
-                fieldVisibility={fieldVisibility}
-                isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
-            />
+                {children}
 
-            <ClassificationFields
-                policy={policy}
-                policyForMovingExpenses={flags.policyForMovingExpenses}
-                policyTagLists={policyTagLists}
-                previousTagsVisibility={previousTagsVisibility}
-                isCategoryRequired={requiredFlags.isCategoryRequired}
-                canModifyTaxFields={flags.canModifyTaxFields}
-                errorState={errorState}
-                shouldNavigateToUpgradePath={flags.shouldNavigateToUpgradePath}
-                shouldSelectPolicy={flags.shouldSelectPolicy}
-                iouCurrencyCode={flags.iouCurrencyCode}
-                formattedAmountPerAttendee={amountDisplay.formattedAmountPerAttendee}
-                isCompactMode={compactState.isCompactMode}
-                fieldVisibility={fieldVisibility}
-            />
+                <ClassificationFields
+                    policy={policy}
+                    policyForMovingExpenses={flags.policyForMovingExpenses}
+                    policyTagLists={policyTagLists}
+                    previousTagsVisibility={previousTagsVisibility}
+                    isCategoryRequired={requiredFlags.isCategoryRequired}
+                    canModifyTaxFields={flags.canModifyTaxFields}
+                    errorState={errorState}
+                    shouldNavigateToUpgradePath={flags.shouldNavigateToUpgradePath}
+                    shouldSelectPolicy={flags.shouldSelectPolicy}
+                    iouCurrencyCode={flags.iouCurrencyCode}
+                    formattedAmountPerAttendee={amountDisplay.formattedAmountPerAttendee}
+                    isCompactMode={compactState.isCompactMode}
+                    fieldVisibility={fieldVisibility}
+                />
 
-            <SettingsFields
-                selectedParticipants={selectedParticipants}
-                shouldShowBillable={flags.shouldShowBillable}
-                shouldShowReimbursable={flags.shouldShowReimbursable}
-                toggleHandlers={toggleHandlers}
-                isCompactMode={compactState.isCompactMode}
-                fieldVisibility={fieldVisibility}
-            />
+                <SettingsFields
+                    selectedParticipants={selectedParticipants}
+                    shouldShowBillable={flags.shouldShowBillable}
+                    shouldShowReimbursable={flags.shouldShowReimbursable}
+                    toggleHandlers={toggleHandlers}
+                    isCompactMode={compactState.isCompactMode}
+                    fieldVisibility={fieldVisibility}
+                />
 
-            {compactState.isCompactMode && shouldShowMoreButton && (
-                <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
-                    <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
-                    <Button
-                        text={translate('common.showMore')}
-                        onPress={() => compactState.setShowMoreFields(true)}
-                        small
-                        shouldShowRightIcon
-                        iconRight={icons.DownArrow}
-                        innerStyles={[styles.hoveredComponentBG, styles.ph4, styles.pv2]}
-                        textStyles={styles.buttonSmallText}
-                    />
-                </View>
-            )}
-        </View>
+                {compactState.isCompactMode && shouldShowMoreButton && (
+                    <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
+                        <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
+                        <Button
+                            onPress={() => compactState.setShowMoreFields(true)}
+                            size={CONST.BUTTON_SIZE.SMALL}
+                            // pl3 + Button.Text's built-in ph1 = 16; right stays 8 from the SMALL default, as legacy Button
+                            innerStyles={[styles.hoveredComponentBG, styles.pv2, styles.pl3]}
+                        >
+                            <Button.Text>{translate('common.showMore')}</Button.Text>
+                            <Button.Icon src={icons.DownArrow} />
+                        </Button>
+                    </View>
+                )}
+            </View>
+        </DetailsFieldsContext.Provider>
     );
 }
 

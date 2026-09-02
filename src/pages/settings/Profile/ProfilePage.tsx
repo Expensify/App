@@ -1,11 +1,10 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,7 +15,8 @@ import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,20 +26,21 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {useIsAgentAccount} from '@libs/SessionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+
+import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -50,6 +51,7 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
+import {homeAndOfficeCommuterExclusionPolicyNameSelector} from '@selectors/Policy';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -81,14 +83,14 @@ function ProfilePage() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const isAgentAccount = useIsAgentAccount();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
-    const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
     const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+    const {shouldShowAddHomeAddress: shouldShowAddHomeAddressGBR} = useTimeSensitiveHomeAddress();
+    const [commuterExclusionsWorkspaceName] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: homeAndOfficeCommuterExclusionPolicyNameSelector});
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const {isActingAsDelegate} = useDelegateNoAccessState();
@@ -103,7 +105,7 @@ function ProfilePage() {
     }> = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate})),
+            title: temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate, formatPhoneNumber}),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             testID: 'display-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
@@ -114,7 +116,7 @@ function ProfilePage() {
                 .map((login) => login?.menuItemTitle)
                 .filter(Boolean)
                 .join(', '),
-            pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
+            pageRoute: createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, ROUTES.SETTINGS_PROFILE.route),
             brickRoadIndicator: contactMethodBrickRoadIndicator,
             testID: 'contact-method-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHODS,
@@ -127,7 +129,7 @@ function ProfilePage() {
             testID: 'status-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
-        ...(!isAgentAccount
+        ...(isAgentAccount === false
             ? [
                   {
                       description: translate('pronounsPage.pronouns'),
@@ -155,7 +157,15 @@ function ProfilePage() {
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus));
     };
 
-    const privateOptions = [
+    const privateOptions: Array<{
+        description: string;
+        title: string;
+        testID: string;
+        sentryLabel: string;
+        action: () => void;
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+        furtherDetails?: string;
+    }> = [
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
@@ -184,13 +194,10 @@ function ProfilePage() {
             testID: 'address-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
             action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
+            brickRoadIndicator: shouldShowAddHomeAddressGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
+            furtherDetails: commuterExclusionsWorkspaceName ? translate('privatePersonalDetails.commuterExclusionsHint', {workspaceName: commuterExclusionsWorkspaceName}) : undefined,
         },
     ];
-
-    const privateSectionReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'ProfilePage.privateSection',
-        isLoadingApp: isAppLoadPending,
-    };
 
     return (
         <ScreenWrapper
@@ -210,7 +217,6 @@ function ProfilePage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
-                icon={Profile}
                 shouldUseHeadlineHeader
             />
             <ScrollView
@@ -232,15 +238,7 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton
-                                        size={CONST.AVATAR_SIZE.X_LARGE}
-                                        reasonAttributes={{
-                                            context: 'ProfilePage',
-                                            isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
-                                            isAccountIDInvalid: accountID === -1,
-                                            hasNoAvatarURL: !avatarURL,
-                                        }}
-                                    />
+                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.XXXX_LARGE} />
                                 ) : (
                                     <OfflineWithFeedback
                                         errors={isAgentAccount ? agentPrompt?.avatarErrors : undefined}
@@ -250,13 +248,17 @@ function ProfilePage() {
                                         <MenuItemGroup shouldUseSingleExecution={false}>
                                             <AvatarButtonWithIcon
                                                 text={translate('avatarWithImagePicker.editImage')}
-                                                source={avatarURL}
-                                                avatarID={accountID}
+                                                avatar={
+                                                    <UserAvatar
+                                                        source={avatarURL}
+                                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                                                        accountID={accountID}
+                                                        fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                    />
+                                                }
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
-                                                size={CONST.AVATAR_SIZE.X_LARGE}
-                                                avatarStyle={avatarStyle}
+                                                avatarStyle={styles.alignSelfStart}
                                                 pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                                 editIconStyle={styles.profilePageAvatar}
                                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}
                                             />
@@ -283,12 +285,13 @@ function ProfilePage() {
                             })}
                             <Button
                                 accessibilityLabel={translate('common.shareCode')}
-                                text={translate('common.share')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                icon={icons.QrCode}
                                 style={[styles.alignSelfStart, styles.mt6]}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.SHARE_CODE}
-                            />
+                            >
+                                <Button.Icon src={icons.QrCode} />
+                                <Button.Text>{translate('common.share')}</Button.Text>
+                            </Button>
                         </Section>
                         <Section
                             title={translate('profilePage.privateSection.title')}
@@ -300,10 +303,7 @@ function ProfilePage() {
                         >
                             {isAppLoadPending ? (
                                 <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
-                                    <ActivityIndicator
-                                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                        reasonAttributes={privateSectionReasonAttributes}
-                                    />
+                                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                                 </View>
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
@@ -316,6 +316,7 @@ function ProfilePage() {
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
                                             onPress={detail.action}
                                             brickRoadIndicator={detail.brickRoadIndicator}
+                                            furtherDetails={detail.furtherDetails}
                                             pressableTestID={detail?.testID}
                                             sentryLabel={detail.sentryLabel}
                                         />
@@ -323,7 +324,7 @@ function ProfilePage() {
                                 </MenuItemGroup>
                             )}
                         </Section>
-                        {isAgentAccount && (
+                        {isAgentAccount === true && (
                             <AgentAIPromptSection
                                 accountID={accountID}
                                 parentScrollViewRef={scrollViewRef}

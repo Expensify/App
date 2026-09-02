@@ -1,6 +1,8 @@
+import AccountUtils from '@libs/AccountUtils';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 
@@ -120,6 +122,33 @@ function getOnboardingRoute(): Route {
     }) as Route;
 }
 
+function isRequiredTwoFactorSetupExceptionActive(): boolean {
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
+    // Allow 2FA setup while the blocking overlay is up, and also through the post-verify
+    // handoff window when the overlay is intentionally hidden but setup is still in progress.
+    return AccountUtils.shouldShowRequire2FAPage(account, hasCompletedGuidedSetupFlow) || AccountUtils.isForced2FAOnboardingSetup(account, hasCompletedGuidedSetupFlow);
+}
+
+type DeepestFocusedScreenInput = NonNullable<Parameters<typeof getDeepestFocusedScreen>[0]>;
+
+function isObjectPayload(value: unknown): value is DeepestFocusedScreenInput {
+    return typeof value === 'object' && value !== null;
+}
+
+function getActionPayloadScreenName(action: NavigationAction): string | undefined {
+    // NAVIGATE/PUSH payloads aren't full NavigationStates; getDeepestFocusedScreen accepts that shape.
+    // Use a type guard (not `as`) so we stay within this file's no-unsafe-type-assertion seatbelt.
+    if (!isObjectPayload(action.payload)) {
+        return undefined;
+    }
+
+    return getDeepestFocusedScreen(action.payload)?.name;
+}
+
+function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
+    return isTwoFactorSetupScreen(getDeepestFocusedScreen(state)?.name);
+}
+
 function shouldPreventReset(state: NavigationState, action: NavigationAction) {
     if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
         return false;
@@ -127,6 +156,11 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
 
     const currentFocusedRoute = findFocusedRoute(state);
     const targetFocusedRoute = findFocusedRoute(action?.payload as NavigationState);
+
+    // Allow required 2FA setup navigation even when the user is currently on onboarding.
+    if (isRequiredTwoFactorSetupExceptionActive() && isTwoFactorSetupScreen(getActionPayloadScreenName(action))) {
+        return false;
+    }
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
@@ -171,6 +205,10 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'BLOCK', reason: 'Cannot reset to non-onboarding screen while on onboarding'};
         }
 
+        if (isRequiredTwoFactorSetupExceptionActive() && (isTwoFactorSetupScreen(getActionPayloadScreenName(action)) || isCurrentlyOnTwoFactorSetupRoute(state))) {
+            return {type: 'ALLOW'};
+        }
+
         const isTransitioning = context.currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
@@ -183,6 +221,15 @@ const OnboardingGuard: NavigationGuard = {
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
         if ((isOnboardingCompleted || CONFIG.SKIP_ONBOARDING) && isNavigatingToOnboardingFlow(action)) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
+            return {type: 'REDIRECT', route: ROUTES.HOME};
+        }
+
+        // Test builds must never enter the onboarding UI. REPLACE into onboarding is normally
+        // admitted (real users advance between onboarding steps with forceReplace), but with
+        // SKIP_ONBOARDING there is no legitimate way to be mid-onboarding — bounce those too.
+        // Scoped to the flag so completed users' REPLACE behaviour is unchanged.
+        if (CONFIG.SKIP_ONBOARDING && isNavigatingToOnboardingFlowWithReplaceAction(action)) {
+            Log.info('[OnboardingGuard] SKIP_ONBOARDING: redirecting REPLACE into onboarding to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 

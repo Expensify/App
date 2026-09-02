@@ -1,27 +1,29 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import DateUtils from '@libs/DateUtils';
 import {
     buildNextStepMessage,
-    buildNextStepNew,
-    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
-    buildOptimisticNextStepForStrictPolicyRuleViolations,
     getReportNextStep,
     buildOptimisticNextStep,
+    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
 } from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
+import {execFileSync} from 'child_process';
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import {translateLocal} from '../utils/TestHelper';
+import createMock from '../utils/createMock';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -47,16 +49,11 @@ describe('libs/NextStepUtils', () => {
             role: 'admin',
             type: 'team',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-        };
-        const optimisticNextStep: ReportNextStepDeprecated = {
-            type: 'neutral',
-            icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-            message: [],
         };
         const report = buildOptimisticExpenseReport({
             chatReportID: 'fake-chat-report-id-1',
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             policyID,
             payeeAccountID: 1,
             total: -500,
@@ -94,9 +91,6 @@ describe('libs/NextStepUtils', () => {
             report.ownerAccountID = currentUserAccountID;
             report.managerID = currentUserAccountID;
             report.transactionCount = 1;
-            optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-            optimisticNextStep.message = [];
-
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy).then(waitForBatchedUpdates);
         });
 
@@ -111,27 +105,15 @@ describe('libs/NextStepUtils', () => {
                     policy,
                     '2025-03-31 13:23:11',
                     [CONST.BETAS.ALL],
+                    getCurrencyDecimalsLocal,
                 );
 
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${currentUserEmail}`,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'add',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-                const result = buildNextStepNew({
+                const expectedResult: ReportNextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: currentUserAccountID,
+                };
+                const result = buildOptimisticNextStep({
                     report: emptyReport,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -145,30 +127,18 @@ describe('libs/NextStepUtils', () => {
                     isTrackIntentUser: false,
                 });
 
-                expect(result).toMatchObject(optimisticNextStep);
+                expect(result).toMatchObject(expectedResult);
             });
         });
 
         describe('it generates an optimistic nextStep once a report has been opened', () => {
             test('Fix violations', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${currentUserEmail}`,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'fix the issues',
-                    },
-                ];
-                const result = buildNextStepNew({
+                const expectedResult: ReportNextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: currentUserAccountID,
+                };
+                const result = buildOptimisticNextStep({
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -182,32 +152,17 @@ describe('libs/NextStepUtils', () => {
                     isTrackIntentUser: false,
                 });
 
-                expect(result).toMatchObject(optimisticNextStep);
+                expect(result).toMatchObject(expectedResult);
             });
 
             test('self review', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-
                 // Waiting for userSubmitter to submit expense(s).
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${currentUserEmail}`,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'submit',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-                const result = buildNextStepNew({
+                const expectedResult: ReportNextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: currentUserAccountID,
+                };
+                const result = buildOptimisticNextStep({
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -221,40 +176,23 @@ describe('libs/NextStepUtils', () => {
                     isTrackIntentUser: false,
                 });
 
-                expect(result).toMatchObject(optimisticNextStep);
+                expect(result).toMatchObject(expectedResult);
             });
 
             describe('scheduled submit enabled', () => {
-                beforeEach(() => {
-                    optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-                });
-
                 // Format: Waiting for userSubmitter's expense(s) to automatically submit on scheduledSubmitSettings
 
                 test('daily', () => {
                     // Waiting for userSubmitter's expense(s) to automatically submit later today
-                    optimisticNextStep.message = [
-                        {
-                            text: 'Waiting for ',
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: currentUserAccountID,
+                        eta: {
+                            etaKey: CONST.NEXT_STEP.ETA_KEY.TODAY,
                         },
-                        {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
-                            type: 'strong',
-                        },
-                        {
-                            text: ' %expenses to automatically submit',
-                        },
-                        {
-                            text: ' later today',
-                        },
-                    ];
-
-                    const result = buildNextStepNew({
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy: {
                             ...policy,
@@ -273,33 +211,20 @@ describe('libs/NextStepUtils', () => {
                         isReopen: false,
                         isTrackIntentUser: false,
                     });
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
 
                 test('weekly', () => {
                     // Waiting for userSubmitter's expense(s) to automatically submit on Sunday
-                    optimisticNextStep.message = [
-                        {
-                            text: 'Waiting for ',
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: currentUserAccountID,
+                        eta: {
+                            etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK,
                         },
-                        {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
-                            type: 'strong',
-                        },
-                        {
-                            text: ' %expenses to automatically submit',
-                        },
-                        {
-                            text: ' on Sunday',
-                        },
-                    ];
-
-                    const result = buildNextStepNew({
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy: {
                             ...policy,
@@ -319,33 +244,20 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
 
                 test('twice a month', () => {
                     // Waiting for userSubmitter's expense(s) to automatically submit on the 1st and 16th of each month
-                    optimisticNextStep.message = [
-                        {
-                            text: 'Waiting for ',
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: currentUserAccountID,
+                        eta: {
+                            etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
                         },
-                        {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
-                            type: 'strong',
-                        },
-                        {
-                            text: ' %expenses to automatically submit',
-                        },
-                        {
-                            text: ' on the 1st and 16th of each month',
-                        },
-                    ];
-
-                    const result = buildNextStepNew({
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy: {
                             ...policy,
@@ -365,33 +277,20 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
 
                 test('monthly on the 2nd', () => {
                     // Waiting for userSubmitter's expense(s) to automatically submit on the 2nd of each month
-                    optimisticNextStep.message = [
-                        {
-                            text: 'Waiting for ',
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: currentUserAccountID,
+                        eta: {
+                            dateTime: format(DateUtils.getNextNthOfMonth(2), 'yyyy-MM-dd'),
                         },
-                        {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
-                            type: 'strong',
-                        },
-                        {
-                            text: ' %expenses to automatically submit',
-                        },
-                        {
-                            text: ' on the 2nd of each month',
-                        },
-                    ];
-
-                    const result = buildNextStepNew({
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy: {
                             ...policy,
@@ -412,33 +311,20 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
 
                 test('monthly on the last day', () => {
                     // Waiting for userSubmitter's expense(s) to automatically submit on lastDayOfMonth of each month
-                    optimisticNextStep.message = [
-                        {
-                            text: 'Waiting for ',
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: currentUserAccountID,
+                        eta: {
+                            etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH,
                         },
-                        {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
-                            type: 'strong',
-                        },
-                        {
-                            text: ' %expenses to automatically submit',
-                        },
-                        {
-                            text: ` on the last day of the month`,
-                        },
-                    ];
-
-                    const result = buildNextStepNew({
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy: {
                             ...policy,
@@ -458,33 +344,20 @@ describe('libs/NextStepUtils', () => {
                         isReopen: false,
                         isTrackIntentUser: false,
                     });
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
 
                 test('monthly on the last business day', () => {
                     // Waiting for userSubmitter's expense(s) to automatically submit on lastBusinessDayOfMonth of each month
-                    optimisticNextStep.message = [
-                        {
-                            text: 'Waiting for ',
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: currentUserAccountID,
+                        eta: {
+                            etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH,
                         },
-                        {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
-                            type: 'strong',
-                        },
-                        {
-                            text: ' %expenses to automatically submit',
-                        },
-                        {
-                            text: ` on the last business day of the month`,
-                        },
-                    ];
-
-                    const result = buildNextStepNew({
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy: {
                             ...policy,
@@ -505,33 +378,20 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
 
                 test('trip', () => {
                     // Waiting for userSubmitter's expense(s) to automatically submit at the end of their trip
-                    optimisticNextStep.message = [
-                        {
-                            text: 'Waiting for ',
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: currentUserAccountID,
+                        eta: {
+                            etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP,
                         },
-                        {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
-                            type: 'strong',
-                        },
-                        {
-                            text: ' %expenses to automatically submit',
-                        },
-                        {
-                            text: ` at the end of their trip`,
-                        },
-                    ];
-
-                    const result = buildNextStepNew({
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy: {
                             ...policy,
@@ -551,31 +411,17 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
 
                 test('manual', () => {
                     // Waiting for userSubmitter to submit expense(s).
-                    optimisticNextStep.message = [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: ' to ',
-                        },
-                        {
-                            text: 'submit',
-                        },
-                        {
-                            text: ' %expenses.',
-                        },
-                    ];
-
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: currentUserAccountID,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy: {
                             ...policy,
@@ -595,35 +441,20 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
             });
         });
 
         describe('it generates an optimistic nextStep once a report has been submitted', () => {
             test('self review', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-
-                // Waiting for you to pay expense(s)
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `you`,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-                const result = buildNextStepNew({
+                // Waiting for an admin to pay expense(s)
+                const expectedResult: ReportNextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: -1,
+                };
+                const result = buildOptimisticNextStep({
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -637,38 +468,21 @@ describe('libs/NextStepUtils', () => {
                     isTrackIntentUser: false,
                 });
 
-                expect(result).toMatchObject(optimisticNextStep);
+                expect(result).toMatchObject(expectedResult);
             });
 
             test('self review with bank account setup', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-
-                // Waiting for you to pay expense(s)
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `you`,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     achAccount: {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: -1,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -682,7 +496,7 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
 
                     // restore to previous state
                     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -693,28 +507,6 @@ describe('libs/NextStepUtils', () => {
 
             test('another reviewer', () => {
                 report.managerID = strangeAccountID;
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-
-                // Waiting for userApprover to approve expense(s)
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: strangeEmail,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'approve',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     employeeList: {
                         [currentUserEmail]: {
@@ -722,7 +514,12 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: strangeAccountID,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -736,34 +533,12 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
             });
 
             test('another owner', () => {
                 report.ownerAccountID = strangeAccountID;
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-
-                // Waiting for userApprover to approve expense(s)
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: currentUserEmail,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'approve',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     employeeList: {
                         [strangeEmail]: {
@@ -771,7 +546,12 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: currentUserAccountID,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -785,22 +565,19 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
             });
             test('submit and close approval mode', () => {
                 report.ownerAccountID = strangeAccountID;
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
-                optimisticNextStep.message = [
-                    {
-                        text: 'No further action required!',
-                    },
-                ];
-
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -814,37 +591,21 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
             });
 
             test('approval mode enabled', () => {
                 report.managerID = strangeAccountID;
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: ownerEmail,
-                        type: 'strong',
-                        clickToCopyText: ownerEmail,
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'approve',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: ownerAccountID,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -858,37 +619,21 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
             });
 
             test('advanced approval mode enabled', () => {
                 report.managerID = strangeAccountID;
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: strangeEmail,
-                        type: 'strong',
-                        clickToCopyText: strangeEmail,
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'approve',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: strangeAccountID,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -901,24 +646,21 @@ describe('libs/NextStepUtils', () => {
                         isReopen: false,
                         isTrackIntentUser: false,
                     });
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
             });
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
             test('disabled reimbursements', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
-                optimisticNextStep.message = [
-                    {
-                        text: 'No further action required!',
-                    },
-                ];
-
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -932,23 +674,20 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
             });
 
             test('non-payer', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
-                optimisticNextStep.message = [
-                    {
-                        text: 'No further action required!',
-                    },
-                ];
-
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                     role: 'user',
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -962,36 +701,21 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
             });
 
             test('payer', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-
-                // Waiting for an admin (you) to pay expense(s)
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: 'you',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
                 // mock the report as approved
                 const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
-                const result = buildNextStepNew({
+                const expectedResult: ReportNextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: -1,
+                };
+                const result = buildOptimisticNextStep({
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -1005,7 +729,7 @@ describe('libs/NextStepUtils', () => {
                     isTrackIntentUser: false,
                 });
 
-                expect(result).toMatchObject(optimisticNextStep);
+                expect(result).toMatchObject(expectedResult);
 
                 // restore
                 report.stateNum = originalState.stateNum;
@@ -1013,34 +737,17 @@ describe('libs/NextStepUtils', () => {
             });
 
             test('payer with bank account setup', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-
-                // Waiting for you to pay expense(s)
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: 'you',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     achAccount: {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: -1,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -1054,19 +761,17 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
             });
 
             describe('it generates an optimistic nextStep once a report has been paid', () => {
                 test('paid with wallet / outside of Expensify', () => {
-                    optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
-                    optimisticNextStep.message = [
-                        {
-                            text: 'No further action required!',
-                        },
-                    ];
-                    const result = buildNextStepNew({
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                    };
+                    const result = buildOptimisticNextStep({
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -1080,46 +785,42 @@ describe('libs/NextStepUtils', () => {
                         isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(expectedResult);
                 });
             });
         });
     });
 
-    describe('buildOptimisticNextStepForStrictPolicyRuleViolations', () => {
-        test('returns correct next step message for strict policy rule violations', () => {
-            const result = buildOptimisticNextStepForStrictPolicyRuleViolations();
-
-            expect(result).toEqual({
-                type: 'alert',
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
-                    },
-                ],
-            });
+    describe('shouldShowDynamicExternalWorkflowApproveErrorNextStep', () => {
+        const createDEWApproveFailedAction = (automaticAction?: boolean): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+            reportActionID: '1',
+            created: '2026-01-01 00:00:00.000',
+            message: [],
+            originalMessage: {
+                message: 'DEW blocked approval',
+                automaticAction,
+            },
         });
-    });
 
-    describe('buildOptimisticNextStepForDynamicExternalWorkflowSubmitError', () => {
-        test('should return alert next step with error message when DEW submit fails', () => {
-            // Given a scenario where Dynamic External Workflow submission has failed
+        it('returns true for manual approve failures when the current user is the approver', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), true, true)).toBe(true);
+        });
 
-            // When buildOptimisticNextStepForDynamicExternalWorkflowSubmitError is called
-            const result = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError();
+        it('returns true when automaticAction is absent (treated as manual failure)', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(), true, true)).toBe(true);
+        });
 
-            // Then it should return an alert-type next step with the appropriate error message and dot indicator icon
-            expect(result).toEqual({
-                type: 'alert',
-                icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
-                message: [
-                    {
-                        text: "This report can't be submitted. Please review the comments to resolve.",
-                        type: 'alert-text',
-                    },
-                ],
-            });
+        it('returns false for auto-approve failures so the normal workflow next step is kept', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(true), true, true)).toBe(false);
+        });
+
+        it('returns false when the current user is not the approver', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), true, false)).toBe(false);
+        });
+
+        it('returns false when there is no active DEW approve failure', () => {
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), false, true)).toBe(false);
         });
     });
 
@@ -1142,9 +843,16 @@ describe('libs/NextStepUtils', () => {
         });
 
         it('returns the current next step when no special conditions are met', () => {
+            const currentNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-1',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -1155,15 +863,18 @@ describe('libs/NextStepUtils', () => {
                 managerID: currentUserAccountID,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                nextStep: currentNextStep,
             } as Report;
 
-            const currentNextStep: ReportNextStepDeprecated = {
-                type: 'neutral',
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Current next step'}],
-            };
-
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false);
+            const result = getReportNextStep({
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy: undefined,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
             expect(result).toBe(currentNextStep);
         });
 
@@ -1171,6 +882,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-2',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -1184,12 +896,12 @@ describe('libs/NextStepUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             } as Report;
 
-            const transaction: Transaction = {
+            const transaction = createMock<Transaction>({
                 transactionID: 'txn-1',
                 reportID: report.reportID,
                 amount: -500,
                 currency: CONST.CURRENCY.USD,
-            } as Transaction;
+            });
 
             const transactionViolations: OnyxCollection<TransactionViolations> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
@@ -1200,17 +912,15 @@ describe('libs/NextStepUtils', () => {
                 ],
             };
 
-            const result = getReportNextStep(
-                undefined,
-                report,
-                currentUserEmail,
-                [transaction] as Array<OnyxEntry<Transaction>>,
-                undefined,
+            const result = getReportNextStep({
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [transaction],
+                policy: undefined,
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
-                false,
-            );
+            });
 
             expect(result).toEqual({
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1227,7 +937,6 @@ describe('libs/NextStepUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 approver: currentUserEmail,
@@ -1244,6 +953,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-3',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -1260,7 +970,15 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false);
+            const result = getReportNextStep({
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
 
@@ -1272,7 +990,6 @@ describe('libs/NextStepUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 approver: currentUserEmail,
@@ -1289,6 +1006,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-4',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -1302,12 +1020,12 @@ describe('libs/NextStepUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             } as Report;
 
-            const transaction: Transaction = {
+            const transaction = createMock<Transaction>({
                 transactionID: 'txn-2',
                 reportID: report.reportID,
                 amount: -500,
                 currency: CONST.CURRENCY.USD,
-            } as Transaction;
+            });
 
             const transactionViolations: OnyxCollection<TransactionViolations> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
@@ -1321,173 +1039,21 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(
-                undefined,
-                report,
-                currentUserEmail,
-                [transaction] as Array<OnyxEntry<Transaction>>,
+            const result = getReportNextStep({
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [transaction],
                 policy,
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
-                false,
-            );
+            });
 
             expect(result).toEqual({
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 actorAccountID: report.ownerAccountID,
             });
-        });
-
-        it('returns the translatable next step over the deprecated one for the empty-report waiting-to-add-transactions case', () => {
-            const report: Report = {
-                ...buildOptimisticExpenseReport({
-                    chatReportID: 'chat-5',
-                    policyID,
-                    payeeAccountID: 1,
-                    total: -500,
-                    currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
-                }),
-                ownerAccountID: currentUserAccountID,
-                managerID: currentUserAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as Report;
-
-            const currentNextStep: ReportNextStepDeprecated = {
-                type: 'neutral',
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Waiting for '}, {text: 'you', type: 'strong'}, {text: ' to '}, {text: 'add'}, {text: ' %expenses.'}],
-            };
-
-            const reportNextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: currentUserAccountID,
-            };
-
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
-            expect(result).toBe(reportNextStep);
-        });
-
-        it('falls back to the deprecated next step when the new next step has a different message key', () => {
-            const report: Report = {
-                ...buildOptimisticExpenseReport({
-                    chatReportID: 'chat-6',
-                    policyID,
-                    payeeAccountID: 1,
-                    total: -500,
-                    currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
-                }),
-                ownerAccountID: currentUserAccountID,
-                managerID: currentUserAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as Report;
-
-            const currentNextStep: ReportNextStepDeprecated = {
-                type: 'neutral',
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Current next step'}],
-            };
-
-            const reportNextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: currentUserAccountID,
-            };
-
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
-            expect(result).toBe(currentNextStep);
-        });
-
-        it('prefers the report-embedded next step over the deprecated value', () => {
-            const embeddedNextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: currentUserAccountID,
-            };
-
-            const report: Report = {
-                ...buildOptimisticExpenseReport({
-                    chatReportID: 'chat-7',
-                    policyID,
-                    payeeAccountID: 1,
-                    total: -500,
-                    currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
-                }),
-                ownerAccountID: currentUserAccountID,
-                managerID: currentUserAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                nextStep: embeddedNextStep,
-            } as Report;
-
-            const currentNextStep: ReportNextStepDeprecated = {
-                type: 'neutral',
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Stale deprecated message'}],
-            };
-
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, report.nextStep);
-            expect(result).toBe(embeddedNextStep);
-        });
-
-        it('prioritizes a higher-priority override over the new translatable next step', async () => {
-            const overridePolicyID = 'policy-override';
-            const policy: Policy = {
-                id: overridePolicyID,
-                name: 'Policy',
-                role: CONST.POLICY.ROLE.ADMIN,
-                type: CONST.POLICY.TYPE.TEAM,
-                owner: currentUserEmail,
-                outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                approver: currentUserEmail,
-                preventSelfApproval: true,
-                employeeList: {
-                    [currentUserEmail]: {
-                        email: currentUserEmail,
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        submitsTo: currentUserEmail,
-                    },
-                },
-            };
-
-            const report: Report = {
-                ...buildOptimisticExpenseReport({
-                    chatReportID: 'chat-7',
-                    policyID: overridePolicyID,
-                    payeeAccountID: 1,
-                    total: -500,
-                    currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
-                }),
-                ownerAccountID: currentUserAccountID,
-                policyID: overridePolicyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as Report;
-
-            const reportNextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: currentUserAccountID,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${overridePolicyID}`, policy);
-            await waitForBatchedUpdates();
-
-            // Even though a translatable next step is supplied, the prevent-self-approval override must still win.
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
-            expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
     });
 
@@ -1514,8 +1080,119 @@ describe('libs/NextStepUtils', () => {
             };
 
             // A currentUserAccountID different from the actor renders the actor as an OTHER_USER, so its name appears in the message.
-            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999);
+            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, undefined, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
+        });
+
+        it.each([
+            {requiredDepositCurrency: CONST.CURRENCY.USD, expectedAccount: 'USD bank account'},
+            {requiredDepositCurrency: '<strong>USD</strong>', expectedAccount: '&lt;strong&gt;USD&lt;/strong&gt; bank account'},
+            {requiredDepositCurrency: undefined, expectedAccount: 'bank account'},
+        ])('renders the required deposit currency when it is available', ({requiredDepositCurrency, expectedAccount}) => {
+            const currentUserAccountID = 780071;
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+                requiredDepositCurrency,
+            };
+            const translateWithDepositCurrency: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForSubmitterAccount') {
+                    const currency = parameters.at(4);
+                    const account = typeof currency === 'string' ? `${currency} bank account` : 'bank account';
+                    return `Waiting for <strong>you</strong> to add a ${account}.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            const message = buildNextStepMessage(nextStep, translateWithDepositCurrency, undefined, currentUserAccountID, formatPhoneNumber);
+            expect(message).toBe(`<next-step>Waiting for <strong>you</strong> to add a ${expectedAccount}.</next-step>`);
+        });
+
+        it('uses the provided phone number formatter when resolving an SMS actor login', async () => {
+            const phoneActorAccountID = 780071;
+            const phoneActorLogin = '18332403628@expensify.sms';
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[phoneActorAccountID]: {accountID: phoneActorAccountID, login: phoneActorLogin}});
+            await waitForBatchedUpdates();
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: phoneActorAccountID,
+            };
+            const translateWithActorName: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingToSubmit') {
+                    return `Waiting for ${String(parameters.at(0))} to submit expenses.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
+            const formatPhoneNumberMock = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
+
+            const message = buildNextStepMessage(nextStep, translateWithActorName, undefined, 999999, formatPhoneNumberMock);
+
+            expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
+            expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
+        });
+
+        it('renders a monthly automatic-submit eta using the day-of-month it encodes, not one shifted by UTC parsing', () => {
+            // A date-only `eta.dateTime` must render as the same day it encodes regardless of the browser timezone.
+            // Native `new Date('2026-08-15')` parses as UTC midnight and shows the 14th in UTC-negative timezones;
+            // `parseISO` keeps it at local midnight so the ordinal day matches the workspace setting.
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 999999,
+                eta: {dateTime: '2026-08-15'},
+            };
+            // Echo the rendered eta (parameter index 2) so we can assert the ordinal day the user actually sees.
+            const translateEta: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForAutomaticSubmit') {
+                    return String(parameters.at(2));
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
+            expect(message).toBe('<next-step>15th</next-step>');
+        });
+
+        describe('renders a monthly automatic-submit eta on the encoded day of month in every timezone', () => {
+            // `buildNextStepMessage` renders a date-only `eta.dateTime` with date-fns, which uses the ambient system
+            // timezone. Jest is pinned to UTC (`TZ=utc`) and V8 caches that at process start, so we cannot change the
+            // timezone from inside this process. UTC is also the one zone where the bug is invisible, because UTC
+            // midnight and local midnight coincide. To exercise real UTC-negative/positive offsets we run the same
+            // parse+format expression used by buildNextStepMessage (see src/libs/NextStepUtils.ts:86) in a child
+            // `node` process with a real `TZ`. `fixed` mirrors the shipped `parseISO` parsing; `legacy` mirrors the
+            // old `new Date` parsing that caused the regression.
+            const renderEtaDayInTimezone = (timezone: string): {fixed: string; legacy: string} => {
+                const dateOnly = '2026-08-15';
+                // Print the fixed (`parseISO`) and legacy (`new Date`) ordinals space-separated so the parent can read
+                // them back as plain strings without an unsafe cast.
+                const script = `const {format,parseISO}=require('date-fns');process.stdout.write([format(parseISO('${dateOnly}'),'do'),format(new Date('${dateOnly}'),'do')].join(' '));`;
+                const out = execFileSync(process.execPath, ['-e', script], {env: {...process.env, TZ: timezone}, encoding: 'utf8'});
+                const [fixed, legacy] = out.split(' ');
+                return {fixed, legacy};
+            };
+
+            it.each([
+                ['Asia/Tokyo', 'positive'],
+                ['Europe/Paris', 'positive'],
+                ['UTC', 'zero'],
+                ['America/New_York', 'negative'],
+                ['America/Los_Angeles', 'negative'],
+                ['Pacific/Honolulu', 'negative'],
+            ])('renders the encoded day (15th) in %s (%s UTC offset)', (timezone, offsetSign) => {
+                const {fixed, legacy} = renderEtaDayInTimezone(timezone);
+
+                // The shipped fix renders the encoded day in every timezone.
+                expect(fixed).toBe('15th');
+
+                // In UTC-negative zones the old `new Date` parsing shifts the day back by one. Asserting it here both
+                // documents the regression and guarantees the child really ran in a UTC-negative zone. Otherwise this
+                // would read '15th' and fail loudly instead of the test silently degrading into a UTC-only no-op.
+                if (offsetSign === 'negative') {
+                    expect(legacy).toBe('14th');
+                }
+            });
         });
     });
 
@@ -1531,7 +1208,6 @@ describe('libs/NextStepUtils', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: currentUserEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             approver: currentUserEmail,
@@ -1568,6 +1244,7 @@ describe('libs/NextStepUtils', () => {
             ({
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-track-intent',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: currentUserAccountID,
                     total: -500,

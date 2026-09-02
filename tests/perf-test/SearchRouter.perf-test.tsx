@@ -51,7 +51,10 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@src/hooks/useRootNavigationState', () => ({
     __esModule: true,
-    default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
+    default: () => ({
+        contextualReportID: undefined,
+        isSearchRouterScreen: false,
+    }),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
@@ -81,6 +84,7 @@ jest.mock('@react-navigation/native', () => {
             isReady: () => jest.fn(),
             getCurrentRoute: () => jest.fn(),
             getState: () => jest.fn(),
+            getRootState: () => undefined,
         }),
         useNavigationState: () => ({
             routes: [],
@@ -186,4 +190,29 @@ test('[SearchRouter] should react to text input changes', async () => {
             }),
         )
         .then(() => measureRenders(<SearchAutocompleteInputWrapper />, {scenario}));
+});
+
+test('[SearchRouter] should re-render minimally when typing into the full router with autocomplete list', async () => {
+    const scenario = async () => {
+        const input = await screen.findByTestId('search-autocomplete-text-input');
+        fireEvent.changeText(input, 'R');
+        fireEvent.changeText(input, 'Re');
+        fireEvent.changeText(input, 'Rep');
+        fireEvent.changeText(input, 'Repo');
+        fireEvent.changeText(input, 'Report');
+        fireEvent.changeText(input, 'Report F');
+        fireEvent.changeText(input, 'Report Fi');
+        fireEvent.changeText(input, 'Report Five');
+    };
+
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
+            }),
+        )
+        .then(() => measureRenders(<SearchRouterWrapperWithCachedOptions />, {scenario}));
 });

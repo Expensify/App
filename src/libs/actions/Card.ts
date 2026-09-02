@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import * as API from '@libs/API';
 import type {
@@ -32,6 +32,7 @@ import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 
@@ -634,7 +635,7 @@ function revealTravelCardDetails(cardID: number, validateCode: string): Promise<
         })
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
+                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_VALIDATE_CODE) {
                         // eslint-disable-next-line prefer-promise-reject-errors
                         reject('validateCodeForm.error.incorrectSecurityCode');
                         return;
@@ -1126,6 +1127,9 @@ function updateExpensifyCardLimitType(
     validThru?: string,
     shouldClearValidityDates?: boolean,
 ) {
+    const normalizedValidFrom = validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined;
+    const normalizedValidThru = validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1139,8 +1143,8 @@ function updateExpensifyCardLimitType(
                             validFrom: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             validThru: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
-                        validFrom: shouldClearValidityDates ? null : validFrom,
-                        validThru: shouldClearValidityDates ? null : validThru,
+                        validFrom: shouldClearValidityDates ? null : normalizedValidFrom,
+                        validThru: shouldClearValidityDates ? null : normalizedValidThru,
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     pendingFields: {availableSpend: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -1192,8 +1196,8 @@ function updateExpensifyCardLimitType(
     const parameters: UpdateExpensifyCardLimitTypeParams = {
         cardID,
         limitType: newLimitType,
-        validFrom: validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined,
-        validThru: validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined,
+        validFrom: normalizedValidFrom,
+        validThru: normalizedValidThru,
         clearValidityDates: shouldClearValidityDates,
     };
 
@@ -1432,6 +1436,7 @@ function issueExpensifyCard(
     const spendRuleEnabled = !!data.spendRuleEnabled;
     const spendRuleOption = data.spendRuleOption ?? CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
     const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru, spendRuleValue, spendRuleID} = data;
+    const normalizedAssigneeEmail = addSMSDomainIfPhoneNumber(assigneeEmail);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
@@ -1471,7 +1476,7 @@ function issueExpensifyCard(
     const isCreatingNewSpendRule = spendRuleEnabled && spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && spendRuleValue;
 
     const parameters: CreateExpensifyCardParams = {
-        assigneeEmail,
+        assigneeEmail: normalizedAssigneeEmail,
         limit,
         limitType,
         cardTitle,
@@ -1919,13 +1924,25 @@ function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsLi
     return personalDetailsList?.[String(accountID)]?.login ?? '';
 }
 
-function getCardholderNameForCSV(card: Card, personalDetailsList: PersonalDetailsList | undefined, translate: LocalizedTranslate): string {
+function getCardholderNameForCSV(
+    card: Card,
+    personalDetailsList: PersonalDetailsList | undefined,
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const details = personalDetailsList?.[String(accountID)];
     if (!details?.displayName?.trim()) {
         return '';
     }
-    return temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, defaultValue: '', shouldFallbackToHidden: false, shouldAddCurrentUserPostfix: false, translate});
+    return temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: details,
+        defaultValue: '',
+        shouldFallbackToHidden: false,
+        shouldAddCurrentUserPostfix: false,
+        translate,
+        formatPhoneNumber,
+    });
 }
 
 type ExportExpensifyCardListToCSVParams = {
@@ -1942,9 +1959,12 @@ type ExportExpensifyCardListToCSVParams = {
     settlementCurrency: string;
 
     translate: LocalizedTranslate;
+
+    /** Formats a phone-number login for display in the current locale */
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
-function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, settlementCurrency, translate}: ExportExpensifyCardListToCSVParams) {
+function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, settlementCurrency, translate, formatPhoneNumber}: ExportExpensifyCardListToCSVParams) {
     if (cards.length === 0) {
         return;
     }
@@ -1962,7 +1982,7 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
 
     const rows = cards.map((card) => {
         const owner = getOwnerEmailForCard(card, personalDetailsList);
-        const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList, translate);
+        const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList, translate, formatPhoneNumber);
         const lastFourColumn = card.lastFourPAN ?? '';
         const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
         const limitTypeColumn = translate(getTranslationKeyForLimitType(card.nameValuePairs?.limitType));
