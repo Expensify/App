@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: '可计费',
         nonBillable: '不可计费',
         tag: '标签',
+        violations: '违规',
         receipt: '收据',
         verified: '已验证',
         replace: '替换',
@@ -5681,9 +5682,34 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 label: '公司卡账户',
                 description: '选择公司卡交易的导出位置。',
             },
-            expensifyCardAccount: {
-                label: 'Expensify Card 账户',
-                description: '选择 Expensify Card 交易的导出位置。',
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些银行卡计划覆盖工作区账户。',
+                descriptionLevel2: '为此卡计划覆盖工作区账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有计划都使用默认账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 个具有自定义账户的计划`;
+                    }
+                    return `${customAccountsCount} 个带有自定义科目的方案`;
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '覆盖这些卡片的项目账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有卡都使用项目账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 张带有自定义账户的卡`;
+                    }
+                    return `${customAccountsCount} 张带有自定义账户的卡`;
+                },
             },
             autoSyncDescription: '每天自动同步 DualEntry 和 Expensify。报告实时同步。',
             accountingMethods: {
@@ -5996,6 +6022,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             deleteFailureMessage: '删除类别时出错，请重试',
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
+            autoCategorizeNewExpenses: '自动为新报销分类',
             showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
@@ -7916,6 +7943,7 @@ ${reportName}`,
                 requireAboveAmount: '要求高于此金额',
                 saveRule: '保存规则',
                 emptyAmountError: '在保存之前请输入有效金额',
+                receiptAmountGreaterThanItemizedError: '所需收据金额不能大于所需分项收据金额。',
             },
             requireFields: {title: '对所有报销设置必填字段', category: '类别', tag: '标签', save: '保存规则'},
             newRule: {
@@ -9067,6 +9095,7 @@ ${reportName}`,
             topSpenders: '最高消费者',
             topCategories: '热门类别',
             topMerchants: '热门商家',
+            violationsBySubmitter: '提交人违规',
         },
     },
     genericErrorPage: {
@@ -9238,6 +9267,8 @@ ${reportName}`,
         time: '时间（请使用24小时制）',
         durationAmount: '时长',
         durationUnit: '单位',
+        leaveType: '休假类型',
+        normalOOO: '普通外出',
         reason: '原因',
         workingPercentage: '工作百分比',
         dateRequired: '开始日期为必填项。',
@@ -9752,6 +9783,53 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `费率仅自 ${startDate} 起有效`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `该费率仅在 ${endDate} 之前有效`,
         cannotMergeDuplicates: '您只能在草稿或未结报销单中合并报销。请先撤回后重试。',
+        shortName: {
+            allTagLevelsRequired: '所有标签为必填项',
+            autoReportedRejectedExpense: '报销已被拒绝',
+            billableExpense: '可计费已不再有效',
+            cashExpenseWithNoReceipt: '需要收据',
+            categoryOutOfPolicy: '类别已失效',
+            companyCardRequired: '需要公司卡',
+            conversionSurcharge: '已收取兑换附加费',
+            customUnitOutOfPolicy: '此费率对该工作区无效',
+            customUnitRateOutOfDateRange: '费率超出有效日期',
+            duplicatedTransaction: '可能重复',
+            fieldRequired: '报表字段为必填项',
+            futureDate: '不允许未来日期',
+            hold: '报销已暂挂',
+            inactiveVendor: '供应商不再有效',
+            increasedDistance: '距离超过路线',
+            invoiceMarkup: '发票已标记加价',
+            itemizedReceiptRequired: '需要项目明细收据',
+            maxAge: '日期早于报销允许的最长期限',
+            missingAttendees: '必需参加者',
+            missingCategory: '缺少类别',
+            missingComment: '必须填写说明',
+            missingTag: '缺少标签',
+            modifiedAmount: '金额已修改',
+            modifiedDate: '修改日期',
+            noRoute: '无效路由',
+            nonExpensiworksExpense: '非 Expensiworks 报销',
+            overAutoApprovalLimit: '超出自动批准限额',
+            overCategoryLimit: '超出类别限额',
+            overLimit: '超出限额',
+            overTripLimit: '超出行程限额',
+            perDayLimit: '超出每日限额',
+            prohibitedExpense: '禁止报销费用',
+            receiptGeneratedWithAI: '可能由 AI 生成的收据',
+            receiptNotSmartScanned: '已手动添加收据',
+            receiptRequired: '需要收据',
+            rter: '等待卡片匹配',
+            smartscanFailed: '收据扫描失败',
+            someTagLevelsRequired: '必须填写标签',
+            tagOutOfPolicy: '标签已失效',
+            overLimitAttendee: '超出人数上限',
+            customRules: '自定义规则违规',
+            taxAmountChanged: '税额已修改',
+            taxOutOfPolicy: '税率已失效',
+            taxRateChanged: '税率已修改',
+            taxRequired: '缺少税率',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} 为必填项`,
