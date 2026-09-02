@@ -19,7 +19,7 @@ type WorkspaceIconReportFields = Pick<Report, 'policyID' | 'policyAvatar' | 'pol
 function useReportWorkspaceIcon(report: WorkspaceIconReportFields | undefined): Icon {
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {selector: policyAvatarFieldsSelector});
-    // An expense report links its workspace chat via `chatReportID`; `parentReportID` covers shapes that only carry the parent link (they normally point at the same chat).
+    // An expense report links its workspace chat via `chatReportID`. `parentReportID` covers shapes that only carry the parent link, which normally points at the same chat.
     const chatReportID = getNonEmptyStringOnyxID(report?.chatReportID) ?? getNonEmptyStringOnyxID(report?.parentReportID);
     const [parentChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: reportPolicyFieldsSelector});
 

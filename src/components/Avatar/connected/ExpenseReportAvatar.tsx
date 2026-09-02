@@ -1,6 +1,9 @@
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
+
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,12 +37,19 @@ type ExpenseReportAvatarProps = {
 /** Renders an expense report's avatars: the report owner as the primary avatar with the workspace icon as the subscript. Expense reports never render in any other layout. */
 function ExpenseReportAvatar({reportID, size, backdropColor, containerStyle, fallbackDisplayName}: ExpenseReportAvatarProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: expenseReportAvatarSelector});
-    const [ownerIcon] = useAccountIcons([report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+    const defaultAvatars = useDefaultAvatars();
+    const ownerAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const [ownerIcon] = useAccountIcons([ownerAccountID]);
+    // Get deterministic user fallback icon instead of generic.
+    const primaryAvatar =
+        ownerIcon.source === defaultAvatars.FallbackAvatar && ownerAccountID !== CONST.DEFAULT_NUMBER_ID
+            ? {...ownerIcon, source: getDefaultAvatarURL({accountID: ownerAccountID})}
+            : ownerIcon;
     const workspaceIcon = useReportWorkspaceIcon(report);
 
     return (
         <SubscriptAvatar
-            primaryAvatar={ownerIcon}
+            primaryAvatar={primaryAvatar}
             secondaryAvatar={workspaceIcon}
             size={size}
             backdropColor={backdropColor}

@@ -3,6 +3,7 @@ import {render, screen} from '@testing-library/react-native';
 import ExpenseReportAvatar from '@components/Avatar/connected/ExpenseReportAvatar';
 
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -237,6 +238,24 @@ describe('ExpenseReportAvatar (connected)', () => {
         );
 
         expect(mockCapturedSubscriptAvatarProps.primaryAvatar).toEqual(expect.objectContaining({id: CONST.DEFAULT_NUMBER_ID, type: CONST.ICON_TYPE_AVATAR, source: MockFallbackAvatar}));
+    });
+
+    it('should seed the default avatar from the account ID when the owner is missing from personal details', async () => {
+        mockPersonalDetails = {};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createExpenseReport());
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: POLICY_NAME});
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ExpenseReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        expect(mockCapturedSubscriptAvatarProps.primaryAvatar).toEqual(
+            expect.objectContaining({id: OWNER_ACCOUNT_ID, type: CONST.ICON_TYPE_AVATAR, source: getDefaultAvatarURL({accountID: OWNER_ACCOUNT_ID})}),
+        );
     });
 
     const CONTAINER_STYLE = {marginRight: 0};
