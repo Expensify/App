@@ -137,6 +137,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             return false;
         }
         pendingSiblingRef.current = {transactionID, originRoute: Navigation.getActiveRoute()};
+        // Always true here: we are fetching this report's actions, so it must not overwrite its cached name.
         openReport({reportID: parentReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: true});
         return true;
     };
@@ -316,7 +317,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             pendingSiblingRef.current = null;
             onPrevious(undefined);
         }
-    });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- onNext/onPrevious are rebuilt every render, so listing them would defeat the dependency list
+    }, [isFocused, nextTransactionID, nextParentReportAction, prevTransactionID, prevParentReportAction]);
 
     if (transactionIDsList.length < 2) {
         return;
