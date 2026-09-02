@@ -42,19 +42,20 @@ function useWideModalStackScreenOptions() {
             let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
 
             if (!isSmallScreenWidth) {
+                // Report, expense, and skinny RHPs are centered modals — fade them in place instead of sliding from the right.
+                const fadeInterpolator: StackCardStyleInterpolator = (props) => modalCardStyleInterpolator({props, enter: {kind: 'fade'}});
                 if (superWideRHPRouteKeys.includes(route.key)) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(fadeInterpolator, {
                         // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
                         // left edge stays put instead of being pushed off-screen. See https://github.com/Expensify/App/issues/99035
                         cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelOffset.current)),
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(fadeInterpolator, {
+                        cardStyle: styles.wideRHPCenteredCardInterpolatorStyles,
                     });
-                    // single RHPs displayed above the wide RHP need to be positioned
                 } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(fadeInterpolator, {
                         cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
                     });
                 }
@@ -68,6 +69,9 @@ function useWideModalStackScreenOptions() {
                     contentStyle: styles.navigationScreenCardStyle,
                 },
                 web: {
+                    // The RHP provides its own scrim (BaseOverlay). Disable react-navigation's built-in card overlay so
+                    // stacked RHP screens don't fade in a dark backdrop before sliding in.
+                    cardOverlayEnabled: false,
                     cardStyle: styles.navigationScreenCardStyle,
                     cardStyleInterpolator,
                     transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,

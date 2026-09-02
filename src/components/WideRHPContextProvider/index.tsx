@@ -39,7 +39,7 @@ const thirdOverlayProgress = new Animated.Value(0);
 const receiptPaneRHPWidth = calculateReceiptPaneRHPWidth(Dimensions.get('window').width);
 
 // Static values of all RHP widths
-const singleRHPWidth = variables.rhpWidth;
+const singleRHPWidth = variables.wideRHPRightPaneWidth;
 const superWideRHPWidth = calculateSuperWideRHPWidth(Dimensions.get('window').width);
 const wideRHPWidth = receiptPaneRHPWidth + singleRHPWidth;
 

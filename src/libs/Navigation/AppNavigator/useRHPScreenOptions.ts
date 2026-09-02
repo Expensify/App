@@ -8,40 +8,24 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types/NavigationOptions';
 
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
-
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import {useMemo} from 'react';
 
 import RHP_WEB_TRANSITION_SPEC from './RHPTransitionSpec';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
-// This function is necessary for proper animation if a wide format RHP screen is visible.
-// In such case for every narrow screen on top of the wide screen we use only half width.
-// The other half is transparent. To account for that we will divide screen width to make sure the animations starts in the right spot.
-const getModifiedCardStyleInterpolatorProps = (props: StackCardInterpolationProps): StackCardInterpolationProps => {
-    return {
-        ...props,
-        layouts: {
-            screen: {
-                ...props.layouts.screen,
-                width: props.layouts.screen.width / 2,
-            },
-        },
-    };
-};
-
 const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
     const styles = useThemeStyles();
     const customInterpolator = useModalCardStyleInterpolator();
-    const {wideRHPRouteKeys} = useWideRHPState();
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
 
     // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    // Adjust props on wide layout and when the wide RHP is visible
-    const shouldAdjustInterpolatorProps = !isSmallScreenWidth && wideRHPRouteKeys.length;
+    // A wide or super-wide RHP (an expense or expense report) is visible, so any RHP pushed on top of it is a centered
+    // modal. Fade it in place instead of sliding it in from the right.
+    const shouldFadeOverWideRHP = !isSmallScreenWidth && (wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0);
 
     return useMemo<PlatformStackNavigationOptions>(() => {
         return {
@@ -49,10 +33,14 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
             animation: Animations.SLIDE_FROM_RIGHT,
             gestureDirection: 'horizontal',
             web: {
-                // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-                cardStyleInterpolator: isSafari()
-                    ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}})
-                    : (props) => CardStyleInterpolators.forHorizontalIOS(shouldAdjustInterpolatorProps ? getModifiedCardStyleInterpolatorProps(props) : props),
+                // Fade in when centered over a wide/super-wide RHP. Otherwise slide in from the right (the .forHorizontalIOS
+                // interpolator from `@react-navigation` misbehaves on Safari, so we override it with our custom one there).
+                // eslint-disable-next-line no-nested-ternary
+                cardStyleInterpolator: shouldFadeOverWideRHP
+                    ? (props) => customInterpolator({props, enter: {kind: 'fade'}})
+                    : isSafari()
+                      ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}})
+                      : (props) => CardStyleInterpolators.forHorizontalIOS(props),
                 presentation: Presentation.TRANSPARENT_MODAL,
                 cardOverlayEnabled: false,
                 cardStyle: styles.navigationScreenCardStyle,
@@ -60,7 +48,7 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
                 transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
             },
         };
-    }, [customInterpolator, shouldAdjustInterpolatorProps, isSmallScreenWidth, styles.navigationScreenCardStyle]);
+    }, [customInterpolator, shouldFadeOverWideRHP, isSmallScreenWidth, styles.navigationScreenCardStyle]);
 };
 
 export default useRHPScreenOptions;

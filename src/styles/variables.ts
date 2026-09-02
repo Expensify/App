@@ -120,11 +120,13 @@ export default {
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
-    superWideRHPLeftMargin: 147,
+    superWideRHPLeftMargin: 360,
     // Floating RHP card experiment (wide layout / web+desktop only): inset from the screen edges.
     rhpFloatingCardMargin: 12,
     // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
     rhpWidth: 440,
+    // Right (detail) pane width of the wide/super-wide expense views. Matches the standalone skinny RHP width (rhpWidth).
+    wideRHPRightPaneWidth: 440,
     // RHP scrim opacity. Scoped to the RHP overlay so other modal backdrops keep the default overlayOpacity.
     rhpOverlayOpacity: 0.5,
     // RHP gradient-scrim fade: px over which appBG fades to transparent, starting at the RHP's left edge

@@ -3986,6 +3986,14 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: theme.shadow,
         },
 
+        // Invisible frame docked 12px from the right edge, sized to the widest RHP card (the animated width is applied
+        // separately). It has no border/shadow/background, so the RHP cards inside draw the visible modals; the area to
+        // the left of the frame stays free for the primary dismiss overlay behind it (click-outside to close).
+        RHPCenteredFrame: {
+            right: variables.rhpFloatingCardMargin,
+            height: '100%',
+        },
+
         bottomDockedModalDismissButton: {
             position: 'absolute',
             top: 0,
@@ -6314,19 +6322,32 @@ const staticStyles = (theme: ThemeColors) =>
             width: animatedWideRHPWidth,
         },
 
-        // Skinny RHP stacked above a wide/super-wide RHP (e.g. editing a field from an expense within an
-        // expense report). Float it the same way as a standalone skinny RHP, over the report behind it.
+        // Wide expense opened on top of a super-wide report: anchored to the report's right edge (the frame's right edge)
+        // over the report, which stays in the background, with rounded corners, a border, and a shadow.
+        wideRHPCenteredCardInterpolatorStyles: {
+            position: 'absolute',
+            top: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
+            right: 0,
+            height: 'auto',
+            width: animatedWideRHPWidth,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
+            overflow: 'hidden',
+        },
+
+        // Skinny RHP stacked above a wide/super-wide RHP (e.g. editing a field from an expense in a report). Anchored to
+        // the report/expense right edge (the frame's right edge), inset on top/bottom, rounded, bordered, and shadowed —
+        // with the dark scrim behind it dimming the report/expense below.
         singleRHPExtendedCardInterpolatorStyles: {
             position: 'absolute',
-            // Inset on all four sides within the card's slot. The slot is single-RHP width, so anchoring by
-            // right + a fixed width would push the left edge past the slot and clip it — use left+right insets.
             top: variables.rhpFloatingCardMargin,
-            right: variables.rhpFloatingCardMargin,
             bottom: variables.rhpFloatingCardMargin,
-            left: variables.rhpFloatingCardMargin,
-            // Override height:100%/width from navigationScreenCardStyle so the four insets define the box.
+            right: 0,
             height: 'auto',
-            width: 'auto',
+            width: variables.rhpWidth,
             borderRadius: variables.componentBorderRadiusLarge,
             borderWidth: 1,
             borderColor: theme.border,
@@ -6666,12 +6687,21 @@ const dynamicStyles = (theme: ThemeColors) =>
         // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
         // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
         // See https://github.com/Expensify/App/issues/99035
+        // The super-wide expense report is its own bordered modal anchored to the frame's right edge (12px from the
+        // viewport edge), inset on top/bottom, rounded, and shadowed. The dark scrim behind it shows to its left.
         getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
             ({
                 position: 'absolute',
-                height: '100%',
+                top: variables.rhpFloatingCardMargin,
+                bottom: variables.rhpFloatingCardMargin,
                 right: 0,
+                height: 'auto',
                 width,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderWidth: 1,
+                borderColor: theme.border,
+                boxShadow: theme.shadow,
+                overflow: 'hidden',
             }) satisfies ViewStyle,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>

@@ -1,16 +1,9 @@
-import {
-    animatedReceiptPaneRHPWidth,
-    modalStackOverlaySuperWideRHPPositionLeft,
-    modalStackOverlayWideRHPPositionLeft,
-    secondOverlayRHPOnSuperWideRHPProgress,
-    secondOverlayRHPOnWideRHPProgress,
-    secondOverlayWideRHPProgress,
-    useWideRHPState,
-} from '@components/WideRHPContextProvider';
+import {secondOverlayRHPOnSuperWideRHPProgress, secondOverlayRHPOnWideRHPProgress, secondOverlayWideRHPProgress, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+import Navigation from '@libs/Navigation/Navigation';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
@@ -40,12 +33,14 @@ function SecondaryOverlay() {
      * 2. Single RHP is displayed on Super Wide RHP
      * 3. Wide RHP is displayed on Super Wide RHP route.
      *  */
+    // These overlays render behind the centered card (from the RHP screen below it), so clicking the dimmed area
+    // dismisses to that screen while the centered card above stays fully interactive.
     if (isRHPDisplayedOnWideRHP) {
         return (
             <Overlay
                 progress={secondOverlayRHPOnWideRHPProgress}
-                // If RHP is displayed on Wide RHP which is displayed above the Super Wide RHP, the secondary overlay's position left should be calculated from the left edge of the super wide RHP.
-                positionLeftValue={animatedReceiptPaneRHPWidth}
+                positionLeftValue={0}
+                onPress={Navigation.dismissToPreviousRHP}
             />
         );
     }
@@ -54,7 +49,8 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayWideRHPProgress}
-                positionLeftValue={modalStackOverlayWideRHPPositionLeft}
+                positionLeftValue={0}
+                onPress={() => Navigation.closeRHPFlow()}
             />
         );
     }
@@ -63,7 +59,8 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
+                positionLeftValue={0}
+                onPress={Navigation.dismissToSuperWideRHP}
             />
         );
     }

@@ -1,15 +1,6 @@
 import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {
-    animatedWideRHPWidth,
-    expandedRHPProgress,
-    secondOverlayRHPOnSuperWideRHPProgress,
-    secondOverlayRHPOnWideRHPProgress,
-    secondOverlayWideRHPProgress,
-    thirdOverlayProgress,
-    useWideRHPActions,
-    useWideRHPState,
-} from '@components/WideRHPContextProvider';
+import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -44,7 +35,7 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {NavigatorScreenParams} from '@react-navigation/native';
-import type {View} from 'react-native';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -59,7 +50,7 @@ type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, t
 const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
 
 const singleRHPWidth = variables.rhpWidth;
-const getWideRHPWidth = (windowWidth: number) => variables.rhpWidth + calculateReceiptPaneRHPWidth(windowWidth);
+const getWideRHPWidth = (windowWidth: number) => variables.wideRHPRightPaneWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
@@ -75,43 +66,6 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
             <ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator {...props} />
         </SearchAdvancedFiltersProvider>
     );
-}
-
-function SecondaryOverlay() {
-    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
-    const {sidePanelOffset} = useSidePanelState();
-
-    if (shouldRenderSecondaryOverlayForWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, animatedWideRHPWidth)}
-                onPress={() => Navigation.closeRHPFlow()}
-            />
-        );
-    }
-
-    if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayRHPOnWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.rhpWidth)}
-                onPress={Navigation.dismissToPreviousRHP}
-            />
-        );
-    }
-
-    if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.rhpWidth)}
-                onPress={Navigation.dismissToSuperWideRHP}
-            />
-        );
-    }
-
-    return null;
 }
 
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
@@ -168,7 +122,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     });
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
+    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} =
+        useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
@@ -211,6 +166,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         superWideRHPSidePanelOffset,
     );
 
+    // Narrow/native are full-bleed. When the RHP is part of the expense-report flow (a report or expense is visible, or
+    // a skinny RHP is opened over one), the frame is a horizontally centered modal with the dark dimming scrim — the
+    // report, expense, and skinny each become a centered card. Everything else is a right-anchored floating card.
+    const useFullBleedFrame = shouldUseNarrowLayout;
+    const useCenteredReportModal =
+        !useFullBleedFrame &&
+        (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
+
     const animatedWidthStyle = useMemo(() => {
         return {
             width: shouldUseNarrowLayout ? '100%' : animatedWidth,
@@ -218,6 +181,26 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     }, [animatedWidth, shouldUseNarrowLayout]);
 
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+
+    // Narrow/native use a full-bleed frame. The centered report flow uses an invisible frame sized to the widest RHP
+    // card and horizontally centered; each RHP card (report / expense / skinny) draws its own centered, bordered modal
+    // inside it, and the viewport margins stay outside the frame so the primary dismiss overlay catches click-outside.
+    // Everything else is a right-anchored floating card whose frame carries the border, radius, and shadow.
+    let frameCardStyle: StyleProp<ViewStyle> = styles.RHPFloatingCard;
+    if (useFullBleedFrame) {
+        frameCardStyle = [styles.r0, styles.h100];
+    } else if (useCenteredReportModal) {
+        frameCardStyle = styles.RHPCenteredFrame;
+    }
+
+    // Width of the current frame (driven by the visible RHP keys), so the gradient scrim's solid region covers
+    // exactly the floating panel: super-wide, wide, or skinny.
+    let currentRHPWidth: number = singleRHPWidth;
+    if (superWideRHPRouteKeys.length > 0) {
+        currentRHPWidth = calculateSuperWideRHPWidth(windowWidth);
+    } else if (wideRHPRouteKeys.length > 0) {
+        currentRHPWidth = getWideRHPWidth(windowWidth);
+    }
 
     const screenListeners = useMemo(
         () => ({
@@ -284,8 +267,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Overlay
                         positionLeftValue={overlayPositionLeft}
                         onPress={handleOverlayPress}
-                        // appBG gradient fade only for skinny single RHPs; wide/super-wide keep the dimming scrim.
-                        gradientFade={wideRHPRouteKeys.length === 0 && superWideRHPRouteKeys.length === 0}
+                        // appBG gradient scrim whenever the frame floats (skinny RHP + super-wide report); other
+                        // cases keep the dimming scrim. Solid region matches the floating panel width.
+                        // Dark dimming scrim for the centered expense report; appBG gradient fade for the floating RHPs.
+                        gradientFade={!useFullBleedFrame && !useCenteredReportModal}
+                        gradientSolidWidth={currentRHPWidth + variables.rhpFloatingCardMargin}
                     />
                 )}
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
@@ -300,9 +286,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         style={[
                             styles.pAbsolute,
                             styles.overflowHidden,
-                            // Floating card only for skinny single RHPs on wide layout. Wide/super-wide RHPs
-                            // (expense report / expense views) and narrow/native stay full-bleed.
-                            shouldUseNarrowLayout || wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0 ? [styles.r0, styles.h100] : styles.RHPFloatingCard,
+                            // Floating card for every RHP on wide layout (skinny, wide, super-wide). Narrow/native full-bleed.
+                            frameCardStyle,
                             animatedWidthStyle,
                         ]}
                     >
@@ -553,15 +538,17 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         </Stack.Navigator>
                     </RightModalDialogFrame>
                 </DialogLabelProvider>
-                {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
-                {/* Clicking on these overlays redirects you to the RHP screen below them. */}
-                {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}
-                {!shouldUseNarrowLayout && <SecondaryOverlay />}
+                {/* The tertiary overlay covers RHP screens wider than the currently focused screen. Clicking it dismisses to */}
+                {/* the RHP screen below. Its width equals the screen width minus the focused RHP width (positionRightValue). */}
+                {/* Secondary (report/expense/skinny) dismiss is handled by WideRHPOverlayWrapper, which renders behind the */}
+                {/* centered card instead of on top of it, so the card stays fully interactive. */}
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
                     <Overlay
                         progress={thirdOverlayProgress}
                         positionRightValue={Animated.add(sidePanelOffset.current, variables.rhpWidth)}
                         onPress={Navigation.dismissToPreviousRHP}
+                        // No dimming scrim behind a stacked RHP; keep click-to-dismiss.
+                        transparent
                     />
                 )}
             </NoDropZone>

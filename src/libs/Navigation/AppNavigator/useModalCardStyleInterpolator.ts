@@ -57,7 +57,9 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         }
 
         if (enter.kind === 'fade') {
-            return {cardStyle: {...cardStyle, opacity: progress}};
+            // Keep a no-op transform so the card stays the containing block for any position:fixed descendants (the
+            // ModalStack slot). Without a transform they anchor to the viewport instead of this card's (frame's) edge.
+            return {cardStyle: {...cardStyle, opacity: progress, transform: [{translateX: 0}]}};
         }
 
         const widthFallback = shouldUseNarrowLayout ? screen.width : variables.sideBarWidth;
