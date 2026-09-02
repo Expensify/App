@@ -78,10 +78,11 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
                         : translate('workspace.accounting.syncTravelInvoicingSettlementsNoAccountTooltip')
                 }
                 onToggle={(isEnabled) => {
-                    toggleTravelBillingContinuousReconciliation(workspaceAccountID, isEnabled, connectionName, travelBillingContinuousReconciliationConnection);
-                    if (isEnabled) {
+                    if (isEnabled && !travelBillingReconciliationBankAccountID) {
                         navigateToTravelBillingReconciliationAccountSettings();
+                        return;
                     }
+                    toggleTravelBillingContinuousReconciliation(workspaceAccountID, isEnabled, connectionName, travelBillingContinuousReconciliationConnection);
                 }}
                 pendingAction={travelBillingContinuousReconciliationPendingAction}
                 wrapperStyle={[styles.mv3, styles.ph5]}
