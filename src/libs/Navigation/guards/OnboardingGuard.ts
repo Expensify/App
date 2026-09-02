@@ -12,6 +12,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Account, IntroSelected, Onboarding} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
@@ -28,6 +29,8 @@ import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
+
+const JOIN_WORKSPACE_TASK_SCREENS = new Set<string>([SCREENS.ONBOARDING.WORK_EMAIL, SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, SCREENS.ONBOARDING.WORKSPACES]);
 
 /**
  * Module-level Onyx subscriptions for OnboardingGuard
@@ -188,6 +191,10 @@ function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
     return false;
 }
 
+function isNavigatingToJoinWorkspaceTask(action: NavigationAction): boolean {
+    return isNavigatingToOnboardingFlow(action) && JOIN_WORKSPACE_TASK_SCREENS.has(getActionPayloadScreenName(action) ?? '');
+}
+
 /**
  * Check if the navigation action is targeting an onboarding screen.
  * This handles REPLACE actions that target the OnboardingModalNavigator directly.
@@ -219,15 +226,15 @@ const OnboardingGuard: NavigationGuard = {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
-        // The join-workspace intent hands out Concierge task links (add work email, validate email, join workspace)
-        // that reopen these onboarding screens after the flow has already completed, so those users are exempt from
-        // the redirect below. ONBOARDING_PURPOSE_SELECTED is local-only and does not survive a reload, so
-        // fall back to the server-persisted introSelected NVP, like useOnboardingIntent does.
+        // The join-workspace intent hands out Concierge task links that reopen these screens after the flow has
+        // completed. ONBOARDING_PURPOSE_SELECTED is local-only and does not survive a reload, so fall back to the
+        // server-persisted introSelected NVP, like useOnboardingIntent does.
         const isJoiningCompanyWorkspaceIntent = (introSelected?.choice ?? onboardingPurposeSelected) === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
+        const isNavigatingToJoinWorkspaceTaskRoute = isNavigatingToJoinWorkspaceTask(action);
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link), since onboarding
         // is not something they should be able to re-enter once it is done.
-        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && !isJoiningCompanyWorkspaceIntent) {
+        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && (!isJoiningCompanyWorkspaceIntent || !isNavigatingToJoinWorkspaceTaskRoute)) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
