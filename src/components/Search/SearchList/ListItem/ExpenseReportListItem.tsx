@@ -191,7 +191,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             const relevantViolations = (transaction.violations ?? []).filter(
                 (violation) =>
                     !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, submitterLogin, policyForViolations) &&
-                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transaction),
+                    shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', currentUserDetails.accountID, false, transaction),
             );
 
             const violations = syncMissingAttendeesViolation(
@@ -382,12 +382,16 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         [styles, isLargeScreenWidth],
     );
 
+    // The animated style is applied inline, so the `borderRadius: 0` it carries wins over the static
+    // `tableTopRadius`/`tableBottomRadius` below and squares off the list's outer corners. Skip it for the first
+    // and last rows only, so every other row keeps its existing (already square) behavior.
+    const shouldApplyAnimatedBorderRadius = !isLargeScreenWidth && !isFirstItem && !isLastItem;
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: !isLargeScreenWidth,
+        shouldApplyOtherStyles: shouldApplyAnimatedBorderRadius,
     });
 
     const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
@@ -481,8 +485,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
-            pendingAction={item.pendingAction}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}

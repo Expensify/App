@@ -2,6 +2,7 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SelectedReports} from '@components/Search/types';
 
 import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
+import Log from '@libs/Log';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -80,6 +81,8 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             formatPhoneNumber,
             getCurrencyDecimals,
             conciergeChat,
+        }).catch((error: unknown) => {
+            Log.warn('[useBulkDuplicateReportAction] Failed to duplicate the selected reports', {error});
         });
 
         clearSelectedTransactions(undefined, true);
