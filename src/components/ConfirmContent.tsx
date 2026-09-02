@@ -49,11 +49,8 @@ type ConfirmContentProps = {
     /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
     subtitle?: string | ReactNode;
 
-    /** Whether we should use the success button color */
-    success?: boolean;
-
-    /** Whether we should use the danger button color. Use if the action is destructive */
-    danger?: boolean;
+    /** Button variant */
+    buttonVariant?: ButtonVariant;
 
     /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
@@ -112,6 +109,12 @@ type ConfirmContentProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
+    /** Image width */
+    imageWidth?: number;
+
+    /** Image height */
+    imageHeight?: number;
+
     /** Whether to fit the image to the container */
     shouldFitImageToContainer?: boolean;
 
@@ -140,8 +143,7 @@ function ConfirmContent({
     prompt = '',
     subtitle,
     subtitleStyles,
-    success = true,
-    danger = false,
+    buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
     iconSource,
@@ -158,6 +160,8 @@ function ConfirmContent({
     shouldShowDismissIcon = false,
     image,
     imageStyles,
+    imageWidth,
+    imageHeight,
     shouldFitImageToContainer = false,
     titleContainerStyles,
     shouldReverseStackedButtons = false,
@@ -177,9 +181,9 @@ function ConfirmContent({
     const isCentered = shouldCenterContent;
 
     let confirmButtonVariant: ButtonVariant | undefined;
-    if (danger) {
+    if (buttonVariant === CONST.BUTTON_VARIANT.DANGER) {
         confirmButtonVariant = CONST.BUTTON_VARIANT.DANGER;
-    } else if ((shouldUseSuccessStyleForConfirm || (shouldShowCancelButton && !danger)) && success) {
+    } else if ((shouldUseSuccessStyleForConfirm || shouldShowCancelButton) && buttonVariant === CONST.BUTTON_VARIANT.SUCCESS) {
         confirmButtonVariant = CONST.BUTTON_VARIANT.SUCCESS;
     }
 
@@ -197,8 +201,8 @@ function ConfirmContent({
                     <ImageSVG
                         contentFit={shouldFitImageToContainer ? 'cover' : 'contain'}
                         src={image}
-                        height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
-                        width={shouldFitImageToContainer ? '100%' : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        height={imageHeight ?? CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
+                        width={imageWidth ?? (shouldFitImageToContainer ? '100%' : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH)}
                         preserveAspectRatio={shouldFitImageToContainer ? 'xMidYMid slice' : undefined}
                         style={styles.alignSelfCenter}
                     />

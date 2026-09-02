@@ -77,7 +77,12 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                     }}
                     shouldRender
                 >
-                    <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, -oneAvatarBorderWidth), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
+                    <View
+                        style={[
+                            StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, -oneAvatarBorderWidth),
+                            StyleUtils.getAvatarBorderRadius(size, StyleUtils.getShapeFromIconType(icon.type)),
+                        ]}
+                    >
                         <UserAvatar
                             iconAdditionalStyles={[
                                 StyleUtils.getHorizontalStackedAvatarBorderStyle({
@@ -122,7 +127,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
 
                             // Set overlay background color with RGBA value so that the text will not inherit opacity
                             StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
-                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
+                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE),
                             StyleUtils.getBackgroundColorWithOpacityStyle(colors.productDark400, variables.overlayOpacity),
                         ]}
                     >
