@@ -223,21 +223,23 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     // A function, not a cached value: each call site checks the keyboard's current state, not one captured earlier.
     const hasKeyboardToDismiss = () => shouldDismissKeyboardBeforeTabSwitch && Keyboard.isVisible();
 
-    const runAfterKeyboardDismiss = (callback: () => void) => {
+    const runAfterKeyboardDismiss = async (callback: () => void) => {
         if (!hasKeyboardToDismiss()) {
             callback();
             return;
         }
 
         isTabSwitchPendingRef.current = true;
-        dismissKeyboardBeforeTabSwitch()
-            .then(callback)
-            .catch((error: unknown) => {
-                Log.warn('[OnyxTabNavigator] Failed to switch tabs after dismissing the keyboard', {error});
-            })
-            .finally(() => {
-                isTabSwitchPendingRef.current = false;
-            });
+        // No `finally`: the React Compiler (Babel) can't lower a `try` with a `finally` clause, so the pending-ref
+        // reset is duplicated into both branches instead.
+        try {
+            await dismissKeyboardBeforeTabSwitch();
+            callback();
+            isTabSwitchPendingRef.current = false;
+        } catch (error: unknown) {
+            Log.warn('[OnyxTabNavigator] Failed to switch tabs after dismissing the keyboard', {error});
+            isTabSwitchPendingRef.current = false;
+        }
     };
 
     // Records a tab switch that is about to be dispatched, so the `state` listener can re-apply it if it gets bounced back.

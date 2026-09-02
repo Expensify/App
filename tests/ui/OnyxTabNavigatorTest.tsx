@@ -101,7 +101,7 @@ function renderTabNavigator(hasUnsavedChanges: boolean, shouldDismissKeyboardBef
     );
 }
 
-function pressTargetTab() {
+function pressTargetTab(): MockTabPressEvent {
     if (!mockScreenListeners) {
         throw new Error('Expected the tab navigator to register screen listeners');
     }
@@ -319,5 +319,19 @@ describe('OnyxTabNavigator keyboard dismissal after discarding changes', () => {
         expect(mockOnDiscard).not.toHaveBeenCalled();
         expect(mockedKeyboardUtils.dismiss).not.toHaveBeenCalled();
         expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('jumps synchronously after discard when not deferring', async () => {
+        jest.spyOn(Keyboard, 'isVisible').mockReturnValue(false);
+        mockShowConfirmModal.mockImplementation(() => Promise.resolve({action: ModalActions.CONFIRM}));
+        renderTabNavigator(true, true);
+
+        await act(async () => {
+            pressTargetTab();
+        });
+
+        expect(mockOnDiscard).toHaveBeenCalledTimes(1);
+        expect(mockedKeyboardUtils.dismiss).not.toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
 });
