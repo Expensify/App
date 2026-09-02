@@ -150,6 +150,13 @@ function SearchPage({route}: SearchPageProps) {
         return () => clearTimeout(timeoutID);
     }, [isSearchResolvedForCurrentQuery, currentQueryHash]);
 
+    // Cleared once the query resolves, so returning to it later starts a fresh count. Leaving the hash marked would
+    // skip the hold for good — a filter toggled off and back on, or a snapshot evicted, would go straight to the
+    // skeleton. Adjusted during rendering rather than in the effect above, which must not call setState synchronously.
+    if (isSearchResolvedForCurrentQuery && staleHoldTimedOutHash === currentQueryHash) {
+        setStaleHoldTimedOutHash(undefined);
+    }
+
     const hasStaleHoldTimedOut = staleHoldTimedOutHash !== undefined && staleHoldTimedOutHash === currentQueryHash;
 
     // Only a filter refinement is worth holding for. A sidebar item or saved search is a different search, so its
