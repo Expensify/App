@@ -411,17 +411,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // achData changes — not to local USDBankAccountStep updates — otherwise it races with prepareNextStep
         // and briefly pulls USDBankAccountStep back to the server value before the Onyx merge lands.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        policyIDParam,
-        achData?.currentStep,
-        shouldShowContinueSetupButtonValue,
-        isNonUSDSetup,
-        isPreviousPolicy,
-        achData?.state,
-        policyCurrency,
-        shouldRedirectToPendingValidation,
-        backTo,
-    ]);
+    }, [policyIDParam, achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDSetup, isPreviousPolicy, achData?.state, policyCurrency, shouldRedirectToPendingValidation, backTo]);
 
     // Declared after the redirect effect so that on the commit where the redirect fires this runs with the blur flag
     // still unset and bails out, rather than racing the navigation it is meant to follow.
