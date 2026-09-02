@@ -5,15 +5,12 @@ import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {BAR_HEIGHT, ICON_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowIcon} from '@pages/home/common/widgetSkeletonRow';
+
 import variables from '@styles/variables';
 
 import {View} from 'react-native';
 
-// The icon box `getWidgetItemIconContainerStyle` draws in the rows these stand in for.
-const ICON_SIZE = variables.componentSizeNormal;
-const ICON_BORDER_RADIUS = variables.componentBorderRadiusNormal;
-
-const BAR_HEIGHT = 12;
 // BaseWidgetItem renders its CTA button at `BUTTON_SIZE.SMALL`.
 const BUTTON_WIDTH = variables.widgetItemButtonMinWidth;
 const BUTTON_HEIGHT = variables.componentSizeSmall;
@@ -29,21 +26,16 @@ function ForYouSkeleton() {
     const {onLayout, containerWidth: pageWidth} = useContainerWidth();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const iconTextGap = styles.gap3.gap;
-    const rowHeight = ICON_SIZE + styles.pv3.paddingVertical * 2;
-    const horizontalPadding = shouldUseNarrowLayout ? styles.ph5.paddingHorizontal : styles.ph8.paddingHorizontal;
+    const {iconTextGap, rowHeight, horizontalPadding} = useWidgetSkeletonRowGeometry();
 
     const renderSkeletonItem = () => {
         const titleX = horizontalPadding + ICON_SIZE + iconTextGap;
 
         return (
             <>
-                <SkeletonRect
-                    transform={[{translateX: horizontalPadding}, {translateY: (rowHeight - ICON_SIZE) / 2}]}
-                    width={ICON_SIZE}
-                    height={ICON_SIZE}
-                    borderRadius={ICON_BORDER_RADIUS}
+                <WidgetSkeletonRowIcon
+                    horizontalPadding={horizontalPadding}
+                    rowHeight={rowHeight}
                 />
                 <SkeletonRect
                     transform={[{translateX: titleX}, {translateY: (rowHeight - BAR_HEIGHT) / 2}]}

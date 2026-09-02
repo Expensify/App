@@ -17,11 +17,8 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-// The icon box `getWidgetItemIconContainerStyle` draws in the rows these stand in for.
-const ICON_SIZE = variables.componentSizeNormal;
-const ICON_BORDER_RADIUS = variables.componentBorderRadiusNormal;
+import {BAR_HEIGHT, ICON_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowIcon} from './common/widgetSkeletonRow';
 
-const BAR_HEIGHT = 12;
 // The stacked pair of text lines the two-bar rows stand in for: a merchant line over a muted label line.
 const FIRST_LINE_HEIGHT = variables.fontSizeNormalHeight;
 const SECOND_LINE_HEIGHT = variables.lineHeightNormal;
@@ -68,24 +65,16 @@ function getStackedBarOffsets(rowHeight: number, textLineGap: number) {
     };
 }
 
-function renderRowIcon(horizontalPadding: number, rowHeight: number) {
-    return (
-        <SkeletonRect
-            transform={[{translateX: horizontalPadding}, {translateY: (rowHeight - ICON_SIZE) / 2}]}
-            width={ICON_SIZE}
-            height={ICON_SIZE}
-            borderRadius={ICON_BORDER_RADIUS}
-        />
-    );
-}
-
 function renderIconTwoBarRow({itemIndex, horizontalPadding, rowHeight, iconTextGap, textLineGap}: SkeletonRowArgs) {
     const textX = horizontalPadding + ICON_SIZE + iconTextGap;
     const {upperBarY, lowerBarY} = getStackedBarOffsets(rowHeight, textLineGap);
 
     return (
         <>
-            {renderRowIcon(horizontalPadding, rowHeight)}
+            <WidgetSkeletonRowIcon
+                horizontalPadding={horizontalPadding}
+                rowHeight={rowHeight}
+            />
             <SkeletonRect
                 transform={[{translateX: textX}, {translateY: upperBarY}]}
                 width={getAlternatingBarWidth(TWO_BAR_ROW_BAR_WIDTHS, itemIndex)}
@@ -136,11 +125,8 @@ function HomePageSkeletonCard({numRows, renderRow, shouldShowSeparators = false}
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {onLayout, containerWidth} = useContainerWidth();
-    // Row geometry read off the styles the real rows use (see BaseWidgetItem).
-    const iconTextGap = styles.gap3.gap;
+    const {iconTextGap, rowHeight, horizontalPadding} = useWidgetSkeletonRowGeometry();
     const textLineGap = styles.gap1.gap;
-    const rowHeight = ICON_SIZE + styles.pv3.paddingVertical * 2;
-    const horizontalPadding = shouldUseNarrowLayout ? styles.ph5.paddingHorizontal : styles.ph8.paddingHorizontal;
 
     return (
         <View testID={CARD_TEST_ID}>
