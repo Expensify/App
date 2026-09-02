@@ -423,9 +423,7 @@ describe('OnyxUpdatesTest', () => {
         await heldApply.release();
     });
 
-    // applyPusherOnyxUpdates keeps its promise chain in module scope, so a rejected apply poisons every later Pusher
-    // apply in that module instance. Load a fresh copy per test so the rejection cannot outlive the test that caused it.
-    describe('when a failed Pusher apply leaves the shared event chain rejected', () => {
+    describe('when a failed Pusher apply leaves the module-scoped event chain rejected', () => {
         beforeEach(() => jest.resetModules());
 
         it('resumes gap detection so recovery can refetch the update', async () => {
