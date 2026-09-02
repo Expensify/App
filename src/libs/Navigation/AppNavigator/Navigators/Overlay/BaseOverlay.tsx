@@ -33,6 +33,9 @@ type BaseOverlayProps = {
     /* Width of the solid gradient region (the floating panel footprint). Defaults to the skinny RHP width. */
     gradientSolidWidth?: number;
 
+    /* Color for the gradient fade. Defaults to theme.appBG. */
+    gradientColor?: string;
+
     /* Render with no dimming background — invisible but still positioned and pressable to dismiss */
     transparent?: boolean;
 };
@@ -55,6 +58,7 @@ function BaseOverlay({
     positionRightValue = 0,
     gradientFade = false,
     gradientSolidWidth = variables.rhpWidth + variables.rhpFloatingCardMargin,
+    gradientColor,
     transparent = false,
 }: BaseOverlayProps) {
     const styles = useThemeStyles();
@@ -70,7 +74,7 @@ function BaseOverlay({
         // Respect the overlay position so a stacked overlay ends at the covering panel's left edge and never
         // paints over it. The gradient's solid/fade is measured from this element's own right edge.
         {left: positionLeftValue, right: positionRightValue},
-        styles.rhpGradientScrim(getGradientBackgroundImage(theme.appBG, gradientSolidWidth)),
+        styles.rhpGradientScrim(getGradientBackgroundImage(gradientColor ?? theme.appBG, gradientSolidWidth)),
         {opacity: activeProgress.interpolate({inputRange: [0, 0.5], outputRange: [0, variables.rhpGradientOpacity], extrapolate: 'clamp'})},
     ];
     const scrimStyle = [styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: activeProgress, positionLeftValue, positionRightValue})];

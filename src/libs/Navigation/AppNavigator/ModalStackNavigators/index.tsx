@@ -1,3 +1,4 @@
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -137,6 +138,11 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
         const {isSmallScreenWidth} = useResponsiveLayout();
 
+        // When this modal stack is a skinny RHP over a wide/super-wide RHP, its card is content-height inside a full-height
+        // slot. Make the slot box-none so the empty area around the card passes clicks to the dismiss overlay behind it.
+        const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
+        const isSkinnyOverWideRHP = !isSmallScreenWidth && (wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0);
+
         const getScreenOptions = useCallback<typeof screenOptions>(
             ({route: optionRoute}) => {
                 // Extend common options if they are defined for the screen.
@@ -152,6 +158,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
             <View
                 style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}
+                pointerEvents={isSkinnyOverWideRHP ? 'box-none' : undefined}
                 accessibilityViewIsModal={isSmallScreenWidth}
                 aria-modal={isSmallScreenWidth || undefined}
                 role={isSmallScreenWidth ? 'dialog' : undefined}

@@ -74,6 +74,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
     }): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
+        // Wide layout: a 1px theme.border stroke around centered alert modals, matching the floating RHP cards.
+        const centeredModalBorder = !isSmallScreenWidth ? {borderWidth: 1, borderColor: theme.border} : {};
+
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
             ...outerStyle,
@@ -112,6 +115,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderRadius: variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     width: variables.sideBarWidth,
+                    ...centeredModalBorder,
                 };
 
                 // setting this to undefined we effectively disable the
@@ -216,6 +220,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderWidth: 0,
                     marginTop: 'auto',
                     marginBottom: 'auto',
+                    ...centeredModalBorder,
                 };
 
                 // Allow this modal to be dismissed with a swipe down or swipe right
