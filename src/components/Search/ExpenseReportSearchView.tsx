@@ -116,7 +116,6 @@ function ExpenseReportSearchView({
                 userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                 ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                 onFocus={onFocus}
-                keyForList={item.keyForList}
                 isFirstItem={index === firstVisibleIndex}
                 isLastItem={index === lastVisibleIndex && !ListFooterComponent}
             />

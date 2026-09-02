@@ -15,17 +15,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {hasPolicyWithXeroConnection} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
-import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import React, {useCallback} from 'react';
+import {createHasAdminPolicyWithXeroConnectionSelector} from '@selectors/Policy';
+import React from 'react';
 import {View} from 'react-native';
 
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
@@ -37,13 +33,7 @@ function EnabledPage() {
 
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {login} = useCurrentUserPersonalDetails();
-    const selector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            return activeAdminPoliciesSelector(policies, login ?? '');
-        },
-        [login],
-    );
-    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
+    const [hasAdminPolicyWithXeroConnection] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasAdminPolicyWithXeroConnectionSelector(login)});
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const showTwoFactorAuthRequireModal = () => {
@@ -79,7 +69,7 @@ function EnabledPage() {
                 <MenuItem
                     title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onPress={() => {
-                        if (hasPolicyWithXeroConnection(adminPolicies)) {
+                        if (hasAdminPolicyWithXeroConnection) {
                             showTwoFactorAuthRequireModal();
                             return;
                         }

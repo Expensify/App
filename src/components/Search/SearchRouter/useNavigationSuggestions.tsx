@@ -1,5 +1,5 @@
 /**
- * Builds the top-level, Spend, Workspace, Account, and Create navigation suggestions shown in the Search Router.
+ * Builds the top-level, Spend, Workspace, Domain, Account, and Create navigation suggestions shown in the Search Router.
  */
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
@@ -9,6 +9,7 @@ import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIco
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -27,6 +28,8 @@ import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtil
 
 import navigationRef from '@navigation/navigationRef';
 
+import getDomainMenuItems, {DOMAIN_MENU_ICON_NAMES} from '@pages/domain/getDomainMenuItems';
+import type {DomainMenuIconMap} from '@pages/domain/getDomainMenuItems';
 import useSettingsNavigationMenuData from '@pages/settings/useSettingsNavigationMenuData';
 import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
 import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
@@ -34,10 +37,12 @@ import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isAdminSelector} from '@src/selectors/Domain';
 import {emailSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -45,6 +50,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -53,7 +59,7 @@ import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
-type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Gear', IconAsset>;
+type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Globe' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
 
 const SEARCH_ROUTER_ICON_NAMES = [
@@ -61,7 +67,9 @@ const SEARCH_ROUTER_ICON_NAMES = [
     'Inbox',
     'ReceiptMultiple',
     'Building',
+    'Globe',
     'Gear',
+    ...DOMAIN_MENU_ICON_NAMES,
     ...SEARCH_TYPE_MENU_ICON_NAMES,
     'Users',
     'Hashtag',
@@ -89,6 +97,7 @@ type BuildTopLevelNavigationItemsParams = {
         inbox: string;
         spend: string;
         workspaces: string;
+        domains: string;
         account: string;
     };
     icons: TopLevelNavigationIcons;
@@ -166,6 +175,16 @@ function WorkspaceIdentityCell({policy}: WorkspaceIdentityCellProps) {
     );
 }
 
+type BuildDomainNavigationItemsParams = {
+    domains: Array<OnyxTypes.Domain | null | undefined>;
+    currentUserAccountID: number;
+    icons: DomainMenuIconMap;
+    getItemText: (translationKey: TranslationPaths) => string;
+    getDestinationText: (destination: string) => string;
+    getDomainContext: (domainName: string) => ReactNode;
+    onSelect: (route: Route) => void;
+};
+
 type BuildAccountNavigationItemsParams = {
     /** Settings menu sections to expose as navigation suggestions. */
     sections: MenuSection[];
@@ -210,6 +229,13 @@ function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinat
             action: () => Navigation.navigate(ROUTES.WORKSPACES_LIST.route),
             keyForList: 'topLevelWorkspaces',
             matchTerms: [labels.workspaces],
+        },
+        {
+            text: getDestinationText(labels.domains),
+            singleIcon: icons.Globe,
+            action: () => Navigation.navigate(ROUTES.DOMAINS_LIST.route),
+            keyForList: 'topLevelDomains',
+            matchTerms: [labels.domains],
         },
         {
             text: getDestinationText(labels.account),
@@ -284,6 +310,37 @@ function buildWorkspaceNavigationItems({
         });
 }
 
+function buildDomainNavigationItems({
+    domains,
+    currentUserAccountID,
+    icons,
+    getItemText,
+    getDestinationText,
+    getDomainContext,
+    onSelect,
+}: BuildDomainNavigationItemsParams): NavigationSuggestionSourceItem[] {
+    const isCurrentUserDomainAdmin = isAdminSelector(currentUserAccountID);
+    const canAdministerDomain = (domain: OnyxTypes.Domain | null | undefined): domain is OnyxTypes.Domain =>
+        !!domain?.accountID && !!domain.email && domain.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isCurrentUserDomainAdmin(domain);
+
+    return domains.filter(canAdministerDomain).flatMap((domain) => {
+        const domainName = Str.extractEmailDomain(domain.email);
+        const domainContext = getDomainContext(domainName);
+
+        return getDomainMenuItems({domainAccountID: domain.accountID, icons}).map((item) => {
+            const itemText = getItemText(item.translationKey);
+            return {
+                text: getDestinationText(itemText),
+                singleIcon: item.icon,
+                action: () => onSelect(item.route),
+                keyForList: `domain_${domain.accountID}_${item.screenName}`,
+                rightElement: domainContext,
+                matchTerms: [itemText, domainName],
+            };
+        });
+    });
+}
+
 function buildAccountNavigationItems({sections, rightElement, getItemText, getDestinationText}: BuildAccountNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return sections.flatMap((section) =>
         section.items.flatMap((item) => {
@@ -313,7 +370,9 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const createItems = useCreateNavigationSuggestions(query);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -328,6 +387,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             inbox: translate('common.inbox'),
             spend: translate('common.spend'),
             workspaces: translate('common.workspacesTabTitle'),
+            domains: translate('common.domains'),
             account: translate('initialSettingsPage.account'),
         },
         icons,
@@ -366,6 +426,24 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
 
+    const domainItems = buildDomainNavigationItems({
+        domains: Object.values(allDomains ?? {}),
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        icons,
+        getItemText: (translationKey) => translate(translationKey),
+        getDestinationText: (destination) => getGoToText(translate, destination),
+        getDomainContext: (domainName) => (
+            <TextWithIconCell
+                text={domainName}
+                icon={icons.Globe}
+                iconSize={variables.fontSizeLabel}
+                showTooltip={false}
+                textStyle={[styles.textLabelSupporting, styles.label]}
+            />
+        ),
+        onSelect: (route) => Navigation.navigate(route),
+    });
+
     const accountItems = buildAccountNavigationItems({
         sections: [accountMenuItemsData, generalMenuItemsData],
         rightElement: (
@@ -381,8 +459,8 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
 
-    return buildNavigationSuggestions(query, [topLevelItems, spendItems, workspaceItems, accountItems, createItems], localeCompare);
+    return buildNavigationSuggestions(query, [topLevelItems, spendItems, workspaceItems, domainItems, accountItems, createItems], localeCompare);
 }
 
 export default useNavigationSuggestions;
-export {buildTopLevelNavigationItems, buildSpendNavigationItems, buildWorkspaceNavigationItems, buildAccountNavigationItems};
+export {buildTopLevelNavigationItems, buildSpendNavigationItems, buildWorkspaceNavigationItems, buildDomainNavigationItems, buildAccountNavigationItems};
