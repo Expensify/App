@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Abrechenbar',
         nonBillable: 'Nicht abrechenbar',
         tag: 'Tag',
+        violations: 'Verstöße',
         receipt: 'Beleg',
         verified: 'Verifiziert',
         replace: 'Ersetzen',
@@ -424,6 +425,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Spesenabrechnung',
         rateOutOfPolicy: 'Satz außerhalb der Richtlinie',
         leaveWorkspace: 'Arbeitsbereich verlassen',
+        leaveWorkspaceTitle: (workspaceName: string) => `${workspaceName} verlassen?`,
         leaveWorkspaceConfirmation: 'Wenn du diesen Workspace verlässt, kannst du keine Ausgaben mehr dafür einreichen.',
         leaveWorkspaceConfirmationAuditor: 'Wenn du diesen Workspace verlässt, kannst du seine Berichte und Einstellungen nicht mehr anzeigen.',
         leaveWorkspaceConfirmationAdmin: 'Wenn du diesen Workspace verlässt, kannst du seine Einstellungen nicht mehr verwalten.',
@@ -472,7 +474,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet ...',
         domains: 'Domains',
-        actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
         duplicateExpense: 'Doppelte Ausgabe',
@@ -3777,11 +3778,6 @@ ${amount} für ${merchant} – ${date}`,
         thisBankAccount: 'Dieses Bankkonto wird für Geschäftszahlungen in deinem Workspace verwendet',
         accountNumber: 'Kontonummer',
         routingNumber: 'Routing-Nummer',
-        internationalBankAccountDetails: 'Internationale Bankkontodaten',
-        internationalBankAccountDetailsTitle: 'Wie lauten deine internationalen Kontodaten?',
-        internationalBankAccountDetailsSubtitle: 'Einer deiner Arbeitsbereiche benötigt internationale Kontodaten, um Erstattungen zu verarbeiten',
-        iban: 'IBAN',
-        swiftBicCode: 'SWIFT/BIC-Code',
         chooseAnAccountBelow: 'Wähle unten ein Konto aus',
         addBankAccount: 'Bankkonto hinzufügen',
         chooseAnAccount: 'Konto auswählen',
@@ -3832,8 +3828,6 @@ ${amount} für ${merchant} – ${date}`,
             restrictedBusiness: 'Bitte bestätigen Sie, dass das Unternehmen nicht auf der Liste der eingeschränkten Unternehmen steht.',
             routingNumber: 'Bitte geben Sie eine gültige Bankleitzahl ein',
             accountNumber: 'Bitte eine gültige Kontonummer eingeben',
-            iban: 'Bitte gib eine gültige IBAN ein',
-            swiftCode: 'Bitte gib einen gültigen SWIFT/BIC-Code ein',
             routingAndAccountNumberCannotBeSame: 'Bankleitzahl und Kontonummer dürfen nicht identisch sein',
             companyType: 'Bitte wähle einen gültigen Unternehmenstyp aus',
             tooManyAttempts:
@@ -4661,6 +4655,7 @@ ${amount} für ${merchant} – ${date}`,
             settlementFrequency: 'Auszahlungsfrequenz',
             setAsDefault: 'Als Standard-Arbeitsbereich festlegen',
             defaultNote: `Belege, die an ${CONST.EMAIL.RECEIPTS} gesendet werden, erscheinen in diesem Workspace.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} löschen?`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
             deleteOpenExpensifyCardsError: 'Ihre Firma hat noch Expensify Karten. Bitte <concierge-link>wenden Sie sich an Concierge</concierge-link>, um sie zu entfernen.',
@@ -5926,9 +5921,34 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 label: 'Firmenkartenkonto',
                 description: 'Wählen Sie aus, wohin die Firmenkartentransaktionen exportiert werden sollen.',
             },
-            expensifyCardAccount: {
-                label: 'Expensify Card-Konto',
-                description: 'Wählen Sie aus, wohin die Expensify Card-Transaktionen exportiert werden sollen.',
+            exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
+            cardProgramAccount: {
+                label: 'Kartenprogramm-Konto',
+                description: 'Workspace-Konto für diese Kartenprogramme überschreiben.',
+                descriptionLevel2: 'Überschreiben Sie das Workspace-Konto für dieses Kartenprogramm.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Programme verwenden das Standardkonto';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Programm mit benutzerdefiniertem Konto`;
+                    }
+                    return `${customAccountsCount} Programme mit benutzerdefinierten Konten`;
+                },
+            },
+            cardAccount: {
+                label: 'Kontotyp pro Karte',
+                description: 'Programmkonto für einzelne Karten überschreiben.',
+                descriptionLevel2: 'Programmkonto für diese Karten überschreiben.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Karten verwenden Programmkonten';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Karte mit individuellem Konto`;
+                    }
+                    return `${customAccountsCount} Karten mit benutzerdefinierten Konten`;
+                },
             },
             autoSyncDescription: 'Synchronisieren Sie DualEntry und Expensify automatisch, jeden Tag. Berichte werden in Echtzeit synchronisiert.',
             accountingMethods: {
@@ -6188,6 +6208,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             finishSetup: 'Einrichtung abschließen',
             chooseBankAccount: 'Bankkonto auswählen',
             chooseExistingBank: 'Wählen Sie ein bestehendes Geschäftskonto aus, um den Saldo Ihrer Expensify Karte zu bezahlen, oder fügen Sie ein neues Bankkonto hinzu',
+            chooseExistingBankForTravelBilling: 'Wählen Sie ein vorhandenes Geschäftskonto, um Ihre konsolidierte Reiseabrechnung zu bezahlen, oder fügen Sie ein neues Bankkonto hinzu',
             accountEndingIn: 'Konto mit Endziffern',
             addNewBankAccount: 'Neues Bankkonto hinzufügen',
             settlementAccount: 'Verrechnungskonto',
@@ -8278,6 +8299,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 requireAboveAmount: 'Obigen Betrag anfordern',
                 saveRule: 'Regel speichern',
                 emptyAmountError: 'Geben Sie vor dem Speichern einen gültigen Betrag ein',
+                receiptAmountGreaterThanItemizedError: 'Der erforderliche Belegbetrag darf nicht höher sein als der erforderliche Betrag für den Einzelbeleg.',
             },
             requireFields: {title: 'Felder für alle Ausgaben erforderlich machen', category: 'Kategorie', tag: 'Tag', save: 'Regel speichern'},
             newRule: {
@@ -8475,13 +8497,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
                 groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
-                syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
             },
             notSync: 'Nicht synchronisiert',
             authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
             reconnect: 'Erneut verbinden',
             reconnectLink: 'Erneut verbinden.',
             findIntegration: 'Integration finden',
+        },
+        merge: {
+            syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
         },
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
@@ -8667,10 +8691,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `die Steuerquote „${newValue} (${newTaxPercentage})“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `hat den erstattungsfähigen Steueranteil im Distanzsatz „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`;
+            if (oldValue !== undefined) {
+                return `hat den erstattungsfähigen Steueranteil im Distanzsatz „${customUnitRateName}“ auf „${newValue}%“ geändert (zuvor „${oldValue}%“)`;
             }
-            return `eine steuerlich rückforderbare Komponente von „${newValue}“ zum Distanzsatz „${customUnitRateName}“ hinzugefügt`;
+            return `eine steuerlich rückforderbare Komponente von „${newValue}%“ zum Distanzsatz „${customUnitRateName}“ hinzugefügt`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `hat den ${customUnitName}-Satz „${oldValue}“ in „${newValue}“ umbenannt`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9360,6 +9384,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             approved: 'Genehmigt',
             firstApprover: 'Erste:r Genehmiger:in',
             firstApproved: 'Zuerst genehmigt',
+            paidBy: 'Bezahlt von',
             paid: 'Bezahlt',
             exported: 'Exportiert',
             posted: 'Gebucht',
@@ -9487,6 +9512,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             topSpenders: 'Höchste Ausgaben',
             topCategories: 'Topkategorien',
             topMerchants: 'Top-Händler',
+            violationsBySubmitter: 'Verstöße durch Einreichende',
         },
     },
     genericErrorPage: {
@@ -9664,6 +9690,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         time: 'Zeit (24-Stunden-Format)',
         durationAmount: 'Dauer',
         durationUnit: 'Einheit',
+        leaveType: 'Abwesenheitsart',
+        normalOOO: 'Normale Abwesenheit',
         reason: 'Grund',
         workingPercentage: 'Arbeitsprozentsatz',
         dateRequired: 'Startdatum ist erforderlich.',
@@ -10190,6 +10218,53 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Der Satz gilt erst ab dem ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Satz gilt nur bis ${endDate}`,
         cannotMergeDuplicates: 'Sie können Ausgaben nur in Entwürfen oder offenen Berichten zusammenführen. Ziehen Sie den Bericht zurück und versuchen Sie es erneut.',
+        shortName: {
+            allTagLevelsRequired: 'Alle Tags erforderlich',
+            autoReportedRejectedExpense: 'Ausgabe abgelehnt',
+            billableExpense: 'Verrechenbar nicht mehr gültig',
+            cashExpenseWithNoReceipt: 'Beleg erforderlich',
+            categoryOutOfPolicy: 'Kategorie nicht mehr gültig',
+            companyCardRequired: 'Firmenkarte erforderlich',
+            conversionSurcharge: 'Umrechnungszuschlag angewendet',
+            customUnitOutOfPolicy: 'Satz für Arbeitsbereich ungültig',
+            customUnitRateOutOfDateRange: 'Kurs außerhalb der gültigen Daten',
+            duplicatedTransaction: 'Möglicher Duplikat',
+            fieldRequired: 'Berichtsfeld erforderlich',
+            futureDate: 'Zukünftiges Datum nicht zulässig',
+            hold: 'Ausgabe angehalten',
+            inactiveVendor: 'Lieferant nicht mehr gültig',
+            increasedDistance: 'Entfernung überschreitet Route',
+            invoiceMarkup: 'Rechnung mit Aufschlag versehen',
+            itemizedReceiptRequired: 'Aufgeschlüsselter Beleg erforderlich',
+            maxAge: 'Datum ist älter als das maximale Spesenalter',
+            missingAttendees: 'Teilnehmende erforderlich',
+            missingCategory: 'Fehlende Kategorie',
+            missingComment: 'Beschreibung erforderlich',
+            missingTag: 'Fehlendes Tag',
+            modifiedAmount: 'Betrag geändert',
+            modifiedDate: 'Änderungsdatum',
+            noRoute: 'Keine gültige Route',
+            nonExpensiworksExpense: 'Ausgabe außerhalb von Expensiworks',
+            overAutoApprovalLimit: 'Über dem Auto-Genehmigungslimit',
+            overCategoryLimit: 'Über Kategorienlimit',
+            overLimit: 'Über Limit',
+            overTripLimit: 'Über dem Reisekostenlimit',
+            perDayLimit: 'Über Tageslimit',
+            prohibitedExpense: 'Unzulässige Ausgabe',
+            receiptGeneratedWithAI: 'Mögliche KI-generierte Quittung',
+            receiptNotSmartScanned: 'Beleg manuell hinzugefügt',
+            receiptRequired: 'Beleg erforderlich',
+            rter: 'Kartenzuordnung ausstehend',
+            smartscanFailed: 'Belegscan fehlgeschlagen',
+            someTagLevelsRequired: 'Tag erforderlich',
+            tagOutOfPolicy: 'Tag nicht mehr gültig',
+            overLimitAttendee: 'Über Personenlimit',
+            customRules: 'Verstoß gegen benutzerdefinierte Regel',
+            taxAmountChanged: 'Steuerbetrag geändert',
+            taxOutOfPolicy: 'Steuersatz nicht mehr gültig',
+            taxRateChanged: 'Steuersatz geändert',
+            taxRequired: 'Fehlender Steuersatz',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} ist erforderlich`,
@@ -10788,6 +10863,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     domain: {
         notVerified: 'Nicht verifiziert',
         retry: 'Wiederholen',
+        requestSent: 'Anfrage gesendet',
         verifyDomain: {
             title: 'Domain bestätigen',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10861,6 +10937,14 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             subtitle: 'Gib den Namen der privaten Domain ein, auf die du zugreifen möchtest (z. B. expensify.com).',
             domainName: 'Domainname',
             newDomain: 'Neue Domain',
+            alreadyHaveAccessError: 'Diese Domain existiert bereits in deinem Konto.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Domain existiert',
+            title: 'Domain bereits eingerichtet. Zugriff anfragen?',
+            description: 'Jemand hat diese Domain bereits in Expensify eingerichtet. Möchtest du Administratorzugriff anfragen?',
+            requestAccess: 'Admin-Zugriff anfragen',
+            requestAccessError: 'Wir konnten deine Anfrage nicht senden. Bitte versuche es erneut.',
         },
         domainAdded: {
             title: 'Domain hinzugefügt',
@@ -10955,6 +11039,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             forceTwoFactorAuthError: 'Die Erzwingung der Zwei-Faktor-Authentifizierung konnte nicht geändert werden. Bitte versuche es später erneut.',
             resetTwoFactorAuth: 'Zwei-Faktor-Authentifizierung zurücksetzen',
             error: 'Diese Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.',
+            neverMind: 'Vergiss es',
         },
         groups: {
             title: 'Gruppen',
@@ -10963,7 +11048,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Möchtest du ${newName} wirklich zur Standardgruppe machen? Neue Mitglieder werden zu dieser Gruppe anstelle der bisherigen Standardgruppe (${currentName}) eingeladen. `,
             makeDefault: 'Als Standard festlegen',
-            neverMind: 'Vergiss es',
             createGroupError: 'Diese Gruppe konnte nicht erstellt werden. Bitte versuche es erneut.',
             permissions: 'Gruppenberechtigungen',
             createNewGroupButton: 'Neue Gruppe',
