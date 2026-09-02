@@ -27,7 +27,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {approverChainFingerprint, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToNonDefaultFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
+import {approverChainFingerprint, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -121,7 +121,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         const defaultApprover = getDefaultApprover(policy);
 
         if (isMultipleApproversBetaEnabled) {
-            return new Map(Object.entries(getRulesSubmitterToNonDefaultFirstApprover(policyRules, policy?.employeeList ?? {}, defaultApprover)));
+            return new Map(Object.entries(getRulesSubmitterToFirstApprover(policyRules, policy?.employeeList ?? {}, defaultApprover)));
         }
 
         const employees = policy?.employeeList ?? {};

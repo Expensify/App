@@ -1485,43 +1485,46 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
     return result;
 }
 
-/** Map every submitter found in the rules to their workflow's first approver. */
-function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}): Record<string, string> {
+/**
+ * Map every submitter found in the rules to their workflow's first approver.
+ *
+ * Pass `defaultApprover` to leave the default workflow's own submitters out of the map. It is the baseline
+ * every member submits through, so its members are not "already in a workflow" when warning about
+ * cross-workflow moves. Rules carrying the default marker say outright which submitters it covers;
+ * `defaultApprover` identifies it for rules that predate the marker.
+ */
+function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}, defaultApprover?: string): Record<string, string> {
     const submitters = new Set<string>();
+    const defaultWorkflowSubmitters = new Set<string>();
     for (const rule of Object.values(rules)) {
         for (const email of extractSubmitterEmails(rule)) {
             submitters.add(email);
+            if (rule.isDefaultApprovalWorkflow) {
+                defaultWorkflowSubmitters.add(email);
+            }
         }
     }
+
+    const shouldExcludeDefaultWorkflow = defaultApprover !== undefined;
+    const isMarkerAuthoritative = shouldExcludeDefaultWorkflow && hasMarkedDefaultWorkflow(rules);
 
     const result: Record<string, string> = {};
     for (const submitter of submitters) {
-        const firstApprover = resolveFirstApprover(submitter, rules, employees);
-        if (firstApprover) {
-            result[submitter] = firstApprover;
+        // Resolving the chain is the expensive part, so skip it for submitters the marker already excludes.
+        if (isMarkerAuthoritative && defaultWorkflowSubmitters.has(submitter)) {
+            continue;
         }
+
+        const firstApprover = resolveFirstApprover(submitter, rules, employees);
+        if (!firstApprover) {
+            continue;
+        }
+        if (shouldExcludeDefaultWorkflow && !isMarkerAuthoritative && firstApprover === defaultApprover) {
+            continue;
+        }
+        result[submitter] = firstApprover;
     }
     return result;
-}
-
-/**
- * Same as `getRulesSubmitterToFirstApprover`, minus the submitters routed to `defaultApprover`.
- *
- * The default workflow is the baseline every member of the workspace submits through, so its members are not
- * "already in a workflow" for the purpose of warning about cross-workflow moves.
- */
-function getRulesSubmitterToNonDefaultFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList, defaultApprover: string): Record<string, string> {
-    const submitterToFirstApprover = getRulesSubmitterToFirstApprover(rules, employees);
-    const shouldUseMarker = hasMarkedDefaultWorkflow(rules);
-    const defaultWorkflowSubmitters = new Set(
-        Object.values(rules)
-            .filter((rule) => !!rule.isDefaultApprovalWorkflow)
-            .flatMap(extractSubmitterEmails),
-    );
-
-    return Object.fromEntries(
-        Object.entries(submitterToFirstApprover).filter(([submitter, firstApprover]) => (shouldUseMarker ? !defaultWorkflowSubmitters.has(submitter) : firstApprover !== defaultApprover)),
-    );
 }
 
 /**
@@ -1731,7 +1734,6 @@ export {
     getApprovalWorkflowRulesForPolicy,
     filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
-    getRulesSubmitterToNonDefaultFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
     hasMarkedDefaultWorkflow,

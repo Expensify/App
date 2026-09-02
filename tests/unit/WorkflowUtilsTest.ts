@@ -15,7 +15,6 @@ import {
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
-    getRulesSubmitterToNonDefaultFirstApprover,
     getRulesSubmitterToWorkflowKey,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
@@ -1868,25 +1867,25 @@ describe('WorkflowUtils', () => {
             });
         });
 
-        describe('getRulesSubmitterToNonDefaultFirstApprover', () => {
+        describe('getRulesSubmitterToFirstApprover, excluding the default workflow', () => {
             it('Should drop submitters routed to the default approver', () => {
                 // The default workflow is rule-backed once it has been edited, and its members must not read as
                 // "already in a workflow" when they are picked for a brand new one.
                 const rules = keyRules([...buildApprovalWorkflowRules(buildWorkflow([5], [1])), ...buildApprovalWorkflowRules(buildWorkflow([6], [2]))]);
 
-                expect(getRulesSubmitterToNonDefaultFirstApprover(rules, {}, '1@example.com')).toEqual({'6@example.com': '2@example.com'});
+                expect(getRulesSubmitterToFirstApprover(rules, {}, '1@example.com')).toEqual({'6@example.com': '2@example.com'});
             });
 
             it('Should drop submitters whose multi-approver chain starts at the default approver', () => {
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2])));
 
-                expect(getRulesSubmitterToNonDefaultFirstApprover(rules, {}, '1@example.com')).toEqual({});
+                expect(getRulesSubmitterToFirstApprover(rules, {}, '1@example.com')).toEqual({});
             });
 
             it('Should keep every submitter when none route to the default approver', () => {
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1])));
 
-                expect(getRulesSubmitterToNonDefaultFirstApprover(rules, {}, 'owner@example.com')).toEqual({'5@example.com': '1@example.com'});
+                expect(getRulesSubmitterToFirstApprover(rules, {}, 'owner@example.com')).toEqual({'5@example.com': '1@example.com'});
             });
 
             it('Should prefer the default marker over the first approver when the rules carry one', () => {
@@ -1894,7 +1893,7 @@ describe('WorkflowUtils', () => {
                 // Matching on the first approver alone would wrongly drop 6 along with 5.
                 const rules = keyRules([...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})), ...buildApprovalWorkflowRules(buildWorkflow([6], [1, 2]))]);
 
-                expect(getRulesSubmitterToNonDefaultFirstApprover(rules, {}, '1@example.com')).toEqual({'6@example.com': '1@example.com'});
+                expect(getRulesSubmitterToFirstApprover(rules, {}, '1@example.com')).toEqual({'6@example.com': '1@example.com'});
             });
         });
 
