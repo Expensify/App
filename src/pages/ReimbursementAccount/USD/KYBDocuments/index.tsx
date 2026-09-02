@@ -73,7 +73,7 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
             true,
             undefined,
             undefined,
-            reimbursementAccount?.achData?.ACHRequestReportActionID,
+            {reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID},
         );
 
     const defaultValues = {

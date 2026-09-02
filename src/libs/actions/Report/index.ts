@@ -4313,10 +4313,25 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
     API.write(WRITE_COMMANDS.UPDATE_REPORT_WRITE_CAPABILITY, parameters, {optimisticData, failureData});
 }
 
+/** Rarely-used extras for {@link navigateToConciergeChat}, grouped so the signature stays within the max-params limit. */
+type NavigateToConciergeChatOptions = {
+    /** The report action to open the Concierge chat on. */
+    reportActionID?: string;
+
+    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
+    /** Personal details used to build the Concierge chat when it does not exist yet. */
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
+
+    /**
+     * The report the user was viewing when they opened Concierge from the side-pane button (native). Threaded onto
+     * the Concierge route so the composer can attach it as sidePanelContext, scoped to this navigation entry.
+     */
+    sourceReportID?: string;
+};
+
 /**
  * Navigates to the 1:1 report with Concierge
  */
-// eslint-disable-next-line @typescript-eslint/max-params
 function navigateToConciergeChat(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
@@ -4326,12 +4341,7 @@ function navigateToConciergeChat(
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
     linkToOptions?: LinkToOptions,
-    reportActionID?: string,
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
-    personalDetails?: OnyxEntry<PersonalDetailsList>,
-    // The report the user was viewing when they opened Concierge from the side-pane button (native). Threaded onto
-    // the Concierge route so the composer can attach it as sidePanelContext, scoped to this navigation entry.
-    sourceReportID?: string,
+    {reportActionID, personalDetails, sourceReportID}: NavigateToConciergeChatOptions = {},
 ): Promise<void> {
     // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
@@ -4833,8 +4843,7 @@ function navigateToConciergeChatAndDeleteReport(
         false,
         undefined,
         {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
-        undefined,
-        personalDetails,
+        {personalDetails},
     );
 }
 
