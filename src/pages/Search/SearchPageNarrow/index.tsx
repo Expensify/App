@@ -349,9 +349,9 @@ function SearchPageNarrow({
                             <>
                                 {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                 <LayoutAnimationConfig skipEntering>
-                                    {/* A resolved query change remounts this layer: the outgoing one fades out and the incoming one waits
-                                        for it to finish before fading in. Both layers are absolutely filled so the outgoing fade overlays
-                                        the incoming layer instead of sharing the column layout. */}
+                                    {/* Keyed on the resolved query, so this only remounts once the new results arrive — the previous ones
+                                        stay on screen until then, and the new ones fade in. Absolutely filled so it never shares the
+                                        parent's column layout with the layer it replaces. */}
                                     <Animated.View
                                         key={contentQueryJSON.hash}
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}

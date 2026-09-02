@@ -21,8 +21,8 @@ function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
     const styles = useThemeStyles();
 
     return (
-        // The skeleton is absolutely filled so that its exit fade overlays the incoming results instead of
-        // sharing the parent's column layout with them, which would halve both heights for the fade duration.
+        // Absolutely filled so it never shares the parent's column layout with the incoming results, which would
+        // halve both heights for a frame.
         <Animated.View
             style={[styles.flex1, StyleSheet.absoluteFill]}
             onLayout={() => {
