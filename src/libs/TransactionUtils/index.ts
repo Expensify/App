@@ -1919,16 +1919,9 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
 
 /**
  * Check if category is being analyzed (manual request creation or auto-categorization grace period)
- *
- * @param transaction - The transaction whose category may still be auto-categorized
- * @param policy - The workspace policy; auto-categorize defaults to on when the attribute is unset
  */
-function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>): boolean {
+function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
     if (!transaction) {
-        return false;
-    }
-
-    if (policy?.autoCategorizeNewExpenses === false) {
         return false;
     }
 
@@ -2262,7 +2255,7 @@ function shouldShowViolation(
         return isAttendeeTrackingEnabledForPolicy(policy);
     }
 
-    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction, policy)) {
+    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
         return false;
     }
 
