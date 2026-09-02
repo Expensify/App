@@ -857,18 +857,25 @@ function Search({
     // Ask again for a page that never arrived, either because a search was still running when the list hit
     // its end or because a first-page response replaced it. Both leave the request with nothing to retry it.
     useEffect(() => {
+        const serverOffset = searchResults?.search?.offset ?? 0;
+        // A first-page response that lands after the page it displaces drags the cursor back below the page we
+        // hold, after that page's arrival already cleared the intent. The list has not moved, so arm it again.
+        if (wantedOffsetRef.current === undefined && searchResults?.search?.hasMoreResults && serverOffset < offset) {
+            wantedOffsetRef.current = offset;
+        }
+
         const wantedOffset = wantedOffsetRef.current;
         if (wantedOffset === undefined || searchResults?.search?.isLoading) {
             return;
         }
 
-        if ((searchResults?.search?.offset ?? 0) >= wantedOffset) {
+        if (serverOffset >= wantedOffset) {
             wantedOffsetRef.current = undefined;
             return;
         }
 
         fetchMoreResults();
-    }, [fetchMoreResults, searchResults?.search?.isLoading, searchResults?.search?.offset]);
+    }, [fetchMoreResults, offset, searchResults?.search?.hasMoreResults, searchResults?.search?.isLoading, searchResults?.search?.offset]);
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;

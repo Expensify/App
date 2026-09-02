@@ -545,6 +545,48 @@ describe('SearchPageNarrow', () => {
 
         expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(true);
     });
+    it('re-requests the paginated page when a first-page response lands after the page it displaces', async () => {
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // The second page lands first, so the cursor reaches the page that was asked for.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {
+                data: expenseSecondPageData,
+                search: {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, isLoading: false},
+            });
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        mockSearch.mockClear();
+
+        // An older first-page refresh responds last and replaces the results again. The list has not moved,
+        // so onEndReached does not fire; the page has to be asked for on its own.
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(true);
+    });
     it('holds a page reached while offline and requests it once back online', async () => {
         mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
