@@ -69,7 +69,7 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
         committedValueRef.current = nextValue;
         setCurrentValue(nextValue);
 
-        if (notify) {
+        if (notify && nextValue !== previousValue) {
             onInputChange?.(nextValue);
         }
 

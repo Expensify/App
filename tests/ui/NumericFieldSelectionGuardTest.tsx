@@ -104,6 +104,7 @@ describe('NumericField.TextInput native selection guard', () => {
 
         // Then the caret stays where it was, because no character was committed
         expect(getInput().props.selection).toEqual({start: 1, end: 1});
+        expect(onInputChange).not.toHaveBeenCalled();
 
         // And the next selection event is applied, because no guard was armed for an update
         // that native never echoes a different position for
