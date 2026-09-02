@@ -1,0 +1,54 @@
+{
+    "androidx.legacy:legacy-support-core-utils": {
+        "usage": "exempt",
+        "reason": "Umbrella artifact under the \"AndroidX support library\" comment; it ships no classes the sources import directly.",
+        "reviewed": "2026-08-28"
+    },
+    "androidx.lifecycle:lifecycle-viewmodel-ktx": {
+        "usage": "exempt",
+        "reason": "Version pin for a transitive androidx.lifecycle; no Java or Kotlin source imports it. Consumer not identified — recheck when the androidx versions move.",
+        "reviewed": "2026-08-28"
+    },
+    "androidx.multidex:multidex": {
+        "usage": "packages",
+        "packages": [
+            "androidx.multidex"
+        ]
+    },
+    "androidx.work:work-runtime-ktx": {
+        "usage": "exempt",
+        "reason": "Version pin only. android/app/build.gradle:241 records it as the fix for a conflict between airship and react-native-plaid-link-sdk.",
+        "reviewed": "2026-08-28"
+    },
+    "com.facebook.fresco:animated-gif": {
+        "usage": "exempt",
+        "reason": "Sole supplier of the animated-GIF decoder for React Native. Removing it breaks the animations rather than the build.",
+        "reviewed": "2026-08-28"
+    },
+    "com.facebook.fresco:fresco": {
+        "usage": "exempt",
+        "reason": "Image pipeline React Native draws through; the app reaches it via React Native rather than importing com.facebook.drawee itself.",
+        "reviewed": "2026-08-28"
+    },
+    "com.facebook.react:hermes-android": {
+        "usage": "exempt",
+        "reason": "Supplies the Hermes JS engine as a native library, loaded at runtime rather than imported; ReactAndroid declares hermes-engine compileOnly, so nothing else brings it in.",
+        "reviewed": "2026-08-28"
+    },
+    "com.facebook.react:react-android": {
+        "usage": "packages",
+        "packages": [
+            "com.facebook.react"
+        ]
+    },
+    "com.google.firebase:firebase-bom": {
+        "usage": "exempt",
+        "reason": "Platform BOM that aligns the Firebase versions React Native Firebase resolves; it declares no classes.",
+        "reviewed": "2026-08-28"
+    },
+    "com.squareup.okhttp3:okhttp-urlconnection": {
+        "usage": "exempt",
+        "reason": "Version pin only. android/app/build.gradle:244 records it as preventing a crash with react-native-plaid-link-sdk.",
+        "reviewed": "2026-08-28"
+    }
+}

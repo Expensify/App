@@ -1,0 +1,28 @@
+{
+    "AirshipServiceExtension": {
+        "usage": "module",
+        "module": "AirshipServiceExtension"
+    },
+    "AppLogs": {
+        "usage": "module",
+        "module": "AppLogs"
+    },
+    "FullStory": {
+        "usage": "exempt",
+        "reason": "Pinned here to the 1.70.1 xcframework tarball; fullstory_react-native depends on FullStory (~> 1.14) and would otherwise resolve it itself.",
+        "reviewed": "2026-08-28"
+    },
+    "GzipSwift": {
+        "usage": "module",
+        "module": "Gzip"
+    },
+    "NWWebSocket": {
+        "usage": "exempt",
+        "reason": "Never imported. PusherSwift depends on NWWebSocket (~> 0.5.7); this declaration only holds the floor at ~> 0.5.10.",
+        "reviewed": "2026-08-28"
+    },
+    "TrustKit": {
+        "usage": "module",
+        "module": "TrustKit"
+    }
+}
