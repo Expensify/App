@@ -10,14 +10,13 @@ import getButtonState from '@libs/getButtonState';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type MenuItemIconProps = {
     /** Icon to display */
     src: IconAsset;
 };
 
-/** The leading icon cell of a `MenuItem.Row` */
+/** An icon glyph, filled from the row's interaction state */
 function MenuItemIcon({src}: MenuItemIconProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -32,15 +31,14 @@ function MenuItemIcon({src}: MenuItemIconProps) {
     });
 
     return (
-        <View style={[styles.popoverMenuIcon, isCompactPopover && styles.wAuto]}>
-            <Icon
-                contentFit="cover"
-                hovered={isHovered}
-                pressed={isPressed}
-                src={src}
-                fill={iconFill}
-            />
-        </View>
+        <Icon
+            contentFit="cover"
+            hovered={isHovered}
+            pressed={isPressed}
+            src={src}
+            fill={iconFill}
+            additionalStyles={[styles.popoverMenuIcon, isCompactPopover && styles.wAuto]}
+        />
     );
 }
 
