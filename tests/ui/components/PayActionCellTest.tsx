@@ -106,6 +106,7 @@ jest.mock('@hooks/usePaymentContext', () => ({
         localCurrencyCode: 'USD',
         introSelected: undefined,
         betas: [],
+        isASAPSubmitBetaEnabled: false,
         isSelfTourViewed: false,
         userBillingGracePeriodEnds: undefined,
         amountOwed: undefined,

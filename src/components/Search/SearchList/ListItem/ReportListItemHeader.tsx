@@ -19,7 +19,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -263,7 +262,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
 }: ReportListItemHeaderProps<TItem>) {
-    const {isBetaEnabled} = usePermissions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -300,10 +298,22 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
 
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
-        useReportPaymentContext({
-            chatReportPolicyID: chatReport?.policyID,
-        });
+    const {
+        currentUserAccountID,
+        currentUserLogin,
+        introSelected,
+        betas,
+        isASAPSubmitBetaEnabled,
+        isSelfTourViewed,
+        activePolicy,
+        chatReportPolicy,
+        amountOwed,
+        delegateEmail,
+        delegateAccountID,
+        conciergeChat,
+    } = useReportPaymentContext({
+        chatReportPolicyID: chatReport?.policyID,
+    });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
@@ -318,7 +328,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
-            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            isASAPSubmitBetaEnabled,
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: reportItem,

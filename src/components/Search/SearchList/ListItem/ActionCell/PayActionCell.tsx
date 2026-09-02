@@ -8,7 +8,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {getParticipantsInvoiceReport} from '@hooks/useParticipantsInvoiceReport';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +40,6 @@ type PayActionCellProps = {
 };
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
-    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
@@ -64,6 +62,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         localCurrencyCode,
         introSelected,
         betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -124,7 +123,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
             payInvoice({
-                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
@@ -161,7 +160,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         }
 
         payMoneyRequest({
-            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            isASAPSubmitBetaEnabled,
             getCurrencyDecimals,
             paymentType: type,
             chatReport: chatReportForPayment,
