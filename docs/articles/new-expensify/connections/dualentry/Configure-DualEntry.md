@@ -41,7 +41,8 @@ On the DualEntry integration, choose **Import** to configure:
 - **Chart of accounts** – Imports active expense (including cost of goods sold), current asset, and fixed asset accounts as categories. This setting is always enabled.
 - **Enable newly imported accounts** – Choose whether newly imported accounts arrive as enabled or disabled categories. This defaults to off, so new accounts import as disabled categories.
 - **Classifications** – Choose which DualEntry classifications to import as tags. Each available classification can be enabled independently, and all classifications are off by default.
-- **Tax rates** – Import tax rates from DualEntry. This option only appears when tax rates are available for the selected subsidiary, and it is off by default.
+- **Tax rates** – Import active VAT or GST rates from DualEntry. This option only appears when tax rates are available in DualEntry, and is off by default.
+
 
 ---
 
@@ -58,6 +59,16 @@ On the DualEntry integration, choose **Export** and configure:
 - **Export company card expenses as** – Company card and Expensify Card expenses export as direct expenses.
 - **Default vendor for all company cards** – Select the vendor used when an export can't be matched to a vendor automatically.
 - **Company card account** – Select the DualEntry account used for company card expenses.
+- **Configure exporting to multiple accounts** – Configure different DualEntry accounts for individual card programs or cards. This setting is off by default.
+
+When **Configure exporting to multiple accounts** is enabled:
+
+- **Card program account** lets you override the workspace **Company card account** for individual card programs.
+- **Per-card account** lets you override the card program account for an individual card.
+
+An individual card uses its per-card account when one is configured. Otherwise, it uses its card program account. If the card program doesn't have an account override, it uses the workspace **Company card account**.
+
+You can also change an individual company card's DualEntry export account from its card details.
 
 ---
 
@@ -67,11 +78,17 @@ Advanced settings control sync frequency, reimbursement, and settlement automati
 
 On the DualEntry integration, choose **Advanced** to configure:
 
-- **Auto-sync** – Automatically sync Expensify and DualEntry every day and export reports automatically using your selected export method.
-- **Export method** – Choose when reports are exported automatically. This option is only available when auto-sync is enabled.
+- **Auto-sync** – Automatically sync Expensify and DualEntry every day and export eligible reports automatically. Auto-sync is enabled after the first successful sync unless an admin previously changed the setting.
+- **Export method** – Choose when reports are exported automatically. This option is only available when auto-sync is enabled and defaults to **Accrual**.
   - **Accrual** exports out-of-pocket expenses after final approval.
   - **Cash** exports out-of-pocket expenses after they are paid.
-- **Sync reimbursed reports** – Automatically create bill payments in DualEntry when out-of-pocket reports are reimbursed in Expensify. This requires a DualEntry bill payment account.
+- **Sync reimbursed reports** – Automatically create bill payments in DualEntry when exported out-of-pocket reports are reimbursed in Expensify. This is enabled by default.
+- **Bill payment account** – Select the DualEntry bank account used for bill payments. Expensify automatically selects an eligible bank account when possible.
+- **Sync Expensify Card settlements** – Automatically sync Expensify Card settlement payments to DualEntry. This setting appears when Expensify Cards are enabled for the workspace.
+- **Expensify Card settlement account** – Select the active USD bank account used for Expensify Card settlements.
+- **Sync Travel Invoicing settlements** – Automatically sync Travel Invoicing settlement payments to DualEntry. This setting appears when Travel Invoicing is enabled.
+- **Travel Invoicing settlement account** – Select the account used for Travel Invoicing settlements.
+- **Travel Invoicing payable account** – Select the payable account used for Travel Invoicing settlements.
 
 ---
 
@@ -81,9 +98,17 @@ On the DualEntry integration, choose **Advanced** to configure:
 
 Only active expense (including cost of goods sold), current asset, and fixed asset accounts from your DualEntry chart of accounts import as categories.
 
+The initial chart of accounts arrives enabled. After that, **Enable newly imported accounts** determines whether newly imported accounts arrive as enabled or disabled categories.
+
 ## Why did my report fail to export to DualEntry?
 
-Out-of-pocket expenses export as vendor bills matched to the report submitter's email. If no DualEntry vendor matches that email, the export fails. Make sure each report submitter exists as a vendor in DualEntry, or set a **Default vendor** in the export settings.
+Out-of-pocket expenses export as vendor bills matched to the report submitter's email. If no DualEntry vendor matches that email, the export fails. Make sure the report submitter exists as a vendor in DualEntry with a matching email address.
+
+## Which DualEntry account does a company card use?
+
+By default, company card and Expensify Card expenses use the workspace **Company card account**.
+
+If **Configure exporting to multiple accounts** is enabled, a card can instead use a card program account or a per-card account. Per-card settings take precedence over the card program account, and the card program account takes precedence over the workspace **Company card account**.
 
 ## Do I need a bill payment or settlement account?
 
