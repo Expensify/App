@@ -1,5 +1,6 @@
 /**
- * Keeps the persistent wide-layout Domain sidebar pointed at the destination Domain when Search Router navigation crosses Domains.
+ * React Navigation reuses the existing Domain split navigator when Search Router navigation crosses Domains, so its persistent sidebar keeps the previous Domain ID.
+ * Synchronize that ID before navigating to keep the sidebar and destination page consistent.
  */
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -35,7 +36,6 @@ function getActiveDomainSidebarRoute(): {sidebarRouteKey: string; splitStateKey?
     return {sidebarRouteKey: sidebarRoute.key, splitStateKey: domainSplitRoute.state?.key, domainAccountID};
 }
 
-/** Keeps the persistent Domain sidebar in sync before opening a Search Router destination. */
 function navigateToDomainRouteWithSidebarSync(targetRoute: Route, domainAccountID: number, shouldUseNarrowLayout: boolean) {
     if (shouldUseNarrowLayout) {
         Navigation.navigate(targetRoute);

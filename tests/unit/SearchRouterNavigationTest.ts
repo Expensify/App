@@ -18,6 +18,7 @@ import useNavigationSuggestions, {
 } from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import {setSearchContext} from '@libs/actions/Search';
+import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync';
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
@@ -47,6 +48,7 @@ const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceIte
 const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
 const mockClearSelectedTransactions = jest.fn();
 const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
+const mockShouldUseNarrowLayout = jest.fn(() => false);
 const currentUserAccountID = 1;
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -104,6 +106,11 @@ jest.mock('@hooks/useOnyx', () => ({
     default: (key: string) => mockUseOnyx(key),
 }));
 
+jest.mock('@hooks/useResponsiveLayout', () => ({
+    __esModule: true,
+    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout()}),
+}));
+
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
     __esModule: true,
     default: (queryParams: unknown, isScreenFocused: boolean) => mockUseSearchTypeMenuSections(queryParams, isScreenFocused),
@@ -116,6 +123,11 @@ jest.mock('@pages/settings/useSettingsNavigationMenuData', () => ({
 
 jest.mock('@libs/actions/Search', () => ({
     setSearchContext: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -481,6 +493,9 @@ describe('Domain Search Router navigation source', () => {
             throw new Error('Expected Domain navigation context to be a React element');
         }
         expect(rightElement.props).toMatchObject({text: 'example.com', icon: domainIcons.Globe});
+
+        result.current.at(0)?.action?.();
+        expect(navigateToDomainRouteWithSidebarSync).toHaveBeenCalledWith(ROUTES.DOMAIN_MEMBERS.getRoute(123), 123, false);
     });
 });
 

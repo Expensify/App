@@ -24,7 +24,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 
-function mockDomainNavigationState(domainAccountID: number) {
+function mockDomainNavigationState(domainAccountID?: number) {
     jest.mocked(navigationRef).isReady.mockReturnValue(true);
     jest.mocked(navigationRef).getRootState.mockReturnValue(
         createMock<ReturnType<typeof navigationRef.getRootState>>({
@@ -115,6 +115,50 @@ describe('navigateToDomainRouteWithSidebarSync', () => {
         navigateToDomainRouteWithSidebarSync(targetRoute, 200, false);
 
         expect(Navigation.setParams).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
+    });
+
+    it('navigates directly when navigation is not ready', () => {
+        jest.mocked(navigationRef).isReady.mockReturnValue(false);
+        const targetRoute = ROUTES.DOMAIN_SAML.getRoute(200);
+
+        navigateToDomainRouteWithSidebarSync(targetRoute, 200, false);
+
+        expect(Navigation.setParams).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
+    });
+
+    it('synchronizes a sidebar with a missing Domain ID', () => {
+        mockDomainNavigationState();
+        const targetRoute = ROUTES.DOMAIN_SAML.getRoute(200);
+
+        navigateToDomainRouteWithSidebarSync(targetRoute, 200, false);
+
+        expect(Navigation.setParams).toHaveBeenCalledWith({domainAccountID: 200}, 'domain-sidebar', 'domain-split-state');
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
+    });
+
+    it('finds a root-level Domain split navigator', () => {
+        jest.mocked(navigationRef).isReady.mockReturnValue(true);
+        jest.mocked(navigationRef).getRootState.mockReturnValue(
+            createMock<ReturnType<typeof navigationRef.getRootState>>({
+                routes: [
+                    {
+                        key: 'domain-split',
+                        name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
+                        state: {
+                            key: 'domain-split-state',
+                            routes: [{key: 'domain-sidebar', name: SCREENS.DOMAIN.INITIAL, params: {domainAccountID: 100}}],
+                        },
+                    },
+                ],
+            }),
+        );
+        const targetRoute = ROUTES.DOMAIN_SAML.getRoute(200);
+
+        navigateToDomainRouteWithSidebarSync(targetRoute, 200, false);
+
+        expect(Navigation.setParams).toHaveBeenCalledWith({domainAccountID: 200}, 'domain-sidebar', 'domain-split-state');
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
     });
 });
