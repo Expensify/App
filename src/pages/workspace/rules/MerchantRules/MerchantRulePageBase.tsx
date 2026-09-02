@@ -267,6 +267,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     const hasMerchantCondition = !!form?.merchantToMatch;
     // A saved rule already is one kind or the other, so editing is scoped the same way creating is. Creating reads the
     // draft rather than the route, so scoping survives a trip to any picker and every picker routes back to one URL.
+    // Three branches, and `no-nested-ternary` rules out folding them into one expression.
     const getScopedRuleType = (): ExpenseDefaultRuleType | undefined => {
         if (isEditingCategoryTaxRule) {
             return CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY;
@@ -306,13 +307,9 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     // Only a rate the workspace still has. A rule keeps the ID of a deleted rate, and `getTaxRateDisplayName` falls
     // back to it so the table can hold the ID until the tax list hydrates. Here that would print the raw ID at the
     // admin, so the row reads as unset instead and they can pick a rate that exists.
-    const taxDisplayName = () => {
-        const taxRateID = isCategoryRule ? categoryTaxID : form?.tax;
-        if (!taxRateID || !policy?.taxRates?.taxes?.[taxRateID]) {
-            return undefined;
-        }
-        return getTaxRateDisplayName(policy, taxRateID) || undefined;
-    };
+    const taxRateID = isCategoryRule ? categoryTaxID : form?.tax;
+    const isTaxRateStillOnPolicy = !!taxRateID && !!policy?.taxRates?.taxes?.[taxRateID];
+    const taxDisplayName = (isTaxRateStillOnPolicy ? getTaxRateDisplayName(policy, taxRateID) : '') || undefined;
 
     /**
      * Checks if there's a duplicate rule with the same merchant name and match type.
@@ -538,7 +535,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                     ? {
                           key: 'tax',
                           description: translate('common.tax'),
-                          title: taxDisplayName(),
+                          title: taxDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID, editCategoryTaxRuleFor)),
                           icon: getItemIcon(icons.InvoiceGeneric),
                       }
@@ -577,7 +574,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                       }
                     : undefined,
                 // Tax is the only default a category rule can set, so the other rows are dropped rather than shown.
-            ].filter((item) => !isCategoryRule || !item || item.key === 'tax'),
+            ].filter((item) => !isCategoryRule || item?.key === 'tax'),
         },
     ];
 

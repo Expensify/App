@@ -2093,24 +2093,24 @@ function movePolicyCategoryTax(policy: OnyxEntry<Policy>, fromCategoryName: stri
         {categoryName: toCategoryName, taxID},
     ];
 
-    for (const write of writes) {
-        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    value: {rules: {expenseRules: optimisticExpenseRules}},
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    value: {rules: {expenseRules: originalExpenseRules}},
-                },
-            ],
-        };
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules: optimisticExpenseRules}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules: originalExpenseRules}},
+            },
+        ],
+    };
 
+    for (const write of writes) {
         API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, ...write}, onyxData);
     }
 }
