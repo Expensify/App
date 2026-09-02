@@ -5138,7 +5138,7 @@ function getSearchThreadLeaveRoute(report: Report, activeRoute: string): Route |
 }
 
 function getMostRecentReportID(conciergeReportID: string | undefined, lastAccessedReportID?: string) {
-    return lastAccessedReportID || conciergeReportID;
+    return lastAccessedReportID ?? conciergeReportID;
 }
 
 function joinRoom(report: OnyxEntry<Report>, currentUserAccountID: number) {
