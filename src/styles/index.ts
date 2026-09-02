@@ -4423,8 +4423,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        // Pins the callout to the top of the scroll area, like floatingMessageCounterWrapper, so scrolling cannot
-        // carry it out of sight.
+        // Pins the callout to the top of the scroll area, like floatingMessageCounterWrapper, so scrolling cannot hide it.
         merchantRuleCalloutOverlay: {
             ...positioning.pAbsolute,
             ...positioning.t0,
@@ -4433,8 +4432,7 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 100,
         },
 
-        // Floats the callout above the composer without taking height there, so the conversation does not jump when
-        // it appears.
+        // Floats above the composer without taking height, so the conversation does not jump when it appears.
         merchantRuleCalloutComposerOverlay: {
             ...positioning.pAbsolute,
             ...positioning.bFull,
@@ -4450,8 +4448,8 @@ const staticStyles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
-        // The callout sits on a reversed surface, dark in the light theme and light in the dark one, which is why the
-        // text and the link both use the reversed colors rather than the ordinary ones.
+        // The callout sits on a reversed surface, dark in the light theme and light in the dark one, so text and link
+        // use the reversed colors.
         merchantRuleCalloutAction: {
             ...textVariants.labelStrong,
             color: theme.linkReversed,

@@ -44,8 +44,8 @@ type MerchantRuleSuggestionBannerProps = {
     overlayStyles?: StyleProp<ViewStyle>;
 
     /**
-     * Whether this mount point is the one above the composer. It decides both the edge the callout slides in from and
-     * which layouts it belongs in, since the composer takes the wide layouts and the report list takes the narrow ones.
+     * Whether this is the mount above the composer. Sets the edge the callout slides in from, and which layouts it
+     * serves: the composer takes the wide ones, the report list the narrow ones.
      */
     isAnchoredToBottom?: boolean;
 };
@@ -68,21 +68,18 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
         if (!draft) {
             return;
         }
-        // Seed the draft the rule editor reads, then open the same flow used from workspace settings. Opening it as a
-        // suffix on the expense's own path keeps the expense underneath the modal, so the flow returns here rather
-        // than to the workspace Rules page.
+        // Opened as a suffix on the expense's own path, so the expense stays under the modal and the flow returns
+        // here rather than to the workspace Rules page.
         setDraftMerchantRule(draft);
-        // The offer has been taken, so coming back from the rule flow, saved or abandoned, must not find it still
-        // asking, and the recording that fed it ends here. Editing the expense again starts a fresh offer, gathering
-        // only what changes from now on rather than repeating fields already carried into this rule.
+        // The offer was taken, so it must not still be asking on the way back, and the recording ends here. Editing
+        // the expense again starts fresh instead of repeating fields already in this rule.
         clearMerchantRuleSuggestionFields(suggestion.transactionID);
         retireMerchantRuleSuggestion();
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.getRoute(policyID)));
     };
 
-    // The callout appears and disappears in place, so it slides out of the edge it is pinned to rather than popping.
-    // FloatingMessageCounter springs a parked view instead, which this cannot do because it unmounts when there is
-    // nothing to offer.
+    // Slides out of the edge it is pinned to rather than popping. FloatingMessageCounter springs a parked view
+    // instead, which this cannot do because it unmounts when there is nothing to offer.
     return (
         <Animated.View
             style={overlayStyles}
@@ -129,19 +126,17 @@ function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, over
     // collapses the composer again.
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    // A wide RHP reports a narrow layout but lays the expense out like a wide screen, so it belongs to the composer
-    // mount alongside the genuinely wide layouts.
+    // A wide RHP reports a narrow layout but looks wide, so it belongs to the composer mount.
     const route = useRoute();
     const {wideRHPRouteKeys} = useWideRHPState();
     const isInWideRHP = !!route?.key && wideRHPRouteKeys.includes(route.key);
 
-    // Both mount points are always rendered, and this picks the one that suits the layout. Deciding here rather than
-    // at each mount keeps the two halves of the condition from drifting apart, and keeps the navigation-state
-    // subscription out of the report actions list, which re-renders far more than this does.
+    // Both mounts always render; this picks the one for the layout. Deciding here keeps the two halves from drifting,
+    // and keeps the navigation-state subscription out of the report actions list, which re-renders far more often.
     const isMountForThisLayout = isAnchoredToBottom ? !shouldUseNarrowLayout || isInWideRHP : shouldUseNarrowLayout && !isInWideRHP;
 
-    // Nothing is stored for most of a session, so skip the inner component and its many Onyx subscriptions until
-    // there is an edit to offer.
+    // Nothing is stored for most of a session, so skip the inner component and its Onyx subscriptions until there is
+    // an edit to offer.
     if (!isMountForThisLayout || isComposerFullSize || !isMerchantRuleSuggestionLive(storedSuggestion)) {
         return null;
     }

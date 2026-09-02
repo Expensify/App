@@ -295,8 +295,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
         }
         setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
         if (isCreatedFromExpense) {
-            // Started from the "Create a rule" callout, so this page is a suffix on the expense's own path. Dropping
-            // that suffix returns to the expense instead of the workspace Rules page.
+            // Opened from the callout, so this page is a suffix on the expense's path. Dropping it returns to the
+            // expense instead of the workspace Rules page.
             Navigation.goBack(backToRoute);
         } else if (!isEditing && isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);

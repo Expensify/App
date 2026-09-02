@@ -146,7 +146,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
 
-    // Owned here rather than by the callout, which mounts and unmounts as the layout and the composer change size.
+    // Owned here rather than by the callout, which unmounts as the layout and composer change size.
     useRetireMerchantRuleSuggestionOnLeave(reportID);
 
     // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.

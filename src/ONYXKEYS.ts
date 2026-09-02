@@ -684,7 +684,7 @@ const ONYXKEYS = {
     /** Session-scoped flag: user dismissed the "enable notifications" banner in the Concierge chat */
     RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER: 'hasDismissedConciergeNotificationBanner',
 
-    /** Session-scoped record of the most recent expense edit that can become a merchant rule, which drives the "Create a rule" callout */
+    /** Session-scoped record of the latest expense edit that could become a merchant rule, driving the "Create a rule" callout */
     RAM_ONLY_MERCHANT_RULE_SUGGESTION: 'merchantRuleSuggestion',
 
     NVP_PRIVATE_CANCELLATION_DETAILS: 'nvp_private_cancellationDetails',

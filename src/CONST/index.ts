@@ -226,8 +226,8 @@ const EMAIL = {
     QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
-// Declared up here, rather than inline below, so the subsets of it can be built from its own members instead of
-// re-declaring the same strings. Spliced in as `EDIT_REQUEST_FIELD`.
+// Declared above CONST so subsets can be built from its members instead of repeating the strings. Spliced in below
+// as `EDIT_REQUEST_FIELD`.
 const editRequestFields = {
     AMOUNT: 'amount',
     CURRENCY: 'currency',

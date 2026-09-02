@@ -36,8 +36,8 @@ type MatchTypeItem = ListItem & {
 
 function AddMatchTypePage({route}: AddMatchTypePageProps) {
     const {policyID, ruleID} = route.params;
-    // This page sits above the merchant-to-match page rather than the rule page, so both flows have to name it: the
-    // callout flow by dropping this page's own suffix, the settings flow by the route passed here.
+    // Sits above merchant-to-match, not the rule page, so each flow names it: the callout by dropping this suffix,
+    // settings by the route passed here.
     const {backToRoute} = useMerchantRuleRoute(
         DYNAMIC_ROUTES.RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE.path,
         policyID,

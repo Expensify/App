@@ -8,11 +8,10 @@ import {useEffect, useRef} from 'react';
 import useOnyx from './useOnyx';
 
 /**
- * Ends the "Create a rule" offer once the user has seen it on this report and left it behind.
+ * Ends the "Create a rule" offer once the user has seen it on this report and left.
  *
- * This belongs to the report rather than to the callout itself. The callout mounts and unmounts whenever the layout
- * crosses the narrow breakpoint or the composer is expanded, and retiring on any of those would silence an offer the
- * user is still looking at, with no way back until they edit the expense again.
+ * Owned by the report, not the callout: the callout unmounts whenever the layout crosses the narrow breakpoint or the
+ * composer expands, and retiring on those would silence an offer the user is still looking at.
  */
 function useRetireMerchantRuleSuggestionOnLeave(reportID: string | undefined) {
     const [suggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);

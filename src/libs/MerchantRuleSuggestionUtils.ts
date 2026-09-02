@@ -9,11 +9,7 @@ import Parser from './Parser';
 import {resolveCurrentTaxCode} from './PolicyUtils';
 import {getBillable, getCategory, getDescription, getMerchant, getReimbursable, getTag, getTaxCode, isMerchantMissing} from './TransactionUtils';
 
-/**
- * Whether a stored offer is still live: it names an expense, has not been left behind, and that expense has not been
- * dismissed this session. Both the callout's cheap outer gate and `useMerchantRuleSuggestion` ask this, so the answer
- * is defined once here rather than spelled out in each.
- */
+/** Whether a stored offer still stands: it names an expense, was not left behind, and was not dismissed this session. */
 function isMerchantRuleSuggestionLive(suggestion: OnyxEntry<MerchantRuleSuggestion>): boolean {
     if (!suggestion?.transactionID || suggestion.isRetired) {
         return false;
@@ -29,13 +25,12 @@ function getDraftForField(field: MerchantRuleSuggestionField, transaction: Trans
             return category ? {category} : {};
         }
         case CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG: {
-            // Multi-level tags stay in the transaction's colon-joined form, which is what the rule form expects too
+            // Multi-level tags keep their colon-joined form, which the rule form expects too
             const tag = getTag(transaction);
             return tag ? {tag} : {};
         }
         case CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX: {
-            // The rule form stores the key of the tax in `policy.taxRates.taxes`, which is what a transaction stores
-            // as its taxCode. A transaction can still carry a code that has since been renamed, so resolve it first.
+            // A transaction stores the same tax key the rule form uses, but it may have been renamed since.
             const storedTaxCode = getTaxCode(transaction);
             const taxCode = storedTaxCode ? resolveCurrentTaxCode(policy, storedTaxCode) : undefined;
             return taxCode && policy?.taxRates?.taxes?.[taxCode] ? {tax: taxCode} : {};
@@ -45,8 +40,8 @@ function getDraftForField(field: MerchantRuleSuggestionField, transaction: Trans
             const description = getDescription(transaction);
             return description ? {comment: Parser.htmlToMarkdown(description)} : {};
         }
-        // Read through the helpers rather than the raw fields, so an unset value seeds the rule with what the expense
-        // view actually displays. An unset `reimbursable` shows as reimbursable, and would otherwise seed "Don't change".
+        // Use the helpers so an unset value seeds what the expense view shows. Unset `reimbursable` displays as
+        // reimbursable, but the raw field would seed "Don't change".
         case CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE:
             return {billable: getBillable(transaction)};
         case CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE:
@@ -57,10 +52,8 @@ function getDraftForField(field: MerchantRuleSuggestionField, transaction: Trans
 }
 
 /**
- * Builds the draft that pre-seeds the rule creation flow when an admin turns their expense edits into a rule. Every
- * field they changed since they started editing is carried over, so a rule created after changing category, tag and
- * tax arrives with all three filled in. Returns undefined when the expense has no merchant to match on, since a rule
- * cannot be saved without one.
+ * Builds the draft that pre-seeds the rule flow, carrying every field edited so far. Returns undefined when the
+ * expense has no merchant, since a rule cannot match without one.
  */
 function getMerchantRuleDraftFromTransaction(transaction: OnyxEntry<Transaction>, fields: MerchantRuleSuggestionField[], policy: OnyxEntry<Policy>): Partial<MerchantRuleForm> | undefined {
     if (!transaction || isMerchantMissing(transaction)) {
@@ -69,7 +62,7 @@ function getMerchantRuleDraftFromTransaction(transaction: OnyxEntry<Transaction>
 
     const draft: Partial<MerchantRuleForm> = {merchantToMatch: getMerchant(transaction)};
 
-    // Each field contributes a different property, so the order they were edited in does not matter.
+    // Each field sets a different property, so edit order does not matter.
     for (const field of fields) {
         Object.assign(draft, getDraftForField(field, transaction, policy));
     }
