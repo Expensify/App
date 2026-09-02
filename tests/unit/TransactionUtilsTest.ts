@@ -848,8 +848,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
