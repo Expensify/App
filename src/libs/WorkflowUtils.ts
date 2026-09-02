@@ -1487,11 +1487,6 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
 
 /**
  * Map every submitter found in the rules to their workflow's first approver.
- *
- * Pass `defaultApprover` to leave the default workflow's own submitters out of the map. It is the baseline
- * every member submits through, so its members are not "already in a workflow" when warning about
- * cross-workflow moves. Rules carrying the default marker say outright which submitters it covers;
- * `defaultApprover` identifies it for rules that predate the marker.
  */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}, defaultApprover?: string): Record<string, string> {
     const submitters = new Set<string>();
