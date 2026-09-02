@@ -136,6 +136,7 @@ type CardConnectionStatusDisplayParams = {
     isCardBroken: boolean;
     shouldShowRBR: boolean;
     isCardInactive: boolean;
+    isExpensifyCard: boolean;
     isPersonalCard: boolean;
     isAdminForCardPolicy: boolean;
     doesCardNeedReauthentication?: boolean;
@@ -1438,12 +1439,19 @@ function getCardConnectionStatusDisplay({
     isCardBroken,
     shouldShowRBR,
     isCardInactive: isCardInactiveStatus,
+    isExpensifyCard: isExpensifyCardStatus,
     isPersonalCard: isPersonalCardStatus,
     isAdminForCardPolicy,
     doesCardNeedReauthentication,
     policyID,
 }: CardConnectionStatusDisplayParams): CardConnectionStatusDisplay | undefined {
     if (!shouldShowConnectionStatus) {
+        return undefined;
+    }
+
+    // An inactive Expensify Card has no connection to fix: it is suspended by the back end rather than disconnected
+    // from a bank feed. Returning undefined lets the neutral Inactive badge render instead of a connection message.
+    if (isExpensifyCardStatus && isCardInactiveStatus && !isCardBroken && !shouldShowRBR) {
         return undefined;
     }
 

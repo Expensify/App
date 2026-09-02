@@ -4843,6 +4843,7 @@ describe('getCardConnectionStatusDisplay', () => {
         isCardBroken: false,
         shouldShowRBR: false,
         isCardInactive: false,
+        isExpensifyCard: false,
         isPersonalCard: false,
         isAdminForCardPolicy: false,
         policyID: undefined,
@@ -4890,6 +4891,22 @@ describe('getCardConnectionStatusDisplay', () => {
 
     it('returns the ask-admin message for a non-admin company card', () => {
         expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.askAdminToFixConnection',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: false,
+            shouldUseReauthMessage: false,
+        });
+    });
+
+    it('returns undefined for an inactive Expensify Card so no connection message is shown', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toBeUndefined();
+    });
+
+    it('still reports a broken connection for an inactive Expensify Card', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, isCardBroken: true, policyID: 'ABC123'})).toEqual({
             statusKey: 'walletPage.cardStatus.inactive',
             statusTone: 'danger',
             messageKey: 'walletPage.cardStatus.askAdminToFixConnection',
