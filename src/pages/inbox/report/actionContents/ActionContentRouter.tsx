@@ -69,6 +69,7 @@ import ChatTransactionPreview from './ChatTransactionPreview';
 import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
+import HomeAddressRequiredContent from './HomeAddressRequiredContent';
 import IntegrationMessage from './IntegrationMessage';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
 import JoinRequestContent from './JoinRequestContent';
@@ -212,6 +213,9 @@ function ActionContentRouter({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
         return (
             <MoneyRequestReportPreview
+                // FlashList recycles cells, so this instance can be handed another report's props. Key forces a remount,
+                // or `useNewTransactions` would consider the new report's transactions as newly added on top of the old report's.
+                key={action.reportActionID}
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
                 iouReport={iouReport}
                 policyID={policyID}
@@ -513,6 +517,9 @@ function ActionContentRouter({
                 <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED)) {
+        return <HomeAddressRequiredContent action={action} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
         const delegateSubmitMessage = getDelegateSubmitMessage(translate, action, currentUserEmail);
