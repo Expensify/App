@@ -1,7 +1,7 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions, public receipt visibility, share receipt link, receipt URL]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipt required amount, receipt required amount, require receipt on every expense, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions, public receipt visibility, share receipt link, receipt URL]
 internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, merchant rules, prohibited expenses, category rules, tag rules, report rules, and Expensify Card spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
@@ -28,12 +28,12 @@ To activate Rules for your workspace:
 
 Once enabled, go to the **Rules** tab in the left menu to manage expense-level settings.
 
-## Expense Rule options
+## What each Expense Rule option does
 
-- **Receipt required amount** – Set the minimum amount that requires a receipt (supports decimals).
-- **Itemized receipt required over** – Require itemized receipts for expenses over a specific amount.
+- **Receipt required amount** – Require receipts when spend exceeds this amount (supports decimals).
+- **Itemized receipt required amount** – Require itemized receipts when spend exceeds this amount (supports decimals).
 - **Max expense amount** – Set a per-expense spending cap (supports decimals).
-- **Max expense age (Days)** – Define how old an expense can be (whole numbers only).
+- **Max expense age** – Define how old an expense can be, in days (whole numbers only).
 - **Cash expense default** - Choose whether cash expenses are reimbursable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
 - **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
 - **Require company cards for all purchases** - Flag out-of-pocket expenses that should have been made with a company card. Only available after company cards are connected to the workspace.
@@ -42,6 +42,26 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **Public receipt visibility** – Control who can view receipt images. When enabled, receipts are viewable by anyone with the URL, even people who don't have access to the report. When disabled (the default), receipts are only viewable by Expensify members with access to the report containing the receipt.
 
 ![]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_01.png){:width="100%"}
+
+## How to set the Receipt required amount and Itemized receipt required amount
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**, then click **Rules**.
+3. In the **Expenses** section, click **Receipt required amount** or **Itemized receipt required amount**.
+4. Enter a value in the **Amount** field.
+5. Click **Save**.
+
+Each amount sets the highest spend allowed without that type of receipt, so a receipt is required once spend exceeds the amount you enter. A category rule can override both amounts for expenses in that category.
+
+Enter **0.00** to require a receipt on every expense, no matter how small. Leave the **Amount** field blank to stop requiring that type of receipt.
+
+The **Receipt required amount** can't be greater than the **Itemized receipt required amount**. If you enter a higher value, Expensify blocks the save and shows an error with the current itemized amount.
+
+<!-- SCREENSHOT:
+Suggestion: The Receipt required amount page with a value entered that is higher than the saved Itemized receipt required amount, showing the blocking error message under the Amount field.
+Location: Immediately after this section.
+Purpose: Admins who hit this error often assume the amount failed to save for another reason; seeing the message tied to the Amount field shows that the two amounts are linked and which one to change.
+-->
 
 ---
 
@@ -216,6 +236,14 @@ Disabling eReceipts hides any previously generated eReceipts. Re-enabling the fe
 ## Who can view receipts when Public receipt visibility is enabled?
 
 When **Public receipt visibility** is enabled, receipts are viewable by anyone with the URL, and access to the report containing the receipt is not required. This is useful when you want to share receipt links with people outside your workspace, such as a client or external accountant. When it's disabled (the default), receipts are only viewable by Expensify members with access to the report containing the receipt.
+
+## How do I require a receipt on every expense?
+
+Set the **Receipt required amount** to **0.00**. Because the amount is the highest spend allowed without a receipt, 0.00 means every expense requires one. This is different from leaving the **Amount** field blank, which stops requiring receipts entirely. The same applies to the **Itemized receipt required amount**.
+
+## Why can't I save the Receipt required amount?
+
+The **Receipt required amount** can't be greater than the **Itemized receipt required amount**. If it is, Expensify blocks the save and shows an error with the current itemized amount. Lower the **Receipt required amount**, or raise the **Itemized receipt required amount** first.
 
 ## Will disabling rules affect submitted or approved expenses?
 
