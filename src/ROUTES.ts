@@ -98,7 +98,11 @@ const DYNAMIC_ROUTES = {
         path: 'verify-account',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.ADD_BANK_ACCOUNT,
             SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS,
+            SCREENS.WORKSPACE.COMPANY_CARDS,
+            SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED,
+            SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS,
             SCREENS.HOME,
             SCREENS.SEARCH.ROOT,
             SCREENS.REPORT,
@@ -156,10 +160,15 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SEARCH.ROOT,
         ],
-        // Entry points that already know the user is adding a personal deposit account (e.g. a queued reimbursement) pass true so the
-        // bank account purpose screen isn't shown after validation.
-        getRoute: (shouldSkipPurposeSelection?: boolean) => `add-bank-account/verify-account${shouldSkipPurposeSelection ? '?shouldSkipPurposeSelection=true' : ''}` as const,
-        queryParams: ['shouldSkipPurposeSelection'],
+        // Entry points that already know the user is adding a personal deposit account (e.g. a queued reimbursement).
+        getRoute: (shouldSkipPurposeSelection?: boolean, shouldSetUpUSBankAccount?: boolean) =>
+            getUrlWithParams('add-bank-account/verify-account', {
+                // If true the bank account purpose screen isn't shown after validation
+                shouldSkipPurposeSelection: shouldSkipPurposeSelection ? 'true' : undefined,
+                // If true US bank account setup flow must be started after validation
+                shouldSetUpUSBankAccount: shouldSetUpUSBankAccount ? 'true' : undefined,
+            }),
+        queryParams: ['shouldSkipPurposeSelection', 'shouldSetUpUSBankAccount'],
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
@@ -446,13 +455,15 @@ const DYNAMIC_ROUTES = {
         queryParams: ['action', 'iouType', 'orderWeight', 'transactionID', 'reportID', 'reportActionID'],
     },
     SPLIT_EXPENSE_EDIT: {
-        path: 'split-expense/edit/:reportID/:splitExpenseTransactionID?',
+        // `editSplitExpenseTransactionID` is deliberately not named `splitExpenseTransactionID` so this path param cannot be
+        // shadowed by the overview route's `splitExpenseTransactionID` query param when this route is nested under it.
+        path: 'split-expense/edit/:reportID/:editSplitExpenseTransactionID?',
         entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH],
-        getRoute: (reportID: string, splitExpenseTransactionID?: string) => {
-            if (!splitExpenseTransactionID) {
+        getRoute: (reportID: string, editSplitExpenseTransactionID?: string) => {
+            if (!editSplitExpenseTransactionID) {
                 return `split-expense/edit/${reportID}` as const;
             }
-            return `split-expense/edit/${reportID}/${splitExpenseTransactionID}` as const;
+            return `split-expense/edit/${reportID}/${editSplitExpenseTransactionID}` as const;
         },
     },
     MONEY_REQUEST_STEP_MERCHANT: {
@@ -1141,6 +1152,14 @@ const DYNAMIC_ROUTES = {
         path: 'owner-change-failure',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK, SCREENS.WORKSPACE.MEMBER_DETAILS],
     },
+    WORKSPACE_HR_SYNC_RESULTS: {
+        // `policyID` is not repeated here: both entry screens are already workspace-scoped, so the
+        // suffix inherits their `:policyID` (same as WORKSPACE_INVITE above).
+        path: 'hr-sync-results',
+        // The results screen opens automatically when an HR sync finishes, and a sync can complete
+        // while the user is on either the HR page or the members list, so both are entry screens.
+        entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.MEMBERS],
+    },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
         entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACES_LIST],
@@ -1220,6 +1239,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS,
             SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS,
             SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST,
+            SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT_CARD_LIST,
         ],
         getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/export/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
     },
@@ -1417,6 +1437,42 @@ const DYNAMIC_ROUTES = {
     TRAVEL_UPGRADE: {
         path: 'travel-upgrade',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+    },
+    TRAVEL_TRIP_DETAILS: {
+        path: 'trip-details/:reportID/:transactionID/:pnr/:sequenceIndex',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.HOME,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE,
+            SCREENS.TRAVEL.DYNAMIC_TRIP_SUMMARY,
+        ],
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, sequenceIndex: number) => {
+            if (!reportID || !transactionID || !pnr) {
+                Log.warn('Invalid reportID, transactionID or pnr is used to build the TRAVEL_TRIP_DETAILS route');
+            }
+            return `trip-details/${reportID}/${transactionID}/${pnr}/${sequenceIndex}` as const;
+        },
+    },
+    TRAVEL_TRIP_SUMMARY: {
+        path: 'trip-summary/:reportID/:transactionID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE,
+        ],
+        getRoute: (reportID: string | undefined, transactionID: string | undefined) => {
+            if (!reportID || !transactionID) {
+                Log.warn('Invalid reportID or transactionID is used to build the TRAVEL_TRIP_SUMMARY route');
+            }
+            return `trip-summary/${reportID}/${transactionID}` as const;
+        },
     },
     TRAVEL_VERIFY_ACCOUNT: {
         path: 'travel-verify-account',
@@ -1946,6 +2002,7 @@ const ROUTES = {
     },
     SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
     SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
+    SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP: 'search/edit-multiple/attendees',
     SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
     MOVE_TRANSACTIONS_SEARCH_RHP: {
         route: 'search/move-transactions/search/:backTo?',
@@ -2213,7 +2270,6 @@ const ROUTES = {
             return `settings/wallet/update-personal-bank-account/${subPage}` as const;
         },
     },
-    SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
     SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
     SETTINGS_ENABLE_PAYMENTS: {
         route: 'settings/wallet/enable-payments/:page?/:subPage?/:action?',
@@ -3417,11 +3473,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/:feed/refresh-card-feed-connection',
         getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/refresh-card-feed-connection` as const,
     },
-    WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT: {
-        route: `workspaces/:policyID/company-cards/${VERIFY_ACCOUNT}`,
-        getRoute: (policyID: string, feed?: CompanyCardFeedWithDomainID) =>
-            feed ? (`workspaces/${policyID}/company-cards/${VERIFY_ACCOUNT}?feed=${encodeURIComponent(feed)}` as const) : (`workspaces/${policyID}/company-cards/${VERIFY_ACCOUNT}` as const),
-    },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/card-selection',
         getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
@@ -3948,25 +3999,15 @@ const ROUTES = {
         },
     },
     TRACK_TRAINING_MODAL: 'track-training',
-    TRAVEL_TRIP_SUMMARY: {
-        route: 'r/:reportID/trip/:transactionID',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
-            if (!reportID || !transactionID) {
-                Log.warn('Invalid reportID or transactionID is used to build the TRAVEL_TRIP_SUMMARY route');
-            }
+    TRAVEL_WORKSPACE_CONFIRMATION: {
+        route: 'travel/upgrade/workspace/confirmation',
 
-            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}`, backTo);
-        },
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
     },
-    TRAVEL_TRIP_DETAILS: {
-        route: 'r/:reportID/trip/:transactionID/:pnr/:sequenceIndex',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, sequenceIndex: number, backTo?: string) => {
-            if (!reportID || !transactionID || !pnr) {
-                Log.warn('Invalid reportID, transactionID or pnr is used to build the TRAVEL_TRIP_DETAILS route');
-            }
+    TRAVEL_VERIFY_ACCOUNT: {
+        route: `travel/${VERIFY_ACCOUNT}`,
 
-            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
-        },
+        getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
     },
     TRAVEL_ENABLE: {
         route: 'travel/enable/:policyID/:subPage?/:action?',
@@ -4659,13 +4700,49 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/dualentry/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/company-card-account` as const,
     },
-    POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/dualentry/export/expensify-card-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/expensify-card-account` as const,
-    },
     POLICY_ACCOUNTING_DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR: {
         route: 'workspaces/:policyID/accounting/dualentry/export/default-company-card-vendor',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/dualentry/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/dualentry/export/card-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-invoicing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/travel-invoicing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-invoicing-payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/travel-invoicing-payable-account` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
@@ -4783,6 +4860,10 @@ const ROUTES = {
     WORKSPACES_DOMAIN_ACCESS_RESTRICTED: {
         route: 'workspaces/domain-access-restricted/:domainAccountID',
         getRoute: (domainAccountID: number) => `workspaces/domain-access-restricted/${domainAccountID}` as const,
+    },
+    WORKSPACES_DOMAIN_ALREADY_EXISTS: {
+        route: 'workspaces/domain-already-exists/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-already-exists/${domainAccountID}` as const,
     },
     DOMAIN_INITIAL: {
         route: 'domain/:domainAccountID',
