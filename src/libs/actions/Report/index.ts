@@ -340,8 +340,11 @@ type OpenReportActionParams = {
     participants?: ParticipantInfo[];
 
     /**
-     * The personal details of the participants. They are only read when a new report is created (i.e. when `newReportObject` is passed) to
-     * build the optimistic created action and the optimistic details of the new participants, so `undefined` can be passed when opening an existing report.
+     * The personal details of the participants. They are read in two cases:
+     * - when a new report is created (i.e. when `newReportObject` is passed), to build the optimistic created action and the optimistic details of the new participants,
+     * - when a legacy transaction preview is recovered (i.e. when `transaction` is passed without `parentReportActionID`), to build the submitter's name and avatar.
+     *
+     * So `undefined` can only be passed when opening an existing report without a transaction.
      */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 

@@ -1471,6 +1471,9 @@ describe('actions/Report', () => {
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
         expect(transaction).toBeTruthy();
 
+        // The legacy preview recovery builds the submitter's name and avatar from the personal details passed to openReport, so they have to be threaded here
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
         Report.openReport({
             hasReportActions: true,
             reportID: CHILD_REPORT_ID,
@@ -1478,7 +1481,7 @@ describe('actions/Report', () => {
             betas: undefined,
             transaction: transaction ?? undefined,
             parentReportID: SELF_DM_ID,
-            personalDetails: undefined,
+            personalDetails,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
         await waitForBatchedUpdates();
@@ -1499,6 +1502,12 @@ describe('actions/Report', () => {
         }
         const [parentReportActionID, createdAction] = createdEntry;
         expect(createdAction.childReportID).toBe(CHILD_REPORT_ID);
+
+        // The recovered preview is attributed to the submitter from the personal details passed to openReport
+        const submitterPersonalDetails = personalDetails?.[TEST_USER_ACCOUNT_ID];
+        expect(createdAction.actorAccountID).toBe(TEST_USER_ACCOUNT_ID);
+        expect(createdAction.person?.at(0)?.text).toBe(submitterPersonalDetails?.displayName);
+        expect(createdAction.avatar).toBe(submitterPersonalDetails?.avatar);
 
         // Ensure we did not create a stray concatenated key like reportActions_<selfDMReportID><generatedActionID>
         const wrongKeyValue = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}${parentReportActionID}` as const);
