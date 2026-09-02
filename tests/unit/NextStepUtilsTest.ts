@@ -281,48 +281,37 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('monthly on the 2nd', () => {
-                    // `buildOptimisticNextStep` treats an offset landing on today as due today, while
-                    // `getNextNthOfMonth` always skips to next month, so the two only disagree when the suite runs on
-                    // the 2nd itself. Freeze the clock on a day that is not the 2nd so this stays deterministic.
-                    jest.useFakeTimers();
-                    jest.setSystemTime(new Date(2026, 0, 15));
-
-                    try {
-                        // Waiting for userSubmitter's expense(s) to automatically submit on the 2nd of each month
-                        const expectedResult: ReportNextStep = {
-                            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
-                            icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                            actorAccountID: currentUserAccountID,
-                            eta: {
-                                dateTime: format(DateUtils.getNextNthOfMonth(2), 'yyyy-MM-dd'),
+                    // Waiting for userSubmitter's expense(s) to automatically submit on the 2nd of each month
+                    const expectedResult: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: currentUserAccountID,
+                        eta: {
+                            dateTime: format(DateUtils.getNextNthOfMonth(2), 'yyyy-MM-dd'),
+                        },
+                    };
+                    const result = buildOptimisticNextStep({
+                        report,
+                        policy: {
+                            ...policy,
+                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                            autoReportingOffset: 2,
+                            harvesting: {
+                                enabled: true,
                             },
-                        };
-                        const result = buildOptimisticNextStep({
-                            report,
-                            policy: {
-                                ...policy,
-                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
-                                autoReportingOffset: 2,
-                                harvesting: {
-                                    enabled: true,
-                                },
-                            },
-                            currentUserAccountIDParam: currentUserAccountID,
-                            currentUserEmailParam: currentUserEmail,
-                            hasViolations: false,
-                            isASAPSubmitBetaEnabled: false,
-                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                            shouldFixViolations: false,
-                            isUnapprove: false,
-                            isReopen: false,
-                            isTrackIntentUser: false,
-                        });
+                        },
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                        isTrackIntentUser: false,
+                    });
 
-                        expect(result).toMatchObject(expectedResult);
-                    } finally {
-                        // Restore real timers even when the assertion fails, so later tests are unaffected.
-                        jest.useRealTimers();
-                    }
+                    expect(result).toMatchObject(expectedResult);
                 });
 
                 test('monthly on the last day', () => {
