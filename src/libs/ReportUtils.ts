@@ -9889,9 +9889,7 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             // itself, but they must not drive the LHN red dot, the Fix action badge or the Inbox To-do, because there is
             // nothing left for the submitter to fix. Excluded by name before the type checks, so the exclusion holds
             // whichever bucket (violation/warning/notice) the back end assigns them to.
-            const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport)
-                ? [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.COMPANY_CARD_REQUIRED]
-                : [];
+            const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.COMPANY_CARD_REQUIRED] : [];
 
             return (
                 !isInvoiceReport(potentialReport) &&
