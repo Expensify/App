@@ -3271,11 +3271,12 @@ ${amount} voor ${merchant} - ${date}`,
         errorSelection: 'Selecteer een optie om verder te gaan',
         purpose: {
             title: 'Wat wil je vandaag doen?',
-            errorContinue: 'Druk op ‘Doorgaan’ om de installatie te voltooien',
-            errorBackButton: 'Beantwoord eerst de instelvragen om de app te kunnen gebruiken',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Onkosten indienen bij mijn werkgever',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'De onkosten van mijn team beheren',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Zakelijke uitgaven bijhouden',
+            errorContinue: 'Druk op doorgaan om de installatie te voltooien',
+            errorBackButton: 'Beantwoord eerst de instellingsvragen om de app te gebruiken',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Word lid van de workspace van mijn bedrijf',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Declaraties indienen bij mijn werkgever',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'De uitgaven van mijn team beheren',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Uitgaven voor mijn bedrijf bijhouden',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Mijn persoonlijke uitgaven organiseren',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Iets anders',
         },
@@ -3569,6 +3570,34 @@ ${amount} voor ${merchant} - ${date}`,
                     En je bent klaar!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Voeg je werk e-mailadres toe',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Open [Werkmail toevoegen](${workEmailLink}).
+                        2. Voer je zakelijke e-mailadres in.
+                        3. Voer de code in die we je mailen.
+                        4. Kies een Werkruimte om je bij aan te sluiten, of klik op *Verzoek om lid te worden* om een aanvraag naar de eigenaar van de Werkruimte te sturen.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Valideer je e‑mail',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Open [Valideer je account](${validateEmailLink}).
+                        2. Vul de code in die we naar ${workEmail} hebben gestuurd.
+                        3. Kies een workspace om je bij aan te sluiten, of klik op *Toegang aanvragen* om een verzoek naar de eigenaar van de workspace te sturen.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Word lid van de workspace van je bedrijf',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Open [Word lid van een workspace](${joinWorkspaceLink}).
+                        2. Zoek je team in de lijst. Bij elk team staat de eigenaar en hoeveel mensen erin zitten, met de grootste teams bovenaan. Klik op *Meer weergeven* als je het jouwe niet ziet.
+                        3. Klik op *Nu deelnemen*, of op *Verzoek om deel te nemen* als er goedkeuring van een beheerder nodig is.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Maak een [proefrit](${testDriveURL})` : 'Maak een proefrit'),
@@ -3591,6 +3620,12 @@ ${amount} voor ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo makkelijk als het sturen van een bericht. Zo werkt het.',
             onboardingAdminMessage: 'Leer hoe je als beheerder de werkruimte van je team beheert en je eigen onkosten indient.',
             onboardingTestDriveReceiverMessage: '*Je krijgt 3 maanden gratis! Ga hieronder aan de slag.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Omdat je je wilt aansluiten bij de werkruimte van je bedrijf, heb ik er geen voor je aangemaakt. Voeg je werkmail toe en dan kijk ik welke werkruimtes bij jouw bedrijf je kunt joinen.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Omdat je je wilt aansluiten bij de werkruimte van je bedrijf, heb ik er geen voor je aangemaakt. Verifieer je e-mailadres en dan kijk ik welke werkruimtes bij ${companyDomain} je kunt joinen.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Omdat je je wilt aansluiten bij de werkruimte van je bedrijf, heb ik er geen voor je aangemaakt. Je team op ${companyDomain} zit al op Expensify. Bekijk de werkruimtes waarbij je je kunt aansluiten.`,
         },
         workspace: {
             title: 'Blijf georganiseerd met een werkruimte',
