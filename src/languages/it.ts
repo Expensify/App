@@ -7221,7 +7221,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
                     ? `Le spese che non vengono abbinate automaticamente verranno assegnate a questo fornitore per impostazione predefinita.`
-                    : `Le spese che non vengono abbinate automaticamente useranno questo fornitore per impostazione predefinita. In caso contrario, verranno esportate come ${fallbackVendorName}`,
+                    : `Le spese che non vengono abbinate automaticamente useranno questo fornitore per impostazione predefinita. In caso contrario, verranno esportate come ${fallbackVendorName}.`,
             defaultVendorSelectHeader: `Scegli un fornitore predefinito per le spese che non vengono abbinate automaticamente.`,
             defaultAccount: 'Conto predefinito',
             autoSync: 'Sincronizzazione automatica',

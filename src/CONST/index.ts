@@ -3601,12 +3601,12 @@ const CONST = {
         VENDOR_BILL: 'bill',
     },
 
-    // Vendors the accounting system auto-creates for card expenses that don't match an existing vendor. Left
-    // untranslated on purpose: these are the literal vendor records the admin will see in QuickBooks Online or
-    // Sage Intacct, so a translated name wouldn't match anything they can search for.
+    // The vendor-name portion for card expenses that don't match an existing vendor. It is untranslated on purpose
+    // so the rendered helper text names the vendor record the admin sees in QuickBooks Online or Sage Intacct.
+    // Translations own the sentence punctuation because the name can appear mid-sentence.
     NON_REIMBURSABLE_FALLBACK_VENDOR_NAME: {
-        CREDIT_CARD: 'Credit Card Misc.',
-        DEBIT_CARD: 'Debit Card Misc.',
+        CREDIT_CARD: 'Credit Card Misc',
+        DEBIT_CARD: 'Debit Card Misc',
     },
 
     QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE: {

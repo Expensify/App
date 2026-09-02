@@ -7130,7 +7130,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
                 isSet || !fallbackVendorName
                     ? `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。`
-                    : `自動照合されない経費はデフォルトでこのベンダーに割り当てられます。それ以外は ${fallbackVendorName} としてエクスポートされます`,
+                    : `自動照合されない経費はデフォルトでこのベンダーに割り当てられます。それ以外は「${fallbackVendorName}.」としてエクスポートされます。`,
             defaultVendorSelectHeader: `自動的に一致しない経費に使用するデフォルトの取引先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
