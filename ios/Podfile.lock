@@ -571,6 +571,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -596,6 +597,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -620,6 +622,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -646,6 +649,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -671,6 +675,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -696,6 +701,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -721,6 +727,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -746,6 +753,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -771,6 +779,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -796,6 +805,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -821,6 +831,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -846,6 +857,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -871,6 +883,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -896,6 +909,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -2770,7 +2784,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-pager-view (8.0.0):
+  - react-native-pager-view (9.0.4):
     - boost
     - DoubleConversion
     - fast_float
@@ -4957,7 +4971,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: fa5647482320b7bde855057f8b86580456d4b9f0
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
@@ -5026,7 +5040,7 @@ SPEC CHECKSUMS:
   RCTTypeSafety: 922be6f90a3addd48f57f2066dd90aacec4768b6
   React: 2574546f2d017abd14d0c9b48cf2b6a0547c2591
   React-callinvoker: b997d4d109c92cae4bc7f1edb08dc6a7c11a1ca2
-  React-Core: 5c7a37fd611353c8bf1c12ef24cfdec81ff46549
+  React-Core: ee317fb557001c3972bcf4fe15996197e65ae54d
   React-CoreModules: 2ae392df55453fca5602e9bb5bc16a72f36dd961
   React-cxxreact: 9a58282eb607fb19d775cfaa8ff9da7be8fc99c5
   React-debug: 307f174c04c2e1f51b31c31efcc3e635b1e56453
@@ -5066,7 +5080,7 @@ SPEC CHECKSUMS:
   react-native-key-command: 7538df85ed26502b2a929c0584235459b26c7a91
   react-native-keyboard-controller: f2b654475ffee6ba61b159d33a26465a94a441a0
   react-native-netinfo: f94b3a0fc305e812f3f615989d99299d7110c2ae
-  react-native-pager-view: c62ab82db28e2d11e7809c59085e2984a45979c5
+  react-native-pager-view: 34aafc2817afec5a43469e9bd57cb1f37dacf92c
   react-native-pdf: 6a09a9be0e7ee954ea671437483316f9a28f8572
   react-native-plaid-link-sdk: 425c0a3a923310fcd8489142209ff1508372a7bf
   react-native-quick-base64: eca82f83cc5fd9e8615d50e789788877ff3f8401
@@ -5078,7 +5092,7 @@ SPEC CHECKSUMS:
   React-NativeModulesApple: e477c7b5f198235d9de93702ef6b495b87b625bc
   React-networking: b90039a00fd63e75a78358ee5fc2ea4b4cbad736
   React-oscompat: e3c95718adca6d0e7ca9e5b01a04d057f4aa8f72
-  React-perflogger: 327334823748e1ecac8cb76e3aa1c072d99146af
+  React-perflogger: 8712c3310a467e036fceac437dc7f2a4be69e634
   React-performancecdpmetrics: 992de932ea38bfc3e49f7b4eba19f6c1aca021bb
   React-performancetimeline: a0626b87f948b534b3fb90b696ad11863af94dd8
   React-RCTActionSheet: cbe921221b0ca00d2ea586efbaa494bc990260c1
@@ -5094,7 +5108,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: b478cd2ee4091e33bb847edef83c19aa87bf1c45
   React-RCTText: 6bae9a5e52ebc012d7bc499542c42285f73d1e1d
   React-RCTVibration: 3ddd10141590a1800a1890248b47337d9004b7f4
-  React-rendererconsistency: 8759d621ba9d2a3139c266d3462bf2e38ccc4b01
+  React-rendererconsistency: d1e82296151f814802c06be35952c9fda99973b1
   React-renderercss: 7b56e138a3d800fa9e17e61cdb3b293d6b8622c6
   React-rendererdebug: cf7d7ca70a0b7263df1d49c87970ae6cfe7ce5d0
   React-RuntimeApple: 39be405060d5dc5d1f9e4ee4e24ad09cd079a5db
