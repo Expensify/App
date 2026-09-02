@@ -222,6 +222,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     };
 
     // A function, not a cached value: each call site checks the keyboard's current state, not one captured earlier.
+    // Gated on Keyboard.isVisible() rather than platform, so an opted-in caller also defers on iOS, not just Android.
     const hasKeyboardToDismiss = () => shouldDismissKeyboardBeforeTabSwitch && Keyboard.isVisible();
 
     const runAfterKeyboardDismiss = async (callback: () => void) => {
