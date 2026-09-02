@@ -187,8 +187,6 @@ type BackdropProps = {
     isBackdropVisible: boolean;
 };
 
-type GetBackdropStyle = (backdropColor: string, windowWidth: number, windowHeight: number) => ViewStyle;
-
 type ContainerProps = {
     /** Host node of the modal's content, used to tell whether focus is still inside this modal. */
     ref?: Ref<View>;
@@ -210,4 +208,4 @@ type ContainerProps = {
 };
 
 export default ReanimatedModalProps;
-export type {BackdropProps, ContainerProps, GestureHandlerProps, GetBackdropStyle, AnimationIn, AnimationOut, SwipeDirection};
+export type {BackdropProps, ContainerProps, GestureHandlerProps, AnimationIn, AnimationOut, SwipeDirection};
