@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Abrechenbar',
         nonBillable: 'Nicht abrechenbar',
         tag: 'Tag',
+        violations: 'Verstöße',
         receipt: 'Beleg',
         verified: 'Verifiziert',
         replace: 'Ersetzen',
@@ -5923,9 +5924,34 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 label: 'Firmenkartenkonto',
                 description: 'Wählen Sie aus, wohin die Firmenkartentransaktionen exportiert werden sollen.',
             },
-            expensifyCardAccount: {
-                label: 'Expensify Card-Konto',
-                description: 'Wählen Sie aus, wohin die Expensify Card-Transaktionen exportiert werden sollen.',
+            exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
+            cardProgramAccount: {
+                label: 'Kartenprogramm-Konto',
+                description: 'Workspace-Konto für diese Kartenprogramme überschreiben.',
+                descriptionLevel2: 'Überschreiben Sie das Workspace-Konto für dieses Kartenprogramm.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Programme verwenden das Standardkonto';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Programm mit benutzerdefiniertem Konto`;
+                    }
+                    return `${customAccountsCount} Programme mit benutzerdefinierten Konten`;
+                },
+            },
+            cardAccount: {
+                label: 'Kontotyp pro Karte',
+                description: 'Programmkonto für einzelne Karten überschreiben.',
+                descriptionLevel2: 'Programmkonto für diese Karten überschreiben.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle Karten verwenden Programmkonten';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} Karte mit individuellem Konto`;
+                    }
+                    return `${customAccountsCount} Karten mit benutzerdefinierten Konten`;
+                },
             },
             autoSyncDescription: 'Synchronisieren Sie DualEntry und Expensify automatisch, jeden Tag. Berichte werden in Echtzeit synchronisiert.',
             accountingMethods: {
@@ -9488,6 +9514,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             topSpenders: 'Höchste Ausgaben',
             topCategories: 'Topkategorien',
             topMerchants: 'Top-Händler',
+            violationsBySubmitter: 'Verstöße durch Einreichende',
         },
     },
     genericErrorPage: {
@@ -9665,6 +9692,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         time: 'Zeit (24-Stunden-Format)',
         durationAmount: 'Dauer',
         durationUnit: 'Einheit',
+        leaveType: 'Abwesenheitsart',
+        normalOOO: 'Normale Abwesenheit',
         reason: 'Grund',
         workingPercentage: 'Arbeitsprozentsatz',
         dateRequired: 'Startdatum ist erforderlich.',
@@ -10191,6 +10220,53 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Der Satz gilt erst ab dem ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Satz gilt nur bis ${endDate}`,
         cannotMergeDuplicates: 'Sie können Ausgaben nur in Entwürfen oder offenen Berichten zusammenführen. Ziehen Sie den Bericht zurück und versuchen Sie es erneut.',
+        shortName: {
+            allTagLevelsRequired: 'Alle Tags erforderlich',
+            autoReportedRejectedExpense: 'Ausgabe abgelehnt',
+            billableExpense: 'Verrechenbar nicht mehr gültig',
+            cashExpenseWithNoReceipt: 'Beleg erforderlich',
+            categoryOutOfPolicy: 'Kategorie nicht mehr gültig',
+            companyCardRequired: 'Firmenkarte erforderlich',
+            conversionSurcharge: 'Umrechnungszuschlag angewendet',
+            customUnitOutOfPolicy: 'Satz für Arbeitsbereich ungültig',
+            customUnitRateOutOfDateRange: 'Kurs außerhalb der gültigen Daten',
+            duplicatedTransaction: 'Möglicher Duplikat',
+            fieldRequired: 'Berichtsfeld erforderlich',
+            futureDate: 'Zukünftiges Datum nicht zulässig',
+            hold: 'Ausgabe angehalten',
+            inactiveVendor: 'Lieferant nicht mehr gültig',
+            increasedDistance: 'Entfernung überschreitet Route',
+            invoiceMarkup: 'Rechnung mit Aufschlag versehen',
+            itemizedReceiptRequired: 'Aufgeschlüsselter Beleg erforderlich',
+            maxAge: 'Datum ist älter als das maximale Spesenalter',
+            missingAttendees: 'Teilnehmende erforderlich',
+            missingCategory: 'Fehlende Kategorie',
+            missingComment: 'Beschreibung erforderlich',
+            missingTag: 'Fehlendes Tag',
+            modifiedAmount: 'Betrag geändert',
+            modifiedDate: 'Änderungsdatum',
+            noRoute: 'Keine gültige Route',
+            nonExpensiworksExpense: 'Ausgabe außerhalb von Expensiworks',
+            overAutoApprovalLimit: 'Über dem Auto-Genehmigungslimit',
+            overCategoryLimit: 'Über Kategorienlimit',
+            overLimit: 'Über Limit',
+            overTripLimit: 'Über dem Reisekostenlimit',
+            perDayLimit: 'Über Tageslimit',
+            prohibitedExpense: 'Unzulässige Ausgabe',
+            receiptGeneratedWithAI: 'Mögliche KI-generierte Quittung',
+            receiptNotSmartScanned: 'Beleg manuell hinzugefügt',
+            receiptRequired: 'Beleg erforderlich',
+            rter: 'Kartenzuordnung ausstehend',
+            smartscanFailed: 'Belegscan fehlgeschlagen',
+            someTagLevelsRequired: 'Tag erforderlich',
+            tagOutOfPolicy: 'Tag nicht mehr gültig',
+            overLimitAttendee: 'Über Personenlimit',
+            customRules: 'Verstoß gegen benutzerdefinierte Regel',
+            taxAmountChanged: 'Steuerbetrag geändert',
+            taxOutOfPolicy: 'Steuersatz nicht mehr gültig',
+            taxRateChanged: 'Steuersatz geändert',
+            taxRequired: 'Fehlender Steuersatz',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} ist erforderlich`,

@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: '請求可能',
         nonBillable: '請求不可',
         tag: 'タグ',
+        violations: '違反事項',
         receipt: 'レシート',
         verified: '確認済み',
         replace: '置換',
@@ -5821,9 +5822,34 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 label: '会社カード口座',
                 description: '会社カード取引のエクスポート先を選択してください。',
             },
-            expensifyCardAccount: {
-                label: 'Expensify カード口座',
-                description: 'Expensify カード取引のエクスポート先を選択してください。',
+            exportToMultipleAccounts: '複数アカウントへのエクスポートを設定',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペース口座を上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのプログラムがデフォルトアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム勘定科目付きプログラム：${customAccountsCount}`;
+                    }
+                    return `${customAccountsCount} 件のカスタムアカウントを含むプログラム`;
+                },
+            },
+            cardAccount: {
+                label: 'カード単位のアカウント',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム口座のカードが ${customAccountsCount} 枚`;
+                    }
+                    return `${customAccountsCount} 枚のカスタムアカウント付きカード`;
+                },
             },
             autoSyncDescription: 'DualEntry と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
             accountingMethods: {
@@ -9314,6 +9340,7 @@ ${reportName}`,
             topSpenders: '上位の支出者',
             topCategories: '上位カテゴリ',
             topMerchants: '上位加盟店',
+            violationsBySubmitter: '申請者による違反',
         },
     },
     genericErrorPage: {
@@ -9490,6 +9517,8 @@ ${reportName}`,
         time: '時間（24時間表記）',
         durationAmount: '期間',
         durationUnit: '単位',
+        leaveType: '休暇種別',
+        normalOOO: '通常の外出中',
         reason: '理由',
         workingPercentage: '稼働率',
         dateRequired: '開始日が必要です。',
@@ -10010,6 +10039,53 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `料金は${startDate}からのみ有効です`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `料金は${endDate}までのみ有効です`,
         cannotMergeDuplicates: '経費を統合できるのは、下書きまたは未清算のレポートのみです。レポートを取り下げて、もう一度お試しください。',
+        shortName: {
+            allTagLevelsRequired: 'すべてのタグが必須です',
+            autoReportedRejectedExpense: '経費が却下されました',
+            billableExpense: '請求可能区分は無効になりました',
+            cashExpenseWithNoReceipt: '領収書が必要です',
+            categoryOutOfPolicy: 'カテゴリは無効になっています',
+            companyCardRequired: '会社カードが必要です',
+            conversionSurcharge: '両替手数料が適用されました',
+            customUnitOutOfPolicy: 'ワークスペースに有効なレートではありません',
+            customUnitRateOutOfDateRange: '有効な日付期間外のレートです',
+            duplicatedTransaction: '重複の可能性',
+            fieldRequired: 'レポートの必須項目です',
+            futureDate: '未来の日付は使用できません',
+            hold: '保留中の経費',
+            inactiveVendor: '取引先は有効ではありません',
+            increasedDistance: '距離がルートを超えています',
+            invoiceMarkup: '請求書にマークアップを適用しました',
+            itemizedReceiptRequired: '明細付き領収書が必要です',
+            maxAge: '経費の最長期限を過ぎた日付です',
+            missingAttendees: '参加者は必須です',
+            missingCategory: 'カテゴリが未選択です',
+            missingComment: '説明が必要です',
+            missingTag: 'タグがありません',
+            modifiedAmount: '金額を変更しました',
+            modifiedDate: '更新日',
+            noRoute: '有効なルートがありません',
+            nonExpensiworksExpense: 'Expensiworks 以外の経費',
+            overAutoApprovalLimit: '自動承認限度額を超過',
+            overCategoryLimit: 'カテゴリ上限を超えています',
+            overLimit: '上限超過',
+            overTripLimit: '出張上限超過',
+            perDayLimit: '1 日あたりの上限超過',
+            prohibitedExpense: '禁止経費',
+            receiptGeneratedWithAI: 'AI が生成した可能性のあるレシート',
+            receiptNotSmartScanned: '手動でレシートを追加しました',
+            receiptRequired: '領収書が必要です',
+            rter: 'カードとの照合待ち',
+            smartscanFailed: 'レシートのスキャンに失敗しました',
+            someTagLevelsRequired: 'タグが必須です',
+            tagOutOfPolicy: 'タグは無効です',
+            overLimitAttendee: '人数上限超過',
+            customRules: 'カスタムルール違反',
+            taxAmountChanged: '税額が変更されました',
+            taxOutOfPolicy: '税率が無効になりました',
+            taxRateChanged: '税率を変更しました',
+            taxRequired: '税率が未設定です',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} は必須です`,

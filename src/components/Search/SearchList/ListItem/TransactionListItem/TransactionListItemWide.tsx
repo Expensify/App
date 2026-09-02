@@ -44,7 +44,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     handleActionButtonPress,
     shouldDisableActionPointerEvents,
     transactionPreviewData,
-    exportedReportActions,
+    reportActions,
     policyCategories,
     policyTagLists,
     rowPolicy,
@@ -225,7 +225,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        reportActions={exportedReportActions}
+                        reportActions={reportActions}
                         isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         onEditDate={onEditDate}
                         onEditMerchant={onEditMerchant}

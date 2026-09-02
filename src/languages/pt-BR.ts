@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Faturável',
         nonBillable: 'Não faturável',
         tag: 'Etiqueta',
+        violations: 'Violações',
         receipt: 'Recibo',
         verified: 'Verificado',
         replace: 'Substituir',
@@ -5883,9 +5884,34 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 label: 'Conta de cartão corporativo',
                 description: 'Escolha para onde exportar as transações do cartão corporativo.',
             },
-            expensifyCardAccount: {
-                label: 'Conta do Expensify Card',
-                description: 'Escolha para onde exportar as transações do Expensify Card.',
+            exportToMultipleAccounts: 'Configurar exportação para várias contas',
+            cardProgramAccount: {
+                label: 'Conta do programa de cartão',
+                description: 'Substitua a conta do espaço de trabalho para esses programas de cartão.',
+                descriptionLevel2: 'Substituir a conta do workspace para este programa de cartão.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos os programas usam a conta padrão';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa com conta personalizada`;
+                    }
+                    return `${customAccountsCount} programas com contas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Conta por cartão',
+                description: 'Substitua a conta do programa para cartões individuais.',
+                descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos os cartões usam contas de programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} cartão com conta personalizada`;
+                    }
+                    return `${customAccountsCount} cartões com contas personalizadas`;
+                },
             },
             autoSyncDescription: 'Sincronize DualEntry e Expensify automaticamente, todos os dias. Os relatórios são sincronizados em tempo real.',
             accountingMethods: {
@@ -9419,6 +9445,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             topSpenders: 'Maiores gastadores',
             topCategories: 'Principais categorias',
             topMerchants: 'Principais estabelecimentos',
+            violationsBySubmitter: 'Violações por quem enviou',
         },
     },
     genericErrorPage: {
@@ -9596,6 +9623,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         time: 'Horário (formato de 24 horas)',
         durationAmount: 'Duração',
         durationUnit: 'Unidade',
+        leaveType: 'Tipo de licença',
+        normalOOO: 'Fora do escritório normal',
         reason: 'Motivo',
         workingPercentage: 'Porcentagem de trabalho',
         dateRequired: 'A data de início é obrigatória.',
@@ -10118,6 +10147,53 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `A tarifa só é válida a partir de ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `A tarifa só é válida até ${endDate}`,
         cannotMergeDuplicates: 'Você só pode mesclar despesas em relatórios rascunho ou pendentes. Retraia o relatório e tente novamente.',
+        shortName: {
+            allTagLevelsRequired: 'Todas as tags obrigatórias',
+            autoReportedRejectedExpense: 'Despesa rejeitada',
+            billableExpense: 'Faturável não é mais válido',
+            cashExpenseWithNoReceipt: 'Recibo obrigatório',
+            categoryOutOfPolicy: 'Categoria não é mais válida',
+            companyCardRequired: 'Cartão corporativo obrigatório',
+            conversionSurcharge: 'Taxa de conversão aplicada',
+            customUnitOutOfPolicy: 'Tarifa inválida para o espaço de trabalho',
+            customUnitRateOutOfDateRange: 'Tarifa fora das datas válidas',
+            duplicatedTransaction: 'Possível duplicado',
+            fieldRequired: 'Campo de relatório obrigatório',
+            futureDate: 'Data futura não é permitida',
+            hold: 'Despesa em espera',
+            inactiveVendor: 'Fornecedor não é mais válido',
+            increasedDistance: 'A distância excede a rota',
+            invoiceMarkup: 'Fatura com acréscimo',
+            itemizedReceiptRequired: 'É necessário recibo detalhado',
+            maxAge: 'Data anterior ao limite máximo de idade da despesa',
+            missingAttendees: 'Participantes obrigatórios',
+            missingCategory: 'Categoria ausente',
+            missingComment: 'Descrição obrigatória',
+            missingTag: 'Tag ausente',
+            modifiedAmount: 'Valor modificado',
+            modifiedDate: 'Data de modificação',
+            noRoute: 'Nenhuma rota válida',
+            nonExpensiworksExpense: 'Despesa fora do Expensiworks',
+            overAutoApprovalLimit: 'Acima do limite de aprovação automática',
+            overCategoryLimit: 'Acima do limite da categoria',
+            overLimit: 'Acima do limite',
+            overTripLimit: 'Acima do limite da viagem',
+            perDayLimit: 'Acima do limite diário',
+            prohibitedExpense: 'Despesa proibida',
+            receiptGeneratedWithAI: 'Possível recibo gerado por IA',
+            receiptNotSmartScanned: 'Recibo adicionado manualmente',
+            receiptRequired: 'Recibo obrigatório',
+            rter: 'Aguardando correspondência do cartão',
+            smartscanFailed: 'Falha ao escanear recibo',
+            someTagLevelsRequired: 'Tag obrigatória',
+            tagOutOfPolicy: 'Tag não é mais válida',
+            overLimitAttendee: 'Acima do limite de pessoas',
+            customRules: 'Violação de regra personalizada',
+            taxAmountChanged: 'Valor do imposto modificado',
+            taxOutOfPolicy: 'Alíquota de imposto não é mais válida',
+            taxRateChanged: 'Alíquota de imposto modificada',
+            taxRequired: 'Alíquota de imposto ausente',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,
