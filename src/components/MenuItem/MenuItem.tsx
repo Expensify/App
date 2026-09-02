@@ -225,6 +225,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Hint to display at the bottom of the component */
         hintText?: string | ReactNode;
 
+        /** Any additional styles to pass to hint text. */
+        hintTextStyle?: StyleProp<ViewStyle>;
+
         /** Should the error text red dot indicator be shown */
         shouldShowRedDotIndicator?: boolean;
 
@@ -548,6 +551,7 @@ function MenuItem({
     errorTextStyle,
     shouldShowRedDotIndicator,
     hintText,
+    hintTextStyle,
     success = false,
     iconReportID,
     focused = false,
@@ -1317,7 +1321,7 @@ function MenuItem({
                                                 isError={false}
                                                 shouldShowRedDotIndicator={false}
                                                 message={hintText}
-                                                style={styles.menuItemError}
+                                                style={[styles.menuItemError, hintTextStyle]}
                                                 shouldRenderMessageAsHTML={shouldRenderHintAsHTML}
                                             />
                                         )}
