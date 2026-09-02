@@ -466,7 +466,7 @@ describe('Domain Search Router navigation source', () => {
             Building: mockIcon,
             Gear: mockIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({typeMenuSections: [], activeItemIndex: -1, activeKey: undefined});
+        mockUseSearchTypeMenuSections.mockReturnValue([]);
 
         const {result} = renderHook(() => useNavigationSuggestions('members'));
 

@@ -13520,6 +13520,10 @@ describe('getLastSearchQuery', () => {
         [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:category`, timestamp: '2026-08-21 00:00:00.000'},
         [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:merchant`, timestamp: '2026-08-21 00:00:00.000'},
         [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:month`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: {
+            query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:${CONST.SEARCH.GROUP_BY.FROM} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`,
+            timestamp: '2026-08-21 00:00:00.000',
+        },
         // Legacy string format, kept for the assertions below.
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`,
         [CONST.SEARCH.SEARCH_KEYS.PAY]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Uber`,
