@@ -22,7 +22,6 @@ import {findFocusedRoute, useNavigation, useNavigationState} from '@react-naviga
 import React, {lazy, Suspense, useEffect} from 'react';
 import {View} from 'react-native';
 
-import InboxTabWarmup from './InboxTabWarmup';
 // Do not lazy load Search navigator for performance reasons
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import TabNavigatorBar from './TabNavigatorBar';
@@ -71,12 +70,7 @@ const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONS
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
 
-const renderTabBar = ({state, navigation}: BottomTabBarProps) => (
-    <>
-        <TabNavigatorBar state={state} />
-        <InboxTabWarmup navigation={navigation} />
-    </>
-);
+const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
 
 const Tab = createBottomTabNavigator<TabNavigatorParamList>();
 
