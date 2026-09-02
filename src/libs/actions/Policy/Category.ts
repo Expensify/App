@@ -1064,6 +1064,7 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
                 value: {
                     rules: {
                         approvalRules,
+                        expenseRules,
                     },
                     mccGroup,
                 },
