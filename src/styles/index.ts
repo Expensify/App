@@ -3800,6 +3800,13 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 12,
         },
 
+        digitalWalletConfirmError: {
+            position: 'absolute',
+            bottom: '100%',
+            left: 0,
+            right: 0,
+        },
+
         digitalWalletResultIllustration: {
             width: variables.iconSection,
             height: variables.iconSection,

@@ -91,10 +91,7 @@ function buildCardLoadingOnyxData(cardID: number) {
     return {
         optimisticData: mergeCard({errors: null, isLoading: true}),
         successData: mergeCard({isLoading: false}),
-        failureData: mergeCard({
-            isLoading: false,
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-        }),
+        failureData: mergeCard({isLoading: false}),
     };
 }
 

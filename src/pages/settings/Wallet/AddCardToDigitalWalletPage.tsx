@@ -1,12 +1,14 @@
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import Button from '@components/ButtonComposed';
 import ConfirmationPage from '@components/ConfirmationPage';
-import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ImageSVG from '@components/ImageSVG';
 import LoadingIndicator from '@components/LoadingIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -153,47 +155,54 @@ function AddCardToDigitalWalletPage({
                 title={translate('addCardToDigitalWallet.title', {walletName})}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <ConfirmationPage
-                heading={translate('addCardToDigitalWallet.confirmHeading')}
-                description={translate('addCardToDigitalWallet.confirmDescription', {walletName, lastFourDigits})}
-                illustration={illustrations.CardIntoWallet}
-                illustrationStyle={styles.digitalWalletConfirmIllustration}
-                descriptionStyle={styles.textSupporting}
-            />
-            {/* The footer is out of the layout flow so showing an error grows it without shrinking the page above and nudging the illustration up */}
-            <FixedFooter shouldStickToBottom>
-                <OfflineWithFeedback
-                    shouldDisplayErrorAbove
-                    errors={latestError}
-                    errorRowStyles={styles.mb3}
-                    onClose={() => clearCardListErrors(card.cardID)}
-                >
-                    {requestStatus === 'submitting' ? (
-                        <View style={[styles.w100, styles.justifyContentCenter, styles.componentHeightLarge]}>
-                            <LoadingIndicator iconSize={28} />
-                        </View>
-                    ) : (
-                        <View style={[styles.flexRow, styles.gap2]}>
-                            <ButtonDisabledWhenOffline
-                                variant={CONST.BUTTON_VARIANT.DANGER}
-                                size={CONST.BUTTON_SIZE.LARGE}
-                                style={styles.flex1}
-                                onPress={denyRequest}
-                            >
-                                <Button.Text>{translate('addCardToDigitalWallet.deny')}</Button.Text>
-                            </ButtonDisabledWhenOffline>
-                            <ButtonDisabledWhenOffline
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                size={CONST.BUTTON_SIZE.LARGE}
-                                style={styles.flex1}
-                                onPress={() => setIsVerifying(true)}
-                            >
-                                <Button.Text>{translate('addCardToDigitalWallet.confirm')}</Button.Text>
-                            </ButtonDisabledWhenOffline>
-                        </View>
-                    )}
-                </OfflineWithFeedback>
-            </FixedFooter>
+            <ScrollView
+                style={styles.flex1}
+                contentContainerStyle={styles.flexGrow1}
+            >
+                <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
+                    <View style={styles.digitalWalletConfirmIllustration}>
+                        <ImageSVG
+                            src={illustrations.CardIntoWallet}
+                            contentFit="contain"
+                        />
+                    </View>
+                    <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{translate('addCardToDigitalWallet.confirmHeading')}</Text>
+                    <Text style={[styles.textAlignCenter, styles.textSupporting, styles.w100]}>{translate('addCardToDigitalWallet.confirmDescription', {walletName, lastFourDigits})}</Text>
+                </View>
+                <View style={[styles.ph5, styles.pb5]}>
+                    <OfflineWithFeedback
+                        shouldDisplayErrorAbove
+                        errors={latestError}
+                        errorRowStyles={[styles.digitalWalletConfirmError, styles.mb2, styles.textWrap]}
+                        onClose={() => clearCardListErrors(card.cardID)}
+                    >
+                        {requestStatus === 'submitting' ? (
+                            <View style={[styles.w100, styles.justifyContentCenter, styles.componentHeightLarge]}>
+                                <LoadingIndicator iconSize={28} />
+                            </View>
+                        ) : (
+                            <View style={[styles.flexRow, styles.gap2]}>
+                                <ButtonDisabledWhenOffline
+                                    variant={CONST.BUTTON_VARIANT.DANGER}
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                    style={styles.flex1}
+                                    onPress={denyRequest}
+                                >
+                                    <Button.Text>{translate('addCardToDigitalWallet.deny')}</Button.Text>
+                                </ButtonDisabledWhenOffline>
+                                <ButtonDisabledWhenOffline
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                    style={styles.flex1}
+                                    onPress={() => setIsVerifying(true)}
+                                >
+                                    <Button.Text>{translate('addCardToDigitalWallet.confirm')}</Button.Text>
+                                </ButtonDisabledWhenOffline>
+                            </View>
+                        )}
+                    </OfflineWithFeedback>
+                </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }
