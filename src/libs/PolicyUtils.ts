@@ -1116,6 +1116,16 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 }
 
 /**
+ * Checks whether a policy max expense amount (e.g. `maxExpenseAmountNoReceipt`) is actually configured.
+ *
+ * `0` is a valid limit meaning "always required", so a falsy check would wrongly treat an explicit $0.00 as unset.
+ * Only `undefined` and `CONST.DISABLED_MAX_EXPENSE_VALUE` mean the amount is not set.
+ */
+function isMaxExpenseAmountSet(value: number | undefined): value is number {
+    return value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE;
+}
+
+/**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
 function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
@@ -3154,6 +3164,7 @@ export {
     hasTags,
     hasCustomCategories,
     hasConfiguredRules,
+    isMaxExpenseAmountSet,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
