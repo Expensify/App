@@ -1,6 +1,5 @@
 import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBiometricRegistrationStatus';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
@@ -13,6 +12,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import Button from './ButtonComposed';
+import ButtonDisabledWhenOffline from './ButtonComposed/composed/ButtonDisabledWhenOffline';
 import {useMultifactorAuthentication} from './MultifactorAuthentication/Context';
 import TestToolRow from './TestToolRow';
 
@@ -21,7 +21,6 @@ function BiometricsTestToolRow() {
     const {translate} = useLocalize();
     const {executeScenario} = useMultifactorAuthentication();
     const {localCredentialID, isCurrentDeviceRegistered, otherDeviceCount, registrationStatus} = useBiometricRegistrationStatus();
-    const {isOffline} = useNetwork();
     const [isMFARevokeLoading, setIsMFARevokeLoading] = useState(false);
 
     const statusTextMap = {
@@ -35,9 +34,8 @@ function BiometricsTestToolRow() {
     return (
         <TestToolRow title={biometricsTitle}>
             <View style={[styles.flexRow, styles.gap2]}>
-                <Button
+                <ButtonDisabledWhenOffline
                     size={CONST.BUTTON_SIZE.SMALL}
-                    isDisabled={isOffline}
                     onPress={() => {
                         // When launched from the hidden Test Tools modal (4-finger tap), dismiss that modal so the MFA
                         // overlay isn't hidden behind it on iOS. When rendered inline on the Troubleshoot page there is no
@@ -49,11 +47,10 @@ function BiometricsTestToolRow() {
                     }}
                 >
                     <Button.Text>{translate('multifactorAuthentication.biometricsTest.test')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
                 {isCurrentDeviceRegistered && !!localCredentialID && (
-                    <Button
+                    <ButtonDisabledWhenOffline
                         variant={CONST.BUTTON_VARIANT.DANGER}
-                        isDisabled={isOffline}
                         isLoading={isMFARevokeLoading}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={async () => {
@@ -63,7 +60,7 @@ function BiometricsTestToolRow() {
                         }}
                     >
                         <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
-                    </Button>
+                    </ButtonDisabledWhenOffline>
                 )}
             </View>
         </TestToolRow>

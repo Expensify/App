@@ -1,9 +1,9 @@
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getScimToken} from '@libs/actions/Domain';
@@ -22,7 +22,6 @@ type ScimTokenContentProps = {
 function ScimTokenContent({domainName}: ScimTokenContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
 
     const [oktaScimToken, setOktaScimToken] = useState<ScimTokenWithState>(undefined);
 
@@ -34,14 +33,13 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
     // token not fetched yet
     if (!oktaScimToken || oktaScimToken.state === ScimTokenState.LOADING) {
         return (
-            <Button
+            <ButtonDisabledWhenOffline
                 style={styles.alignSelfStart}
                 onPress={fetchOktaScimToken}
                 isLoading={oktaScimToken?.state === ScimTokenState.LOADING}
-                isDisabled={isOffline}
             >
                 <Button.Text>{translate('domain.samlConfigurationDetails.revealToken')}</Button.Text>
-            </Button>
+            </ButtonDisabledWhenOffline>
         );
     }
 

@@ -1,8 +1,8 @@
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import FormHelpMessage from '@components/FormHelpMessage';
 
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -33,7 +33,6 @@ type FormHelpMessageRowWithRetryButtonProps = {
 function FormHelpMessageRowWithRetryButton({message, size = CONST.BUTTON_SIZE.MEDIUM, onRetry, variant, shouldAlignButtonToMessage = false}: FormHelpMessageRowWithRetryButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldAlignButtonToMessage ? styles.justifyContentStart : styles.justifyContentBetween]}>
@@ -41,14 +40,13 @@ function FormHelpMessageRowWithRetryButton({message, size = CONST.BUTTON_SIZE.ME
                 message={message}
                 style={[styles.mt0, styles.mb0, shouldAlignButtonToMessage ? styles.flexShrink1 : styles.flex1]}
             />
-            <Button
+            <ButtonDisabledWhenOffline
                 size={size}
                 variant={variant}
                 onPress={onRetry}
-                isDisabled={isOffline}
             >
                 <Button.Text>{translate('domain.retry')}</Button.Text>
-            </Button>
+            </ButtonDisabledWhenOffline>
         </View>
     );
 }

@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -94,16 +95,15 @@ function DynamicExitSurveyConfirmPage() {
                 )}
             </View>
             <FixedFooter>
-                <Button
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_TO_CLASSIC}
                     onPress={goToExpensifyClassic}
-                    isDisabled={isOffline}
                 >
                     <Button.KeyboardShortcut />
                     <Button.Text>{translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             </FixedFooter>
         </ScreenWrapper>
     );

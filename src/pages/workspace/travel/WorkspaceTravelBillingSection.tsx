@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -11,7 +12,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -74,7 +74,6 @@ type WorkspaceTravelBillingSectionProps = {
  */
 function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSectionProps) {
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -393,14 +392,13 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                         <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.viewOnSpend')}</Button.Text>
                     </Button>
                     {shouldShowPayButton && canWriteMoreFeatures && (
-                        <Button
+                        <ButtonDisabledWhenOffline
                             onPress={handlePayBalance}
-                            isDisabled={isOffline}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={shouldStackButtons ? styles.flex1 : undefined}
                         >
                             <Button.Text>{payBalanceCtaText}</Button.Text>
-                        </Button>
+                        </ButtonDisabledWhenOffline>
                     )}
                 </View>
             </View>

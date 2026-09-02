@@ -1,5 +1,6 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
@@ -253,16 +254,15 @@ function MultifactorAuthenticationValidateCodePage() {
                             message={errorMessage}
                         />
                     )}
-                    <Button
+                    <ButtonDisabledWhenOffline
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, styles.ph5, styles.pb5, styles.mt4]}
                         onPress={validateAndSubmitForm}
                         isLoading={isValidateCodeFormSubmitting}
-                        isDisabled={isOffline}
                     >
                         <Button.Text>{translate('common.verify')}</Button.Text>
-                    </Button>
+                    </ButtonDisabledWhenOffline>
                 </View>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

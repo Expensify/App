@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -150,23 +151,21 @@ function DynamicExitSurveyReasonPage() {
                 )}
             </FormProvider>
             <FixedFooter>
-                <Button
+                <ButtonDisabledWhenOffline
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={switchToClassic}
-                    isDisabled={isOffline}
                 >
                     <Button.Text>{translate('exitSurvey.goToExpensifyClassic')}</Button.Text>
-                </Button>
-                <Button
+                </ButtonDisabledWhenOffline>
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={goBackJustOnce}
-                    isDisabled={isOffline}
                     style={styles.mt3}
                 >
                     <Button.KeyboardShortcut />
                     <Button.Text>{translate('exitSurvey.goBackJustOnce')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             </FixedFooter>
         </ScreenWrapper>
     );

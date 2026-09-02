@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -10,7 +11,6 @@ import Text from '@components/Text';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -54,7 +54,6 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const {integration, policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const {startIntegrationFlow} = useAccountingActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle']);
     const integrations = policy?.receiptPartners;
@@ -124,22 +123,20 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const buttons = (
         <FixedFooter style={[styles.mtAuto, styles.gap3]}>
             {!!config.claimOfferLink && (
-                <Button
+                <ButtonDisabledWhenOffline
                     onPress={handleClaimOffer}
                     size={CONST.BUTTON_SIZE.LARGE}
-                    isDisabled={isOffline}
                 >
                     <Button.Text>{translate('subscription.billingBanner.earlyDiscount.claimOffer')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             )}
-            <Button
+            <ButtonDisabledWhenOffline
                 onPress={handleConnect}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
-                isDisabled={isOffline}
             >
                 <Button.Text>{config.connectButtonText}</Button.Text>
-            </Button>
+            </ButtonDisabledWhenOffline>
         </FixedFooter>
     );
 

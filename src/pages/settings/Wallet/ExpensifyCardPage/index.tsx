@@ -3,6 +3,7 @@ import cardScarf from '@assets/images/card-scarf.svg';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import CardPreview from '@components/CardPreview';
 import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -464,17 +465,16 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         shouldShowRightComponent={canRevealPIN}
                                         rightComponent={
                                             canRevealPIN ? (
-                                                <Button
+                                                <ButtonDisabledWhenOffline
                                                     onPress={() => {
                                                         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
                                                             cardID: String(currentPhysicalCard?.cardID),
                                                         });
                                                     }}
-                                                    isDisabled={isOffline}
                                                 >
                                                     <Button.Icon src={expensifyIcons.Eye} />
                                                     <Button.Text>{translate('cardPage.revealPin')}</Button.Text>
-                                                </Button>
+                                                </ButtonDisabledWhenOffline>
                                             ) : undefined
                                         }
                                     />

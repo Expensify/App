@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -16,7 +17,6 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -146,7 +146,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const isOtherSelected = selectedIntegration === 'other';
 
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-    const {isOffline} = useNetwork();
     const {completeOnboardingFlow, isLoading: isCompletingOnboarding} = useCompleteOnboarding();
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
@@ -273,17 +272,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 />
             )}
 
-            <Button
+            <ButtonDisabledWhenOffline
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={submitAccounting}
-                isDisabled={isOffline}
                 isLoading={isCompletingOnboarding}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
             >
                 <Button.KeyboardShortcut />
                 <Button.Text>{translate('common.continue')}</Button.Text>
-            </Button>
+            </ButtonDisabledWhenOffline>
         </>
     );
 

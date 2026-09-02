@@ -1,5 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
@@ -7,7 +8,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,7 +46,6 @@ const REQUESTOR_PERSONAL_INFO_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmation, beneficialOwnerKeys, handleUBOEdit}: CompanyOwnersListUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -108,16 +107,15 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                         messages={{error}}
                     />
                 )}
-                <Button
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={isLoading}
-                    isDisabled={isOffline}
                     style={[styles.w100]}
                     onPress={handleUBOsConfirmation}
                 >
                     <Button.Text>{translate('common.confirm')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             </View>
         </ScrollView>
     );

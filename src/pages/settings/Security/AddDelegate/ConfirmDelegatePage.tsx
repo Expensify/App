@@ -1,5 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
+import ButtonDisabledWhenOffline from '@components/ButtonComposed/composed/ButtonDisabledWhenOffline';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import MenuItem from '@components/MenuItem';
@@ -8,7 +9,6 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,7 +33,6 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const styles = useThemeStyles();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
-    const {isOffline} = useNetwork();
 
     const personalDetails = usePersonalDetailByLogin(login);
     const avatarIcon = personalDetails?.avatar ?? icons.FallbackAvatar;
@@ -43,9 +42,8 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const displayName = formatPhoneNumber(personalDetails?.displayName ?? login ?? '');
 
     const submitButton = (
-        <Button
+        <ButtonDisabledWhenOffline
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            isDisabled={isOffline}
             size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
             onPress={() => {
@@ -54,7 +52,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         >
             <Button.KeyboardShortcut />
             <Button.Text>{translate('delegate.addCopilot')}</Button.Text>
-        </Button>
+        </ButtonDisabledWhenOffline>
     );
 
     return (
