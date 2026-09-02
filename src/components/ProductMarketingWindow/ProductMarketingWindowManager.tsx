@@ -81,6 +81,8 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
 
     const isLoadingOnboardingContext = isLoadingOnyxValue(currentAccountIDMetadata, accountMetadata, onboardingMetadata, isLoadingAppMetadata);
     const shouldRecordActiveOnboarding = !isLoadingOnboardingContext && !isLoadingApp && !isActingAsDelegate && currentAccountID !== undefined && hasCompletedGuidedSetupFlow === false;
+    // Record during render so onboarding completion cannot overtake an effect, and scope the latch by account because
+    // account and delegate transitions can preserve this mounted manager while their Onyx state is rehydrating.
     if (shouldRecordActiveOnboarding && !accountIDsWithObservedActiveOnboarding.has(currentAccountID)) {
         setAccountIDsWithObservedActiveOnboarding((accountIDs) => new Set(accountIDs).add(currentAccountID));
     }

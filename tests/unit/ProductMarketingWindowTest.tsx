@@ -301,6 +301,58 @@ describe('ProductMarketingWindowManager', () => {
         });
 
         expect(screen.getByText(memberHeading)).toBeTruthy();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                email: USER_EMAIL,
+                accountID: USER_ACCOUNT_ID,
+            });
+            await Onyx.set(ONYXKEYS.BETAS, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(adminHeading)).toBeNull();
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+    });
+
+    it('does not latch incomplete onboarding observed while acting as a copilot', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                delegatedAccess: {delegate: 'copilot@example.com'},
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.ACCOUNT, {});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
     });
 
     it.each([
