@@ -43,6 +43,7 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
+import type CloudflareSession from './CloudflareSession';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
@@ -54,8 +55,10 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
 import type {
     CardFeedErrorsDerivedValue,
+    GuideAccountIDsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -238,6 +241,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    DatabaseSizeMeasurement,
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
@@ -426,6 +430,7 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
+    GuideAccountIDsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
@@ -439,6 +444,7 @@ export type {
     DomainPendingActions,
     DomainSecurityGroup,
     ChronosTimeTracking,
+    CloudflareSession,
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,

@@ -73,6 +73,7 @@ describe('useSidebarOrderedReports', () => {
                 [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {},
                 [ONYXKEYS.BETAS]: [],
                 [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {reports: {}},
+                [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: [],
             } satisfies OnyxMultiSetInput);
         });
 
@@ -123,8 +124,14 @@ describe('useSidebarOrderedReports', () => {
     it('should prevent unnecessary re-renders when reports have same content but different references', async () => {
         // Given reports with same content but different object references
         const reportsContent = {
-            report1: {reportName: 'Chat 1', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-            report2: {reportName: 'Chat 2', lastVisibleActionCreated: '2024-01-01 11:00:00'},
+            report1: {
+                reportName: 'Chat 1',
+                lastVisibleActionCreated: '2024-01-01 10:00:00',
+            },
+            report2: {
+                reportName: 'Chat 2',
+                lastVisibleActionCreated: '2024-01-01 11:00:00',
+            },
         };
 
         // When the initial reports are set
@@ -323,5 +330,101 @@ describe('useSidebarOrderedReports', () => {
 
         // Then sortReportsToDisplayInLHN should be called when priority mode changes
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalled();
+    });
+
+    it('should recompute all reports when guide accountIDs hydrate and guide emails become available', async () => {
+        const guideAccountID = '8';
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Chat A'},
+        });
+        const domainRoomReport = {
+            reportID: '2',
+            reportName: 'Domain Room',
+            lastVisibleActionCreated: '2024-01-01 10:00:00',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+            participants: {
+                [guideAccountID]: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
+        } as Report;
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, displayedReports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, domainRoomReport);
+            await Onyx.set(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, []);
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // The guide's personal details arriving is what turns the derived value from empty into a populated list.
+        // Deriving that list from the personal details is covered by tests/unit/OnyxDerived/guideAccountIDsTest.ts.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, [Number(guideAccountID)]);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).toHaveBeenCalledWith(
+            expect.objectContaining({
+                updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}1`, `${ONYXKEYS.COLLECTION.REPORT}2`]),
+            }),
+        );
+    });
+
+    it('should not recompute all reports when the guide accountIDs are recomputed to the same set', async () => {
+        const participantAccountID = '8';
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Chat A'},
+        });
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                ...displayedReports['1'],
+                participants: {
+                    [participantAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            });
+            await Onyx.set(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, [Number(participantAccountID)]);
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // An unrelated personal-details change (a new avatar, a display name edit) recomputes the derived value to a
+        // fresh but shallow-equal array. That must not look like guide hydration and force a full LHN re-scan.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, [Number(participantAccountID)]);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        const updateCalls = mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls;
+        const fullRecomputeCall = updateCalls.find((call) => {
+            const updatedReportsKeys = call[0]?.updatedReportsKeys ?? [];
+            return updatedReportsKeys.length > 1;
+        });
+
+        expect(fullRecomputeCall).toBeUndefined();
     });
 });
