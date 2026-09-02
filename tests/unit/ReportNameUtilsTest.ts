@@ -404,6 +404,56 @@ describe('ReportNameUtils', () => {
         });
     });
 
+    describe('computeReportName - Concierge threads', () => {
+        const conciergeReportID = '777';
+        const parentReportActionID = '888';
+        const question = 'How do I set up QuickBooks?';
+
+        const computeConciergeThreadName = (threadReportName: string) => {
+            const conciergeDM = {...createRegularChat(90, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]), reportID: conciergeReportID};
+            const thread: Report = {
+                ...createRegularChat(91, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
+                reportName: threadReportName,
+                parentReportID: conciergeReportID,
+                parentReportActionID,
+            };
+            const parentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: parentReportActionID,
+                message: [{type: 'COMMENT', html: question, text: question}],
+                created: '',
+                lastModified: '',
+                actorAccountID: currentUserAccountID,
+                person: [],
+            });
+
+            return computeReportNameOriginal({
+                dateFnsLocale: undefined,
+                conciergeReportID,
+                report: thread,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`]: conciergeDM},
+                policies: emptyCollections.policies,
+                transactions: undefined,
+                allReportNameValuePairs: undefined,
+                personalDetailsList: participantsPersonalDetails,
+                reportActions: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`]: {[parentReportActionID]: parentAction}},
+                currentUserAccountID,
+                currentUserLogin,
+                reportTransactions: buildTransactionsByReportID(undefined),
+                translate: translateLocal,
+                isTrackIntentUser: false,
+            });
+        };
+
+        test('uses the generated title once Concierge has titled the thread', () => {
+            expect(computeConciergeThreadName('QuickBooks setup')).toBe('QuickBooks setup');
+        });
+
+        test('falls back to the question while the thread still has the default name', () => {
+            expect(computeConciergeThreadName(CONST.REPORT.DEFAULT_REPORT_NAME)).toBe(question);
+        });
+    });
+
     describe('computeReportName - Thread report action names', () => {
         test('Submitted parent action', () => {
             const thread: Report = createWorkspaceThread(50);
