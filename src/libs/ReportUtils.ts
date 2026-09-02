@@ -299,6 +299,7 @@ import {
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
     isTransactionPendingDelete,
+    shouldShowViolation,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -9918,7 +9919,8 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
 /**
  * Whether any transaction on the report carries a violation that should drive the LHN RBR, checking all three violation
  * types. Names in `excludedViolationNames` are dropped before the type checks, so an exclusion holds regardless of which
- * type the back end assigns the violation. Makes a single pass over the report transactions.
+ * type the back end assigns the violation, as are violations the current user cannot see. Makes a single pass over the
+ * report transactions.
  */
 function hasViolationOfAnyTypeForRBRInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
@@ -9934,7 +9936,15 @@ function hasViolationOfAnyTypeForRBRInLHN(
         if (!rawViolations?.length) {
             return false;
         }
-        const violations = excludedViolationNames.length > 0 ? rawViolations.filter((violation) => !excludedViolationNames.includes(violation.name)) : rawViolations;
+        const violations = rawViolations.filter(
+            (violation) =>
+                !excludedViolationNames.includes(violation.name) &&
+                // Only `hasNoticeTypeViolation` applies this predicate internally, so without it here a violation the user
+                // cannot even see — `missingCategory` while auto-categorization is still running, for example — would keep
+                // driving the red dot. `hasVisibleViolationsForUser` is ANDed ahead of this helper, but it reads the raw
+                // list, so a visible violation could otherwise vouch for a hidden one that is left after the name filter.
+                shouldShowViolation(report, policy, violation.name, currentUserEmailParam, currentUserAccountIDParam, true, transaction),
+        );
         if (!violations.length) {
             return false;
         }

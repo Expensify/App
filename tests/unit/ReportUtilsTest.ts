@@ -17369,7 +17369,7 @@ describe('ReportUtils', () => {
              * Builds a submitted (or open) expense report owned by the current user, carrying the supplied violations on a
              * single transaction, and returns the pieces needed to call getViolatingReportIDForRBRInLHN.
              */
-            async function setUpCompanyCardRequiredScenario(scenarioKey: string, violations: TransactionViolation[], isOpen = false) {
+            async function setUpCompanyCardRequiredScenario(scenarioKey: string, violations: TransactionViolation[], isOpen = false, transactionOverrides: Partial<Transaction> = {}) {
                 const policyID = `policy-rbr-company-card-${scenarioKey}`;
                 const chatReportID = `chat-rbr-company-card-${scenarioKey}`;
                 const expenseReportID = `expense-rbr-company-card-${scenarioKey}`;
@@ -17417,6 +17417,7 @@ describe('ReportUtils', () => {
                     currency: CONST.CURRENCY.USD,
                     status: CONST.TRANSACTION.STATUS.POSTED,
                     reimbursable: true,
+                    ...transactionOverrides,
                 };
 
                 const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as OnyxKey;
@@ -17476,6 +17477,29 @@ describe('ReportUtils', () => {
                 ]);
 
                 expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+
+                await Onyx.clear();
+            });
+
+            // hasVisibleViolationsForUser reads the raw violation list, so the visible companyCardRequired satisfies it. Once
+            // companyCardRequired is filtered out by name, the only violation left is one the user cannot see, so the red dot
+            // must go with it rather than being kept alive by a violation that is hidden behind "analyzing category".
+            it('should not surface RBR when the violation left next to companyCardRequired is hidden while the category is being analyzed', async () => {
+                await Onyx.clear();
+
+                const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                    'alongside-hidden',
+                    [
+                        {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                        {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                    ],
+                    false,
+                    // An empty category plus a fresh pendingAutoCategorizationTime puts the transaction inside the one-minute
+                    // auto-categorization window, which is what makes shouldShowViolation hide missingCategory.
+                    {category: '', comment: {pendingAutoCategorizationTime: new Date().toISOString().replace('T', ' ').slice(0, 19)}},
+                );
+
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
 
                 await Onyx.clear();
             });
