@@ -377,7 +377,6 @@ function useReportActionsScroll({
                 introSelected,
                 conciergeChat,
                 betas,
-                personalDetails: undefined,
                 hasReportActions: true,
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

@@ -198,7 +198,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             introSelected,
             conciergeChat,
             betas,
-            personalDetails: undefined,
             hasReportActions,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

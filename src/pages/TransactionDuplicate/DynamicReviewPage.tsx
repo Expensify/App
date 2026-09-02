@@ -128,7 +128,6 @@ function DynamicReviewPage() {
             conciergeChat,
             betas,
             hasReportActions,
-            personalDetails: undefined,
             currentUserAccountID: currentPersonalDetails.accountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,

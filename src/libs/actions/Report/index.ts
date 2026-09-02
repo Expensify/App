@@ -339,14 +339,9 @@ type OpenReportActionParams = {
     /** The list of participants */
     participants?: ParticipantInfo[];
 
-    /**
-     * The personal details of the participants. They are read in two cases:
-     * - when a new report is created (i.e. when `newReportObject` is passed), to build the optimistic created action and the optimistic details of the new participants,
-     * - when a legacy transaction preview is recovered (i.e. when `transaction` is passed without `parentReportActionID`), to build the submitter's name and avatar.
-     *
-     * So `undefined` can only be passed when opening an existing report without a transaction.
-     */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
+    /** The personal details of the participants */
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
 
     /** The optimistic report object created when making a new chat, saved as optimistic data */
     newReportObject?: OptimisticChatReport;
@@ -535,6 +530,14 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (value) => {
         allReports = value;
+    },
+});
+
+let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        allPersonalDetails = value ?? {};
     },
 });
 
@@ -1949,7 +1952,8 @@ function openReport(params: OpenReportActionParams) {
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            emailCreatingAction = personalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
+            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+            emailCreatingAction = (personalDetails ?? allPersonalDetails)?.[newReportObject.ownerAccountID]?.login ?? '';
         }
         const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction});
         optimisticData.push(
@@ -1987,7 +1991,8 @@ function openReport(params: OpenReportActionParams) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
-            const isOptimisticAccount = !personalDetails?.[accountID];
+            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+            const isOptimisticAccount = !(personalDetails ?? allPersonalDetails)?.[accountID];
 
             if (!isOptimisticAccount) {
                 continue;

@@ -85,7 +85,6 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
             introSelected,
             conciergeChat,
             betas,
-            personalDetails: undefined,
             hasReportActions,
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

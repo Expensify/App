@@ -698,7 +698,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 introSelected,
                 conciergeChat,
                 betas,
-                personalDetails: undefined,
                 hasReportActions: true,
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
