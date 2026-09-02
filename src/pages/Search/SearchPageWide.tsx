@@ -164,7 +164,7 @@ function SearchPageWide({
                                 </LayoutAnimationConfig>
                                 {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
                             </View>
-                            <SearchSelectionFooter searchResults={searchResults} />
+                            <SearchSelectionFooter searchResults={contentSearchResults} />
                         </>
                     )}
                 </FullPageNotFoundView>

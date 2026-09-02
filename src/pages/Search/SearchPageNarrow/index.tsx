@@ -387,7 +387,7 @@ function SearchPageNarrow({
                             </>
                         )}
                     </View>
-                    <SearchSelectionFooter searchResults={searchResults} />
+                    <SearchSelectionFooter searchResults={contentSearchResults} />
                 </View>
             </ScreenWrapper>
             {(!useStaticRendering || isHeaderInteractive) && (
