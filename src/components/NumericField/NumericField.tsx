@@ -14,6 +14,7 @@ type NumericFieldProps = {
     /** Canonical value shared by composed primitives; only an empty value resets editing state. */
     value?: string;
 
+    /** Called with the canonical value whenever the user commits an edit. */
     onInputChange?: (value: string) => void;
 
     /** Whether negative values are allowed; the canonical value always stores its sign. */
@@ -28,15 +29,19 @@ type NumericFieldProps = {
     /** Error supplied by FormProvider and rendered by the text input. */
     errorText?: string;
 
+    /** Called when the text input loses focus. */
     onBlur?: BaseTextInputProps['onBlur'];
 
+    /** Called when the user presses the submit key on the text input. */
     onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
 
+    /** Reference forwarded to the underlying text input. */
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Ref exposing the number editing imperative API. */
     numericEditingRef?: ForwardedRef<NumericEditingRef>;
 
+    /** Composed primitives that consume NumericField state and actions through context. */
     children: ReactNode;
 };
 

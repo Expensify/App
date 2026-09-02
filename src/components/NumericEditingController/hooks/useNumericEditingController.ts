@@ -53,7 +53,7 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
 
     const {selection, collapse, reset, moveToEnd, syncAfterEdit, handleKeyPress, rejectEdit, handleNativeSelectionChange} = useNumericSelection({displayText: formattedNumber});
 
-    // Reset when the external value is cleared; ignore other external changes while editing.
+    // Reset when the external value is cleared. Ignore other external changes while editing.
     if (previousExternalValue !== externalValue) {
         setPreviousExternalValue(externalValue);
         if (externalValue === '') {
