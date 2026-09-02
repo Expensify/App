@@ -46,7 +46,7 @@ function OpensInNewTabIcon() {
         <View style={styles.menuItemChevron}>
             <Icon
                 src={icons.NewWindow}
-                fill={StyleUtils.getIconFillColor(getButtonState(isHovered, isPressed))}
+                fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered, isPressed})})}
                 width={variables.iconSizeNormal}
                 height={variables.iconSizeNormal}
             />
