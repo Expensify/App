@@ -113,7 +113,11 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
                     ListItem={SingleSelectListItem}
                     onSelectRow={selectFeed}
                     data={allFeeds.map(toListItem)}
-                    customListHeaderContent={<Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>}
+                    customListHeaderContent={
+                        <Text style={[styles.ph5, styles.mb3, styles.mt1, styles.textNormal]}>
+                            {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.feedSelectorIntro')}
+                        </Text>
+                    }
                     listFooterContent={
                         <MenuItemAction
                             title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.setUpNewFeed')}
