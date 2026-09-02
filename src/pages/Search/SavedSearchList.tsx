@@ -14,8 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import {navigateToSpendSearch} from '@libs/SearchNavigationUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
 
@@ -23,7 +23,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -62,7 +61,7 @@ function buildSavedSearchMenuItem({item, key, index, hash, title, getOverflowMen
         sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
         onPress: () => {
             setSearchContext(false);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+            navigateToSpendSearch(item?.query ?? '', item?.name);
         },
         rightComponent: (
             <SavedSearchItemThreeDotMenu
