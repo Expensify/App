@@ -278,10 +278,6 @@ describe('libs/NextStepUtils', () => {
                     expect(result).toMatchObject(expectedResult);
                 });
 
-                // Waiting for userSubmitter's expense(s) to automatically submit on the 2nd of each month.
-                // The eta is derived from the live clock, so "now" is pinned here. Deriving the expectation from a
-                // real `new Date()` made these cases pass on most days and fail on the 2nd of every month, when the
-                // eta lands on today and `isPast` degenerates into a sub-millisecond comparison against "now".
                 describe('monthly on the 2nd', () => {
                     const buildMonthlyOnThe2ndNextStep = () =>
                         buildOptimisticNextStep({
