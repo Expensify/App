@@ -5030,6 +5030,7 @@ function showReportActionNotification(
     currentUserAccountID: number,
     currentUserLogin: string,
     derivedReportName?: string,
+    derivedMovedFromReportName?: string,
 ) {
     if (!shouldShowReportActionNotification(reportID, topmostOneTransactionThreadReportID, currentUserAccountID, reportAction)) {
         return;
@@ -5056,7 +5057,7 @@ function showReportActionNotification(
             movedFromReport,
             movedToReport,
             currentUserLogin,
-            derivedReportName,
+            derivedReportName: derivedMovedFromReportName,
         });
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName);

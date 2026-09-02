@@ -28,6 +28,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
+import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -691,7 +692,16 @@ function triggerNotifications<TKey extends OnyxKey>(
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentUserEmail
-                showReportActionNotification(reportID, action, topmostOneTransactionThreadReportID, currentUserAccountID, currentUserEmail, reportAttributes?.[reportID]?.reportName);
+                const derivedMovedFromReportName = reportAttributes?.[getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM) ?? '']?.reportName;
+                showReportActionNotification(
+                    reportID,
+                    action,
+                    topmostOneTransactionThreadReportID,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    reportAttributes?.[reportID]?.reportName,
+                    derivedMovedFromReportName,
+                );
             }
         }
     }

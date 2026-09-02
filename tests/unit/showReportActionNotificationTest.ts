@@ -100,6 +100,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            undefined,
             DERIVED_REPORT_NAME,
         );
         await waitForBatchedUpdates();
@@ -128,6 +129,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            undefined,
             undefined,
         );
         await waitForBatchedUpdates();
