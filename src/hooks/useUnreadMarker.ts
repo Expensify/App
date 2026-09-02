@@ -35,6 +35,10 @@ type UseUnreadMarkerParams = {
 
     /** Whether report actions have loaded at least once; once true, the pagination anchor is ignored in favor of the scan */
     hasOnceLoadedReportActions: boolean;
+
+    /** Concierge hidden-history boundary: actions created before this were revealed/loaded from history,
+     * not received live, so they are never treated as read-on-arrival */
+    newMessageBoundaryTime?: string | null;
 };
 
 type UseUnreadMarkerResult = {
@@ -54,6 +58,7 @@ function useUnreadMarker({
     oldestUnreadReportActionID,
     isScrolledOverThreshold,
     hasOnceLoadedReportActions,
+    newMessageBoundaryTime,
 }: UseUnreadMarkerParams): UseUnreadMarkerResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
@@ -123,6 +128,7 @@ function useUnreadMarker({
         isAnonymousUser,
         prevUnreadMarkerReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
+        newMessageBoundaryTime,
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.

@@ -125,7 +125,6 @@ describe('useUnreadMarker', () => {
     });
 
     it('keeps the unread marker when Concierge hidden history is revealed at once (side panel "Show history")', () => {
-        // Welcome mode: the visible list is only [synthetic greeting, CREATED]; the unread message is filtered out.
         const greeting = makeAction(CONST.CONCIERGE_GREETING_ACTION_ID, {created: LAST_READ_TIME});
         const createdAction = makeAction('created', {created: '2023-01-01 08:00:00.000', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
         const welcomeActions = [greeting, createdAction];
@@ -144,23 +143,72 @@ describe('useUnreadMarker', () => {
         );
         expect(result.current.unreadMarkerReportActionID).toBeNull();
 
-        // Opening the panel marks the report read, which bumps report.lastReadTime and re-stamps the
-        // greeting's `created` to "now". The synthetic greeting must not drive the watermark forward.
         const bumpedGreeting = makeAction(CONST.CONCIERGE_GREETING_ACTION_ID, {created: '2023-01-01 12:00:00.000'});
         rerender([bumpedGreeting, createdAction]);
         expect(result.current.unreadMarkerReportActionID).toBeNull();
 
-        // "Show history" reveals the real history in one render. All of it is new to the list, so the
-        // scan is suppressed this render — but the watermark must not be pushed past the unread message.
         const unreadMessage = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
         const readMessage = makeAction('read', {created: '2023-01-01 09:00:00.000'});
         const fullHistory = [unreadMessage, readMessage, createdAction];
         rerender(fullHistory);
 
-        // On the next render the actions are no longer "new" and the marker lands on the unread message.
         rerender(fullHistory);
         expect(result.current.unreadMarkerReportActionID).toBe('unread');
         expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('shows the marker immediately on the reveal render when a session boundary is provided ("Show history")', () => {
+        const sessionStartTime = '2023-01-01 11:30:00.000';
+        const greeting = makeAction(CONST.CONCIERGE_GREETING_ACTION_ID, {created: LAST_READ_TIME});
+        const createdAction = makeAction('created', {created: '2023-01-01 08:00:00.000', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
+
+        const {result, rerender} = renderHook(
+            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions,
+                    sortedReportActions: sortedVisibleReportActions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                    newMessageBoundaryTime: sessionStartTime,
+                }),
+            {initialProps: [greeting, createdAction]},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const unreadMessage = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
+        const readMessage = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        rerender([unreadMessage, readMessage, createdAction]);
+
+        expect(result.current.unreadMarkerReportActionID).toBe('unread');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('still auto-reads a live message received while caught up when a session boundary is provided', () => {
+        const sessionStartTime = '2023-01-01 10:30:00.000';
+        const oldMessage = makeAction('old', {created: '2023-01-01 09:00:00.000'});
+
+        const {result, rerender} = renderHook(
+            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions,
+                    sortedReportActions: sortedVisibleReportActions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                    newMessageBoundaryTime: sessionStartTime,
+                }),
+            {initialProps: [oldMessage]},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const incoming = makeAction('incoming', {created: '2023-01-01 11:00:00.000'});
+        rerender([incoming, oldMessage]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        rerender([incoming, oldMessage]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
     });
 
     it('still pushes the watermark past a new message received while caught up', () => {
@@ -180,8 +228,6 @@ describe('useUnreadMarker', () => {
         );
         expect(result.current.unreadMarkerReportActionID).toBeNull();
 
-        // A new message arrives while the user is at the bottom with the window focused: the marker is
-        // suppressed and the watermark advances past it, so it stays suppressed on later renders too.
         const incoming = makeAction('incoming', {created: '2023-01-01 11:00:00.000'});
         rerender([incoming, oldMessage]);
         expect(result.current.unreadMarkerReportActionID).toBeNull();

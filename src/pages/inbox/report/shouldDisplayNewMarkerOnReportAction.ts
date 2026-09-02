@@ -32,6 +32,10 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     prevUnreadMarkerReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
+
+    /** Actions created before this time cannot have "just arrived" (e.g. Concierge history revealed via "Show history"),
+     * so the live auto-read suppression for new-to-list messages does not apply to them */
+    newMessageBoundaryTime?: string | null;
 };
 
 /**
@@ -49,6 +53,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     isOffline,
     prevUnreadMarkerReportActionID,
     hasWindowFocus = true,
+    newMessageBoundaryTime,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
 
@@ -96,7 +101,12 @@ const shouldDisplayNewMarkerOnReportAction = ({
         return false;
     }
 
-    return !isNewMessage || isScrolledOverThreshold || !hasWindowFocus;
+    // An action created before the session boundary was revealed or loaded from history, not received live,
+    // so it is never treated as read-on-arrival.
+    const isRevealedHistoryMessage = !!newMessageBoundaryTime && message.created < newMessageBoundaryTime;
+
+    const result = !isNewMessage || isRevealedHistoryMessage || isScrolledOverThreshold || !hasWindowFocus;
+    return result;
 };
 
 export default shouldDisplayNewMarkerOnReportAction;
@@ -133,6 +143,10 @@ type GetUnreadMarkerReportActionParams = {
     prevUnreadMarkerReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
+
+    /** Actions created before this time cannot have "just arrived" (e.g. Concierge history revealed via "Show history"),
+     * so the live auto-read suppression for new-to-list messages does not apply to them */
+    newMessageBoundaryTime?: string | null;
 };
 
 /**
@@ -151,6 +165,7 @@ const getUnreadMarkerReportAction = ({
     isAnonymousUser = false,
     prevUnreadMarkerReportActionID,
     hasWindowFocus = true,
+    newMessageBoundaryTime,
 }: GetUnreadMarkerReportActionParams): [string | null, number] => {
     if (isAnonymousUser) {
         return [null, -1];
@@ -192,6 +207,7 @@ const getUnreadMarkerReportAction = ({
                 isOffline,
                 prevUnreadMarkerReportActionID,
                 hasWindowFocus,
+                newMessageBoundaryTime,
             });
 
         if (shouldShowMarker) {
