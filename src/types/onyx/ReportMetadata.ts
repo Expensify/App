@@ -34,6 +34,11 @@ type ReportMetadata = {
 
     /** Transaction IDs that were just submitted/moved to this report and should be highlighted on first load */
     pendingNewTransactionIDs?: Record<string, true | null>;
+
+    /** How many `errorFields.export` entries the report carried when a manual export was started from this client,
+     *  so if a new export error entry is added it means the export attempt failed.
+     * */
+    exportErrorCountAtRequest?: number | null;
 };
 
 export default ReportMetadata;
