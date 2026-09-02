@@ -13,7 +13,7 @@ Connect DualEntry to your Expensify workspace to sync your accounting data. This
 Once connected, the integration imports:
 
 - Your chart of accounts as categories.
-- Your DualEntry dimensions as tags.
+- Your DualEntry classifications as tags when enabled.
 - Tax rates (when available).
 
 ---
@@ -22,8 +22,7 @@ Once connected, the integration imports:
 
 To connect DualEntry, you must:
 
-- Be a Workspace Admin.
-- Be using a workspace on the **Control** plan.
+- Be a Workspace Admin with a workspace on the Control plan.
 - Be able to generate an API key in DualEntry.
 
 ---
@@ -33,7 +32,8 @@ To connect DualEntry, you must:
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Accounting**.
 3. In the **Connections** section next to **DualEntry**, select **Connect**.
-4. In the **DualEntry setup** page that opens, follow the on-screen instructions to generate an API key in DualEntry, paste it into the **API key** field, and click **Confirm**.
+4. In the **DualEntry setup** pages, follow the on-screen instructions to generate an API key in DualEntry.
+5. Paste the key into the **API key** field and select **Confirm**.
 
 Expensify validates the API key, connects to your DualEntry organization, and retrieves your available subsidiaries.
 
@@ -57,15 +57,15 @@ After the initial sync completes, you can configure your import, export, and adv
 
 ---
 
-## How to disconnect DualEntry
+## How to reconnect DualEntry after an authentication error
+
+If the saved API key becomes invalid, Expensify displays an error on the DualEntry connection. To reconnect to DualEntry:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Accounting**.
-3. In the **Connections** section next to **DualEntry**, select the three dots **(⋮)**.
-4. Choose **Disconnect**.
-5. Confirm the disconnect.
-
-Disconnecting DualEntry stops future synchronization and removes the connection from the workspace.
+3. Next to the DualEntry connection, select the three dots **(⋮)**.
+4. Select **Reconnect**.
+5. Enter a valid DualEntry API key and select **Confirm**.
 
 ---
 
@@ -73,7 +73,7 @@ Disconnecting DualEntry stops future synchronization and removes the connection 
 
 ## Where do I generate my API key?
 
-Generate the API key in DualEntry, then paste it into the **API key** field during setup. The connection window includes instructions for locating your API key.
+Generate the API key in DualEntry, then paste it into the **API key** field during setup. The connection window includes instructions for generating an API key in DualEntry.
 
 ## Is my API key secure?
 
@@ -85,8 +85,12 @@ If your DualEntry API key is rejected or later becomes invalid, the connection s
 
 ## Why don't I see tax rates after connecting?
 
-Tax rates are only imported if your DualEntry subsidiary returns them. If no tax rates are available, tax rate options won't appear in Expensify.
+Tax rates are only available when DualEntry returns active VAT or GST rates for your organization. When available, tax rate import is off by default and can be enabled from the DualEntry **Import** settings.
 
 ## Can I change which subsidiary is used?
 
 Yes. If your DualEntry organization has multiple subsidiaries, you can select a different subsidiary at any time from the **Connections** section. Expensify will sync data from the newly selected subsidiary, including its accounts, dimensions, and tax rates.
+
+## How can I disconnect DualEntry from a workspace?
+
+You can disconnect DualEntry from the **Accounting** page. Select the three dots **(⋮)** next to DualEntry and select **Disconnect**. Disconnecting DualEntry stops future synchronization and removes the connection from the workspace.
