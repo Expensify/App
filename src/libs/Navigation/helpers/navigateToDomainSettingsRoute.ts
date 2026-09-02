@@ -1,3 +1,6 @@
+/**
+ * Keeps the persistent wide-layout Domain sidebar pointed at the destination Domain when Search Router navigation crosses Domains.
+ */
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
