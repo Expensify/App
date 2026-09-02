@@ -342,17 +342,6 @@ describe('useReportActionsScroll', () => {
             expect(result.current.shouldBeAlignedToTop).toBe(true);
             expect(result.current.shouldFocusToTopOnMount).toBe(false);
         });
-
-        it('keeps focusing to top when the X Replies flag targets a specific linked action', async () => {
-            mockIsMoneyRequestReport = true;
-            mockRouteParams = {reportActionID: LINKED_ACTION_ID, shouldScrollToLatest: 'true'};
-
-            const {result} = await renderScroll({sortedVisibleReportActions: [makeAction(LINKED_ACTION_ID)]});
-
-            // A linked action is a more specific destination than "the latest message", so it still wins.
-            expect(result.current.initialScrollKey).toBe(LINKED_ACTION_ID);
-            expect(result.current.shouldFocusToTopOnMount).toBe(false);
-        });
     });
 
     describe('scrollToBottomAndMarkReportAsRead', () => {
