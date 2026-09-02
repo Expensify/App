@@ -1,7 +1,7 @@
 ---
 title: Use a Free Submit Workspace
 description: Learn how to use a free Submit workspace in New Expensify to code expenses, submit them to an approver, and track which reports have been paid.
-keywords: [New Expensify, Submit workspace, free plan, get paid back, submit expenses, approver, Editor role, Received Payment]
+keywords: [New Expensify, Submit workspace, free plan, get paid back, submit expenses, approver, Editor role, Received Payment, Submit workspace email link, workspace I didn't create]
 internalScope: Audience is employees who want to get reimbursed by their employer. Covers creating a Submit workspace, submitting expenses to an approver, and tracking payment. Does not cover Collect or Control workspace configuration.
 ---
 
@@ -21,7 +21,7 @@ Premium features are not included in a Submit workspace. To use approvals, payme
 
 ## How to create a Submit workspace
 
-You can create a Submit workspace when you create your Expensify account or on the Expensify pricing and plans page.
+You can create a Submit workspace when you create your Expensify account, on the Expensify pricing and plans page, or from a link Expensify emails you.
 
 When creating your Expensify account:
 
@@ -34,6 +34,14 @@ If you already have an Expensify account:
 1. Go to the [Expensify pricing and plans page](www.expensify.com/pricing).
 2. Find the Submit plan.
 3. Click **Get started**.
+
+If Expensify emails you a link to start submitting expenses:
+
+1. Click the link in the email.
+2. Sign in to Expensify if you aren't signed in already.
+3. A Submit workspace is created for you automatically, and you land on the **Expenses** page in the **Spend** tab.
+
+The email link never creates a duplicate workspace. If you already belong to a workspace where you can submit expenses, or you've already used the link, no new workspace is created and nothing else about your account changes. If you haven't finished setting up your Expensify account yet, the link takes you through the normal account setup instead, where you can select **Submit expenses to my employer**.
 
 
 ## What happens after you create a Submit workspace
@@ -156,6 +164,10 @@ If they don't upgrade:
 ## Can I downgrade a paid workspace back to a Submit workspace?
 
 No. Once a workspace is upgraded to Collect or Control, it can't be downgraded back to Submit. To use a Submit workspace again, delete the upgraded workspace and create a new Submit workspace.
+
+## Why do I have a Submit workspace I didn't create?
+
+If you clicked a link in an email from Expensify inviting you to start submitting expenses, a Submit workspace was created for you so you could start submitting right away. There's no cost to keep it. If you don't want it, [learn how to delete a workspace](/articles/new-expensify/workspaces/Delete-a-Workspace).
 
 ## Why can't I see other members' expenses in my Submit workspace?
 
