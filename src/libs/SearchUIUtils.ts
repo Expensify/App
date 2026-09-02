@@ -153,6 +153,7 @@ import {
 import {deprecatedGetReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
+    buildOutstandingReportsByPolicyID,
     canDeleteMoneyRequestReport,
     canUserPerformWriteAction,
     findSelfDMReportID,
@@ -2550,6 +2551,22 @@ function getViolationsFromSearchData(data: OnyxTypes.SearchResults['data']): Ony
         violations[key] = data[key];
     }
     return violations;
+}
+
+/** Group the search results' expense reports the same way the outstandingReportsByPolicyID derived value groups the ones in Onyx. */
+function getOutstandingReportsByPolicyIDFromSearchData(data: OnyxTypes.SearchResults['data'] | undefined): OnyxTypes.OutstandingReportsByPolicyIDDerivedValue {
+    if (!data) {
+        return {};
+    }
+
+    const reports: OnyxCollection<OnyxTypes.Report> = {};
+    for (const key of Object.keys(data)) {
+        if (!isReportEntry(key)) {
+            continue;
+        }
+        reports[key] = data[key];
+    }
+    return buildOutstandingReportsByPolicyID(reports);
 }
 
 /**
@@ -7214,6 +7231,7 @@ export {
     getSuggestedSearchesVisibility,
     getSortedSections,
     getSortedTransactionData,
+    getOutstandingReportsByPolicyIDFromSearchData,
     getViolationsFromSearchData,
     getTransactionsByReportID,
     isTransactionMatchWithGroupItem,
