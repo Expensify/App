@@ -309,8 +309,16 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     // One rule per category is saved, so the condition row lists every category the admin picked.
     const categoriesToMatchDisplayName = hasCategoryCondition ? categoriesToMatch.map(getDecodedCategoryName).join(', ') : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
-    // Stay undefined when empty so the row reads as unset rather than blank.
-    const taxDisplayName = () => getTaxRateDisplayName(policy, isCategoryRule ? categoryTaxID : form?.tax) || undefined;
+    // Only a rate the workspace still has. A rule keeps the ID of a deleted rate, and `getTaxRateDisplayName` falls
+    // back to it so the table can hold the ID until the tax list hydrates. Here that would print the raw ID at the
+    // admin, so the row reads as unset instead and they can pick a rate that exists.
+    const taxDisplayName = () => {
+        const taxRateID = isCategoryRule ? categoryTaxID : form?.tax;
+        if (!taxRateID || !policy?.taxRates?.taxes?.[taxRateID]) {
+            return undefined;
+        }
+        return getTaxRateDisplayName(policy, taxRateID) || undefined;
+    };
 
     /**
      * Checks if there's a duplicate rule with the same merchant name and match type.
