@@ -1,8 +1,8 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories]
-internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, and inline category creation from the expense flow. Does not cover personal expense rules or accounting integration setup.
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories, auto-categorize new expenses, turn off automatic categorization, disable auto categorization]
+internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, inline category creation from the expense flow, and the Auto-categorize new expenses setting. Does not cover personal expense rules or accounting integration setup.
 ---
 
 # Create Expense Categories
@@ -146,6 +146,8 @@ Category Rules apply to all members who use that category. If both a Category Ru
 
 Expensify offers two ways to automatically apply categories based on merchant:
 
+Automatic categorization is controlled by the **Auto-categorize new expenses** setting, which is enabled by default. While it's enabled, Expensify picks a category for new expenses that don't already have one, and the **Category** field shows a short analyzing state on the expense while that happens.
+
 ## How learned categorization works
 
 Expensify learns your category preferences over time and suggests them automatically based on the merchant.
@@ -173,6 +175,34 @@ Workspace Admins can configure [**Workspace Merchant Rules**](https://help.expen
 - Rules apply across all expenses on the workspace.
 - Rules take precedence over learned suggestions.
 - If a category is already set manually, Expensify won't override it.
+
+## How to turn off Auto-categorize new expenses
+
+Workspace Admins who want members to choose every category themselves can turn off automatic categorization for the workspace.
+
+1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Categories**.
+3. Select **More**.
+4. Select **Settings**.
+5. Turn off **Auto-categorize new expenses**.
+
+This setting is only available when categories are enabled on the workspace and at least one category is enabled.
+
+<!-- SCREENSHOT:
+Suggestion: The Categories **Settings** page showing the **Members must categorize all expenses** and **Auto-categorize new expenses** toggles, with **Auto-categorize new expenses** highlighted.
+Location: Immediately after the numbered steps in this section.
+Purpose: Admins reach this page looking for the required-category toggle and don't realize a second, separate toggle controls automatic categorization; showing both together prevents them from turning off the wrong one.
+-->
+
+## What happens when Auto-categorize new expenses is turned off
+
+- New expenses are created without a category. Expensify doesn't pick one for them.
+- The **Category** field no longer shows the analyzing state while an expense is created.
+- If **Members must categorize all expenses** is also enabled, the missing category violation appears right away instead of after Expensify finishes analyzing the expense.
+- Existing expenses keep the categories they already have.
+- Members and Workspace Admins can still set a category manually on any expense.
+
+Turning the setting back on restores automatic categorization for expenses created from that point forward. It doesn't categorize expenses that were created while the setting was off.
 
 ---
 
