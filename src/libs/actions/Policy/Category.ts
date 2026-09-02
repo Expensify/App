@@ -271,15 +271,27 @@ function isDefaultMccGroupID(groupID: string): groupID is DefaultMccGroupID {
     return Object.hasOwn(CONST.POLICY.DEFAULT_MCC_GROUPS, groupID);
 }
 
+/**
+ * Picks the right translation key for an import result. The four cases (neither, added only, updated
+ * only, both) live here rather than in the translation files so each key carries a single `count` and
+ * can be pluralized per locale -- a translation function receiving two independent counts cannot be.
+ */
 function getImportCategoriesFinalModal({added, updated}: {added: number; updated: number}): ImportFinalModal {
-    return {
-        titleKey: 'spreadsheet.importSuccessfulTitle',
-        promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
-        promptKeyParams: {
-            added,
-            updated,
-        },
-    };
+    const titleKey = 'spreadsheet.importSuccessfulTitle' as const;
+
+    if (!added && !updated) {
+        return {titleKey, promptKey: 'spreadsheet.importCategoriesNoneAddedOrUpdated'};
+    }
+
+    if (added && updated) {
+        return {titleKey, promptKey: 'spreadsheet.importCategoriesAddedAndUpdated', promptKeyParams: {added, updated}};
+    }
+
+    if (added) {
+        return {titleKey, promptKey: 'spreadsheet.importCategoriesAdded', promptKeyParams: {count: added}};
+    }
+
+    return {titleKey, promptKey: 'spreadsheet.importCategoriesUpdated', promptKeyParams: {count: updated}};
 }
 
 function openPolicyCategoriesPage(policyID: string) {
@@ -1272,6 +1284,62 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY, parameters, onyxData);
 }
 
+function setPolicyAutoCategorizeNewExpenses(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    autoCategorizeNewExpenses: enabled,
+                    errorFields: {
+                        autoCategorizeNewExpenses: null,
+                    },
+                    pendingFields: {
+                        autoCategorizeNewExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errorFields: {
+                        autoCategorizeNewExpenses: null,
+                    },
+                    pendingFields: {
+                        autoCategorizeNewExpenses: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    autoCategorizeNewExpenses: !enabled,
+                    errorFields: {
+                        autoCategorizeNewExpenses: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
+                    },
+                    pendingFields: {
+                        autoCategorizeNewExpenses: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        enabled,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_AUTO_CATEGORIZE_NEW_EXPENSES, parameters, onyxData);
+}
+
 function setPolicyShowCategoryGLCodes(policyID: string | undefined, showCategoryGLCodes: boolean) {
     if (!policyID) {
         return;
@@ -1992,5 +2060,6 @@ export {
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
+    setPolicyAutoCategorizeNewExpenses,
     setPolicyShowCategoryGLCodes,
 };

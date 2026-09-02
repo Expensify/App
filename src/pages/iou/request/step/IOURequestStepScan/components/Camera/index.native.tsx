@@ -11,9 +11,9 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
-import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
+import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
@@ -22,6 +22,7 @@ import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/componen
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
+import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -61,6 +62,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
     const onFocusCleanup = () => {
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
     };
 
@@ -117,6 +119,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         }
 
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
     };
 
@@ -125,7 +128,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE},
             });
         }
 
@@ -154,7 +157,13 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
+                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: shouldTakePhoto({flash, hasFlash, isInLandscapeMode})
+                    ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO
+                    : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
+                [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
+            },
         });
 
         isCapturingPhoto.current = true;
@@ -164,7 +173,13 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
             .then((photo: PhotoFile) => {
-                endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+                endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
+                    [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
+                    [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: photo.height,
+                });
+                if (!isMultiScanEnabled) {
+                    startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.NATIVE);
+                }
                 return ReceiptStorage.adopt(photo.path);
             })
             .then((durableName) => {
@@ -232,7 +247,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             isAttachmentPickerActive={isAttachmentPickerActive}
                             didCapturePhoto={didCapturePhoto}
                             onInitialized={handleCameraInitialized}
-                            shouldShowFlashButton={canUseMultiScan}
+                            canUseMultiScan={canUseMultiScan}
                             cameraPermissionStatus={cameraPermissionStatus}
                             flash={flash}
                             hasFlash={hasFlash}

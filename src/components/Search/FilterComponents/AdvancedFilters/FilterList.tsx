@@ -94,7 +94,7 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
                     </Text>
                     <Icon
                         src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isSelected, pressed))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isSelected, isPressed: pressed})})}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />

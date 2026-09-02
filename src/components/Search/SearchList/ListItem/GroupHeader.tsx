@@ -6,6 +6,7 @@ import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -184,6 +185,13 @@ function GroupHeader({
         keyForList: item.groupKeyForList,
     });
 
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        shouldApplyOtherStyles: false,
+    });
+
     const handleSelectionButtonPress = () => {
         onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
@@ -356,7 +364,7 @@ function GroupHeader({
                 role={getButtonRole(true)}
                 isNested
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
                 onFocus={onFocus}
@@ -366,7 +374,7 @@ function GroupHeader({
                 ]}
                 wrapperStyle={[
                     styles.mh5,
-                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
+                    animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItemCollapsed, isItemSelected), isLastItemCollapsed && styles.overflowHidden]

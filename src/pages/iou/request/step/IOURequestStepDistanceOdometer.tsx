@@ -3,14 +3,13 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -161,7 +160,7 @@ function IOURequestStepDistanceOdometer({
         [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam],
     );
     const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isOdometerDistanceRequest: true,
     });
@@ -484,7 +483,7 @@ function IOURequestStepDistanceOdometer({
 
     // Handle form submission with validation
     const handleNext = () => {
-        if (blockManualOrOdometerDistanceRequestIfNeeded()) {
+        if (blockDistanceRequestIfNeeded()) {
             return;
         }
 
@@ -618,10 +617,7 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            <ScrollView
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
-            >
+            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
                 <View>
                     {/* Start Reading */}
                     <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
@@ -756,7 +752,7 @@ function IOURequestStepDistanceOdometer({
                         <Button.Text>{buttonText}</Button.Text>
                     </Button>
                 </View>
-            </ScrollView>
+            </View>
         </StepScreenWrapper>
     );
 }

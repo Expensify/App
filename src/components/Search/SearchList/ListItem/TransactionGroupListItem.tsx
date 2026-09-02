@@ -7,6 +7,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -164,7 +165,6 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
@@ -180,13 +180,19 @@ function TransactionGroupListItemImpl({
             offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
     const StyleUtils = useStyleUtils();
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
     const isItemSelected = isSelectAllChecked || (liveRowSelected && (isExpenseReportType || transactionsWithoutPendingDelete.length === 0));
+
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        shouldApplyOtherStyles: false,
+    });
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
@@ -214,9 +220,8 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
-    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
 
     const wasScreenFocusedRef = useRef(isScreenFocused);
     useEffect(() => {
@@ -238,9 +243,8 @@ function TransactionGroupListItemImpl({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
-    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
 
     const handleToggle = () => {
         setIsExpanded((prev) => {
@@ -516,7 +520,7 @@ function TransactionGroupListItemImpl({
                 role={getButtonRole(true)}
                 isNested
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
                 style={[
@@ -526,7 +530,7 @@ function TransactionGroupListItemImpl({
                 onFocus={onFocus}
                 wrapperStyle={[
                     styles.mh5,
-                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
+                    animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]

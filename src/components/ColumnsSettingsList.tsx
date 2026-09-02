@@ -236,7 +236,6 @@ function ColumnsSettingsList({
         return (
             <MultiSelectListItem
                 item={item}
-                keyForList={item.keyForList}
                 isFocused={isFocused}
                 showTooltip={false}
                 onSelectRow={onSelectItem}

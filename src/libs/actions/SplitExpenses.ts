@@ -5,7 +5,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getTransactionDetails, isOpenReport, isSelfDM} from '@libs/ReportUtils';
+import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -19,7 +19,14 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, resolveSplitItemReportID, resolveSplitMileageRate, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
+import {
+    getSplitReimbursable,
+    initDraftSplitExpenseDataForEdit,
+    initSplitExpenseItemData,
+    resolveSplitItemReportID,
+    resolveSplitMileageRate,
+    updateSplitExpenseDistanceFromAmount,
+} from './IOU/SplitExpenseItems';
 
 // We read the whole transactions collection here only because `initSplitExpense` runs in the action
 // layer (not a component/hook), where `useOnyx` can't be called, and it doesn't affect UI rendering, so
@@ -61,7 +68,7 @@ function initSplitExpense(
     personalPolicyOutputCurrency: string | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
-    {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
+    {navigateToEditSplitExpense = false}: {navigateToEditSplitExpense?: boolean} = {},
 ): void {
     if (!transaction) {
         return;
@@ -73,18 +80,13 @@ function initSplitExpense(
     }
 
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-
-    if (isProduction && (isSelfDM(report) || isSelfDM(parentReport))) {
-        return;
-    }
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID, isProduction);
-    const hasMultipleSplits = getChildTransactions(allTransactions, originalTransactionID, false).length > 1;
+    const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID);
+    const hasMultipleSplits = relatedTransactions.length > 1;
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const isReportOpen = isOpenReport(transactionReport);
-    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || (isProduction && isReportOpen));
+    const shouldShowSplitIndicator = isExpenseSplit && hasMultipleSplits;
 
     const isSelfDMReport = isSelfDM(report) || isSelfDM(parentReport);
 
@@ -109,7 +111,7 @@ function initSplitExpense(
                 selfDMContextReportID: isSelfDMReport ? reportID : undefined,
                 selfDMReportIDFallback: selfDMReportID,
             });
-            return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true, reportID: itemReportID});
+            return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true, reportID: itemReportID, policy: effectivePolicy, getCurrencyDecimals});
         });
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,
@@ -122,7 +124,7 @@ function initSplitExpense(
                 merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
                 attendees: transactionDetails?.attendees as Attendee[],
                 reportID,
-                reimbursable: transactionDetails?.reimbursable,
+                reimbursable: getSplitReimbursable(effectivePolicy, transactionDetails?.reimbursable, originalTransaction),
             },
         });
 
@@ -132,7 +134,8 @@ function initSplitExpense(
                 ? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID))
                 : createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(reportID, originalTransactionID));
             initDraftSplitExpenseDataForEdit(draftTransaction, transaction.transactionID, reportID);
-            Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, originalTransactionID, transaction.transactionID, splitExpenseOverviewRoute));
+            Navigation.navigate(splitExpenseOverviewRoute);
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, transaction.transactionID), splitExpenseOverviewRoute));
             return;
         }
         if (isSearchTopmostFullScreenRoute()) {
@@ -195,6 +198,8 @@ function initSplitExpense(
             customUnit: splitCustomUnits.at(0),
             merchant: splitMerchants.at(0),
             isManuallyEdited: false,
+            policy: effectivePolicy,
+            getCurrencyDecimals,
         }),
         initSplitExpenseItemData(transaction, transactionReport, {
             amount: splitAmounts.at(1) ?? 0,
@@ -204,6 +209,8 @@ function initSplitExpense(
             customUnit: splitCustomUnits.at(1),
             merchant: splitMerchants.at(1),
             isManuallyEdited: false,
+            policy: effectivePolicy,
+            getCurrencyDecimals,
         }),
     ];
 
@@ -219,7 +226,7 @@ function initSplitExpense(
             participants: transaction?.participants,
             attendees: transactionDetails?.attendees as Attendee[],
             reportID,
-            reimbursable: transactionDetails?.reimbursable,
+            reimbursable: getSplitReimbursable(effectivePolicy, transactionDetails?.reimbursable, transaction),
             customUnit: transaction?.comment?.customUnit,
             odometerStart: transaction?.comment?.odometerStart,
             odometerEnd: transaction?.comment?.odometerEnd,

@@ -10,7 +10,6 @@ import type {
     TransactionThreadInfo,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -860,6 +859,7 @@ type ChangeTransactionsReportProps = {
     selfDMReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -880,6 +880,7 @@ function getChangeTransactionsReportOnyxData({
     selfDMReportActions,
     delegateAccountID,
     getCurrencyDecimals,
+    getCurrencySymbol,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -2034,8 +2035,8 @@ function getDefaultP2PMileageRate() {
     API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
 }
 
-function mergeExpenseAddedGrowlTransactionIDs(data: Record<string, SearchDataTypes | null>) {
-    return Onyx.merge(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS, data);
+function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {
+    return Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[type]: data});
 }
 
 function getDuplicateTransactionDetails(transactionID?: string) {
@@ -2072,7 +2073,7 @@ export {
     getChangeTransactionsReportOnyxData,
     setTransactionReport,
     getDefaultP2PMileageRate,
-    mergeExpenseAddedGrowlTransactionIDs,
+    mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
     setSelectedRoute,
 };

@@ -123,7 +123,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
 
     const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
-    const exportedReportActions = actionsData ? Object.values(actionsData) : [];
+    const reportActions = actionsData ? Object.values(actionsData) : [];
 
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
@@ -139,7 +139,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const allViolations: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolationsForRow};
     const parentReportActionID = transactionItem?.reportAction?.reportActionID;
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {
-        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${parentReportActionID}`],
+        selector: (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => actions?.[`${parentReportActionID}`],
     });
     const currentUserDetails = useCurrentUserPersonalDetails();
     const chatReportID = snapshotReport?.chatReportID ?? snapshotReport?.parentReportID;
@@ -160,7 +160,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         reportID: transactionItem.reportID,
         itemKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`,
         snapshotData,
-        snapshotActions: exportedReportActions,
+        snapshotActions: reportActions,
         enabled: !!snapshotData,
     });
     const transactionPreviewData: TransactionPreviewData = {
@@ -186,7 +186,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>
             !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, submitterLogin, policyForViolations) &&
-            shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transactionItem),
+            shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', currentUserDetails.accountID, false, transactionItem),
     );
 
     const isInvoice = isInvoiceReport(reportForViolations) || reportForViolations.type === CONST.REPORT.TYPE.INVOICE;
@@ -275,7 +275,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         handleActionButtonPress,
         shouldDisableActionPointerEvents: shouldDisableSearchSubmitPress,
         transactionPreviewData,
-        exportedReportActions,
+        reportActions,
         policyCategories,
         policyTagLists,
         rowPolicy,

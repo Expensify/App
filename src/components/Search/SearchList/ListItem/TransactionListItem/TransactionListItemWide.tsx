@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -42,7 +43,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     handleActionButtonPress,
     shouldDisableActionPointerEvents,
     transactionPreviewData,
-    exportedReportActions,
+    reportActions,
     policyCategories,
     policyTagLists,
     rowPolicy,
@@ -144,6 +145,14 @@ function TransactionListItemWide<TItem extends ListItem>({
         },
     ];
 
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: 0,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+        shouldApplyOtherStyles: false,
+    });
+
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
@@ -157,7 +166,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                 onMouseDown={handleOnMouseDown}
                 onHoverIn={handleOnHoverIn}
                 hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
@@ -166,13 +175,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[
-                    styles.mh5,
-                    styles.flex1,
-                    StyleUtils.getSearchRowBackgroundStyle(isSelected),
-                    styles.userSelectNone,
-                    isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                ]}
+                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
@@ -210,7 +213,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        reportActions={exportedReportActions}
+                        reportActions={reportActions}
                         isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         onEditDate={onEditDate}
                         onEditMerchant={onEditMerchant}
