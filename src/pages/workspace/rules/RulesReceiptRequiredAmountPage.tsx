@@ -10,12 +10,14 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isMaxExpenseAmountSet} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -41,12 +43,12 @@ function RulesReceiptRequiredAmountPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
-    const defaultValue =
-        policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmountNoReceipt
-            ? ''
-            : convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, getCurrencyDecimals(policy?.outputCurrency));
+    const defaultValue = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoReceipt)
+        ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, getCurrencyDecimals(policy?.outputCurrency))
+        : '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM> = {};
@@ -54,16 +56,12 @@ function RulesReceiptRequiredAmountPage({
 
         if (maxExpenseAmountNoReceipt) {
             const maxExpenseAmountNoReceiptInCents = convertToBackendAmount(parseFloat(maxExpenseAmountNoReceipt));
-            const maxExpenseAmountNoItemizedReceipt = policy?.maxExpenseAmountNoItemizedReceipt ?? 0;
+            const maxExpenseAmountNoItemizedReceipt = policy?.maxExpenseAmountNoItemizedReceipt;
 
             // Check if receipt required amount is greater than itemized receipt required amount
-            if (
-                maxExpenseAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE &&
-                maxExpenseAmountNoItemizedReceipt !== 0 &&
-                maxExpenseAmountNoReceiptInCents > maxExpenseAmountNoItemizedReceipt
-            ) {
+            if (isMaxExpenseAmountSet(maxExpenseAmountNoItemizedReceipt) && maxExpenseAmountNoReceiptInCents > maxExpenseAmountNoItemizedReceipt) {
                 errors.maxExpenseAmountNoReceipt = translate('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {
-                    amount: convertToFrontendAmountAsString(maxExpenseAmountNoItemizedReceipt, getCurrencyDecimals(policy?.outputCurrency)),
+                    amount: convertToDisplayString(maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency),
                 });
             }
         }
@@ -90,7 +88,7 @@ function RulesReceiptRequiredAmountPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmountNoReceipt}) => {
-                        setPolicyMaxExpenseAmountNoReceipt(policyID, maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoReceipt);
+                        setPolicyMaxExpenseAmountNoReceipt(policyID, maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoReceipt, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     validate={validate}
