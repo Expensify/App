@@ -4313,8 +4313,31 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
     API.write(WRITE_COMMANDS.UPDATE_REPORT_WRITE_CAPABILITY, parameters, {optimisticData, failureData});
 }
 
-/** Rarely-used extras for {@link navigateToConciergeChat}, grouped so the signature stays within the max-params limit. */
-type NavigateToConciergeChatOptions = {
+type NavigateToConciergeChatParams = {
+    /** The stored Concierge report ID, when the client already knows it. */
+    conciergeReportID: string | undefined;
+
+    /** The onboarding choice the user made, used when the Concierge chat has to be created. */
+    introSelected: OnyxEntry<IntroSelected>;
+
+    /** The account ID of the current user. */
+    currentUserAccountID: number;
+
+    /** Whether the user has already viewed the self tour. */
+    isSelfTourViewed: boolean | undefined;
+
+    /** The betas the current user is on. */
+    betas: OnyxEntry<Beta[]>;
+
+    /** Whether to dismiss the current modal instead of navigating on top of it. */
+    shouldDismissModal?: boolean;
+
+    /** Guard called after the server data is ready, so a page that unmounted in the meantime does not navigate. */
+    checkIfCurrentPageActive?: () => boolean;
+
+    /** Extra navigation options (for example `forceReplace` or `afterTransition`). */
+    linkToOptions?: LinkToOptions;
+
     /** The report action to open the Concierge chat on. */
     reportActionID?: string;
 
@@ -4332,17 +4355,19 @@ type NavigateToConciergeChatOptions = {
 /**
  * Navigates to the 1:1 report with Concierge
  */
-function navigateToConciergeChat(
-    conciergeReportID: string | undefined,
-    introSelected: OnyxEntry<IntroSelected>,
-    currentUserAccountID: number,
-    isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
+function navigateToConciergeChat({
+    conciergeReportID,
+    introSelected,
+    currentUserAccountID,
+    isSelfTourViewed,
+    betas,
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
-    linkToOptions?: LinkToOptions,
-    {reportActionID, personalDetails, sourceReportID}: NavigateToConciergeChatOptions = {},
-): Promise<void> {
+    linkToOptions,
+    reportActionID,
+    personalDetails,
+    sourceReportID,
+}: NavigateToConciergeChatParams): Promise<void> {
     // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
     // A resolved promise is returned on every branch so callers can sequence work (e.g. another API.write) to run only
@@ -4834,17 +4859,16 @@ function navigateToConciergeChatAndDeleteReport(
         Navigation.goBack();
     }
     const personalDetails = buildPersonalDetailsList([reportOwnerPersonalDetail, currentUserPersonalDetail, conciergePersonalDetail]);
-    navigateToConciergeChat(
+    navigateToConciergeChat({
         conciergeReportID,
         introSelected,
         currentUserAccountID,
         isSelfTourViewed,
         betas,
-        false,
-        undefined,
-        {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
-        {personalDetails},
-    );
+        shouldDismissModal: false,
+        linkToOptions: {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
+        personalDetails,
+    });
 }
 
 function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>, currentUserAccountID: number) {
@@ -5141,7 +5165,7 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true, {forceReplace: true});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false, linkToOptions: {forceReplace: true}});
     }
 }
 

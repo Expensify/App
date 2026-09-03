@@ -47,7 +47,12 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                     // after we navigate away. This is the only entry that threads a source report, so context is scoped
                     // to Concierge opened via this sidebar button. Search, LHN, and deep links never carry it.
                     const sourceReportID = Navigation.getTopmostReportId();
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, undefined, undefined, undefined, {
+                    navigateToConciergeChat({
+                        conciergeReportID,
+                        introSelected,
+                        currentUserAccountID,
+                        isSelfTourViewed,
+                        betas,
                         sourceReportID: sourceReportID && sourceReportID !== conciergeReportID ? sourceReportID : undefined,
                     });
                 }}

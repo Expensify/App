@@ -159,7 +159,7 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
                 }}
             />
         </AccessOrNotFoundWrapper>
