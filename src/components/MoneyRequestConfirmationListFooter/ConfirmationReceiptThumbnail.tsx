@@ -126,7 +126,7 @@ function ConfirmationReceiptThumbnail({
     const receiptContainerStyle = isCompactMode && compactReceiptContainerStyle ? compactReceiptContainerStyle : styles.expenseViewImageSmall;
     const receiptThumbnailStyle = [styles.h100, styles.flex1];
     const isPDF = isLocalFile && Str.isPDF(receiptFilename);
-    const shouldShowReceiptPageCount = receiptPageCount > 1 && isPDF;
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && !!isPDF;
 
     const navigateToReceipt = () => {
         if (!transactionID) {
