@@ -151,9 +151,8 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // Priority 5: Add bank account for a queued reimbursement
     if (shouldShowAddBankAccount) {
         items.push(<AddBankAccount key="add-bank-account" />);
-    }
-    // Priority 6: Add a deposit account so a workspace with reimbursements enabled can pay the user.
-    if (shouldShowAddDepositAccount && !shouldShowAddBankAccount) {
+    } else if (shouldShowAddDepositAccount) {
+        // Priority 6: Add a deposit account so a workspace with reimbursements enabled can pay the user.
         items.push(<AddDepositAccount key="add-deposit-account" />);
     }
     // Priority 7: Broken company card connections
