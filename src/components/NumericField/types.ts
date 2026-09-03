@@ -29,7 +29,6 @@ type NumericTextInputProps = {
     | 'onSubmitEditing'
     | 'prefixCharacter'
     | 'prefixContainerStyle'
-    | 'prefixStyle'
     | 'shouldApplyPaddingToContainer'
     | 'shouldUseDefaultLineHeightForPrefix'
     | 'submitBehavior'

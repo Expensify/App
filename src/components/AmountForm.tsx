@@ -131,7 +131,6 @@ function AmountForm({
                     onFocus={onFocus}
                     onBlur={onBlur}
                     onSubmitEditing={onSubmitEditing}
-                    prefixStyle={styles.colorMuted}
                 />
             </NumericField>
         );

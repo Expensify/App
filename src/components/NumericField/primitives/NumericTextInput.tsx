@@ -3,6 +3,8 @@ import {useNumericFieldActions, useNumericFieldState} from '@components/NumericF
 import type {NumericTextInputProps} from '@components/NumericField/types';
 import TextInput from '@components/TextInput';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import mergeRefs from '@libs/mergeRefs';
 
 import CONST from '@src/CONST';
@@ -24,7 +26,6 @@ function NumericTextInput({
     label,
     onFocus,
     prefixContainerStyle,
-    prefixStyle,
     shouldApplyPaddingToContainer,
     shouldUseDefaultLineHeightForPrefix,
     onSubmitEditing,
@@ -33,6 +34,7 @@ function NumericTextInput({
     touchableInputWrapperStyle,
     style,
 }: NumericTextInputProps) {
+    const styles = useThemeStyles();
     const {errorText, formattedNumber, selection} = useNumericFieldState();
     const {handleKeyPress, handleSelectionChange, inputRef, setNumber} = useNumericFieldActions();
 
@@ -64,7 +66,7 @@ function NumericTextInput({
             onSubmitEditing={onSubmitEditing}
             prefixCharacter={prefixCharacter}
             prefixContainerStyle={prefixContainerStyle}
-            prefixStyle={prefixStyle}
+            prefixStyle={styles.colorMuted}
             ref={mergeRefs(inputRef, ref)}
             selection={selection}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
