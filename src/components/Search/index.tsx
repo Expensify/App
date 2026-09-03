@@ -160,6 +160,8 @@ function Search({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
@@ -406,6 +408,10 @@ function Search({
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
+    // `isLoading` has to stay out of the effect deps below, or every completed search would start another,
+    // so a page requested while one was in flight is remembered here and fired once it resolves.
+    const pendingSearchOffsetRef = useRef<number | undefined>(undefined);
+
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
@@ -430,6 +436,9 @@ function Search({
         if (searchResults?.search?.isLoading) {
             if (validGroupBy || (shouldCalculateTotals && isRequiredAllMatchingTotalMissing)) {
                 shouldRetrySearchWithTotalsOrGroupedRef.current = true;
+            }
+            if (offset > 0) {
+                pendingSearchOffsetRef.current = offset;
             }
             return;
         }
@@ -456,6 +465,7 @@ function Search({
             return;
         }
 
+        pendingSearchOffsetRef.current = undefined;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -483,6 +493,7 @@ function Search({
         }
 
         shouldRetrySearchWithTotalsOrGroupedRef.current = false;
+        pendingSearchOffsetRef.current = undefined;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -501,6 +512,35 @@ function Search({
         searchResults?.search?.isLoading,
         shouldCalculateTotals,
         validGroupBy,
+        searchRequestOffset,
+    ]);
+
+    useEffect(() => {
+        if (pendingSearchOffsetRef.current !== offset || searchResults?.search?.isLoading || !searchResults?.search?.hasMoreResults || !isFocused || isOffline || hasErrors) {
+            return;
+        }
+
+        pendingSearchOffsetRef.current = undefined;
+        handleSearch({
+            queryJSON,
+            searchKey: currentSearchKey,
+            offset: searchRequestOffset,
+            shouldCalculateTotals,
+            prevReportsLength: filteredDataLength,
+            isLoading: false,
+        });
+    }, [
+        filteredDataLength,
+        handleSearch,
+        hasErrors,
+        isFocused,
+        isOffline,
+        offset,
+        queryJSON,
+        currentSearchKey,
+        searchResults?.search?.isLoading,
+        searchResults?.search?.hasMoreResults,
+        shouldCalculateTotals,
         searchRequestOffset,
     ]);
 
@@ -587,6 +627,7 @@ function Search({
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 const shouldOpenTransactionThreadInNewTab = shouldOpenTransactionThread && isModifiedMousePress(event);
                 const targetReportID = createAndOpenSearchTransactionThread({
+                    conciergeChat,
                     getCurrencyDecimals,
                     item,
                     introSelected,
@@ -650,6 +691,7 @@ function Search({
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread({
+                            conciergeChat,
                             getCurrencyDecimals,
                             item: firstTransaction,
                             introSelected,
@@ -752,6 +794,7 @@ function Search({
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
             getCurrencyDecimals,
+            conciergeChat,
         ],
     );
 
@@ -1134,9 +1177,18 @@ function Search({
         );
     }
 
+    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
+    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
+    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
+    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+    let searchTablePaddingRightStyle;
+    if (!isTask) {
+        searchTablePaddingRightStyle = isTransactionListView && validGroupBy ? styles.pr9 : styles.pr8;
+    }
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
         // Match the rows' trailing arrow spacing so the header columns line up with them.
-        <View style={[!isTask && styles.pr8, styles.flex1]}>
+        <View style={[searchTablePaddingRightStyle, styles.flex1]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={columnsToShow}
@@ -1170,11 +1222,6 @@ function Search({
                 isLoadMore
             />
         ) : undefined;
-
-    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
-    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
-    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
-    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const commonViewProps: CommonSearchViewProps = {
         ref: searchListRef,

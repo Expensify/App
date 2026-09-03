@@ -165,7 +165,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             prompt: translate('domain.members.closeAccountPrompt'),
             confirmText: translate('domain.members.closeAccount', {count: selectedMembers.length}),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldShowCancelButton: true,
         });
 
@@ -195,9 +195,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             text: translate('domain.members.closeAccount', {count: selectedMembers.length}),
             value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.CLOSE_ACCOUNT,
             icon: icons.RemoveMembers,
-            onSelected: () => {
-                setIsModalVisible(true);
-            },
+            shouldSkipFocusRestore: true,
+            onSelected: () => setIsModalVisible(true),
         },
         {
             text: translate('domain.members.moveToGroup'),
@@ -229,7 +228,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     prompt: translate('common.downloadFailedDescription'),
                     confirmText: translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
-                    success: false,
                     shouldHandleNavigationBack: true,
                 });
             },

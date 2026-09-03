@@ -226,13 +226,14 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 icon: icons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                         prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         deletePolicyTags(policyData, selectedTags);
@@ -268,6 +269,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 icon: icons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject),
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject)) {
                         showConfirmModal({
