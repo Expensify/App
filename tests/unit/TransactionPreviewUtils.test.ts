@@ -255,7 +255,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('does not show the canceled status, because it is reported at the report level instead', () => {
+        it('does not show the canceled status, because a cancelled payment is only recorded by its system message', () => {
             const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewStatusText).toEqual([]);

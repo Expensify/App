@@ -81,11 +81,6 @@ function ReportPreviewHeader() {
 
     const shouldShowReportStatus = !!reportStatus && !!expenseCount;
 
-    // The badge can't express a cancelled payment, so it sits next to the expense count - unless the badge already reads "Approved",
-    // which is the state cancelling returns an approving workspace to.
-    const isApprovedReport = reportStateNum === CONST.REPORT.STATE_NUM.APPROVED && reportStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-    const supportingText = iouReport?.isCancelledIOU && !isApprovedReport ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${expenseCount}` : expenseCount;
-
     const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, reportStateNum, reportStatusNum), [reportStateNum, reportStatusNum, theme]);
 
     const reportStatusTooltip = useMemo(
@@ -127,7 +122,7 @@ function ReportPreviewHeader() {
                                         tooltipText={reportStatusTooltip}
                                     />
                                 )}
-                                {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{supportingText}</Text>}
+                                {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
                             </View>
                         )
                     )}
