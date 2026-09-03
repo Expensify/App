@@ -6,12 +6,12 @@ import CLI from 'expensify-common/CLI';
 
 import type {AndroidApplicationIDs} from './lib/bootstrapForDevice/android';
 import type {DevelopmentTeam} from './lib/bootstrapForDevice/developmentTeams';
-import type {Configuration, Target} from './lib/bootstrapForDevice/iOS';
+import type {Configuration, Target} from './lib/bootstrapForDevice/ios';
 import type {AndroidBootstrapOptions, BootstrapOptions} from './lib/bootstrapForDevice/shared';
 
 import {bootstrapAndroidForDevice, normalizeAndroidIdentifierSegment} from './lib/bootstrapForDevice/android';
 import {resolveDevelopmentTeam} from './lib/bootstrapForDevice/developmentTeams';
-import {bootstrapIOSForDevice} from './lib/bootstrapForDevice/iOS';
+import {bootstrapIOSForDevice} from './lib/bootstrapForDevice/ios';
 import {PLATFORMS} from './lib/bootstrapForDevice/shared';
 import environmentString from './lib/bunEnvironment';
 
@@ -110,7 +110,7 @@ export {
     patchGoogleServicesConfig,
     validateAndroidApplicationID,
 } from './lib/bootstrapForDevice/android';
-export {entitlementContents, patchIOSAppDisplayName, patchProject, targetBundleIdentifier} from './lib/bootstrapForDevice/iOS';
+export {entitlementContents, patchIOSAppDisplayName, patchProject, targetBundleIdentifier} from './lib/bootstrapForDevice/ios';
 export {validateSuffix} from './lib/bootstrapForDevice/shared';
 export {installedDevelopmentTeams, parseDevelopmentTeamFromProvisioningProfile} from './lib/bootstrapForDevice/developmentTeams';
 export type {AndroidApplicationIDs, AndroidBootstrapOptions, BootstrapOptions, Configuration, DevelopmentTeam, Platform, Target};
