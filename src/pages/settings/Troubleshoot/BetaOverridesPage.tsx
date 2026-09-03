@@ -49,7 +49,7 @@ function BetaOverridesPage() {
                     {sortedBetas.map((beta) => (
                         <View
                             key={beta}
-                            style={styles.testRowContainer}
+                            style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap4, styles.mnw120, styles.mnh16]}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flexGrow1, styles.flexShrink1]}>
                                 <Text>{beta}</Text>
