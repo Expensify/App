@@ -19,6 +19,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type * as ReimbursementAccountTestUtils from '../../utils/ReimbursementAccountTestUtils';
 
@@ -144,16 +145,9 @@ const pressLoaderBackButton = () => {
     mockLoaderBackPress?.();
 };
 
-const getReimbursementAccount = () =>
-    new Promise<ReimbursementAccount | undefined>((resolve) => {
-        const connection = Onyx.connectWithoutView({
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-            callback: (value) => {
-                Onyx.disconnect(connection);
-                resolve(value);
-            },
-        });
-    });
+// These assertions run after the page has unmounted and only need the value once, so a one-shot read is enough and
+// there is no subscription to set up and tear down.
+const getReimbursementAccount = () => OnyxUtils.get(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
 describe('ReimbursementAccountPage pending USD redirect', () => {
     beforeAll(() => {
