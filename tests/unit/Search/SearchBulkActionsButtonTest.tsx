@@ -17,6 +17,7 @@ type MockBulkActionBarProps = {
 const mockBulkActionBar = jest.fn<null, [MockBulkActionBarProps]>(() => null);
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSearchCount: number | undefined;
+let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
 let mockIsOffline = false;
 
@@ -72,7 +73,7 @@ jest.mock('@hooks/useSearchBulkActions', () => ({
 }));
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
-        selectedTransactions: {tx1: {isSelected: true}},
+        selectedTransactions: {tx1: {isSelected: true, reportID: 'report1'}},
         excludedTransactions: mockExcludedTransactions,
         selectedReports: [],
         areAllMatchingItemsSelected: true,
@@ -81,7 +82,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         clearSelectedTransactions: jest.fn(),
     }),
     useSearchResultsContext: () => ({
-        currentSearchResults: {search: {count: mockSearchCount, isLoading: mockSearchIsLoading}},
+        currentSearchResults: {search: {count: mockSearchCount, reportCount: mockSearchReportCount, isLoading: mockSearchIsLoading}},
     }),
 }));
 jest.mock('@libs/ReportUtils', () => {
@@ -131,6 +132,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
         jest.clearAllMocks();
         mockExcludedTransactions = {};
         mockSearchCount = undefined;
+        mockSearchReportCount = undefined;
         mockSearchIsLoading = false;
         mockIsOffline = false;
     });
@@ -178,20 +180,30 @@ describe('SearchBulkActionsButton all-matching label', () => {
         expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: false});
     });
 
-    it('retains the expense-report loading behavior while the server count is missing', () => {
+    it('keeps loading for expense reports while the server report count is missing, falling back to the loaded report count', () => {
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getBarProps()).toEqual({selectedCount: 0, isSelectedCountLoading: true});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: true});
     });
 
-    it('uses the unmodified server count for expense reports', () => {
+    it('labels expense reports with the server report count, not the expense count', () => {
+        // `count` is the expense total; `reportCount` is the matching-report total the Reports tab must show.
         mockSearchCount = 320;
+        mockSearchReportCount = 50;
         mockExcludedTransactions = {tx2: makeTransaction()};
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getBarProps()).toEqual({selectedCount: 320, isSelectedCountLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 50, isSelectedCountLoading: false});
+    });
+
+    it('falls back to the loaded report count for expense reports offline before the report count arrives', () => {
+        mockIsOffline = true;
+
+        render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
+
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: false});
     });
 });
