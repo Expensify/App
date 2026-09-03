@@ -9885,15 +9885,8 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
             const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
-            // `companyCardRequired` is the one violation the submitter can no longer act on once the report is submitted: it
-            // maps to no editable field, and it offers neither "Mark as cash" nor a way to dismiss it, so only an admin
-            // turning the rule off can clear it. It stays visible on the expense itself, but it must not drive the LHN red
-            // dot, the Fix action badge or the Inbox To-do. The back end owns the violation type, so it is excluded by name
-            // before the type checks — the exclusion has to hold whichever bucket (violation/warning/notice) it lands in.
+            // A submitted `companyCardRequired` is not actionable by the submitter, so it must not drive the RBR; it is excluded by name because the back end owns its type.
             const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.COMPANY_CARD_REQUIRED] : [];
-            // `modifiedAmount` stays notice-only, exactly as before: it also arrives typed `violation` — the
-            // `modifiedAmount` checks in TransactionPreviewUtils match `VIOLATION` or `NOTICE` — and that bucket has
-            // always driven the RBR here.
             const excludedNoticeNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 
             return (
@@ -9905,11 +9898,6 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                     deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     policy,
                     transactions,
-                    // Both operands of this `&&` have to judge the same set of violations. Without this the visibility
-                    // check still sees `companyCardRequired`, so a violation this function has deliberately stopped
-                    // acting on could vouch for one that is hidden from the submitter — `missingCategory` while
-                    // auto-categorization is still running, for example — and the red dot would stay lit with nothing
-                    // behind it. On open reports the list is empty, so nothing changes there.
                     excludedViolationNamesForLHN,
                 ) &&
                 hasViolationOfAnyTypeForRBRInLHN(
