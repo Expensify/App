@@ -85,8 +85,13 @@ function renderPage() {
     );
 }
 
+// Derived from the imported value rather than from MockUseConfirmModalUtil.ShowConfirmModalResult: reading a member off
+// that namespace import makes knip track the helper's exports member-by-member, which orphans the ones only reached
+// through jest.requireActual (default, createMockModalContextModule, ...) and fails the knip-vs-main check.
+type ConfirmModalAction = NonNullable<Parameters<typeof resolveShowConfirmModal>[0]>['action'];
+
 /** Settle the modal promise that is currently pending and let the resulting continuation run. */
-async function settlePendingModal(action: MockUseConfirmModalUtil.ShowConfirmModalResult['action']) {
+async function settlePendingModal(action: ConfirmModalAction) {
     resolveShowConfirmModal({action});
     await waitForBatchedUpdatesWithAct();
 }

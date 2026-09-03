@@ -115,8 +115,13 @@ jest.mock('@components/Modal/Global/ModalContext', () => {
     return createMockModalContextModule();
 });
 
+// Derived from the imported value rather than from MockUseConfirmModalUtil.ShowConfirmModalResult: reading a member off
+// that namespace import makes knip track the helper's exports member-by-member, which orphans the ones only reached
+// through jest.requireActual (default, createMockModalContextModule, ...) and fails the knip-vs-main check.
+type ConfirmModalAction = NonNullable<Parameters<typeof resolveShowConfirmModal>[0]>['action'];
+
 /** Settle the pending confirm-modal promise and flush the async revoke chain it kicks off. */
-async function settleConfirmModal(action: MockUseConfirmModalUtil.ShowConfirmModalResult['action']) {
+async function settleConfirmModal(action: ConfirmModalAction) {
     await act(async () => {
         resolveShowConfirmModal({action});
         await Promise.resolve();
