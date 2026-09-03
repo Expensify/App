@@ -1,5 +1,3 @@
-<!-- cspell:ignore devicectl -->
-
 # Native app benchmarks
 
 The native release bundle can emit structured completion events for selected manual Sentry spans. Benchmark logging is disabled unless a developer explicitly configures span names in the git-ignored root `.env` file.

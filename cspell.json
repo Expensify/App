@@ -1147,7 +1147,8 @@
         "knip",
         "lottiefiles",
         "jsitooling",
-        "Refetched"
+        "Refetched",
+        "devicectl"
     ],
     "ignorePaths": [
         ".github/actions/javascript/**/index.js",

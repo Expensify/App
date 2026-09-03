@@ -1,5 +1,3 @@
-// cspell:ignore BEGINSWITH devicectl
-
 /** Implements iOS benchmark setup, launch, process control, and marker collection through CoreDevice. */
 
 import {isJSONArray, isJSONObject} from '@src/types/utils/JSONUtils';
