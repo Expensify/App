@@ -137,8 +137,10 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             const newLeftOffset = getLeftOffset(x, insets, bigScreenLeftOffset, shouldUseNarrowLayout, width, windowWidth, isInLandscapeMode);
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
             const isAdjustmentNeeded = Math.abs(prevLeftValue.current - bigScreenLeftOffset) > 150;
-            if (isInitialRender.current || isAdjustmentNeeded || prevIsInLandscapeModeValue.current !== isInLandscapeMode) {
-                isSuggestionMenuAboveRef.current = isSuggestionMenuRenderedAbove(isEnoughSpaceToRenderMenuAboveForBig, isEnoughSpaceToRenderMenuAboveForSmall);
+            const shouldRenderMenuAbove = isSuggestionMenuRenderedAbove(isEnoughSpaceToRenderMenuAboveForBig, isEnoughSpaceToRenderMenuAboveForSmall);
+            const hasRunOutOfSpaceAbove = isSuggestionMenuAboveRef.current && !shouldRenderMenuAbove;
+            if (isInitialRender.current || isAdjustmentNeeded || prevIsInLandscapeModeValue.current !== isInLandscapeMode || hasRunOutOfSpaceAbove) {
+                isSuggestionMenuAboveRef.current = shouldRenderMenuAbove;
                 leftValue.current = newLeftOffset;
                 isInitialRender.current = false;
                 prevLeftValue.current = newLeftOffset;
@@ -191,6 +193,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             left={containerState.left}
             width={containerState.width}
             bottom={containerState.bottom}
+            keyboardHeight={keyboardHeight}
             measuredHeightOfSuggestionRows={suggestionHeight}
             isInLandscapeMode={isInLandscapeMode}
         />
