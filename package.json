@@ -35,7 +35,7 @@
     "build": "ENV=production bun ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts && bun ./scripts/combine-web-sourcemaps.ts",
     "build-staging": "ENV=staging bun ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts && bun ./scripts/combine-web-sourcemaps.ts",
     "build-adhoc": "ENV=adhoc bun ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts && bun ./scripts/combine-web-sourcemaps.ts",
-    "benchmark-app-startup": "./scripts/benchmarkAppStartup.ts",
+    "benchmark-app-startup": "bun scripts/runBenchmarkAppStartup.ts",
     "bootstrap-device": "bun scripts/bootstrapForDevice.ts",
     "createDocsRoutes": "bun .github/scripts/createDocsRoutes.ts",
     "generateAllowedUrls": "bun .github/scripts/generateAllowedUrls.ts",

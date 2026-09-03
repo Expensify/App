@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import CLI from 'expensify-common/CLI';
-import {dirname, join, resolve} from 'node:path';
+import {join, resolve} from 'node:path';
 import process from 'node:process';
 
 import type {BenchmarkMetricResult, BenchmarkSample} from './lib/benchmarkStatistics';
@@ -68,10 +68,6 @@ type BenchmarkRecorder = {
     record: (events: BenchmarkLogEvent[], runNumber: number) => string[];
     complete: (label?: string) => BenchmarkResult;
 };
-
-const scriptPath = process.argv.at(1);
-const isDirectRun = scriptPath?.endsWith('benchmarkAppStartup.ts') ?? false;
-const rootDirectory = scriptPath && isDirectRun ? resolve(dirname(resolve(scriptPath)), '..') : process.cwd();
 
 function fail(message: string): never {
     throw new Error(message);
@@ -292,7 +288,7 @@ async function benchmarkAppStartupsAlternating(options: BenchmarkAppStartupsAlte
     return benchmarkAlternatingStartups({binaryA: adapterA, binaryB: adapterB}, options);
 }
 
-async function main(): Promise<void> {
+async function main(rootDirectory: string): Promise<void> {
     // The CLI framework requires kebab-case named argument keys, which the naming-convention rule cannot express.
     /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
@@ -509,14 +505,7 @@ async function main(): Promise<void> {
     });
 }
 
-if (isDirectRun) {
-    main().catch((error: unknown) => {
-        console.error(error instanceof Error ? error.message : error);
-        process.exitCode = 1;
-    });
-}
-
-export {benchmarkAppStartupsAlternating, benchmarkAlternatingStartups, benchmarkAppStartups, benchmarkStartups, createBenchmarkRecorder, parseSpanNames, selectBenchmarkSpanNames};
+export {benchmarkAppStartupsAlternating, benchmarkAlternatingStartups, benchmarkAppStartups, benchmarkStartups, createBenchmarkRecorder, main, parseSpanNames, selectBenchmarkSpanNames};
 export type {
     BenchmarkAlternatingResult,
     BenchmarkAlternatingStartupsOptions,
