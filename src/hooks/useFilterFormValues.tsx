@@ -8,7 +8,7 @@ import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+import type {Policy, PolicyCategories} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -52,28 +52,6 @@ function policyCategoriesSelector(categories: OnyxCollection<PolicyCategories>):
     return result;
 }
 
-function policyTagsSelector(tags: OnyxCollection<PolicyTagLists>): OnyxCollection<PolicyTagLists> {
-    if (!tags) {
-        return tags;
-    }
-    const result: OnyxCollection<PolicyTagLists> = {};
-    for (const [collectionKey, policyTagLists] of Object.entries(tags)) {
-        if (!policyTagLists) {
-            continue;
-        }
-        const minimalTagLists: PolicyTagLists = {};
-        for (const [listKey, tagList] of Object.entries(policyTagLists)) {
-            const minimalTags: Record<string, {name: string}> = {};
-            for (const [tagKey, tag] of Object.entries(tagList.tags ?? {})) {
-                minimalTags[tagKey] = {name: tag.name};
-            }
-            minimalTagLists[listKey] = {tags: minimalTags} as PolicyTagLists[string];
-        }
-        result[collectionKey] = minimalTagLists;
-    }
-    return result;
-}
-
 const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -84,8 +62,6 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     // Subscribe to the report collection directly. buildFilterFormValuesFromQuery only does keyed existence
     // lookups (`in:` filter), so projecting via a selector would just waste an O(n) pass over every report.
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
-    const [searchPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -99,7 +75,6 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
         ? buildFilterFormValuesFromQuery(
               queryJSON,
               policyCategories,
-              policyTagsLists,
               currencyList,
               personalDetails,
               allCards,
@@ -108,7 +83,6 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
               exportedToFilterOptions,
               currentUserPersonalDetails.accountID,
               bankAccountList,
-              searchPolicyTags,
           )
         : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
 
@@ -116,4 +90,4 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
 };
 
 export default useFilterFormValues;
-export {policiesSelector, policyCategoriesSelector, policyTagsSelector};
+export {policiesSelector, policyCategoriesSelector};
