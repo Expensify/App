@@ -62,7 +62,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
         selector: defaultSecurityGroupIDSelector,
     });
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector()});
-    const isDomainUsingCard = useIsDomainUsingCard(domainAccountID);
+    const {isDomainUsingCard, isLoading: isCardEligibilityLoading} = useIsDomainUsingCard(domainAccountID);
 
     const firstAdminPolicy = Object.values(adminPolicies ?? {})
         .sort((a, b) => localeCompare(a?.created ?? '', b?.created ?? ''))
@@ -218,6 +218,10 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         isActive={expensifyCardPreferredWorkspace}
                         disabled={!preferredWorkspace || !isDomainUsingCard}
                         disabledAction={() => {
+                            // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
+                            if (isCardEligibilityLoading) {
+                                return;
+                            }
                             showConfirmModal({
                                 title: translate('workspace.distanceRates.oopsNotSoFast'),
                                 prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),

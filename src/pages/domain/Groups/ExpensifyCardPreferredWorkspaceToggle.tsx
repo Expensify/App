@@ -41,7 +41,7 @@ function ExpensifyCardPreferredWorkspaceToggle({domainAccountID, groupID}: Expen
     const preferredPolicyID = group?.restrictedPrimaryPolicyID;
     const isPreferredPolicyEnabled = !!group?.enableRestrictedPrimaryPolicy && !!preferredPolicyID;
 
-    const isDomainUsingCard = useIsDomainUsingCard(domainAccountID);
+    const {isDomainUsingCard, isLoading: isCardEligibilityLoading} = useIsDomainUsingCard(domainAccountID);
 
     const isActive = !!group?.overridePreferredPolicyWithCardPolicy;
     const isDisabled = (!isPreferredPolicyEnabled || !isDomainUsingCard) && !isActive;
@@ -55,6 +55,10 @@ function ExpensifyCardPreferredWorkspaceToggle({domainAccountID, groupID}: Expen
                 shouldPlaceSubtitleBelowSwitch
                 disabled={isDisabled}
                 disabledAction={() => {
+                    // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
+                    if (isCardEligibilityLoading) {
+                        return;
+                    }
                     showConfirmModal({
                         title: translate('workspace.distanceRates.oopsNotSoFast'),
                         prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),

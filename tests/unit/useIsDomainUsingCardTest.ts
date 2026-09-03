@@ -37,7 +37,7 @@ describe('useIsDomainUsingCard', () => {
         const {result} = renderHook(() => useIsDomainUsingCard(domainAccountID));
 
         // Then the setting is not eligible
-        expect(result.current).toBe(false);
+        expect(result.current.isDomainUsingCard).toBe(false);
     });
 
     it('returns true when the domain has an Expensify Card feed', async () => {
@@ -48,7 +48,7 @@ describe('useIsDomainUsingCard', () => {
         const {result} = renderHook(() => useIsDomainUsingCard(domainAccountID));
 
         // Then the setting is eligible
-        expect(result.current).toBe(true);
+        expect(result.current.isDomainUsingCard).toBe(true);
     });
 
     it('returns true when the domain has only a company card feed', async () => {
@@ -59,7 +59,7 @@ describe('useIsDomainUsingCard', () => {
         const {result} = renderHook(() => useIsDomainUsingCard(domainAccountID));
 
         // Then the setting is eligible
-        expect(result.current).toBe(true);
+        expect(result.current.isDomainUsingCard).toBe(true);
     });
 
     it('returns true for a connected direct feed with no assigned cards yet', async () => {
@@ -70,7 +70,19 @@ describe('useIsDomainUsingCard', () => {
         const {result} = renderHook(() => useIsDomainUsingCard(domainAccountID));
 
         // Then the setting is still eligible - eligibility does not require assigned cards
-        expect(result.current).toBe(true);
+        expect(result.current.isDomainUsingCard).toBe(true);
+    });
+
+    it('returns true when the domain has both an Expensify Card feed and a company card feed', async () => {
+        // Given the domain has both an Expensify Card feed and a company card feed
+        await Onyx.set(expensifyCardSettingsKey, {isEnabled: true, paymentBankAccountID: 1});
+        await Onyx.set(domainMemberKey, buildCardFeeds({[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {liabilityType: 'personal'}}));
+
+        // When we render the hook
+        const {result} = renderHook(() => useIsDomainUsingCard(domainAccountID));
+
+        // Then the setting is eligible
+        expect(result.current.isDomainUsingCard).toBe(true);
     });
 
     it('returns false when the only company card entry is the Expensify Card bank placeholder', async () => {
@@ -81,7 +93,7 @@ describe('useIsDomainUsingCard', () => {
         const {result} = renderHook(() => useIsDomainUsingCard(domainAccountID));
 
         // Then it is not treated as a company card feed
-        expect(result.current).toBe(false);
+        expect(result.current.isDomainUsingCard).toBe(false);
     });
 
     it('returns false when the only company card feed is pending deletion', async () => {
@@ -92,7 +104,7 @@ describe('useIsDomainUsingCard', () => {
         const {result} = renderHook(() => useIsDomainUsingCard(domainAccountID));
 
         // Then the pending-delete feed does not make the setting eligible
-        expect(result.current).toBe(false);
+        expect(result.current.isDomainUsingCard).toBe(false);
     });
 
     it('returns false when the only company card feed is pending setup', async () => {
@@ -103,6 +115,6 @@ describe('useIsDomainUsingCard', () => {
         const {result} = renderHook(() => useIsDomainUsingCard(domainAccountID));
 
         // Then the pending feed does not make the setting eligible
-        expect(result.current).toBe(false);
+        expect(result.current.isDomainUsingCard).toBe(false);
     });
 });
