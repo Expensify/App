@@ -7175,6 +7175,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                     `Continuous Reconciliation が正しく動作するように、この口座が、Consolidated Travel Billing の決済口座（末尾が ${lastFourPAN}）と一致していることをご確認ください。`,
             },
             syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期する',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
