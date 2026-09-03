@@ -38,9 +38,11 @@ function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadshee
         Navigation.dismissModal();
     };
 
+    // A card imported from a spreadsheet is stored under the name the person gave it rather than an
+    // account number, and UploadOFX rejects a statement for one of those.
     return (
         <ImportSpreadsheet
-            onStatementPicked={uploadStatement}
+            onStatementPicked={cardID ? undefined : uploadStatement}
             backTo={backTo}
             goTo={ROUTES.SETTINGS_WALLET_TRANSACTIONS_IMPORTED.getRoute(cardID ? Number(cardID) : undefined)}
         />
