@@ -22,7 +22,7 @@ jest.mock('@userActions/isGPSInProgressModalOpen', () => ({
 Onyx.init({keys: ONYXKEYS});
 
 describe('HybridApp actions', () => {
-    const {default: HybridAppModule} = jest.requireMock<typeof HybridAppPackage>('@expensify/react-native-hybrid-app');
+    const {default: HybridAppModule} = jest.requireActual<typeof HybridAppPackage>('@expensify/react-native-hybrid-app');
     const {closeReactNativeApp} = jest.requireActual<typeof HybridAppActions>('@libs/actions/HybridApp');
     let closeNativeAppSpy: jest.SpiedFunction<typeof HybridAppModule.closeReactNativeApp>;
 
