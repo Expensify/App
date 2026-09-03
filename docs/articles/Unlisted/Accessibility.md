@@ -1,8 +1,8 @@
 ---
 title: Accessibility at Expensify
-description: Learn about Expensify's accessibility commitment, the standards we follow, how to report accessibility issues, and how we track progress publicly.
-keywords: accessibility, a11y, WCAG, WCAG 2.2, VPAT, ACR, accessibility conformance report, Section 508, EN 301 549, screen reader, JAWS, NVDA, VoiceOver, TalkBack, keyboard navigation, assistive technology
-internalScope: Audience is anyone evaluating or using Expensify with assistive technology, plus procurement and compliance teams. Covers Expensify's accessibility commitment, conformance standards, how to get the VPAT/ACR, how to report accessibility issues, and remediation targets. Does not cover how to use specific assistive technologies with Expensify.
+description: Learn about Expensify's accessibility commitment, the standards we follow, how to turn on high contrast mode, how to report accessibility issues, and how we track progress publicly.
+keywords: [accessibility, a11y, WCAG, WCAG 2.2, VPAT, ACR, accessibility conformance report, Section 508, EN 301 549, screen reader, JAWS, NVDA, VoiceOver, TalkBack, keyboard navigation, assistive technology, high contrast mode, contrast, theme]
+internalScope: Audience is anyone evaluating or using Expensify with assistive technology, plus procurement and compliance teams. Covers Expensify's accessibility commitment, conformance standards, how to get the VPAT/ACR, how to turn on high contrast mode, how to report accessibility issues, and remediation targets. Does not cover how to use specific assistive technologies with Expensify.
 ---
 
 # Accessibility at Expensify
@@ -28,7 +28,7 @@ Our reports were produced from an evaluation of Expensify using:
 - Screen readers: JAWS, NVDA, VoiceOver, and TalkBack
 - Keyboard-only navigation
 - Browser zoom and text spacing checks
-- Colour contrast analysis
+- Color contrast analysis
 - Automated tooling
 - Chrome, Firefox, and Safari on desktop
 
@@ -54,6 +54,20 @@ We hold ourselves to clear remediation targets for confirmed accessibility issue
 ## Where to track accessibility issues and progress
 
 Every accessibility issue is labeled `Accessibility` and tracked in the open, so you can follow the [public accessibility backlog](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AAccessibility) at any time.
+
+## How to turn on high contrast mode
+
+High contrast mode increases the contrast between text, icons, and backgrounds across Expensify. It works with any theme, so you can pair it with Light, Dark, or your device settings.
+
+You can turn it on before signing in: on the sign-in page, click **Enable high contrast** in the footer.
+
+To turn it on once you're signed in:
+
+1. Click your account avatar and go to **Preferences**.
+2. Click **Theme**.
+3. Toggle **High contrast mode** on.
+
+![The Theme page in Expensify preferences with the High contrast mode toggle turned on]({{site.url}}/assets/images/high-contrast-mode.png){:width="100%"}
 
 # FAQ
 
