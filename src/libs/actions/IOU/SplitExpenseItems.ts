@@ -17,6 +17,7 @@ import {
     getTaxValue,
     hasManualDistanceOverride,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isManagedCardTransaction,
     calculateTaxAmount,
 } from '@libs/TransactionUtils';
 
@@ -64,6 +65,31 @@ function getDistanceMerchantFromDistance(
         getCurrencySymbol,
         true,
     );
+}
+
+/**
+ * Resolve the `reimbursable` value to seed a split with.
+ *
+ * When the policy locks the reimbursable field (`disabledFields.reimbursable === true`, i.e. one of the two
+ * "Always …" cash-expense modes), the split must follow the policy's `defaultReimbursable` regardless of the
+ * parent expense's stored value. A pre-rule expense can still carry `reimbursable: true` under an
+ * "Always non-reimbursable" workspace. Seeding the locked default also equals the value the
+ * `shouldShowReimbursable` gate compares against, so the toggle hides automatically.
+ *
+ * When the field is not locked (the two "default" modes), the split keeps inheriting the parent's value.
+ *
+ * Managed-card transactions are always non-reimbursable and their reimbursable control is hidden in the split
+ * editor, so they must stay `false` even under a locked "Always reimbursable" policy. Otherwise the split
+ * would be submitted as reimbursable with no way for the user to correct it.
+ */
+function getSplitReimbursable(policy: OnyxEntry<OnyxTypes.Policy>, parentReimbursable: boolean | undefined, transaction: OnyxEntry<OnyxTypes.Transaction>): boolean | undefined {
+    if (isManagedCardTransaction(transaction)) {
+        return false;
+    }
+    if (policy?.disabledFields?.reimbursable === true) {
+        return policy.defaultReimbursable;
+    }
+    return parentReimbursable;
 }
 
 /**
@@ -188,8 +214,7 @@ function resolveSplitItemRate({
         return {rate: fallbackMileageRate.rate, unit};
     }
 
-    const selectedRate =
-        DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID}) ?? DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID, policies);
+    const selectedRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({policy, customUnitRateID, policies});
     if (!selectedRate?.rate || selectedRate.rate <= 0 || selectedRate.enabled === false) {
         return {rate: fallbackMileageRate.rate, unit};
     }
@@ -311,7 +336,7 @@ function initSplitExpenseItemData(
         merchant: merchant ?? transactionDetails?.merchant,
         statusNum: transactionReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
-        reimbursable: transactionDetails?.reimbursable,
+        reimbursable: getSplitReimbursable(policy, transactionDetails?.reimbursable, transaction),
         billable: transactionDetails?.billable,
         taxCode: resolvedTaxCode,
         taxAmount: resolvedTaxAmount,
@@ -803,7 +828,7 @@ function updateSplitExpenseField(
                 odometerStart: splitExpenseDraftTransaction?.comment?.odometerStart ?? undefined,
                 odometerEnd: splitExpenseDraftTransaction?.comment?.odometerEnd ?? undefined,
                 amount: splitExpenseDraftTransaction?.amount ?? 0,
-                reimbursable: transactionDetails?.reimbursable,
+                reimbursable: getSplitReimbursable(policy, transactionDetails?.reimbursable, originalTransaction),
                 billable: transactionDetails?.billable,
                 taxCode: transactionDetails?.taxCode,
                 taxAmount: Math.abs(transactionDetails?.taxAmount ?? 0),
@@ -941,6 +966,7 @@ function updateSplitExpenseDraftField(fields: Partial<OnyxTypes.Transaction>) {
 export {
     updateSplitExpenseDistanceFromAmount,
     initSplitExpenseItemData,
+    getSplitReimbursable,
     resolveSplitItemReportID,
     resolveSplitMileageRate,
     initDraftSplitExpenseDataForEdit,
