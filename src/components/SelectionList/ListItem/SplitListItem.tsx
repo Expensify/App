@@ -119,9 +119,7 @@ function SplitListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
-            keyForList={item.keyForList}
             onFocus={onFocus}
-            pendingAction={item.pendingAction}
             accessible={!splitItem.isEditable}
         >
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.p3]}>
