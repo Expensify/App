@@ -10898,6 +10898,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         notVerified: 'Non vérifié',
         retry: 'Réessayer',
         requestSent: 'Demande envoyée',
+        requestAccessError: "Nous n'avons pas pu envoyer votre demande. Veuillez réessayer.",
         verifyDomain: {
             title: 'Vérifier le domaine',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10958,13 +10959,12 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             setMetadataGenericError: 'Impossible de définir les métadonnées SAML',
         },
         accessRestricted: {
-            title: 'Accès restreint',
-            subtitle: (domainName: string) =>
-                `Veuillez vous vérifier en tant qu’administrateur d’entreprise autorisé pour <strong>${domainName}</strong> si vous avez besoin de contrôle sur :`,
-            companyCardManagement: 'Gestion des cartes d’entreprise',
-            accountCreationAndDeletion: 'Création et suppression de compte',
-            workspaceCreation: 'Création d’espace de travail',
-            samlSSO: 'SSO SAML',
+            headerTitle: 'Accès restreint',
+            title: 'Vérification requise',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Veuillez vous vérifier en tant qu’administrateur d’entreprise autorisé pour <strong>${domainName}</strong> ou demander l’accès aux administrateurs existants.</centered-text></muted-text>`,
+            requestAdminAccess: 'Demander l’accès administrateur',
+            verifyYourself: 'Vérifiez-vous',
         },
         addDomain: {
             title: 'Ajouter un domaine',
@@ -10978,7 +10978,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             title: "Domaine déjà configuré. Demander l'accès ?",
             description: "Quelqu'un a déjà configuré ce domaine dans Expensify. Voulez-vous demander l'accès administrateur ?",
             requestAccess: "Demander l'accès administrateur",
-            requestAccessError: "Nous n'avons pas pu envoyer votre demande. Veuillez réessayer.",
         },
         domainAdded: {
             title: 'Domaine ajouté',

@@ -1,48 +1,49 @@
-import Button from '@components/ButtonComposed';
-import FixedFooter from '@components/FixedFooter';
+import ConfirmationPage from '@components/ConfirmationPage';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearRequestAdminshipError, requestDomainAdminship} from '@libs/actions/Domain';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 
-import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {hasPendingAdminshipRequestSelector} from '@src/selectors/Domain';
+import {accountIDSelector} from '@src/selectors/Session';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import DomainNameOrNotFoundWrapper from './DomainNameOrNotFoundWrapper';
 
 type DomainAccessRestrictedPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED>;
 
-const FEATURES: TranslationPaths[] = [
-    'domain.accessRestricted.companyCardManagement',
-    'domain.accessRestricted.accountCreationAndDeletion',
-    'domain.accessRestricted.workspaceCreation',
-    'domain.accessRestricted.samlSSO',
-];
-
 function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
-    const {asset: Checkmark} = useMemoizedLazyAsset(() => loadExpensifyIcon('Checkmark'));
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
-
     const {domainAccountID} = route.params;
+    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateSpyPigeon']);
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [hasPendingRequest] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: hasPendingAdminshipRequestSelector(currentUserAccountID)});
+    const [isRequestPending] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: (pendingActions) => !!pendingActions?.requestAdminship});
+    const [requestError] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: (errors) => errors?.requestAdminshipError});
+
+    useEffect(() => {
+        return () => clearRequestAdminshipError(domainAccountID);
+    }, [domainAccountID]);
 
     return (
         <DomainNameOrNotFoundWrapper
@@ -52,42 +53,40 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
             {(domainName) => (
                 <ScreenWrapper testID="DomainAccessRestrictedPage">
                     <HeaderWithBackButton
-                        title={translate('domain.accessRestricted.title')}
+                        title={translate('domain.accessRestricted.headerTitle')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <ScrollView
-                        contentContainerStyle={[styles.flexGrow1, styles.pt3, styles.ph5, styles.gap5]}
-                        keyboardShouldPersistTaps="always"
-                    >
-                        <View style={styles.flexRow}>
-                            <RenderHTML html={translate('domain.accessRestricted.subtitle', domainName)} />
-                        </View>
-
-                        <View style={styles.gap2}>
-                            {FEATURES.map((featureTranslationPath) => (
-                                <View
-                                    style={[styles.alignItemsCenter, styles.flexRow]}
-                                    key={featureTranslationPath}
-                                >
-                                    <Icon
-                                        src={Checkmark}
-                                        additionalStyles={styles.mr2}
-                                        fill={theme.iconSuccessFill}
-                                    />
-                                    <Text>{translate(featureTranslationPath)}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </ScrollView>
-                    <FixedFooter>
-                        <Button
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(domainAccountID))}
-                        >
-                            <Button.Text>{translate('common.verify')}</Button.Text>
-                        </Button>
-                    </FixedFooter>
+                    <ConfirmationPage
+                        illustration={icons.EmptyStateSpyPigeon}
+                        heading={translate('domain.accessRestricted.title')}
+                        innerContainerStyle={styles.p10}
+                        descriptionComponent={
+                            <View style={[styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML html={translate('domain.accessRestricted.description', domainName)} />
+                            </View>
+                        }
+                        footerComponent={
+                            !!requestError && (
+                                <FormHelpMessage
+                                    message={getLatestErrorMessage({errors: requestError})}
+                                    style={styles.mb0}
+                                />
+                            )
+                        }
+                        shouldShowSecondaryButton
+                        secondaryButtonText={translate(hasPendingRequest ? 'domain.requestSent' : 'domain.accessRestricted.requestAdminAccess')}
+                        isSecondaryButtonLoading={isRequestPending}
+                        isSecondaryButtonDisabled={!isRequestPending && (!!hasPendingRequest || isOffline)}
+                        onSecondaryButtonPress={() => {
+                            if (!currentUserAccountID) {
+                                return;
+                            }
+                            requestDomainAdminship(domainAccountID, currentUserAccountID, false);
+                        }}
+                        shouldShowButton
+                        buttonText={translate('domain.accessRestricted.verifyYourself')}
+                        onButtonPress={() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(domainAccountID))}
+                    />
                 </ScreenWrapper>
             )}
         </DomainNameOrNotFoundWrapper>
