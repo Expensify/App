@@ -7,7 +7,7 @@
 
 import type {TupleToUnion} from 'type-fest';
 
-import {$} from 'bun';
+import {$, env} from 'bun';
 import CLI from 'expensify-common/CLI';
 
 import type {AndroidApplicationIDs} from './lib/bootstrapForDevice/android';
@@ -55,7 +55,7 @@ async function main(rootDirectory: string): Promise<void> {
                 required: false,
             },
             'github-username': {
-                description: 'GitHub username used to create the default bundle identifier (defaults to the active gh CLI user)',
+                description: 'GitHub username used to create the default bundle identifier (defaults to the active gh CLI user or GH_TOKEN user)',
                 required: false,
             },
         },
@@ -79,11 +79,16 @@ async function main(rootDirectory: string): Promise<void> {
 }
 
 /**
- * Resolves the lowercase login for the active gh CLI account for use in a unique application identifier.
- * The CLI prefers GH_TOKEN, then GITHUB_TOKEN, before its stored active account.
+ * Resolves the lowercase login for use in a unique application identifier.
+ * The gh CLI prefers GH_TOKEN, then GITHUB_TOKEN, before its stored active account; Octokit uses GH_TOKEN only when gh is unavailable.
  */
 async function githubUsername(): Promise<string> {
-    const result = await $`gh api user --jq .login`.quiet().nothrow();
+    const ghExecutable = Bun.which('gh');
+    if (!ghExecutable) {
+        return githubUsernameFromToken();
+    }
+
+    const result = await $`${ghExecutable} api user --jq .login`.quiet().nothrow();
     const username = result.stdout.toString().trim().toLowerCase();
     if (result.exitCode !== 0 || !username) {
         throw new Error('Could not determine your GitHub username. Run gh auth login, or pass --github-username/--bundle-identifier.');
@@ -106,6 +111,23 @@ function parsePlatform(value: string): Platform {
         throw new Error(`Platform must be one of: ${PLATFORMS.join(', ')}. Received: ${value}`);
     }
     return platform;
+}
+
+/** Resolves the lowercase login associated with GH_TOKEN when the gh CLI is unavailable. */
+async function githubUsernameFromToken(): Promise<string> {
+    const token = env.GH_TOKEN;
+    if (!token) {
+        throw new Error('Could not determine your GitHub username. Install and authenticate gh, set GH_TOKEN, or pass --github-username/--bundle-identifier.');
+    }
+
+    try {
+        const {default: GithubUtils} = await import('@github/libs/GithubUtils');
+        GithubUtils.initOctokitWithToken(token);
+        const {data: user} = await GithubUtils.octokit.users.getAuthenticated();
+        return user.login.toLowerCase();
+    } catch {
+        throw new Error('Could not determine your GitHub username. Check GH_TOKEN, or pass --github-username/--bundle-identifier.');
+    }
 }
 
 export {bootstrapAndroidForDevice, bootstrapIOSForDevice, defaultBundleIdentifier, main, resolveDevelopmentTeam};
