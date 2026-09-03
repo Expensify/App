@@ -176,6 +176,17 @@ function rescaleSnapshotGroupAmount<T extends OnyxTypes.Transaction>(transaction
     };
 }
 
+/**
+ * Whether any of the given splits still lives on a report that hasn't been submitted yet - read live off
+ * each split's own report rather than a cached field, so a status change elsewhere is never stale here.
+ */
+function hasEditableSplitExpenseLeft(splitExpenses: SplitExpense[], allReportsList: OnyxCollection<OnyxTypes.Report>): boolean {
+    return splitExpenses.some((expense) => {
+        const statusNum = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expense.reportID}`]?.statusNum ?? 0;
+        return statusNum < CONST.REPORT.STATUS_NUM.SUBMITTED;
+    });
+}
+
 function updateSplitTransactions({
     allTransactionsList,
     allReportsList,
@@ -294,7 +305,7 @@ function updateSplitTransactions({
     ];
 
     const isCreationOfSplits = allChildTransactions.length === 0;
-    const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const hasEditableSplitExpensesLeft = hasEditableSplitExpenseLeft(splitExpenses, allReportsList);
     const isReverseSplitOperation = splitExpenses.length === 1 && allChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
 
     let splitThreadComments: OnyxTypes.ReportAction[] = [];
@@ -2029,7 +2040,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const splitExpenses = params.transactionData?.splitExpenses ?? [];
     const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID);
-    const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const hasEditableSplitExpensesLeft = hasEditableSplitExpenseLeft(splitExpenses, params.allReportsList);
 
     // Unfiltered, so a pure selfDM 2-split still collapses via REVERT_SPLIT_TRANSACTION. The mixed
     // workspace/selfDM case is guarded below via reverseSplitKeepsOriginalInExpenseReport instead.

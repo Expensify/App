@@ -1,9 +1,10 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
+import {computeSplitSaveErrorMessage, computeSplitWarningMessage, isSplitExpenseFrozen} from '@libs/SplitExpenseUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import type {Report} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 
 import {convertToDisplayString} from '../../utils/TestHelper';
@@ -419,5 +420,46 @@ describe('computeSplitSaveErrorMessage', () => {
             expect(result).toContain(GREATER);
             expect(result).not.toBe('iou.splitExpenseZeroAmount');
         });
+    });
+});
+
+describe('isSplitExpenseFrozen', () => {
+    function makeReport(overrides: Partial<Report>): Report {
+        return {reportID: 'report-1', ...overrides};
+    }
+
+    it('returns false when the report is undefined', () => {
+        expect(isSplitExpenseFrozen(undefined)).toBe(false);
+    });
+
+    it('returns false for an open (draft) report', () => {
+        const report = makeReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+        expect(isSplitExpenseFrozen(report)).toBe(false);
+    });
+
+    it('returns false for a submitted (not yet approved) report', () => {
+        const report = makeReport({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+        expect(isSplitExpenseFrozen(report)).toBe(false);
+    });
+
+    it('returns true for an approved report', () => {
+        const report = makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+        expect(isSplitExpenseFrozen(report)).toBe(true);
+    });
+
+    it('returns true for a paid/settled (reimbursed) report', () => {
+        const report = makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        expect(isSplitExpenseFrozen(report)).toBe(true);
+    });
+
+    it('returns true for a report marked as done (closed)', () => {
+        const report = makeReport({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+        expect(isSplitExpenseFrozen(report)).toBe(true);
+    });
+
+    it('returns false when waiting on payee bank account, not otherwise approved/closed', () => {
+        // isSettled's carve-out; stateNum stays SUBMITTED so isReportApproved/isClosedReport don't mask it.
+        const report = makeReport({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, isWaitingOnBankAccount: true});
+        expect(isSplitExpenseFrozen(report)).toBe(false);
     });
 });
