@@ -85,16 +85,6 @@ function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD, currencies?:
 }
 
 /**
- * Returns the currency's minor unit quantity
- * e.g. Cent in USD
- *
- * @param currency - IOU currency
- */
-function getCurrencyUnit(currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
-    return 10 ** getCurrencyDecimals(currency, currencies);
-}
-
-/**
  * Get localized currency symbol for currency(ISO 4217) Code
  */
 function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
@@ -304,9 +294,8 @@ export {
     sanitizeCurrencyCode,
     resetInvalidCurrencyWarningsForTesting,
     getCurrencyDecimals,
-    getCurrencyUnit,
-    getLocalizedCurrencySymbol,
     getCurrencySymbol,
+    getLocalizedCurrencySymbol,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,

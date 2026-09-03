@@ -250,6 +250,12 @@ type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
     type?: string;
 };
 
+/** Model of a violation captured on a submitted report action */
+type SubmittedTransactionViolation = {
+    /** Violation identifier/name captured at submit time */
+    name: string;
+};
+
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
     /** The login of the admin (used in admin-submit) */
@@ -284,6 +290,12 @@ type OriginalMessageSubmitted = {
 
     /** The workflow the report is submitted on */
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Snapshot of transaction violations present when the report was submitted */
+    violations?: {
+        /** Violations keyed by transaction ID */
+        transactions: Record<string, SubmittedTransactionViolation[]>;
+    };
 };
 
 /** Model of `created` report action */
@@ -657,6 +669,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
+
+    /** Who pays the currency conversion fees on cross-border reimbursements */
+    preference?: ValueOf<typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE>;
 
     /** Default value of a report field */
     defaultValue?: string;
@@ -1435,7 +1450,8 @@ type OriginalMessageExportIntegration = {
     reimbursableUrls?: string[];
 
     /**
-     * A list of URLs to the Travel Invoicing Journal Entry records
+     * A list of URLs to the Travel Billing Journal Entry records.
+     * The key keeps the legacy spelling because it is stored in existing report actions.
      */
     travelInvoicingUrls?: string[];
 
@@ -1648,6 +1664,20 @@ type OriginalMessageReassignApprover = {
 };
 
 /**
+ * Model of Delegate Submit action original message (posted when a report is auto-forwarded to a vacation delegate)
+ */
+type OriginalMessageDelegateSubmit = {
+    /** Email of the manager the report would normally have been sent to */
+    originalManager: string;
+
+    /** Email of the vacation delegate the report was sent to (or would have been sent to) */
+    delegate: string;
+
+    /** Whether the delegate is a member of the report's policy. Defaults to true when absent. */
+    isOnPolicy?: boolean;
+};
+
+/**
  * Minimal transaction data needed to render the MFA authorize transaction preview.
  */
 type OriginalMessageActionableCard3DSTransactionApproval = TransactionPending3DSReview;
@@ -1676,6 +1706,17 @@ type IssueNewCardOriginalMessage = OriginalMessage<
 >;
 
 /**
+ * Model of a HOME_ADDRESS_REQUIRED Concierge report action.
+ */
+type OriginalMessageHomeAddressRequired = {
+    /** ID of the policy whose commuter-exclusion change triggered the prompt */
+    policyID: string;
+
+    /** Set once the member saves a home address, marking the prompt as satisfied */
+    resolution?: string | null;
+};
+
+/**
  * Model of reimbursement director information report action
  */
 type OriginalMessageReimbursementDirectorInformationRequired = {
@@ -1700,7 +1741,7 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
  */
 type OriginalMessageTravelNudge = {
     /** The kind of bookable travel the expense was classified as */
-    travelType: ValueOf<typeof CONST.RESERVATION_TYPE>;
+    travelType: ValueOf<typeof CONST.TRAVEL_NUDGE.TRAVEL_TYPE>;
 
     /** Whether the expense was created from a card import or manually */
     origination: ValueOf<typeof CONST.TRAVEL_NUDGE.ORIGINATION>;
@@ -1813,7 +1854,9 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: OriginalMessageSmartScanFailed;
     [CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER]: OriginalMessageReassignApprover;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
+    [CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT]: OriginalMessageDelegateSubmit;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
+    [CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED]: OriginalMessageHomeAddressRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
 } & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
@@ -1832,6 +1875,7 @@ export default OriginalMessage;
 export type {
     DecisionName,
     OriginalMessageIOU,
+    OriginalMessageReportPreview,
     ChronosOOOEvent,
     PaymentMethodType,
     OriginalMessageSource,

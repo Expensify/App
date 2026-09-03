@@ -1,9 +1,11 @@
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {areTransactionsEligibleForMerge, getTransactionsForMerging, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
+import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getMergeFieldUpdatedValues} from '@libs/MergeTransactionUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -11,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     MergeTransaction as MergeTransactionType,
     OriginalMessageIOU,
+    Policy,
     Report,
     ReportAction,
     ReportActions,
@@ -26,12 +29,13 @@ import Onyx from 'react-native-onyx';
 import type {MockFetch} from '../utils/TestHelper';
 
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Helper function to create mock violations
@@ -211,6 +215,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         sourceTransactionThreadReportActions: undefined,
         sourceIOUAction,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
+        getCurrencySymbol: getCurrencySymbolLocal,
     });
 }
 
@@ -231,8 +236,8 @@ describe('mergeTransactionRequest', () => {
     });
 
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -331,6 +336,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         await mockFetch?.resume?.();
@@ -452,6 +458,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         await mockFetch?.resume?.();
@@ -528,9 +535,7 @@ describe('mergeTransactionRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
 
-        type ApiModule = {write: (...args: unknown[]) => unknown};
-        const getApiModule = (): ApiModule => jest.requireActual('@libs/API');
-        const writeSpy = jest.spyOn(getApiModule(), 'write');
+        const writeSpy = jest.spyOn(API, 'write');
 
         mockFetch?.pause?.();
 
@@ -558,6 +563,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         await mockFetch?.resume?.();
@@ -567,21 +573,7 @@ describe('mergeTransactionRequest', () => {
         expect(writeSpy).toHaveBeenCalled();
         const [firstCall] = writeSpy.mock.calls;
         const [calledCommand, rawParams] = firstCall;
-        const calledParams = rawParams as {
-            transactionID: string;
-            transactionIDList: string[];
-            created: string;
-            merchant: string;
-            amount: number;
-            currency: string;
-            category: string;
-            billable?: boolean;
-            reimbursable?: boolean;
-            tag?: string;
-            receiptID?: string;
-            reportID: string;
-            comment: string;
-        };
+        const calledParams = rawParams;
 
         expect(calledCommand).toBe(WRITE_COMMANDS.MERGE_TRANSACTION);
         expect(calledParams).toEqual(
@@ -726,6 +718,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         await waitForBatchedUpdates();
@@ -835,6 +828,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         await mockFetch?.resume?.();
@@ -900,19 +894,17 @@ describe('mergeTransactionRequest', () => {
         // The source IOU action is no longer removed — only the target report's IOU action is handled in the cross-report branch
         expect(sourceReportActions?.[sourceIOUActionID]).toBeDefined();
 
-        const newIOUAction = Object.values(sourceReportActions ?? {}).find((action) => {
-            const reportAction = action as OnyxEntry<ReportAction>;
-            const originalMessage = getOriginalMessage(reportAction) as OriginalMessageIOU | undefined;
-            return (
-                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-                originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE &&
-                originalMessage?.IOUTransactionID === targetTransaction.transactionID
-            );
-        }) as OnyxEntry<ReportAction>;
+        const newIOUAction = Object.values(sourceReportActions ?? {}).find((action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+            if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU)) {
+                return false;
+            }
+            const originalMessage = getOriginalMessage(action);
+            return originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE && originalMessage?.IOUTransactionID === targetTransaction.transactionID;
+        });
 
         // Verify the new IOU action is created and points to the merged transaction
         expect(newIOUAction).toBeTruthy();
-        expect((getOriginalMessage(newIOUAction) as OriginalMessageIOU | undefined)?.IOUTransactionID).toBe(targetTransaction.transactionID);
+        expect(getOriginalMessage(newIOUAction)?.IOUTransactionID).toBe(targetTransaction.transactionID);
 
         const updatedTargetTransactionThread = await new Promise<Report | null>((resolve) => {
             const connection = Onyx.connect({
@@ -1069,6 +1061,7 @@ describe('mergeTransactionRequest', () => {
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await mockFetch?.resume?.();
@@ -1275,12 +1268,13 @@ describe('mergeTransactionRequest', () => {
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewReportAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
+            previewAction = getReportPreviewReportAction(chatReport.reportID, sourceReport.reportID) ?? undefined;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);
@@ -1302,7 +1296,7 @@ describe('mergeTransactionRequest', () => {
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewReportAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
+            previewAction = getReportPreviewReportAction(chatReport.reportID, sourceReport.reportID) ?? undefined;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);
@@ -1430,6 +1424,7 @@ describe('mergeTransactionRequest', () => {
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1565,6 +1560,52 @@ describe('setMergeTransactionKey', () => {
             category: 'New Category', // Added
             description: 'New Description', // Added
         });
+    });
+
+    it('should apply the commuter exclusion to the newly selected distance rather than the previously selected one', async () => {
+        // Given a merge onto a workspace that excludes 1 commuter mile, where the merchant of the 4.49 mile expense was
+        // selected first
+        const transactionID = 'merge-distance-transaction';
+        const excludingWorkspace: Policy = {
+            ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, fixedDistance: 1, fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+        };
+        const selectMerchantOf = async (transaction: Transaction) => {
+            setMergeTransactionKey(
+                transactionID,
+                getMergeFieldUpdatedValues({
+                    transaction,
+                    field: 'merchant',
+                    fieldValue: transaction.merchant,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    mergeTransaction: await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`),
+                    destinationPolicy: excludingWorkspace,
+                }),
+            );
+            await waitForBatchedUpdates();
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {targetTransactionID: transactionID});
+        await selectMerchantOf({
+            ...createRandomDistanceRequestTransaction(0),
+            amount: -349,
+            comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 4.49, commuterExclusion: 1, reimbursableDistance: 3.49}},
+        });
+
+        // When the merchant of the 10.2 mile expense is selected instead
+        await selectMerchantOf({
+            ...createRandomDistanceRequestTransaction(1),
+            amount: -1020,
+            comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 10.2}},
+        });
+
+        // Then the exclusion still applies, but to the newly selected distance: the distance field renders the
+        // reimbursable distance in place of the full one, so keeping the previous 3.49 would show the wrong expense
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
+        expect(mergeTransaction?.customUnit?.quantity).toBe(10.2);
+        expect(mergeTransaction?.customUnit?.commuterExclusion).toBe(1);
+        expect(mergeTransaction?.customUnit?.reimbursableDistance).toBe(9.2);
+        expect(mergeTransaction?.amount).toBe(920);
     });
 });
 

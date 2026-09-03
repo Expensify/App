@@ -7,7 +7,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -110,7 +111,8 @@ function IOURequestEditReportCommon({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const {showConfirmModal} = useConfirmModal();
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
     });
@@ -256,7 +258,7 @@ function IOURequestEditReportCommon({
             navigateBack();
             return;
         }
-        if (blockManualOrOdometerDistanceRequestIfNeeded(item.policyID)) {
+        if (blockDistanceRequestIfNeeded(item.policyID)) {
             return;
         }
         const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
@@ -269,6 +271,25 @@ function IOURequestEditReportCommon({
             return;
         }
 
+        // Reports can only hold up to CONST.REPORT.MAX_TRANSACTIONS transactions. The backend rejects a move that would push
+        // the destination past the limit, so prevent it up front with an explanatory warning instead of failing silently.
+        // Only count expenses that will actually be added to the destination: the move action skips transactions that are
+        // already in the destination report (see changeTransactionsReport in Transaction.ts), so a bulk selection that
+        // includes expenses already in that report must not inflate the projected count (e.g. moving 5 new expenses into a
+        // report that already holds 490 lands at 495, even if 15 of the selected expenses are already there).
+        const destinationReport = outstandingReports.find((report) => report?.reportID === item.value);
+        const numberOfTransactionsToMove =
+            transactionIDs?.filter((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID !== item.value).length ?? 1;
+        if ((destinationReport?.transactionCount ?? 0) + numberOfTransactionsToMove > CONST.REPORT.MAX_TRANSACTIONS) {
+            showConfirmModal({
+                title: translate('iou.moveExpenses'),
+                prompt: translate('iou.moveExpensesMaxTransactionsError'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+
         if (!validatePerDiemMove(item.policyID)) {
             return;
         }
@@ -277,31 +298,37 @@ function IOURequestEditReportCommon({
     };
 
     const handleCreateReport = useCallback(() => {
-        if (blockManualOrOdometerDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
+        if (blockDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
             return;
         }
         if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
             return;
         }
         createReport?.();
-    }, [blockManualOrOdometerDistanceRequestIfNeeded, validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
+    }, [blockDistanceRequestIfNeeded, validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
+    const policyForMovingExpensesName = policyForMovingExpenses?.name;
     const createReportOption = useMemo(() => {
         if (!createReport || (isEditing && !isOwner && !isAdmin)) {
             return undefined;
         }
 
         return (
-            <MenuItem
-                onPress={handleCreateReport}
-                title={translate('report.newReport.createReport')}
-                description={policyForMovingExpenses?.name}
-                icon={icons.Document}
-            />
+            <MenuItem.Root onPress={handleCreateReport}>
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <MenuItem.Icon src={icons.Document} />
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{translate('report.newReport.createReport')}</MenuItem.Title>
+                        {!!policyForMovingExpensesName && <MenuItem.Description>{policyForMovingExpensesName}</MenuItem.Description>}
+                    </MenuItem.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
         );
-    }, [icons.Document, createReport, translate, policyForMovingExpenses?.name, handleCreateReport, isEditing, isOwner, isAdmin]);
+    }, [icons.Document, createReport, translate, policyForMovingExpensesName, handleCreateReport, isEditing, isOwner, isAdmin]);
 
     const shouldShowNotFoundPage = useMemo(() => {
         if (createReportOption) {
@@ -353,12 +380,17 @@ function IOURequestEditReportCommon({
                 customListHeaderContent={createReportOption}
                 listFooterContent={
                     shouldShowRemoveFromReport ? (
-                        <MenuItem
-                            onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')}
-                            description={translate('iou.moveToPersonalSpace')}
-                            icon={icons.Close}
-                        />
+                        <MenuItem.Root onPress={removeFromReport}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Close} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('iou.removeFromReport')}</MenuItem.Title>
+                                    <MenuItem.Description>{translate('iou.moveToPersonalSpace')}</MenuItem.Description>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     ) : undefined
                 }
                 listEmptyContent={createReportOption}

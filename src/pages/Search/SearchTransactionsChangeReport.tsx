@@ -70,7 +70,7 @@ function SearchTransactionsChangeReport() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -189,6 +189,7 @@ function SearchTransactionsChangeReport() {
                 selfDMReportActions,
                 delegateAccountID,
                 getCurrencyDecimals,
+                getCurrencySymbol,
             });
             clearSelectedTransactions();
         });
@@ -207,13 +208,15 @@ function SearchTransactionsChangeReport() {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.EDIT,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: firstTransactionID,
-                        reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.EDIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: firstTransactionID,
+                            reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
+                    ),
                 );
             }
             return;
@@ -225,13 +228,15 @@ function SearchTransactionsChangeReport() {
         }
         if (shouldNavigateToUpgradePath) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                    action: CONST.IOU.ACTION.CREATE,
-                    iouType: CONST.IOU.TYPE.CREATE,
-                    transactionID: generateReportID(),
-                    reportID: generateReportID(),
-                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                }),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CREATE,
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        transactionID: generateReportID(),
+                        reportID: generateReportID(),
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
+                ),
             );
             return;
         }
@@ -276,6 +281,7 @@ function SearchTransactionsChangeReport() {
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
+            getCurrencySymbol,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -300,6 +306,7 @@ function SearchTransactionsChangeReport() {
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
+            getCurrencySymbol,
         });
         clearSelectedTransactions();
         Navigation.goBack();

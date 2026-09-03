@@ -2,6 +2,7 @@ import type HrSyncResult from '@libs/API/HrSyncResult';
 
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {MergeATSProviderSlug} from '@src/CONST/MERGE_ATS_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 
 import type {CONST as COMMON_CONST} from 'expensify-common';
@@ -266,6 +267,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The old tax code of the tax rate when we edit the tax code */
     previousTaxCode?: string;
 
+    /** Every tax code this rate has previously used, oldest first, so expenses still referencing any old code can be resolved back to this rate */
+    previousTaxCodes?: string[];
+
     /** The old tax code kept only while a tax code edit is in flight, used to resolve the rate from the old code; cleared once the API resolves */
     optimisticPreviousTaxCode?: string;
 
@@ -333,13 +337,13 @@ type ConnectionLastSync = {
     isConnected?: boolean;
 };
 
-/** Last sync state specific to Merge HR connections */
-type MergeHRConnectionLastSync = ConnectionLastSync & {
+/** Last sync state specific to a Merge connections */
+type MergeConnectionLastSync = ConnectionLastSync & {
     /** Type of the sync */
-    syncType?: ValueOf<typeof CONST.MERGE_HR.SYNC_TYPE>;
+    syncType?: ValueOf<typeof CONST.MERGE.SYNC_TYPE>;
 
     /** Status of the sync */
-    syncStatus?: ValueOf<typeof CONST.MERGE_HR.SYNC_STATUS>;
+    syncStatus?: ValueOf<typeof CONST.MERGE.SYNC_STATUS>;
 
     /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
     manualSyncTimestamps?: string[];
@@ -363,6 +367,27 @@ type QBOCredentials = {
      * The current scope of QBO connection.
      */
     scope: string;
+
+    /** Whether these credentials authorize an Intuit sandbox company. */
+    isSandbox?: boolean;
+
+    /** Absolute epoch time when the refresh token expires. */
+    refreshTokenExpiresAt?: number;
+};
+
+/** An IES entity authorized for this workspace. */
+type IntuitEnterpriseSuiteEntity = {
+    /** Intuit company identifier. */
+    realmId: string;
+
+    /** Intuit company name. */
+    companyName: string;
+
+    /** OAuth credentials for this entity. */
+    credentials: QBOCredentials;
+
+    /** Whether selecting this entity must start OAuth again. */
+    needsReconnect?: boolean;
 };
 
 /** Financial account (bank account, debit card, etc) */
@@ -465,6 +490,9 @@ type QBOConnectionData = {
     /** Collection of journal entry accounts  */
     journalEntryAccounts: Account[];
 
+    /** Profit and loss accounts, the only ones a currency conversion cost can be charged to */
+    expenseAccounts: Account[];
+
     /** Collection of bank accounts */
     bankAccounts: Account[];
 
@@ -555,6 +583,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the bill payment account */
     reimbursementAccountID?: string;
 
+    /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
+    fxExpenseAccount?: string;
+
     /** Account that receives the reimbursable expenses */
     reimbursableExpensesAccount?: Account;
 
@@ -614,6 +645,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Credentials of the current QBO connection */
     credentials: QBOCredentials;
+
+    /** IES entities authorized for this workspace, keyed by realm ID. */
+    entities?: Record<string, IntuitEnterpriseSuiteEntity>;
 
     /** The accounting Method for NetSuite connection config */
     accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
@@ -1154,7 +1188,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
 
-        /** Whether Travel Invoicing JEs post as individual entries per expense or a single grouped entry */
+        /** Whether Travel Billing JEs post as individual entries per expense or a single grouped entry */
         travelInvoicingJournalPostingPreference?: NetSuiteJournalPostingPreferences;
 
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
@@ -1882,10 +1916,10 @@ type RilletSync = {
     /** Bank account used for Expensify Card settlements. */
     settlementsBankAccountID: string;
 
-    /** Whether travel invoicing settlement transactions should be synchronized. */
+    /** Whether travel billing settlement transactions should be synchronized. */
     syncTravelInvoicingSettlements: boolean;
 
-    /** Bank account used for travel invoicing settlements. */
+    /** Bank account used for travel billing settlements. */
     travelInvoicingSettlementsBankAccountID: string;
 };
 
@@ -2156,7 +2190,7 @@ type DualEntryExport = {
     /** Default vendor used when exporting transactions. */
     defaultVendorID: string;
 
-    /** Payable account used when exporting travel invoices. */
+    /** Payable account used when exporting travel billings. */
     travelInvoicingPayableAccountID: string;
 
     /** Accounting method used during export. */
@@ -2198,10 +2232,10 @@ type DualEntrySync = {
     /** Bank account used for Expensify Card settlements. */
     settlementsBankAccountID: string;
 
-    /** Whether travel invoicing settlement transactions should be synchronized. */
+    /** Whether travel billing settlement transactions should be synchronized. */
     syncTravelInvoicingSettlements: boolean;
 
-    /** Bank account used for travel invoicing settlements. */
+    /** Bank account used for travel billing settlements. */
     travelInvoicingSettlementsBankAccountID: string;
 };
 
@@ -2243,7 +2277,7 @@ type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
-/** Shared config for HR integrations (Gusto, Merge HR) */
+/** Shared config for HR and recruiting integrations (Gusto, Merge HR, Merge ATS) */
 type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Workspace member who acts as the final approver */
@@ -2260,6 +2294,16 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     /** Approval mode */
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
+
+/** Shared config for the Merge-backed integrations (Merge HR, Merge ATS), parameterized by the union of provider slugs that integration supports */
+type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
+    OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** Integration provider slug identifying which HR/ATS system is linked */
+        integration: Integration;
+
+        /** Approval mode controlling how reports are routed for approval */
+        approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
+    }>;
 
 /** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
 type MergeHRGroup = {
@@ -2280,14 +2324,8 @@ type MergeHRConnectionData = {
 };
 
 /** Merge HR connection config */
-type MergeHRConnectionConfig = HRConnectionConfigBase &
+type MergeHRConnectionConfig = MergeConnectionConfigBase<MergeHRProviderSlug> &
     OnyxCommon.OnyxValueWithOfflineFeedback<{
-        /** Integration provider slug identifying which HR system is linked */
-        integration: MergeHRProviderSlug;
-
-        /** Approval mode controlling how reports are routed for approval */
-        approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
-
         /**
          * Groups the admin chose to import employees from.
          * - `string[]` with one or more IDs — setup complete, sync only those groups.
@@ -2295,6 +2333,73 @@ type MergeHRConnectionConfig = HRConnectionConfigBase &
          */
         groups: string[] | null;
     }>;
+
+/** An office candidates can be associated with in the ATS (e.g. "New York", "Remote - EU"). */
+type MergeATSOffice = {
+    /** Office ID */
+    id: string;
+
+    /** Human-readable name of the office */
+    name: string;
+};
+
+/** A stage of the hiring pipeline candidates can be in (e.g. "Phone Screen", "Offer"). */
+type MergeATSStage = {
+    /** Stage ID */
+    id: string;
+
+    /** Human-readable name of the stage */
+    name: string;
+};
+
+/** Merge ATS (recruiting) connection data */
+type MergeATSConnectionData = {
+    /**
+     * Tag names available to filter candidates by. Distinct from `config.filters.tags`, which is the admin's selection.
+     * Tags are identified by name, so this catalog holds names rather than IDs.
+     */
+    tags?: string[];
+
+    /**
+     * Stages available to filter candidates by. Distinct from `config.filters.stages`, which is the admin's selection
+     * and holds stage names rather than IDs.
+     */
+    stages?: MergeATSStage[];
+
+    /** Offices available to filter candidates by. Distinct from `config.filters.offices`, which holds the admin's selected office IDs. */
+    offices?: MergeATSOffice[];
+};
+
+/**
+ * The candidate filters the admin chose to narrow the import by. An empty or missing dimension means "no filter on that dimension".
+ */
+type MergeATSFilters = {
+    /** Names of the tags to import candidates for */
+    tags?: string[];
+
+    /** Names of the stages to import candidates for */
+    stages?: string[];
+
+    /** IDs of the offices to import candidates for. Resolve them against `data.offices` for display. */
+    offices?: string[];
+};
+
+/** Merge ATS (recruiting) connection config */
+type MergeATSConnectionConfig = MergeConnectionConfigBase<MergeATSProviderSlug> &
+    OnyxCommon.OnyxValueWithOfflineFeedback<
+        {
+            /**
+             * Candidate filters the admin chose to narrow the import by.
+             * - An object with at least one dimension set — setup complete, import only matching candidates.
+             * - `null` — setup not yet complete.
+             */
+            filters: MergeATSFilters | null;
+
+            /** The ATS field whose value identifies the default approver for a candidate (e.g. the recruiter or hiring manager field), or `null` when not set */
+            approverField: string | null;
+        },
+        'filters' | 'approverField'
+    >;
 
 /** TriNet (Zenefits) connection data */
 type ZenefitsConnectionData = Record<string, never>;
@@ -2455,7 +2560,10 @@ type Connections = {
     [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
 
     /** Merge HR integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig, MergeHRConnectionLastSync>;
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig, MergeConnectionLastSync>;
+
+    /** Merge ATS (recruiting) integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: Connection<MergeATSConnectionData, MergeATSConnectionConfig, MergeConnectionLastSync>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -2844,9 +2952,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The custom units data for this policy */
         customUnits?: Record<string, CustomUnit>;
 
-        /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-        isPolicyExpenseChatEnabled: boolean;
-
         /** Whether the auto reporting is enabled */
         autoReporting?: boolean;
 
@@ -2963,6 +3068,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
 
+        /** Whether to show category GL codes when selecting a category */
+        showCategoryGLCodes?: boolean;
+
         /**
          * Policy Receipt Partners
          */
@@ -3059,6 +3167,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Expensify Card feature is enabled */
         areExpensifyCardsEnabled?: boolean;
 
+        /** Whether approvals are locked by an Expensify Card with a monthly limit */
+        areApprovalsLockedByExpensifyCard?: boolean;
+
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;
 
@@ -3079,6 +3190,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the HR feature is enabled */
         isHREnabled?: boolean;
+
+        /** Whether the Recruiting feature is enabled */
+        isRecruitingEnabled?: boolean;
 
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
@@ -3163,8 +3277,14 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
+
+        /** Whether Expensify automatically copies newly published government distance rates onto this policy */
+        shouldAutoUpdateGovernmentDistanceRates?: boolean;
+
+        /** Whether distance expenses on this policy must come from a mapped route or a GPS track, which rules out the manual and odometer flows */
+        requireMapOrGPS?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | keyof WorkspaceTravelSettings | 'isHREnabled' | 'isRecruitingEnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */
@@ -3225,6 +3345,7 @@ export type {
     QBDNonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
+    IntuitEnterpriseSuiteEntity,
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
@@ -3260,7 +3381,9 @@ export type {
     CommuterExclusions,
     NetSuiteConnectionData,
     MergeHRConnectionConfig,
-    MergeHRConnectionLastSync,
+    MergeConnectionLastSync,
+    MergeATSConnectionConfig,
+    MergeATSFilters,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
@@ -3278,4 +3401,10 @@ export type {
     DualEntryConnectionsConfig,
     DualEntryCompany,
     DualEntryCoding,
+    DualEntryExportDate,
+    DualEntryVendor,
+    DualEntryAccount,
+    DualEntryExport,
+    DualEntryAutoSync,
+    DualEntrySync,
 };

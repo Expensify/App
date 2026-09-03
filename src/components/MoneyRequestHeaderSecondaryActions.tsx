@@ -1,3 +1,4 @@
+import useActivePolicy from '@hooks/useActivePolicy';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -5,10 +6,10 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
@@ -18,6 +19,7 @@ import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
@@ -31,6 +33,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -41,11 +44,12 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
-import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getTrackExpenseActionableWhisper, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
+    createDraftTransactionAndNavigateToParticipantSelector,
     generateReportID,
     getPolicyExpenseChat,
     isCurrentUserSubmitter,
@@ -82,8 +86,9 @@ import {useRoute} from '@react-navigation/native';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 
@@ -116,17 +121,19 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const theme = useTheme();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
-    const {login: currentUserLogin, accountID, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'ArrowCollapse',
         'ArrowSplit',
+        'Building',
         'Checkmark',
         'DocumentMerge',
         'ExpenseCopy',
         'Info',
+        'Send',
         'Stopwatch',
         'ThumbsDown',
         'Trashcan',
@@ -171,11 +178,20 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, transaction);
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+
+    const activePolicy = useActivePolicy();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserEmail), [currentUserEmail]);
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
+    const draftTransactionIDs = useMemo(() => Object.keys(transactionDrafts ?? {}), [transactionDrafts]);
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -188,6 +204,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const hasWorkspaceToSubmitToSelector = useMemo(() => createHasWorkspaceToSubmitToSelector(currentUserLogin), [currentUserLogin]);
+    const [hasWorkspaceToSubmitTo = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -281,6 +299,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 policyTagList,
                 formatPhoneNumber,
                 participantsPolicyTags,
+                conciergeChat,
             });
         }
     };
@@ -308,8 +327,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         setRejectModalAction(null);
     };
 
-    const {isProduction} = useEnvironment();
-
     // Secondary actions
     const secondaryActions = (() => {
         if (!transaction || !parentReportAction || !parentReport) {
@@ -328,9 +345,33 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             reportNameValuePairs,
             isChatReportArchived: isChatIOUReportArchived,
             grandParentReport,
-            isProduction,
+            hasWorkspaceToSubmitTo,
         });
     })();
+
+    // Shared params for converting a self-tracked expense through the participant selector, used by both
+    // "Send to someone" (friend) and "Submit to my employer" (employer) menu actions. Mirrors the Inbox
+    // track-expense whisper flow (see ChatActionableButtons' baseDraftTransactionParams).
+    const sendTrackedExpenseParams = {
+        reportID: parentReport?.reportID,
+        actionName: CONST.IOU.ACTION.SUBMIT,
+        reportActionID: getTrackExpenseActionableWhisper(transaction?.transactionID, parentReport?.reportID, parentReportActions)?.reportActionID,
+        reportActions: parentReportActions,
+        introSelected,
+        draftTransactionIDs,
+        activePolicy,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
+        transaction,
+        currentUserAccountID: accountID,
+        currentUserEmail: currentUserEmail ?? '',
+        currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+        filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
+        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+    };
 
     const secondaryActionsImplementation: Partial<
         Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>>
@@ -391,17 +432,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(
-                    transaction,
-                    report,
-                    splitEffectivePolicy,
-                    selfDMReportID,
-                    restrictedActionPolicyID,
-                    personalPolicy?.outputCurrency,
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
-                    {isProduction},
-                );
+                initSplitExpense(transaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, getCurrencyDecimals, getCurrencySymbol);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
@@ -489,7 +520,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     prompt: isPending(transaction) ? translate('iou.deleteConfirmationPendingBYOC') : translate('iou.deleteConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
-                    danger: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     shouldEnableNewFocusManagement: true,
                 }).then((result) => {
                     if (result.action !== ModalActions.CONFIRM) {
@@ -587,19 +618,51 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 const iouType = isExpenseReport(parentReport) ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.TRACK;
                 if (shouldNavigateToUpgradePath && reportID) {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.EDIT,
-                            iouType,
-                            transactionID: transaction.transactionID,
-                            reportID,
-                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                        }),
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action: CONST.IOU.ACTION.EDIT,
+                                iouType,
+                                transactionID: transaction.transactionID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                            }),
+                        ),
                     );
                     return;
                 }
                 Navigation.navigate(
                     createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, transaction.transactionID)),
                 );
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE]: {
+            text: translate('iou.sendToSomeone'),
+            icon: expensifyIcons.Send,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE,
+            onSelected: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                createDraftTransactionAndNavigateToParticipantSelector(sendTrackedExpenseParams);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER]: {
+            text: translate('iou.submitToEmployer'),
+            icon: expensifyIcons.Building,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER,
+            onSelected: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    ...sendTrackedExpenseParams,
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail ?? '', lastWorkspaceNumber, translate, currentUserDisplayName),
+                });
             },
         },
     };
