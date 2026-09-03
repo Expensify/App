@@ -12,11 +12,13 @@
                 ".github/scripts/**/*.ts",
                 "tests/tooling/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
+                "tests/globals.d.ts",
                 ".storybook/**/*.{js,ts,tsx}",
                 "metro.config.js",
                 "eslint.changed.config.mjs",
                 "react-native.config.js",
-                "rock.config.mjs"
+                "rock.config.mjs",
+                "src/components/HeaderWithBackButtonComposed/index.tsx"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",
