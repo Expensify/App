@@ -846,7 +846,8 @@ function Search({
             return;
         }
 
-        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
+        // server decides the page size, so trust the loaded row count over RESULTS_PAGE_SIZE
+        setOffset((prev) => Math.max(prev + CONST.SEARCH.RESULTS_PAGE_SIZE, allDataLength));
     }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, allDataLength]);
 
     const onLayoutBase = useCallback(() => {
