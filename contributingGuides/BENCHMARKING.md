@@ -132,7 +132,7 @@ npm run benchmark-app-startup -- ios 20 --cold \
     --wait-time 30
 ```
 
-The script runs with Bun and also exports `benchmarkAppStartups`, `benchmarkAppStartupsAlternating`, and `benchmarkStartups`. Other local tooling can install an artifact and invoke the same benchmark implementation. Statistics calculation, raw sample parsing, and CSV result writing live in `scripts/lib/benchmarkStatistics.ts`, while the lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts`. This guide does not assume that an existing PGO script has adopted these exports.
+The script runs with Bun and also exports `benchmarkAppStartups`, `benchmarkAppStartupsAlternating`, and `benchmarkStartups`. Other local tooling can install an artifact and invoke the same benchmark implementation. Statistics calculation, raw sample parsing, and CSV result writing live in `scripts/lib/benchmarkStatistics.ts`. The lower-level shared, Android, and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` and `scripts/lib/nativeAppBenchmark/`. This guide does not assume that an existing PGO script has adopted these exports.
 
 The percentile and summary-statistics functions in `scripts/lib/benchmarkStatistics.ts` remain side-effect free. Callers can use those calculations independently or opt into the same module's sample-file parsing and CSV export helpers without importing device commands or startup orchestration.
 
