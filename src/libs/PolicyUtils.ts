@@ -823,6 +823,12 @@ const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: st
  */
 const isPolicyCardAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.CARD_ADMIN;
 
+/**
+ * Checks if the current user is a workspace or card admin of the policy and the policy has a card product enabled.
+ */
+const isAdminOfCardEnabledPolicy = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean =>
+    (isPolicyAdmin(policy, login) || isPolicyCardAdmin(policy, login)) && (!!policy?.areCompanyCardsEnabled || !!policy?.areExpensifyCardsEnabled);
+
 const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
     return !!policyID && policyID === policy?.id;
 };
@@ -3207,6 +3213,7 @@ export {
     isPolicyUser,
     isPolicyAuditor,
     isPolicyCardAdmin,
+    isAdminOfCardEnabledPolicy,
     hasEligibleBankAccountShareRecipient,
     isPolicyEmployee,
     arePolicyRulesEnabled,

@@ -47,7 +47,7 @@ import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration, isPolicyAdmin, isPolicyCardAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -631,12 +631,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
 
-    // Reconciliation - All Expenses is a role-gated layout, so it is offered whenever the current user is a workspace admin
-    // or card admin of any workspace, regardless of which rows are selected.
-    const doAllSelectedItemsBelongToWorkspaceOrCardAdminPolicies = useMemo(
-        () => Object.values(policies ?? {}).some((policy) => isPolicyAdmin(policy) || isPolicyCardAdmin(policy)),
-        [policies],
-    );
+    // Reconciliation - All Expenses reports on card spend, so it is offered whenever the current user is a workspace admin or card
+    // admin of a workspace with a card product enabled, regardless of which rows are selected.
+    const hasCardEnabledAdminPolicy = useMemo(() => Object.values(policies ?? {}).some((policy) => isAdminOfCardEnabledPolicy(policy)), [policies]);
 
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
@@ -1813,7 +1810,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 includeReportLevelExport,
                 !isGroupedSearch,
                 doAllSelectedItemsBelongToCADPolicies,
-                doAllSelectedItemsBelongToWorkspaceOrCardAdminPolicies,
+                hasCardEnabledAdminPolicy,
             );
             const shouldHideTemplateExports = isExpenseType && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length > 0;
             const availableCustomTemplates = shouldHideTemplateExports
@@ -2841,7 +2838,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         restrictedActionPolicyID,
         doSelectedItemsBelongToSubmitPolicy,
         doAllSelectedItemsBelongToCADPolicies,
-        doAllSelectedItemsBelongToWorkspaceOrCardAdminPolicies,
+        hasCardEnabledAdminPolicy,
         openSearchReportSubmitToPopover,
         firstTransactionReport,
         styles.textWrap,

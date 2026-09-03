@@ -41,9 +41,8 @@ import {
     getSubmitReportManagerAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
+    isAdminOfCardEnabledPolicy,
     isDelayedSubmissionEnabled,
-    isPolicyAdmin,
-    isPolicyCardAdmin,
     isSubmitAndClose,
     isSubmitPolicy,
 } from '@libs/PolicyUtils';
@@ -1972,8 +1971,8 @@ type ExportTemplateGroups = {
  * @param includeBasicExport - Whether to include the basic export (CSV download) template in the default group
  * @param includeMultipleTaxExport - Whether to include the Canadian Multiple Tax Export template. Defaults to whether the given policy outputs in CAD, so callers that
  * export across several workspaces (e.g. a bulk selection in Search) can instead pass whether every selected workspace outputs in CAD.
- * @param includeReconciliationAllExpenses - Whether to include the Reconciliation - All Expenses template. Defaults to whether the current user is a workspace or card admin of the given policy. Callers that
- * export across several workspaces can instead pass whether the current user is a workspace or card admin.
+ * @param includeReconciliationAllExpenses - Whether to include the Reconciliation - All Expenses template. Defaults to whether the current user is a workspace or card admin of the given policy
+ * and that policy has a card product enabled. Callers that export across several workspaces can instead pass whether any such workspace qualifies.
  * @returns The export templates pre-grouped into the custom group and the default group, each sorted alphabetically
  */
 function getExportTemplates(
@@ -1985,7 +1984,7 @@ function getExportTemplates(
     includeReportLevelExport = true,
     includeBasicExport = false,
     includeMultipleTaxExport = policy?.outputCurrency === CONST.CURRENCY.CAD,
-    includeReconciliationAllExpenses = isPolicyAdmin(policy) || isPolicyCardAdmin(policy),
+    includeReconciliationAllExpenses = isAdminOfCardEnabledPolicy(policy),
 ): ExportTemplateGroups {
     // Helper function to normalize template data into consistent ExportTemplate format
     const normalizeTemplate = (
