@@ -15,6 +15,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {ReimbursementAccount} from '@src/types/onyx';
 
+import type * as ReactNavigation from '@react-navigation/native';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -25,9 +27,7 @@ import {BACK_TO, buildAchData, PENDING_ACCOUNT, POLICY_ID} from '../../utils/Rei
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actualNav = jest.requireActual('@react-navigation/native');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
         ...actualNav,
         useIsFocused: () => true,
