@@ -3,8 +3,6 @@ import Composer from '@components/Composer';
 import type {ComposerRef} from '@components/Composer/types';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
-import Lottie from '@components/Lottie';
-import LottieAnimations from '@components/LottieAnimations';
 import PopoverMenu from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
@@ -13,7 +11,7 @@ import PopoverAnchorTooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardState from '@hooks/useKeyboardState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -55,10 +53,8 @@ import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 // Max number of lines before the input starts scrolling internally.
 const MAX_INPUT_LINES = 5;
 
-// The coin animation's canvas has empty space under the coin. It renders at this share of the card width at its own
-// aspect ratio, and its container clips it to this height, cropping that space away rather than scaling it down.
-const COIN_ANIMATION_WIDTH_PERCENT = 80;
-const COIN_ANIMATION_VISIBLE_HEIGHT = 140;
+// Size of the Concierge illustration above the greeting.
+const CONCIERGE_ILLUSTRATION_SIZE = 68;
 
 // A single line of placeholder text is one lineHeightXLarge tall. Anything meaningfully taller has wrapped.
 const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = variables.lineHeightXLarge * 1.5;
@@ -83,6 +79,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const {firstName} = useCurrentUserPersonalDetails();
     const {askConcierge, askConciergeWithAttachment, shouldShowAskConcierge, conciergeTargetReportID} = useAskConcierge({forceConcierge: true});
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Send', 'Paperclip']);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBot']);
     const {calculatePopoverPosition} = usePopoverPosition();
     const [draft] = useOnyx(ONYXKEYS.CONCIERGE_PROMPT_DRAFT);
     const [value, setValue] = useState(draft ?? '');
@@ -202,20 +199,11 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         <View style={styles.gap6}>
             <View style={[styles.gap2, shouldUseNarrowLayout && styles.alignItemsCenter]}>
                 {shouldUseNarrowLayout && (
-                    <View style={[styles.w100, styles.pRelative, styles.overflowHidden, {height: COIN_ANIMATION_VISIBLE_HEIGHT}]}>
-                        {/* Pinning the animation in a wrapper takes it out of the clipping container's layout, so that
-                            container's height can't squeeze it. It keeps its own aspect ratio at the width set here,
-                            centered, and whatever hangs below the container is clipped. */}
-                        <View style={[styles.pAbsolute, styles.t0, {left: `${(100 - COIN_ANIMATION_WIDTH_PERCENT) / 2}%`, width: `${COIN_ANIMATION_WIDTH_PERCENT}%`}]}>
-                            <Lottie
-                                source={LottieAnimations.Coin}
-                                // LottieView styles its web DOM node from webStyle, not style.
-                                webStyle={{width: '100%'}}
-                                loop
-                                autoPlay
-                            />
-                        </View>
-                    </View>
+                    <Icon
+                        src={illustrations.ConciergeBot}
+                        width={CONCIERGE_ILLUSTRATION_SIZE}
+                        height={CONCIERGE_ILLUSTRATION_SIZE}
+                    />
                 )}
                 <Text style={[styles.textLabelSupporting, shouldUseNarrowLayout && styles.textAlignCenter]}>{dateLabel}</Text>
                 <Text style={[styles.textHeadlineH1, shouldUseNarrowLayout && styles.textAlignCenter]}>{greeting}</Text>

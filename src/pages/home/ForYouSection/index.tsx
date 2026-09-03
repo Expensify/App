@@ -7,7 +7,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 
@@ -41,7 +40,6 @@ type ForYouSectionProps = {
 
 function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForYouSectionProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -206,9 +204,10 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
         isOnboardingStatusKnown,
     });
 
-    // The card always renders so the Concierge input stays on the home page. `hideForYou` only gates the todos below
-    // the time-sensitive rows. With neither, the card is just the box and the "For you" title is dropped too.
-    const hasSectionContent = timeSensitiveItems.length > 0 || (!hideForYou && (isInitialLoad || hasAnyTodos));
+    // The card always renders so the Concierge input stays on the home page. `hideForYou` only gates the to-do group
+    // below the time-sensitive one. With neither, the card is just the box.
+    const hasTodoContent = !hideForYou && (isInitialLoad || hasAnyTodos);
+    const hasSectionContent = timeSensitiveItems.length > 0 || hasTodoContent;
 
     return (
         <WidgetContainer
@@ -219,16 +218,19 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
                 />
             }
         >
-            {hasSectionContent ? (
-                <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
-                    <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate('homePage.forYou')}</Text>
-                </View>
-            ) : (
-                // Stands in for the section so the card keeps some breathing room under the Concierge box.
+            <TimeSensitiveGroup items={timeSensitiveItems} />
+            {hasTodoContent && (
+                <>
+                    <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
+                        <Text style={styles.textLabelSupporting}>{translate('homePage.forYou')}</Text>
+                    </View>
+                    {renderContent()}
+                </>
+            )}
+            {!hasSectionContent && (
+                // Stands in for the groups so the card keeps some breathing room under the Concierge box.
                 <View style={styles.pb3} />
             )}
-            <TimeSensitiveGroup items={timeSensitiveItems} />
-            {!hideForYou && renderContent()}
         </WidgetContainer>
     );
 }

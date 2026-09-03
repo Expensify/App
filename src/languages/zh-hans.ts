@@ -2256,7 +2256,6 @@ const translations: TranslationDeepObject<typeof en> = {
             description: '我们全天候为您提供帮助。',
             helpSite: '帮助网站',
             helpSiteDescription: '文章、教程等',
-            askConcierge: '询问 Concierge',
             conciergeChat: 'Concierge',
             conciergeChatDescription: '你的个人 AI 助理',
             accountManager: '客户经理',

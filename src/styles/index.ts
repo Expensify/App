@@ -2752,13 +2752,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tableTopRadius: {
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            borderTopLeftRadius: variables.componentBorderRadiusCard,
+            borderTopRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBottomRadius: {
-            borderBottomLeftRadius: variables.componentBorderRadius,
-            borderBottomRightRadius: variables.componentBorderRadius,
+            borderBottomLeftRadius: variables.componentBorderRadiusCard,
+            borderBottomRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBorder: {
@@ -2900,6 +2900,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarHeight: {
             height: variables.contentHeaderHeight,
+        },
+
+        headerBarHeightNarrow: {
+            height: variables.contentHeaderHeightNarrow,
         },
 
         imageViewContainer: {
@@ -3178,7 +3182,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionTitle: {
-            ...textVariants.labelStrong,
+            ...textVariants.textStrong,
         },
 
         borderedContentCard: {
@@ -4123,7 +4127,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardSectionContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCard,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -4133,7 +4137,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCard,
             overflow: 'hidden',
         },
 
@@ -4174,9 +4178,9 @@ const staticStyles = (theme: ThemeColors) =>
             // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
             // vertical footprint to the title line-height so every card header keeps the same height. The matching
             // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
-            marginTop: (variables.lineHeightNormal - variables.componentSizeNormal) / 2,
-            marginBottom: (variables.lineHeightNormal - variables.componentSizeNormal) / 2,
-            marginRight: (variables.lineHeightNormal - variables.componentSizeNormal) / 2,
+            marginTop: (variables.fontSizeNormalHeight - variables.componentSizeNormal) / 2,
+            marginBottom: (variables.fontSizeNormalHeight - variables.componentSizeNormal) / 2,
+            marginRight: (variables.fontSizeNormalHeight - variables.componentSizeNormal) / 2,
         },
 
         widgetItemSubtitle: {
@@ -7228,7 +7232,7 @@ const plainStyles = (theme: ThemeColors) =>
 
         getWidgetContainerTitleStyle: (color: string) =>
             ({
-                ...textVariants.labelStrong,
+                ...textVariants.textStrong,
                 color,
             }) satisfies TextStyle,
 

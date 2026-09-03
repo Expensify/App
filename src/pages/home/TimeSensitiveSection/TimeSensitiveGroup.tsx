@@ -1,3 +1,5 @@
+import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +18,7 @@ type TimeSensitiveGroupProps = {
 };
 
 /**
- * Renders the time-sensitive item rows as a group inside another card (the Home "For you" card).
+ * Renders the "Time sensitive" label and its item rows as a group inside another card.
  * Returns null when there are no items so the group leaves no trace. It's the card owner's job to keep the card
  * visible whenever this group has content.
  */
@@ -37,16 +39,21 @@ function TimeSensitiveGroup({items}: TimeSensitiveGroupProps) {
     const visibleItems = isExpanded ? items : items.slice(0, CONST.HOME.SECTION_VISIBLE_LIMIT);
 
     return (
-        <View style={[styles.getForYouSectionContainerStyle(shouldUseNarrowLayout), styles.mb0]}>
-            {visibleItems}
-            {hiddenCount > 0 && (
-                <HomeSectionExpandToggle
-                    isExpanded={isExpanded}
-                    onPress={() => setIsExpanded((prev) => !prev)}
-                    collapsedLabel={translate('homePage.seeMore', {count: hiddenCount})}
-                />
-            )}
-        </View>
+        <>
+            <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
+                <Text style={styles.textLabelSupporting}>{translate('homePage.timeSensitiveSection.title')}</Text>
+            </View>
+            <View style={[styles.getForYouSectionContainerStyle(shouldUseNarrowLayout), styles.mb0]}>
+                {visibleItems}
+                {hiddenCount > 0 && (
+                    <HomeSectionExpandToggle
+                        isExpanded={isExpanded}
+                        onPress={() => setIsExpanded((prev) => !prev)}
+                        collapsedLabel={translate('homePage.seeMore', {count: hiddenCount})}
+                    />
+                )}
+            </View>
+        </>
     );
 }
 

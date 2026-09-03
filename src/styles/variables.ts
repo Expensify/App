@@ -31,6 +31,7 @@ const avatarSizes = {
 export default {
     bottomTabHeight: 72,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
+    contentHeaderHeightNarrow: getValueUsingPixelRatio(64, 89),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeXSmall: getValueUsingPixelRatio(20, 24),
@@ -47,7 +48,7 @@ export default {
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusXLarge: 28,
-    componentBorderRadiusCard: 20,
+    componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 24,
     componentBorderRadiusCircle: 999,
     componentBorderWidth: 8,

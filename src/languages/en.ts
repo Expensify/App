@@ -1001,7 +1001,7 @@ const translations = {
         tooltip: 'Get started here!',
     },
     homePage: {
-        forYou: 'For you',
+        forYou: 'To-dos',
         conciergePrompt: {
             goodMorning: ({name}: {name?: string}) => (name ? `Good morning, ${name}.` : 'Good morning.'),
             goodAfternoon: ({name}: {name?: string}) => (name ? `Good afternoon, ${name}.` : 'Good afternoon.'),
@@ -2439,7 +2439,6 @@ const translations = {
             description: 'We are here to help you 24/7.',
             helpSite: 'Help site',
             helpSiteDescription: 'Articles, tutorials, and more',
-            askConcierge: 'Ask Concierge',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Your personal AI agent',
             accountManager: 'Account Manager',

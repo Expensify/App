@@ -2369,7 +2369,6 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Jesteśmy tutaj, aby pomagać przez całą dobę.',
             helpSite: 'Centrum pomocy',
             helpSiteDescription: 'Artykuły, poradniki i więcej',
-            askConcierge: 'Zapytaj Concierge',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Twój osobisty agent AI',
             accountManager: 'Opiekun konta',

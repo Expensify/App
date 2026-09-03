@@ -30,7 +30,7 @@ function SubscriptionPlan() {
         return (
             <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <Text
-                    style={[styles.textHeadline, styles.accountSettingsSectionTitle]}
+                    style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}
                     accessibilityRole={CONST.ROLE.HEADER}
                 >
                     {translate('subscription.yourPlan.title')}
