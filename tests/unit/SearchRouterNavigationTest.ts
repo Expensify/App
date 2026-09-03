@@ -10,23 +10,36 @@ import {
 } from '@components/Search/SearchRouter/SearchRouterHelpers';
 import type {NavigationSuggestionSourceItem} from '@components/Search/SearchRouter/SearchRouterHelpers';
 import * as CreateNavigationSuggestions from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
-import useNavigationSuggestions, {buildAccountNavigationItems, buildSpendNavigationItems, buildTopLevelNavigationItems} from '@components/Search/SearchRouter/useNavigationSuggestions';
+import useNavigationSuggestions, {
+    buildAccountNavigationItems,
+    buildDomainNavigationItems,
+    buildSpendNavigationItems,
+    buildTopLevelNavigationItems,
+    buildWorkspaceNavigationItems,
+} from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import {setSearchContext} from '@libs/actions/Search';
+import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
+import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Domain, Policy} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import {isValidElement} from 'react';
+
+import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 
 type MockSearchTypeMenuSectionsResult = {
     typeMenuSections: SearchTypeMenuSection[];
@@ -34,11 +47,17 @@ type MockSearchTypeMenuSectionsResult = {
     activeKey: string | undefined;
 };
 
+type GetWorkspaceMenuItems = typeof getWorkspaceMenuItems;
+
 const mockUseSearchTypeMenuSections = jest.fn<MockSearchTypeMenuSectionsResult, [queryParams: unknown, isScreenFocused: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
 const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
 const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
 const mockClearSelectedTransactions = jest.fn();
+const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
+const mockUseNetwork = jest.fn<{isOffline: boolean}, []>(() => ({isOffline: false}));
+const mockIsBetaEnabled = jest.fn<boolean, [beta: string]>(() => false);
+const currentUserAccountID = 1;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
@@ -52,6 +71,15 @@ jest.mock('@components/Search/SearchRouter/useCreateNavigationSuggestions', () =
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => mockUseMemoizedLazyExpensifyIcons(),
+}));
+
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: () => ({convertToDisplayString: jest.fn(() => '$0.00')}),
+}));
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: 1}),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -68,12 +96,18 @@ jest.mock('@hooks/useLocalize', () => ({
                 ['common.inbox', 'Inbox'],
                 ['common.spend', 'Spend'],
                 ['common.workspacesTabTitle', 'Workspaces'],
-                ['common.profile', 'Profile'],
+                ['common.domains', 'Domains'],
                 ['initialSettingsPage.account', 'Account'],
+                ['domain.domainMembers', 'Domain members'],
+                ['domain.domainAdmins', 'Domain admins'],
+                ['domain.groups.title', 'Groups'],
+                ['domain.saml', 'SAML'],
+                ['common.profile', 'Profile'],
                 ['initialSettingsPage.security', 'Security'],
                 ['initialSettingsPage.help', 'Help'],
                 ['search.tabs.reports', 'Reports'],
                 ['search.tabs.expenses', 'Expenses'],
+                ['workspace.common.profile', 'Overview'],
             ]);
             return translations.get(key) ?? key;
         },
@@ -82,7 +116,22 @@ jest.mock('@hooks/useLocalize', () => ({
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: () => [undefined],
+    default: (key: string) => mockUseOnyx(key),
+}));
+
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => mockUseNetwork(),
+}));
+
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta)}),
+}));
+
+jest.mock('@hooks/useResponsiveLayout', () => ({
+    __esModule: true,
+    default: () => ({shouldUseNarrowLayout: false}),
 }));
 
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
@@ -94,6 +143,11 @@ jest.mock('@pages/settings/useSettingsNavigationMenuData', () => ({
     __esModule: true,
     default: () => mockUseSettingsNavigationMenuData(),
 }));
+
+jest.mock('@pages/workspace/getWorkspaceMenuItems', () => {
+    const actual = jest.requireActual<{default: GetWorkspaceMenuItems}>('@pages/workspace/getWorkspaceMenuItems');
+    return {__esModule: true, ...actual, default: jest.fn(actual.default)};
+});
 
 jest.mock('@libs/actions/Search', () => ({
     setSearchContext: jest.fn(),
@@ -108,8 +162,18 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
+jest.mock('@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute', () => jest.fn());
+
 const localeCompare = (firstValue: string, secondValue: string) => firstValue.localeCompare(secondValue);
 const mockIcon: IconAsset = () => null;
+const workspaceCurrentUserLogin = 'member@example.com';
+const domainIcons = {
+    Globe: mockIcon,
+    UserLock: mockIcon,
+    UserShield: mockIcon,
+    User: mockIcon,
+    Users: mockIcon,
+};
 const spendIcons = {
     Basket: mockIcon,
     CalendarSolid: mockIcon,
@@ -125,7 +189,45 @@ const spendIcons = {
     Pencil: mockIcon,
     ThumbsUp: mockIcon,
     CheckCircle: mockIcon,
+    UserEye: mockIcon,
 };
+const workspaceIcons = {
+    Building: mockIcon,
+    Users: mockIcon,
+    Hashtag: mockIcon,
+    Document: mockIcon,
+    Sync: mockIcon,
+    Receipt: mockIcon,
+    Briefcase: mockIcon,
+    Folder: mockIcon,
+    Tag: mockIcon,
+    Coins: mockIcon,
+    Workflows: mockIcon,
+    Feed: mockIcon,
+    Car: mockIcon,
+    LuggageWithLines: mockIcon,
+    ExpensifyCard: mockIcon,
+    CreditCard: mockIcon,
+    CalendarSolid: mockIcon,
+    Clock: mockIcon,
+    InvoiceGeneric: mockIcon,
+    Gear: mockIcon,
+    Bolt: mockIcon,
+};
+
+function createWorkspacePolicy(id: string, name: string, overrides: Partial<Policy> = {}): Policy {
+    return createMock<Policy>({
+        ...createRandomPolicy(Number(id), CONST.POLICY.TYPE.CORPORATE, name),
+        id,
+        name,
+        role: CONST.POLICY.ROLE.ADMIN,
+        owner: workspaceCurrentUserLogin,
+        employeeList: {[workspaceCurrentUserLogin]: {role: CONST.POLICY.ROLE.ADMIN}},
+        pendingAction: undefined,
+        errorFields: {},
+        ...overrides,
+    });
+}
 
 function createSpendMenuItem(
     key: SearchTypeMenuItem['key'],
@@ -157,6 +259,9 @@ function createSettingsMenuItem(translationKey: MenuData['translationKey'], scre
 }
 
 beforeEach(() => {
+    mockUseOnyx.mockImplementation(() => [undefined]);
+    mockUseNetwork.mockReturnValue({isOffline: false});
+    mockIsBetaEnabled.mockReturnValue(false);
     mockUseSettingsNavigationMenuData.mockReturnValue({
         accountMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.account', items: []},
         generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
@@ -209,10 +314,12 @@ describe('Search Router navigation query helpers', () => {
         expect(buildNavigationSuggestions('o inbox', source, localeCompare)).toEqual([]);
     });
 
-    it('does not include internal matching terms in returned navigation rows', () => {
-        const source = [[{text: 'Go to Inbox', keyForList: 'inbox', matchTerms: ['Inbox']}]];
+    it('does not include internal matching or sorting metadata in returned navigation rows', () => {
+        const source = [[{text: 'Go to Inbox', keyForList: 'inbox', matchTerms: ['Inbox'], sortText: 'Inbox'}]];
+        const item = buildNavigationSuggestions('inbox', source, localeCompare).at(0);
 
-        expect(buildNavigationSuggestions('inbox', source, localeCompare).at(0)).not.toHaveProperty('matchTerms');
+        expect(item).not.toHaveProperty('matchTerms');
+        expect(item).not.toHaveProperty('sortText');
     });
 
     it('matches short queries only when they exactly match a localized destination', () => {
@@ -269,13 +376,14 @@ describe('top-level Search Router navigation source', () => {
         jest.clearAllMocks();
     });
 
-    it('builds only the five original top-level destinations with Go to labels', () => {
+    it('builds the top-level destinations with Go to labels', () => {
         const items = buildTopLevelNavigationItems({
             labels: {
                 home: 'Home',
                 inbox: 'Inbox',
                 spend: 'Spend',
                 workspaces: 'Workspaces',
+                domains: 'Domains',
                 account: 'Account',
             },
             icons: {
@@ -283,14 +391,15 @@ describe('top-level Search Router navigation source', () => {
                 Inbox: mockIcon,
                 ReceiptMultiple: mockIcon,
                 Building: mockIcon,
+                Globe: mockIcon,
                 Gear: mockIcon,
             },
             getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
             getDestinationText: (destination) => `Go to ${destination}`,
         });
 
-        expect(items.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox', 'Go to Spend', 'Go to Workspaces', 'Go to Account']);
-        expect(items.map((item) => item.keyForList)).toEqual(['topLevelHome', 'topLevelInbox', 'topLevelSpend', 'topLevelWorkspaces', 'topLevelAccount']);
+        expect(items.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox', 'Go to Spend', 'Go to Workspaces', 'Go to Domains', 'Go to Account']);
+        expect(items.map((item) => item.keyForList)).toEqual(['topLevelHome', 'topLevelInbox', 'topLevelSpend', 'topLevelWorkspaces', 'topLevelDomains', 'topLevelAccount']);
     });
 
     it('navigates each top-level row to its intended route', () => {
@@ -302,6 +411,7 @@ describe('top-level Search Router navigation source', () => {
                 inbox: 'Inbox',
                 spend: 'Spend',
                 workspaces: 'Workspaces',
+                domains: 'Domains',
                 account: 'Account',
             },
             icons: {
@@ -309,6 +419,7 @@ describe('top-level Search Router navigation source', () => {
                 Inbox: mockIcon,
                 ReceiptMultiple: mockIcon,
                 Building: mockIcon,
+                Globe: mockIcon,
                 Gear: mockIcon,
             },
             getSpendRoute,
@@ -324,7 +435,132 @@ describe('top-level Search Router navigation source', () => {
         expect(Navigation.navigate).toHaveBeenNthCalledWith(3, spendRoute);
         expect(getSpendRoute).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(4, ROUTES.WORKSPACES_LIST.route);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.SETTINGS);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.DOMAINS_LIST.route);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(6, ROUTES.SETTINGS);
+    });
+});
+
+describe('Domain Search Router navigation source', () => {
+    const adminAccessKey = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${currentUserAccountID}` as const;
+    const defaultSecurityGroupIDKey = 'domain_defaultSecurityGroupID' as const;
+    const labels = new Map([
+        ['domain.domainMembers', 'Domain members'],
+        ['domain.domainAdmins', 'Domain admins'],
+        ['domain.groups.title', 'Groups'],
+        ['domain.saml', 'SAML'],
+    ]);
+
+    function createDomain(accountID: number, email: string, adminAccountID: number, pendingAction?: Domain['pendingAction']): Domain {
+        return {
+            accountID,
+            email,
+            validated: true,
+            [defaultSecurityGroupIDKey]: '1',
+            pendingAction,
+            [adminAccessKey]: adminAccountID,
+        };
+    }
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseOnyx.mockReturnValue([undefined]);
+        mockUseCreateNavigationSuggestions.mockReturnValue([]);
+    });
+
+    it('reuses the shared Domain menu and includes only domains the current user can administer', () => {
+        const accessibleDomain = createDomain(123, 'admin@example.com', currentUserAccountID);
+        const inaccessibleDomain = createDomain(456, 'admin@inaccessible.com', 2);
+        const deletingDomain = createDomain(789, 'admin@deleting.com', currentUserAccountID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const domainWithoutAccountID = createDomain(0, 'admin@noid.com', currentUserAccountID);
+        const onSelect = jest.fn();
+
+        const items = buildDomainNavigationItems({
+            domains: [null, undefined, domainWithoutAccountID, accessibleDomain, inaccessibleDomain, deletingDomain],
+            currentUserAccountID,
+            icons: domainIcons,
+            getItemText: (translationKey) => labels.get(translationKey) ?? translationKey,
+            getDestinationText: (destination) => `Go to ${destination}`,
+            getDomainContext: (domainName) => domainName,
+            onSelect,
+        });
+
+        expect(items.map((item) => item.text)).toEqual(['Go to Domain members', 'Go to Domain admins', 'Go to Groups', 'Go to SAML']);
+        expect(items.map((item) => item.singleIcon)).toEqual([domainIcons.User, domainIcons.UserShield, domainIcons.Users, domainIcons.UserLock]);
+        expect(items.map((item) => item.rightElement)).toEqual(['example.com', 'example.com', 'example.com', 'example.com']);
+        expect(items.map((item) => item.matchTerms)).toEqual([
+            ['Domain members', 'example.com'],
+            ['Domain admins', 'example.com'],
+            ['Groups', 'example.com'],
+            ['SAML', 'example.com'],
+        ]);
+        expect(items.every((item) => item.keyForList?.startsWith('domain_123_'))).toBe(true);
+
+        for (const item of items) {
+            item.action?.();
+        }
+        expect(onSelect).toHaveBeenNthCalledWith(1, ROUTES.DOMAIN_MEMBERS.getRoute(123));
+        expect(onSelect).toHaveBeenNthCalledWith(2, ROUTES.DOMAIN_ADMINS.getRoute(123));
+        expect(onSelect).toHaveBeenNthCalledWith(3, ROUTES.DOMAIN_GROUPS.getRoute(123));
+        expect(onSelect).toHaveBeenNthCalledWith(4, ROUTES.DOMAIN_SAML.getRoute(123));
+    });
+
+    it('matches Domain rows by subpage label or domain name', () => {
+        const items = buildDomainNavigationItems({
+            domains: [createDomain(123, 'admin@example.com', currentUserAccountID)],
+            currentUserAccountID,
+            icons: domainIcons,
+            getItemText: (translationKey) => labels.get(translationKey) ?? translationKey,
+            getDestinationText: (destination) => `Go to ${destination}`,
+            getDomainContext: (domainName) => domainName,
+            onSelect: jest.fn(),
+        });
+
+        expect(buildNavigationSuggestions('members', [items], localeCompare).map((item) => item.text)).toEqual(['Go to Domain members']);
+        expect(buildNavigationSuggestions('example', [items], localeCompare)).toHaveLength(4);
+    });
+
+    it('builds rows for every administrable Domain with Domain-scoped keys and context', () => {
+        const items = buildDomainNavigationItems({
+            domains: [createDomain(123, 'admin@example.com', currentUserAccountID), createDomain(456, 'admin@other.com', currentUserAccountID)],
+            currentUserAccountID,
+            icons: domainIcons,
+            getItemText: (translationKey) => labels.get(translationKey) ?? translationKey,
+            getDestinationText: (destination) => `Go to ${destination}`,
+            getDomainContext: (domainName) => domainName,
+            onSelect: jest.fn(),
+        });
+
+        expect(items).toHaveLength(8);
+        expect(items.filter((item) => item.keyForList?.startsWith('domain_123_'))).toHaveLength(4);
+        expect(items.filter((item) => item.keyForList?.startsWith('domain_456_'))).toHaveLength(4);
+        expect(items.map((item) => item.rightElement)).toEqual(['example.com', 'example.com', 'example.com', 'example.com', 'other.com', 'other.com', 'other.com', 'other.com']);
+    });
+
+    it('composes Domain rows in the Search Router with their localized context', () => {
+        const accessibleDomain = createDomain(123, 'admin@example.com', currentUserAccountID);
+        const domainCollectionKey = `${ONYXKEYS.COLLECTION.DOMAIN}${accessibleDomain.accountID}`;
+        mockUseOnyx.mockImplementation((key) => (key === ONYXKEYS.COLLECTION.DOMAIN ? [{[domainCollectionKey]: accessibleDomain}] : [undefined]));
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({
+            ...spendIcons,
+            ...domainIcons,
+            Home: mockIcon,
+            Inbox: mockIcon,
+            ReceiptMultiple: mockIcon,
+            Building: mockIcon,
+            Gear: mockIcon,
+        });
+        mockUseSearchTypeMenuSections.mockReturnValue({typeMenuSections: [], activeItemIndex: -1, activeKey: undefined});
+
+        const {result} = renderHook(() => useNavigationSuggestions('members'));
+
+        expect(result.current).toHaveLength(1);
+        expect(result.current.at(0)).toMatchObject({text: 'Go to Domain members', singleIcon: domainIcons.User});
+        const rightElement = result.current.at(0)?.rightElement;
+        expect(isValidElement<{text: string; icon: IconAsset}>(rightElement)).toBe(true);
+        if (!isValidElement<{text: string; icon: IconAsset}>(rightElement)) {
+            throw new Error('Expected Domain navigation context to be a React element');
+        }
+        expect(rightElement.props).toMatchObject({text: 'example.com', icon: domainIcons.Globe});
     });
 });
 
@@ -336,6 +572,7 @@ describe('Create Search Router navigation source', () => {
         {visible: true, text: 'Track distance', icon: mockIcon, action: createAction, keyForList: 'create_trackDistance'},
         {visible: true, text: 'Start chat', icon: mockIcon, action: createAction, keyForList: 'create_chat', matchTerms: ['Start chat', 'New chat screen']},
         {visible: false, text: 'Create invoice', icon: mockIcon, action: createAction, keyForList: 'create_invoice'},
+        {visible: true, text: 'Book travel', icon: mockIcon, action: createAction, keyForList: 'create_travel'},
         {visible: false, text: 'New workspace', icon: mockIcon, action: createAction, keyForList: 'create_workspace', matchTerms: ['New workspace', 'Create workspace']},
     ];
 
@@ -346,13 +583,13 @@ describe('Create Search Router navigation source', () => {
     it('builds visible Create rows with direct action labels and excludes unavailable items', () => {
         const items = CreateNavigationSuggestions.buildCreateNavigationItems(createItems);
 
-        expect(items.map((item) => item.text)).toEqual(['Create expense', 'Create report', 'Track distance', 'Start chat']);
-        expect(items.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat']);
-        expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon, mockIcon, mockIcon]);
-        expect(items.map((item) => item.matchTerms)).toEqual([['Create expense', 'Add expense'], ['Create report'], ['Track distance'], ['Start chat', 'New chat screen']]);
+        expect(items.map((item) => item.text)).toEqual(['Create expense', 'Create report', 'Track distance', 'Start chat', 'Book travel']);
+        expect(items.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat', 'create_travel']);
+        expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon, mockIcon, mockIcon, mockIcon]);
+        expect(items.map((item) => item.matchTerms)).toEqual([['Create expense', 'Add expense'], ['Create report'], ['Track distance'], ['Start chat', 'New chat screen'], ['Book travel']]);
         expect(items.some((item) => item.text?.startsWith('Go to'))).toBe(false);
         expect(items.some((item) => item.keyForList === 'create_invoice' || item.keyForList === 'create_workspace')).toBe(false);
-        expect(items.some((item) => item.keyForList === 'create_travel' || item.keyForList === 'create_quickAction')).toBe(false);
+        expect(items.some((item) => item.keyForList === 'create_quickAction')).toBe(false);
     });
 
     it('matches Create rows through the existing navigation suggestion pipeline', () => {
@@ -362,6 +599,9 @@ describe('Create Search Router navigation source', () => {
         expect(buildNavigationSuggestions('add expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
         expect(buildNavigationSuggestions('new chat', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_chat']);
         expect(buildNavigationSuggestions('go to track distance', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_trackDistance']);
+        expect(buildNavigationSuggestions('book travel', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_travel']);
+        expect(buildNavigationSuggestions('BOOK TRAVEL', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_travel']);
+        expect(buildNavigationSuggestions('go to book     travel', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_travel']);
     });
 
     it('matches hidden Create aliases without changing row text', () => {
@@ -394,6 +634,151 @@ describe('Create Search Router navigation source', () => {
         const afterTransition = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition;
         afterTransition?.();
         expect(createAction).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('Workspace Search Router navigation source', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    const buildItems = (policies: Policy[], isOffline = false) =>
+        buildWorkspaceNavigationItems({
+            policies: Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy])),
+            policyCategories: undefined,
+            currentUserLogin: workspaceCurrentUserLogin,
+            icons: workspaceIcons,
+            isOffline,
+            isRulesRevampBetaEnabled: false,
+            isVendorMatchingBetaEnabled: false,
+            shouldUseNarrowLayout: false,
+            convertToDisplayString: () => '$0.00',
+            getItemText: (item) => {
+                const labels = new Map([
+                    ['workspace.common.profile', 'Overview'],
+                    ['workspace.common.members', 'Members'],
+                    ['workspace.common.rooms', 'Rooms'],
+                    ['workspace.common.workflows', 'Workflows'],
+                    ['workspace.common.hr', 'HR'],
+                ]);
+                return labels.get(item.translationKey) ?? item.translationKey;
+            },
+            getDestinationText: (destination) => `Go to ${destination}`,
+        });
+
+    it('matches a workspace name to its Overview row only', () => {
+        const items = buildItems([createWorkspacePolicy('1', 'Alpha Workspace', {areWorkflowsEnabled: true})]);
+
+        expect(buildNavigationSuggestions('Alpha Workspace', [items], localeCompare).map((item) => item.keyForList)).toEqual([`workspace_1_${SCREENS.WORKSPACE.PROFILE}`]);
+        expect(buildNavigationSuggestions('Workflows', [items], localeCompare).map((item) => item.keyForList)).toEqual([`workspace_1_${SCREENS.WORKSPACE.WORKFLOWS}`]);
+    });
+
+    it('excludes inaccessible policies, pending join requests, pending deletes, and disabled feature pages', () => {
+        const accessiblePolicy = createWorkspacePolicy('1', 'Accessible Workspace', {areWorkflowsEnabled: false});
+        const personalPolicy = createWorkspacePolicy('2', 'Personal Workspace', {type: CONST.POLICY.TYPE.PERSONAL, areWorkflowsEnabled: true});
+        const pendingJoinPolicy = createWorkspacePolicy('3', 'Pending Workspace', {isJoinRequestPending: true});
+        const pendingDeletePolicy = createWorkspacePolicy('4', 'Deleted Workspace', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        const items = buildItems([accessiblePolicy, personalPolicy, pendingJoinPolicy, pendingDeletePolicy], true);
+
+        expect(items.some((item) => item.keyForList?.startsWith('workspace_2_'))).toBe(false);
+        expect(items.some((item) => item.keyForList?.startsWith('workspace_3_'))).toBe(false);
+        expect(items.some((item) => item.keyForList?.startsWith('workspace_4_'))).toBe(false);
+        expect(items.some((item) => item.keyForList === `workspace_1_${SCREENS.WORKSPACE.WORKFLOWS}`)).toBe(false);
+    });
+
+    it('supports the short HR query and alphabetizes equal-priority Workspace rows', () => {
+        const items = buildItems([createWorkspacePolicy('1', 'Beta Workspace', {isHREnabled: true}), createWorkspacePolicy('2', 'Alpha Workspace', {isHREnabled: true})]);
+
+        expect(buildNavigationSuggestions('hr', [items], localeCompare).map((item) => item.keyForList)).toEqual([
+            `workspace_2_${SCREENS.WORKSPACE.HR}`,
+            `workspace_1_${SCREENS.WORKSPACE.HR}`,
+        ]);
+    });
+
+    it('includes workspace identity and navigates through the Workspace synchronization helper', () => {
+        const policy = createWorkspacePolicy('1', 'Alpha Workspace');
+        const overviewItem = buildItems([policy]).find((item) => item.keyForList === `workspace_1_${SCREENS.WORKSPACE.PROFILE}`);
+
+        expect(isValidElement<{policy: Policy}>(overviewItem?.rightElement)).toBe(true);
+        if (!isValidElement<{policy: Policy}>(overviewItem?.rightElement)) {
+            throw new Error('Expected Workspace navigation context to be a React element');
+        }
+        expect(overviewItem.rightElement.props.policy).toBe(policy);
+
+        overviewItem?.action?.();
+        expect(navigateToWorkspaceSettingsRoute).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id), policy.id, false, SCREENS.WORKSPACE.PROFILE);
+    });
+
+    it('composes localized Workspace suggestions after Spend with hook-level filtering and beta flags', () => {
+        const activePolicy = createWorkspacePolicy('1', 'Active Workspace');
+        const deletedPolicy = createWorkspacePolicy('2', 'Deleted Workspace', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`]: activePolicy,
+            [`${ONYXKEYS.COLLECTION.POLICY}${deletedPolicy.id}`]: deletedPolicy,
+        };
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
+                return [policies];
+            }
+            if (key === ONYXKEYS.SESSION) {
+                return [workspaceCurrentUserLogin];
+            }
+            return [undefined];
+        });
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        mockIsBetaEnabled.mockReturnValue(true);
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({
+            ...spendIcons,
+            ...workspaceIcons,
+            Home: mockIcon,
+            Inbox: mockIcon,
+            ReceiptMultiple: mockIcon,
+            Gear: mockIcon,
+        });
+        mockUseSearchTypeMenuSections.mockReturnValue({
+            typeMenuSections: [
+                {
+                    translationPath: 'search.tabs.expenseReports',
+                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+                },
+            ],
+            activeItemIndex: -1,
+            activeKey: undefined,
+        });
+        mockUseSettingsNavigationMenuData.mockReturnValue({
+            accountMenuItemsData: {
+                sectionTranslationKey: 'initialSettingsPage.account',
+                items: [createSettingsMenuItem('initialSettingsPage.security', SCREENS.SETTINGS.SECURITY)],
+            },
+            generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
+        });
+        const actualGetWorkspaceMenuItems = jest.requireActual<{default: GetWorkspaceMenuItems}>('@pages/workspace/getWorkspaceMenuItems').default;
+        jest.mocked(getWorkspaceMenuItems).mockImplementationOnce((params) => actualGetWorkspaceMenuItems(params).filter((item) => item.screenName === SCREENS.WORKSPACE.PROFILE));
+
+        const {result} = renderHook(() => useNavigationSuggestions('go'));
+
+        expect(result.current.map((item) => item.keyForList)).toEqual([
+            'topLevelAccount',
+            'topLevelDomains',
+            'topLevelHome',
+            'topLevelInbox',
+            'topLevelSpend',
+            'topLevelWorkspaces',
+            'spend_reports',
+            `workspace_1_${SCREENS.WORKSPACE.PROFILE}`,
+        ]);
+        expect(result.current.at(7)).toMatchObject({text: 'Go to Overview'});
+        expect(result.current.some((item) => item.keyForList?.startsWith('workspace_2_'))).toBe(false);
+        expect(getWorkspaceMenuItems).toHaveBeenCalledTimes(1);
+        expect(getWorkspaceMenuItems).toHaveBeenCalledWith(
+            expect.objectContaining({
+                policy: activePolicy,
+                isRulesRevampBetaEnabled: true,
+                isVendorMatchingBetaEnabled: true,
+            }),
+        );
+        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.RULES_REVAMP);
+        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
     });
 });
 

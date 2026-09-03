@@ -8,6 +8,7 @@ import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -15,11 +16,15 @@ import fileDownload from '@libs/fileDownload';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
 
 import {sendExportFileFromConcierge} from '@userActions/Export';
+import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session} from '@src/types/onyx';
 
-import React, {useEffect} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
@@ -27,6 +32,8 @@ import Button from './ButtonComposed';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
+
+const selectEncryptedAuthToken = (session: OnyxEntry<Session>) => session?.encryptedAuthToken;
 
 type ExportDownloadStatusModalProps = {
     /** The export ID to subscribe to */
@@ -51,10 +58,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {environment} = useEnvironment();
 
-    const [encryptedAuthToken] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.encryptedAuthToken});
+    const [encryptedAuthToken] = useOnyx(ONYXKEYS.SESSION, {selector: selectEncryptedAuthToken});
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
     const displayedExport = usePreviousDefined(exportDownload);
+    const wasRecordCleared = !exportDownload && !!displayedExport;
 
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
@@ -70,9 +78,18 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
     const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
 
+    const wasPreparingRef = useRef(false);
+    useEffect(() => {
+        if (state !== CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
+            return;
+        }
+
+        wasPreparingRef.current = true;
+    }, [state]);
+
     // Build the secure download URL the same way downloadReportPDF does, so the host always follows
     // the app's current environment (instead of the env baked into a backend-built URL) and authenticates
-    // via the encryptedAuthToken — no separate OldDot sign-in needed.
+    // via the encryptedAuthToken, so no separate OldDot sign-in is needed.
     const downloadFile = () => {
         if (!fileName || !currentUserLogin) {
             return;
@@ -85,7 +102,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     };
 
     useEffect(() => {
-        if (!isReady || !fileName || shouldSendFromConcierge || isEmptyReceipts) {
+        // Only the leader tab auto-downloads, so a ready export isn't downloaded once per open tab.
+        if (!isReady || !fileName || shouldSendFromConcierge || isEmptyReceipts || !isClientTheLeader() || !wasPreparingRef.current) {
             return;
         }
         downloadFile();
@@ -96,10 +114,14 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
     };
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.m5});
+
+    if (wasRecordCleared) {
+        return null;
+    }
 
     const handleGoToConcierge = () => {
-        onClose();
-        openConciergeAnywhere({forceConcierge: true});
+        close(() => openConciergeAnywhere({forceConcierge: true}));
     };
 
     const handleDownloadFile = () => {
@@ -110,7 +132,6 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     };
 
     const isNonDismissible = isPreparing;
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.m5});
 
     const renderContent = () => {
         if (isPreparing) {

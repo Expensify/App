@@ -424,6 +424,31 @@ function everyPayActionHasPaymentType(payActions: ReportAction[], matchesPayment
     );
 }
 
+// Cancelling appends a new action instead of removing the old pay action, so a report can hold stale pay actions
+// (paid elsewhere, cancelled, re-paid via bank). Use the latest pay action so a superseded one doesn't keep Cancel around.
+function getLatestPayAction(payActions: ReportAction[]): ReportAction | undefined {
+    return payActions.reduce<ReportAction | undefined>((latest, action) => (!latest || action.created > latest.created ? action : latest), undefined);
+}
+
+function getPayActionPaymentType(action: ReportAction | undefined): string | undefined {
+    if (!action) {
+        return undefined;
+    }
+    const originalMessage = getOriginalMessage(action);
+    return originalMessage && 'paymentType' in originalMessage ? originalMessage.paymentType : undefined;
+}
+
+function hasPayActionPassedNachaCutoff(action: ReportAction | undefined): boolean {
+    if (!action) {
+        return false;
+    }
+    const now = new Date();
+    const paymentDatetime = new Date(action.created);
+    const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
+    const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
+    return nowUTC.getTime() > cutoffTimeUTC.getTime();
+}
+
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -457,16 +482,21 @@ function isCancelPaymentAction(
         return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
+    const canCancelPayment =
+        isPayer ||
+        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
-    if (!isAdmin || !isPayer) {
+    if (!canCancelPayment) {
         return false;
     }
 
     const payActions = getReportPayActions(report.reportID);
+    const latestPayAction = getLatestPayAction(payActions);
+    const latestPaymentType = getPayActionPaymentType(latestPayAction);
 
-    // Check if payment was made via bank account (not elsewhere)
-    const isPaidViaBankAccount = everyPayActionHasPaymentType(payActions, (paymentType) => paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+    // An undetermined payment type (no pay action) is treated as paid elsewhere below so we still surface Cancel.
+    const isPaidViaBankAccount = !!latestPaymentType && latestPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
@@ -483,13 +513,7 @@ function isCancelPaymentAction(
     const isBankProcessing = isPaidViaBankAccount && (isInBillingState || isApprovedAndReimbursed || isAutoReimbursed);
     const isPaymentProcessing = (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || isBankProcessing;
 
-    const hasDailyNachaCutoffPassed = payActions.some((action) => {
-        const now = new Date();
-        const paymentDatetime = new Date(action.created);
-        const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
-        const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-        return nowUTC.getTime() > cutoffTimeUTC.getTime();
-    });
+    const hasDailyNachaCutoffPassed = hasPayActionPassedNachaCutoff(latestPayAction);
 
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
