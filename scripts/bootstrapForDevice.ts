@@ -1,6 +1,9 @@
 #!/usr/bin/env bun
 
-/** Defines the CLI that prepares the legacy native projects for a uniquely identified local device build. */
+/**
+ * Defines the CLI that prepares the legacy native projects for a uniquely identified local device build.
+ * If run directly, it will run the CLI and report uncaught failures as command-line errors.
+ */
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -18,6 +21,13 @@ import {bootstrapIOSForDevice} from './lib/bootstrapForDevice/ios';
 import {PLATFORMS} from './lib/bootstrapForDevice/shared';
 
 type Platform = TupleToUnion<typeof PLATFORMS>;
+
+if (import.meta.main) {
+    main(`${import.meta.dirname}/..`).catch((error: Error) => {
+        console.error(error.message);
+        process.exitCode = 1;
+    });
+}
 
 async function main(rootDirectory: string): Promise<void> {
     // The CLI framework requires kebab-case named argument keys, which the naming-convention rule cannot express.
