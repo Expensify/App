@@ -1976,7 +1976,7 @@ describe('actions/Duplicate', () => {
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
-                customUnitPolicyID: targetPolicy?.id ?? '',
+                customUnitPolicyID: targetPolicy?.id,
                 targetPolicy,
                 targetPolicyCategories: targetPolicy ? fakePolicyCategories : undefined,
                 targetReport: targetPolicy ? policyExpenseChat : undefined,
