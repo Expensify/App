@@ -851,7 +851,7 @@ function duplicateExpenseTransaction({
     const transactionDetails = getTransactionDetails(transaction);
     // A duplicate mirrors the source, so an unreported source stays unreported even when a workspace is available
     const isSourceUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const shouldDuplicateSelfDMExpense = !targetPolicy;
+    const shouldDuplicateSelfDMExpense = !targetPolicy || isSourceUnreported;
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails, shouldDuplicateSelfDMExpense);
     const duplicateRequestType = getDuplicateRequestType(transaction, shouldDuplicateSelfDMExpense);
 

@@ -1938,11 +1938,15 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
         });
 
-        it('should duplicate a GPS distance expense as manual distance when no targetPolicy is provided', async () => {
+        it.each([
+            ['no target policy is provided', undefined, 'reported-source'],
+            ['a target policy is provided for an unreported source', mockPolicy, CONST.REPORT.UNREPORTED_REPORT_ID],
+        ])('should duplicate a GPS distance expense as manual distance when %s', async (_description, targetPolicy, reportID) => {
             const transactionID = 'gps-unreported-1';
             const mockGPSDistanceTransaction = {
                 ...mockTransaction,
                 transactionID,
+                reportID,
                 amount: mockTransaction.amount * -1,
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
                 comment: {
@@ -1972,10 +1976,10 @@ describe('actions/Duplicate', () => {
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
-                customUnitPolicyID: '',
-                targetPolicy: undefined,
-                targetPolicyCategories: undefined,
-                targetReport: undefined,
+                customUnitPolicyID: targetPolicy?.id ?? '',
+                targetPolicy,
+                targetPolicyCategories: targetPolicy ? fakePolicyCategories : undefined,
+                targetReport: targetPolicy ? policyExpenseChat : undefined,
                 existingTransactionDraft: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
