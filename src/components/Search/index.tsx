@@ -194,6 +194,13 @@ function Search({
     const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
     const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
     const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
+    // For an expense-report "select all matching", the total the bulk-actions button waits for is the server
+    // report count, not the expense `count` (which is always present). Treat a missing reportCount as the missing
+    // total so the totals retry below still fires. Otherwise a snapshot that has `count` but no `reportCount`
+    // (e.g. persisted before the field shipped, or a colliding non-totals response) would never fetch it and the
+    // button would stay loading forever.
+    const isRequiredAllMatchingTotalMissing =
+        isExpenseReportType && areAllMatchingItemsSelected ? typeof searchResults?.search?.reportCount !== 'number' : searchResults?.search?.count === undefined;
 
     useEffect(() => {
         if (searchRequestOffset === offset) {
@@ -434,7 +441,7 @@ function Search({
         }
 
         if (searchResults?.search?.isLoading) {
-            if (validGroupBy || (shouldCalculateTotals && searchResults?.search?.count === undefined)) {
+            if (validGroupBy || (shouldCalculateTotals && isRequiredAllMatchingTotalMissing)) {
                 shouldRetrySearchWithTotalsOrGroupedRef.current = true;
             }
             if (offset > 0) {
@@ -484,9 +491,10 @@ function Search({
             return;
         }
 
-        // If count is already present, the latest response already contains totals and we can skip the re-query.
+        // If the required total is already present, the latest response already contains totals and we can skip the
+        // re-query (for expense-report select-all that means reportCount, not the always-present expense count).
         // If we show grouped values we want to retry search either way, the data may be outdated e.g. after deleting an expense.
-        if (!validGroupBy && searchResults?.search?.count !== undefined) {
+        if (!validGroupBy && !isRequiredAllMatchingTotalMissing) {
             shouldRetrySearchWithTotalsOrGroupedRef.current = false;
             return;
         }
@@ -507,6 +515,7 @@ function Search({
         queryJSON,
         currentSearchKey,
         searchResults?.search?.count,
+        isRequiredAllMatchingTotalMissing,
         searchResults?.search?.isLoading,
         shouldCalculateTotals,
         validGroupBy,
