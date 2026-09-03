@@ -133,12 +133,12 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {AutoReportingOffset, PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
-import type {PolicyVendor, PolicyVendors} from './PolicyVendor';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
+import type PolicyVendors from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -305,7 +305,6 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
-    PolicyVendor,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
