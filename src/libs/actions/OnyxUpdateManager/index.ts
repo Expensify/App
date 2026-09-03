@@ -1,9 +1,11 @@
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import {setAuthToken} from '@libs/Network/NetworkStore';
-import {registerPauseWatchdogEscalation, unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
+import {getCurrentRequest, registerPauseWatchdogEscalation, unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
 
 import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates, reconnectApp, reconnectAppWithSideEffects} from '@userActions/App';
+import {getOngoingRequest} from '@userActions/PersistedRequests';
+import {isReconnectFamilyRequest, reconnectCoverageFrom} from '@userActions/RequestConflictUtils';
 import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
 
 import CONST from '@src/CONST';
@@ -291,6 +293,20 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
         // If a fetch is already in progress, we don't need to start another one.
         if (areDeferredUpdatesQueued || isFetchingForPendingUpdates || getMissingOnyxUpdatesQueryPromise()) {
             return false;
+        }
+
+        const ongoingCatchUp = getOngoingRequest();
+        if (isReconnectFamilyRequest(ongoingCatchUp) && reconnectCoverageFrom(ongoingCatchUp) <= lastUpdateIDFromClient) {
+            Log.info('Gap detected in update IDs from the server, but an in-flight reconnect already covers it, so waiting for its response', false, {
+                lastUpdateIDFromClient,
+                previousUpdateIDFromServer,
+                ongoingCommand: ongoingCatchUp.command,
+                reconnectCoverageFrom: reconnectCoverageFrom(ongoingCatchUp),
+            });
+
+            setMissingOnyxUpdatesQueryPromise(getCurrentRequest().then(() => validateAndApplyDeferredUpdates(clientLastUpdateID)));
+
+            return true;
         }
 
         console.debug(`[OnyxUpdateManager] Client is fetching missing updates from the server, from updates ${lastUpdateIDFromClient} to ${Number(previousUpdateIDFromServer)}`);
