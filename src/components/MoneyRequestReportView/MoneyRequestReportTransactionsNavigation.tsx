@@ -45,7 +45,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
-    // The sibling an arrow press is waiting on, with the route it was made from so a stale replay can be dropped.
     const pendingSiblingRef = useRef<{transactionID: string; originRoute: string} | null>(null);
 
     const {prevTransactionID, nextTransactionID} = useMemo(() => {
@@ -129,8 +128,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, []);
 
-    // Holds the press rather than dropping it: fetching the sibling's parent report brings in the IOU action the
-    // thread hangs off, and the effect below replays the press once it lands.
     const stageSiblingPress = (transactionID: string | undefined, parentReportID: string | undefined) => {
         // Offline there is no fetch to wait for, so the caller builds the thread optimistically instead.
         if (!transactionID || !parentReportID || isOffline) {
