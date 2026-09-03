@@ -30,6 +30,7 @@
     "ipad-sm-standalone": "concurrently \"STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ipad-sm\"",
     "start": "npx rock start",
     "web": "./scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
+    "web:safari": "SAFARI_DEBUG=true npm run web",
     "web-proxy": "bun web/proxy.ts",
     "web-server": "node ./node_modules/.bin/rsbuild dev --open --config config/rsbuild/rsbuild.config.ts",
     "build": "ENV=production bun ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts && bun ./scripts/combine-web-sourcemaps.ts",
