@@ -12,6 +12,8 @@ import {join, resolve} from 'node:path';
 import process from 'node:process';
 import {createInterface} from 'node:readline/promises';
 
+import spawnSync from './lib/bunProcess';
+
 const CONFIGURATIONS = ['Debug', 'Release', 'AdHoc'] as const;
 const TARGETS = ['Expensify', 'SmartScanExtension', 'NotificationServiceExtension', 'LiveActivityExtension', 'ExpensifyTests'] as const;
 const PLATFORMS = ['ios', 'android'] as const;
@@ -92,7 +94,7 @@ function parseDevelopmentTeamFromProvisioningProfile(profile: string, now = new 
 }
 
 function decodeProvisioningProfile(path: string): string | undefined {
-    const result = Bun.spawnSync(['openssl', 'smime', '-verify', '-inform', 'der', '-noverify', '-in', path], {stdin: 'ignore', stderr: 'ignore'});
+    const result = spawnSync(['openssl', 'smime', '-verify', '-inform', 'der', '-noverify', '-in', path], {stdin: 'ignore', stderr: 'ignore'});
     return result.success ? result.stdout.toString() : undefined;
 }
 

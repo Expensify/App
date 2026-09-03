@@ -2,6 +2,8 @@ import {isRecord} from '@libs/ObjectUtils';
 
 import type {TupleToUnion} from 'type-fest';
 
+import spawnSync from '../bunProcess';
+
 const PLATFORM_NAMES = ['android', 'ios'] as const;
 const RELAUNCH_DELAY_MS = 500;
 const POLL_INTERVAL_MS = 250;
@@ -36,14 +38,14 @@ type NativeAppBenchmarkAdapterOptions = {
 
 function createCommandHelpers(rootDirectory: string) {
     const run = (command: string, args: string[]): void => {
-        const result = Bun.spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit'});
+        const result = spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit'});
         if (!result.success) {
             throw new Error(`${command} exited with status ${result.exitCode}.`);
         }
     };
 
     const capture = (command: string, args: string[]): string => {
-        const result = Bun.spawnSync([command, ...args], {cwd: rootDirectory, maxBuffer: 100 * 1024 * 1024});
+        const result = spawnSync([command, ...args], {cwd: rootDirectory, maxBuffer: 100 * 1024 * 1024});
         if (!result.success) {
             const stderr = result.stderr.toString().trim();
             throw new Error(stderr || `${command} exited with status ${result.exitCode}.`);
@@ -52,7 +54,7 @@ function createCommandHelpers(rootDirectory: string) {
     };
 
     const runAllowFailure = (command: string, args: string[]): boolean => {
-        return Bun.spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'ignore', stdout: 'ignore', stderr: 'ignore'}).success;
+        return spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'ignore', stdout: 'ignore', stderr: 'ignore'}).success;
     };
 
     return {capture, run, runAllowFailure};
