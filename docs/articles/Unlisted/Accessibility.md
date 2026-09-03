@@ -2,7 +2,7 @@
 title: Accessibility at Expensify
 description: Learn about Expensify's accessibility commitment, the standards we follow, how to turn on high contrast mode, how to report accessibility issues, and how we track progress publicly.
 keywords: [accessibility, a11y, WCAG, WCAG 2.2, VPAT, ACR, accessibility conformance report, Section 508, EN 301 549, screen reader, JAWS, NVDA, VoiceOver, TalkBack, keyboard navigation, assistive technology, high contrast mode, contrast, theme]
-internalScope: Audience is anyone evaluating or using Expensify with assistive technology, plus procurement and compliance teams. Covers Expensify's accessibility commitment, conformance standards, how to get the VPAT/ACR, how to turn on high contrast mode, how to report accessibility issues, and remediation targets. Does not cover how to use specific assistive technologies with Expensify.
+internalScope: Audience is anyone evaluating or using Expensify with assistive technology, plus procurement and compliance teams. Covers Expensify's accessibility commitment, conformance standards, how to get the VPAT/ACR, how to turn on high contrast mode, and how to report and track accessibility issues. Does not cover how to use specific assistive technologies with Expensify.
 ---
 
 # Accessibility at Expensify
@@ -43,13 +43,6 @@ When filling in the template, include:
 - The steps you took and what happened versus what you expected
 - The WCAG checkpoint that failed, if you know it
 - The platform (web, iOS, Android) and the assistive technology you were using
-
-## How quickly Expensify fixes accessibility issues
-
-We hold ourselves to clear remediation targets for confirmed accessibility issues:
-
-- **Critical issues**: fixed within **60 days**
-- **High-severity issues**: fixed within **120 days**
 
 ## Where to track accessibility issues and progress
 
