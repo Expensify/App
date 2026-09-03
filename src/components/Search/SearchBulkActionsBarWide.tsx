@@ -1,12 +1,9 @@
-import CONST from '@src/CONST';
-
 import React from 'react';
 
 import type {SearchQueryJSON} from './types';
 
+import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchBulkActionsButton from './SearchBulkActionsButton';
-import {useSearchSelectionContext} from './SearchContext';
-import {useSelectionCounts} from './SearchSelectionProvider';
 
 type SearchBulkActionsBarWideProps = {
     queryJSON: SearchQueryJSON;
@@ -18,9 +15,7 @@ type SearchBulkActionsBarWideProps = {
  * re-renders this component alone rather than the list beside it.
  */
 function SearchBulkActionsBarWide({queryJSON}: SearchBulkActionsBarWideProps) {
-    const {hasSelectedTransactions} = useSearchSelectionContext();
-    const {selected} = useSelectionCounts();
-    const shouldShowBulkActions = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? hasSelectedTransactions : selected > 0;
+    const shouldShowBulkActions = useShouldShowBulkActionBar(queryJSON);
 
     if (!shouldShowBulkActions) {
         return null;

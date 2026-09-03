@@ -6427,6 +6427,15 @@ const CONST = {
 
         /** How far the bar floats above the bottom of the container it is rendered in. */
         BOTTOM_OFFSET: 20,
+
+        /**
+         * The bar's height: a small (28px) button plus its 14px of padding above and below. The bar sizes itself from
+         * its contents, so this is only used to reserve the space it floats over — keep it in step with `bulkActionBar`.
+         */
+        HEIGHT: 56,
+
+        /** Breathing room left between the bar and the last row of the list it floats over. */
+        LIST_GAP: 12,
     },
 
     BUTTON_REMOVE_BORDER_RADIUS: {

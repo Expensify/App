@@ -99,6 +99,7 @@ import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
+import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
@@ -155,6 +156,8 @@ function Search({
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
+    // Wide layout floats the bulk action bar over the end of the list, so the list has to leave room for it.
+    const shouldReserveBulkActionBarSpace = useShouldShowBulkActionBar(queryJSON) && !shouldUseNarrowLayout;
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -1223,7 +1226,7 @@ function Search({
         canSelectMultiple,
         SearchTableHeader: searchTableHeader,
         tableHeaderVisible,
-        contentContainerStyle: [styles.pb3, contentContainerStyle],
+        contentContainerStyle: [styles.pb3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing, contentContainerStyle],
         containerStyle: [styles.pv0],
         onScroll: onSearchListScroll,
         onEndReached: fetchMoreResults,
