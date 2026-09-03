@@ -5,18 +5,7 @@ import {addDays, format, isValid, parse} from 'date-fns';
 // Common date formats to try when parsing CSV dates
 // Order matters - more specific/common formats first
 const CSV_DATE_FORMATS = [
-    // Two-digit years come first because the `yyyy` token would otherwise read "25" as the year 0025.
-    // They cannot swallow a four-digit year, `yy` rejects the leftover digits.
-    'MM/dd/yy', // US short year: 11/02/25
-    'M/d/yy', // US short: 1/2/25
-    'dd/MM/yy', // European short year: 02/11/25
-    'MM-dd-yy', // US with dashes: 11-02-25
-    'dd-MM-yy', // European with dashes: 02-11-25
-    'MMM d, yy', // Month name: Nov 2, 25
-    'd MMM yy', // European with month name: 2 Nov 25
-
     'yyyy-MM-dd', // ISO format: 2025-11-02
-
     'MM/dd/yyyy', // US format: 11/02/2025
     'dd/MM/yyyy', // European format: 02/11/2025
     'M/d/yyyy', // US short: 1/2/2025
@@ -41,19 +30,18 @@ function parseCSVDate(input: string): string | null {
 
     const trimmedInput = input.trim();
 
-    // These parse in local time, so they run first. `new Date('2026-03-02')` reads as UTC midnight
-    // and formats back a day early for anyone west of UTC.
+    // Try native Date parsing first (handles ISO and some other formats)
+    let date = new Date(trimmedInput);
+    if (isValid(date) && !Number.isNaN(date.getTime())) {
+        return format(date, CONST.DATE.FNS_FORMAT_STRING);
+    }
+
+    // Try parsing with common date formats using date-fns
     for (const dateFormat of CSV_DATE_FORMATS) {
         const parsedDate = parse(trimmedInput, dateFormat, new Date());
         if (isValid(parsedDate)) {
             return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
         }
-    }
-
-    // Falls back to native parsing for anything with a time or zone, which the formats above reject
-    let date = new Date(trimmedInput);
-    if (isValid(date) && !Number.isNaN(date.getTime())) {
-        return format(date, CONST.DATE.FNS_FORMAT_STRING);
     }
 
     // If the date didn't parse, try taking just the first 10 characters
