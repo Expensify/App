@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
@@ -204,7 +203,7 @@ function MoneyRequestReportTransactionItemBody({
                 }}
                 accessibilityLabel={translate('iou.viewDetails')}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_TRANSACTION_ITEM}
-                role={getButtonRole(true)}
+                role={CONST.ROLE.BUTTON}
                 isNested
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}

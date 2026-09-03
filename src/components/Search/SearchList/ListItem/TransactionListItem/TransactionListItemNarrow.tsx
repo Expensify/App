@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -128,7 +127,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 onPress={handleOnPress}
                 disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
-                role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
+                role={!isDeletedTransaction ? CONST.ROLE.BUTTON : 'none'}
                 isNested
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}

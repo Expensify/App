@@ -1,5 +1,4 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import {getButtonRole} from '@components/Button/utils';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
@@ -141,7 +140,7 @@ function Button({
             accessibilityLabel={accessibilityLabel}
             accessibilityState={accessibilityState}
             sentryLabel={sentryLabel}
-            role={getButtonRole(isNested)}
+            role={CONST.ROLE.BUTTON}
             isNested={isNested}
             disabled={isLoading || isDisabled}
             disabledStyle={!stayNormalOnDisable ? disabledStyle : undefined}
