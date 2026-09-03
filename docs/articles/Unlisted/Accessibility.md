@@ -17,11 +17,13 @@ We design and evaluate Expensify against the following accessibility standards:
 - **Revised Section 508** of the U.S. Rehabilitation Act
 - **EN 301 549**, the European accessibility standard for ICT products and services
 
+Expensify supports WCAG 2.2 Levels A and AA. Our latest Accessibility Conformance Reports rate every applicable Level A and AA success criterion as **Supports** across both the web app and the iOS and Android apps.
+
 ## How to get Expensify's Accessibility Conformance Report (VPAT/ACR)
 
-An Accessibility Conformance Report (ACR), based on the Voluntary Product Accessibility Template (VPAT), documents how Expensify conforms to the standards above, criterion by criterion.
+An Accessibility Conformance Report (ACR), based on the Voluntary Product Accessibility Template (VPAT), documents how Expensify conforms to the standards above, criterion by criterion. We publish two reports: one for the web app and one for the mobile apps.
 
-Our report was produced from an evaluation of Expensify using:
+Our reports were produced from an evaluation of Expensify using:
 
 - Screen readers: JAWS, NVDA, VoiceOver, and TalkBack
 - Keyboard-only navigation
@@ -54,6 +56,10 @@ We hold ourselves to clear remediation targets for confirmed accessibility issue
 Every accessibility issue is labeled `Accessibility` and tracked in the open, so you can follow the [public accessibility backlog](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AAccessibility) at any time.
 
 # FAQ
+
+## Does Expensify conform to WCAG 2.2 Level AA?
+
+Yes. The web app and the mobile apps both support WCAG 2.2 Levels A and AA. See the Accessibility Conformance Report for the criterion-by-criterion detail.
 
 ## How do I get Expensify's VPAT or Accessibility Conformance Report?
 
