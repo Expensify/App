@@ -892,6 +892,11 @@ const ONYXKEYS = {
         // should not be included as part of the policy object. The policy
         // object should mirror the data as it's stored in the database.
         POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched_',
+        // Deadline (epoch ms) until which the policy's connection data is treated as stale and re-read
+        // whenever the app or the screen regains focus. Set when NewDot hands the user off to an external
+        // accounting setup flow. Like the flag above this is client-only state, so it lives outside the
+        // policy object.
+        POLICY_CONNECTIONS_REFRESH_DEADLINE: 'policyConnectionsRefreshDeadline_',
         POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
         POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN: 'policyMergeHRInitialSyncModalShown_',
         POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN: 'policyMergeATSInitialSyncModalShown_',
@@ -1491,6 +1496,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED]: boolean;
+    [ONYXKEYS.COLLECTION.POLICY_CONNECTIONS_REFRESH_DEADLINE]: number;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyEmployeeList;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;

@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import AccountUtils from '@libs/AccountUtils';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
+import {markPolicyConnectionsAsStale} from '@libs/actions/PolicyConnections';
 import getPlatform from '@libs/getPlatform';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
@@ -117,6 +118,9 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         if (dynamicForwardPath) {
             const policyID = route.params?.policyID;
             if (policyID) {
+                // This path bypasses ConnectToXeroFlow, so it has to mark the connections stale itself — otherwise
+                // users who set up 2FA as part of connecting Xero keep the pre-connection policy.connections copy.
+                markPolicyConnectionsAsStale(policyID);
                 // Open Xero setup the same way ConnectToXeroFlow does per platform: on web open the link inline in a
                 // new browser tab (within this button's gesture), on native navigate to the in-app WebView setup
                 // screen. Calling openLink on native would open the external browser instead of the WebView.

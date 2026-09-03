@@ -3,6 +3,7 @@ import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAut
 import useLocalize from '@hooks/useLocalize';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
+import {markPolicyConnectionsAsStale} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
@@ -23,6 +24,9 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             setIsRequire2FAModalOpen(true);
             return;
         }
+        // The connection this produces is created outside NewDot, so the lazily-fetched policy.connections copy
+        // this client already holds can't see it. Mark it stale before handing off so it gets re-read on return.
+        markPolicyConnectionsAsStale(policyID);
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_SETUP.getRoute(policyID));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
