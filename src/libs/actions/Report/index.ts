@@ -1635,7 +1635,8 @@ function getGuidedSetupDataForOpenReport(
         isSelfTourViewed,
         wasInvited: isPendingInviteOnboarding && isOnboardingCompleted,
         currentUserAccountID,
-        // delegateAccountID: will be threaded in PR 16 together with the other openReport params; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        // delegateAccountID will be threaded in PR 16 together with the other openReport params.
+        // buildOptimisticAddCommentReportAction falls back to the module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         delegateAccountID: undefined,
     });
 
