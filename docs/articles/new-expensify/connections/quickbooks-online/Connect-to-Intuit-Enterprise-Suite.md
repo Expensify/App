@@ -12,17 +12,17 @@ Connect Intuit Enterprise Suite to your Expensify workspace to sync your account
 Once connected, the integration imports:
 
  - Your chart of accounts as categories.
- - Your dimensions, like Departments Projects and Classes, as tags
+ - Your dimensions, like Departments, Projects, and Classes, as tags
  - Tax rates (when enabled).
 
 ---
 
-## Who can connect Intuit Enterprise Suite
+## Who can connect Intuit Enterprise Suite to a workspace
 
 To connect Intuit Enterprise Suite, you must:
 
 - Be a Workspace Admin with a workspace on the Control plan.
-- Have **Accounting** enabled on your workspace, under **More features**. 
+- Have **Accounting** enabled on your workspace, under **More features**.
 - Have Intuit Enterprise Suite login credentials.
 
 ---
@@ -52,7 +52,7 @@ After the connection is established, the **Connections** section updates to show
 
 ## Why do I see an upgrade message when I click Connect for Intuit Enterprise Suite?
 
-The Intuit Enterprise Suite integration is only available on the Control plan. On a Collect plan workspace, you'll be prompted to upgrade before you can connect to Intuit Enterprise Suite. 
+The Intuit Enterprise Suite integration is only available on the Control plan. On a Collect plan workspace, you'll be prompted to upgrade before you can connect to Intuit Enterprise Suite.
 
 ## Can I change which Entity is used?
 
