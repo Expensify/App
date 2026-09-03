@@ -72,7 +72,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList, session?.email);
@@ -152,7 +151,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             clearPersonalDetailsDraft();
             setPersonalDetails(firstName, lastName);
 
-            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
+            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER) {
                 if (isPrivateDomainAndHasAccessiblePolicies && isValidated) {
                     Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
                     return;
@@ -188,7 +187,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             currentUserPersonalDetails,
             isPrivateDomainAndHasAccessiblePolicies,
             onboardingPurposeSelected,
-            canUseSubmit2026,
             isVsb,
             isSmb,
             completeOnboarding,

@@ -1,3 +1,4 @@
+import '@libs/Middleware/register';
 import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -6,7 +7,6 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useNetwork from '@hooks/useNetwork';
@@ -28,6 +28,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type * as CoreNavigation from '@react-navigation/core';
 import type * as reactNavigationNativeImport from '@react-navigation/native';
@@ -72,9 +73,21 @@ jest.mock('@react-navigation/core', () => ({
     useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: jest.fn(() => true)})),
 }));
 
+// FlashList never lays out here, so stand in for it to get at onEndReached.
+const listProps: {onEndReached?: () => void} = {};
+jest.mock('@components/Search/SearchList/BaseSearchList', () => ({
+    __esModule: true,
+    default: (props: {onEndReached?: () => void}) => {
+        listProps.onEndReached = props.onEndReached;
+        return null;
+    },
+}));
+
+const mockIsFocused = jest.fn(() => true);
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
     useNavigationState: () => {},
+    useIsFocused: () => mockIsFocused(),
 }));
 
 type TestNavigationContainerProps = {initialState: reactNavigationNativeImport.InitialState};
@@ -91,6 +104,70 @@ const mockSearch = jest.mocked(search);
 
 const FAILED_QUERY = 'type:chat category:abcd';
 const failedQueryJSON = SearchQueryUtils.buildSearchQueryJSON(FAILED_QUERY);
+
+const EXPENSE_QUERY = 'type:expense';
+const expenseQueryJSON = SearchQueryUtils.buildSearchQueryJSON(EXPENSE_QUERY);
+
+const SUBMITTER_ACCOUNT_ID = 1;
+
+// A full first page: pagination only starts once the loaded results fill one page.
+function buildExpenseSnapshotData(): SearchResults['data'] {
+    const data: Record<string, unknown> = {
+        personalDetailsList: {[SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, avatar: '', displayName: 'Submitter', login: 'submitter@expensify.com'}},
+    };
+
+    for (let index = 1; index <= CONST.SEARCH.RESULTS_PAGE_SIZE; index++) {
+        const id = String(index);
+        data[`report_${id}`] = {
+            accountID: SUBMITTER_ACCOUNT_ID,
+            chatReportID: '9999',
+            currency: 'USD',
+            ownerAccountID: SUBMITTER_ACCOUNT_ID,
+            policyID: 'A1B2C3',
+            reportID: id,
+            reportName: 'Expense Report',
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: -5000,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        data[`transactions_${id}`] = {
+            amount: -5000,
+            category: '',
+            comment: {comment: ''},
+            created: '2024-12-21',
+            currency: 'USD',
+            merchant: 'Coffee',
+            modifiedCreated: '',
+            modifiedCurrency: '',
+            modifiedMerchant: '',
+            reportID: id,
+            tag: '',
+            transactionID: id,
+        };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the rows only carry the fields the list reads, not the full Transaction/Report shapes
+    return data as SearchResults['data'];
+}
+
+const expenseSnapshotData = buildExpenseSnapshotData();
+
+function getExpenseSnapshot(isLoading: boolean) {
+    return {
+        data: expenseSnapshotData,
+        search: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            offset: 0,
+            hash: expenseQueryJSON?.hash,
+            sortBy: expenseQueryJSON?.sortBy,
+            sortOrder: expenseQueryJSON?.sortOrder,
+            state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+            isLoading,
+            hasMoreResults: true,
+        },
+    };
+}
 
 function TestSearchFullscreenNavigator() {
     return (
@@ -178,6 +255,9 @@ describe('SearchPageNarrow', () => {
 
     beforeEach(() => {
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        mockSearchQueryParam.mockReturnValue(FAILED_QUERY);
+        mockIsFocused.mockReturnValue(true);
+        listProps.onEndReached = undefined;
     });
 
     it('SearchPageNarrow renders correctly', async () => {
@@ -193,7 +273,8 @@ describe('SearchPageNarrow', () => {
         expect(searchInput).toBeTruthy();
     });
 
-    it('does not retry an already failed search snapshot', async () => {
+    it('retries an already failed search snapshot once on a fresh mount', async () => {
+        // Given a snapshot left errored by a request that failed in an earlier session
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
                 errors: {error: 'Something went wrong'},
@@ -209,14 +290,16 @@ describe('SearchPageNarrow', () => {
             });
         });
 
-        const renderedPage = renderPage();
+        // When the page mounts
+        renderPage();
 
         await act(async () => {
             jest.advanceTimersByTime(0);
         });
 
-        expect(mockSearch).not.toHaveBeenCalled();
-        expect(renderedPage.UNSAFE_queryByType(SearchRowSkeleton)).toBeNull();
+        // Then the query is requested again, because without that attempt the page renders its error view on every
+        // mount with nothing in flight
+        expect(mockSearch).toHaveBeenCalledTimes(1);
     });
 
     // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
@@ -250,16 +333,20 @@ describe('SearchPageNarrow', () => {
         expect(screen.queryByText('Try again')).toBeNull();
     });
 
-    it('keeps the retry button on a fresh mount when the persisted response is a retryable failure', async () => {
+    it('drops a persisted retryable failure on a fresh mount instead of showing the error view', async () => {
+        // Given a snapshot errored with a retryable response code
         await setFailedSnapshot(CONST.JSON_CODE.EXP_ERROR);
 
+        // When the page mounts
         renderPage();
 
         await act(async () => {
             jest.runAllTimers();
         });
 
-        expect(screen.getByText('Try again')).toBeTruthy();
+        // Then no error view is shown, because leaving the stored failure in place is what turned one failed
+        // request into a dead end only the Try again button could escape
+        expect(screen.queryByText('Try again')).toBeNull();
     });
 
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {
@@ -309,5 +396,104 @@ describe('SearchPageNarrow', () => {
         });
 
         expect(renderedPage.UNSAFE_getByType(SearchLoadingSkeleton)).toBeTruthy();
+    });
+    it('loads the next page after a request that was in flight when the list hit its end resolves', async () => {
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(listProps.onEndReached).toBeDefined();
+
+        // Mount refresh still in flight when the end of the list is reached.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: true}});
+        });
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        const wasSearchedAtNextPage = () => mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE);
+        expect(wasSearchedAtNextPage()).toBe(false);
+
+        // Refresh lands.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: false}});
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(wasSearchedAtNextPage()).toBe(true);
+    });
+    it('does not fire a pending page once the screen is no longer focused', async () => {
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: true}});
+        });
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // User navigates away while the refresh is still on the wire.
+        mockIsFocused.mockReturnValue(false);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: false}});
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(false);
+    });
+    it('does not request a queued page the refreshed snapshot no longer has', async () => {
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: true}});
+        });
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Refresh lands and the result set no longer has a further page.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: false, hasMoreResults: false}});
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(false);
     });
 });

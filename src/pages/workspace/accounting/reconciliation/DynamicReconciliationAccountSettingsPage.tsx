@@ -17,13 +17,13 @@ import {getCardProgramKey, getCardSettings, getConnectionBankAccountsForReconcil
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
-import {getTravelSettlementAccount} from '@libs/TravelInvoicingUtils';
+import {getTravelSettlementAccount} from '@libs/TravelBillingUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import {setCardReconciliationAccount} from '@userActions/Card';
-import {setTravelInvoicingReconciliationBankAccount} from '@userActions/TravelInvoicing';
+import {setTravelBillingReconciliationBankAccount, toggleTravelBillingContinuousReconciliation} from '@userActions/TravelBilling';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -165,20 +165,25 @@ function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, domai
     );
 }
 
-function TravelInvoicingDynamicReconciliation({policyID, workspaceAccountID, domainName, bankAccountList, goBack, connectionName, connectionBankAccounts}: DynamicReconciliationProps) {
+function TravelBillingDynamicReconciliation({policyID, workspaceAccountID, domainName, bankAccountList, goBack, connectionName, connectionBankAccounts}: DynamicReconciliationProps) {
     const {translate} = useLocalize();
 
-    const [travelInvoicingCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const [travelInvoicingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
-    const travelInvoicingSettings = getCardSettings(travelInvoicingCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const travelInvoicingSettlementAccount = getTravelSettlementAccount(travelInvoicingSettings, bankAccountList);
-    const settlementAccountEnding = travelInvoicingSettlementAccount?.last4 ?? '';
+    const [travelBillingCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [travelBillingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
+    const [travelBillingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
+    const [travelBillingContinuousReconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
+    const travelBillingSettings = getCardSettings(travelBillingCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    const travelBillingSettlementAccount = getTravelSettlementAccount(travelBillingSettings, bankAccountList);
+    const settlementAccountEnding = travelBillingSettlementAccount?.last4 ?? '';
 
     const selectBankAccount = (newBankAccountID?: string) => {
         if (!newBankAccountID) {
             return;
         }
-        setTravelInvoicingReconciliationBankAccount(workspaceAccountID, domainName, newBankAccountID, travelInvoicingReconciliationBankAccountID);
+        setTravelBillingReconciliationBankAccount(workspaceAccountID, domainName, newBankAccountID, travelBillingReconciliationBankAccountID);
+        if (!travelBillingContinuousReconciliation) {
+            toggleTravelBillingContinuousReconciliation(workspaceAccountID, true, connectionName, travelBillingContinuousReconciliationConnection);
+        }
         goBack();
     };
 
@@ -190,7 +195,7 @@ function TravelInvoicingDynamicReconciliation({policyID, workspaceAccountID, dom
             goBack={goBack}
             description={translate('workspace.accounting.chooseReconciliationAccount.chooseTravelInvoicingBankAccount')}
             html={translate('workspace.accounting.chooseReconciliationAccount.travelInvoicingSettlementAccountReconciliation', settlementAccountEnding)}
-            selectedBankAccountID={travelInvoicingReconciliationBankAccountID}
+            selectedBankAccountID={travelBillingReconciliationBankAccountID}
             onSelectBankAccount={selectBankAccount}
         />
     );
@@ -213,9 +218,9 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
         Navigation.goBack(backPath);
     }, [backPath]);
 
-    if (reconciliationAccountSettingsType === RECONCILIATION_ACCOUNT_SETTINGS_TYPE.TRAVEL_INVOICING) {
+    if (reconciliationAccountSettingsType === RECONCILIATION_ACCOUNT_SETTINGS_TYPE.TRAVEL_BILLING) {
         return (
-            <TravelInvoicingDynamicReconciliation
+            <TravelBillingDynamicReconciliation
                 policyID={policyID}
                 workspaceAccountID={workspaceAccountID}
                 domainName={domainName}

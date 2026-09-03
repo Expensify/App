@@ -9,7 +9,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
-import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -18,10 +17,12 @@ import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    isBrokenConnectionViolation,
     isDuplicate as isDuplicateTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isScanning,
+    shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 
@@ -128,12 +129,11 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
             return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
-            const cardID = brokenConnectionError?.data?.cardID;
-            const card = cardID ? cardList?.[cardID] : undefined;
-            const isBrokenPersonalCard = isPersonalCard(card);
+            const brokenConnectionViolations = transactionViolations.filter(isBrokenConnectionViolation);
 
-            if (isBrokenPersonalCard && brokenConnectionError) {
+            // Suppress the status only when every broken connection is on a personal card the current user holds.
+            // A company card missing from their cardList must still surface to admins and approvers.
+            if (shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList)) {
                 return undefined;
             }
             return {

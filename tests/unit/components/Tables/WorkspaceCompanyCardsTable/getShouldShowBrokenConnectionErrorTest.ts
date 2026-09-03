@@ -16,6 +16,7 @@ function buildFeedErrors(overrides: Partial<CardFeedErrorState>): CardFeedErrorS
         hasFeedErrors: false,
         hasWorkspaceErrors: false,
         isFeedConnectionBroken: false,
+        shouldPromptBrokenConnection: false,
         ...overrides,
     };
 }

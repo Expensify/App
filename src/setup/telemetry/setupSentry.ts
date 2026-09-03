@@ -2,6 +2,7 @@ import {isDevelopment} from '@libs/Environment/Environment';
 import {
     breadcrumbsIntegration,
     browserProfilingIntegration,
+    classCallCheckNoiseFilterIntegration,
     consoleIntegration,
     navigationIntegration,
     reportingObserverIntegration,
@@ -24,6 +25,14 @@ import makeDebugTransport from './debugTransport';
  */
 const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
 
+/**
+ * Ordered pair, not two independent entries: Sentry runs each integration's `processEvent` in list order, and
+ * `classCallCheckNoiseFilterIntegration` reads the `third_party_code` tag `thirdPartyErrorFilterIntegration`
+ * writes. Swapped, the filter goes inert with no type error to catch it - hence one constant that reorders as a
+ * unit, with the order pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
+ */
+const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration];
+
 function setupSentry(): void {
     const integrations = [
         navigationIntegration,
@@ -32,7 +41,7 @@ function setupSentry(): void {
         breadcrumbsIntegration,
         consoleIntegration,
         reportingObserverIntegration,
-        thirdPartyErrorFilterIntegration,
+        ...THIRD_PARTY_NOISE_INTEGRATIONS,
     ].filter((integration): integration is NonNullable<typeof integration> => integration !== undefined);
 
     Sentry.init({
@@ -48,8 +57,14 @@ function setupSentry(): void {
         integrations,
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
-        // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
-        ignoreErrors: [CONST.ERROR.UPDATE_REQUIRED],
+        ignoreErrors: [
+            // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
+            CONST.ERROR.UPDATE_REQUIRED,
+            // Bare-string rejections from the Convert Experiments script in web/index.html, which reads OnyxDB directly.
+            // They carry no stack frames for thirdPartyErrorFilterIntegration to tag; the prefix limits this to the
+            // browser SDK's rejection wording, so a real Error carrying the same text still reports.
+            /^Non-Error promise rejection captured with value: No data found for key/,
+        ],
         denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
