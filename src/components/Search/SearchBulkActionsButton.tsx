@@ -70,6 +70,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {
         headerButtonsOptions,
+        bulkActionsMenuHeaderText,
         selectedPolicyIDs,
         selectedTransactionReportIDs,
         selectedReportIDs,
@@ -93,7 +94,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         handleExpensifyCardStatementPDFModalHide,
         isExpensifyCardStatementMultiFeedAlertVisible,
         handleExpensifyCardStatementMultiFeedAlertClose,
-        exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -227,6 +227,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             <ButtonWithDropdownMenu
                                 buttonRef={buttonRef}
                                 options={headerButtonsOptions}
+                                menuHeaderText={bulkActionsMenuHeaderText}
                                 customText={selectionButtonText}
                                 isLoading={isAllMatchingItemsCountLoading}
                                 shouldAlwaysShowDropdownMenu
@@ -254,6 +255,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 customText={selectionButtonText}
                                 isLoading={isAllMatchingItemsCountLoading}
                                 options={headerButtonsOptions}
+                                menuHeaderText={bulkActionsMenuHeaderText}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
                                 onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
                                 isSplitButton={false}
@@ -324,7 +326,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     isDM={areAllTransactionsFromDMReports}
                 />
             )}
-            {exportDownloadStatusModal}
         </>
     );
 }
