@@ -11,6 +11,7 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import UserPill from '@components/UserPill';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
@@ -27,8 +28,7 @@ import getButtonState from '@libs/getButtonState';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
-import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
+import {getDisplayNameForParticipant, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 
@@ -60,7 +60,7 @@ type TaskViewProps = {
 
 function TaskView({report, parentReport, action}: TaskViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -90,13 +90,8 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         updateTaskCheckboxStateForAccessibility,
     } = useTaskCheckboxAccessibility(isCompletedFromOnyx, taskTitlePlainText);
 
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
-        getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails),
-        false,
-        localeCompare,
-        formatPhoneNumber,
-        translate,
-    );
+    const assigneePersonalDetails = report?.managerID ? personalDetails?.[report.managerID] : undefined;
+    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, translate}) : '';
 
     const isOpen = isOpenTaskReport(report);
 
@@ -278,19 +273,22 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             {report?.managerID ? (
                                 <MenuItem
                                     label={translate('task.assignee')}
-                                    title={getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, translate})}
-                                    iconAccountID={report.managerID}
-                                    iconType={CONST.ICON_TYPE_AVATAR}
-                                    avatarSize={CONST.AVATAR_SIZE.X_SMALL}
-                                    titleStyle={styles.assigneeTextStyle}
+                                    accessibilityLabel={`${translate('task.assignee')}, ${assigneeDisplayName}`}
+                                    titleComponent={
+                                        <UserPill
+                                            avatar={assigneePersonalDetails?.avatar}
+                                            displayName={assigneeDisplayName}
+                                            accountID={report.managerID}
+                                            email={assigneePersonalDetails?.login}
+                                            style={styles.userPillStandalone}
+                                        />
+                                    }
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
                                     shouldShowRightIcon={!isDisableInteractive}
                                     disabled={disableState}
                                     wrapperStyle={[styles.pv2]}
-                                    isSmallAvatarSubscriptMenu
                                     shouldGreyOutWhenDisabled={false}
                                     interactive={!isDisableInteractive}
-                                    titleWithTooltips={assigneeTooltipDetails}
                                     shouldUseDefaultCursorWhenDisabled
                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
                                 />
