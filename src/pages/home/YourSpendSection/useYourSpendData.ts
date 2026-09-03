@@ -420,7 +420,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     // Memo anchor: the compiler does not auto-cache these calls, so downstream
     // memos would invalidate every render without it.
-    const expensifyCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
+    const {cards: expensifyCards, cardIDsByCardID: expensifyCardIDsByCardID} = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
     const thirdPartyCards = useMemo(
         () => getDisplayableThirdPartyCards(cardList, {cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection}),
         [cardList, cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection],
@@ -435,14 +435,28 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [expensifyCards, thirdPartyCards],
     );
 
+    // A combo card duo collapses to one row keyed by the physical card, so the row stands for both
+    // halves. Third-party cards are never part of a duo and stand only for themselves.
+    const queriedCardIDsByCardID = useMemo(
+        () =>
+            displayableCards.reduce<Record<number, number[]>>((acc, {card}) => {
+                acc[card.cardID] = expensifyCardIDsByCardID[card.cardID] ?? [card.cardID];
+                return acc;
+            }, {}),
+        [displayableCards, expensifyCardIDsByCardID],
+    );
+
     const cardGroupQueryJSON = displayableCards.length > 0 ? buildSearchQueryJSON(buildCardGroupQuery(accountID)) : undefined;
     const [cardTotalsByCardID] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${cardGroupQueryJSON?.hash}`, {selector: getCardTotalsByCardID});
 
     const cardRows: YourSpendCardRow[] = useMemo(
         () =>
             displayableCards.reduce<YourSpendCardRow[]>((acc, {card, kind}) => {
-                const totals = cardTotalsByCardID?.[card.cardID];
-                if (!totals) {
+                // The grouped search reports one entry per cardID, so a combo card duo arrives as two
+                // entries. Add them up so the row carries the duo's whole spend and shows up when
+                // either half of the duo spent.
+                const duoTotals = queriedCardIDsByCardID[card.cardID].map((duoCardID) => cardTotalsByCardID?.[duoCardID]).filter((entry): entry is YourSpendRowTotals => !!entry);
+                if (duoTotals.length === 0) {
                     return acc;
                 }
 
@@ -462,9 +476,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 acc.push({
                     cardID: card.cardID,
                     lastFour,
-                    query: buildRecentCardTransactionsQuery(accountID, card.cardID),
-                    total: totals.total,
-                    currency: totals.currency,
+                    query: buildRecentCardTransactionsQuery(accountID, queriedCardIDsByCardID[card.cardID]),
+                    total: duoTotals.every((entry) => entry.total === undefined) ? undefined : duoTotals.reduce((sum, entry) => sum + (entry.total ?? 0), 0),
+                    currency: duoTotals.find((entry) => !!entry.currency)?.currency,
                     spentFraction,
                     kind,
                     bank: card.bank,
@@ -473,7 +487,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 });
                 return acc;
             }, []),
-        [displayableCards, cardTotalsByCardID, accountID],
+        [displayableCards, cardTotalsByCardID, queriedCardIDsByCardID, accountID],
     );
 
     const approvalRowStateRaw = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});

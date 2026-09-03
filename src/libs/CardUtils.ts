@@ -142,6 +142,14 @@ type CardConnectionStatusDisplayParams = {
     policyID?: string;
 };
 
+type DisplayableExpensifyCards = {
+    /** The cards to show, with each combo card duo collapsed to its physical card. */
+    cards: Card[];
+
+    /** Every cardID that a shown card stands for, keyed by the shown cardID. A combo card lists both halves of the duo. */
+    cardIDsByCardID: Record<number, number[]>;
+};
+
 const feedNamesMapping = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.CSV,
     [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.VISA,
@@ -1966,11 +1974,11 @@ function isTravelCardTransaction(feedCountry: string | undefined, card: Card | u
  * (physical + virtual pairs) so only the physical card is shown per domain.
  *
  * @param cardList - The card list to filter
- * @returns Array of displayable Expensify cards with combo cards deduplicated by domain
+ * @returns The displayable cards with combo cards deduplicated by domain, plus the cardIDs each returned card stands for
  */
-function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
+function getDisplayableExpensifyCards(cardList: CardList | undefined): DisplayableExpensifyCards {
     if (!hasDisplayableAssignedCards(cardList)) {
-        return [];
+        return {cards: [], cardIDsByCardID: {}};
     }
 
     const activeCards = filterAllInactiveCards(cardList);
@@ -1986,25 +1994,37 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     );
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
-    const seenDomains = new Set<string>();
+    const cards: Card[] = [];
+    const cardIDsByCardID: Record<number, number[]> = {};
+    const shownCardIDByDomain = new Map<string, number>();
 
-    return sortedCards.filter((card) => {
+    for (const card of sortedCards) {
         const isAdminIssuedVirtualCard = !!card.nameValuePairs?.issuedBy && !!card.nameValuePairs?.isVirtual;
         const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard;
 
         // Always show non-combo cards (admin-issued virtual or cards without domain)
         if (!isComboCard) {
-            return true;
+            cards.push(card);
+            cardIDsByCardID[card.cardID] = [card.cardID];
+            continue;
         }
 
-        // For combo cards, only show the first one per domain (physical card comes first due to sorting)
-        if (seenDomains.has(card.domainName)) {
-            return false;
+        const shownCardID = shownCardIDByDomain.get(card.domainName);
+
+        // For combo cards, only show the first one per domain (physical card comes first due to sorting).
+        // The hidden half of the duo still spends against the same limit, so record its cardID under the
+        // shown card. Callers that query transactions need both IDs to see the duo's full spend.
+        if (shownCardID !== undefined) {
+            cardIDsByCardID[shownCardID].push(card.cardID);
+            continue;
         }
 
-        seenDomains.add(card.domainName);
-        return true;
-    });
+        shownCardIDByDomain.set(card.domainName, card.cardID);
+        cards.push(card);
+        cardIDsByCardID[card.cardID] = [card.cardID];
+    }
+
+    return {cards, cardIDsByCardID};
 }
 
 /**
@@ -2294,4 +2314,4 @@ export {
     resolveTransactionCardFields,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, DisplayableExpensifyCards};
