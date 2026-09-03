@@ -2813,6 +2813,35 @@ describe('SearchUIUtils', () => {
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
+        it('should flag a rejected report for a viewer who is not the report owner', () => {
+            const data = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                    ...report1,
+                    nextStep: {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
+                },
+            } as OnyxTypes.SearchResults['data'];
+
+            const result = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data,
+                    currentAccountID: approverAccountID,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionReportGroupListItemType,
+            )[0];
+
+            expect(result.find((group) => group.reportID === reportID)?.isRejectedReport).toBe(true);
+        });
+
         it('should derive exportedTo from every export action of the report', () => {
             const exportedReportID = 'exported-to-report';
             const exportedTransactionID = 'exported-to-transaction';

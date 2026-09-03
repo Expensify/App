@@ -4,8 +4,6 @@ description: Learn how to fix common problems with your Expensify Card, includin
 keywords: [Expensify Card, card declined, Smart Limit, inactive card, activation issues, card won’t work, workspace admin, cardholder, Wallet, domain limit]
 ---
 
-<div id="new-expensify" markdown="1">
-
 You can troubleshoot most Expensify Card issues in just a few steps. This guide walks you through the most common problems — like declined transactions, activation issues, or Smart Limit errors — and shows how to get your card working again.
 
 ---
@@ -58,6 +56,8 @@ Then, click on your card. Your **remaining limit** is displayed under the image 
 Every workspace has a shared spend limit that affects all cards. If the workspace runs out of available funds or the bank account becomes [locked](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account), all cards may stop working.
 
 Workspace Admins can check the available limit by going to **Workspaces > [Workspace Name] > Expensify Card**. From there, Workspace Admins can view the current balance, remaining limit, and any warnings related to settlement.
+
+![The Workspace Admin Expensify Card page (Workspaces > [Workspace Name] > Expensify Card) showing remaining limit/balance and the "Settle Balance" button]({{site.url}}/assets/images/Expensify_Card_Settle_Now.png){:width="100%"}
 
 ## Transaction declined by a Spend Rule
 

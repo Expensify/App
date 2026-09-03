@@ -6,6 +6,7 @@ type SignInUserWithLinkParams = {
     twoFactorAuthCode?: string;
     preferredLocale: Locale | null;
     deviceInfo: string;
+    authToken?: string;
 };
 
 export default SignInUserWithLinkParams;
