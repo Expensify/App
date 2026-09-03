@@ -126,7 +126,7 @@ function ConfirmationReceiptThumbnail({
     const receiptContainerStyle = isCompactMode && compactReceiptContainerStyle ? compactReceiptContainerStyle : styles.expenseViewImageSmall;
     const receiptThumbnailStyle = [styles.h100, styles.flex1];
     const isPDF = isLocalFile && Str.isPDF(receiptFilename);
-    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptFilename);
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && !!isPDF;
 
     const navigateToReceipt = () => {
         if (!transactionID) {
@@ -162,6 +162,12 @@ function ConfirmationReceiptThumbnail({
                             onPassword={onPDFPassword}
                             onLoadSuccess={onPDFLoadSuccess}
                         />
+                        {shouldShowReceiptPageCount && (
+                            <Badge
+                                text={translate('receipt.pageCount', {pageCount: receiptPageCount})}
+                                badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
+                            />
+                        )}
                     </PressableWithoutFocus>
                 ) : (
                     <PressableWithoutFocus
@@ -186,12 +192,6 @@ function ConfirmationReceiptThumbnail({
                         />
                     </PressableWithoutFocus>
                 ))}
-            {shouldShowReceiptPageCount && (
-                <Badge
-                    text={translate('receipt.pageCount', {pageCount: receiptPageCount})}
-                    badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
-                />
-            )}
         </View>
     );
 }
