@@ -10,7 +10,7 @@ import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -154,14 +154,14 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             backToRoute = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
             clearApprovalWorkflowApprovers();
         } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-            backToRoute = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
+            backToRoute = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover, approvalWorkflow?.memberEmail);
         } else {
             backToRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
         // Don't compare params: the edit screen may carry "Add agent" seed params, so a strict param
         // match would miss it and REPLACE would mount a fresh edit screen that wipes the unsaved draft.
         Navigation.goBack(backToRoute, {compareParams: false});
-    }, [isInitialCreationFlow, approvalWorkflow?.action, route.params.policyID, rhpRoutes.length, firstApprover]);
+    }, [isInitialCreationFlow, approvalWorkflow?.action, approvalWorkflow?.memberEmail, route.params.policyID, rhpRoutes.length, firstApprover]);
 
     const toggleApprover = useCallback(
         (approvers: SelectionListApprover[]) => {
@@ -173,7 +173,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
                 if (isChangeApproverRoute && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
                     // Don't compare params — see goBack above.
-                    Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover), {compareParams: false});
+                    Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover, approvalWorkflow?.memberEmail), {compareParams: false});
                     return;
                 }
                 goBack();

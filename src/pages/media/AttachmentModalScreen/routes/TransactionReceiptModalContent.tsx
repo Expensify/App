@@ -52,6 +52,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {RotationDegrees} from 'react-fast-pdf';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -77,6 +78,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const policy = usePolicy(report?.policyID);
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
@@ -191,7 +193,16 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport({reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
+        openReport({
+            reportID,
+            introSelected,
+            conciergeChat,
+            betas,
+            hasReportActions,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -472,7 +483,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             prompt: isOdometerImage ? translate('distance.odometer.deleteOdometerPhotoConfirmation') : translate('receipt.deleteConfirmation'),
                             confirmText: translate('common.delete'),
                             cancelText: translate('common.cancel'),
-                            danger: true,
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                         });
 
                         if (result.action !== ModalActions.CONFIRM) {

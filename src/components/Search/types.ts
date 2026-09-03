@@ -448,6 +448,9 @@ type SearchChartProps = {
     /** Function to extract label from grouped item */
     getLabel: (item: GroupedItem) => string;
 
+    /** Function to extract the compact axis label from grouped item. When it returns undefined, `getLabel` is used. */
+    getShortLabel?: (item: GroupedItem) => string | undefined;
+
     /** Function to build filter query from grouped item */
     getFilterQuery: (item: GroupedItem) => string;
 
