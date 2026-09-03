@@ -142,9 +142,6 @@ function logReceiptSubmitted({
  * offline state and queue depth so we can tell a normal offline wait apart from a stuck queue.
  */
 function logReceiptEnqueued({receipt, transactionID, command, persistedQueueLength}: ReceiptEnqueuedParams) {
-    // eslint-disable-next-line no-param-reassign
-    receipt.receiptEnqueuedAt = Date.now();
-
     if (transactionID) {
         // Re-insert so this key becomes the newest, then drop the oldest entries past the cap. This keeps the map
         // bounded even when no snapshot ever runs to drain it.

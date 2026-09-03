@@ -41,6 +41,7 @@ import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 import * as SessionUtils from '@libs/SessionUtils';
 import {getPartnerCredentials, resetDidUserLogInDuringSession} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
+import type {SignOutReason} from '@libs/telemetry/ReceiptObservability';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 import Timers from '@libs/Timers';
 
@@ -366,7 +367,13 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
 ];
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean) {
+function signOutAndRedirectToSignIn(
+    shouldResetToHome?: boolean,
+    shouldStashSession?: boolean,
+    shouldSignOutFromOldDot = true,
+    shouldForceUseStashedSession?: boolean,
+    signOutReason: SignOutReason = CONST.SIGN_OUT_REASON.USER_SIGN_OUT,
+) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
@@ -457,7 +464,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
                 asyncOpenURL(
-                    redirectToSignIn(CONST.SIGN_OUT_REASON.USER_SIGN_OUT).then(() => {
+                    redirectToSignIn(signOutReason).then(() => {
                         Onyx.multiSet(onyxSetParams);
                     }),
                     `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
@@ -512,7 +519,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                     });
                 });
             } else {
-                redirectToSignIn(CONST.SIGN_OUT_REASON.USER_SIGN_OUT).then(() => {
+                redirectToSignIn(signOutReason).then(() => {
                     Onyx.multiSet(onyxSetParams);
 
                     if (hasSwitchedAccountInHybridMode) {

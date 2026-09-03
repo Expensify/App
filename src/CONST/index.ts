@@ -2611,6 +2611,7 @@ const CONST = {
         SUPPORTAL_RESTORE: 'supportalRestore',
         STASHED_SESSION_RESTORE: 'stashedSessionRestore',
         HYBRID_APP_TRANSITION: 'hybridAppTransition',
+        ACCOUNT_DELETED: 'accountDeleted',
     },
     NETWORK: {
         METHOD: {
