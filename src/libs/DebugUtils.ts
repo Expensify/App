@@ -1288,6 +1288,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateObject<ObjectElement<Transaction, 'commuterExclusionPreview'>>(value, {
                 policyID: 'string',
                 hasExclusion: 'boolean',
+                isWholeTripExcluded: 'boolean',
+                commuteDistanceMeters: 'number',
             });
         case 'mccGroup':
             return validateConstantEnum(value, CONST.MCC_GROUPS);

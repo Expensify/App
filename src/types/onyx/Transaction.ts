@@ -230,15 +230,21 @@ type TransactionCustomUnit = {
 };
 
 /**
- * Whether a workspace that excludes commutes by home and office treats a trip as a commute. Matching a trip
- * against the member's home and the workspace address needs geocoding, so only the server can decide it.
+ * How much of a trip a workspace that excludes commutes by home and office takes off it. Matching a trip against
+ * the member's home and the workspace address needs geocoding, so only the server can decide it.
  */
 type CommuterExclusionPreview = {
     /** The workspace the verdict was reached for, so a preview left behind by another workspace is ignored */
     policyID: string;
 
-    /** Whether the trip runs between the member's home and the workspace address, and so is excluded in full */
+    /** Whether the trip starts or ends at the member's home, and so has a commute to take off it */
     hasExclusion: boolean;
+
+    /** Whether the trip runs straight between home and the office, which makes all of it the commute */
+    isWholeTripExcluded: boolean;
+
+    /** The member's usual one-way commute, to take off a trip that only starts or ends at home */
+    commuteDistanceMeters: number;
 };
 
 /** Types of geometry */
