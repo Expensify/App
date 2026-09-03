@@ -95,9 +95,9 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const effectiveParentReport = isUnreported ? selfDMReport : parentReport;
     const effectiveParentReportID = effectiveParentReport?.reportID;
 
-    const [liveParentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [liveParentReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
-    const [liveSelfDMReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(selfDMReportID)}`);
+    const [liveSelfDMReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const parentReportForAction = isUnreported ? (liveSelfDMReport ?? selfDMReport) : (effectiveParentReport ?? liveParentReport);
 
     const linkedReportActionID = linkedReportAction?.reportActionID;
@@ -129,7 +129,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     });
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
-    const [liveTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const [liveTransactionThreadReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reportPolicyID)}`);
