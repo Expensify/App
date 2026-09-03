@@ -61,6 +61,9 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     /** Whether selecting this option should bypass the delete confirmation modal */
     shouldSkipDeleteModal?: boolean;
 
+    /** Whether selecting this option should avoid restoring focus to the dropdown before a follow-up modal opens on iOS */
+    shouldSkipFocusRestore?: boolean;
+
     /** Whether to ignore compact popover menu styling for this item */
     shouldIgnoreCompactStyle?: boolean;
 };
@@ -132,6 +135,13 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
 
     /** Whether the button should use split style or not */
     isSplitButton?: boolean;
+
+    /**
+     * Action for the main split-button press, when the button face represents something no option in the list does —
+     * e.g. paying from an account that is deliberately not offered in the menu. Takes precedence over the selected
+     * option's own handler, which would otherwise act on an unrelated option.
+     */
+    onPrimaryPress?: () => void;
 
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;

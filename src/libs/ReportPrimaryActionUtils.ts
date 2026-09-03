@@ -7,12 +7,13 @@ import type {ValueOf} from 'type-fest';
 
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    canMemberWrite,
+    canAdminPayReport,
     getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
@@ -48,6 +49,7 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isOpenReport as isOpenReportUtils,
+    isPayBlockedByArchivedState,
     isPayer,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
@@ -118,12 +120,13 @@ function isSubmitAction(
     reportMetadata: OnyxEntry<ReportMetadata>,
     ownerLogin: string | undefined,
     policy?: Policy,
-    reportNameValuePairs?: ReportNameValuePairs,
     violations?: OnyxCollection<TransactionViolation[]>,
     currentUserEmail?: string,
     currentUserAccountID?: number,
 ) {
-    if (isArchivedReport(reportNameValuePairs)) {
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -161,6 +164,10 @@ function isSubmitAction(
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
         return false;
     }
@@ -214,19 +221,16 @@ function isPrimaryPayAction({
     isSecondaryAction,
     canNonPayerAdminPay,
 }: IsPrimaryPayActionParams) {
-    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+    const isExpenseReport = isExpenseReportUtils(report);
+
+    if (isPayBlockedByArchivedState(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {
         return false;
     }
-    const isExpenseReport = isExpenseReportUtils(report);
     if (isExpenseReport && !isPaidGroupPolicy(policy)) {
         return false;
     }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
-    const canPayReport =
-        isReportPayer ||
-        (canNonPayerAdminPay &&
-            policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
-            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+    const canPayReport = isReportPayer || (!!canNonPayerAdminPay && canAdminPayReport(policy, currentUserLogin));
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -511,6 +515,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
+            canNonPayerAdminPay: true,
         }) && allExpensesHeld;
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
 
@@ -536,7 +541,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     if (
         isCurrentUserSubmitter(report, currentUserAccountID) &&
-        isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) &&
+        isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, violations, currentUserLogin, currentUserAccountID) &&
         !allExpensesHeld
     ) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
@@ -578,7 +583,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
  * Offered for any draft report the current user submits on a Submit workspace. The "Submit via PDF" flow itself
  * submits the report to the submitter (managerID = submitter), which is what makes the backend generate the PDF, so
  * this does not require the report to already be configured to submit to self. The caller is responsible for
- * additionally gating this on the SUBMIT_2026 beta and on Submit already being the primary action.
+ * additionally gating this on Submit already being the primary action.
  */
 function isSubmitViaPDFAction(report: Report, currentUserAccountID: number, policy?: Policy): boolean {
     return isSubmitPolicy(policy) && isCurrentUserSubmitter(report, currentUserAccountID);

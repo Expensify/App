@@ -13,7 +13,7 @@ import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/acti
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import Navigation from '@navigation/Navigation';
@@ -46,12 +46,19 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
     const travelPayableAccount = creditCards?.find((account) => account.id === qboConfig?.travelInvoicingPayableAccountID);
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
     const shouldShowVendorMenuItems = useMemo(
         () => qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
+        [qboConfig?.nonReimbursableExpensesExportDestination],
+    );
+
+    const shouldShowCreditCardVendorMenuItem = useMemo(
+        () =>
+            qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD ||
+            qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
         [qboConfig?.nonReimbursableExpensesExportDestination],
     );
 
@@ -83,13 +90,13 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
             title: qboConfig?.receivableAccount?.name,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
         },
-        ...(isTravelInvoicingEnabled
+        ...(isTravelBillingEnabled
             ? [
                   {
                       description: translate('workspace.common.travelInvoicing'),
-                      onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
+                      onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION.getRoute(policyID)),
                       title: travelPayableAccount?.name,
-                      subscribedSettings: [CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+                      subscribedSettings: [CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR, CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },
               ]
             : []),
@@ -101,8 +108,9 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
             subscribedSettings: [
                 CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
-                ...(shouldShowVendorMenuItems ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR] : []),
-                ...(shouldShowVendorMenuItems && qboConfig?.autoCreateVendor ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
+                // The Default vendor row is now always visible on the company card page for whichever export destination is active, so subscribe to the matching vendor key unconditionally. `autoCreateVendor` is no longer edited from this flow. It lives on the Advanced page and is subscribed there.
+                ...(shouldShowVendorMenuItems ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
+                ...(shouldShowCreditCardVendorMenuItem ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR] : []),
             ],
         },
         {

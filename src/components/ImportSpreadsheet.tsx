@@ -24,7 +24,7 @@ import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
 import FilePicker from './FilePicker';
@@ -234,8 +234,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
             <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
                     <Button
-                        success
-                        text={translate('common.chooseFile')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.pt9]}
                         isLoading={isReadingFile}
@@ -246,7 +245,9 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                                 },
                             });
                         }}
-                    />
+                    >
+                        <Button.Text>{translate('common.chooseFile')}</Button.Text>
+                    </Button>
                 )}
             </FilePicker>
         </>

@@ -128,7 +128,7 @@ function StatusClearAfterPage() {
     }, []);
 
     const customStatusDate = DateUtils.extractDate(statusDraftCustomClearAfterDate ?? '');
-    const customStatusTime = DateUtils.extractTime12Hour(statusDraftCustomClearAfterDate ?? '');
+    const customStatusTime = DateUtils.getTime12HourWithTranslatedPeriod(translate, statusDraftCustomClearAfterDate ?? '');
 
     const listFooterContent = useMemo(() => {
         if (draftPeriod !== CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
