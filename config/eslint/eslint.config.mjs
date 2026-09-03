@@ -731,6 +731,12 @@ const config = defineConfig([
 
     {
         files: ['modules/ExpensifyNitroUtils/src/**/*'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'modules/ExpensifyNitroUtils/tsconfig.json'),
+                projectService: false,
+            },
+        },
         rules: {
             '@typescript-eslint/consistent-type-definitions': 'off',
         },
@@ -830,7 +836,6 @@ const config = defineConfig([
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
         'modules/ExpensifyNitroUtils/nitrogen/**/*',
-        'modules/ExpensifyNitroUtils/src/**/*',
         'Mobile-Expensify/**/*',
         '**/vendor',
         'modules/group-ib-fp/**/*',
