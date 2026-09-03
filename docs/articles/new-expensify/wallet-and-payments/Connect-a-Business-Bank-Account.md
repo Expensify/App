@@ -1,8 +1,8 @@
 ---
 title: Connect a US Business Bank Account
 description: Learn how to connect and verify a US business bank account in Expensify for reimbursements, Expensify Card payments, and invoice payouts.
-keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH, verification documents, Tax ID Verification, address verification, verification failed, KYB documents]
-internalScope: Audience is Workspace Admins and Payments Admins. Covers connecting a new US business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
+keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH, verification documents, Tax ID Verification, address verification, verification failed, KYB documents, invoice payments, validate your account, security code]
+internalScope: Audience is Workspace Admins and Payments Admins. Covers connecting a new US business bank account from a workspace or Wallet, connecting the account that receives invoice payments, and reusing an existing account for a workspace. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account, or enabling invoicing.
 ---
 
 # Connect a US Business Bank Account
@@ -53,6 +53,27 @@ Purpose: Shows the new Wallet entry point for business bank accounts
 If your business bank account already exists in Expensify, an admin with access can share it with you instead. Learn how to [share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
 
 ![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_01.png){:width="100%"}
+
+---
+
+## How to connect a business bank account for invoice payments
+
+Invoicing must be enabled on the Workspace before the **Invoices** page appears. [Learn how to enable invoicing](/articles/new-expensify/reports-and-expenses/Send-an-Invoice).
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces > [Workspace name]**.
+2. Select **Invoices**.
+3. In the **Bank accounts** section, select **Add bank account**.
+4. If your Expensify account isn't validated yet, a **Validate your account** step appears. Enter the security code sent to your email address, then click **Verify**.
+5. Choose an existing business bank account from the list, or select **Add bank account** to set up a new one.
+6. If you're adding a new account, complete the identity verification, company details, and Beneficial Owner steps described below.
+
+Only business bank accounts that are fully set up and use the same currency as the Workspace appear in the list at step 5. If you have none, Expensify takes you straight into the setup steps for a new account instead.
+
+<!-- SCREENSHOT:
+Suggestion: The Bank accounts section of the Workspace Invoices page, showing the subtitle and the Add bank account row
+Location: After step 3
+Purpose: Confirms members are on the Invoices page rather than Workflows, which is the other place a Workspace bank account is added
+-->
 
 ---
 
@@ -149,6 +170,10 @@ Expensify cannot process direct payments for businesses in the following industr
 - Marijuana-related businesses
 - Firearm-related businesses (manufacturing and selling)
 - NFT (non-fungible token) services
+
+## Why am I asked for a security code when I add a bank account for invoice payments?
+
+Connecting a bank account requires a validated Expensify account. If yours isn't validated yet, a **Validate your account** step appears when you select **Add bank account**. Enter the security code sent to your email address and click **Verify**. Expensify then continues where you left off, so if you already have a business bank account that matches the Workspace currency, you can choose it instead of setting up a new one.
 
 ## What is a Beneficial Owner?
 
