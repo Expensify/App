@@ -7,7 +7,6 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import SearchContentContextProvider from '@components/Search/SearchContentContextProvider';
 import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
@@ -320,87 +319,81 @@ function SearchPageNarrow({
                             />
                         </>
                     )}
-                    {/* The rendered pair is re-provided to the search contexts so held rows keep the snapshot they belong to. */}
-                    <SearchContentContextProvider
-                        queryJSON={contentQueryJSON}
-                        searchResults={contentSearchResults}
-                    >
-                        <View style={[styles.flex1]}>
-                            {useStaticRendering && (
-                                <>
-                                    {isInteractive && (
-                                        <Search
-                                            searchResults={contentSearchResults}
-                                            queryJSON={contentQueryJSON}
-                                            key={contentQueryJSON.hash}
-                                            contentContainerStyle={contentContainerStyle}
-                                            handleSearch={handleSearchAction}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                            onSearchListScroll={scrollHandler}
-                                            onDestinationVisible={endSubmitNavigationSpans}
-                                            onContentReady={onSearchContentReady}
-                                            hasFilterBars={hasFilterBars}
-                                        />
-                                    )}
-                                    {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
-                                    {!!searchOverlayContent && (
-                                        <View
-                                            style={[StyleSheet.absoluteFill, styles.appBG]}
-                                            onLayout={onSearchLayout}
-                                        >
-                                            {searchOverlayContent}
-                                        </View>
-                                    )}
-                                </>
-                            )}
-                            {!useStaticRendering && (
-                                <>
-                                    {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
-                                    <LayoutAnimationConfig skipEntering>
-                                        {/* Keyed on the resolved query, so this only remounts once the new results arrive — the previous ones
+                    <View style={[styles.flex1]}>
+                        {useStaticRendering && (
+                            <>
+                                {isInteractive && (
+                                    <Search
+                                        searchResults={contentSearchResults}
+                                        queryJSON={contentQueryJSON}
+                                        key={contentQueryJSON.hash}
+                                        contentContainerStyle={contentContainerStyle}
+                                        handleSearch={handleSearchAction}
+                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                        onSearchListScroll={scrollHandler}
+                                        onDestinationVisible={endSubmitNavigationSpans}
+                                        onContentReady={onSearchContentReady}
+                                        hasFilterBars={hasFilterBars}
+                                    />
+                                )}
+                                {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
+                                {!!searchOverlayContent && (
+                                    <View
+                                        style={[StyleSheet.absoluteFill, styles.appBG]}
+                                        onLayout={onSearchLayout}
+                                    >
+                                        {searchOverlayContent}
+                                    </View>
+                                )}
+                            </>
+                        )}
+                        {!useStaticRendering && (
+                            <>
+                                {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
+                                <LayoutAnimationConfig skipEntering>
+                                    {/* Keyed on the resolved query, so this only remounts once the new results arrive — the previous ones
                                         stay on screen until then, and the new ones fade in. Absolutely filled so it never shares the
                                         parent's column layout with the layer it replaces. */}
-                                        <Animated.View
-                                            key={contentQueryJSON.hash}
-                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                                            style={StyleSheet.absoluteFill}
-                                        >
-                                            {shouldRenderLoadingSkeleton && (
-                                                <SearchLoadingSkeleton
-                                                    isLoading={shouldShowLoadingSkeleton}
-                                                    containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
-                                                />
-                                            )}
-                                            {!shouldShowLoadingSkeleton && (
-                                                <SearchWithNavigationDeferredMount
-                                                    isReplacingContent={isReplacingPreviousContent}
-                                                    searchResults={contentSearchResults}
-                                                    queryJSON={contentQueryJSON}
-                                                    onSearchListScroll={scrollHandler}
-                                                    contentContainerStyle={contentContainerStyle}
-                                                    handleSearch={handleSearchAction}
-                                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                    onDestinationVisible={endSubmitNavigationSpans}
-                                                    onContentReady={onSearchContentReady}
-                                                    hasFilterBars={hasFilterBars}
-                                                />
-                                            )}
-                                        </Animated.View>
-                                    </LayoutAnimationConfig>
-                                    {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
-                                    {!!searchOverlayContent && (
-                                        <View
-                                            style={[StyleSheet.absoluteFill, styles.appBG]}
-                                            onLayout={onSearchLayout}
-                                        >
-                                            {searchOverlayContent}
-                                        </View>
-                                    )}
-                                </>
-                            )}
-                        </View>
-                        <SearchSelectionFooter searchResults={contentSearchResults} />
-                    </SearchContentContextProvider>
+                                    <Animated.View
+                                        key={contentQueryJSON.hash}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        style={StyleSheet.absoluteFill}
+                                    >
+                                        {shouldRenderLoadingSkeleton && (
+                                            <SearchLoadingSkeleton
+                                                isLoading={shouldShowLoadingSkeleton}
+                                                containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
+                                            />
+                                        )}
+                                        {!shouldShowLoadingSkeleton && (
+                                            <SearchWithNavigationDeferredMount
+                                                isReplacingContent={isReplacingPreviousContent}
+                                                searchResults={contentSearchResults}
+                                                queryJSON={contentQueryJSON}
+                                                onSearchListScroll={scrollHandler}
+                                                contentContainerStyle={contentContainerStyle}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                                hasFilterBars={hasFilterBars}
+                                            />
+                                        )}
+                                    </Animated.View>
+                                </LayoutAnimationConfig>
+                                {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
+                                {!!searchOverlayContent && (
+                                    <View
+                                        style={[StyleSheet.absoluteFill, styles.appBG]}
+                                        onLayout={onSearchLayout}
+                                    >
+                                        {searchOverlayContent}
+                                    </View>
+                                )}
+                            </>
+                        )}
+                    </View>
+                    <SearchSelectionFooter searchResults={contentSearchResults} />
                 </View>
             </ScreenWrapper>
             {(!useStaticRendering || isHeaderInteractive) && (

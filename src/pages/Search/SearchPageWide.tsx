@@ -3,7 +3,6 @@ import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchS
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import SearchContentContextProvider from '@components/Search/SearchContentContextProvider';
 import {useSearchQueryContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
@@ -137,42 +136,36 @@ function SearchPageWide({
                                 searchResults={searchResults}
                                 onSort={onSortPressedCallback}
                             />
-                            {/* The rendered pair is re-provided to the search contexts so held rows keep the snapshot they belong to. */}
-                            <SearchContentContextProvider
-                                queryJSON={contentQueryJSON}
-                                searchResults={contentSearchResults}
-                            >
-                                <View style={styles.flex1}>
-                                    {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
-                                    <LayoutAnimationConfig skipEntering>
-                                        {/* Keyed on the resolved query, so this only remounts once the new results arrive — the previous ones
+                            <View style={styles.flex1}>
+                                {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
+                                <LayoutAnimationConfig skipEntering>
+                                    {/* Keyed on the resolved query, so this only remounts once the new results arrive — the previous ones
                                         stay on screen until then, and the new ones fade in. Absolutely filled so it never shares the
                                         parent's column layout with the layer it replaces. */}
-                                        <Animated.View
-                                            key={contentQueryJSON.hash}
-                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                                            style={StyleSheet.absoluteFill}
-                                        >
-                                            {shouldRenderLoadingSkeleton && <SearchLoadingSkeleton isLoading={shouldShowLoadingSkeleton} />}
-                                            {!shouldShowLoadingSkeleton && (
-                                                <SearchWithNavigationDeferredMount
-                                                    isReplacingContent={isReplacingPreviousContent}
-                                                    queryJSON={contentQueryJSON}
-                                                    searchResults={contentSearchResults}
-                                                    handleSearch={handleSearchAction}
-                                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                    onSearchListScroll={scrollHandler}
-                                                    onSortPressedCallback={onSortPressedCallback}
-                                                    onDestinationVisible={endSubmitNavigationSpans}
-                                                    onContentReady={onSearchContentReady}
-                                                />
-                                            )}
-                                        </Animated.View>
-                                    </LayoutAnimationConfig>
-                                    {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
-                                </View>
-                                <SearchSelectionFooter searchResults={contentSearchResults} />
-                            </SearchContentContextProvider>
+                                    <Animated.View
+                                        key={contentQueryJSON.hash}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        style={StyleSheet.absoluteFill}
+                                    >
+                                        {shouldRenderLoadingSkeleton && <SearchLoadingSkeleton isLoading={shouldShowLoadingSkeleton} />}
+                                        {!shouldShowLoadingSkeleton && (
+                                            <SearchWithNavigationDeferredMount
+                                                isReplacingContent={isReplacingPreviousContent}
+                                                queryJSON={contentQueryJSON}
+                                                searchResults={contentSearchResults}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onSearchListScroll={scrollHandler}
+                                                onSortPressedCallback={onSortPressedCallback}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                            />
+                                        )}
+                                    </Animated.View>
+                                </LayoutAnimationConfig>
+                                {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
+                            </View>
+                            <SearchSelectionFooter searchResults={contentSearchResults} />
                         </>
                     )}
                 </FullPageNotFoundView>
