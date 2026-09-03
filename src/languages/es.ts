@@ -12,6 +12,8 @@
 import CONST from '@src/CONST';
 import type {OriginalMessageReportPreview, OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
+import type {ValueOf} from 'type-fest';
+
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
@@ -1085,6 +1087,8 @@ const translations: TranslationDeepObject<typeof en> = {
             setupRules: 'Configurar reglas de gasto',
             customizeSpendCategories: 'Personaliza las categorías de gasto',
             customizeSpendCategoriesSubText: 'Organiza y clasifica gastos',
+            customizeExpenseCategories: 'Personaliza tus categorías de gastos',
+            customizeExpenseCategoriesSubText: 'Añade las categorías de tu empresa para codificar tus gastos',
             createExpense: 'Crear un gasto',
             createExpenseSubText: 'Escanea, arrastra y suelta o introduce manualmente un gasto usando el botón +',
             linkPersonalCard: 'Vincular tarjeta personal',
@@ -1269,6 +1273,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addAdditionalReceipt: 'Añadir recibo adicional',
         scanFailed: 'El recibo no pudo ser escaneado, ya que falta el comerciante, la fecha o el importe.',
         crop: 'Recortar',
+        pageCount: ({pageCount}: {pageCount: number}) => `Página 1 de ${pageCount}`,
         addAReceipt: {
             phrase1: 'Añade un recibo',
             phrase2: 'o arrastra y suelta uno aquí',
@@ -4925,7 +4930,6 @@ ${amount} para ${merchant} - ${date}`,
             account: 'Cuenta',
             accountDescription: 'Elige dónde contabilizar los asientos contables.',
             vendor: 'Proveedor',
-            defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
             accountsPayable: 'Cuentas por Pagar',
             accountsPayableDescription: 'Elige dónde crear las facturas de proveedores.',
             bankAccount: 'Cuenta bancaria',
@@ -5090,8 +5094,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
-            defaultSupplier: 'Proveedor predeterminado',
-            defaultSupplierDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al exportar.',
             noSuppliersFound: 'No se encontraron proveedores',
             noSuppliersFoundDescription: 'Por favor, añade el proveedor en Xero y sincroniza de nuevo la conexión.',
             accountingMethods: {
@@ -6487,6 +6489,7 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando quieras solicitar información adicional.',
             disableReportFields: 'Desactivar campos de informe',
             disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
+            cannotDisableImportedReportFields: 'Los campos de informe importados desde tu conexión de contabilidad no se pueden deshabilitar.',
             importedFromAccountingSoftware: 'Campos de informes importadas desde',
             textType: 'Texto',
             dateType: 'Fecha',
@@ -7093,11 +7096,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
-                    ? `Los gastos que no se asignen automáticamente se asociarán por defecto a este proveedor.`
-                    : `Los gastos que no se concilien automáticamente se asignarán a este proveedor de forma predeterminada. En caso contrario, se exportarán como Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Elige un proveedor predeterminado de ${connectionName} para los gastos que no se asignen automáticamente.`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
+                    ? `Los gastos que no se concilien automáticamente se asignarán por defecto a este proveedor.`
+                    : `Los gastos que no se concilien automáticamente se asignarán a este proveedor de forma predeterminada. En caso contrario, se exportarán como ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Elige un proveedor predeterminado para los gastos que no se asignen automáticamente.`,
             defaultAccount: 'Cuenta predeterminada',
             autoSync: 'Autosincronización',
             autoSyncDescription: 'Sincroniza NetSuite y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
@@ -7118,6 +7121,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     `Asegúrate de que esta cuenta coincida con tu cuenta de liquidación de Facturación Consolidada de Viajes (terminada en ${lastFourPAN}) para que la Reconciliación Continua funcione correctamente.`,
             },
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquearlo, configura una cuenta para tus exportaciones.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, habilita la sincronización automática.',
         },
         card: {
             issueCard: 'Emitir tarjeta',
@@ -10338,44 +10343,56 @@ ${reportName}`,
         },
         customRules: (message) => message,
         reviewRequired: 'Revisión requerida',
-        rter: (brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash) => {
+        rter: (
+            brokenBankConnection: boolean,
+            isAdmin: boolean,
+            isTransactionOlderThan7Days: boolean,
+            member?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
+            companyCardPageURL?: string,
+            connectionLink?: string,
+            isPersonalCard?: boolean,
+            isMarkAsCash?: boolean,
+        ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
+                return 'No se puede vincular automáticamente el recibo debido a una conexión bancaria interrumpida.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'No se puede conciliar automáticamente el recibo debido a un problema bancario temporal. Por favor, inténtalo de nuevo más tarde.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'No se puede emparejar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse.';
+                        return 'No se puede hacer la conciliación automática del recibo porque tu conexión bancaria necesita volver a autenticarse.';
                     }
                     return isMarkAsCash
-                        ? `No se puede emparejar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse. Márcalo como efectivo para ignorarlo o <a href="${connectionLink}">vuelve a conectarte</a> para asociar el recibo.`
-                        : `No se puede emparejar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse. <a href="${connectionLink}">Vuelve a conectarte</a> para asociar el recibo.`;
+                        ? `No se puede conciliar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse. Márcalo como en efectivo para ignorarlo o <a href="${connectionLink}">vuelve a conectar</a> para conciliar el recibo.`
+                        : `No se puede conciliar automáticamente el recibo porque tu conexión bancaria necesita volver a autenticarse. <a href="${connectionLink}">Vuelve a conectar</a> para conciliar el recibo.`;
                 }
                 return isAdmin
-                    ? `La conexión bancaria necesita volver a autenticarse. <a href="${companyCardPageURL}">Vuelve a conectarte para emparejar el recibo</a>`
-                    : 'La conexión bancaria necesita volver a autenticarse. Pide a un administrador que la vuelva a conectar para emparejar el recibo.';
+                    ? `La conexión bancaria necesita volver a autenticar. <a href="${companyCardPageURL}">Vuelve a conectar para hacer coincidir el recibo</a>`
+                    : 'La conexión bancaria necesita volver a autenticarse. Pide a una persona administradora que la vuelva a conectar para que coincida con el recibo.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
+                    return 'No se puede vincular automáticamente el recibo debido a una conexión bancaria interrumpida.';
                 }
                 return isMarkAsCash
-                    ? `No se puede vincular automáticamente el recibo debido a un problema de conexión de la tarjeta. Márcalo como efectivo para ignorarlo o <a href="${connectionLink}">soluciona la conexión de la tarjeta</a> para asociar el recibo.`
-                    : `No se puede vincular automáticamente el recibo debido a un problema de conexión de la tarjeta. <a href="${connectionLink}">Soluciona la conexión de la tarjeta</a> para asociar el recibo.`;
+                    ? `No se puede conciliar automáticamente el recibo debido a una conexión de tarjeta rota. Márcalo como efectivo para ignorarlo o <a href="${connectionLink}">repara la tarjeta</a> para conciliar el recibo.`
+                    : `No se puede asociar automáticamente el recibo debido a una conexión de tarjeta rota. <a href="${connectionLink}">Repara la tarjeta</a> para asociar el recibo.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Conexión bancaria interrumpida. <a href="${companyCardPageURL}">Vuelve a conectarte para emparejar el recibo</a>`
-                    : 'Conexión bancaria interrumpida. Pide a un administrador que la vuelva a conectar para emparejar el recibo.';
+                    ? `Conexión bancaria interrumpida. <a href="${companyCardPageURL}">Vuelve a conectar para hacer coincidir el recibo</a>`
+                    : 'Conexión bancaria interrumpida. Pide a un administrador que la vuelva a conectar para que coincida con el recibo.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin
-                    ? `Pide a ${member} que marque la transacción como efectivo o espera 7 días e inténtalo de nuevo`
-                    : 'Esperando a adjuntar automáticamente la transacción de tarjeta de crédito';
+                return isAdmin ? `Pídele a ${member} que lo marque como efectivo o espera 7 días e inténtalo de nuevo` : 'En espera de combinarse con la transacción de tarjeta.';
             }
             return '';
         },
         brokenConnection530Error: 'Recibo pendiente debido a una conexión bancaria rota',
+        brokenConnection531Error: 'No se puede conciliar automáticamente el recibo debido a un problema bancario temporal. Por favor, inténtalo de nuevo más tarde.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}) =>
             `<muted-text-label>Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en <a href="${workspaceCompanyCardRoute}">Tarjetas de empresa</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',

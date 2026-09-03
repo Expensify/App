@@ -1054,6 +1054,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: '邀请你的会计',
             customizeSpendCategories: '自定义支出类别',
             customizeSpendCategoriesSubText: '整理并分类支出',
+            customizeExpenseCategories: '自定义您的支出类别',
+            customizeExpenseCategoriesSubText: '添加贵公司的类别以对支出进行编码',
             createExpense: '创建报销费用',
             createExpenseSubText: '使用 + 按钮扫描、拖放或手动输入支出',
             linkPersonalCard: '关联个人银行卡',
@@ -1220,6 +1222,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '添加收据',
             phrase2: '或将文件拖放到此处',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `第 1 页，共 ${pageCount} 页`,
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -4791,7 +4794,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `在将发票导出到 ${integrationName} 时使用此账户。`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `设置公司卡消费如何导出到 ${integrationName}。`,
             vendor: '供应商',
-            defaultVendorDescription: '设置一个默认供应商，在导出时应用于所有信用卡交易。',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `设置自付费用导出到 ${integrationName} 的方式。`,
             exportCheckDescription: '我们会为每份 Expensify 报告创建一张分项支票，并从下方的银行账户寄出。',
             exportJournalEntryDescription: '我们将为每份 Expensify 报告创建分录明细的日记账分录，并将其过账到下方的账户。',
@@ -4945,8 +4947,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在 Xero 中添加该账户，然后再次同步连接',
-            defaultSupplier: '默认供应商',
-            defaultSupplierDescription: '设置一个默认供应商，在导出时应用于所有信用卡交易。',
             noSuppliersFound: '未找到供应商',
             noSuppliersFoundDescription: '请在 Xero 中添加该供应商，然后再次同步连接。',
             accountingMethods: {
@@ -6326,6 +6326,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subtitle: '报表字段适用于所有支出，当你想提示填写额外信息时会很有帮助。',
             disableReportFields: '禁用报表字段',
             disableReportFieldsConfirmation: '确定要这样做吗？文本和日期字段将被删除，列表将被禁用。',
+            cannotDisableImportedReportFields: '从您的会计连接导入的报表字段无法被禁用。',
             importedFromAccountingSoftware: '以下报表字段是从你的',
             textType: '文本',
             dateType: '日期',
@@ -6975,8 +6976,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             exportCompanyCard: '导出公司卡费用为',
             exportDate: '导出日期',
             defaultVendor: '默认供应商',
-            defaultVendorHelperText: (isSet: boolean) => (isSet ? `未自动匹配的报销将默认归属到此供应商。` : `未自动匹配的报销将默认为此供应商，否则将以“信用卡杂项”导出。`),
-            defaultVendorSelectHeader: (connectionName: string) => `为未能自动匹配的报销选择一个默认的 ${connectionName} 供应商。`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName ? `未自动匹配的报销将默认归属为此供应商。` : `未自动匹配的报销将默认归属于此供应商。否则，它们将按“${fallbackVendorName}.”导出。`,
+            defaultVendorSelectHeader: `为未自动匹配的费用选择一个默认供应商。`,
             defaultAccount: '默认账户',
             autoSync: '自动同步',
             autoSyncDescription: '每天自动同步 NetSuite 和 Expensify。实时导出已完成报表',
@@ -6995,6 +6997,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的合并差旅账单结算账户（以 ${lastFourPAN} 结尾）一致，以便连续对账功能正常运行。`,
             },
             syncTravelInvoicingSettlements: '同步合并差旅结算',
+            syncTravelInvoicingSettlementsNoAccountTooltip: '要解锁，请为导出设置一个账户。',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -9689,7 +9693,7 @@ ${reportName}`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
@@ -9698,34 +9702,38 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '由于银行连接中断，无法自动匹配收据。';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return '由于临时的银行问题，无法自动匹配收据。请稍后重试。';
+            }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return '由于您的银行连接需要重新验证，无法自动匹配收据。';
+                        return '无法自动匹配收据，因为您的银行连接需要重新验证。';
                     }
                     return isMarkAsCash
-                        ? `由于您的银行连接需要重新验证，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>以匹配收据。`
-                        : `由于您的银行连接需要重新验证，无法自动匹配收据。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
+                        ? `无法自动匹配收据，因为你的银行连接需要重新验证。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>来匹配收据。`
+                        : `无法自动匹配收据，因为您的银行连接需要重新验证。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
                 }
-                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请让管理员重新连接以匹配收据。';
+                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请联系管理员重新连接以匹配收据。';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '由于银行连接中断，无法自动匹配收据。';
                 }
                 return isMarkAsCash
-                    ? `由于银行卡连接异常，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">修复银行卡</a>以匹配收据。`
-                    : `由于银行卡连接异常，无法自动匹配收据。请<a href="${connectionLink}">修复银行卡</a>以匹配该收据。`;
+                    ? `由于卡片连接异常，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">修复卡片</a>以匹配收据。`
+                    : `由于卡片连接中断，无法自动匹配收据。请<a href="${connectionLink}">修复此卡</a>以匹配收据。`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin ? `银行连接已断开。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接已断开。请让管理员重新连接以匹配收据。';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `请让 ${member} 将其标记为现金，或等待 7 天后再试` : '正在等待与信用卡交易合并。';
+                return isAdmin ? `请让 ${member} 将其标记为现金，或等待 7 天后重试` : '正在等待与卡片交易合并。';
             }
             return '';
         },
         brokenConnection530Error: '由于银行连接中断，收据待处理',
+        brokenConnection531Error: '由于临时的银行问题，无法自动匹配收据。请稍后重试。',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>由于银行连接中断，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据处于待处理状态。请联系工作区管理员解决。',
