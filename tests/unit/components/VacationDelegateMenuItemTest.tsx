@@ -9,7 +9,9 @@ import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
+import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
 
@@ -49,13 +51,6 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 jest.mock('@hooks/useVacationDelegatePersonalDetails', () => jest.fn(() => undefined));
 
-jest.mock('@components/OfflineWithFeedback', () => {
-    function MockOfflineWithFeedback({children}: {children: React.ReactNode}) {
-        return children;
-    }
-    return MockOfflineWithFeedback;
-});
-
 // Capture the props passed to the MenuItemAvater so the test can assert against `avatarID` directly
 // (rather than re-encoding through `toJSON()`).
 const capturedAvatarProps: Array<Record<string, unknown>> = [];
@@ -86,10 +81,11 @@ describe('VacationDelegateMenuItem', () => {
         mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
     });
 
-    function renderMenuItem(delegate?: string) {
+    function renderMenuItem(delegate?: string, pendingAction?: PendingAction) {
         render(
             <VacationDelegateMenuItem
                 vacationDelegate={delegate ? {delegate} : undefined}
+                pendingAction={pendingAction}
                 onCloseError={jest.fn()}
                 onPress={jest.fn()}
             />,
@@ -211,5 +207,13 @@ describe('VacationDelegateMenuItem', () => {
 
         expect(screen.getByText('common.vacationDelegate')).toBeTruthy();
         expect(capturedAvatarProps).toHaveLength(0);
+    });
+
+    // OfflineWithFeedback hides a row that is pending deletion, which blanked the whole field for the length of the
+    // request. Removing the delegate empties this field, it does not remove the row, so the empty state has to show at once.
+    it('shows the empty state immediately while the delegate removal is in flight', () => {
+        renderMenuItem(undefined, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        expect(screen.getByText('common.vacationDelegate')).toBeTruthy();
     });
 });

@@ -58,6 +58,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
             errorRowStyles={styles.mh5}
             onClose={onCloseError}
             style={hasVacationDelegate && styles.mt4}
+            shouldHideOnDelete={false}
         >
             {hasVacationDelegate ? (
                 <MenuItemWithLabel
