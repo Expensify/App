@@ -728,6 +728,10 @@ describe('DateUtils', () => {
         it('should clamp to 0 once the window has elapsed', () => {
             expect(DateUtils.getRemainingSecondsInWindow(Date.now() - 31 * 1000, windowMs)).toBe(0);
         });
+
+        it('should clamp to the full window when the timestamp is in the future', () => {
+            expect(DateUtils.getRemainingSecondsInWindow(Date.now() + 10 * 1000, windowMs)).toBe(30);
+        });
     });
 
     describe('getTimeOfDayGreetingKey', () => {

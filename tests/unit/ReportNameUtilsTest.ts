@@ -919,6 +919,36 @@ describe('ReportNameUtils', () => {
             expect(employeePaysName).toBe('updated the currency conversion fee setting to "Employee pays"');
         });
 
+        test('UPDATE_CUSTOM_UNIT_RATE parent action', () => {
+            const thread: Report = createWorkspaceThread(153);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const parentAction: ReportAction = {
+                ...createRandomReportAction(153),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                reportActionID: actionId,
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.5,
+                    newValue: 0.7,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction}},
+                currentUserAccountID,
+            );
+            expect(name).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "70%" (previously "50%")');
+        });
+
         test('UPDATE_AUTO_HARVESTING parent action', () => {
             const thread: Report = createWorkspaceThread(151);
             const enabledParentAction: ReportAction = {
