@@ -6,7 +6,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
+import {getSpan} from '@libs/telemetry/activeSpans';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -20,17 +22,30 @@ import {findFocusedRoute, useNavigation, useNavigationState} from '@react-naviga
 import React, {lazy, Suspense, useEffect} from 'react';
 import {View} from 'react-native';
 
-// Do not lazy load the Search and Reports navigators for performance reasons
-import ReportsSplitNavigator from './ReportsSplitNavigator';
+// Do not lazy load Search navigator for performance reasons
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import TabNavigatorBar from './TabNavigatorBar';
 
 const LazyHomePage = lazy(() => import('@pages/home/HomePage'));
+const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
 const LazySettingsSplitNavigator = lazy(() => import('./SettingsSplitNavigator'));
 const LazyWorkspaceNavigator = lazy(() => import('./WorkspaceNavigator'));
 
-function LazyFallback() {
+type LazyFallbackProps = {
+    /** Sentry span to tag when this fallback renders. */
+    tabSpanName?: string;
+};
+
+function LazyFallback({tabSpanName}: LazyFallbackProps) {
     const styles = useThemeStyles();
+
+    // Lets Sentry split slow tab navigations into "lazy chunk fetch" vs "screen render" buckets.
+    useEffect(() => {
+        if (!tabSpanName) {
+            return;
+        }
+        getSpan(tabSpanName)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN, true);
+    }, [tabSpanName]);
 
     return (
         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
@@ -39,10 +54,10 @@ function LazyFallback() {
     );
 }
 
-function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.LazyExoticComponent<React.ComponentType<P>>) {
+function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.LazyExoticComponent<React.ComponentType<P>>, tabSpanName?: string) {
     function SuspenseWrapper(props: P) {
         return (
-            <Suspense fallback={<LazyFallback />}>
+            <Suspense fallback={<LazyFallback tabSpanName={tabSpanName} />}>
                 <LazyComponent {...props} />
             </Suspense>
         );
@@ -51,6 +66,7 @@ function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.La
 }
 
 const HomePageScreen = withSuspense(LazyHomePage);
+const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
 
@@ -92,12 +108,6 @@ function TabNavigator() {
         tabBarPosition: shouldUseNarrowLayout ? ('bottom' as const) : ('left' as const),
     };
 
-    // On the wide layout opening Inbox co-mounts the sidebar and the report pane, which makes it the most
-    // expensive tab navigation in the app. Rendering the navigator up front moves that mount off the tab press.
-    // `lazy` is read per descriptor in BottomTabView, so overriding it on this one screen is supported despite
-    // what the bottom-tabs docs say about mixing the two modes.
-    const reportsScreenOptions = {lazy: shouldUseNarrowLayout};
-
     return (
         <Tab.Navigator
             backBehavior="fullHistory"
@@ -111,8 +121,7 @@ function TabNavigator() {
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigator}
-                options={reportsScreenOptions}
+                component={ReportsSplitNavigatorScreen}
             />
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
