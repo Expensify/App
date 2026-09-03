@@ -2,10 +2,10 @@ import RenderHTML from '@components/RenderHTML';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
-import useSidePanelActions from '@hooks/useSidePanelActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -33,7 +33,7 @@ function WorkspaceRecruitingPage({
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const policy = usePolicy(policyID);
     const policyEmployeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
-    const {openSidePanel} = useSidePanelActions();
+    const {openConciergeAnywhere} = useOpenConciergeAnywhere();
     const {isBetaEnabled} = usePermissions();
 
     const cards = getRecruitingCards({policy, policyEmployeePersonalDetails, policyID, icons, translate, formatPhoneNumber});
@@ -48,7 +48,7 @@ function WorkspaceRecruitingPage({
                 <View style={[styles.mt3, styles.renderHTML]}>
                     <RenderHTML
                         html={translate('workspace.recruiting.dontSeeYourATS')}
-                        onLinkPress={() => openSidePanel()}
+                        onLinkPress={() => openConciergeAnywhere()}
                     />
                 </View>
             }
