@@ -18,8 +18,9 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 
-import {DomUtils, parseDocument} from 'htmlparser2';
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {DomUtils, parseDocument} from 'htmlparser2';
 
 type HomeAddressRequiredContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED>;
