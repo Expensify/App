@@ -76,8 +76,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
 
     // Set when the deterministic rule types cannot express the prompt, which an agent rule still can.
     const [canOfferAgentRule, setCanOfferAgentRule] = useState(false);
-    const [generatedRule] = useOnyx(ONYXKEYS.NVP_GENERATED_RULE);
-    const [isBuildingRule] = useOnyx(ONYXKEYS.IS_LOADING_GENERATED_RULE);
+    const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
 
@@ -275,7 +274,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         onSubmit={describeRule}
                         onBuildManually={() => setShouldShowRuleTypes(true)}
                         onCreateAgentRule={isCustomAgentBetaEnabled && canOfferAgentRule && submittedPrompt ? () => createAgentRuleFromPrompt(submittedPrompt) : undefined}
-                        isLoading={!!isBuildingRule}
+                        isLoading={!!generationID}
                     />
                 ) : (
                     <ScrollView

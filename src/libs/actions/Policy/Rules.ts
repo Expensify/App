@@ -429,31 +429,17 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
 function generateRule(policyID: string, prompt: string): string {
     const generationID = NumberUtils.rand64();
 
-    const optimisticData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_GENERATED_RULE,
-            value: true,
-        },
-    ];
-
     const failureData: AnyOnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_GENERATED_RULE,
-            value: false,
-        },
-        {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_GENERATED_RULE,
+            key: ONYXKEYS.GENERATED_RULE,
             value: {generationID, state: CONST.GENERATED_RULE.STATE.FAILED},
         },
     ];
 
     const parameters: GenerateRuleParams = {policyID, generationID, prompt};
 
-    // Queueing the job is not the same as having the rule, so nothing here clears the loading flag.
-    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {failureData});
 
     return generationID;
 }
@@ -472,7 +458,7 @@ function clearNewRulePromptError() {
 }
 
 function clearGeneratedRule() {
-    Onyx.set(ONYXKEYS.NVP_GENERATED_RULE, null);
+    Onyx.set(ONYXKEYS.GENERATED_RULE, null);
 }
 
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
