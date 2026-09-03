@@ -156,7 +156,7 @@ function parseIOSInstalledAppURL(response: unknown, appID: string): string {
     return app.url.endsWith('/') ? app.url : `${app.url}/`;
 }
 
-function parseIosRunningAppProcessIdentifier(response: unknown, appURL: string): number | undefined {
+function parseIOSRunningAppProcessIdentifier(response: unknown, appURL: string): number | undefined {
     if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.runningProcesses)) {
         throw new Error('CoreDevice returned an unexpected process-list response.');
     }
@@ -341,7 +341,7 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
                 '--quiet',
             ]);
             const processesResponse: unknown = JSON.parse(readFileSync(processesJSONPath, 'utf8'));
-            return parseIosRunningAppProcessIdentifier(processesResponse, appURL);
+            return parseIOSRunningAppProcessIdentifier(processesResponse, appURL);
         } finally {
             rmSync(temporaryDirectory, {recursive: true, force: true});
         }
@@ -446,7 +446,7 @@ export {
     parseIOSInstalledAppURL,
     parseBenchmarkLogEvents,
     parseIOSLaunchProcessIdentifier,
-    parseIosRunningAppProcessIdentifier,
+    parseIOSRunningAppProcessIdentifier,
     latestBenchmarkEvents,
     parseAndroidProcessIdentifier,
 };
