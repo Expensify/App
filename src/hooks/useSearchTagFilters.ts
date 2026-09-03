@@ -102,8 +102,8 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         setSearchTagFiltersPagination(false, '', query);
 
         // A new search cancels any in-flight request, so it owns the loading state from here on.
-        // With cached data the fetch runs silently in the background.
-        setIsLoading(!currentHasCachedData);
+        // The collection is cleared by openSearchTagFiltersPage, so there is no cached data to show silently.
+        setIsLoading(true);
 
         openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, true)
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
