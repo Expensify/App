@@ -7,7 +7,7 @@
 
 import type {TupleToUnion} from 'type-fest';
 
-import {env} from 'bun';
+import {$} from 'bun';
 import CLI from 'expensify-common/CLI';
 
 import type {AndroidApplicationIDs} from './lib/bootstrapForDevice/android';
@@ -55,7 +55,7 @@ async function main(rootDirectory: string): Promise<void> {
                 required: false,
             },
             'github-username': {
-                description: 'GitHub username used to create the default bundle identifier (defaults to the GH_TOKEN or GITHUB_TOKEN user)',
+                description: 'GitHub username used to create the default bundle identifier (defaults to the active gh CLI user)',
                 required: false,
             },
         },
@@ -78,21 +78,17 @@ async function main(rootDirectory: string): Promise<void> {
     });
 }
 
-/** Resolves the lowercase login associated with the configured GitHub token for use in a unique application identifier. */
+/**
+ * Resolves the lowercase login for the active gh CLI account for use in a unique application identifier.
+ * The CLI prefers GH_TOKEN, then GITHUB_TOKEN, before its stored active account.
+ */
 async function githubUsername(): Promise<string> {
-    const token = [env.GH_TOKEN, env.GITHUB_TOKEN].find((value) => !!value);
-    if (!token) {
-        throw new Error('Could not determine your GitHub username. Set GH_TOKEN or GITHUB_TOKEN, or pass --github-username/--bundle-identifier.');
+    const result = await $`gh api user --jq .login`.quiet().nothrow();
+    const username = result.stdout.toString().trim().toLowerCase();
+    if (result.exitCode !== 0 || !username) {
+        throw new Error('Could not determine your GitHub username. Run gh auth login, or pass --github-username/--bundle-identifier.');
     }
-
-    try {
-        const {default: GithubUtils} = await import('@github/libs/GithubUtils');
-        GithubUtils.initOctokitWithToken(token);
-        const {data: user} = await GithubUtils.octokit.users.getAuthenticated();
-        return user.login.toLowerCase();
-    } catch {
-        throw new Error('Could not determine your GitHub username. Check GH_TOKEN or GITHUB_TOKEN, or pass --github-username/--bundle-identifier.');
-    }
+    return username;
 }
 
 /** Builds the platform-specific application identifier used when no identifier is supplied explicitly. */
