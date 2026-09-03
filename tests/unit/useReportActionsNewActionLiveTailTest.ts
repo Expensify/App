@@ -90,6 +90,8 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
         reportID: '1',
         introSelected: undefined,
         conciergeChat: undefined,
+        isSelfTourViewed: undefined,
+        hasCompletedGuidedSetupFlow: undefined,
         betas: [],
         isOffline: false,
         reportScrollManager,
