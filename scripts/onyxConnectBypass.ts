@@ -8,11 +8,11 @@
  *
  * Blanket `eslint-disable` / `eslint-disable-next-line` with no rule list counts only when it
  * covers a real Onyx.connect() call. Unrelated blanket comments (e.g. around ReportUtils) remain
- * ignored. Call sites are found via the TypeScript AST so comments and grouping parens cannot
- * hide a banned member access from a source scan.
+ * ignored. Call sites are found via the Babel AST so comments and grouping parens cannot hide a
+ * banned member access from a source scan.
  */
 
-import ts from 'typescript';
+import {parse} from '@babel/parser';
 
 /** Rule id of the Onyx.connect() ban, as exposed through eslint-plugin-rulesdir. */
 const BANNED_RULE_ID = 'rulesdir/no-onyx-connect';
@@ -42,22 +42,60 @@ type DirectiveMatch = {
     args: string;
 };
 
-function collectDirectiveMatches(source: string, directive: 'disable' | 'enable'): DirectiveMatch[] {
+type ASTNode = {
+    type: string;
+    start: number;
+    end: number;
+    [key: string]: unknown;
+};
+
+type BabelComment = {
+    type: string;
+    value: string;
+    start: number | null;
+    end: number | null;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+}
+
+const isASTNode = (value: unknown): value is ASTNode => {
+    if (!isRecord(value)) {
+        return false;
+    }
+    return typeof value.type === 'string' && typeof value.start === 'number' && typeof value.end === 'number';
+};
+
+function parseSource(source: string): {root: ASTNode; comments: BabelComment[]} | null {
+    try {
+        const parsed: unknown = parse(source, {sourceType: 'unambiguous', plugins: ['typescript', 'jsx'], errorRecovery: true, attachComment: true});
+        if (!isASTNode(parsed) || !isRecord(parsed)) {
+            return null;
+        }
+        const rawComments = parsed.comments;
+        const comments = Array.isArray(rawComments)
+            ? rawComments.filter((comment): comment is BabelComment => {
+                  return isRecord(comment) && typeof comment.type === 'string' && typeof comment.value === 'string' && typeof comment.start === 'number' && typeof comment.end === 'number';
+              })
+            : [];
+        return {root: parsed, comments};
+    } catch {
+        return null;
+    }
+}
+
+function collectDirectiveMatches(comments: readonly BabelComment[], source: string, directive: 'disable' | 'enable'): DirectiveMatch[] {
     const matches: DirectiveMatch[] = [];
-    const scanner = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.Standard, source);
-    while (scanner.scan() !== ts.SyntaxKind.EndOfFileToken) {
-        const token = scanner.getToken();
-        if (token !== ts.SyntaxKind.SingleLineCommentTrivia && token !== ts.SyntaxKind.MultiLineCommentTrivia) {
+    for (const comment of comments) {
+        if (comment.start === null || comment.end === null) {
             continue;
         }
-        const index = scanner.getTokenStart();
-        const text = scanner.getTokenText();
-        const body = text.startsWith('//') ? text.slice(2) : text.slice(2, -2);
-        const directiveMatch = body.match(new RegExp(`^\\s*eslint-${directive}(?<kind>-next-line|-line)?(?<args>[\\s\\S]*)$`));
+        const directiveMatch = comment.value.match(new RegExp(`^\\s*eslint-${directive}(?<kind>-next-line|-line)?(?<args>[\\s\\S]*)$`));
         if (!directiveMatch) {
             continue;
         }
-        matches.push({index, text, kind: directiveMatch.groups?.kind, args: directiveMatch.groups?.args ?? ''});
+        matches.push({index: comment.start, text: source.slice(comment.start, comment.end), kind: directiveMatch.groups?.kind, args: directiveMatch.groups?.args ?? ''});
     }
     return matches;
 }
@@ -70,27 +108,59 @@ function directiveArgs(match: DirectiveMatch): string {
     return match.args;
 }
 
-function unwrapExpression(node: ts.Expression): ts.Expression {
+const NON_CHILD_KEYS = new Set(['loc', 'start', 'end', 'extra', 'leadingComments', 'trailingComments', 'innerComments', 'comments']);
+const WRAPPER_TYPES = new Set(['ParenthesizedExpression', 'TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSTypeAssertion']);
+
+function* astChildren(node: ASTNode): Generator<ASTNode> {
+    for (const [key, value] of Object.entries(node)) {
+        if (NON_CHILD_KEYS.has(key)) {
+            continue;
+        }
+        for (const child of Array.isArray(value) ? value : [value]) {
+            if (isASTNode(child)) {
+                yield child;
+            }
+        }
+    }
+}
+
+function unwrapExpression(node: ASTNode): ASTNode {
     let current = node;
-    while (ts.isParenthesizedExpression(current) || ts.isAsExpression(current) || ts.isSatisfiesExpression(current) || ts.isNonNullExpression(current)) {
+    while (WRAPPER_TYPES.has(current.type) && isASTNode(current.expression)) {
         current = current.expression;
     }
     return current;
 }
 
-function collectOnyxConnectCallOffsets(source: string, file: string): number[] {
-    const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+function isOnyxConnectCall(node: ASTNode): boolean {
+    if (node.type !== 'CallExpression' || !isASTNode(node.callee)) {
+        return false;
+    }
+    const callee = node.callee;
+    if (callee.type !== 'MemberExpression' || callee.optional === true || callee.computed === true) {
+        return false;
+    }
+    if (!isASTNode(callee.property) || callee.property.type !== 'Identifier' || callee.property.name !== 'connect') {
+        return false;
+    }
+    if (!isASTNode(callee.object)) {
+        return false;
+    }
+    const object = unwrapExpression(callee.object);
+    return object.type === 'Identifier' && object.name === 'Onyx';
+}
+
+function collectOnyxConnectCallOffsets(root: ASTNode): number[] {
     const offsets: number[] = [];
-    const visit = (node: ts.Node) => {
-        if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && !node.expression.questionDotToken && node.expression.name.text === 'connect') {
-            const object = unwrapExpression(node.expression.expression);
-            if (ts.isIdentifier(object) && object.text === 'Onyx') {
-                offsets.push(node.getStart(sourceFile));
-            }
+    const visit = (node: ASTNode) => {
+        if (isOnyxConnectCall(node)) {
+            offsets.push(node.start);
         }
-        ts.forEachChild(node, visit);
+        for (const child of astChildren(node)) {
+            visit(child);
+        }
     };
-    visit(sourceFile);
+    visit(root);
     return offsets;
 }
 
@@ -152,10 +222,14 @@ function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, callO
  * Line numbers are 1-based. Matches both full-line and trailing `eslint-disable-line`.
  */
 function collectDisableDirectivesFromSource(source: string, file: string): SuppressedBan[] {
+    const parsed = parseSource(source);
+    if (!parsed) {
+        return [];
+    }
     const bans: SuppressedBan[] = [];
-    const callOffsets = collectOnyxConnectCallOffsets(source, file);
-    const enableMatches = collectDirectiveMatches(source, 'enable');
-    for (const match of collectDirectiveMatches(source, 'disable')) {
+    const callOffsets = collectOnyxConnectCallOffsets(parsed.root);
+    const enableMatches = collectDirectiveMatches(parsed.comments, source, 'enable');
+    for (const match of collectDirectiveMatches(parsed.comments, source, 'disable')) {
         const args = directiveArgs(match);
         const targetsBan = directiveTargetsBan(args);
         const coversBan = isBlanketDirective(args) && blanketDirectiveCoversCall(source, match, callOffsets, enableMatches);
