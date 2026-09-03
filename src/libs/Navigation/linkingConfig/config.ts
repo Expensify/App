@@ -145,6 +145,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_THEME,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.TROUBLESHOOT_SERVER]: {
+                            path: ROUTES.SETTINGS_TROUBLESHOOT_SERVER,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: {
                             path: ROUTES.SETTINGS_PAYMENT_CURRENCY,
                             exact: true,
@@ -2172,6 +2176,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
                     path: ROUTES.TEST_TOOLS_MODAL.route,
+                    exact: true,
+                },
+                [SCREENS.TEST_TOOLS_MODAL.SERVER]: {
+                    path: ROUTES.TEST_TOOLS_SERVER,
                     exact: true,
                 },
             },

@@ -24,6 +24,7 @@ import type {
 } from '@libs/API/parameters';
 import type LockAccountParams from '@libs/API/parameters/LockAccountParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getActiveServer} from '@libs/ApiUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
@@ -72,7 +73,7 @@ import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {getDeviceInfoWithID} from './Device';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
-import {isAnonymousUser, resendValidateCode as sessionResendValidateCode} from './Session';
+import {isAnonymousUser, resendValidateCode as sessionResendValidateCode, signOutAndRedirectToSignIn} from './Session';
 import redirectToSignIn from './SignInRedirect';
 
 function getExpensifyLoginKey(contactMethod: string) {
@@ -1012,11 +1013,24 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     }
 }
 
-function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
+/**
+ * QA and the other environments hold entirely separate databases — the same email is a different account on
+ * each — so any move into or out of QA has to sign the user out.
+ */
+function setActiveServer(server: ValueOf<typeof CONST.SERVER>) {
+    const previousServer = getActiveServer();
+
     if (CONFIG.IS_HYBRID_APP) {
-        HybridAppModule.shouldUseStaging(shouldUseStagingServer);
+        HybridAppModule.shouldUseStaging(server === CONST.SERVER.STAGING);
     }
-    Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, shouldUseStagingServer);
+
+    if (previousServer !== server && (previousServer === CONST.SERVER.QA || server === CONST.SERVER.QA)) {
+        // Pinned to the server being left: routing resolves the server when the request is sent, by which
+        // time the Onyx.set below has made it the new one.
+        signOutAndRedirectToSignIn(undefined, undefined, undefined, undefined, previousServer);
+    }
+
+    Onyx.set(ONYXKEYS.ACTIVE_SERVER, server);
 }
 
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
@@ -1991,7 +2005,7 @@ export {
     updatePreferredSkinTone,
     setInboxTab,
     updateChatPriorityMode,
-    setShouldUseStagingServer,
+    setActiveServer,
     togglePlatformMute,
     joinScreenShare,
     clearScreenShareRequest,

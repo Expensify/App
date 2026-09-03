@@ -6,7 +6,7 @@ import NetInfo from '@react-native-community/netinfo';
 import {toDate} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 
-import {getCommandURL} from './ApiUtils';
+import {getCommandURL, isQAServerActive} from './ApiUtils';
 import getEnvironment from './Environment/getEnvironment';
 import {onSuccess as onRequestSuccess, onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
@@ -340,7 +340,10 @@ function configureAndSubscribe() {
 
     configuredReachabilityUrl = buildReachabilityUrl();
 
-    if (!CONFIG.IS_USING_LOCAL_WEB) {
+    // QA: the Ping URL sits behind Cloudflare Access and NetInfo issues that request itself, so it cannot
+    // carry the bearer and would read as a permanent outage. NetInfo's `reachabilityHeaders` is not a way
+    // out — that config is static and the access token rotates on Cloudflare's schedule.
+    if (!CONFIG.IS_USING_LOCAL_WEB && !isQAServerActive()) {
         NetInfo.configure({
             reachabilityUrl: configuredReachabilityUrl,
             reachabilityMethod: 'GET',
@@ -392,11 +395,9 @@ function configureAndSubscribe() {
     });
 }
 
-// Subscribe to NetInfo once getEnvironment() resolves so the first ping uses the correct root.
-// queueMicrotask defers configureAndSubscribe past the current tick so ApiUtils' own
-// SHOULD_USE_STAGING_SERVER Onyx callback — which is the source of truth for getApiRoot() — has
-// already updated its cached flag. Without this defer, configureAndSubscribe samples ApiUtils'
-// stale module-level flag and bakes the wrong reachabilityUrl into NetInfo.
+// Subscribe to NetInfo once getEnvironment() resolves so the first ping uses the correct root, and defer
+// configureAndSubscribe so ApiUtils' ACTIVE_SERVER callback — the source of truth for getApiRoot() — has
+// updated its cached value first. Sampling it early bakes the wrong reachabilityUrl into NetInfo.
 getEnvironment().then(() => {
     queueMicrotask(configureAndSubscribe);
 });
@@ -415,12 +416,10 @@ Onyx.connectWithoutView({
     },
 });
 
-// Re-target the reachability ping when the staging-server toggle flips at runtime.
-// queueMicrotask waits for ApiUtils' callback on the same key, which owns the flag behind
-// getApiRoot(). Skip the rebuild when the URL is unchanged: rebuilding tears down NetInfo
-// state and fires extra Pings, and the raw toggle can flip without changing the URL.
+// Rebuilding tears down NetInfo state and fires extra Pings, and the switch
+// can flip without changing the URL.
 Onyx.connectWithoutView({
-    key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    key: ONYXKEYS.ACTIVE_SERVER,
     callback: () => {
         queueMicrotask(() => {
             if (buildReachabilityUrl() === configuredReachabilityUrl) {

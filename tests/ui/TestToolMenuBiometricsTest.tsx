@@ -81,8 +81,10 @@ jest.mock('@libs/actions/MultifactorAuthentication', () => ({
         mockRevokeCredentials(...args),
 }));
 
+const mockProductionServer = CONST.SERVER.PRODUCTION;
 jest.mock('@libs/ApiUtils', () => ({
-    isUsingStagingApi: () => false,
+    isQAServerActive: () => false,
+    getActiveServer: () => mockProductionServer,
     getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
 }));
 
@@ -124,7 +126,7 @@ jest.mock('@userActions/Session', () => ({
 
 jest.mock('@userActions/User', () => ({
     setIsDebugModeEnabled: jest.fn(),
-    setShouldUseStagingServer: jest.fn(),
+    setActiveServer: jest.fn(),
 }));
 
 jest.mock('@src/CONFIG', () => ({
@@ -208,7 +210,7 @@ describe('TestToolMenu biometrics', () => {
     it('renders biometrics title with "Never registered" status', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusNeverRegistered/);
     });
@@ -220,7 +222,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusRegisteredThisDevice/);
     });
@@ -231,7 +233,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_OTHER_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusRegisteredOtherDevice/);
     });
@@ -239,7 +241,7 @@ describe('TestToolMenu biometrics', () => {
     it('renders biometrics title with "Not registered" status', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NOT_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusNotRegistered/);
     });
@@ -247,7 +249,7 @@ describe('TestToolMenu biometrics', () => {
     it('does not show the Revoke button when device is not registered', () => {
         setBiometricStatus({isCurrentDeviceRegistered: false});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         expect(screen.queryByText('multifactorAuthentication.revoke.revoke')).toBeNull();
     });
@@ -259,7 +261,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText('multifactorAuthentication.revoke.revoke');
     });
@@ -271,7 +273,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         const revokeButton = screen.getByText('multifactorAuthentication.revoke.revoke');
         fireEvent.press(revokeButton);
@@ -282,7 +284,7 @@ describe('TestToolMenu biometrics', () => {
     it('always shows the Test button and invokes executeScenario with BIOMETRICS_TEST when pressed', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         const testButton = screen.getByText('multifactorAuthentication.biometricsTest.test');
         fireEvent.press(testButton);
@@ -294,7 +296,7 @@ describe('TestToolMenu biometrics', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
         mockGetActiveRoute.mockReturnValue(ROUTES.TEST_TOOLS_MODAL.route);
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         fireEvent.press(screen.getByText('multifactorAuthentication.biometricsTest.test'));
 
@@ -306,7 +308,7 @@ describe('TestToolMenu biometrics', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
         mockGetActiveRoute.mockReturnValue(ROUTES.SETTINGS_TROUBLESHOOT);
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         fireEvent.press(screen.getByText('multifactorAuthentication.biometricsTest.test'));
 
@@ -318,7 +320,7 @@ describe('TestToolMenu biometrics', () => {
         mockIsAgentAccount = true;
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         expect(screen.queryByText(/troubleshootBiometricsStatus/)).toBeNull();
         expect(screen.queryByText('multifactorAuthentication.biometricsTest.test')).toBeNull();
