@@ -888,9 +888,7 @@
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
-"../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/EnablePayments/Wallet/PersonalInfo/substeps/DateOfBirthStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -966,8 +964,6 @@
 "../../src/pages/Travel/DynamicWorkspaceConfirmationForTravelPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/UnreportedExpenseListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ValidateLoginPage/index.web.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/domain/Groups/PreferredWorkspaceToggle.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/domain/Saml/SamlLoginSectionContent.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"no-restricted-imports"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1032,10 +1028,8 @@
 "../../src/pages/iou/request/step/DynamicIOURequestStepReport.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/DynamicIOURequestStepSubrate.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/DynamicIOURequestStepSubrate.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/DynamicIOURequestStepUpgrade.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/iou/request/step/DynamicIOURequestStepUpgrade.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/DynamicIOURequestStepWaypoint.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepAmount.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -1081,7 +1075,6 @@
 "../../src/pages/settings/Profile/TimezoneInitialPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/TimezoneSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Report/ReportDetailsColumnsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/settings/Rules/ExpenseRulesPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/settings/Security/AddDelegate/ConfirmDelegatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/AddDelegate/ConfirmDelegateValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1

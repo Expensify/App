@@ -2,13 +2,14 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
 import PersonalExpenseRulesTable from '@components/Tables/PersonalExpenseRulesTable';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -50,7 +51,7 @@ function ExpenseRulesPage() {
     const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
 
     const [selectedRules, setSelectedRules] = useState<string[]>([]);
-    const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     useEffect(() => {
         // Clear selection when rule is changed as hash is outdated
@@ -91,13 +92,33 @@ function ExpenseRulesPage() {
         Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash));
     };
 
-    const handleDeleteRules = () => {
-        if (selectedRules.length > 0) {
-            deleteExpenseRules(expenseRules, selectedRules, getKeyForRule);
+    const handleDeleteRules = (rulesToDelete: string[]) => {
+        if (rulesToDelete.length > 0) {
+            deleteExpenseRules(expenseRules, rulesToDelete, getKeyForRule);
         }
-        setDeleteConfirmModalVisible(false);
         turnOffMobileSelectionMode();
         setSelectedRules([]);
+    };
+
+    const askForConfirmationToDelete = () => {
+        const isSingleRule = selectedRules.length === 1;
+        // The selection is captured here because the effect above clears `selectedRules` whenever the Onyx value changes,
+        // and the modal's props are a snapshot taken at show time rather than a live binding.
+        const rulesToDelete = selectedRules;
+
+        showConfirmModal({
+            title: translate(isSingleRule ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
+            prompt: translate(isSingleRule ? 'expenseRulesPage.deleteRule.deleteSinglePrompt' : 'expenseRulesPage.deleteRule.deleteMultiplePrompt'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            handleDeleteRules(rulesToDelete);
+        });
     };
 
     const personalExpenseRules: PersonalExpenseRuleRowData[] = expenseRules
@@ -119,7 +140,7 @@ function ExpenseRulesPage() {
             text: translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
             value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.DELETE,
             shouldSkipFocusRestore: true,
-            onSelected: () => setDeleteConfirmModalVisible(true),
+            onSelected: askForConfirmationToDelete,
         },
     ];
     if (selectedRules.length === 1) {
@@ -210,17 +231,6 @@ function ExpenseRulesPage() {
                     headerComponent={hasRules ? expenseRulesSubtitle : undefined}
                 />
             )}
-
-            <ConfirmModal
-                isVisible={deleteConfirmModalVisible}
-                onConfirm={handleDeleteRules}
-                onCancel={() => setDeleteConfirmModalVisible(false)}
-                title={translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple')}
-                prompt={translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSinglePrompt' : 'expenseRulesPage.deleteRule.deleteMultiplePrompt')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
-            />
         </ScreenWrapper>
     );
 }

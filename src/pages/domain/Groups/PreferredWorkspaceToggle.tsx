@@ -1,7 +1,7 @@
-import ConfirmModal from '@components/ConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 
 import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
 import {createAdminPoliciesSelector, policyNameSelector} from '@selectors/Policy';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type PreferredWorkspaceToggleProps = {
@@ -31,7 +31,7 @@ type PreferredWorkspaceToggleProps = {
 function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspaceToggleProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [isNoWorkspacesModalVisible, setIsNoWorkspacesModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const [group] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: selectGroupByID(groupID),
@@ -73,7 +73,15 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                     shouldPlaceSubtitleBelowSwitch
                     isActive={isEnabled}
                     disabled={!hasAdminPolicies && !isEnabled}
-                    disabledAction={() => setIsNoWorkspacesModalVisible(true)}
+                    disabledAction={() => {
+                        // Informational only — the result is intentionally ignored because confirm and cancel do the same thing.
+                        showConfirmModal({
+                            title: translate('workspace.distanceRates.oopsNotSoFast'),
+                            prompt: translate('domain.groups.noWorkspacesMessage'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
+                    }}
                     onToggle={(enabled) => {
                         if (!group?.name) {
                             return;
@@ -103,15 +111,6 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                     onCloseError={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'enableRestrictedPrimaryPolicyErrors')}
                 />
             </View>
-            <ConfirmModal
-                onConfirm={() => setIsNoWorkspacesModalVisible(false)}
-                onCancel={() => setIsNoWorkspacesModalVisible(false)}
-                isVisible={isNoWorkspacesModalVisible}
-                title={translate('workspace.distanceRates.oopsNotSoFast')}
-                prompt={translate('domain.groups.noWorkspacesMessage')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
             {(hasAdminPolicies || !!preferredPolicyName) && (
                 <OfflineWithFeedback
                     pendingAction={restrictedPrimaryPolicyIDPendingAction}
