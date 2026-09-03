@@ -22,8 +22,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type * as NavigationCore from '@react-navigation/core';
 import type {ViewProps} from 'react-native';
 
+import {useIsFocused} from '@react-navigation/core';
 import React, {useState} from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -138,6 +140,11 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof NavigationCore>('@react-navigation/core'),
+    useIsFocused: jest.fn(() => true),
+}));
+
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
 jest.mock('@hooks/useKeyboardState', () => jest.fn());
@@ -160,6 +167,7 @@ jest.mock('@userActions/Session', () => ({
 
 const mockUsePersonalDetails = jest.mocked(usePersonalDetails);
 const mockUseAskConcierge = jest.mocked(useAskConcierge);
+const mockUseIsFocused = jest.mocked(useIsFocused);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseKeyboardState = jest.mocked(useKeyboardState);
 const mockIsSafari = jest.mocked(isSafari);
@@ -294,6 +302,7 @@ describe('ConciergePromptBox', () => {
         setKeyboardShown(false);
         mockIsSafari.mockReturnValue(false);
         mockIsAnonymousUser.mockReturnValue(false);
+        mockUseIsFocused.mockReturnValue(true);
     });
 
     describe('sending a message', () => {
@@ -424,6 +433,20 @@ describe('ConciergePromptBox', () => {
 
             // When the input is blurred
             fireEvent(getInput(), 'blur');
+
+            // Then the list closes
+            expect(screen.queryByTestId('mention-suggestions')).not.toBeOnTheScreen();
+        });
+
+        it('hides the suggestions when the screen loses focus', () => {
+            // Given a visible suggestion list
+            render(<ConciergePromptBoxWrapper />);
+            typeText('Show me @ale');
+            expect(screen.getByTestId('mention-suggestions')).toBeOnTheScreen();
+
+            // When the screen is navigated away from
+            mockUseIsFocused.mockReturnValue(false);
+            screen.rerender(<ConciergePromptBoxWrapper />);
 
             // Then the list closes
             expect(screen.queryByTestId('mention-suggestions')).not.toBeOnTheScreen();
