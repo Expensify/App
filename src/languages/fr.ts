@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Facturable',
         nonBillable: 'Non refacturable',
         tag: 'Tag',
+        violations: 'Infractions',
         receipt: 'Reçu',
         verified: 'Vérifié',
         replace: 'Remplacer',
@@ -424,6 +425,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Note de frais',
         rateOutOfPolicy: 'Taux hors politique',
         leaveWorkspace: 'Quitter l’espace de travail',
+        leaveWorkspaceTitle: (workspaceName: string) => `Quitter ${workspaceName} ?`,
         leaveWorkspaceConfirmation: 'Si vous quittez cet espace de travail, vous ne pourrez plus lui soumettre de dépenses.',
         leaveWorkspaceConfirmationAuditor: 'Si vous quittez cet espace de travail, vous ne pourrez plus voir ses notes de frais ni ses paramètres.',
         leaveWorkspaceConfirmationAdmin: 'Si vous quittez cet espace de travail, vous ne pourrez plus gérer ses paramètres.',
@@ -472,7 +474,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copier dans le presse-papiers',
         thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
-        actionRequired: 'Action requise',
         duplicate: 'Dupliquer',
         duplicated: 'Dupliqué',
         duplicateExpense: 'Dépense en double',
@@ -2306,6 +2307,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
             showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
+            qaAuth: 'Authentification QA (Cloudflare)',
+            qaAuthRunProbe: 'Lancer le test',
+            qaAuthSession: 'Session d’authentification QA',
+            qaAuthClearSession: 'Effacer la session',
+            qaAuthStatusSuccess: 'Sonde réussie',
+            qaAuthStatusReauthRequired: 'Session expirée — relancez pour vous connecter',
+            qaAuthStatusSignInFailed: 'La connexion n’a pas abouti — relancez pour réessayer',
+            qaAuthStatusError: 'Sonde échouée',
         },
         security: 'Sécurité',
         signOut: 'Se déconnecter',
@@ -3023,7 +3032,6 @@ ${amount} pour ${merchant} - ${date}`,
         cardLastFour: 'Carte se terminant par',
         addFirstPaymentMethod: 'Ajoutez un moyen de paiement pour envoyer et recevoir des paiements directement dans l’application.',
         defaultPaymentMethod: 'Par défaut',
-        bankAccountLastFour: (lastFour: string) => `Compte bancaire • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agents',
@@ -3773,11 +3781,6 @@ ${amount} pour ${merchant} - ${date}`,
         thisBankAccount: 'Ce compte bancaire sera utilisé pour les paiements professionnels dans votre espace de travail',
         accountNumber: 'Numéro de compte',
         routingNumber: 'Numéro de routage',
-        internationalBankAccountDetails: 'Coordonnées bancaires internationales',
-        internationalBankAccountDetailsTitle: 'Quelles sont vos coordonnées bancaires internationales ?',
-        internationalBankAccountDetailsSubtitle: "L'un de vos espaces de travail a besoin de coordonnées bancaires internationales pour traiter les remboursements",
-        iban: 'IBAN',
-        swiftBicCode: 'Code SWIFT/BIC',
         chooseAnAccountBelow: 'Choisissez un compte ci-dessous',
         addBankAccount: 'Ajouter un compte bancaire',
         chooseAnAccount: 'Choisissez un compte',
@@ -3828,8 +3831,6 @@ ${amount} pour ${merchant} - ${date}`,
             restrictedBusiness: 'Veuillez confirmer que l’entreprise ne figure pas sur la liste des entreprises restreintes',
             routingNumber: 'Veuillez saisir un numéro d’acheminement valide',
             accountNumber: 'Veuillez saisir un numéro de compte valide',
-            iban: 'Veuillez saisir un IBAN valide',
-            swiftCode: 'Veuillez saisir un code SWIFT/BIC valide',
             routingAndAccountNumberCannotBeSame: 'Le code de routage et le numéro de compte ne peuvent pas être identiques',
             companyType: 'Veuillez sélectionner un type d’entreprise valide',
             tooManyAttempts:
@@ -4594,6 +4595,10 @@ ${amount} pour ${merchant} - ${date}`,
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
+            hotelBlockCard:
+                'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Voyage n’est pas activé',
@@ -4653,6 +4658,7 @@ ${amount} pour ${merchant} - ${date}`,
             settlementFrequency: 'Fréquence de règlement',
             setAsDefault: 'Définir comme espace de travail par défaut',
             defaultNote: `Les reçus envoyés à ${CONST.EMAIL.RECEIPTS} apparaîtront dans cet espace de travail.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `Supprimer ${workspaceName} ?`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
             deleteOpenExpensifyCardsError: 'Votre entreprise a encore des Cartes Expensify. Veuillez <concierge-link>contacter Concierge</concierge-link> pour les supprimer.',
@@ -5919,9 +5925,34 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 label: 'Compte de carte d’entreprise',
                 description: 'Choisissez où exporter les transactions de carte d’entreprise.',
             },
-            expensifyCardAccount: {
-                label: 'Compte Expensify Card',
-                description: 'Choisissez où exporter les transactions Expensify Card.',
+            exportToMultipleAccounts: 'Configurer l’export vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte de programme de carte',
+                description: 'Remplacer le compte d’espace de travail pour ces programmes de cartes.',
+                descriptionLevel2: 'Remplacer le compte d’espace de travail pour ce programme de carte.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Tous les programmes utilisent le compte par défaut';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programme avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} programmes avec comptes personnalisés`;
+                },
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Toutes les cartes utilisent des comptes de programme';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} carte avec compte personnalisé`;
+                    }
+                    return `${customAccountsCount} cartes avec comptes personnalisés`;
+                },
             },
             autoSyncDescription: 'Synchronisez DualEntry et Expensify automatiquement, tous les jours. Les notes de frais se synchronisent en temps réel.',
             accountingMethods: {
@@ -6074,6 +6105,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     comment: 'Description',
                     category: 'Catégorie',
                     tag: 'Étiquette',
+                    uniqueID: 'ID unique',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Veuillez attribuer une colonne à chacun des attributs : ${missingColumns}.`,
@@ -6176,6 +6208,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             finishSetup: 'Terminer la configuration',
             chooseBankAccount: 'Choisir un compte bancaire',
             chooseExistingBank: 'Choisissez un compte bancaire professionnel existant pour régler le solde de votre Carte Expensify ou ajoutez un nouveau compte bancaire',
+            chooseExistingBankForTravelBilling:
+                'Choisissez un compte bancaire professionnel existant pour payer votre solde de facturation de voyage consolidée, ou ajoutez un nouveau compte bancaire',
             accountEndingIn: 'Compte se terminant par',
             addNewBankAccount: 'Ajouter un nouveau compte bancaire',
             settlementAccount: 'Compte de règlement',
@@ -6562,7 +6596,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Pour désactiver les RH, veuillez d'abord déconnecter ${integration} de cet espace de travail.`},
-            vendors: {title: 'Fournisseurs', subtitle: 'Faites correspondre les dépenses de carte aux fournisseurs importés depuis votre logiciel de comptabilité.'},
+            vendors: {
+                title: 'Fournisseurs',
+                subtitle: 'Faites correspondre les dépenses de carte aux fournisseurs importés depuis votre logiciel de comptabilité.',
+                disabledTitle: 'Pas si vite...',
+                disabledMessage: 'Pour activer ou désactiver cette fonctionnalité, vous devrez modifier vos paramètres d’importation comptable.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -7284,6 +7323,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     `Assurez-vous que ce compte correspond à votre compte de règlement Consolidated Travel Billing (se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`,
             },
             syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyages consolidés',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -7333,6 +7374,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
         distanceRates: {
             oopsNotSoFast: 'Oups ! Pas si vite...',
             workspaceNeeds: 'Un espace de travail doit avoir au moins un taux de distance activé.',
+            requireMapOrGPSDescription: 'La saisie manuelle et par odomètre sera désactivée.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Exclure les trajets domicile-travail nécessite un itinéraire cartographié, la saisie GPS ou cartographique est donc déjà exigée. Cessez d’exclure les trajets domicile-travail pour modifier ce paramètre.',
             commuterExclusions: {
                 title: 'Exclure les trajets domicile-travail',
                 summaryDisabled: 'Pas d’exclusion du trajet domicile-travail',
@@ -8275,6 +8319,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireAboveAmount: 'Exiger un montant supérieur',
                 saveRule: 'Enregistrer la règle',
                 emptyAmountError: 'Saisissez un montant valide avant d’enregistrer',
+                receiptAmountGreaterThanItemizedError: 'Le montant du reçu requis ne peut pas être supérieur au montant du reçu détaillé requis.',
             },
             requireFields: {title: 'Rendre les champs obligatoires pour toutes les dépenses', category: 'Catégorie', tag: 'Tag', save: 'Enregistrer la règle'},
             newRule: {
@@ -8357,6 +8402,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie.',
                 confirmErrorAmount: 'Veuillez saisir un montant.',
                 thenFlagForReview: 'Puis signaler pour examen lorsque :',
+                thenDoTheFollowing: 'Puis procédez comme suit :',
+                flagType: 'Type de signalement',
+                flagTypeWarning: 'Avertissement',
+                flagTypeWarningDescription: 'Le déclarant sera averti, mais pourra toujours soumettre la dépense',
             },
             agentRulesEmptyState: {
                 title: 'Aucune règle d’agent ajoutée',
@@ -8474,13 +8523,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
                 groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
-                syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
             },
             notSync: 'Non synchronisé',
             authenticationError: (providerName: string) => `Connexion à ${providerName} impossible en raison d'une connexion expirée.`,
             reconnect: 'Reconnect',
             reconnectLink: 'Reconnectez-vous.',
             findIntegration: 'Rechercher une intégration',
+        },
+        merge: {
+            syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
@@ -8665,10 +8716,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             return `a ajouté le taux de taxe « ${newValue} (${newTaxPercentage}) » au taux de distance « ${customUnitRateName} »`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `a modifié la part de taxe récupérable sur le taux de distance « ${customUnitRateName} » à « ${newValue} » (auparavant « ${oldValue} »)`;
+            if (oldValue !== undefined) {
+                return `a modifié la part de taxe récupérable sur le taux de distance « ${customUnitRateName} » à « ${newValue}% » (auparavant « ${oldValue}% »)`;
             }
-            return `a ajouté une partie de taxe récupérable de « ${newValue} » au taux de distance « ${customUnitRateName} »`;
+            return `a ajouté une partie de taxe récupérable de « ${newValue}% » au taux de distance « ${customUnitRateName} »`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `a renommé le taux ${customUnitName} de « ${oldValue} » en « ${newValue} »`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -8758,6 +8809,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     return `Règles de ${enabled ? 'activé' : 'Désactivé'}`;
                 case 'tax tracking':
                     return `Suivi fiscal ${enabled ? 'activé' : 'Désactivé'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'activé' : 'désactivé'} l’obligation de saisie GPS ou cartographique pour les taux de distance`;
                 default:
                     return `${enabled ? 'activé' : 'Désactivé'} ${featureName}`;
             }
@@ -9358,6 +9411,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             approved: 'Approuvé',
             firstApprover: 'Premier approbateur',
             firstApproved: 'Approuvé en premier',
+            paidBy: 'Payé par',
             paid: 'Payé',
             exported: 'Exporté',
             posted: 'Publié',
@@ -9486,6 +9540,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             topSpenders: 'Plus gros dépensiers',
             topCategories: 'Catégories principales',
             topMerchants: 'Meilleurs commerçants',
+            violationsBySubmitter: 'Infractions par déclarant',
         },
     },
     genericErrorPage: {
@@ -9663,6 +9718,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         time: 'Heure (format 24 heures)',
         durationAmount: 'Durée',
         durationUnit: 'Unité',
+        leaveType: 'Type de congé',
+        normalOOO: 'Absent normal',
         reason: 'Raison',
         workingPercentage: 'Pourcentage de travail',
         dateRequired: 'La date de début est obligatoire.',
@@ -9850,7 +9907,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
             mapOrGpsDistanceRequired: {
-                title: 'Distance de carte ou GPS requise',
+                title: 'Exiger une saisie GPS ou cartographique',
                 description: 'Cet espace de travail requiert des dépenses kilométriques calculées soit sur la base d’une carte, soit suivies par GPS.',
             },
         },
@@ -10113,40 +10170,44 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Impossible d’apparier automatiquement le reçu en raison d’une connexion bancaire rompue.';
+                return 'Impossible d’associer automatiquement le reçu en raison d’une connexion bancaire rompue.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Impossible d’associer automatiquement le reçu en raison d’un problème bancaire temporaire. Veuillez réessayer ultérieurement.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée.';
+                        return 'Impossible d’associer automatiquement le reçu, car votre connexion bancaire doit être réauthentifiée.';
                     }
                     return isMarkAsCash
-                        ? `Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée. Marquez-le comme paiement en espèces pour l’ignorer, ou <a href="${connectionLink}">reconnectez-vous</a> pour associer le reçu.`
-                        : `Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée. <a href="${connectionLink}">Reconnectez-vous</a> pour associer le reçu.`;
+                        ? `Impossible de faire correspondre automatiquement le reçu, car votre connexion bancaire nécessite une nouvelle authentification. Marquez-le comme espèces pour ignorer, ou <a href="${connectionLink}">reconnectez-vous</a> pour faire correspondre le reçu.`
+                        : `Impossible d’associer automatiquement le reçu, car la connexion à votre banque nécessite une nouvelle authentification. <a href="${connectionLink}">Reconnectez-vous</a> pour associer le reçu.`;
                 }
                 return isAdmin
-                    ? `La connexion bancaire doit être ré-authentifiée. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
-                    : 'La connexion bancaire doit être ré-authentifiée. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
+                    ? `La connexion bancaire nécessite une nouvelle authentification. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
+                    : 'La connexion bancaire doit être réauthentifiée. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Impossible d’apparier automatiquement le reçu en raison d’une connexion bancaire rompue.';
+                    return 'Impossible d’associer automatiquement le reçu en raison d’une connexion bancaire rompue.';
                 }
                 return isMarkAsCash
-                    ? `Impossible d'associer automatiquement le reçu en raison d'une connexion de carte défectueuse. Marquez-le comme paiement en espèces pour l'ignorer, ou <a href="${connectionLink}">corrigez la carte</a> pour associer le reçu.`
-                    : `Impossible d'associer automatiquement le reçu en raison d'une connexion de carte rompue. <a href="${connectionLink}">Réparez la carte</a> pour faire correspondre le reçu.`;
+                    ? `Impossible d’associer automatiquement le reçu en raison d’une connexion carte défectueuse. Marquez-le comme espèce pour ignorer, ou <a href="${connectionLink}">réparez la carte</a> pour faire correspondre le reçu.`
+                    : `Impossible d’associer automatiquement le reçu en raison d’une connexion carte défectueuse. <a href="${connectionLink}">Réparez la carte</a> pour associer le reçu.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Connexion bancaire rompue. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
-                    : 'Connexion bancaire interrompue. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
+                    ? `Connexion bancaire interrompue. <a href="${companyCardPageURL}">Reconnecter pour faire correspondre le reçu</a>`
+                    : 'Connexion bancaire rompue. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Demandez à ${member} de marquer comme paiement en espèces ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
+                return isAdmin ? `Demandez à ${member} de le marquer comme espèces ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
             }
             return '';
         },
         brokenConnection530Error: 'Reçu en attente en raison d’une connexion bancaire rompue',
+        brokenConnection531Error: 'Impossible d’associer automatiquement le reçu en raison d’un problème bancaire temporaire. Veuillez réessayer ultérieurement.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Reçu en attente en raison d’une connexion bancaire rompue. Veuillez résoudre le problème dans les <a href="${workspaceCompanyCardRoute}">Cartes d’entreprise</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Reçu en attente en raison d’une connexion bancaire rompue. Veuillez demander à un administrateur de l’espace de travail de résoudre le problème.',
@@ -10190,6 +10251,53 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Le taux n’est valable qu’à partir du ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Le taux n’est valable que jusqu’au ${endDate}`,
         cannotMergeDuplicates: 'Vous ne pouvez fusionner des dépenses que sur des notes de frais à l’état de brouillon ou en circulation. Retirez-la puis réessayez.',
+        shortName: {
+            allTagLevelsRequired: 'Tous les tags sont obligatoires',
+            autoReportedRejectedExpense: 'Dépense rejetée',
+            billableExpense: 'Facturable n’est plus valide',
+            cashExpenseWithNoReceipt: 'Reçu obligatoire',
+            categoryOutOfPolicy: 'Catégorie n’est plus valide',
+            companyCardRequired: 'Carte d’entreprise requise',
+            conversionSurcharge: 'Surcharge de conversion appliquée',
+            customUnitOutOfPolicy: 'Taux non valide pour l’espace de travail',
+            customUnitRateOutOfDateRange: 'Taux en dehors des dates valides',
+            duplicatedTransaction: 'Doublon potentiel',
+            fieldRequired: 'Champ de note de frais obligatoire',
+            futureDate: 'Date future non autorisée',
+            hold: 'Dépense en attente',
+            inactiveVendor: 'Fournisseur n’est plus valide',
+            increasedDistance: 'La distance dépasse l’itinéraire',
+            invoiceMarkup: 'Facture annotée',
+            itemizedReceiptRequired: 'Reçu détaillé requis',
+            maxAge: 'Date antérieure à l’ancienneté maximale de la dépense',
+            missingAttendees: 'Participants obligatoires',
+            missingCategory: 'Catégorie manquante',
+            missingComment: 'Description obligatoire',
+            missingTag: 'Tag manquant',
+            modifiedAmount: 'Montant modifié',
+            modifiedDate: 'Date de modification',
+            noRoute: 'Aucun itinéraire valide',
+            nonExpensiworksExpense: 'Dépense hors Expensiworks',
+            overAutoApprovalLimit: 'Au-delà de la limite d’auto-approbation',
+            overCategoryLimit: 'Limite de catégorie dépassée',
+            overLimit: 'Au-delà de la limite',
+            overTripLimit: 'Au-delà de la limite de voyage',
+            perDayLimit: 'Au-dessus de la limite quotidienne',
+            prohibitedExpense: 'Dépense interdite',
+            receiptGeneratedWithAI: 'Reçu potentiellement généré par IA',
+            receiptNotSmartScanned: 'Reçu ajouté manuellement',
+            receiptRequired: 'Reçu obligatoire',
+            rter: 'En attente de correspondance de carte',
+            smartscanFailed: 'L’analyse du reçu a échoué',
+            someTagLevelsRequired: 'Tag obligatoire',
+            tagOutOfPolicy: 'Tag n’est plus valide',
+            overLimitAttendee: 'Nombre de personnes dépassé',
+            customRules: 'Violation de règle personnalisée',
+            taxAmountChanged: 'Montant de la taxe modifié',
+            taxOutOfPolicy: 'Taux de taxe n’est plus valide',
+            taxRateChanged: 'Taux d’imposition modifié',
+            taxRequired: 'Taux de taxe manquant',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} est obligatoire`,
@@ -10789,6 +10897,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     domain: {
         notVerified: 'Non vérifié',
         retry: 'Réessayer',
+        requestSent: 'Demande envoyée',
         verifyDomain: {
             title: 'Vérifier le domaine',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10862,6 +10971,14 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             subtitle: 'Saisissez le nom du domaine privé auquel vous souhaitez accéder (par ex. expensify.com).',
             domainName: 'Nom de domaine',
             newDomain: 'Nouveau domaine',
+            alreadyHaveAccessError: 'Ce domaine existe déjà dans votre compte.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Le domaine existe déjà',
+            title: "Domaine déjà configuré. Demander l'accès ?",
+            description: "Quelqu'un a déjà configuré ce domaine dans Expensify. Voulez-vous demander l'accès administrateur ?",
+            requestAccess: "Demander l'accès administrateur",
+            requestAccessError: "Nous n'avons pas pu envoyer votre demande. Veuillez réessayer.",
         },
         domainAdded: {
             title: 'Domaine ajouté',
@@ -10958,6 +11075,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
             error: 'Impossible d\’enregistrer cette modification. Veuillez réessayer.',
+            neverMind: 'Peu importe',
         },
         groups: {
             title: 'Groupes',
@@ -10966,7 +11084,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Êtes-vous sûr de vouloir faire de ${newName} le groupe par défaut ? Les nouveaux membres seront invités à ce groupe au lieu du groupe par défaut précédent (${currentName}). `,
             makeDefault: 'Définir par défaut',
-            neverMind: 'Peu importe',
             createGroupError: 'Impossible de créer ce groupe. Veuillez réessayer.',
             permissions: 'Autorisations du groupe',
             createNewGroupButton: 'Nouveau groupe',

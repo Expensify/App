@@ -250,6 +250,12 @@ type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
     type?: string;
 };
 
+/** Model of a violation captured on a submitted report action */
+type SubmittedTransactionViolation = {
+    /** Violation identifier/name captured at submit time */
+    name: string;
+};
+
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
     /** The login of the admin (used in admin-submit) */
@@ -284,6 +290,12 @@ type OriginalMessageSubmitted = {
 
     /** The workflow the report is submitted on */
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Snapshot of transaction violations present when the report was submitted */
+    violations?: {
+        /** Violations keyed by transaction ID */
+        transactions: Record<string, SubmittedTransactionViolation[]>;
+    };
 };
 
 /** Model of `created` report action */
@@ -1729,7 +1741,7 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
  */
 type OriginalMessageTravelNudge = {
     /** The kind of bookable travel the expense was classified as */
-    travelType: ValueOf<typeof CONST.RESERVATION_TYPE>;
+    travelType: ValueOf<typeof CONST.TRAVEL_NUDGE.TRAVEL_TYPE>;
 
     /** Whether the expense was created from a card import or manually */
     origination: ValueOf<typeof CONST.TRAVEL_NUDGE.ORIGINATION>;

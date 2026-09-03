@@ -96,7 +96,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -125,6 +125,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 selfDMReportActions,
                 delegateAccountID,
                 getCurrencyDecimals,
+                getCurrencySymbol,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -153,6 +154,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
+            getCurrencySymbol,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
