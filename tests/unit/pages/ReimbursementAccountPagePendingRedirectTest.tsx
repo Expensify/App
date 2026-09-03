@@ -86,6 +86,11 @@ const USD_POLICY: Policy = {
 
 const EUR_POLICY: Policy = {...USD_POLICY, outputCurrency: CONST.CURRENCY.EUR};
 
+// A plain member. The USER role carries no WORKFLOWS_PAYMENTS write access, which is what canMemberWrite checks.
+const MEMBER_POLICY: Policy = {...USD_POLICY, role: CONST.POLICY.ROLE.USER};
+
+const PENDING_DELETE_POLICY: Policy = {...USD_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
 // A policy that has loaded without publishing a currency. `Policy` declares outputCurrency as required, so the mock
 // helper is what lets this fixture describe the partially-loaded shape Onyx can actually hold.
 const NO_CURRENCY_POLICY = createMock<Policy>({...USD_POLICY, outputCurrency: undefined});
@@ -99,7 +104,7 @@ const buildRoute = (params: RouteParams): PageProps['route'] => ({
     params,
 });
 
-// The page does not read the navigation prop; this inert double only satisfies the navigator-provided prop.
+// The page does not read the navigation prop. This inert double only satisfies the navigator-provided prop.
 const navigation = createMock<PageProps['navigation']>({});
 
 // The policy reaches the page through the real withPolicy HOC, which reads it from Onyx by the route's policyID.
@@ -148,6 +153,7 @@ const pressLoaderBackButton = () => {
 // These assertions run after the page has unmounted and only need the value once, so a one-shot read is enough and
 // there is no subscription to set up and tear down.
 const getReimbursementAccount = () => OnyxUtils.get(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+const getReimbursementAccountDraft = () => OnyxUtils.get(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
 describe('ReimbursementAccountPage pending USD redirect', () => {
     beforeAll(() => {
@@ -209,35 +215,6 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         });
 
-        // policyCurrency only falls back to achData/the draft while `policy` is falsy, and this page paints the
-        // not-found view rather than the entry point in that state. So these two assert the navigation the fallback
-        // produced, not the render: without the fallback the currency is undefined and no redirect is dispatched.
-        it('redirects on the account currency when the policy has not loaded yet', async () => {
-            // Given a pending USD account whose policy is not in Onyx, so policyCurrency falls back to achData
-            await seedOnyx(PENDING_ACCOUNT, null);
-
-            // When the page is opened for that policy
-            await renderPage();
-
-            // Then the fallback currency still drives the redirect
-            expect(Navigation.navigate).toHaveBeenCalledWith(validationRoute());
-        });
-
-        it('redirects on the draft currency when neither the policy nor the account carries one', async () => {
-            // Given a pending account with no currency of its own, reached mid-setup so only the draft has one
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {currency: CONST.CURRENCY.USD});
-                await waitForBatchedUpdatesWithAct();
-            });
-            await seedOnyx({...PENDING_ACCOUNT, achData: buildAchData({currency: undefined})}, null);
-
-            // When the page is opened for that policy
-            await renderPage();
-
-            // Then the last leg of the currency fallback drives the redirect
-            expect(Navigation.navigate).toHaveBeenCalledWith(validationRoute());
-        });
-
         it('keeps the account data in Onyx when it unmounts because it redirected', async () => {
             // Given a pending account that redirected into the validation step
             await seedOnyx(PENDING_ACCOUNT);
@@ -252,6 +229,47 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
 
             // Then the data ConnectBankAccount reads survives, instead of being reset to the blank-RHP default
             expect(await getReimbursementAccount()).toEqual(PENDING_ACCOUNT);
+        });
+
+        it('still clears the draft on that unmount, so the next visit does not prefill the last attempt', async () => {
+            // Given a pending account whose micro-deposit amounts were saved to the draft
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {amount1: '1.11', amount2: '2.22', amount3: '3.33'});
+                await waitForBatchedUpdatesWithAct();
+            });
+            await seedOnyx(PENDING_ACCOUNT);
+            const {unmount} = await renderPage();
+            expect(Navigation.navigate).toHaveBeenCalledWith(validationRoute());
+
+            // When this page unmounts behind the validation step
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then only the account survives: the draft is wiped, so the stale amounts cannot be resubmitted
+            expect(await getReimbursementAccount()).toEqual(PENDING_ACCOUNT);
+            const draft = await getReimbursementAccountDraft();
+            expect(draft?.amount1).toBeUndefined();
+            expect(draft?.amount2).toBeUndefined();
+            expect(draft?.amount3).toBeUndefined();
+        });
+
+        it('clears the account once the user has left the flow from the loader', async () => {
+            // Given a pending account that redirected, which the user then backs out of
+            await seedOnyx(PENDING_ACCOUNT);
+            const {unmount} = await renderPage({policyID: POLICY_ID, backTo: BACK_TO});
+            expect(Navigation.navigate).toHaveBeenCalledWith(validationRoute(BACK_TO));
+            pressLoaderBackButton();
+
+            // When this page unmounts after that exit
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then nothing is left to read the preserved data, so the usual wipe applies again
+            expect(await getReimbursementAccount()).toEqual(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
         });
     });
 
@@ -352,6 +370,42 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             await renderPage();
 
             // Then the fallback currency keeps the USD validation step closed
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('bank-account/new/us/validation'));
+        });
+
+        // The redirect fires from an effect, which runs even on the renders that return the not-found view, and the
+        // validation step has no authorization guard of its own. So these three are the difference between the
+        // not-authorized screen and the micro-deposit form.
+        it('does not redirect a member who cannot manage the workspace bank account', async () => {
+            // Given a matching pending account cached for a workspace the user only has member access to
+            await seedOnyx(PENDING_ACCOUNT, MEMBER_POLICY);
+
+            // When the page is opened
+            await renderPage();
+
+            // Then the redirect does not carry the user past the not-authorized screen
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('bank-account/new/us/validation'));
+        });
+
+        it('does not redirect when the workspace is pending deletion', async () => {
+            // Given a matching pending account cached for a workspace the user has just deleted
+            await seedOnyx(PENDING_ACCOUNT, PENDING_DELETE_POLICY);
+
+            // When the page is opened
+            await renderPage();
+
+            // Then the redirect does not reopen the flow for a workspace that is going away
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('bank-account/new/us/validation'));
+        });
+
+        it('waits for the policy instead of redirecting on a cached account alone', async () => {
+            // Given a pending USD account whose policy is not in Onyx, so nothing can grant access yet
+            await seedOnyx(PENDING_ACCOUNT, null);
+
+            // When the page is opened for that policy
+            await renderPage();
+
+            // Then it holds, rather than authorizing the validation step from the persisted account
             expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('bank-account/new/us/validation'));
         });
 

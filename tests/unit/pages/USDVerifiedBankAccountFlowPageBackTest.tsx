@@ -64,7 +64,7 @@ jest.mock('@pages/ReimbursementAccount/USD/CompleteVerification/CompleteVerifica
 }));
 
 // The remaining steps pull in native modules (Plaid, Onfido) that cannot load under Jest, and this test never renders
-// them — only the back-navigation targets they contribute to the step order matter.
+// them. Only the back-navigation targets they contribute to the step order matter.
 jest.mock('@pages/ReimbursementAccount/USD/BankInfo/BankInfo', () => ({__esModule: true, default: () => null}));
 jest.mock('@pages/ReimbursementAccount/USD/Requestor/RequestorStep', () => ({__esModule: true, default: () => null}));
 jest.mock('@pages/ReimbursementAccount/USD/Requestor/VerifyIdentity/VerifyIdentity', () => ({__esModule: true, default: () => null}));
@@ -76,7 +76,7 @@ jest.mock('@pages/ReimbursementAccount/USD/Country', () => ({__esModule: true, d
 type RouteParams = ReimbursementAccountNavigatorParamList[typeof SCREENS.REIMBURSEMENT_ACCOUNT_USD];
 type PageProps = PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_USD>;
 
-// The page does not read the navigation prop; this inert double only satisfies the navigator-provided prop.
+// The page does not read the navigation prop. This inert double only satisfies the navigator-provided prop.
 const navigation = createMock<PageProps['navigation']>({});
 
 const renderPage = async (params: RouteParams) => {

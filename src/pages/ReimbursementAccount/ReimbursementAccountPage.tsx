@@ -127,6 +127,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // Set once this page has actually been covered by the validation step. The redirect ref alone cannot tell that
     // apart from the redirect still being in flight, because it flips while this page is still focused.
     const hasBlurredAfterPendingRedirectRef = useRef(false);
+    // Set when this page leaves the pending-validation flow, so the unmount cleanup stops preserving the account data.
+    const isLeavingPendingValidationFlowRef = useRef(false);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const achData = reimbursementAccount?.achData;
@@ -190,12 +192,18 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     useEffect(() => {
         const isChangingBankAccountInstance = isChangingBankAccountRef.current;
         return () => {
-            // Don't wipe the account when this instance unmounts only because it redirected into the validation step of
-            // the same flow. ConnectBankAccount reads achData.state and does no fetching, so clearing here resets it to
-            // DEFAULT_DATA underneath it and renders a blank header-only RHP.
-            if (!isChangingBankAccountInstance && !hasRedirectedToPendingValidationRef.current) {
+            if (!isChangingBankAccountInstance) {
+                // The draft is always safe to clear. Nothing in the validation step branches on it, while the
+                // micro-deposit inputs save into it, so leaving it behind prefills the previous attempt's amounts
+                // against the limited number of validation attempts the next time the account is opened.
                 clearReimbursementAccountDraft();
-                clearReimbursementAccount();
+                // The account itself must survive an unmount that happens only because this page redirected into the
+                // validation step of the same flow. ConnectBankAccount reads achData.state and does no fetching, so
+                // clearing here resets it to DEFAULT_DATA underneath it and renders a blank header-only RHP. Once the
+                // flow is actually being left, nothing is left to read it and the usual wipe applies again.
+                if (!hasRedirectedToPendingValidationRef.current || isLeavingPendingValidationFlowRef.current) {
+                    clearReimbursementAccount();
+                }
             }
             cancelChangingToNewBankAccount();
             getPaymentMethods();
@@ -237,6 +245,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     const isDefaultReimbursementAccountData = deepEqual(reimbursementAccount, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
     const hasLoadedData = reimbursementAccount?.achData && !isDefaultReimbursementAccountData && !reimbursementAccount?.isLoading;
+    const canManageWorkspaceBankAccount = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+    // The redirect fires from an effect, and effects run even on the renders that return FullPageNotFoundView below.
+    // The validation step has no authorization guard of its own, so a stale cached account for a workspace the user
+    // can no longer manage would carry them past the not-authorized screen and into the micro-deposit form. Redirect
+    // only once the policy has loaded and positively grants access. When it has not, this page falls through to its
+    // normal render, which shows the loader while the policy is loading and the not-found screen once it is not.
+    const isAuthorizedToValidateBankAccount = !isLoadingPolicy && !isEmptyObject(policy) && canManageWorkspaceBankAccount && !isPendingDeletePolicy(policy);
     // For a pending USD account this page only redirects, so it must never paint the entry point. Derived during render
     // because effects run after paint. Not latched on the redirect ref: that flips mid-transition and the next render
     // would fall through to the entry point. policyID must match because REIMBURSEMENT_ACCOUNT is persisted, so on a
@@ -248,11 +263,15 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         !!hasLoadedData &&
         !isChangingBankAccount &&
         !!policyIDParam &&
-        achData?.policyID === policyIDParam;
+        achData?.policyID === policyIDParam &&
+        isAuthorizedToValidateBankAccount;
 
     // Leaves the setup flow entirely. Used everywhere the pending-validation redirect needs an exit, because going back
     // to this page would only redirect again.
     const leavePendingValidationFlow = useCallback(() => {
+        // Tells the unmount cleanup that the validation step is not going to keep reading the preserved account data,
+        // so the usual wipe can run. A ref rather than state, so this cannot repaint the entry point on the way out.
+        isLeavingPendingValidationFlowRef.current = true;
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -629,8 +648,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     ) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
-
-    const canManageWorkspaceBankAccount = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
     if (!!policyIDParam && ((!isLoading && (isEmptyObject(policy) || !canManageWorkspaceBankAccount)) || isPendingDeletePolicy(policy))) {
         return (

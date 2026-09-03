@@ -12,7 +12,7 @@ const OTHER_POLICY_ID = 'policy456';
 const BACK_TO = ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID);
 
 /**
- * A pending USD account. Only the handful of fields the pages branch on are set; `createMock` keeps the partial
+ * A pending USD account. Only the handful of fields the pages branch on are set. `createMock` keeps the partial
  * type-checked against the real ACH shape, so renaming one of those fields fails the build instead of silently
  * leaving the fixture describing an object production no longer emits.
  */
