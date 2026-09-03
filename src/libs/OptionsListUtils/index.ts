@@ -294,6 +294,7 @@ function getAlternateText(
             sortedActions,
             isTrackIntentUser,
             currentUserAccountID,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
 
@@ -505,6 +506,7 @@ function createOption({
             sortedActions,
             isTrackIntentUser,
             currentUserAccountID,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
