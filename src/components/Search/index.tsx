@@ -401,10 +401,6 @@ function Search({
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
-    // `isLoading` has to stay out of the effect deps below, or every completed search would start another,
-    // so a page requested while one was in flight is remembered here and fired once it resolves.
-    const pendingSearchOffsetRef = useRef<number | undefined>(undefined);
-
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
@@ -429,9 +425,6 @@ function Search({
         if (searchResults?.search?.isLoading) {
             if (validGroupBy || (shouldCalculateTotals && searchResults?.search?.count === undefined)) {
                 shouldRetrySearchWithTotalsOrGroupedRef.current = true;
-            }
-            if (offset > 0) {
-                pendingSearchOffsetRef.current = offset;
             }
             return;
         }
@@ -458,7 +451,6 @@ function Search({
             return;
         }
 
-        pendingSearchOffsetRef.current = undefined;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -485,7 +477,6 @@ function Search({
         }
 
         shouldRetrySearchWithTotalsOrGroupedRef.current = false;
-        pendingSearchOffsetRef.current = undefined;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -503,35 +494,6 @@ function Search({
         searchResults?.search?.isLoading,
         shouldCalculateTotals,
         validGroupBy,
-        searchRequestOffset,
-    ]);
-
-    useEffect(() => {
-        if (pendingSearchOffsetRef.current !== offset || searchResults?.search?.isLoading || !searchResults?.search?.hasMoreResults || !isFocused || isOffline || hasErrors) {
-            return;
-        }
-
-        pendingSearchOffsetRef.current = undefined;
-        handleSearch({
-            queryJSON,
-            searchKey: currentSearchKey,
-            offset: searchRequestOffset,
-            shouldCalculateTotals,
-            prevReportsLength: filteredDataLength,
-            isLoading: false,
-        });
-    }, [
-        filteredDataLength,
-        handleSearch,
-        hasErrors,
-        isFocused,
-        isOffline,
-        offset,
-        queryJSON,
-        currentSearchKey,
-        searchResults?.search?.isLoading,
-        searchResults?.search?.hasMoreResults,
-        shouldCalculateTotals,
         searchRequestOffset,
     ]);
 
@@ -841,13 +803,79 @@ function Search({
         }
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
+    // `isLoading` has to stay out of the search effect's deps, or every completed search would start another,
+    // and onEndReached only fires on the edge, so a page we cannot fetch yet is remembered here rather than
+    // dropped. Stays set until that page actually shows up in the snapshot.
+    const wantedOffsetRef = useRef<number | undefined>(undefined);
+
     const fetchMoreResults = useCallback(() => {
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+        if (!searchResults?.search?.hasMoreResults) {
+            wantedOffsetRef.current = undefined;
             return;
         }
 
-        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, allDataLength]);
+        // A first-page response replaces the snapshot rather than appending to it, so deriving the next page
+        // from `offset` instead of the snapshot's own cursor drifts the moment one lands mid-pagination.
+        const serverOffset = searchResults?.search?.offset ?? 0;
+        if (!isFocused || shouldShowLoadingState || serverOffset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+            return;
+        }
+
+        const nextOffset = serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        wantedOffsetRef.current = nextOffset;
+        // Offline, the request would only fail and leave an error on the snapshot. Hold the page until reconnect.
+        if (searchResults?.search?.isLoading || isOffline) {
+            return;
+        }
+
+        // Dispatched here rather than left to the offset effect: after a first-page response `nextOffset` can
+        // equal the offset we already hold, and that effect only runs on a change. search() dedupes the pair.
+        setOffset(nextOffset);
+        handleSearch({
+            queryJSON,
+            searchKey: currentSearchKey,
+            offset: nextOffset,
+            shouldCalculateTotals,
+            prevReportsLength: filteredDataLength,
+            isLoading: false,
+        });
+    }, [
+        isFocused,
+        isOffline,
+        searchResults?.search?.hasMoreResults,
+        searchResults?.search?.isLoading,
+        searchResults?.search?.offset,
+        shouldShowLoadingState,
+        allDataLength,
+        handleSearch,
+        queryJSON,
+        currentSearchKey,
+        shouldCalculateTotals,
+        filteredDataLength,
+    ]);
+
+    // Ask again for a page that never arrived, either because a search was still running when the list hit
+    // its end or because a first-page response replaced it. Both leave the request with nothing to retry it.
+    useEffect(() => {
+        const serverOffset = searchResults?.search?.offset ?? 0;
+        // A first-page response that lands after the page it displaces drags the cursor back below the page we
+        // hold, after that page's arrival already cleared the intent. The list has not moved, so arm it again.
+        if (wantedOffsetRef.current === undefined && searchResults?.search?.hasMoreResults && serverOffset < offset) {
+            wantedOffsetRef.current = offset;
+        }
+
+        const wantedOffset = wantedOffsetRef.current;
+        if (wantedOffset === undefined || searchResults?.search?.isLoading) {
+            return;
+        }
+
+        if (serverOffset >= wantedOffset) {
+            wantedOffsetRef.current = undefined;
+            return;
+        }
+
+        fetchMoreResults();
+    }, [fetchMoreResults, offset, searchResults?.search?.hasMoreResults, searchResults?.search?.isLoading, searchResults?.search?.offset]);
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
