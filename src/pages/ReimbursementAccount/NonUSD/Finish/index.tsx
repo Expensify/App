@@ -10,7 +10,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
@@ -28,11 +27,9 @@ import {View} from 'react-native';
 function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Shield', 'ChatBubble']);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow']);
 
-    const fullBleedRowsStyle = shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -65,7 +62,7 @@ function Finish() {
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
-                    <View style={fullBleedRowsStyle}>
+                    <View style={styles.mhn5}>
                         <MenuItemNavigation
                             icon={icons.ChatBubble}
                             title={translate('finishStep.iHaveA')}
@@ -82,7 +79,7 @@ function Finish() {
                     <View style={styles.mb6}>
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
                     </View>
-                    <View style={fullBleedRowsStyle}>
+                    <View style={styles.mhn5}>
                         <MenuItem.Root
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 Navigation.navigate(getTwoFactorAuthRoute());

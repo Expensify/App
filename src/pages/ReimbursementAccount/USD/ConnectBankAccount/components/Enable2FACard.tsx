@@ -6,7 +6,6 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
@@ -20,7 +19,6 @@ import {View} from 'react-native';
 function Enable2FACard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['Shield']);
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
@@ -35,7 +33,7 @@ function Enable2FACard() {
             <View style={styles.mb6}>
                 <Text>{translate('connectBankAccountStep.enable2FAText')}</Text>
             </View>
-            <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
+            <View style={styles.mhn5}>
                 <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(getTwoFactorAuthRoute()))}>
                     <MenuItem.Row>
                         <MenuItem.Leading>

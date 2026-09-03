@@ -16,7 +16,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -105,7 +104,6 @@ function VerifiedBankAccountFlowEntryPoint({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock', 'RotateLeft']);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -126,7 +124,6 @@ function VerifiedBankAccountFlowEntryPoint({
     // The "Change bank account" option is only offered when opening a partially setup account from the Workflows > Payments section
     const isComingFromWorkflowsPayments = !!policyID && backTo === ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
     const shouldShowChangeBankAccount = shouldShowContinueSetupButton === true && isComingFromWorkflowsPayments;
-    const fullBleedRowsStyle = shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8;
     const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
 
     const removeExistingBankAccountDetails = useCallback(() => {
@@ -290,7 +287,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 }
                                 errorRowStyles={styles.mt2}
                                 shouldShowErrorMessages
-                                contentContainerStyle={fullBleedRowsStyle}
+                                contentContainerStyle={styles.mhn5}
                                 onClose={reimbursementAccount?.maxAttemptsReached ? undefined : resetReimbursementAccount}
                             >
                                 <MenuItemNavigation
@@ -315,7 +312,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 />
                             </OfflineWithFeedback>
                         ) : (
-                            <View style={fullBleedRowsStyle}>
+                            <View style={styles.mhn5}>
                                 {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
                                     <MenuItemNavigation
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
