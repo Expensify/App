@@ -570,7 +570,7 @@ describe('useYourSpendData — search dispatch', () => {
 
         onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}, [CARD_ID_2]: {cardID: CARD_ID_2}};
         mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1, comboCardIDs: [CARD_ID_1, CARD_ID_2]}]));
-        rerender();
+        rerender(undefined);
 
         expect(mockedSearch.mock.calls.length).toBeGreaterThan(callCountAfterFirstRender);
     });
@@ -581,7 +581,7 @@ describe('useYourSpendData — search dispatch', () => {
         const {rerender} = renderHook(() => useYourSpendData());
         const callCountAfterFirstRender = mockedSearch.mock.calls.length;
 
-        rerender();
+        rerender(undefined);
 
         expect(mockedSearch.mock.calls.length).toBe(callCountAfterFirstRender);
     });
