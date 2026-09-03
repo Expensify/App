@@ -1,7 +1,6 @@
 import {secondOverlayRHPOnSuperWideRHPProgress, secondOverlayRHPOnWideRHPProgress, secondOverlayWideRHPProgress, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,7 +9,6 @@ import {useRoute} from '@react-navigation/native';
 import React from 'react';
 
 function SecondaryOverlay() {
-    const theme = useTheme();
     const {shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForWideRHP, superWideRHPRouteKeys, wideRHPRouteKeys} =
         useWideRHPState();
 
@@ -43,10 +41,6 @@ function SecondaryOverlay() {
                 progress={secondOverlayRHPOnWideRHPProgress}
                 positionLeftValue={0}
                 onPress={Navigation.dismissToPreviousRHP}
-                // A slight gradient fade — solid over the skinny, fading over the expense. Uses product200 (highlightBG)
-                // rather than appBG so it reads against the expense card behind it.
-                gradientFade
-                gradientColor={theme.highlightBG}
             />
         );
     }

@@ -42,7 +42,7 @@ function useWideModalStackScreenOptions() {
             let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
 
             if (!isSmallScreenWidth) {
-                // Report, expense, and skinny RHPs are centered modals — fade them in place instead of sliding from the right.
+                // Report and expense RHPs are centered modals — fade them in place instead of sliding from the right.
                 const fadeInterpolator: StackCardStyleInterpolator = (props) => modalCardStyleInterpolator({props, enter: {kind: 'fade'}});
                 if (superWideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(fadeInterpolator, {
@@ -54,8 +54,9 @@ function useWideModalStackScreenOptions() {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(fadeInterpolator, {
                         cardStyle: styles.wideRHPCenteredCardInterpolatorStyles,
                     });
+                    // Skinny RHP right-docked above a wide/super-wide RHP: keep the default slide-in animation.
                 } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(fadeInterpolator, {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
                     });
                 }

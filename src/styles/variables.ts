@@ -130,11 +130,6 @@ export default {
     wideRHPRightPaneWidth: 400,
     // RHP scrim opacity. Scoped to the RHP overlay so other modal backdrops keep the default overlayOpacity.
     rhpOverlayOpacity: 0.5,
-    // RHP gradient-scrim fade: px over which appBG fades to transparent, starting at the RHP's left edge
-    // (solid region = rhpWidth + rhpFloatingCardMargin). Only content directly behind the RHP is obscured.
-    rhpScrimFade: 100,
-    // Peak opacity of the RHP gradient scrim (the solid appBG region), so content behind stays faintly visible.
-    rhpGradientOpacity: 0.8,
     searchSidebarExpandedWidth: 320,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
@@ -256,7 +251,10 @@ export default {
     popoverWidth: 375,
     compactPopoverMenuWidth: 300,
     compactPopoverMenuVerticalMargin: 100,
-    searchRouterPopoverWidth: 512,
+    searchRouterPopoverWidth: 600,
+    searchRouterPopoverMaxHeight: 520,
+    // Distance from the top of the screen to the centered search router popover on wide layout.
+    searchRouterPopoverTopOffset: 40,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,

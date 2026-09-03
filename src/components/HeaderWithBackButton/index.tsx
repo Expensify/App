@@ -22,7 +22,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 
 import getButtonState from '@libs/getButtonState';
-import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
@@ -33,7 +32,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {SvgProps} from 'react-native-svg';
 
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
 
 import type HeaderWithBackButtonProps from './types';
@@ -104,11 +103,6 @@ function HeaderWithBackButton({
     const isInLandscapeMode = useIsInLandscapeMode();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
-    // RHP modal titles use the larger h2 headline. Every RHP screen renders inside the narrow-pane context, so default
-    // to the headline header there unless a caller already opted in.
-    const {isInNarrowPane} = useContext(NarrowPaneContext);
-    const resolvedUseHeadlineHeader = shouldUseHeadlineHeader || isInNarrowPane;
-
     const middleContent = useMemo(() => {
         const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
         if (shouldShowReportAvatarWithDisplay) {
@@ -126,7 +120,7 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounterTranslation ?? subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, resolvedUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={numberOfTitleLines}
                 isScreenHeader
@@ -136,7 +130,7 @@ function HeaderWithBackButton({
     }, [
         StyleUtils,
         subTitleLink,
-        resolvedUseHeadlineHeader,
+        shouldUseHeadlineHeader,
         report,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
@@ -204,7 +198,7 @@ function HeaderWithBackButton({
         <View
             style={[
                 styles.headerBar,
-                resolvedUseHeadlineHeader && styles.headerBarHeight,
+                shouldUseHeadlineHeader && styles.headerBarHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,

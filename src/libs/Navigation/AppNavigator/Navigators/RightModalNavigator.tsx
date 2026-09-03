@@ -193,15 +193,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         frameCardStyle = styles.RHPCenteredFrame;
     }
 
-    // Width of the current frame (driven by the visible RHP keys), so the gradient scrim's solid region covers
-    // exactly the floating panel: super-wide, wide, or skinny.
-    let currentRHPWidth: number = singleRHPWidth;
-    if (superWideRHPRouteKeys.length > 0) {
-        currentRHPWidth = calculateSuperWideRHPWidth(windowWidth);
-    } else if (wideRHPRouteKeys.length > 0) {
-        currentRHPWidth = getWideRHPWidth(windowWidth);
-    }
-
     const screenListeners = useMemo(
         () => ({
             blur: () => {
@@ -267,11 +258,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Overlay
                         positionLeftValue={overlayPositionLeft}
                         onPress={handleOverlayPress}
-                        // appBG gradient scrim whenever the frame floats (skinny RHP + super-wide report); other
-                        // cases keep the dimming scrim. Solid region matches the floating panel width.
-                        // Dark dimming scrim for the centered expense report; appBG gradient fade for the floating RHPs.
-                        gradientFade={!useFullBleedFrame && !useCenteredReportModal}
-                        gradientSolidWidth={currentRHPWidth + variables.rhpFloatingCardMargin}
                     />
                 )}
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}

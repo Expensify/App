@@ -6801,13 +6801,6 @@ const dynamicStyles = (theme: ThemeColors) =>
                 }),
             }) satisfies ViewStyle,
 
-        // Floating RHP experiment: appBG gradient scrim (built in the component from theme.appBG) that only
-        // obscures content directly behind the RHP instead of dimming the whole screen.
-        rhpGradientScrim: (backgroundImage: string) =>
-            ({
-                backgroundImage,
-            }) satisfies ViewStyle,
-
         getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : 350,
