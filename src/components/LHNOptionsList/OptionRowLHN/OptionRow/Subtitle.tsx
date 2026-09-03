@@ -1,3 +1,4 @@
+import PlainText from '@components/PlainText';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -42,23 +43,34 @@ function Subtitle({optionItem, viewMode}: SubtitleProps) {
 
     const containsCustomEmojiWithText = containsCustomEmojiUtils(alternateText) && !containsOnlyCustomEmoji(alternateText);
 
-    return (
-        <Text
-            style={alternateTextStyle}
-            numberOfLines={1}
-            accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
-            fsClass={alternateTextFSClass}
-        >
-            {containsCustomEmojiWithText ? (
+    // Mixed emoji + text needs nested Text runs (a per-fragment font size), so it stays on Text.
+    // Plain strings render on the native PlainText label; custom-emoji-only strings get the emoji font inside it.
+    if (containsCustomEmojiWithText) {
+        return (
+            <Text
+                style={alternateTextStyle}
+                numberOfLines={1}
+                accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
+                fsClass={alternateTextFSClass}
+            >
                 <TextWithEmojiFragment
                     message={alternateText}
                     style={[alternateTextStyle, styles.mh0]}
                     alignCustomEmoji
                 />
-            ) : (
-                alternateText
-            )}
-        </Text>
+            </Text>
+        );
+    }
+
+    // fsClass is intentionally not forwarded: FullStory only applies it on core RN components, not custom ones.
+    return (
+        <PlainText
+            style={alternateTextStyle}
+            numberOfLines={1}
+            accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
+        >
+            {alternateText}
+        </PlainText>
     );
 }
 
