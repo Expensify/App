@@ -30,10 +30,6 @@ function getEffectiveLastUpdateID(): number {
     return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
 }
 
-function getLastUpdateIDIncludingInFlightApplies(clientLastUpdateID?: number): number {
-    return Math.max(clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush, lastUpdateIDPendingApply);
-}
-
 function getPersistedLastUpdateID(): number {
     return lastUpdateIDAppliedToClient ?? 0;
 }
@@ -213,6 +209,9 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
                 if (lastUpdateIDPendingFlush && lastUpdateIDPendingFlush <= Number(lastUpdateID)) {
                     lastUpdateIDPendingFlush = 0;
                 }
+                if (lastUpdateIDPendingApply && lastUpdateIDPendingApply <= Number(lastUpdateID)) {
+                    lastUpdateIDPendingApply = 0;
+                }
                 return result;
             })
             .catch((error) => {
@@ -283,6 +282,7 @@ function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFr
 type DoesClientNeedToBeUpdatedParams = {
     clientLastUpdateID?: number;
     previousUpdateID?: number;
+    updateType?: AnyOnyxUpdatesFromServer['type'];
 };
 
 /**
@@ -290,14 +290,19 @@ type DoesClientNeedToBeUpdatedParams = {
  * and return if an update is needed
  * @param previousUpdateID The previousUpdateID contained in the response object
  * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
+ * @param updateType the transport the update being checked arrived on
  */
-function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesClientNeedToBeUpdatedParams): boolean {
+function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID, updateType}: DoesClientNeedToBeUpdatedParams): boolean {
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
     if (!previousUpdateID) {
         return false;
     }
 
-    const lastUpdateIDFromClient = getLastUpdateIDIncludingInFlightApplies(clientLastUpdateID);
+    const lastUpdateIDFromClient = Math.max(
+        clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0,
+        lastUpdateIDPendingFlush,
+        updateType === CONST.ONYX_UPDATE_TYPES.PUSHER ? lastUpdateIDPendingApply : 0,
+    );
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {
