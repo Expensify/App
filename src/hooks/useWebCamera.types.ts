@@ -31,4 +31,4 @@ type UseWebCameraResult<TPlatform extends WebCameraPlatformTypes> = {
 
 type UseWebCamera<TPlatform extends WebCameraPlatformTypes> = (options?: UseWebCameraOptions) => UseWebCameraResult<TPlatform>;
 
-export type {CameraPermissionState, UseWebCamera, UseWebCameraOptions, UseWebCameraResult, WebCameraPlatformTypes};
+export type {CameraPermissionState, UseWebCamera, WebCameraPlatformTypes};

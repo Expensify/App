@@ -304,7 +304,7 @@ const config = defineConfig([
 
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'tsconfig.app.web.json'),
+                project: path.resolve(projectRoot, 'tsconfig.json'),
                 projectService: false,
             },
 
@@ -717,16 +717,6 @@ const config = defineConfig([
     },
 
     {
-        files: ['src/**/*.native.ts', 'src/**/*.native.tsx', 'src/**/*.ios.ts', 'src/**/*.ios.tsx', 'src/**/*.android.ts', 'src/**/*.android.tsx', 'src/types/native/**/*.d.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
-                projectService: false,
-            },
-        },
-    },
-
-    {
         files: ['modules/ExpensifyNitroUtils/src/**/*'],
         languageOptions: {
             parserOptions: {
@@ -740,21 +730,21 @@ const config = defineConfig([
     },
 
     {
-        files: ['modules/background-task/src/**/*', 'modules/hybrid-app/src/**/*'],
+        files: ['tests/**/*.{ts,tsx}', 'jest/**/*.{ts,tsx}', '__mocks__/**/*.{ts,tsx}', 'src/**/__mocks__/**/*.{ts,tsx}'],
+        ignores: ['tests/tooling/**'],
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
+                project: path.resolve(projectRoot, 'tsconfig.jest.json'),
                 projectService: false,
             },
         },
     },
 
     {
-        files: ['tests/**/*.{ts,tsx}', 'jest/**/*.{ts,tsx}', '__mocks__/**/*.{ts,tsx}', 'src/**/__mocks__/**/*.{ts,tsx}'],
-        ignores: ['tests/tooling/**'],
+        files: ['types/env.d.ts'],
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'tsconfig.jest.json'),
+                project: path.resolve(projectRoot, 'tsconfig.app.web.json'),
                 projectService: false,
             },
         },
