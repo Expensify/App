@@ -172,6 +172,7 @@ import {
     isSelfDM,
     isUploadingAttachmentRemovedFromDraft,
     isValidReportIDFromPath,
+    getExportErrorCount,
     prepareOnboardingOnyxData,
     replaceLocalAttachmentReferences,
 } from '@libs/ReportUtils';
@@ -6472,7 +6473,7 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName, p
     const optimisticReportActionID = action.reportActionID;
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // Snapshot the export errors the report already carries, so only a new one counts as this attempt's outcome.
-    const exportErrorCountAtRequest = Object.values(report?.errorFields?.export ?? {}).filter((error) => error != null).length;
+    const exportErrorCountAtRequest = getExportErrorCount(report);
 
     // `isExportedToIntegration` is deliberately not updated optimistically because the server doesn't set it false
     // when export fails so we track export errors to identify an export failure.

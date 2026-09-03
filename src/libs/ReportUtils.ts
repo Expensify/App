@@ -13507,6 +13507,14 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
 }
 
 /**
+ * Count the export errors a report currently carries because it is
+ * what identifies a new failure against a snapshotted baseline.
+ */
+function getExportErrorCount(report: OnyxEntry<Report>): number {
+    return Object.values(report?.errorFields?.export ?? {}).filter((error) => error != null).length;
+}
+
+/**
  * Whether an export this client started is still running.
  *
  * There is no client event meaning "the export finished" - the 200 only means the request was accepted, `failureData`
@@ -13525,9 +13533,8 @@ function isExportInProgress(report: OnyxEntry<Report>, reportMetadata: OnyxEntry
 
     // Only an export error the report did not already carry belongs to this attempt. Pre-existing ones must not
     // resolve it, because a report that already failed to export is exactly the retry case where the button is
-    // offered again. The entries are keyed by microsecond timestamp, so counting them is what identifies a new one.
-    const exportErrorCount = Object.values(report?.errorFields?.export ?? {}).filter((error) => error != null).length;
-    return exportErrorCount === exportErrorCountAtRequest;
+    // offered again.
+    return getExportErrorCount(report) === exportErrorCountAtRequest;
 }
 
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
@@ -14772,6 +14779,7 @@ export {
     isExported,
     hasExpensifyGuidesEmails,
     hasExportError,
+    getExportErrorCount,
     isExportInProgress,
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,
