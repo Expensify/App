@@ -11,16 +11,13 @@ import TextInput from '@components/TextInput';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
-import {isMobile} from '@libs/Browser';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -57,8 +54,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
@@ -166,7 +161,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             testID={AddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight={shouldUseScrollableLayout}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('addAgentPage.title')}
@@ -179,8 +174,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={shouldUseScrollableLayout}
-                submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                shouldUseScrollView
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
                 // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
@@ -207,7 +201,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                    <View style={[styles.flex1, styles.minHeight42]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
