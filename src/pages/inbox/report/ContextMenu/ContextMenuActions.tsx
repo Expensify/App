@@ -1055,6 +1055,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         movedFromReport,
                         movedToReport,
                         policyTags,
+                        currentUserAccountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
                     // Convert HTML to markdown for clipboard copy to preserve links and formatting
@@ -1434,7 +1435,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getPolicyChangeMessage(translate, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (isActionableJoinRequest(reportAction)) {
-                    const displayMessage = getJoinRequestMessage(translate, policy, reportAction);
+                    const displayMessage = getJoinRequestMessage(
+                        translate,
+                        policy?.name ?? '',
+                        reportAction,
+                        getPersonalDetailsByID(getOriginalMessage(reportAction)?.accountID, personalDetails),
+                    );
                     Clipboard.setString(displayMessage);
                 } else if (
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM ||

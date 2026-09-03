@@ -21,7 +21,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {
+    getLoginByAccountID,
+    getPersonalDetailsByID,
+    getPersonalDetailForAccountID,
+    getPersonalDetailsForAccountIDs,
+    getPersonalDetailsListByIDs,
+    temporaryGetDisplayNameOrDefault,
+} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -742,6 +749,7 @@ function getLastMessageTextForReport({
             movedFromReport,
             movedToReport,
             policyTags,
+            currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
         });
         // Strip HTML tags for plain text display in options list
@@ -833,7 +841,12 @@ function getLastMessageTextForReport({
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
-        lastMessageTextFromReport = getJoinRequestMessage(translate, policy, lastReportAction);
+        lastMessageTextFromReport = getJoinRequestMessage(
+            translate,
+            policy?.name ?? '',
+            lastReportAction,
+            getPersonalDetailsByID(getOriginalMessage(lastReportAction)?.accountID, personalDetails),
+        );
     } else if (
         lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM ||
         lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM
