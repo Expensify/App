@@ -43,4 +43,31 @@ describe('setupSentry', () => {
     it('keeps a thrown Error carrying the same text, which unlike a bare rejection has a stack to act on', () => {
         expect(isIgnored('No data found for key reportActions_123')).toBe(false);
     });
+
+    it('drops the ConstraintError the Convert Experiments script emits when it re-inserts an existing key', () => {
+        // Given the message Sentry builds from a DOMException, as `type: value`
+        const message = 'ConstraintError: Key already exists in the object store.';
+
+        // When the registered patterns are matched against it
+        // Then it is ignored, because only `add()` produces it and Onyx never calls `add()`
+        expect(isIgnored(message)).toBe(true);
+    });
+
+    it('keeps the other IndexedDB failures Onyx reports, so a real storage problem still surfaces', () => {
+        // Given a storage error Onyx does raise on its own write path
+        const message = 'AbortError: IDB write transaction aborted without an error';
+
+        // When the registered patterns are matched against it
+        // Then it still reports
+        expect(isIgnored(message)).toBe(false);
+    });
+
+    it('keeps a ConstraintError with different wording, which does not come from that third-party insert', () => {
+        // Given a ConstraintError about a unique index rather than a duplicate key
+        const message = "ConstraintError: Unable to add key to index 'byName': at least one key does not satisfy the uniqueness requirements.";
+
+        // When the registered patterns are matched against it
+        // Then it still reports
+        expect(isIgnored(message)).toBe(false);
+    });
 });
