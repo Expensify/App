@@ -223,6 +223,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
                     shouldShowTextInput={shouldShowWorkspaceSearchInput}
                     shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !ready}
                     textInputOptions={textInputOptions}
+                    shouldClearInputWhenHidden
                     shouldStopPropagation
                     canSelectMultiple
                     shouldSingleExecuteRowSelect

@@ -12,7 +12,7 @@ import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/fl
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useEffectEvent, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {DataDetailsType, ListItem, SelectionListProps} from './types';
@@ -21,6 +21,7 @@ import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
 import SelectionListEmptyState from './components/SelectionListEmptyState';
 import TextInput from './components/TextInput';
+import useRevealedListReset from './hooks/useRevealedListReset';
 import useSearchFocusSync from './hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
 import useSelectionListKeyboardFocus from './hooks/useSelectionListKeyboardFocus';
@@ -119,8 +120,6 @@ function BaseSelectionListImpl({
     const keyboardListenerRef = useRef<ReturnType<typeof Keyboard.addListener> | null>(null);
 
     const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
-    // Part of the list's key, so a bump replaces the recycler.
-    const [revealedListVersion, setRevealedListVersion] = useState(0);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
 
     const isItemSelected = useCallback(
@@ -335,32 +334,15 @@ function BaseSelectionListImpl({
 
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    /** Reads the current props, so a list hidden long after it was mounted drops what it was filtered by by then. */
-    const clearTextInput = useEffectEvent(() => {
+    // Cleared as the list is hidden rather than as it is revealed, so the debounce behind the input elapses while
+    // nobody is looking and the list is revealed with the data it is replaced against.
+    const revealedListVersion = useRevealedListReset(listRef, () => {
         if (!shouldClearInputWhenHidden || !textInputOptions?.value) {
             return;
         }
 
         textInputOptions.onChangeText?.('');
     });
-
-    // A hidden `<Activity>` subtree keeps its state but unmounts its effects, so this runs again when the list is
-    // revealed and its cleanup runs as the list is hidden.
-    const hasEffectRunRef = useRef(false);
-    useEffect(() => {
-        // A revealed list starts at the top. Its container lost the scroll position while hidden while the recycler
-        // still reports the offset it was left at, which is what leaves the visible area blank. The recycler takes an
-        // offset only from a scroll event, and scrolling to a top it already sits at produces none, so it is replaced
-        // rather than scrolled: a new one starts where its container is. The first run is the real mount.
-        if (hasEffectRunRef.current && listRef.current?.getAbsoluteLastScrollOffset()) {
-            setRevealedListVersion((version) => version + 1);
-        }
-        hasEffectRunRef.current = true;
-
-        // Cleared as the list is hidden rather than as it is revealed: the debounce behind the input elapses while
-        // nobody is looking, and the list it leaves behind is the one the reveal replaces.
-        return () => clearTextInput();
-    }, []);
 
     useEffect(() => {
         return () => {

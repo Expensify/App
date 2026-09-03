@@ -12866,7 +12866,8 @@ describe('hasFilterContentValuesChanged', () => {
             kind: 'text',
             filterKey: SYNTAX_FILTER_KEYS.MERCHANT,
             read: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'b'}],
-            ignored: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', [SYNTAX_FILTER_KEYS.DESCRIPTION]: 'b'}],
+            // A text content offers no options, so the search type is nothing to it.
+            ignored: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', type: CONST.SEARCH.DATA_TYPES.INVOICE}],
         },
         {
             kind: 'amount',
@@ -12877,7 +12878,7 @@ describe('hasFilterContentValuesChanged', () => {
             ],
             ignored: [
                 {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10'},
-                {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10', [SYNTAX_FILTER_KEYS.MERCHANT]: 'a'},
+                {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10', type: CONST.SEARCH.DATA_TYPES.INVOICE},
             ],
         },
         {
@@ -12886,7 +12887,7 @@ describe('hasFilterContentValuesChanged', () => {
             read: [{[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01'}, {[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-02-01'}],
             ignored: [
                 {[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01'},
-                {[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01', [SYNTAX_FILTER_KEYS.MERCHANT]: 'a'},
+                {[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01', type: CONST.SEARCH.DATA_TYPES.INVOICE},
             ],
         },
         {

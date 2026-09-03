@@ -38,10 +38,10 @@ type MountedFilterState = {
     mountedFilters: Array<SearchFilter['key']>;
 
     /** The filter values each mounted instance was built from. A revisit compares against it. */
-    formAtMount: Partial<Record<SearchFilter['key'], Partial<SearchAdvancedFiltersForm> | undefined>>;
+    formAtMount: Partial<Record<SearchFilter['key'], Partial<SearchAdvancedFiltersForm>>>;
 
     /** The filter values each content was last shown with. It goes on rendering with them while hidden. */
-    formWhileHidden: Partial<Record<SearchFilter['key'], Partial<SearchAdvancedFiltersForm> | undefined>>;
+    formWhileHidden: Partial<Record<SearchFilter['key'], Partial<SearchAdvancedFiltersForm>>>;
 
     /** How many times each content has been remounted. Part of its key, so a bump replaces the instance. */
     contentVersions: Partial<Record<SearchFilter['key'], number>>;
@@ -156,13 +156,13 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         });
     };
     const restTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-    const cancelReadyWaits = () => clearTimeout(restTimeoutRef.current);
+    const cancelReadyWait = () => clearTimeout(restTimeoutRef.current);
     // Drops the wait when the popover closes.
-    useEffect(() => cancelReadyWaits, []);
+    useEffect(() => cancelReadyWait, []);
 
     /** Restarted by every movement, so it elapses only once the cursor has come to rest. */
     const waitForCursorToRest = () => {
-        clearTimeout(restTimeoutRef.current);
+        cancelReadyWait();
         restTimeoutRef.current = setTimeout(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
     };
 
@@ -185,14 +185,14 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
 
     // Nothing is left to wait for once the cursor is gone, so whatever the row it ended on was withholding is released.
     const stopTrackingPointer = () => {
-        cancelReadyWaits();
+        cancelReadyWait();
         restAnchorRef.current = null;
         markShownFilterReady();
     };
 
     // Moving the focus is deliberate and never passes over rows on the way, so nothing is withheld from it.
     const focusFilter = (filterKey: SearchFilter['key']) => {
-        cancelReadyWaits();
+        cancelReadyWait();
         showFilter(filterKey);
         markShownFilterReady();
     };

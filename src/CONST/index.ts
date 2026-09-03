@@ -2139,7 +2139,6 @@ const CONST = {
         SUGGESTION_DEBOUNCE_TIME: 100,
         /** How long the cursor has to rest on an advanced filter row before its content may derive the contact list */
         SEARCH_FILTER_HOVER_INTENT_DELAY: 30,
-
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         USE_DEBOUNCED_STATE_DELAY: 300,
