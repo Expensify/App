@@ -469,7 +469,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这比预期花费的时间更长…',
         domains: '域名',
-        actionRequired: '需要采取操作',
         duplicate: '复制',
         duplicated: '已重复',
         duplicateExpense: '重复报销',
@@ -3630,11 +3629,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         thisBankAccount: '此银行账户将用于您工作区的业务付款',
         accountNumber: '账号编号',
         routingNumber: '路由号码',
-        internationalBankAccountDetails: '国际银行账户信息',
-        internationalBankAccountDetailsTitle: '您的国际账户信息是什么？',
-        internationalBankAccountDetailsSubtitle: '您的其中一个工作区需要国际账户信息来处理报销',
-        iban: 'IBAN',
-        swiftBicCode: 'SWIFT/BIC 代码',
         chooseAnAccountBelow: '在下方选择一个账户',
         addBankAccount: '添加银行账户',
         chooseAnAccount: '选择一个账户',
@@ -3683,8 +3677,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             restrictedBusiness: '请确认该企业不在受限制业务列表中',
             routingNumber: '请输入有效的路由号码',
             accountNumber: '请输入有效的账户号码',
-            iban: '请输入有效的 IBAN',
-            swiftCode: '请输入有效的 SWIFT/BIC 代码',
             routingAndAccountNumberCannotBeSame: '路由号码和账号不能相同',
             companyType: '请选择一个有效的公司类型',
             tooManyAttempts: '由于登录尝试次数过多，此选项已被禁用 24 小时。请稍后重试，或改为手动输入详细信息。',
@@ -5954,6 +5946,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             finishSetup: '完成设置',
             chooseBankAccount: '选择银行账户',
             chooseExistingBank: '选择一个现有的企业银行账户来支付您的 Expensify 卡余额，或添加一个新的银行账户',
+            chooseExistingBankForTravelBilling: '选择一个现有的企业银行账户来支付您的合并差旅账单余额，或添加新银行账户',
             accountEndingIn: '账号末尾为',
             addNewBankAccount: '添加新银行账户',
             settlementAccount: '结算账户',
@@ -6022,7 +6015,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             deleteFailureMessage: '删除类别时出错，请重试',
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
-            autoCategorizeNewExpenses: '自动为新报销分类',
             showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
@@ -7003,6 +6995,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的合并差旅账单结算账户（以 ${lastFourPAN} 结尾）一致，以便连续对账功能正常运行。`,
             },
             syncTravelInvoicingSettlements: '同步合并差旅结算',
+            syncTravelInvoicingSettlementsNoAccountTooltip: '要解锁，请为导出设置一个账户。',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -7943,6 +7937,7 @@ ${reportName}`,
                 requireAboveAmount: '要求高于此金额',
                 saveRule: '保存规则',
                 emptyAmountError: '在保存之前请输入有效金额',
+                receiptAmountGreaterThanItemizedError: '所需收据金额不能大于所需分项收据金额。',
             },
             requireFields: {title: '对所有报销设置必填字段', category: '类别', tag: '标签', save: '保存规则'},
             newRule: {
@@ -9698,7 +9693,7 @@ ${reportName}`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
@@ -9707,34 +9702,38 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '由于银行连接中断，无法自动匹配收据。';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return '由于临时的银行问题，无法自动匹配收据。请稍后重试。';
+            }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return '由于您的银行连接需要重新验证，无法自动匹配收据。';
+                        return '无法自动匹配收据，因为您的银行连接需要重新验证。';
                     }
                     return isMarkAsCash
-                        ? `由于您的银行连接需要重新验证，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>以匹配收据。`
-                        : `由于您的银行连接需要重新验证，无法自动匹配收据。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
+                        ? `无法自动匹配收据，因为你的银行连接需要重新验证。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>来匹配收据。`
+                        : `无法自动匹配收据，因为您的银行连接需要重新验证。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
                 }
-                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请让管理员重新连接以匹配收据。';
+                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请联系管理员重新连接以匹配收据。';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '由于银行连接中断，无法自动匹配收据。';
                 }
                 return isMarkAsCash
-                    ? `由于银行卡连接异常，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">修复银行卡</a>以匹配收据。`
-                    : `由于银行卡连接异常，无法自动匹配收据。请<a href="${connectionLink}">修复银行卡</a>以匹配该收据。`;
+                    ? `由于卡片连接异常，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">修复卡片</a>以匹配收据。`
+                    : `由于卡片连接中断，无法自动匹配收据。请<a href="${connectionLink}">修复此卡</a>以匹配收据。`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin ? `银行连接已断开。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接已断开。请让管理员重新连接以匹配收据。';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `请让 ${member} 将其标记为现金，或等待 7 天后再试` : '正在等待与信用卡交易合并。';
+                return isAdmin ? `请让 ${member} 将其标记为现金，或等待 7 天后重试` : '正在等待与卡片交易合并。';
             }
             return '';
         },
         brokenConnection530Error: '由于银行连接中断，收据待处理',
+        brokenConnection531Error: '由于临时的银行问题，无法自动匹配收据。请稍后重试。',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>由于银行连接中断，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据处于待处理状态。请联系工作区管理员解决。',
