@@ -1,7 +1,7 @@
 import type {TableData} from '@components/Table/types';
 
 import type CONST from '@src/CONST';
-import {getObjectKeys, getObjectValues} from '@src/libs/ObjectUtils';
+import {getObjectKeys, getObjectValues} from '@src/types/utils/ObjectUtils';
 
 import type {ValueOf} from 'type-fest';
 

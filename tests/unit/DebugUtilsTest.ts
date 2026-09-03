@@ -5,7 +5,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
-import {getObjectKeys} from '@libs/ObjectUtils';
 import {getAllReportErrors} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -13,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import {getObjectKeys} from '@src/types/utils/ObjectUtils';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 

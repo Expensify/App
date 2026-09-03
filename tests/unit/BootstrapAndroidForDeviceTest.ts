@@ -1,6 +1,6 @@
 // cspell:ignore appinvite mobilesdk
 
-import {isUnknownArray} from '@libs/ObjectUtils';
+import {isUnknownArray} from '@src/types/utils/ObjectUtils';
 
 import {
     androidApplicationIDs,

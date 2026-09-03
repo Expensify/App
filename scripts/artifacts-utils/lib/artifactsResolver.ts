@@ -1,9 +1,9 @@
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import {isRecord} from '@libs/ObjectUtils';
-
 import {error as logError, info as logInfo, setOutputStream, warn as logWarn} from '@scripts/utils/Logger';
+
+import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import {execFileSync} from 'child_process';
 import fs from 'fs';

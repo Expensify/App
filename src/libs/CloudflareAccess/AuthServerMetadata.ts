@@ -1,11 +1,10 @@
+import CONFIG from '@src/CONFIG';
 /**
  * RFC 8414 authorization server metadata discovery for the QA server's Managed OAuth. The authorize and
  * token endpoints are fetched from the well-known document Cloudflare serves on the QA origin rather than
  * assumed, and validated against the configured team domain before anything is sent to them.
  */
-import {isRecord} from '@libs/ObjectUtils';
-
-import CONFIG from '@src/CONFIG';
+import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import {getQAOrigin} from './Config';
 

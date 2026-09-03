@@ -5,7 +5,6 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
-import {getObjectKeys} from '@libs/ObjectUtils';
 import {
     arePolicyRulesEnabled,
     canMemberRead,
@@ -36,6 +35,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {getObjectKeys} from '@src/types/utils/ObjectUtils';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';

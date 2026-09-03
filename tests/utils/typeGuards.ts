@@ -1,8 +1,8 @@
 import type {GuidedSetupTask} from '@libs/actions/Report';
-import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';

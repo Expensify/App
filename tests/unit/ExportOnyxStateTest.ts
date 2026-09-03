@@ -1,7 +1,7 @@
 import {emailRegex, keysToMask, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
-import {isRecord} from '@libs/ObjectUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isRecord} from '@src/types/utils/ObjectUtils';
 
 describe('maskOnyxState', () => {
     const mockSession = {

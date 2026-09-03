@@ -1,11 +1,10 @@
+import CONST from '@src/CONST';
 /**
  * Parks the in-flight authorize round trip across the page unload: navigating to Cloudflare destroys module
  * memory, so the verifier, state and return URL survive here. sessionStorage because it is synchronous,
  * scoped to the tab that started the flow and dropped when the tab closes.
  */
-import {isRecord} from '@libs/ObjectUtils';
-
-import CONST from '@src/CONST';
+import {isRecord} from '@src/types/utils/ObjectUtils';
 
 /** Cloudflare's authorization codes are short-lived anyway. An older record is treated as absent */
 const PENDING_AUTH_FLOW_TTL_MS = 10 * 60 * 1000;

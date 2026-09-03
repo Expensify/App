@@ -3,10 +3,10 @@
  * Nothing in the app routes to QA yet, so this is the only way to exercise the whole flow end to end.
  */
 import fetchWithQAAuth, {CF_REAUTH_REQUIRED} from '@libs/CloudflareAccess/fetchWithQAAuth';
-import {isRecord} from '@libs/ObjectUtils';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import {
     redirectToCloudflareSignIn,

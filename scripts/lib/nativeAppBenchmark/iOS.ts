@@ -1,6 +1,6 @@
 // cspell:ignore BEGINSWITH devicectl
 
-import {isRecord} from '@libs/ObjectUtils';
+import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import {existsSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';

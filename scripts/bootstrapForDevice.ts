@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // cspell:ignore apos noverify smime
 
-import {isRecord, isUnknownArray} from '@libs/ObjectUtils';
+import {isRecord, isUnknownArray} from '@src/types/utils/ObjectUtils';
 
 import type {TupleToUnion} from 'type-fest';
 

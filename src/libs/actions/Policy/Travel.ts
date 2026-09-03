@@ -3,7 +3,6 @@ import type {EnablePolicyTravelParams, SetPolicyTravelSettingsParams} from '@lib
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {getObjectKeys} from '@libs/ObjectUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -11,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {getObjectKeys} from '@src/types/utils/ObjectUtils';
 
 import type {OnyxEntry} from 'react-native-onyx';
 

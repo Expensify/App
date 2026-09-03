@@ -1,11 +1,11 @@
 import {getUpdateMoneyRequestParams} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists, RecentlyUsedTags, Report, Transaction} from '@src/types/onyx';
+import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import Onyx from 'react-native-onyx';
 

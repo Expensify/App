@@ -2,9 +2,9 @@ import addPushParamsRouterExtension, {resolveCursorForReset} from '@libs/Navigat
 import type {CustomHistoryEntry, PushParamsRouterAction} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import {cancelPendingFocusRestore, notifyPushParamsBackward, notifyPushParamsForward} from '@libs/NavigationFocusReturn';
-import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
+import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 

@@ -4,7 +4,6 @@ import Text from '@components/Text';
 
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 
-import {isRecord} from '@libs/ObjectUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 
 import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
@@ -12,6 +11,7 @@ import useShouldShowComposerForActiveEditDraft from '@pages/inbox/report/useShou
 
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import React from 'react';
 
