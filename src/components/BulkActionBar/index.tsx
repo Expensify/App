@@ -59,7 +59,7 @@ function BulkActionBarContent<TValueType>({selectedCount, options, onClearSelect
             ref={barRef}
             style={styles.bulkActionBar}
         >
-            <Text style={[styles.textStrong, styles.mr1]}>{translate('workspace.common.selected', {count: selectedCount})}</Text>
+            <Text style={[styles.textLabel, styles.textStrong, styles.mr1]}>{translate('workspace.common.selected', {count: selectedCount})}</Text>
             {inlineOptions.map((option) => (
                 <BulkActionBarButton
                     key={option.text}
@@ -71,11 +71,15 @@ function BulkActionBarContent<TValueType>({selectedCount, options, onClearSelect
                 <>
                     <Button
                         ref={moreAnchorRef}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={() => setIsMoreMenuVisible((isVisible) => !isVisible)}
                         accessibilityLabel={translate('common.more')}
                         sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_BAR.MORE}
                     >
-                        <Button.Icon src={icons.ThreeDots} />
+                        <Button.Icon
+                            src={icons.ThreeDots}
+                            hoverFill={theme.iconMenuHovered}
+                        />
                         <Button.Text>{translate('common.more')}</Button.Text>
                         <Button.Icon src={isMoreMenuVisible ? icons.UpArrow : icons.DownArrow} />
                     </Button>

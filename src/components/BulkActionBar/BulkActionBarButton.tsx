@@ -3,6 +3,7 @@ import PopoverMenu from '@components/PopoverMenu';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import useTheme from '@hooks/useTheme';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -20,6 +21,7 @@ import {defaultPopoverAnchorPosition, SUB_MENU_ANCHOR_ALIGNMENT} from './popover
  * those items in a menu above itself; every other action runs `onSelected` directly.
  */
 function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkActionBarButtonProps<TValueType>) {
+    const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -50,11 +52,17 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
 
                     option.onSelected?.();
                 }}
+                size={CONST.BUTTON_SIZE.SMALL}
                 isDisabled={option.disabled}
                 accessibilityLabel={option.text}
                 sentryLabel={option.sentryLabel}
             >
-                {!!option.icon && <Button.Icon src={option.icon} />}
+                {!!option.icon && (
+                    <Button.Icon
+                        src={option.icon}
+                        hoverFill={theme.iconMenuHovered}
+                    />
+                )}
                 <Button.Text>{option.text}</Button.Text>
                 {hasSubMenu && <Button.Icon src={isMenuVisible ? icons.UpArrow : icons.DownArrow} />}
             </Button>
