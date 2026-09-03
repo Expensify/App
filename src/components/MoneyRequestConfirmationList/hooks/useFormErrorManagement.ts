@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields, isMerchantMissing} from '@libs/TransactionUtils';
-import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
+import {isInvalidMerchantValue, isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
@@ -172,7 +172,7 @@ function useFormErrorManagement({
             return false;
         }
 
-        if (!trimmedMerchant) {
+        if (!trimmedMerchant || isUntypedPlaceholderMerchant(transaction?.isMerchantSet, trimmedMerchant)) {
             return !isMerchantRequired;
         }
 

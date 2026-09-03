@@ -1,9 +1,9 @@
+import DeferredImageWithLoading from '@components/DeferredImageWithLoading';
 import EReceiptStaticThumbnail from '@components/EReceiptStaticThumbnail';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
-import ImageWithLoading from '@components/ImageWithLoading';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import LocalPDFReceiptPreview from '@components/ReportActionItem/LocalPDFReceiptPreview';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -249,7 +249,7 @@ function ReceiptImage({
     }
 
     return (
-        <ImageWithLoading
+        <DeferredImageWithLoading
             onLayout={(e) => {
                 if (e.nativeEvent.layout.width !== receiptImageWidth && e.timeStamp - lastUpdateWidthTimestampRef.current > MIN_UPDATE_WIDTH_DIFF) {
                     setReceiptImageWidth(e.nativeEvent.layout.width);

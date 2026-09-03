@@ -1,5 +1,5 @@
-import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData} from '@libs/actions/IOU/DeleteMoneyRequest';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -34,7 +34,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -111,8 +111,8 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
     });
 
     beforeEach(() => {
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -254,7 +254,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             );
             expect(createIOUAction).toBeTruthy();
             expect(createIOUAction?.reportID).toBe(iouReport?.reportID);
-            thread = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${createIOUAction?.childReportID}`)) as OptimisticChatReport;
+            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${createIOUAction?.childReportID}`);
+            if (!transactionThread) {
+                throw new Error('Expected the transaction thread report to exist');
+            }
+            thread = transactionThread;
 
             // When fetching all transactions from Onyx
             let allTransactions: OnyxCollection<Transaction>;
@@ -547,6 +551,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -654,6 +659,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -698,7 +704,6 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                         name: '',
                         owner: '',
                         outputCurrency: '',
-                        isPolicyExpenseChatEnabled: false,
                     },
                     policyTagList: {},
                     policyCategories: {},
@@ -708,6 +713,8 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     policyRecentlyUsedCurrencies: [],
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
             }
             await waitForBatchedUpdates();
@@ -787,6 +794,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -933,6 +941,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -1159,7 +1168,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(iouReport).toHaveProperty('chatReportID');
             expect(iouReport?.total).toBe(30000);
 
-            const iouPreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
+            const iouPreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewReportAction(chatReport.reportID, iouReport.reportID) : undefined;
             expect(iouPreview).toBeTruthy();
             expect(getReportActionText(iouPreview)).toBe('rory@expensifail.com owes $300.00');
 
@@ -1260,6 +1269,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1446,6 +1456,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1469,7 +1480,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
 
             // When a comment is added
-            let iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            let iouPreview = getReportPreviewReportAction(chatReport?.reportID, iouReport?.reportID);
             const ancestors = [];
             ancestors.push(...(iouReport && createIOUAction ? [{report: iouReport, reportAction: createIOUAction, shouldDisplayNewMarker: false}] : []));
             ancestors.push(...(chatReport && iouPreview ? [{report: chatReport, reportAction: iouPreview, shouldDisplayNewMarker: false}] : []));
@@ -1513,7 +1524,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(createIOUAction?.childVisibleActionCount).toEqual(1);
             expect(createIOUAction?.childCommenterCount).toEqual(1);
 
-            iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            iouPreview = getReportPreviewReportAction(chatReport?.reportID, iouReport?.reportID);
             expect(iouPreview).toBeTruthy();
             expect(iouPreview?.childVisibleActionCount).toEqual(1);
             expect(iouPreview?.childCommenterCount).toEqual(1);
@@ -1541,7 +1552,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
 
-            iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            iouPreview = getReportPreviewReportAction(chatReport?.reportID, iouReport?.reportID);
             expect(iouPreview).toBeTruthy();
             expect(iouPreview?.childVisibleActionCount).toEqual(0);
             expect(iouPreview?.childCommenterCount).toEqual(0);
@@ -1551,7 +1562,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            iouPreview = getReportPreviewReportAction(chatReport?.reportID, iouReport?.reportID);
             expect(iouPreview).toBeTruthy();
             expect(iouPreview?.childVisibleActionCount).toEqual(0);
             expect(iouPreview?.childCommenterCount).toEqual(0);
@@ -2200,6 +2211,50 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             expect(afterSecond?.reportName).toBe(ORIGINAL_TITLE);
             mockFetch?.resume?.();
+        });
+    });
+
+    describe('getCleanUpTransactionThreadReportOnyxData', () => {
+        it('uses transactionThreadReportActionsParam for the failureData rollback when provided', () => {
+            const transactionThreadID = 'thread-1';
+            const passedInReportActions: ReportActions = {action1: createRandomReportAction(1)};
+
+            const result = getCleanUpTransactionThreadReportOnyxData({
+                transactionThreadID,
+                shouldDeleteTransactionThread: true,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionThreadReportActionsParam: passedInReportActions,
+            });
+
+            const failureReportActionsEntry = result.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`);
+            expect(failureReportActionsEntry?.value).toEqual(passedInReportActions);
+        });
+
+        it('falls back to the cached report actions when transactionThreadReportActionsParam is not provided', async () => {
+            const transactionThreadID = 'thread-2';
+            const cachedReportActions: ReportActions = {action1: createRandomReportAction(2)};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`, cachedReportActions);
+            await waitForBatchedUpdates();
+
+            const result = getCleanUpTransactionThreadReportOnyxData({
+                transactionThreadID,
+                shouldDeleteTransactionThread: true,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+            });
+
+            const failureReportActionsEntry = result.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`);
+            expect(failureReportActionsEntry?.value).toEqual(cachedReportActions);
+        });
+
+        it('does not push transaction-thread report/report-action data when shouldDeleteTransactionThread is false', () => {
+            const result = getCleanUpTransactionThreadReportOnyxData({
+                shouldDeleteTransactionThread: false,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionThreadReportActionsParam: {action1: createRandomReportAction(3)},
+            });
+
+            expect(result.optimisticData.some((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))).toBe(false);
+            expect(result.failureData.some((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))).toBe(false);
         });
     });
 });

@@ -179,7 +179,6 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
                     ) : (
                         <AccountAvatar
                             containerStyle={styles.actionAvatar}
-                            shouldShowTooltip
                             accountID={accountID}
                         />
                     )}

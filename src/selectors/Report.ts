@@ -43,6 +43,65 @@ function getReportOwnerAccountID(report: OnyxEntry<Report>) {
     return report?.ownerAccountID;
 }
 
+function getReportParentReportID(report: OnyxEntry<Report>) {
+    return report?.parentReportID;
+}
+
+/** Which report-type avatar wrapper the `ReportAvatar` dispatcher should render for this report. */
+function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT_AVATAR_KIND> | undefined {
+    if (!report) {
+        return undefined;
+    }
+
+    switch (report.type) {
+        case CONST.REPORT.TYPE.EXPENSE:
+            return CONST.REPORT_AVATAR_KIND.EXPENSE;
+        case CONST.REPORT.TYPE.IOU:
+            return CONST.REPORT_AVATAR_KIND.IOU;
+        case CONST.REPORT.TYPE.TASK:
+            return CONST.REPORT_AVATAR_KIND.TASK;
+        case CONST.REPORT.TYPE.INVOICE:
+            return CONST.REPORT_AVATAR_KIND.INVOICE;
+        case CONST.REPORT.TYPE.CHAT:
+            if (isThread(report)) {
+                return CONST.REPORT_AVATAR_KIND.CHAT_THREAD;
+            }
+            break;
+        case undefined:
+            // Legacy `getIcons` classifies chats purely off chatType, so a chat row whose `type` hasn't populated
+            // yet still routes by its chatType. Without either field there is nothing to route on.
+            break;
+        default:
+            return CONST.REPORT_AVATAR_KIND.DEFAULT;
+    }
+
+    switch (report.chatType) {
+        case CONST.REPORT.CHAT_TYPE.GROUP:
+            return CONST.REPORT_AVATAR_KIND.GROUP_CHAT;
+        case CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT:
+            return CONST.REPORT_AVATAR_KIND.POLICY_EXPENSE_CHAT;
+        case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE:
+        case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS:
+        case CONST.REPORT.CHAT_TYPE.POLICY_ROOM:
+        case CONST.REPORT.CHAT_TYPE.DOMAIN_ALL:
+        case CONST.REPORT.CHAT_TYPE.INVOICE:
+            return CONST.REPORT_AVATAR_KIND.ROOM;
+        default:
+            // DM, self-DM, system, trip room and anything unclassified
+            return CONST.REPORT_AVATAR_KIND.DEFAULT;
+    }
+}
+
+/** The report fields `GroupChatAvatar` renders from: the custom avatar plus what `getGroupChatName` needs for the tooltip name */
+type GroupChatAvatarReport = Pick<Report, 'reportID' | 'avatarUrl' | 'reportName' | 'participants'>;
+
+function groupChatAvatarReportSelector(report: OnyxEntry<Report>): GroupChatAvatarReport | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {reportID: report.reportID, avatarUrl: report.avatarUrl, reportName: report.reportName, participants: report.participants};
+}
+
 const policyIDsWithEmptyReportsSelector =
     (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>, hasDismissedEmptyReportsConfirmation: boolean) => (reports: OnyxCollection<Report>) => {
         if (hasDismissedEmptyReportsConfirmation || !accountID) {
@@ -167,7 +226,27 @@ type StableReport = Omit<Report, TupleToUnion<ExcludedFields>>;
  *
  * When adding a new `Report` field: include it in the return object below; only add to
  * `ExcludedFields` if it updates on every message/read and the subtree does not read it.
+ *
+ * Onyx merge replaces arrays wholesale even when their content is identical (arrays are
+ * non-mergeable leaf values compared by reference), so `report.permissions` can arrive with a new
+ * reference on every report push. Intern the array by content so the projection keeps a stable
+ * reference and downstream shallow-equality (snapshot cache, memoized subtrees) holds.
+ * The cache is bounded: values are combinations of the few CONST.REPORT.PERMISSIONS members.
  */
+const stablePermissionsByContent = new Map<string, Report['permissions']>();
+function getStablePermissions(permissions: Report['permissions']): Report['permissions'] {
+    if (!permissions) {
+        return permissions;
+    }
+    const contentKey = permissions.join(',');
+    const cached = stablePermissionsByContent.get(contentKey);
+    if (cached) {
+        return cached;
+    }
+    stablePermissionsByContent.set(contentKey, permissions);
+    return permissions;
+}
+
 function getStableReportSelector(report: OnyxEntry<Report>) {
     if (!report?.reportID) {
         return undefined;
@@ -181,6 +260,10 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         submitterUserID: report.submitterUserID,
         submitterPayrollID: report.submitterPayrollID,
         orderDealNumbers: report.orderDealNumbers,
+        debitedAmount: report.debitedAmount,
+        debitedCurrency: report.debitedCurrency,
+        creditedAmount: report.creditedAmount,
+        creditedCurrency: report.creditedCurrency,
         chatType: report.chatType,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         hasOutstandingChildTask: report.hasOutstandingChildTask,
@@ -230,7 +313,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         nonReimbursableTotal: report.nonReimbursableTotal,
         privateNotes: report.privateNotes,
         fieldList: report.fieldList,
-        permissions: report.permissions,
+        permissions: getStablePermissions(report.permissions),
         tripData: report.tripData,
         welcomeMessage: report.welcomeMessage,
         nextStep: report.nextStep,
@@ -246,11 +329,14 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
 export {
     getArchiveReason,
     getReportChatType,
+    groupChatAvatarReportSelector,
     getReportOwnerAccountID,
+    getReportParentReportID,
     getReportPolicyID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
+    reportAvatarKindSelector,
     createMoveExpenseReportNVPSelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,

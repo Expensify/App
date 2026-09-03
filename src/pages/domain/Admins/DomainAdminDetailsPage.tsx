@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -16,6 +17,7 @@ import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDeta
 
 import {revokeDomainAdminAccess} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -61,7 +63,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             cancelText: translate('common.cancel'),
 
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (confirmResult.action !== ModalActions.CONFIRM) {
             return;
@@ -77,7 +79,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             accountID={accountID}
         >
             {domainHasOnlyOneAdmin && (
-                <MenuItem
+                <MenuItemAction
                     title={translate('domain.admins.resetDomain')}
                     icon={icons.ClosedSign}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}

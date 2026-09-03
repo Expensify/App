@@ -134,7 +134,7 @@ function TransactionItemRowWide({
     totalPerAttendee,
     transactionThreadReportID,
     createdAt,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: TransactionItemRowWideProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -143,8 +143,8 @@ function TransactionItemRowWide({
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const reportPolicyID = report?.policyID ?? transactionItem.report?.policyID;
-    const effectivePolicyID = isExpenseUnreported(transactionItem) ? policyForMovingExpensesID : reportPolicyID;
+    const reportPolicyID = [report?.policyID, transactionItem.report?.policyID, transactionItem.policyID, transactionItem.policy?.id].find((policyID): policyID is string => !!policyID);
+    const effectivePolicyID = reportPolicyID ?? (isExpenseUnreported(transactionItem) ? policyForMovingExpensesID : undefined);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -157,7 +157,6 @@ function TransactionItemRowWide({
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
-    const submittedViolations = getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID, translate);
     const hasValidationMessage = shouldShowErrors && (!!missingFieldError || !!violations?.length);
     let fullHeightMainRowStyle;
     if (shouldUseFullHeightEditableCellHoverTarget) {
@@ -206,6 +205,7 @@ function TransactionItemRowWide({
                             canEdit={canEditTag}
                             onSave={onEditTag}
                             policyID={effectivePolicyID}
+                            policy={policy}
                         />
                     </View>
                 );
@@ -215,7 +215,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
                     >
-                        <TextCell text={submittedViolations} />
+                        <TextCell text={getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID, translate)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
@@ -249,7 +249,7 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isDateColumnWide, isSubmittedColumnWide})]}
                     >
                         <DateCell
-                            date={report?.submitted ?? ''}
+                            date={transactionItem.submitted ?? report?.submitted ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                             shouldUseLocalTimeZone
@@ -263,7 +263,7 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide})]}
                     >
                         <DateCell
-                            date={report?.approved ?? ''}
+                            date={transactionItem.approved ?? report?.approved ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                             shouldUseLocalTimeZone
@@ -359,7 +359,7 @@ function TransactionItemRowWide({
                                 amount={getReimbursableTotal(report)}
                                 chatReport={chatReport}
                                 shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
-                                isMarkAsDone={isMarkAsDone}
+                                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                             />
                         )}
                     </View>

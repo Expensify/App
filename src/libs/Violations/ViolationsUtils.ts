@@ -23,6 +23,7 @@ import {
     isMatchingVendorListLoaded,
     isTaxTrackingEnabled,
     isXeroActiveMatchingSource,
+    resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -65,7 +66,7 @@ type ViolationTranslationParams = {
     connectionLink?: string;
     card?: Card;
     isMarkAsCash?: boolean;
-    routeDistanceMeters?: number;
+    routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
 };
 
@@ -367,7 +368,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!taxCode || !policyTaxRates) {
                 return !taxCode;
             }
-            const matchingTaxRate = policyTaxRates[taxCode];
+            const matchingTaxRate = policyTaxRates[resolveCurrentTaxCode({taxRates: {taxes: policyTaxRates}}, taxCode)];
             if (!matchingTaxRate || matchingTaxRate.isDisabled) {
                 return false;
             }
@@ -681,8 +682,10 @@ const ViolationsUtils = {
         }
 
         const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;
-        const inputDate = new Date(updatedTransaction.modifiedCreated ?? updatedTransaction.created);
-        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
+        // `getCreated` rather than `modifiedCreated ?? created`: the backend sends `modifiedCreated: ''` when the date
+        // was never edited, and `??` only falls back on null/undefined, so the empty string would win.
+        const inputDate = TransactionUtils.getCreated(updatedTransaction);
+        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isTransactionDateFuture(inputDate) && isControlPolicy;
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasItemizedReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -699,7 +702,8 @@ const ViolationsUtils = {
 
         // A disabled tax rate keeps its key (just `isDisabled: true`) but isn't valid, so it stays out of policy. A
         // key-only check would treat it as in-policy and drop the violation on any unrelated recompute (e.g. tag delete).
-        const taxRate = updatedTransaction.taxCode ? policy.taxRates?.taxes?.[updatedTransaction.taxCode] : undefined;
+        // The code is resolved first so a rate whose code was renamed isn't reported as out of policy.
+        const taxRate = updatedTransaction.taxCode ? policy.taxRates?.taxes?.[resolveCurrentTaxCode(policy, updatedTransaction.taxCode)] : undefined;
         const isTaxRateValid = !!taxRate && !taxRate.isDisabled;
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
@@ -1201,7 +1205,7 @@ const ViolationsUtils = {
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, currentUserEmail, policy) &&
-                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)
                 );
             });
         });

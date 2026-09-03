@@ -1,3 +1,4 @@
+import '@libs/Middleware/register';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -138,7 +139,6 @@ const mockTransaction: TransactionListItemType = {
         owner: 'test@test.com',
         name: 'Policy',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: true,
     },
     reportAction: {
         reportActionID: '2454187434077044186',
@@ -336,7 +336,6 @@ describe('TransactionGroupListItem', () => {
         onSelectRow: mockOnSelectRow,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
-        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
@@ -460,7 +459,6 @@ describe('Empty Report Selection', () => {
         onSelectionButtonPress: mockOnCheckboxPress,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
-        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
@@ -685,7 +683,6 @@ describe('Lazily loaded group selection', () => {
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE,
         groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
         canSelectMultiple: true,
-        keyForList: 'Advertising',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {

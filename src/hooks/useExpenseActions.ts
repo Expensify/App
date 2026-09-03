@@ -14,6 +14,7 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
@@ -23,7 +24,6 @@ import {
     getAddExpenseDropdownOptions,
     getPolicyExpenseChat,
     isDM,
-    isOpenReport,
     isSelfDM,
     navigateOnDeleteExpense,
 } from '@libs/ReportUtils';
@@ -54,10 +54,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {ValueOf} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
+import useBlockDistanceRequest from './useBlockDistanceRequest';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -65,7 +65,6 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
-import useEnvironment from './useEnvironment';
 import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -101,7 +100,6 @@ type UseExpenseActionsReturn = {
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -145,7 +143,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
@@ -156,6 +154,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -190,9 +190,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Split indicator
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID, false).length > 1;
-    const isReportOpen = isOpenReport(moneyRequestReport);
-    const hasSplitIndicator = isExpenseSplit && (hasMultipleSplits || (isProduction && isReportOpen));
+    const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID).length > 1;
+    const hasSplitIndicator = isExpenseSplit && hasMultipleSplits;
     const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
 
     // Duplicate report throttle
@@ -288,10 +287,16 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 policyTagList,
                 formatPhoneNumber,
                 participantsPolicyTags,
+                conciergeChat,
             });
         }
     };
 
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
     const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
         translate,
         icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight']),
@@ -301,8 +306,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         draftTransactionIDs,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        lastDistanceExpenseType,
+        lastDistanceExpenseType: distanceExpenseType,
         currentUserAccountID: accountID,
+        blockDistanceRequestIfNeeded,
     });
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -341,7 +347,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     personalPolicy?.outputCurrency,
                     getCurrencyDecimals,
                     getCurrencySymbol,
-                    {isProduction},
                 );
             },
         },
@@ -464,6 +469,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     formatPhoneNumber,
                     getCurrencyDecimals,
                     participantsPolicyTags: reportDuplicateParticipantsPolicyTags,
+                    conciergeChat,
                 });
             },
         },
@@ -533,7 +539,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         prompt: getDeleteConfirmationPrompt(translate, transaction),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
 
                     if (result.action !== ModalActions.CONFIRM) {
@@ -595,7 +601,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     prompt: translate('iou.deleteReportConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
-                    danger: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 });
                 if (result.action !== ModalActions.CONFIRM) {
                     return;

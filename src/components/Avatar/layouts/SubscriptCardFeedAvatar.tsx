@@ -1,5 +1,6 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import Icon from '@components/Icon';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,7 +12,6 @@ import {getCardFeedIcon} from '@libs/CardUtils';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
@@ -22,7 +22,6 @@ import {View} from 'react-native';
 
 import type {BaseAvatarProps} from './types';
 
-import Avatar from '..';
 import SubscriptAvatarFrame from './SubscriptAvatarFrame';
 
 type SubscriptCardFeedAvatarProps = BaseAvatarProps & {
@@ -47,7 +46,6 @@ function SubscriptCardFeedAvatar({
     primaryAvatar,
     cardFeed,
     size,
-    shouldShowTooltip,
     subscriptAvatarBorderColor,
     fallbackDisplayName,
     containerStyle,
@@ -67,29 +65,17 @@ function SubscriptCardFeedAvatar({
             size={size}
             containerStyle={containerStyle}
             primary={
-                <UserDetailsTooltip
-                    shouldRender={shouldShowTooltip}
-                    accountID={Number(primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-                    icon={primaryAvatar}
-                    fallbackUserDetails={{
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: fallbackDisplayName || primaryAvatar.name,
-                    }}
+                <AvatarTooltip
+                    avatar={primaryAvatar}
+                    fallbackDisplayName={fallbackDisplayName}
                 >
-                    <View>
-                        <Avatar
-                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
-                            type={primaryAvatar.type}
-                            source={primaryAvatar.source}
-                            name={primaryAvatar.name ?? ''}
-                            avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                            fallbackIcon={primaryAvatar.fallbackIcon}
-                            fill={primaryAvatar.fill}
-                            size={size}
-                            testID="ReportActionAvatars-Subscript-MainAvatar"
-                        />
-                    </View>
-                </UserDetailsTooltip>
+                    <AvatarFromIcon
+                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
+                        icon={primaryAvatar}
+                        size={size}
+                        testID="ReportActionAvatars-Subscript-MainAvatar"
+                    />
+                </AvatarTooltip>
             }
             secondary={
                 <View

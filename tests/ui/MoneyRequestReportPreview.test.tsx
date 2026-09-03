@@ -176,14 +176,15 @@ const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequest
     );
 };
 
-const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
+const getTransactionDisplayAmountAndMetadataText = (transaction: Transaction) => {
     const created = getFormattedCreated(transaction);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, undefined);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
-    const cashOrCard = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
-    const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
+    // The date leads the supporting line, which can also carry the category and the report status.
+    const transactionSupportingText = new RegExp(`^${date}`);
+    const transactionTypeText = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
     const transactionDisplayAmount = TestHelper.convertToDisplayString(-transaction.amount, transaction.currency);
-    return {transactionHeaderText, transactionDisplayAmount};
+    return {transactionSupportingText, transactionTypeText, transactionDisplayAmount};
 };
 
 const setCurrentWidth = () => {
@@ -273,10 +274,11 @@ describe('MoneyRequestReportPreview', () => {
         expect(screen.getByText(getReportName(mockIOUReport))).toBeOnTheScreen();
 
         for (const transaction of arrayOfTransactions) {
-            const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
+            const {transactionDisplayAmount, transactionSupportingText, transactionTypeText} = getTransactionDisplayAmountAndMetadataText(transaction);
 
             expect(screen.getAllByText(transactionDisplayAmount).length).toBeGreaterThan(0);
-            expect(screen.getAllByText(transactionHeaderText)).toHaveLength(arrayOfTransactions.length);
+            expect(screen.getAllByText(transactionSupportingText)).toHaveLength(arrayOfTransactions.length);
+            expect(screen.getAllByText(transactionTypeText)).toHaveLength(arrayOfTransactions.length);
             expect(screen.getAllByText(transaction.merchant)).toHaveLength(arrayOfTransactions.length);
         }
     });
@@ -362,6 +364,76 @@ describe('MoneyRequestReportPreview', () => {
         });
         await waitForBatchedUpdatesWithAct();
         expect(screen.getAllByText(TestHelper.translateLocal('violations.reviewRequired'))).toHaveLength(2);
+    });
+
+    it('renders the rejected report message when the report was rejected back to the submitter', async () => {
+        setReportPreviewData({
+            iouReport: {
+                ...mockIOUReport,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                nextStep: {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: mockIOUReport.ownerAccountID,
+                },
+            },
+        });
+
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+        await act(async () => {
+            await Onyx.multiSet(mockOnyxTransactions);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(TestHelper.translateLocal('iou.rejectReport.rejectedReportMessage'))).toBeOnTheScreen();
+    });
+
+    it('does not render the rejected report message for a draft report that was never rejected', async () => {
+        setReportPreviewData({
+            iouReport: {
+                ...mockIOUReport,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            },
+        });
+
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+        await act(async () => {
+            await Onyx.multiSet(mockOnyxTransactions);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(TestHelper.translateLocal('iou.rejectReport.rejectedReportMessage'))).not.toBeOnTheScreen();
+    });
+
+    it('does not render the rejected report message when the report was rejected to a previous approver', async () => {
+        setReportPreviewData({
+            iouReport: {
+                ...mockIOUReport,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                nextStep: {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: mockIOUReport.managerID,
+                },
+            },
+        });
+
+        renderPage({});
+        await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
+        await act(async () => {
+            await Onyx.multiSet(mockOnyxTransactions);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(TestHelper.translateLocal('iou.rejectReport.rejectedReportMessage'))).not.toBeOnTheScreen();
     });
 
     it('renders a skeleton if the transaction is empty', async () => {

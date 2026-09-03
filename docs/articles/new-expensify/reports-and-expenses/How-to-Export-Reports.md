@@ -1,8 +1,8 @@
 ---
 title: How to Export Reports
 description: Learn how to export reports to CSV, download them as PDFs, or download their receipts.
-keywords: [New Expensify, export reports, CSV export, PDF download, download report, download receipts, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data]
-internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), downloading reports as PDF (individually and in bulk), and downloading the receipts on a report. Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
+keywords: [New Expensify, export reports, CSV export, PDF download, download report, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data]
+internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), downloading reports as PDF (individually and in bulk), and downloading the receipts on a report (individually and in bulk). Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
 # How to export reports 
@@ -46,7 +46,7 @@ Use **Export current view** to download a CSV that matches the columns currently
 5. Select **Export**.
 6. Select **Export current view**.
 
-The CSV uses the same columns displayed on the page. **Export current view** is not available when a **Group by** filter is applied.
+The CSV uses the same columns displayed on the page.
 
 ## What export templates can I choose from? 
 
@@ -55,6 +55,7 @@ Expensify offers pre-built export templates, or you can build your own custom ex
    - **Basic export** - Essential fields including date, amount, merchant, category, and receipt URL.
    - **All Data - expense level** - One row per expense on the report with all available data fields.
    - **All Data - report level** - One row per report with all available data fields.
+   - **Canadian Multiple Tax Export** - One row per expense with a separate column for each tax (such as GST and PST). This template only appears when the workspace's output currency is set to CAD.
    - **Custom templates** - Any custom template created by you or your Workspace Admin, if available.
 
 **Note** Currently, it's not possible to build custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify when exporting reports. [Learn how to build a custom export template in Expensify Classic](/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template).  
@@ -67,6 +68,8 @@ Expensify offers pre-built export templates, or you can build your own custom ex
 4. Select **Download as PDF**.
 
 The PDF includes all expenses, attached receipts, and report notes.
+
+For reports on a Submit workspace, the PDF also includes an **Approve or Pay** button and QR code that let your approver open and approve the report online.
 
 ## How to download multiple reports as PDFs
 
@@ -90,6 +93,18 @@ You can download every receipt attached to a report in a single ZIP file.
 
 **Note:** **Download receipts** only appears when at least one expense on the report has a receipt.
 
+## How to download the receipts on multiple reports
+
+You can download the receipts on several reports at once in a single ZIP file.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
+2. Select the checkbox next to each report whose receipts you want to download, or use the top checkbox to select all.
+3. Select **Selected** at the top.
+4. Select **Download receipts**.
+5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
+
+**Note:** **Download receipts** only appears when at least one selected report has an expense with a receipt.
+
 ---
 
 # FAQ
@@ -104,7 +119,7 @@ When you download multiple reports as PDFs, a message tells you how many of the 
 
 ## Why don't I see Download receipts on a report?
 
-**Download receipts** only appears in the **More** menu when at least one expense on the report has a receipt attached. If none of the expenses have receipts, the option is hidden.
+**Download receipts** only appears when at least one expense has a receipt attached. In a single report's **More** menu, it appears when that report has an expense with a receipt. When you select multiple reports and open **Selected**, it appears only if at least one selected report has an expense with a receipt. If none of the expenses have receipts, the option is hidden.
 
 ## What happens if some receipts fail to download?
 

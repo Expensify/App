@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getSearchValueForConnection} from '@libs/AccountingUtils';
+import {getExportLabelsForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -28,11 +28,6 @@ type ExportedToSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyID: Filter | undefined;
 };
 
-const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
-    [CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
-    [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
-};
-
 function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
     const {localeCompare} = useLocalize();
@@ -41,6 +36,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'XeroSquare',
         'QBOSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
@@ -75,25 +71,28 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
 
         const connectedIntegrationPickerItems = integrationConnectionNames
             .filter((connectionName) => connectedIntegrationNames.has(connectionName))
-            .map((connectionName) => {
-                const icon = getIntegrationIcon(connectionName, expensifyIcons);
-                const leftElement = icon ? (
-                    <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Icon
-                            src={icon}
-                            width={variables.iconSizeXLarge}
-                            height={variables.iconSizeXLarge}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
-                        />
-                    </View>
-                ) : (
-                    tableIconForExportOption(expensifyIcons.Table)
-                );
-                return {
-                    text: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
-                    value: getSearchValueForConnection(connectionName),
-                    leftElement,
-                };
+            .flatMap((connectionName) => {
+                const searchValues = getExportLabelsForConnection(connectionName, policiesToLoadTemplatesFrom);
+                return searchValues.map((searchValue) => {
+                    const isIntuitEnterpriseSuite = searchValue === CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE;
+                    const icon = isIntuitEnterpriseSuite ? expensifyIcons.IntuitSquare : getIntegrationIcon(connectionName, expensifyIcons);
+                    return {
+                        text: searchValue,
+                        value: searchValue,
+                        leftElement: icon ? (
+                            <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                <Icon
+                                    src={icon}
+                                    width={variables.iconSizeXLarge}
+                                    height={variables.iconSizeXLarge}
+                                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE)]}
+                                />
+                            </View>
+                        ) : (
+                            tableIconForExportOption(expensifyIcons.Table)
+                        ),
+                    };
+                });
             });
 
         const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));
@@ -106,13 +105,15 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             }
 
             const displayName = template.name ?? template.templateName ?? '';
-            const filterValue = STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName] ?? displayName;
+
+            // Standard templates are filtered on by the label the backend records for them, while custom templates are filtered on by their display name
+            const isStandardTemplate = isStandardExportTemplate(template.templateName);
+            const filterValue = isStandardTemplate ? getStandardExportTemplateDisplayName(template.templateName) : displayName;
             if (usedPickerValueKeys.has(filterValue)) {
                 continue;
             }
 
             usedPickerValueKeys.add(filterValue);
-            const isStandardTemplate = !!STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName];
             standardAndIntegrationCustomTemplatePickerItems.push({
                 text: displayName,
                 value: filterValue,
