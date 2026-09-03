@@ -13,6 +13,16 @@ import {POLL_INTERVAL_MS, RELAUNCH_DELAY_MS, benchmarkCollectionSpanNames, creat
 
 const IOS_BENCHMARK_DIRECTORY = 'Library/Caches/ExpensifyBenchmark';
 
+type CoreDeviceInstalledApp = {
+    bundleIdentifier: string;
+    url: string;
+};
+type CoreDeviceInstalledAppsResponse = {
+    result: {
+        apps: CoreDeviceInstalledApp[];
+    };
+};
+
 /** Creates an iOS benchmark adapter that manages app state and polls per-span markers through CoreDevice. */
 async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): Promise<NativeAppBenchmarkAdapter> {
     const {run, runAllowFailure} = createCommandHelpers(rootDirectory);
@@ -46,7 +56,7 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
         const processesJSONPath = join(temporaryDirectory, 'processes.json');
         try {
             run('xcrun', ['devicectl', 'device', 'info', 'apps', '--device', device, '--bundle-id', appID, '--json-output', appsJSONPath, '--quiet']);
-            const appsResponse = await readJSONFile(appsJSONPath);
+            const appsResponse = parseIOSInstalledAppsResponse(await readJSONFile(appsJSONPath));
             const appURL = parseIOSInstalledAppURL(appsResponse, appID);
             const escapedAppURL = appURL.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
             run('xcrun', [
@@ -212,14 +222,18 @@ function parseIOSLaunchProcessIdentifier(response: unknown): number {
     return processIdentifier;
 }
 
-/** Finds the installed app's normalized container URL in an untyped CoreDevice response. */
-function parseIOSInstalledAppURL(response: unknown, appID: string): string {
-    if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.apps)) {
+/** Validates the minimal installed-app response shape used by the benchmark adapter. */
+function parseIOSInstalledAppsResponse(response: unknown): CoreDeviceInstalledAppsResponse {
+    if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.apps) || !response.result.apps.every(isCoreDeviceInstalledApp)) {
         throw new Error('CoreDevice returned an unexpected installed-app response.');
     }
-    const apps: unknown[] = response.result.apps;
-    const app: unknown = apps.find((candidate) => isRecord(candidate) && candidate.bundleIdentifier === appID);
-    if (!isRecord(app) || typeof app.url !== 'string') {
+    return {result: {apps: response.result.apps}};
+}
+
+/** Finds the installed app's normalized container URL in a validated CoreDevice response. */
+function parseIOSInstalledAppURL(response: CoreDeviceInstalledAppsResponse, appID: string): string {
+    const app = response.result.apps.find((candidate) => candidate.bundleIdentifier === appID);
+    if (!app) {
         throw new Error(`Unable to find installed iOS app ${appID}.`);
     }
     return app.url.endsWith('/') ? app.url : `${app.url}/`;
@@ -254,4 +268,9 @@ function createTemporaryDirectory(prefix: string): string {
     return mkdtempSync(join(environmentString('TMPDIR') ?? '/tmp', prefix));
 }
 
-export {createIOSAdapter, iOSBenchmarkMarkerPath, parseIOSInstalledAppURL, parseIOSLaunchProcessIdentifier, parseIOSRunningAppProcessIdentifier};
+function isCoreDeviceInstalledApp(value: unknown): value is CoreDeviceInstalledApp {
+    return isRecord(value) && typeof value.bundleIdentifier === 'string' && typeof value.url === 'string';
+}
+
+export {createIOSAdapter, iOSBenchmarkMarkerPath, parseIOSInstalledAppURL, parseIOSInstalledAppsResponse, parseIOSLaunchProcessIdentifier, parseIOSRunningAppProcessIdentifier};
+export type {CoreDeviceInstalledAppsResponse};

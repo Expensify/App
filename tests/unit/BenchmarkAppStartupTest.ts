@@ -8,6 +8,7 @@ import {
     latestBenchmarkEvents,
     parseAndroidProcessIdentifier,
     parseIOSInstalledAppURL,
+    parseIOSInstalledAppsResponse,
     parseBenchmarkLogEvents,
     parseIOSLaunchProcessIdentifier,
     parseIOSRunningAppProcessIdentifier,
@@ -58,7 +59,8 @@ describe('benchmarkAppStartup', () => {
 
     it('finds an already-running iOS app process from CoreDevice output', () => {
         const appID = 'com.example.app';
-        const appURL = parseIOSInstalledAppURL({result: {apps: [{bundleIdentifier: appID, url: 'file:///containers/Example.app'}]}}, appID);
+        const installedAppsResponse = parseIOSInstalledAppsResponse({result: {apps: [{bundleIdentifier: appID, url: 'file:///containers/Example.app'}]}});
+        const appURL = parseIOSInstalledAppURL(installedAppsResponse, appID);
         const processIdentifier = parseIOSRunningAppProcessIdentifier(
             {
                 result: {
@@ -73,6 +75,10 @@ describe('benchmarkAppStartup', () => {
 
         expect(appURL).toBe('file:///containers/Example.app/');
         expect(processIdentifier).toBe(456);
+    });
+
+    it('rejects malformed CoreDevice installed-app responses before using them', () => {
+        expect(() => parseIOSInstalledAppsResponse({result: {apps: [{bundleIdentifier: 'com.example.app'}]}})).toThrow('unexpected installed-app response');
     });
 
     it('validates Android installation and process output', () => {
