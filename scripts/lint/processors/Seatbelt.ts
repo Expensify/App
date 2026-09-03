@@ -4,17 +4,15 @@ import path from 'node:path';
 
 import type {LintMessage, ProcessorContext, SeatbeltOptions, SeatbeltRuleSet} from '../types';
 
+import TSVUtils from '../../utils/TSVUtils';
 import Processor from '../Processor';
 
 const SEATBELT_NAME = 'eslint-seatbelt';
 const SEATBELT_TSV_RELATIVE = 'config/eslint/eslint.seatbelt.tsv';
-const COMMENT_LINE_REGEX = /^\s*#/;
-const NON_EMPTY_LINE_REGEX = /\S+/;
 const DEFAULT_FILE_HEADER = `# ${SEATBELT_NAME} temporarily allowed errors
 # docs: https://github.com/justjake/${SEATBELT_NAME}#readme`;
 
 type SeatbeltFileLine = {
-    encoded?: string;
     filename: string;
     ruleID: string;
     maxErrors: number;
@@ -36,43 +34,21 @@ function ruleSetHas(ruleSet: SeatbeltRuleSet, ruleID: string): boolean {
     return ruleSet === 'all' || ruleSet.has(ruleID);
 }
 
-function encodeLine(line: SeatbeltFileLine): string {
-    return `${JSON.stringify(line.filename)}\t${JSON.stringify(line.ruleID)}\t${line.maxErrors}\n`;
-}
-
-function parseJSONString(value: string | undefined, column: string, index: number): string {
-    if (value === undefined) {
-        throw new Error(`Missing ${column} at line ${index + 1}`);
+function asSeatbeltLine(row: unknown[], lineNumber: number): SeatbeltFileLine {
+    if (row.length !== 3) {
+        throw new Error(`Expected 3 tab-separated JSON values at line ${lineNumber}, instead have ${row.length}`);
     }
-    const parsed: unknown = JSON.parse(value);
-    if (typeof parsed !== 'string') {
-        throw new Error(`Expected ${column} to be a JSON string at line ${index + 1}`);
+    const [filename, ruleID, maxErrors] = row;
+    if (typeof filename !== 'string') {
+        throw new Error(`Expected filename to be a JSON string at line ${lineNumber}`);
     }
-    return parsed;
-}
-
-function parseJSONNumber(value: string | undefined, column: string, index: number): number {
-    if (value === undefined) {
-        throw new Error(`Missing ${column} at line ${index + 1}`);
+    if (typeof ruleID !== 'string') {
+        throw new Error(`Expected ruleID to be a JSON string at line ${lineNumber}`);
     }
-    const parsed: unknown = JSON.parse(value);
-    if (typeof parsed !== 'number') {
-        throw new Error(`Expected ${column} to be a JSON number at line ${index + 1}`);
+    if (typeof maxErrors !== 'number') {
+        throw new Error(`Expected maxErrors to be a JSON number at line ${lineNumber}`);
     }
-    return parsed;
-}
-
-function decodeLine(line: string, index: number): SeatbeltFileLine {
-    const lineParts = line.split('\t');
-    if (lineParts.length !== 3) {
-        throw new Error(`Expected 3 tab-separated JSON strings at line ${index + 1}, instead have ${lineParts.length}`);
-    }
-    return {
-        encoded: line,
-        filename: parseJSONString(lineParts.at(0), 'filename', index),
-        ruleID: parseJSONString(lineParts.at(1), 'ruleID', index),
-        maxErrors: parseJSONNumber(lineParts.at(2), 'maxErrors', index),
-    };
+    return {filename, ruleID, maxErrors};
 }
 
 function parseMaxErrors(lines: SeatbeltFileLine[]): Map<string, number> {
@@ -98,11 +74,10 @@ function toAbsolutePath(seatbeltFile: string, filename: string): string {
 }
 
 function parseSeatbeltTSV(text: string): {data: Map<string, SeatbeltFileData>; comments: string} {
+    const parsed = TSVUtils.parse(text);
     const data = new Map<string, SeatbeltFileData>();
-    const split = text.split(/(?<=\n)/);
-    const lines = split.filter((line) => NON_EMPTY_LINE_REGEX.test(line) && !COMMENT_LINE_REGEX.test(line)).map(decodeLine);
-    const comments = split.filter((line) => COMMENT_LINE_REGEX.test(line)).join('');
-    for (const line of lines) {
+    for (const [index, row] of parsed.rows.entries()) {
+        const line = asSeatbeltLine(row, index + 1);
         let fileState = data.get(line.filename);
         if (!fileState) {
             fileState = {maxErrors: undefined, lines: []};
@@ -110,11 +85,11 @@ function parseSeatbeltTSV(text: string): {data: Map<string, SeatbeltFileData>; c
         }
         fileState.lines.push(line);
     }
-    return {data, comments: comments.trim()};
+    return {data, comments: parsed.comments};
 }
 
 function serializeSeatbeltTSV(data: Map<string, SeatbeltFileData>, comments: string): string {
-    const lines: string[] = [];
+    const rows: unknown[][] = [];
     for (const [filename, fileState] of data) {
         if (fileState.maxErrors) {
             fileState.lines = [];
@@ -123,12 +98,10 @@ function serializeSeatbeltTSV(data: Map<string, SeatbeltFileData>, comments: str
             }
         }
         for (const line of fileState.lines) {
-            line.encoded ??= encodeLine(line);
-            lines.push(line.encoded);
+            rows.push([line.filename, line.ruleID, line.maxErrors]);
         }
     }
-    lines.sort();
-    return comments ? `${comments}\n\n${lines.join('')}` : lines.join('');
+    return TSVUtils.serialize(rows, comments, {sort: true});
 }
 
 function getMaxErrors(data: Map<string, SeatbeltFileData>, relativeFilename: string): Map<string, number> | undefined {
