@@ -1,9 +1,0 @@
-{
-    "extends": "./tsconfig.base.json",
-    "compilerOptions": {
-        "types": ["react-native", "react-native-web", "jest", "node"],
-        "lib": ["DOM", "ESNext"]
-    },
-    "include": ["src/**/__mocks__/**/*", "src/types/**/*.d.ts"],
-    "exclude": ["**/node_modules/*", "**/dist/*"]
-}

@@ -1,0 +1,20 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "moduleSuffixes": [".web", ""]
+    },
+    "include": ["src", "assets", "tests", "jest", "prompts", "__mocks__", "modules"],
+    "exclude": [
+        "**/node_modules/*",
+        "**/dist/*",
+        "tests/tooling",
+        "src/**/*.native.ts",
+        "src/**/*.native.tsx",
+        "src/**/*.ios.ts",
+        "src/**/*.ios.tsx",
+        "src/**/*.android.ts",
+        "src/**/*.android.tsx",
+        "modules/ExpensifyNitroUtils/**"
+    ]
+}

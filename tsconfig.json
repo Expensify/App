@@ -2,9 +2,8 @@
     "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
-        "types": ["react-native", "react-native-web", "jest", "node"],
+        "types": ["react-native", "react-native-web"],
         "lib": ["DOM", "ESNext"],
-        "moduleSuffixes": [".web", ""],
         // Babel reads this config directly and does not resolve its `extends` chain.
         "paths": {
             "@assets/*": ["./assets/*"],
@@ -24,17 +23,21 @@
             "tests/*": ["./tests/*"]
         }
     },
-    "include": ["tests", "jest", "__mocks__", "wdyr.ts", "src/**/__mocks__/**/*", "src/types/**/*.d.ts", "src/types/web/**/*.d.ts", "src/types/app/**/*.d.ts"],
+    "include": ["src", "website", "docs", "assets", "prompts", ".storybook/**/*", ".claude/**/*", "modules", "**/*.nitro/*.ts", "**/*.nitro/*.tsx"],
     "exclude": [
         "**/node_modules/*",
         "**/dist/*",
+        ".github/actions/**/index.js",
+        "**/docs/*",
+        ".claude/worktrees/**",
         "tests/tooling",
-        "src/**/*.native.ts",
-        "src/**/*.native.tsx",
-        "src/**/*.ios.ts",
-        "src/**/*.ios.tsx",
-        "src/**/*.android.ts",
-        "src/**/*.android.tsx",
-        "modules/ExpensifyNitroUtils/**"
+        "src/**/__mocks__/**",
+        "server/libs",
+        "server/plugins",
+        "server/stubs",
+        "evals",
+        ".github",
+        "web/proxy.ts",
+        "config"
     ]
 }
