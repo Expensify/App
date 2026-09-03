@@ -9,7 +9,13 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {
+    getBillableExpensesPendingAction,
+    getCashExpenseReimbursableMode,
+    setPolicyAttendeeTrackingEnabled,
+    setPolicyRequireCompanyCardsEnabled,
+    setWorkspaceEReceiptsEnabled,
+} from '@libs/actions/Policy/Policy';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingEnabled, isCollectPolicy, isMaxExpenseAmountSet, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
@@ -63,7 +69,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'CreditCard', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -119,6 +125,13 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
+
+    // There has to be a card to require before the rule means anything, and either card product counts. The lock has
+    // two reasons on this row, so they lead to different places: Collect goes to the upgrade the other rules use, and
+    // a Control workspace with no cards gets the tooltip pointing at More features instead.
+    const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
+    const areAnyCardsEnabled = !!policy?.areCompanyCardsEnabled || !!policy?.areExpensifyCardsEnabled;
+    const isRequireCompanyCardsLocked = !canWriteRules || isCollect || !areAnyCardsEnabled;
 
     useEffect(() => {
         // The subtitle names the required tag lists, and only the Tags pages fetch them, so it would otherwise read
@@ -261,6 +274,20 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                 {renderMenuItems(policyControlItems)}
                 <View style={[styles.sectionDividerLine, styles.mv3]} />
                 {renderMenuItems(productDefaultItems)}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    wrapperStyle={[styles.pv3]}
+                    isActive={requireCompanyCardsEnabled}
+                    disabled={isRequireCompanyCardsLocked}
+                    showLockIcon={isRequireCompanyCardsLocked}
+                    disabledText={!isCollect && !areAnyCardsEnabled ? translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip') : undefined}
+                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
+                    onToggle={() => (canWriteRules && policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
+                    pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
+                    rowIcon={icons.CreditCard}
+                />
                 <ToggleSettingOptionRow
                     title={translate('workspace.rules.individualExpenseRules.eReceipts')}
                     subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
