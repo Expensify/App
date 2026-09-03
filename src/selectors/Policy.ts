@@ -230,10 +230,12 @@ const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, curren
  * Creates a selector for whether the user belongs to any workspace provisioned for travel, so subscribers only
  * re-render when that answer changes rather than on every policy collection change.
  */
-const createHasTravelEnabledPolicySelector =
+const createHasTravelProvisionedPolicySelector =
     (currentUserLogin: string | undefined) =>
     (policies: OnyxCollection<Policy>): boolean =>
-        Object.values(policies ?? {}).some((policy) => isWorkspaceProvisionedForTravel(policy?.travelSettings) && isPolicyAccessible(policy, currentUserLogin ?? ''));
+        Object.values(policies ?? {}).some(
+            (policy) => (policy?.isTravelProvisioned || isWorkspaceProvisionedForTravel(policy?.travelSettings)) && isPolicyAccessible(policy, currentUserLogin ?? ''),
+        );
 
 /**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
@@ -524,7 +526,7 @@ export {
     hasActiveAdminPoliciesSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
-    createHasTravelEnabledPolicySelector,
+    createHasTravelProvisionedPolicySelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,

@@ -118,6 +118,14 @@ describe('TravelMenuItem', () => {
         expect(mockFABFocusableMenuItem.mock.lastCall?.[0].isVisible).toBe(true);
     });
 
+    it('is visible when a policy summary says another workspace is provisioned', async () => {
+        await seedWorkspaces(WORKSPACE_WITHOUT_TRAVEL_ID, {isTravelEnabled: true, isTravelProvisioned: true});
+        renderMenuItem();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockFABFocusableMenuItem.mock.lastCall?.[0].isVisible).toBe(true);
+    });
+
     it('explains the wrong default workspace instead of opening travel for another workspace', async () => {
         await seedWorkspaces(WORKSPACE_WITHOUT_TRAVEL_ID, {isTravelEnabled: true, travelSettings: provisionedTravelSettings});
         renderMenuItem();

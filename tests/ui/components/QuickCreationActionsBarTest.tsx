@@ -146,7 +146,7 @@ describe('QuickCreationActionsBar - empty report confirmation', () => {
 describe('QuickCreationActionsBar - travel', () => {
     const TRAVEL_POLICY_ID = 'policy-travel-456';
 
-    const seedTravelWorkspaces = async (defaultPolicyID: string, isTravelWorkspaceProvisioned = true) => {
+    const seedTravelWorkspaces = async (defaultPolicyID: string, isTravelWorkspaceProvisioned = true, shouldIncludeTravelSettings = true) => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: CURRENT_USER_EMAIL});
@@ -168,9 +168,11 @@ describe('QuickCreationActionsBar - travel', () => {
                 owner: CURRENT_USER_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
                 isTravelEnabled: true,
-                travelSettings: isTravelWorkspaceProvisioned
-                    ? {spotnanaCompanyID: 'spotnana-company-uuid', associatedTravelDomainAccountID: 'spotnana-entity-uuid', hasAcceptedTerms: true}
-                    : undefined,
+                isTravelProvisioned: isTravelWorkspaceProvisioned,
+                travelSettings:
+                    isTravelWorkspaceProvisioned && shouldIncludeTravelSettings
+                        ? {spotnanaCompanyID: 'spotnana-company-uuid', associatedTravelDomainAccountID: 'spotnana-entity-uuid', hasAcceptedTerms: true}
+                        : undefined,
             });
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, defaultPolicyID);
         });
@@ -187,6 +189,14 @@ describe('QuickCreationActionsBar - travel', () => {
             await Onyx.clear();
         });
         await waitForBatchedUpdatesWithAct();
+    });
+
+    it('shows travel when a policy summary says another workspace is provisioned', async () => {
+        await seedTravelWorkspaces(MOCK_POLICY_ID, true, false);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(translateLocal('workspace.common.travel'))).toBeOnTheScreen();
     });
 
     it('explains the wrong default workspace instead of opening travel for another workspace', async () => {

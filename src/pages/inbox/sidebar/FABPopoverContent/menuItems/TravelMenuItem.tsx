@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
-import {createHasTravelEnabledPolicySelector} from '@src/selectors/Policy';
+import {createHasTravelProvisionedPolicySelector} from '@src/selectors/Policy';
 import {emailSelector} from '@src/selectors/Session';
 
 import {Str} from 'expensify-common';
@@ -32,11 +32,11 @@ function TravelMenuItem() {
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
-    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasTravelEnabledPolicySelector(sessionEmail)});
+    const [hasTravelProvisionedPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasTravelProvisionedPolicySelector(sessionEmail)});
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const isVisible = !!hasTravelEnabledPolicy;
+    const isVisible = !!hasTravelProvisionedPolicy;
 
     const isTravelEnabled =
         !isBlockedFromSpotnanaTravel &&
