@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {appendParam} from '@libs/Url';
 
@@ -396,6 +396,7 @@ describe('actions/Report', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                 );
                 return waitForBatchedUpdates();
             })
@@ -429,7 +430,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false, undefined, undefined, undefined);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false, undefined, undefined, undefined, undefined);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -449,6 +450,48 @@ describe('actions/Report', () => {
             );
     });
 
+    it('clearCreateChatError should only remove the optimistic personal details passed to it', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const OPTIMISTIC_PARTICIPANT_ACCOUNT_ID = 5001;
+        const SETTLED_PARTICIPANT_ACCOUNT_ID = 5002;
+        const REPORT: OnyxTypes.Report = {
+            ...createRandomReport(1, undefined),
+            errorFields: {createChat: {error: 'error'}},
+            participants: {
+                [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [OPTIMISTIC_PARTICIPANT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [SETTLED_PARTICIPANT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+        const REPORT_METADATA: OnyxTypes.ReportMetadata = {isOptimisticReport: true};
+        const PERSONAL_DETAILS: OnyxTypes.PersonalDetailsList = {
+            [OPTIMISTIC_PARTICIPANT_ACCOUNT_ID]: {accountID: OPTIMISTIC_PARTICIPANT_ACCOUNT_ID, login: 'optimistic@test.com', isOptimisticPersonalDetail: true},
+            [SETTLED_PARTICIPANT_ACCOUNT_ID]: {accountID: SETTLED_PARTICIPANT_ACCOUNT_ID, login: 'settled@test.com'},
+        };
+
+        // Given an optimistic report that failed to be created, with one optimistic and one settled participant.
+        // The Onyx personal details list doesn't flag anyone as optimistic, so only the passed personal details can drive the clean up.
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`, REPORT);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, REPORT_METADATA);
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [OPTIMISTIC_PARTICIPANT_ACCOUNT_ID]: {accountID: OPTIMISTIC_PARTICIPANT_ACCOUNT_ID, login: 'optimistic@test.com'},
+            [SETTLED_PARTICIPANT_ACCOUNT_ID]: {accountID: SETTLED_PARTICIPANT_ACCOUNT_ID, login: 'settled@test.com'},
+        });
+
+        return waitForBatchedUpdates()
+            .then(() => {
+                // When the create chat error is cleared with the personal details passed in
+                Report.clearCreateChatError(REPORT, undefined, undefined, TEST_USER_ACCOUNT_ID, undefined, false, undefined, undefined, undefined, PERSONAL_DETAILS);
+                return waitForBatchedUpdates();
+            })
+            .then(async () => {
+                // Then only the optimistic personal details are removed
+                const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                expect(personalDetailsList?.[OPTIMISTIC_PARTICIPANT_ACCOUNT_ID]).toBeUndefined();
+                expect(personalDetailsList?.[SETTLED_PARTICIPANT_ACCOUNT_ID]).toBeDefined();
+            });
+    });
+
     it('clearCreateChatError should not delete the report with introSelected if it is not optimistic report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT: OnyxTypes.Report = {...createRandomReport(1, undefined), errorFields: {createChat: {error: 'error'}}};
@@ -461,7 +504,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false, undefined, undefined, undefined);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false, undefined, undefined, undefined, undefined);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -504,7 +547,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, {isOptimisticReport: true});
         await waitForBatchedUpdates();
 
-        Report.clearCreateChatError(REPORT, undefined, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, betas, false, undefined, undefined, undefined);
+        Report.clearCreateChatError(REPORT, undefined, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, betas, false, undefined, undefined, undefined, undefined);
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -657,7 +700,14 @@ describe('actions/Report', () => {
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
-                Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: USER_1_ACCOUNT_ID});
+                Report.openReport({
+                    hasReportActions: true,
+                    reportID: REPORT_ID,
+                    introSelected: TEST_INTRO_SELECTED,
+                    betas: undefined,
+                    personalDetails: undefined,
+                    currentUserAccountID: USER_1_ACCOUNT_ID,
+                });
                 Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
@@ -1224,6 +1274,7 @@ describe('actions/Report', () => {
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
+                personalDetails: undefined,
                 currentUserAccountID: 1,
             });
         }
@@ -1244,7 +1295,7 @@ describe('actions/Report', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined, currentUserAccountID: 1});
+        Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined, personalDetails: undefined, currentUserAccountID: 1});
         await waitForBatchedUpdates();
 
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
@@ -1268,6 +1319,7 @@ describe('actions/Report', () => {
             newReportObject: {
                 reportID: REPORT_ID,
             },
+            personalDetails: undefined,
             currentUserAccountID: 1,
         });
         await waitForBatchedUpdates();
@@ -1281,6 +1333,73 @@ describe('actions/Report', () => {
         const loadingState = await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`);
         expect(loadingState).not.toHaveProperty('reportID');
         expect(loadingState).not.toHaveProperty('reportName');
+
+        setHasRadio(true);
+        await waitForBatchedUpdates();
+    });
+
+    it('openReport builds the optimistic created action with the owner login from the personal details passed to it', async () => {
+        const REPORT_ID = 'openReport_createdActionOwner';
+        const OWNER_ACCOUNT_ID = 4001;
+        const OWNER_LOGIN = 'owner@test.com';
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        // When a new report is created and the owner is only known by the personal details passed to openReport
+        Report.openReport({
+            hasReportActions: true,
+            reportID: REPORT_ID,
+            introSelected: undefined,
+            betas: undefined,
+            newReportObject: {
+                reportID: REPORT_ID,
+                ownerAccountID: OWNER_ACCOUNT_ID,
+            },
+            personalDetails: {[OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN}},
+            currentUserAccountID: 1,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the optimistic created action is attributed to that owner login
+        const reportActions = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const)) as OnyxTypes.ReportActions | undefined;
+        const createdAction = Object.values(reportActions ?? {}).find((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED));
+        expect(getReportActionMessage(createdAction)?.text).toBe(OWNER_LOGIN);
+
+        setHasRadio(true);
+        await waitForBatchedUpdates();
+    });
+
+    it('openReport creates optimistic personal details for participants missing from the personal details passed to it', async () => {
+        const REPORT_ID = 'openReport_optimisticParticipants';
+        const PARTICIPANT_ACCOUNT_ID = 4002;
+        const PARTICIPANT_LOGIN = 'participant@test.com';
+
+        // Given a participant whose personal details are stored in Onyx
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}});
+        await waitForBatchedUpdates();
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        // When a new report is created and the personal details passed to openReport don't contain that participant
+        Report.openReport({
+            hasReportActions: true,
+            reportID: REPORT_ID,
+            introSelected: undefined,
+            betas: undefined,
+            participants: [{login: PARTICIPANT_LOGIN}],
+            newReportObject: {
+                reportID: REPORT_ID,
+            },
+            personalDetails: {},
+            currentUserAccountID: 1,
+        });
+        await waitForBatchedUpdates();
+
+        // Then optimistic personal details are built for them, so openReport reads the passed value instead of the Onyx store
+        const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetailsList?.[PARTICIPANT_ACCOUNT_ID]?.isOptimisticPersonalDetail).toBe(true);
 
         setHasRadio(true);
         await waitForBatchedUpdates();
@@ -1352,6 +1471,9 @@ describe('actions/Report', () => {
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
         expect(transaction).toBeTruthy();
 
+        // The legacy preview recovery builds the submitter's name and avatar from the personal details passed to openReport, so they have to be threaded here
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
         Report.openReport({
             hasReportActions: true,
             reportID: CHILD_REPORT_ID,
@@ -1359,6 +1481,7 @@ describe('actions/Report', () => {
             betas: undefined,
             transaction: transaction ?? undefined,
             parentReportID: SELF_DM_ID,
+            personalDetails,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
         await waitForBatchedUpdates();
@@ -1379,6 +1502,12 @@ describe('actions/Report', () => {
         }
         const [parentReportActionID, createdAction] = createdEntry;
         expect(createdAction.childReportID).toBe(CHILD_REPORT_ID);
+
+        // The recovered preview is attributed to the submitter from the personal details passed to openReport
+        const submitterPersonalDetails = personalDetails?.[TEST_USER_ACCOUNT_ID];
+        expect(createdAction.actorAccountID).toBe(TEST_USER_ACCOUNT_ID);
+        expect(createdAction.person?.at(0)?.text).toBe(submitterPersonalDetails?.displayName);
+        expect(createdAction.avatar).toBe(submitterPersonalDetails?.avatar);
 
         // Ensure we did not create a stray concatenated key like reportActions_<selfDMReportID><generatedActionID>
         const wrongKeyValue = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_ID}${parentReportActionID}` as const);
@@ -1414,6 +1543,7 @@ describe('actions/Report', () => {
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
+                personalDetails: undefined,
                 currentUserAccountID: 1,
             });
         }
@@ -2396,6 +2526,7 @@ describe('actions/Report', () => {
                 reportID: '2',
             },
             parentReportActionID: reportActionID,
+            personalDetails: undefined,
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
 
@@ -5189,7 +5320,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
             await waitForBatchedUpdates();
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: 1});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, personalDetails: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5200,7 +5331,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '2';
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: 1});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, personalDetails: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5211,7 +5342,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '3';
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined, currentUserAccountID: 1});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined, personalDetails: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5228,6 +5359,7 @@ describe('actions/Report', () => {
                 introSelected: undefined,
                 betas: undefined,
                 hasReportActions: true,
+                personalDetails: undefined,
                 currentUserAccountID: 1,
                 participants: [{login: 'other@test.com', accountID: 2}],
             });

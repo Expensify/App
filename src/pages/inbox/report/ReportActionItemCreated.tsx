@@ -1,5 +1,6 @@
 import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 
@@ -49,6 +50,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const personalDetails = usePersonalDetails();
 
     const otherParticipantAccountID =
         Object.keys(report?.participants ?? {})
@@ -78,6 +80,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
+                    personalDetails,
                 )
             }
         >
