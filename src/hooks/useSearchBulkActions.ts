@@ -580,6 +580,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     // feeds the Pay menu — policy, currency, total, payment methods — and the payment itself is derived from here.
     // That keeps the amount shown in "Mark as paid" equal to the amount that will actually be paid.
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
+    const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
     // Fall back to the raw selection so transaction-only selections (which have no selected reports) and selections
     // with nothing payable keep their previous derivations. The Pay group is hidden in the latter case anyway.
     const payScopedReports = useMemo(() => (payableSelectedReports.length > 0 ? payableSelectedReports : selectedReports), [payableSelectedReports, selectedReports]);
@@ -1818,6 +1819,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
+        // A hold only blocks paying the report that holds it. Bulk pay acts on the payable subset of the selection
+        // (see payableSelectedReports), and canPay is already false for any report containing a held expense, so a
+        // hold inside a report the viewer is not paying must not drop Pay for the ones they are. Whole-page
+        // selections routinely mix the two, which is why the unscoped check left Export as the only bulk action.
+        // Transaction-level selections have no payable subset to fall back to, so they keep the unscoped check.
+        const isAnyPayableTransactionOnHold =
+            payableSelectedReports.length > 0
+                ? Object.values(selectedTransactions).some((transaction) => transaction.isHeld && !!transaction.reportID && payableSelectedReportIDs.includes(transaction.reportID))
+                : isAnyTransactionOnHold;
 
         const getExportOptions = () => {
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
@@ -2188,15 +2198,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         //
         // Under "Select all" the selection covers every report matching the query, but only the first page is loaded,
         // and QueueBulkPayReports re-resolves eligibility server-side from that query. So the two page-derived gates
-        // must not apply: `isAnyTransactionOnHold` lets one held expense on the loaded page drop Pay for the whole
-        // query, and getPayOption additionally requires every payable report to agree on getReportType(), which reads
-        // live Onyx and returns undefined for reports the viewer has never opened. Both make the menu depend on what
-        // happens to be hydrated rather than on what is actually payable. Keep only the "some report is payable"
+        // must not apply: the hold check lets one held expense on the loaded page drop Pay for the whole query, and
+        // getPayOption additionally requires every payable report to agree on a report type. Both make the menu depend
+        // on what happens to be loaded rather than on what is actually payable. Keep only the "some report is payable"
         // signal, which is the one thing the loaded page can honestly tell us.
         const hasLoadedPayableReport = payableSelectedReports.length > 0 || selectedReports.length === 0;
         const shouldShowPayOption = areAllMatchingItemsSelected
             ? hasLoadedPayableReport && !!bulkPayButtonOptions?.length
-            : !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
+            : !isAnyPayableTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
         const payButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
             icon: expensifyIcons.MoneyBag,
             text: translate('search.bulkActions.pay'),
@@ -2817,6 +2826,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isOffline,
         selectedReports,
         payableSelectedReports.length,
+        payableSelectedReportIDs,
         lastPaymentMethods,
         selectedReportIDs,
         personalPolicyID,

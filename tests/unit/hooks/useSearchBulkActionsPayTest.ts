@@ -430,6 +430,40 @@ describe('useSearchBulkActions - Pay option', () => {
         // Then the Pay option should be hidden because offering it would let the user attempt a payment that cannot succeed
         expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
+
+    it('keeps the Pay option when a held expense sits in a report that is not being paid', async () => {
+        // Given "Select all on this page" over a mixed page: report 1 is payable, report 2 is view-only and holds a
+        // held expense. Bulk pay only settles report 1, so report 2's hold must not decide the whole selection.
+        mockSelectedReports = [makeSelectedReport({reportID: '1', canPay: true}), makeSelectedReport({reportID: '2', canPay: false})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({reportID: '1'}),
+            tx2: makeSelectedTransaction({reportID: '2', isHeld: true, action: CONST.SEARCH.ACTION_TYPES.VIEW}),
+        };
+
+        // When the bulk actions hook computes the header dropdown options
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        // Then Pay is still offered, because the hold is scoped to the reports that will actually be paid
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+    });
+
+    it('hides the Pay option when a held expense sits in a report that is being paid', async () => {
+        // Given a selection whose only payable report contains a held expense
+        mockSelectedReports = [makeSelectedReport({reportID: '1', canPay: true})];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: '1', isHeld: true})};
+
+        // When the bulk actions hook computes the header dropdown options
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions).toBeDefined();
+        });
+
+        // Then Pay is hidden, because the hold blocks the payment the user would be making
+        expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
+    });
 });
 
 describe('useSearchBulkActions - bulk pay chat report fallback', () => {

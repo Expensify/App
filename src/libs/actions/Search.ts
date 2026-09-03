@@ -2102,6 +2102,12 @@ function getPayOption(
     // Callers pay only these reports, so the option is offered whenever the subset is non-empty.
     const payableReports = selectedReports.filter((report) => report.canPay);
     const firstPayableReport = payableReports.at(0);
+    // The payable reports must agree on a report type, but that type has to be read from the selection itself.
+    // getReportType() resolves through live Onyx, which returns undefined for any report the viewer has never
+    // opened, so on a whole-page selection the answer depended on what happened to be hydrated: one un-hydrated
+    // payable report made the types disagree and dropped the entire Pay group. `type` is carried on each selected
+    // report straight from the search snapshot (see deriveSelectedReports), so it is set for every visible row.
+    const getSelectedReportType = (report: SelectedReports | undefined) => report?.type ?? getReportType(report?.reportID);
     const hasLastPaymentMethod =
         selectedReports.length > 0
             ? payableReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
@@ -2112,7 +2118,7 @@ function getPayOption(
             ? payableReports.length > 0 &&
               payableReports.every(
                   (report) =>
-                      getReportType(report.reportID) === getReportType(firstPayableReport?.reportID) &&
+                      getSelectedReportType(report) === getSelectedReportType(firstPayableReport) &&
                       shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
