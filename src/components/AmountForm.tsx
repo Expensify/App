@@ -76,7 +76,7 @@ type AmountFormProps = {
 
     /** Callback when the input is focused */
     onFocus?: () => void;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'onBlur'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'onBlur'>;
 
 /**
  * Wrapper around the numeric form components with currency handling.
@@ -98,8 +98,6 @@ function AmountForm({
     currencyButtonAccessibilityLabel,
     disabled = false,
     autoFocus,
-    autoGrowExtraSpace,
-    autoGrowMarginSide,
     onSubmitEditing,
     onFocus,
     onBlur,
@@ -130,8 +128,6 @@ function AmountForm({
                     label={label}
                     disabled={disabled}
                     autoFocus={autoFocus}
-                    autoGrowExtraSpace={autoGrowExtraSpace}
-                    autoGrowMarginSide={autoGrowMarginSide}
                     onFocus={onFocus}
                     onBlur={onBlur}
                     onSubmitEditing={onSubmitEditing}
@@ -172,8 +168,6 @@ function AmountForm({
             containerStyle={displayAsTextInput ? undefined : styles.iouAmountTextInputContainer}
             touchableInputWrapperStyle={displayAsTextInput ? undefined : styles.heightUndefined}
             autoFocus={autoFocus}
-            autoGrowExtraSpace={autoGrowExtraSpace}
-            autoGrowMarginSide={autoGrowMarginSide}
             onSubmitEditing={onSubmitEditing}
             disabled={disabled}
             onFocus={onFocus}

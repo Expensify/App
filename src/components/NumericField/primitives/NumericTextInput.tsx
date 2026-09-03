@@ -17,8 +17,6 @@ function NumericTextInput({
     onBlur,
     accessibilityLabel,
     autoFocus,
-    autoGrowExtraSpace,
-    autoGrowMarginSide,
     contentWidth,
     disabled,
     disableKeyboard,
@@ -50,8 +48,6 @@ function NumericTextInput({
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
             autoFocus={autoFocus}
-            autoGrowExtraSpace={autoGrowExtraSpace}
-            autoGrowMarginSide={autoGrowMarginSide}
             contentWidth={contentWidth}
             disabled={disabled}
             disableKeyboard={disableKeyboard}

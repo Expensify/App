@@ -19,8 +19,6 @@ type NumericTextInputProps = {
     BaseTextInputProps,
     | 'accessibilityLabel'
     | 'autoFocus'
-    | 'autoGrowExtraSpace'
-    | 'autoGrowMarginSide'
     | 'contentWidth'
     | 'disabled'
     | 'disableKeyboard'
