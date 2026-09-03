@@ -3,6 +3,7 @@ import Log from '@libs/Log';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import hasNativeSwipeBackGesture from '@libs/Navigation/helpers/hasNativeSwipeBackGesture';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -486,7 +487,7 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
  * gesture involved and never clear the buffer afterward - inserting one there would leave it stuck on top.
  */
 function buildPreMountBufferRoute(rhpRouteKey: string, shouldInsertPreMountBuffer: boolean | undefined): StackNavigationState<ParamListBase>['routes'][number] | undefined {
-    if (getPlatform() === CONST.PLATFORM.WEB || !shouldInsertPreMountBuffer) {
+    if (!hasNativeSwipeBackGesture() || !shouldInsertPreMountBuffer) {
         return undefined;
     }
     return {name: SCREENS.PRE_MOUNT_BUFFER, key: `pre-mount-buffer-${rhpRouteKey}`};

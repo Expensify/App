@@ -4,7 +4,6 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import getPlatform from '@libs/getPlatform';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
@@ -53,6 +52,7 @@ import getFocusedReportParams from './helpers/getFocusedReportParams';
 import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
+import hasNativeSwipeBackGesture from './helpers/hasNativeSwipeBackGesture';
 import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
@@ -1152,7 +1152,11 @@ function clearBufferStateListener() {
     bufferStateListenerUnsubscribe = undefined;
 }
 
-function handleRHPClosedForBuffer() {
+/**
+ * No-op while the RHP is still in the stack. Once it is gone without commit/cancel having run, restores the
+ * origin with a single reset dispatch: the original tab route, or the stack without Buffer and the pushed destination.
+ */
+function revertPreMountBufferIfRHPClosed() {
     if (!bufferTransaction) {
         return;
     }
@@ -1213,7 +1217,7 @@ function recoverFromPreMountBuffer() {
     }
 
     if (bufferTransaction) {
-        handleRHPClosedForBuffer();
+        revertPreMountBufferIfRHPClosed();
         return;
     }
 
@@ -1239,7 +1243,7 @@ function recoverFromPreMountBuffer() {
  * the RHP closing so it can be cleaned up.
  */
 function captureBufferTransaction(stateAfter: ReturnType<typeof navigationRef.getRootState>, wasTabSwitched: boolean) {
-    if (getPlatform() === CONST.PLATFORM.WEB || !stateAfter) {
+    if (!hasNativeSwipeBackGesture() || !stateAfter) {
         return;
     }
     const rhpRoute = stateAfter.routes.at(-1);
@@ -1260,7 +1264,7 @@ function captureBufferTransaction(stateAfter: ReturnType<typeof navigationRef.ge
     }
 
     clearBufferStateListener();
-    bufferStateListenerUnsubscribe = navigationRef.current?.addListener('state', handleRHPClosedForBuffer);
+    bufferStateListenerUnsubscribe = navigationRef.current?.addListener('state', revertPreMountBufferIfRHPClosed);
 }
 
 /** Removes just the Buffer route, leaving the pushed destination in place, and clears the transaction (including its own state listener). */

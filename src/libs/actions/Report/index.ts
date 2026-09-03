@@ -3266,11 +3266,9 @@ function saveReportDraft(reportID: string, report: Report) {
  * Copies an already-built draft report into COLLECTION.REPORT so a pre-mounted destination screen can render immediately.
  */
 function promoteDraftReportForPreMount(reportID: string, draftReport: Report) {
-    const promotionKey: `${typeof ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${string}` = `${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`;
-    const reportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
     const promotionData: OnyxMultiSetInput = {};
-    promotionData[promotionKey] = true;
-    promotionData[reportKey] = draftReport;
+    promotionData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = draftReport;
+    promotionData[`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`] = true;
     return Onyx.multiSet(promotionData);
 }
 
