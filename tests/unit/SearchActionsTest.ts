@@ -394,7 +394,13 @@ describe('getPayOption', () => {
     }
 
     function getShouldEnableBulkPayOption(selectedReports: SelectedReports[]) {
-        return getPayOption(selectedReports, {}, undefined, selectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), undefined).shouldEnableBulkPayOption;
+        return getPayOption(
+            selectedReports,
+            {},
+            undefined,
+            selectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined),
+            undefined,
+        ).shouldEnableBulkPayOption;
     }
 
     it('enables bulk pay when every selected report is payable', () => {
