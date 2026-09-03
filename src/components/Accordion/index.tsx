@@ -55,6 +55,9 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
                     return;
                 }
                 isAnimating.set(false);
+
+                // Reset the toggled-state so we don't keep animating the accordion on remount
+                isToggleTriggered.set(false);
             },
         );
     });

@@ -1,3 +1,4 @@
+import '@libs/Middleware/register';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -38,6 +39,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     isCorrectSearchUserName: jest.fn(() => true),
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
+    getSubmittedViolationsForTransaction: jest.fn(() => ''),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -333,7 +335,6 @@ describe('TransactionGroupListItem', () => {
         onSelectRow: mockOnSelectRow,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
-        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
@@ -457,7 +458,6 @@ describe('Empty Report Selection', () => {
         onSelectionButtonPress: mockOnCheckboxPress,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
-        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
@@ -682,7 +682,6 @@ describe('Lazily loaded group selection', () => {
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE,
         groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
         canSelectMultiple: true,
-        keyForList: 'Advertising',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
