@@ -1171,6 +1171,29 @@ describe('Session', () => {
 
             writeSpy.mockRestore();
         });
+
+        test('sends the stored authToken during the 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signIn('', undefined, '654321', 'user@expensify.com', 'stored-code', 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'stored-auth-token'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('does not send an authToken on the initial validate code submission', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // No 2FA code yet, even though a stored authToken is passed in - shouldn't be sent.
+            SessionUtil.signIn('112233', undefined, undefined, 'user@expensify.com', undefined, 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('authToken');
+
+            writeSpy.mockRestore();
+        });
     });
 
     describe('requestUnlinkValidationLink', () => {
@@ -1211,6 +1234,28 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({validateCode: 'stored-code', twoFactorAuthCode: '654321'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('sends the stored authToken during the 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signInWithValidateCode(123, 'ignored-code', undefined, '654321', 'stored-code', 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'stored-auth-token'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('does not send an authToken on the initial validate code submission', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signInWithValidateCode(123, '112233', undefined, undefined, undefined, 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('authToken');
 
             writeSpy.mockRestore();
         });
