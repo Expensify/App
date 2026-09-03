@@ -75,8 +75,8 @@ function SearchPage({route}: SearchPageProps) {
 
     const [isSorting, setIsSorting] = useState(false);
 
-    // Opening a search no longer remounts this page, so a flag left set would render the previous query's rows under
-    // the new query. Adjusted during rendering because searchResults below consumes it in this same render.
+    // Sorting keeps the previous results on screen while the re-sorted ones load, so changing the search has to cancel
+    // it or those rows render under the new query. Adjusted during rendering because searchResults consumes it below.
     const previousQueryHash = usePrevious(currentSearchQueryJSON?.hash);
     if (isSorting && previousQueryHash !== currentSearchQueryJSON?.hash) {
         setIsSorting(false);
