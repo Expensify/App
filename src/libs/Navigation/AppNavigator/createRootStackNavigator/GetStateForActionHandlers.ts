@@ -477,7 +477,7 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
  * State transition for tab targets: [Tab(A), RHP] -> [Tab(B), RHP]
  * State transition for other fullscreen targets: [FS, RHP] -> [FS, FS', RHP]
  *
- * @see removePreInsertedFullscreenIfNeeded in Navigation.ts — the caller that cleans up
+ * @see removePreInsertedFullscreenIfNeeded in helpers/preMountBuffer.ts — the caller that cleans up
  *      the pre-insertion when the user cancels.
  */
 

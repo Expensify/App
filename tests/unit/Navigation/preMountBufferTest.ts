@@ -84,7 +84,7 @@ describe('Navigation pre-mount buffer', () => {
     });
 
     afterEach(() => {
-        // Navigation.ts tracks the buffer transaction / pre-insert flag as module-level state with
+        // helpers/preMountBuffer.ts tracks the buffer transaction / pre-insert flag as module-level state with
         // no exported reset, so a dirty flag from one test silently no-ops the next test's pre-insert.
         if (!Navigation.getIsFullscreenPreInsertedUnderRHP()) {
             return;

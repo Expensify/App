@@ -154,8 +154,8 @@ type UseExpenseSubmissionParams = {
 
     /**
      * Called once validation has passed and the write is guaranteed to happen. Clear a pre-mount
-     * promotion marker here, not earlier - clearing it before validation could pass risks orphaning
-     * the promoted report if validation then bails with no write.
+     * pre-mount marker here, not earlier - clearing it before validation could pass risks orphaning
+     * the pre-mounted report if validation then bails with no write.
      */
     onExpenseWriteWillStart?: () => void;
 };

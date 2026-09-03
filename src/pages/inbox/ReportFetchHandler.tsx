@@ -112,7 +112,7 @@ function ReportFetchHandler() {
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
-    const [isPromotedForPreMount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportIDFromRoute}`);
+    const [isPreMountedDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -204,10 +204,10 @@ function ReportFetchHandler() {
             return;
         }
 
-        // A promoted draft gets copied into the real report collection so it can render immediately,
+        // A pre-mounted draft gets copied into the real report collection so it can render immediately,
         // which makes reportOnyx?.reportID truthy even though the row is still speculative - the guard
-        // above no longer catches it, so check the promotion marker directly instead.
-        if (isPromotedForPreMount) {
+        // above no longer catches it, so check the pre-mount marker directly instead.
+        if (isPreMountedDraft) {
             return;
         }
 

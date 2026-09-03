@@ -97,10 +97,10 @@ describe('ReportFetchHandler', () => {
         expect(mockSetParams).toHaveBeenCalledWith({isPendingCreation: undefined});
     });
 
-    it('does NOT call openReport while the promotion marker is set, even though the report row exists', async () => {
-        // Given a draft report promoted only for speculative pre-mounting
+    it('does NOT call openReport while the pre-mount marker is set, even though the report row exists', async () => {
+        // Given a draft report pre-mounted only for speculative pre-mounting
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${REPORT_ID}`, true);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${REPORT_ID}`, true);
         await waitForBatchedUpdates();
 
         // When the handler sees the speculative report row
@@ -111,13 +111,13 @@ describe('ReportFetchHandler', () => {
         expect(mockOpenReport).not.toHaveBeenCalled();
     });
 
-    it('calls openReport again once the promotion marker is cleared', async () => {
-        // Given a promoted report that has completed its speculative lifecycle
+    it('calls openReport again once the pre-mount marker is cleared', async () => {
+        // Given a pre-mounted report that has completed its speculative lifecycle
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${REPORT_ID}`, null);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${REPORT_ID}`, null);
         await waitForBatchedUpdates();
 
-        // When the handler observes that promotion is complete
+        // When the handler observes that the pre-mount is complete
         renderHandler();
         await waitForBatchedUpdates();
 

@@ -3265,28 +3265,28 @@ function saveReportDraft(reportID: string, report: Report) {
 /**
  * Copies an already-built draft report into COLLECTION.REPORT so a pre-mounted destination screen can render immediately.
  */
-function promoteDraftReportForPreMount(reportID: string, draftReport: Report) {
-    const promotionData: OnyxMultiSetInput = {};
-    promotionData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = draftReport;
-    promotionData[`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`] = true;
-    return Onyx.multiSet(promotionData);
+function preMountDraftReport(reportID: string, draftReport: Report) {
+    const preMountData: OnyxMultiSetInput = {};
+    preMountData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = draftReport;
+    preMountData[`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportID}`] = true;
+    return Onyx.multiSet(preMountData);
 }
 
 /**
- * Removes a report created by `promoteDraftReportForPreMount`, for when the caller backs out before submission actually happens.
+ * Removes a report created by `preMountDraftReport`, for when the caller backs out before submission actually happens.
  */
-function clearPromotedDraftReportForPreMount(reportID: string) {
+function clearPreMountedDraftReport(reportID: string) {
     return Onyx.multiSet({
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
-        [`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportID}`]: null,
     });
 }
 
 /**
- * Clears only the promotion marker left by `promoteDraftReportForPreMount`.
+ * Clears only the pre-mount marker left by `preMountDraftReport`.
  */
-function clearPromotedDraftReportPreMountMarker(reportID: string) {
-    return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`, null);
+function clearPreMountedDraftReportMarker(reportID: string) {
+    return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportID}`, null);
 }
 
 /**
@@ -8828,9 +8828,9 @@ export {
     mergeReports,
     getOptimisticChatReport,
     saveReportDraft,
-    promoteDraftReportForPreMount,
-    clearPromotedDraftReportForPreMount,
-    clearPromotedDraftReportPreMountMarker,
+    preMountDraftReport,
+    clearPreMountedDraftReport,
+    clearPreMountedDraftReportMarker,
     moveIOUReportToPolicy,
     moveIOUReportToPolicyAndInviteSubmitter,
     convertIOUReportToExpenseReport,

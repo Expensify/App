@@ -88,11 +88,11 @@ function getSubmitExpensePreMountDestinationRoute({
         !hasPreInsertedFullscreen && isMovingTransactionFromTrackExpense && isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() !== destinationReportID;
     // Passing {} as the draft argument only blocks the REPORT_DRAFT collection fallback. A draft the caller
     // passes in via destinationReport still resolves here, because getReportOrDraftReport checks its `report`
-    // slot before falling back to the draft slot - and that is intentional: the caller promotes that draft into
+    // slot before falling back to the draft slot - and that is intentional: the caller copies that draft into
     // COLLECTION.REPORT before reveal, so it is safe to treat as renderable.
     const isDestinationReportRenderable = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
     // Only pre-insert a report that's actually renderable - a report that resolves to neither a loaded report
-    // nor a promoted draft can show an infinite skeleton after backing out.
+    // nor a pre-mounted draft can show an infinite skeleton after backing out.
     // An optimistic new chat is the one exception: it has no report row yet, but that's fine since submit
     // will create it under this same ID.
     const isDestinationReportLoaded = isOptimisticNewChatDestination || isDestinationReportRenderable;

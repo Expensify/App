@@ -5,14 +5,14 @@ import type {OnyxCollection, OnyxMultiSetInput} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-/** Startup cleanup for speculative report rows left by interrupted draft promotions. */
-function getPromotedDraftReportCleanupData(promotions: OnyxCollection<boolean>, reportDrafts: OnyxCollection<Report>): OnyxMultiSetInput {
+/** Startup cleanup for speculative report rows left by interrupted draft pre-mounts. */
+function getPreMountedDraftReportCleanupData(markers: OnyxCollection<boolean>, reportDrafts: OnyxCollection<Report>): OnyxMultiSetInput {
     const cleanupData: OnyxMultiSetInput = {};
 
-    for (const key of Object.keys(promotions ?? {})) {
-        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION.length);
-        const promotionKey: `${typeof ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${string}` = `${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`;
-        cleanupData[promotionKey] = null;
+    for (const key of Object.keys(markers ?? {})) {
+        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT.length);
+        const markerKey: `${typeof ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${string}` = `${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportID}`;
+        cleanupData[markerKey] = null;
 
         if (reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]) {
             const reportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
@@ -28,12 +28,12 @@ function getPromotedDraftReportCleanupData(promotions: OnyxCollection<boolean>, 
  * outside any component, so there's no hook available - takes a single snapshot instead and disconnects
  * immediately, since nothing here renders or needs to stay subscribed.
  */
-function cleanupReportDrafts(promotions: OnyxCollection<boolean>) {
+function cleanupReportDrafts(markers: OnyxCollection<boolean>) {
     let reportDraftsConnection: ReturnType<typeof Onyx.connectWithoutView>;
 
     function handleReportDrafts(reportDrafts: OnyxCollection<Report>) {
         Onyx.disconnect(reportDraftsConnection);
-        Onyx.multiSet(getPromotedDraftReportCleanupData(promotions, reportDrafts));
+        Onyx.multiSet(getPreMountedDraftReportCleanupData(markers, reportDrafts));
     }
 
     reportDraftsConnection = Onyx.connectWithoutView({
@@ -43,29 +43,29 @@ function cleanupReportDrafts(promotions: OnyxCollection<boolean>) {
 }
 
 /**
- * Clears speculative report rows left by an interrupted pre-mount promotion. This runs before React mounts because
+ * Clears speculative report rows left by an interrupted draft pre-mount. This runs before React mounts because
  * an app termination does not run component cleanup. A missing draft means submission already converted the draft,
- * so only the stale promotion marker is removed and the real report is preserved.
+ * so only the stale pre-mount marker is removed and the real report is preserved.
  */
-function cleanupPromotedDraftReports() {
+function cleanupPreMountedDraftReports() {
     // Same reasoning as cleanupReportDrafts above: no hook available yet, so take a single snapshot
     // and disconnect immediately.
-    let promotionsConnection: ReturnType<typeof Onyx.connectWithoutView>;
+    let markersConnection: ReturnType<typeof Onyx.connectWithoutView>;
 
-    function handlePromotions(promotions: OnyxCollection<boolean>) {
-        Onyx.disconnect(promotionsConnection);
-        if (!Object.keys(promotions ?? {}).length) {
+    function handleMarkers(markers: OnyxCollection<boolean>) {
+        Onyx.disconnect(markersConnection);
+        if (!Object.keys(markers ?? {}).length) {
             return;
         }
 
-        cleanupReportDrafts(promotions);
+        cleanupReportDrafts(markers);
     }
 
-    promotionsConnection = Onyx.connectWithoutView({
-        key: ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION,
-        callback: handlePromotions,
+    markersConnection = Onyx.connectWithoutView({
+        key: ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT,
+        callback: handleMarkers,
     });
 }
 
-export {getPromotedDraftReportCleanupData};
-export default cleanupPromotedDraftReports;
+export {getPreMountedDraftReportCleanupData};
+export default cleanupPreMountedDraftReports;

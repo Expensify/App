@@ -38,7 +38,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
-import {clearPromotedDraftReportForPreMount, clearPromotedDraftReportPreMountMarker, promoteDraftReportForPreMount} from '@libs/actions/Report';
+import {clearPreMountedDraftReport, clearPreMountedDraftReportMarker, preMountDraftReport} from '@libs/actions/Report';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -570,7 +570,7 @@ function IOURequestStepConfirmation({
     // excluded too. Pre-inserting the Search route would leave a stale entry in the navigation stack.
     const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && !isSelfDMDestination;
 
-    const promotedDraftReportIDRef = useRef<string | undefined>(undefined);
+    const preMountedDraftReportIDRef = useRef<string | undefined>(undefined);
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
@@ -601,12 +601,12 @@ function IOURequestStepConfirmation({
         privateIsArchivedMap,
         backToReport,
         onExpenseWriteWillStart: () => {
-            const promotedReportID = promotedDraftReportIDRef.current;
-            if (!promotedReportID) {
+            const preMountedReportID = preMountedDraftReportIDRef.current;
+            if (!preMountedReportID) {
                 return;
             }
-            promotedDraftReportIDRef.current = undefined;
-            clearPromotedDraftReportPreMountMarker(promotedReportID);
+            preMountedDraftReportIDRef.current = undefined;
+            clearPreMountedDraftReportMarker(preMountedReportID);
         },
     });
 
@@ -682,22 +682,22 @@ function IOURequestStepConfirmation({
         ],
     );
 
-    // Excludes the optimistic P2P case explicitly (never has a draft to promote), rather than relying only
+    // Excludes the optimistic P2P case explicitly (never has a draft to pre-mount), rather than relying only
     // on the route string, so this can't silently break if that route ever gains a query param.
     const preMountDestinationReportRoute = preMountDestinationReportID ? ROUTES.REPORT_WITH_ID.getRoute(preMountDestinationReportID) : undefined;
-    const shouldPromoteDestinationDraft = !optimisticP2PDestinationReportID && !!preMountDestinationReportRoute && preMountDestinationRoute === preMountDestinationReportRoute;
+    const shouldPreMountDestinationDraft = !optimisticP2PDestinationReportID && !!preMountDestinationReportRoute && preMountDestinationRoute === preMountDestinationReportRoute;
 
     // DraftWorkspaceOpener creates a draft policy expense chat, under the reportID the real backend
     // commit will eventually use, before this screen mounts. Copy it into the real report collection only
     // when it's the eligible pre-mount target; the backend overwrites it with confirmed data on submit.
     useEffect(() => {
-        if (!shouldPromoteDestinationDraft || !preMountDestinationReportID || destinationReport || !destinationReportDraft) {
+        if (!shouldPreMountDestinationDraft || !preMountDestinationReportID || destinationReport || !destinationReportDraft) {
             return;
         }
 
-        promotedDraftReportIDRef.current = preMountDestinationReportID;
-        promoteDraftReportForPreMount(preMountDestinationReportID, destinationReportDraft);
-    }, [shouldPromoteDestinationDraft, preMountDestinationReportID, destinationReport, destinationReportDraft]);
+        preMountedDraftReportIDRef.current = preMountDestinationReportID;
+        preMountDraftReport(preMountDestinationReportID, destinationReportDraft);
+    }, [shouldPreMountDestinationDraft, preMountDestinationReportID, destinationReport, destinationReportDraft]);
 
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
         shouldPreservePreInsertedRouteOnUnmount: () => formHasBeenSubmitted.current,
@@ -706,10 +706,10 @@ function IOURequestStepConfirmation({
     // Only remove the speculative report row once the pre-mounted screen reading it is confirmed gone.
     useEffect(() => {
         return () => {
-            const promotedReportID = promotedDraftReportIDRef.current;
+            const preMountedReportID = preMountedDraftReportIDRef.current;
             // Read the latest submission state at cleanup time because submission can start or finish after this effect runs.
             const hasSubmitIntent = !!getPendingSubmitFollowUpAction();
-            if (!promotedReportID || promotedReportID !== preMountDestinationReportID || Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            if (!preMountedReportID || preMountedReportID !== preMountDestinationReportID || Navigation.getIsFullscreenPreInsertedUnderRHP()) {
                 return;
             }
 
@@ -720,8 +720,8 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            promotedDraftReportIDRef.current = undefined;
-            clearPromotedDraftReportForPreMount(promotedReportID);
+            preMountedDraftReportIDRef.current = undefined;
+            clearPreMountedDraftReport(preMountedReportID);
         };
     }, [preMountDestinationReportID, formHasBeenSubmitted]);
 
