@@ -22,7 +22,13 @@ The app uses `console.warn` for this opt-in output because production bundles re
 
 ## Bootstrap side-by-side native apps
 
-Use the device bootstrap script before producing a local release build. With no identifier option, it derives a unique identifier from the GitHub user authenticated by `GH_TOKEN` or `GITHUB_TOKEN`. Pass `--github-username` instead when neither token is set. A suffix is useful when the same developer needs separate apps for multiple branches or worktrees:
+Use the device bootstrap script before producing a local release build. Unless `--bundle-identifier` is provided, it derives a unique identifier from a GitHub username. The script resolves that username in this order:
+
+1. The value passed to `--github-username`.
+2. The user returned by `gh api user` when the GitHub CLI is installed. The CLI checks `GH_TOKEN`, then `GITHUB_TOKEN`, then its stored active account.
+3. The user returned by the GitHub API using `GH_TOKEN` when the GitHub CLI is not installed.
+
+If the GitHub CLI is installed but cannot resolve a user, run `gh auth login` or pass `--github-username` or `--bundle-identifier`. If the CLI is not installed, set `GH_TOKEN` or pass one of those identifier options. A suffix is useful when the same developer needs separate apps for multiple branches or worktrees:
 
 ```shell
 npm run bootstrap-device -- android --suffix baseline
