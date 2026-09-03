@@ -371,7 +371,10 @@ type SpendRuleListItemType = ListItem & {
 };
 
 /** Props for SelectableListItem, which extends the composed ListItem pressable with selection button support. */
-type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'containerStyle'> & {
+type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'containerStyle' | 'children' | 'FooterComponent' | 'shouldDisplayRBR'> & {
+    /** Row content. Hover/focus/tooltip state is provided through ListItemContext instead of a render prop. */
+    children?: ReactNode;
+
     /** Callback to fire when the selection button is pressed */
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 

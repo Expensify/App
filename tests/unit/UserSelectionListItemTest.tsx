@@ -58,11 +58,11 @@ describe('UserSelectionListItem', () => {
     describe('user handle', () => {
         // Render the row content so the handle text is reachable; the outer suite keeps SelectableListItem rendering nothing.
         beforeEach(() => {
-            mockSelectableListItem.mockImplementation(({children}) => <View>{typeof children === 'function' ? children(false) : children}</View>);
+            mockSelectableListItem.mockImplementation(({children}) => <View>{children}</View>);
         });
 
         afterEach(() => {
-            mockSelectableListItem.mockImplementation(() => null);
+            mockSelectableListItem.mockImplementation(() => <View />);
         });
 
         it.each([

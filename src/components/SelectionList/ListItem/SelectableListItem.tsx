@@ -1,27 +1,13 @@
-import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
-import {useListItemHovered} from '@components/SelectionList/ListItemContext';
-import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import type {ReactElement} from 'react';
-
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ListItem, ListItemProps, SelectableListItemProps} from './types';
-
-/**
- * Resolves BaseListItem-style render-prop children against the hover state provided by ListItemPressable
- * through ListItemContext, so legacy callers keep receiving the hovered flag.
- */
-function RowChildren<TItem extends ListItem>({children}: {children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>)}) {
-    const isHovered = useListItemHovered();
-    return typeof children === 'function' ? children(isHovered) : (children ?? null);
-}
+import type {ListItem, SelectableListItemProps} from './types';
 
 /**
  * Extends the composed ListItem pressable with a selection button (checkbox for multi-select, radio for
@@ -43,9 +29,6 @@ function SelectableListItem<TItem extends ListItem>({
     wrapperStyle,
     testID,
     forwardedFSClass,
-    FooterComponent,
-    shouldDisplayRBR = true,
-    shouldShowRightCaret = false,
     pressableStyle,
     pressableWrapperStyle,
     shouldPreventEnterKeySubmit,
@@ -62,20 +45,14 @@ function SelectableListItem<TItem extends ListItem>({
     accessibilityLabel,
     accessibilityRole,
     shouldUseOptionRole,
-}: SelectableListItemProps<TItem>) {
+}: Omit<SelectableListItemProps<TItem>, 'shouldShowRightCaret'>) {
     const styles = useThemeStyles();
 
-    const isRowSelected = isListItemSelected(item, isSelected);
-    const shouldShowRBRIndicator = (!isRowSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
-
     const selectionButton = !item.shouldHideSelectionButton && (
-        <ListSelectionButton
-            role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
+        <ListItemComposed.SelectionButton
             item={item}
-            onSelectRow={onSelectionButtonPress ?? onSelectRow}
-            disabled={!!isDisabled || !!item.isDisabledCheckbox}
-            // Radio buttons are removed from the tab order - the row itself is the single-select tab stop.
-            tabIndex={canSelectMultiple ? undefined : -1}
+            onPress={onSelectionButtonPress ?? onSelectRow}
+            canSelectMultiple={canSelectMultiple}
             style={selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT ? styles.ml3 : styles.mr3}
         />
     );
@@ -112,13 +89,14 @@ function SelectableListItem<TItem extends ListItem>({
                 fsClass={forwardedFSClass}
             >
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && selectionButton}
-                <RowChildren<TItem>>{children}</RowChildren>
-                {shouldShowRBRIndicator && !!item.brickRoadIndicator && <ListItemComposed.RBRIndicator brickRoadIndicator={item.brickRoadIndicator} />}
+                {children}
+                <ListItemComposed.RBRIndicator
+                    item={item}
+                    isSelected={isSelected}
+                />
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
                 {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
-                {shouldShowRightCaret && <ListItemComposed.RightCaret />}
             </View>
-            {FooterComponent}
         </ListItemComposed>
     );
 }

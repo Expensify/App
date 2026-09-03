@@ -1,13 +1,14 @@
-import Text from '@components/Text';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ListItem, UserListItemProps} from './types';
 
-import SelectableListItem from './SelectableListItem';
 import UserListItemContent from './UserListItemContent';
 
 /**
@@ -20,7 +21,7 @@ function UserListItem<TItem extends ListItem>({
     isFocusVisible,
     showTooltip,
     isDisabled,
-    canSelectMultiple,
+    canSelectMultiple = false,
     onSelectRow,
     onSelectionButtonPress,
     onDismissError,
@@ -33,55 +34,53 @@ function UserListItem<TItem extends ListItem>({
     forwardedFSClass,
     shouldDisableHoverStyle,
     shouldHighlightSelectedItem,
-    selectionButtonPosition,
+    selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
 
     const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
     const shouldDisableAccessibleGrouping = !!renderedRightComponent && !canSelectMultiple;
 
-    return (
-        <SelectableListItem
+    const selectionButton = !item.shouldHideSelectionButton && (
+        <ListItemComposed.SelectionButton
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}
+            onPress={onSelectionButtonPress ?? onSelectRow}
+            canSelectMultiple={canSelectMultiple}
+            style={selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT ? styles.ml3 : styles.mr3}
+        />
+    );
+
+    return (
+        <ListItemComposed
+            item={item}
+            shouldShowTooltip={showTooltip}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
-            onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
             pressableStyle={pressableStyle}
-            FooterComponent={
-                item.invitedSecondaryLogin ? (
-                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>{translate('workspace.people.invitedBySecondaryLogin', item.invitedSecondaryLogin)}</Text>
-                ) : undefined
-            }
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-            selectionButtonPosition={selectionButtonPosition}
         >
-            {(hovered?: boolean) => (
+            <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}>
+                {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && selectionButton}
                 <UserListItemContent
                     item={item}
-                    isFocused={isFocused}
-                    showTooltip={showTooltip}
-                    isDisabled={isDisabled}
-                    shouldDisableHoverStyle={shouldDisableHoverStyle}
-                    shouldDisableAccessibleGrouping={shouldDisableAccessibleGrouping}
                     forwardedFSClass={forwardedFSClass}
-                    hovered={!!hovered}
                 />
-            )}
-        </SelectableListItem>
+                <ListItemComposed.RBRIndicator item={item} />
+                {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
+                {renderedRightComponent}
+            </View>
+            {!!item.invitedSecondaryLogin && <ListItemComposed.InvitedSecondaryLoginFooter invitedSecondaryLogin={item.invitedSecondaryLogin} />}
+        </ListItemComposed>
     );
 }
 

@@ -1,18 +1,17 @@
-import Text from '@components/Text';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ListItem, UserListItemProps} from './types';
 
-import BaseListItem from './BaseListItem';
 import UserListItemContent from './UserListItemContent';
 
 /**
  * A variant of UserListItem for lists that never show a selection button.
- * Uses BaseListItem directly, no checkbox or radio button is rendered.
+ * Composes ListItem directly, no checkbox or radio button is rendered.
  *
  * Prefer UserListItem in most cases. Only use where a fully custom
  * right-side component handles selection (such as a standalone action button).
@@ -36,49 +35,38 @@ function BareUserListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
 
     const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
     const shouldDisableAccessibleGrouping = !!renderedRightComponent;
 
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}
+            shouldShowTooltip={showTooltip}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
             pressableStyle={pressableStyle}
-            FooterComponent={
-                item.invitedSecondaryLogin ? (
-                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>{translate('workspace.people.invitedBySecondaryLogin', item.invitedSecondaryLogin)}</Text>
-                ) : undefined
-            }
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         >
-            {(hovered?: boolean) => (
+            <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}>
                 <UserListItemContent
                     item={item}
-                    isFocused={isFocused}
-                    showTooltip={showTooltip}
-                    isDisabled={isDisabled}
-                    shouldDisableHoverStyle={shouldDisableHoverStyle}
-                    shouldDisableAccessibleGrouping={shouldDisableAccessibleGrouping}
                     forwardedFSClass={forwardedFSClass}
-                    hovered={!!hovered}
                 />
-            )}
-        </BaseListItem>
+                <ListItemComposed.RBRIndicator item={item} />
+                {renderedRightComponent}
+            </View>
+            {!!item.invitedSecondaryLogin && <ListItemComposed.InvitedSecondaryLoginFooter invitedSecondaryLogin={item.invitedSecondaryLogin} />}
+        </ListItemComposed>
     );
 }
 
