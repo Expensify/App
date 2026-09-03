@@ -123,7 +123,9 @@ function latestBenchmarkEvents(events: BenchmarkLogEvent[], spanNames: string[])
 }
 
 function benchmarkCollectionSpanNames(options: CollectBenchmarkEventsOptions): string[] {
-    return [...new Set([...options.spanNames, ...(options.waitUntilSpan ? [options.waitUntilSpan] : [])])];
+    const waitUntilSpanNames = options.waitUntilSpan ? [options.waitUntilSpan] : [];
+    const spanNames = [...options.spanNames, ...waitUntilSpanNames];
+    return [...new Set(spanNames)];
 }
 
 function iosBenchmarkMarkerPath(spanName: string): string {
