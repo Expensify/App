@@ -199,8 +199,7 @@ function MoneyRequestReceiptView({
     // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
     const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
-    // The thumbnail only ever renders page 1 of a PDF, so a total sitting on a later page looks like it
-    // disagrees with the expense amount. Only multi-page receipts need the badge.
+    // Multi-page PDFs need a page count badge.
     const receiptPageCount = displayedTransaction?.receipt?.pageCount ?? 0;
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
@@ -557,10 +556,7 @@ function MoneyRequestReceiptView({
     // Expanding only opens the receipt to look at, so it asks for none of the permission above
     const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;
 
-    // A page count only means anything for a PDF, and optimistic writers that swap the receipt with a
-    // merge can leave the replaced PDF's count behind, so the current file type decides this rather
-    // than the count alone. Held back until the receipt has loaded too: the container stretches while
-    // loading, which would strand the badge at the bottom of that taller box.
+    // Show the count badge only after a multi-page PDF receipt loads.
     const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;

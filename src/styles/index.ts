@@ -4035,9 +4035,7 @@ const staticStyles = (theme: ThemeColors) =>
             gap: 8,
         },
 
-        // Sits bottom-left because the receipt action buttons occupy the top-right corner, and floats
-        // over the receipt rather than sitting inside it, so hover-zoom magnifies the receipt and
-        // leaves the badge alone. Badge applies its own left margin, which is cleared here.
+        // Float above the receipt to avoid zooming with it.
         receiptPageCountBadge: {
             position: 'absolute',
             bottom: 12,

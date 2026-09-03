@@ -371,6 +371,9 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
         }
 
         for (const [key, val] of Object.entries(test)) {
+            if (val === null) {
+                continue;
+            }
             const expectedValueType = type[key];
             // val is a constant enum
             if (typeof expectedValueType === 'object') {

@@ -209,9 +209,7 @@ function replaceReceipt({
         state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
         filename: file.name,
         receiptTraceId,
-        // Cleared explicitly because this is a merge: the replacement is not known to be a
-        // multi-page PDF, so keeping the replaced receipt's count would label it with the old one's
-        // page count until the server responds.
+        // Clear the old count while the replacement is pending.
         pageCount: null,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};

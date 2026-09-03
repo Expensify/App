@@ -367,9 +367,7 @@ function getOnyxTargetTransactionData({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
         value: {
-            // pageCount is cleared explicitly because this is a merge: the chosen receipt is not
-            // necessarily a multi-page PDF, and omitting the key would leave the target's old count
-            // describing a receipt it no longer has.
+            // Clear the old count so it does not describe the newly chosen receipt.
             receipt: mergeTransaction.receipt ? {pageCount: null, ...mergeTransaction.receipt} : null,
         },
     });
