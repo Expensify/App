@@ -192,8 +192,6 @@ function ReportActionItem({
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
-    // isSendingMoney's cleanUpMoneyRequest call below uses `report` itself as the iouReport (not the derived `iouReport` above,
-    // which only resolves for REPORT_PREVIEW actions), so its transactions need a separate report-scoped lookup.
     const transactionsOnReportCollection = useReportTransactionsCollection(report?.reportID);
     const transactionsOnReport = Object.values(transactionsOnReportCollection);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
