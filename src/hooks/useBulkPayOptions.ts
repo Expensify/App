@@ -141,10 +141,12 @@ function useBulkPayOptions({
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
     let bulkPayButtonOptions;
-    if (!selectedReportID || !selectedPolicyID) {
-        bulkPayButtonOptions = undefined;
-    } else if (onlyShowPayElsewhere) {
+    // "Pay elsewhere" carries no bank account or policy payload, so it can be offered before a specific report and
+    // policy are known. Every other branch below reads `iouReport`/`chatReport`, which is why they still need both IDs.
+    if (onlyShowPayElsewhere) {
         bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+    } else if (!selectedReportID || !selectedPolicyID) {
+        bulkPayButtonOptions = undefined;
     } else {
         bulkPayButtonOptions = [];
 

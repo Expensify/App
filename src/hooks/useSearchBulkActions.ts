@@ -706,7 +706,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentUserPersonalDetails.accountID,
     ]);
 
-    const selectedBulkPayReportID = selectedTransactionReportIDs.at(0) ?? payScopedReportIDs.at(0);
+    // Pay-scope the report the same way selectedPolicyID is scoped below. Taking the first *selected* report instead
+    // could hand useBulkPayOptions a report the viewer cannot settle (or one from another workspace) while the policy
+    // came from the payable subset, so the two describe different workspaces.
+    const selectedBulkPayReportID = payScopedReportIDs.at(0) ?? selectedTransactionReportIDs.at(0);
     const selectedBulkPayReport = selectedBulkPayReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedBulkPayReportID}`] : undefined;
     const selectedBulkPayChatReportID = selectedBulkPayReport?.chatReportID;
     const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
@@ -2182,7 +2185,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
         // Keep Pay visible while offline: selecting it is handled by onBulkPaySelected, which shows the offline modal
         // rather than attempting a payment. Gating on !isOffline here would hide Pay entirely offline, which is wrong.
-        const shouldShowPayOption = !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
+        //
+        // Under "Select all" the selection covers every report matching the query, but only the first page is loaded,
+        // and QueueBulkPayReports re-resolves eligibility server-side from that query. So the two page-derived gates
+        // must not apply: `isAnyTransactionOnHold` lets one held expense on the loaded page drop Pay for the whole
+        // query, and getPayOption additionally requires every payable report to agree on getReportType(), which reads
+        // live Onyx and returns undefined for reports the viewer has never opened. Both make the menu depend on what
+        // happens to be hydrated rather than on what is actually payable. Keep only the "some report is payable"
+        // signal, which is the one thing the loaded page can honestly tell us.
+        const hasLoadedPayableReport = payableSelectedReports.length > 0 || selectedReports.length === 0;
+        const shouldShowPayOption = areAllMatchingItemsSelected
+            ? hasLoadedPayableReport && !!bulkPayButtonOptions?.length
+            : !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
         const payButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
             icon: expensifyIcons.MoneyBag,
             text: translate('search.bulkActions.pay'),
@@ -2802,6 +2816,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isExpenseType,
         isOffline,
         selectedReports,
+        payableSelectedReports.length,
         lastPaymentMethods,
         selectedReportIDs,
         personalPolicyID,

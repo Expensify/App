@@ -246,6 +246,21 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
     };
 }
 
+function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedReports {
+    return {
+        reportID: '1',
+        policyID: 'policy1',
+        chatReportID: undefined,
+        total: 100,
+        action: CONST.SEARCH.ACTION_TYPES.PAY,
+        canPay: true,
+        canApprove: false,
+        canSubmit: false,
+        canChangeApprover: false,
+        ...overrides,
+    };
+}
+
 function getPayOptionFromResult(options: Array<DropdownOption<SearchHeaderOptionValue>>): DropdownOption<SearchHeaderOptionValue> | undefined {
     return options.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.PAY);
 }
@@ -345,6 +360,60 @@ describe('useSearchBulkActions - Pay option', () => {
         expect(queueBulkPayReports).toHaveBeenCalledWith(expect.any(String));
         expect(payMoneyRequest).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('keeps the Pay option under Select all when getPayOption rejects the loaded page', async () => {
+        // Given "Select all" with at least one payable report loaded, but getPayOption rejecting the selection.
+        // getPayOption compares getReportType() across the payable subset, which reads live Onyx and returns
+        // undefined for reports the viewer never opened, so it says "no" for reasons that don't apply to the
+        // full query the backend will re-resolve.
+        mockAreAllMatchingItemsSelected = true;
+        mockShouldEnableBulkPayOption = false;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockSelectedReports = [makeSelectedReport({canPay: true}), makeSelectedReport({reportID: '2', canPay: false})];
+
+        // When the bulk actions hook computes the header dropdown options
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        // Then Pay is still offered, because eligibility for a select-all is decided server-side from the query
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+    });
+
+    it('keeps the Pay option under Select all when a loaded transaction is held', async () => {
+        // Given "Select all" where one expense on the loaded page is held. The hold says nothing about the
+        // reports on the pages that were never loaded, so it must not drop Pay for the whole query.
+        mockAreAllMatchingItemsSelected = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({isHeld: true})};
+        mockSelectedReports = [makeSelectedReport({canPay: true})];
+
+        // When the bulk actions hook computes the header dropdown options
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        // Then Pay is still offered
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+    });
+
+    it('hides the Pay option under Select all when no loaded report is payable', async () => {
+        // Given "Select all" where every report on the loaded page is view-only. That is the one honest signal
+        // the loaded page gives us that the query has nothing to pay.
+        mockAreAllMatchingItemsSelected = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockSelectedReports = [makeSelectedReport({canPay: false}), makeSelectedReport({reportID: '2', canPay: false})];
+
+        // When the bulk actions hook computes the header dropdown options
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions).toBeDefined();
+        });
+
+        // Then Pay is hidden
+        expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
 
     it('hides the Pay option when bulk pay is not enabled', async () => {
