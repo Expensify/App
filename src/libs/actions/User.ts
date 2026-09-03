@@ -13,6 +13,7 @@ import type {
     RevokeDeviceParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
+    SetPersonalExpenseRulesParams,
     TogglePlatformMuteParams,
     UpdateChatPriorityModeParams,
     UpdateNewsletterSubscriptionParams,
@@ -1742,9 +1743,10 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         return rule;
     });
 
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_EXPENSE_RULES,
+    const parameters: SetPersonalExpenseRulesParams = {
         value: JSON.stringify(rulesForAPI),
+        shouldUpdateMatchingTransactions: false,
+        ruleToApply: '',
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
@@ -1771,7 +1773,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         },
     ];
 
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+    API.write(WRITE_COMMANDS.SET_PERSONAL_EXPENSE_RULES, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -1801,7 +1803,13 @@ function clearExpenseRuleErrors(expenseRules: ExpenseRule[], selectedRuleKey: st
     Onyx.set(ONYXKEYS.NVP_EXPENSE_RULES, updatedExpenseRules);
 }
 
-function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, existingRuleKey: string | undefined, getKeyForRule: (rule: ExpenseRule) => string) {
+function saveExpenseRule(
+    expenseRules: ExpenseRule[],
+    newRule: ExpenseRule,
+    existingRuleKey: string | undefined,
+    getKeyForRule: (rule: ExpenseRule) => string,
+    shouldUpdateMatchingTransactions = false,
+) {
     const isEditing = !!existingRuleKey;
     const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
@@ -1855,9 +1863,10 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         .filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .map(({pendingAction: _pendingAction, errors: _errors, ...rule}) => rule);
 
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_EXPENSE_RULES,
+    const parameters: SetPersonalExpenseRulesParams = {
         value: JSON.stringify(rulesForAPI),
+        shouldUpdateMatchingTransactions,
+        ruleToApply: shouldUpdateMatchingTransactions ? JSON.stringify(newRule) : '',
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
@@ -1884,7 +1893,7 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         },
     ];
 
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+    API.write(WRITE_COMMANDS.SET_PERSONAL_EXPENSE_RULES, parameters, {
         optimisticData,
         successData,
         failureData,
