@@ -71,9 +71,9 @@ describe('Created date scoped labels (#98148)', () => {
     });
 
     describe('getTableMinWidth (horizontal-scroll budget)', () => {
-        // Absolute values (24 is the leading checkbox) so a shift in the untouched-type budget can't pass.
-        const CREATED_DATE_MIN_WIDTH = 24 + 72;
-        const DATE_MIN_WIDTH = 24 + 48;
+        // 24 is the leading checkbox; DATE budgets its actual fixed width (w80 created, w62 otherwise).
+        const CREATED_DATE_MIN_WIDTH = 24 + 80;
+        const DATE_MIN_WIDTH = 24 + 62;
 
         it('gives the DATE column the wider "Created" budget in expense-report and task search', () => {
             expect(getTableMinWidth([DATE], EXPENSE_REPORT)).toBe(CREATED_DATE_MIN_WIDTH);
