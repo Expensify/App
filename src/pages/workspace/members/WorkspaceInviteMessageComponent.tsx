@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,7 +31,6 @@ import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
-    isControlPolicy,
     isSubmitPolicy,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
@@ -116,8 +116,11 @@ function WorkspaceInviteMessageComponent({
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
 
-    const isControl = isControlPolicy(policy);
-    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+    // Derive whether a custom approval workflow exists instead of trusting `policy.approvalMode`: that flag is
+    // written optimistically by several paths and drifts from the real workflow structure, so it can say ADVANCED
+    // for a freshly upgraded workspace with no custom workflow, and stay BASIC for one that has several.
+    const {isAdvanceApproval} = useApprovalWorkflows(policy, policyID);
+    const shouldShowApproverRow = isAdvanceApproval && !!policy?.areWorkflowsEnabled;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
