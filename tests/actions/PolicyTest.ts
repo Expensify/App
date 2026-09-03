@@ -7541,6 +7541,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
 
@@ -7558,6 +7559,55 @@ describe('actions/Policy', () => {
 
             // Verify that the Onyx session accountID is NOT used
             expect(getOptionalNumberProperty(readProperty(policyOptimisticUpdate, 'value'), 'ownerAccountID')).not.toBe(ESH_ACCOUNT_ID);
+
+            apiWriteSpy.mockRestore();
+            isIOUReportUsingReportSpy.mockRestore();
+        });
+
+        it.each([
+            ['leaves the #admins room unpinned when the payer already owns a paid workspace', true, false],
+            ['pins the #admins room when the payer owns no paid workspace yet', false, true],
+        ])('%s', async (_label, hasOwnedPaidPolicy, expectedIsPinned) => {
+            const employeeAccountID = 200;
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '700',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: employeeAccountID,
+                chatReportID: '701',
+                policyID: 'oldPolicyID',
+                currency: CONST.CURRENCY.USD,
+                total: 1000,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
+
+            const result = Policy.createWorkspaceFromIOUPayment({
+                iouReport,
+                reportPreviewAction: undefined,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                iouReportOwnerEmail: 'owner@example.com',
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                lastWorkspaceNumber: undefined,
+                localeTranslate: TestHelper.translateLocal,
+                reportActionsList: {},
+                doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy,
+            });
+            await waitForBatchedUpdates();
+
+            const writeOptions = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 2));
+            const adminsRoomUpdate = requireRecordArrayProperty(writeOptions, 'optimisticData').find(
+                (update) => requireStringProperty(update, 'key') === `${ONYXKEYS.COLLECTION.REPORT}${result?.adminsChatReportID}`,
+            );
+
+            expect(readProperty(requireRecord(readProperty(adminsRoomUpdate, 'value')), 'isPinned')).toBe(expectedIsPinned);
 
             apiWriteSpy.mockRestore();
             isIOUReportUsingReportSpy.mockRestore();
@@ -7582,6 +7632,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy: false,
             });
             expect(result).toBeUndefined();
         });
@@ -7640,6 +7691,7 @@ describe('actions/Policy', () => {
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy: false,
             });
 
             // Verify the function returns a valid result (not undefined)
@@ -7694,6 +7746,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
 
@@ -7764,6 +7817,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
 

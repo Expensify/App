@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
-import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
+import {lastWorkspaceNumberSelector, ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {BankAccountList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
@@ -222,6 +222,7 @@ function KYCWall({
                             reportActionsList: filteredReportActions,
                             doesEmployeePersonalDetailExist: doesSubmitterPersonalDetailExist ?? false,
                             getCurrencyDecimals,
+                            hasOwnedPaidPolicy: ownerPoliciesSelector(policies, currentUserAccountID).length > 0,
                         }) ?? {};
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);

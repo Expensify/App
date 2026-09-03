@@ -247,8 +247,8 @@ function getPayMoneyRequestParams({
             isSelfTourViewed,
             // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
             hasActiveAdminPolicies: undefined,
-            // The workspace here is created by the payment command rather than CreatePolicy, which does not unpin the
-            // #admins room, so the room keeps starting out pinned.
+            // This workspace is created by the invoice payment command, which does not apply CreatePolicy's
+            // paid-workspace check, so the #admins room keeps starting out pinned here.
             hasOwnedPaidPolicy: undefined,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;

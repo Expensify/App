@@ -229,6 +229,8 @@ type CreateWorkspaceFromIOUPaymentOptions = {
     reportActionsList: OnyxCollection<ReportActions>;
     doesEmployeePersonalDetailExist: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Whether the current user already owns a paid workspace. CreatePolicy leaves the #admins room unpinned when they do. */
+    hasOwnedPaidPolicy: boolean;
 };
 
 type PolicyCashExpenseMode = ValueOf<typeof CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES>;
@@ -4386,6 +4388,7 @@ function createWorkspaceFromIOUPayment({
     reportActionsList,
     doesEmployeePersonalDetailExist,
     getCurrencyDecimals,
+    hasOwnedPaidPolicy,
 }: CreateWorkspaceFromIOUPaymentOptions): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -4411,7 +4414,7 @@ function createWorkspaceFromIOUPayment({
         expenseReportActionData: workspaceChatReportActionData,
         expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
         pendingChatMembers,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName, currentUserAccountID, currentUserEmail);
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName, currentUserAccountID, currentUserEmail, undefined, hasOwnedPaidPolicy);
 
     if (!employeeAccountID || !oldPersonalPolicyID) {
         return;
