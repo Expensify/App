@@ -2126,18 +2126,31 @@ function pruneReportActionPagesToNewestWindow(reportID: string | undefined, sort
  * @param introSelected The intro selected data for guided setup
  * @param avatar The avatar file to upload for the group chat (optional)
  */
-function createGroupChat(
-    reportID: string,
-    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
-    newReportObject: OptimisticChatReport,
-    currentUserLogin: string,
-    introSelected: OnyxEntry<IntroSelected>,
-    isSelfTourViewed: boolean,
-    hasCompletedGuidedSetupFlow: boolean,
-    betas: OnyxEntry<Beta[]>,
-    currentUserAccountID: number,
-    avatar?: File | CustomRNImageManipulatorResult,
-) {
+type CreateGroupChatParams = {
+    reportID: string;
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>;
+    newReportObject: OptimisticChatReport;
+    currentUserLogin: string;
+    introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean;
+    hasCompletedGuidedSetupFlow: boolean;
+    conciergeChat: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    avatar?: File | CustomRNImageManipulatorResult;
+};
+
+function createGroupChat({
+    reportID,
+    participantsPersonalDetails,
+    newReportObject,
+    currentUserLogin,
+    introSelected,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    conciergeChat,
+    currentUserAccountID,
+    avatar,
+}: CreateGroupChatParams) {
     const participantLoginList = Object.values(participantsPersonalDetails ?? {})
         .map((participant) => participant?.login)
         .filter((login): login is string => !!login);
@@ -2323,8 +2336,7 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    // Deferred: thread the real conciergeChat when the createGroupChat cascade is migrated (https://github.com/Expensify/App/issues/66411)
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, undefined, isSelfTourViewed, hasCompletedGuidedSetupFlow);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, conciergeChat, isSelfTourViewed, hasCompletedGuidedSetupFlow);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2658,7 +2670,7 @@ type NavigateToAndCreateGroupChatParams = {
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean;
     hasCompletedGuidedSetupFlow: boolean;
-    betas: OnyxEntry<Beta[]>;
+    conciergeChat: OnyxEntry<Report>;
     currentUserAccountID: number;
     avatarUri?: string;
     avatarFile?: File | CustomRNImageManipulatorResult | undefined;
@@ -2673,7 +2685,7 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
+        conciergeChat,
         currentUserAccountID,
         avatarUri,
         avatarFile,
@@ -2685,18 +2697,18 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-    createGroupChat(
-        newChat.reportID,
+    createGroupChat({
+        reportID: newChat.reportID,
         participantsPersonalDetails,
-        newChat,
+        newReportObject: newChat,
         currentUserLogin,
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
+        conciergeChat,
         currentUserAccountID,
-        avatarFile,
-    );
+        avatar: avatarFile,
+    });
 
     navigateToReport(newChat.reportID, {afterTransition: clearGroupChat});
 }
@@ -2814,15 +2826,17 @@ function navigateToAndOpenChildReport(
         createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails, conciergeChat);
     const backTo = Navigation.getActiveRoute();
 
-    // A money-request/expense child report must open in the wide/super-wide RHP (SEARCH_MONEY_REQUEST_REPORT in the
-    // Search context, EXPENSE_REPORT_RHP in the inbox), mirroring how report links are routed in Link.ts and
-    // ParentNavigationSubtitle. Other child reports keep the standard SEARCH_REPORT / REPORT_WITH_ID navigation.
+    // A money-request/expense/invoice child report must open in the wide/super-wide RHP (SEARCH_MONEY_REQUEST_REPORT in
+    // the Search context, EXPENSE_REPORT_RHP in the inbox), mirroring how report links are routed in Link.ts and
+    // ParentNavigationSubtitle. Invoice reports render in that same wide RHP, and the invoice preview card already opens
+    // them there, so they must pass this guard too.
+    // Other child reports keep the standard SEARCH_REPORT / REPORT_WITH_ID navigation.
     // These reports open scrolled to the top. Opening from the "X Replies" link should instead land on the latest
     // message, so we append the shouldScrollToLatest flag for the money-request branches.
-    const isMoneyRequest = isMoneyRequestReport(report);
+    const isMoneyRequestOrInvoice = isMoneyRequestReport(report) || isInvoiceReport(report);
 
     if (isSearchTopmostFullScreenRoute()) {
-        if (isMoneyRequest) {
+        if (isMoneyRequestOrInvoice) {
             Navigation.navigate(appendParam(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: report.reportID, backTo}), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'));
         } else {
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo}));
@@ -2830,7 +2844,7 @@ function navigateToAndOpenChildReport(
         return;
     }
 
-    if (!isMoneyRequest) {
+    if (!isMoneyRequestOrInvoice) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
         return;
     }
@@ -5098,7 +5112,8 @@ function navigateToMostRecentReport(
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
 ) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+    // TODO: Pass guideAccountIDs once callers are fully migrated — PR 30 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+    const lastAccessedReportID = findLastAccessedReport(false, undefined, false, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
         // Check if route exists for super wide RHP vs regular full screen report
@@ -5138,7 +5153,8 @@ function getSearchThreadLeaveRoute(report: Report, activeRoute: string): Route |
 }
 
 function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+    // TODO: Pass guideAccountIDs once callers are fully migrated — PR 30 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+    const lastAccessedReportID = findLastAccessedReport(false, undefined, false, currentReport?.reportID)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
 }
 

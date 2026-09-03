@@ -309,6 +309,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Fakturowalne',
         nonBillable: 'Nierozliczalne',
         tag: 'Tag',
+        violations: 'Naruszenia',
         receipt: 'Paragon',
         verified: 'Zweryfikowano',
         replace: 'Zastąp',
@@ -476,7 +477,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Skopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej, niż się spodziewaliśmy...',
         domains: 'Domeny',
-        actionRequired: 'Wymagane działanie',
         duplicate: 'Duplikuj',
         duplicated: 'Zduplikowano',
         opensInNewTab: 'Otwiera się w nowej karcie',
@@ -1110,6 +1110,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Zaproś swojego księgowego',
             customizeSpendCategories: 'Dostosuj kategorie wydatków',
             customizeSpendCategoriesSubText: 'Porządkuj i klasyfikuj wydatki',
+            customizeExpenseCategories: 'Dostosuj swoje kategorie wydatków',
+            customizeExpenseCategoriesSubText: 'Dodaj kategorie swojej firmy, aby kodować wydatki',
             createExpense: 'Dodaj wydatek',
             createExpenseSubText: 'Zeskanuj, przeciągnij i upuść lub ręcznie wprowadź wydatek za pomocą przycisku +',
             linkPersonalCard: 'Połącz kartę osobistą',
@@ -3784,11 +3786,6 @@ ${amount} dla ${merchant} - ${date}`,
         thisBankAccount: 'To konto bankowe będzie używane do płatności firmowych w Twoim obszarze roboczym',
         accountNumber: 'Numer konta',
         routingNumber: 'Numer rozliczeniowy',
-        internationalBankAccountDetails: 'Dane międzynarodowego konta bankowego',
-        internationalBankAccountDetailsTitle: 'Jakie są dane Twojego konta międzynarodowego?',
-        internationalBankAccountDetailsSubtitle: 'Jedna z Twoich przestrzeni roboczych potrzebuje danych konta międzynarodowego do przetwarzania zwrotów kosztów',
-        iban: 'IBAN',
-        swiftBicCode: 'Kod SWIFT/BIC',
         chooseAnAccountBelow: 'Wybierz konto poniżej',
         addBankAccount: 'Dodaj konto bankowe',
         chooseAnAccount: 'Wybierz konto',
@@ -3838,8 +3835,6 @@ ${amount} dla ${merchant} - ${date}`,
             restrictedBusiness: 'Potwierdź, że firma nie znajduje się na liście działalności objętych ograniczeniami',
             routingNumber: 'Wprowadź prawidłowy numer rozliczeniowy',
             accountNumber: 'Wprowadź prawidłowy numer konta',
-            iban: 'Wprowadź prawidłowy numer IBAN',
-            swiftCode: 'Wprowadź prawidłowy kod SWIFT/BIC',
             routingAndAccountNumberCannotBeSame: 'Numer rozliczeniowy i numer konta nie mogą być takie same',
             companyType: 'Wybierz prawidłowy typ firmy',
             tooManyAttempts: 'Ze względu na dużą liczbę prób logowania ta opcja została wyłączona na 24 godziny. Spróbuj ponownie później lub wprowadź dane ręcznie.',
@@ -4991,7 +4986,6 @@ ${amount} dla ${merchant} - ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Użyj tego konta podczas eksportowania faktur do ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Ustaw, w jaki sposób zakupy kartą firmową są eksportowane do ${integrationName}.`,
             vendor: 'Dostawca',
-            defaultVendorDescription: 'Ustaw domyślnego dostawcę, który zostanie zastosowany do wszystkich transakcji kartą kredytową podczas eksportu.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Ustaw sposób eksportu wydatków z własnej kieszeni do ${integrationName}.`,
             exportCheckDescription: 'Utworzymy wyszczególniony czek dla każdego raportu Expensify i wyślemy go z poniższego konta bankowego.',
             exportJournalEntryDescription: 'Utworzymy szczegółowy zapis księgowy dla każdego raportu Expensify i zaksięgujemy go na koncie poniżej.',
@@ -5155,8 +5149,6 @@ ${amount} dla ${merchant} - ${date}`,
             },
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: 'Dodaj proszę konto w Xero i zsynchronizuj połączenie ponownie',
-            defaultSupplier: 'Domyślny dostawca',
-            defaultSupplierDescription: 'Ustaw domyślnego dostawcę, który zostanie zastosowany do wszystkich transakcji kartą kredytową podczas eksportu.',
             noSuppliersFound: 'Nie znaleziono dostawców',
             noSuppliersFoundDescription: 'Dodaj dostawcę w Xero i zsynchronizuj połączenie ponownie.',
             accountingMethods: {
@@ -5908,9 +5900,34 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 label: 'Konto karty firmowej',
                 description: 'Wybierz miejsce eksportu transakcji z kart firmowych.',
             },
-            expensifyCardAccount: {
-                label: 'Konto karty Expensify',
-                description: 'Wybierz miejsce eksportu transakcji kartą Expensify.',
+            exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
+            cardProgramAccount: {
+                label: 'Konto programu kartowego',
+                description: 'Zastąp konto przestrzeni roboczej dla tych programów kart.',
+                descriptionLevel2: 'Zastąp konto przestrzeni roboczej dla tego programu kart.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Wszystkie programy używają domyślnego konta';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} program z własnym kontem`;
+                    }
+                    return `${customAccountsCount} programy z własnymi kontami`;
+                },
+            },
+            cardAccount: {
+                label: 'Konto dla każdej karty',
+                description: 'Nadpisz konto programu dla poszczególnych kart.',
+                descriptionLevel2: 'Zastąp konto programu dla tych kart.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Wszystkie karty korzystają z kont programów';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} karta z niestandardowym kontem`;
+                    }
+                    return `${customAccountsCount} karty z niestandardowymi kontami`;
+                },
             },
             autoSyncDescription: 'Synchronizuj DualEntry i Expensify automatycznie, każdego dnia. Raporty synchronizują się w czasie rzeczywistym.',
             accountingMethods: {
@@ -6157,6 +6174,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             finishSetup: 'Zakończ konfigurację',
             chooseBankAccount: 'Wybierz konto bankowe',
             chooseExistingBank: 'Wybierz istniejące firmowe konto bankowe, żeby spłacić saldo Karty Expensify, albo dodaj nowe konto bankowe',
+            chooseExistingBankForTravelBilling: 'Wybierz istniejące firmowe konto bankowe, aby zapłacić saldo skonsolidowanego rozliczenia podróży, albo dodaj nowe konto bankowe',
             accountEndingIn: 'Konto kończące się na',
             addNewBankAccount: 'Dodaj nowe konto bankowe',
             settlementAccount: 'Konto rozliczeniowe',
@@ -6227,7 +6245,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             deleteFailureMessage: 'Wystąpił błąd podczas usuwania kategorii, spróbuj ponownie',
             categoryName: 'Nazwa kategorii',
             requiresCategory: 'Członkowie muszą kategoryzować wszystkie wydatki',
-            autoCategorizeNewExpenses: 'Automatycznie kategoryzuj nowe wydatki',
             showCategoryGLCodes: 'Pokaż kody GL podczas kategoryzowania wydatków',
             needCategoryForExportToIntegration: (connectionName: string) => `Wszystkie wydatki muszą zostać skategoryzowane, aby można je było wyeksportować do ${connectionName}.`,
             subtitle: 'Uzyskaj lepszy wgląd w to, gdzie wydawane są pieniądze. Użyj naszych domyślnych kategorii lub dodaj własne.',
@@ -6565,6 +6582,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             subtitle: 'Pola raportu mają zastosowanie do wszystkich wydatków i mogą być pomocne, gdy chcesz poprosić o dodatkowe informacje.',
             disableReportFields: 'Wyłącz pola raportu',
             disableReportFieldsConfirmation: 'Na pewno? Pola tekstowe i daty zostaną usunięte, a listy wyłączone.',
+            cannotDisableImportedReportFields: 'Pól raportu zaimportowanych z połączenia księgowego nie można wyłączyć.',
             importedFromAccountingSoftware: 'Pola raportu poniżej są importowane z Twojego',
             textType: 'Tekst',
             dateType: 'Data',
@@ -7230,11 +7248,11 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             exportCompanyCard: 'Eksportuj wydatki z firmowej karty jako',
             exportDate: 'Data eksportu',
             defaultVendor: 'Domyślny dostawca',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
-                    ? `Wydatki, które nie dopasują się automatycznie, będą domyślnie przypisane do tego dostawcy.`
-                    : `Wydatki, które nie dopasują się automatycznie, zostaną domyślnie przypisane do tego dostawcy. W przeciwnym razie zostaną wyeksportowane jako Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Wybierz domyślnego dostawcę ${connectionName} dla wydatków, które nie zostaną dopasowane automatycznie.`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
+                    ? `Wydatki, które nie zostaną automatycznie dopasowane, zostaną domyślnie przypisane do tego dostawcy.`
+                    : `Wydatki, które nie zostaną dopasowane automatycznie, będą domyślnie przypisane do tego dostawcy. W przeciwnym razie zostaną wyeksportowane jako ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Wybierz domyślnego dostawcę dla wydatków, które nie dopasują się automatycznie.`,
             defaultAccount: 'Domyślne konto',
             autoSync: 'Automatyczna synchronizacja',
             autoSyncDescription: 'Synchronizuj NetSuite i Expensify automatycznie, każdego dnia. Eksportuj sfinalizowany raport w czasie rzeczywistym',
@@ -7254,6 +7272,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                     `Upewnij się, że to konto jest takie samo jak konto rozliczeniowe Consolidated Travel Billing (kończące się na ${lastFourPAN}), żeby Continuous Reconciliation działało poprawnie.`,
             },
             syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia skonsolidowanego rozliczania podróży',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Aby odblokować, ustaw konto dla swoich eksportów.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Aby odblokować, włącz automatyczną synchronizację.',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',
@@ -8232,6 +8252,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 requireAboveAmount: 'Wymagaj kwoty powyżej tej',
                 saveRule: 'Zapisz regułę',
                 emptyAmountError: 'Wpisz prawidłową kwotę przed zapisaniem',
+                receiptAmountGreaterThanItemizedError: 'Kwota wymagająca paragonu nie może być większa niż kwota wymagająca zbilansowanego paragonu.',
             },
             requireFields: {title: 'Wymagaj pól dla wszystkich wydatków', category: 'Kategoria', tag: 'Tag', save: 'Zapisz regułę'},
             newRule: {
@@ -9440,6 +9461,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topSpenders: 'Najwięksi wydający',
             topCategories: 'Najpopularniejsze kategorie',
             topMerchants: 'Najważniejsi sprzedawcy',
+            violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
     },
     genericErrorPage: {
@@ -9618,6 +9640,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         time: 'Czas (format 24-godzinny)',
         durationAmount: 'Czas trwania',
         durationUnit: 'Jednostka',
+        leaveType: 'Rodzaj urlopu',
+        normalOOO: 'Zwykłe OOO',
         reason: 'Powód',
         workingPercentage: 'Procent pracy',
         dateRequired: 'Data rozpoczęcia jest wymagana.',
@@ -10056,7 +10080,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
@@ -10065,38 +10089,42 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Nie można automatycznie dopasować paragonu z powodu tymczasowego problemu z bankiem. Spróbuj ponownie później.';
+            }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
                         return 'Nie można automatycznie dopasować paragonu, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia.';
                     }
                     return isMarkAsCash
-                        ? `Nie można automatycznie dopasować paragonu, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia. Oznacz jako gotówkę, aby zignorować, lub <a href="${connectionLink}">połącz ponownie</a>, aby dopasować paragon.`
+                        ? `Nie można automatycznie dopasować paragonu, bo Twoje połączenie z bankiem wymaga ponownego uwierzytelnienia. Oznacz jako gotówkę, żeby zignorować, albo <a href="${connectionLink}">połącz ponownie</a>, żeby dopasować paragon.`
                         : `Nie można automatycznie dopasować paragonu, ponieważ połączenie z bankiem wymaga ponownego uwierzytelnienia. <a href="${connectionLink}">Połącz ponownie</a>, aby dopasować paragon.`;
                 }
                 return isAdmin
-                    ? `Połączenie z bankiem wymaga ponownego uwierzytelnienia. <a href="${companyCardPageURL}">Połącz ponownie, aby dopasować paragon</a>`
-                    : 'Połączenie z bankiem wymaga ponownego uwierzytelnienia. Poproś administratora o ponowne połączenie, aby dopasować paragon.';
+                    ? `Połączenie z bankiem wymaga ponownego uwierzytelnienia. <a href="${companyCardPageURL}">Połącz ponownie, żeby dopasować paragon</a>`
+                    : 'Połączenie z bankiem wymaga ponownego uwierzytelnienia. Poproś administratora o ponowne połączenie, żeby dopasować paragon.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem.';
                 }
                 return isMarkAsCash
-                    ? `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z kartą. Oznacz jako gotówkę, aby zignorować, lub <a href="${connectionLink}">napraw kartę</a>, aby dopasować paragon.`
-                    : `Nie można automatycznie dopasować paragonu z powodu przerwanego połączenia karty. <a href="${connectionLink}">Napraw kartę</a>, aby dopasować paragon.`;
+                    ? `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z kartą. Oznacz wydatek jako gotówkę, aby go zignorować, albo <a href="${connectionLink}">napraw kartę</a>, żeby dopasować paragon.`
+                    : `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z kartą. <a href="${connectionLink}">Napraw kartę</a>, żeby dopasować paragon.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Połączenie z bankiem przerwane. <a href="${companyCardPageURL}">Połącz ponownie, aby dopasować paragon</a>`
-                    : 'Połączenie z bankiem zostało przerwane. Poproś administratora o ponowne połączenie, aby dopasować paragon.';
+                    ? `Połączenie z bankiem zostało zerwane. <a href="${companyCardPageURL}">Połącz ponownie, aby dopasować paragon</a>`
+                    : 'Połączenie z bankiem zostało zerwane. Poproś administratora o ponowne połączenie, aby dopasować paragon.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Poproś ${member}, aby oznaczył to jako gotówkę, albo poczekaj 7 dni i spróbuj ponownie` : 'Oczekiwanie na połączenie z transakcją kartową.';
+                return isAdmin ? `Poproś ${member}, żeby oznaczył to jako gotówkę albo poczekaj 7 dni i spróbuj ponownie` : 'Oczekuje na połączenie z transakcją z karty.';
             }
             return '';
         },
         brokenConnection530Error: 'Paragon oczekuje z powodu przerwanego połączenia z bankiem',
+        brokenConnection531Error: 'Nie można automatycznie dopasować paragonu z powodu tymczasowego problemu z bankiem. Spróbuj ponownie później.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Oczekuje na rachunek z powodu przerwanego połączenia z bankiem. Rozwiąż problem w sekcji <a href="${workspaceCompanyCardRoute}">Karty firmowe</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem. Poproś administratora przestrzeni roboczej o rozwiązanie problemu.',
@@ -10139,6 +10167,53 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Stawka jest ważna tylko od ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Stawka jest ważna tylko do ${endDate}`,
         cannotMergeDuplicates: 'Możesz łączyć wydatki tylko w szkicach lub otwartych raportach. Wycofaj go i spróbuj ponownie.',
+        shortName: {
+            allTagLevelsRequired: 'Wymagane są wszystkie tagi',
+            autoReportedRejectedExpense: 'Wydatek odrzucony',
+            billableExpense: 'Opcja rozliczalne nie jest już dostępna',
+            cashExpenseWithNoReceipt: 'Wymagany paragon',
+            categoryOutOfPolicy: 'Kategoria już nieaktualna',
+            companyCardRequired: 'Wymagana karta firmowa',
+            conversionSurcharge: 'Naliczono opłatę za przewalutowanie',
+            customUnitOutOfPolicy: 'Stawka nie jest prawidłowa dla tego przestrzeni roboczej',
+            customUnitRateOutOfDateRange: 'Stawka poza obowiązującymi datami',
+            duplicatedTransaction: 'Potencjalny duplikat',
+            fieldRequired: 'Pole raportu jest wymagane',
+            futureDate: 'Przyszła data jest niedozwolona',
+            hold: 'Wydatek wstrzymany',
+            inactiveVendor: 'Dostawca nie jest już prawidłowy',
+            increasedDistance: 'Dystans przekracza trasę',
+            invoiceMarkup: 'Faktura oznaczona',
+            itemizedReceiptRequired: 'Wymagany rachunek z wyszczególnieniem pozycjii',
+            maxAge: 'Data starsza niż maksymalny wiek wydatku',
+            missingAttendees: 'Wymagani uczestnicy',
+            missingCategory: 'Brak kategorii',
+            missingComment: 'Wymagany opis',
+            missingTag: 'Brakujący tag',
+            modifiedAmount: 'Kwota zmodyfikowana',
+            modifiedDate: 'Data modyfikacji',
+            noRoute: 'Brak prawidłowej trasy',
+            nonExpensiworksExpense: 'Wydatek spoza Expensiworks',
+            overAutoApprovalLimit: 'Powyżej limitu automatycznej akceptacji',
+            overCategoryLimit: 'Powyżej limitu kategorii',
+            overLimit: 'Przekroczono limit',
+            overTripLimit: 'Poza limitem podróży',
+            perDayLimit: 'Powyżej dziennego limitu',
+            prohibitedExpense: 'Zabroniony wydatek',
+            receiptGeneratedWithAI: 'Możliwy paragon wygenerowany przez AI',
+            receiptNotSmartScanned: 'Paragon dodany ręcznie',
+            receiptRequired: 'Wymagany paragon',
+            rter: 'Oczekiwanie na dopasowanie karty',
+            smartscanFailed: 'Skanowanie paragonu nie powiodło się',
+            someTagLevelsRequired: 'Tag wymagany',
+            tagOutOfPolicy: 'Tag nie jest już ważny',
+            overLimitAttendee: 'Przekroczono limit osób',
+            customRules: 'Naruszenie reguły niestandardowej',
+            taxAmountChanged: 'Zmodyfikowano kwotę podatku',
+            taxOutOfPolicy: 'Stawka podatku nie jest już ważna',
+            taxRateChanged: 'Zmodyfikowano stawkę podatku',
+            taxRequired: 'Brak stawki podatku',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Pole ${fieldName} jest wymagane`,
