@@ -25,21 +25,6 @@
  *     </MenuItem.Row>
  * </MenuItem.Root>
  * ```
- *
- * @example Form field row — the top line names the field, the bottom line holds its value
- * ```tsx
- * <MenuItem.Root onPress={onEdit}>
- *     <MenuItem.Row>
- *         <MenuItem.Content>
- *             <MenuItem.FieldName>{translate('common.role')}</MenuItem.FieldName>
- *             <MenuItem.FieldValue>{role}</MenuItem.FieldValue>
- *         </MenuItem.Content>
- *         <MenuItem.Trailing>
- *             <MenuItem.Chevron />
- *         </MenuItem.Trailing>
- *     </MenuItem.Row>
- * </MenuItem.Root>
- * ```
  */
 import MenuItemContent from './layout/MenuItemContent';
 import MenuItemLeading from './layout/MenuItemLeading';

@@ -1,34 +1,38 @@
-import type {ReactElement} from 'react';
+import type {MenuItemLabelSlot} from '@components/MenuItem/MenuItemAccessibilityContext';
 
-/**
- * Props shared by the prominent text leaves of a `MenuItem.Content` — `MenuItem.Title` and
- * `MenuItem.FieldValue`. Prominence is about emphasis, not position: a field row puts its
- * `MenuItem.FieldValue` on the bottom line.
- */
+import type {ReactElement} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
+
+/** Props of the full-contrast leaves */
 type MenuItemPrimaryTextProps =
     | {
-          /** Text to render */
           children: string | number;
 
           accessibilityLabel?: never;
       }
     | {
-          /** Element to render in place of plain text, e.g. a `DisplayNames` with per-name tooltips */
+          /** For content plain text can't express, e.g. `DisplayNames` with per-name tooltips */
           children: ReactElement;
 
+          /** Required here — the row builds its label from strings and can't read one out of an element */
           accessibilityLabel: string;
       };
 
-/**
- * Props shared by the supporting text leaves of a `MenuItem.Content` — `MenuItem.Description`,
- * `MenuItem.FieldName` and `MenuItem.FieldNamePlaceholder`.
- */
+/** Props of the muted leaves */
 type MenuItemSupportingTextProps = {
-    /** Text to render */
     children: string | number;
 
-    /** Maximum number of lines to render before the text is truncated */
+    /** Defaults to 2 — supporting text wraps, unlike primary text, which is always one line */
     numberOfLines?: number;
 };
 
-export type {MenuItemSupportingTextProps, MenuItemPrimaryTextProps};
+/** Props shared by MenuItem's content text */
+type BaseMenuItemTextProps = {
+    /** Which line of the row this leaf occupies, so the row announces its text in visual order */
+    slot: MenuItemLabelSlot;
+
+    /** Typography layered on top of the shared base — each leaf brings its own size and line height */
+    style?: StyleProp<TextStyle>;
+};
+
+export type {MenuItemSupportingTextProps, MenuItemPrimaryTextProps, BaseMenuItemTextProps};

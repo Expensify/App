@@ -8,10 +8,7 @@ import type {MenuItemSupportingTextProps} from './base/types';
 
 import BaseMenuItemSupportingText from './base/BaseMenuItemSupportingText';
 
-/**
- * The name of a form field that has no value yet, standing in for the value it does not have —
- * rendered at value size so the row keeps its height and weight in a list of filled fields.
- */
+/** Name of an empty field, standing in for the missing value */
 function MenuItemFieldNamePlaceholder(props: MenuItemSupportingTextProps) {
     const StyleUtils = useStyleUtils();
 

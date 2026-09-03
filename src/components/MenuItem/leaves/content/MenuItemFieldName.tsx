@@ -6,11 +6,7 @@ import type {MenuItemSupportingTextProps} from './base/types';
 
 import BaseMenuItemSupportingText from './base/BaseMenuItemSupportingText';
 
-/**
- * The name of a form field — the top line of a `MenuItem.Content`, above its
- * `MenuItem.FieldValue`. Use `MenuItem.FieldNamePlaceholder` for the branch where the field has no
- * value yet and the name has to carry the row on its own.
- */
+/** Name of a filled field */
 function MenuItemFieldName(props: MenuItemSupportingTextProps) {
     const styles = useThemeStyles();
 

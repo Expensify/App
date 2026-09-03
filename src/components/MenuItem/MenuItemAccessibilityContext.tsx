@@ -3,11 +3,8 @@ import type {TupleToUnion} from 'type-fest';
 import {createContext, useContext, useEffect, useState} from 'react';
 
 /**
- * The label slots a `MenuItem` row can contribute, in the order they are announced.
- *
- * Keyed by the line the leaf occupies rather than by role, so the announced order always matches the
- * visual order: a field row reads `field name, value`, a navigation row reads `title, description`.
- * Naming these by role instead would freeze one of the two shapes and mis-announce the other.
+ * Label slots a `MenuItem` row can contribute, in the order they are announced. Keyed by line rather
+ * than role, so the announced order matches the visual one for both field and navigation rows.
  */
 const MENU_ITEM_LABEL_SLOTS = ['top', 'bottom'] as const;
 

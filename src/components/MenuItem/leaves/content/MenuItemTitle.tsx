@@ -6,13 +6,7 @@ import type {MenuItemPrimaryTextProps} from './base/types';
 
 import BaseMenuItemPrimaryText from './base/BaseMenuItemPrimaryText';
 
-/**
- * The name of the row itself — a navigation destination, a menu action, an entity. Bold, and the top
- * line of a `MenuItem.Content`. Pair it with `MenuItem.Description` for supporting text underneath.
- *
- * Reach for `MenuItem.FieldName` / `MenuItem.FieldValue` instead when the row is a form field, where
- * the top line names the field and the bottom line holds its value.
- */
+/** The title block of a `MenuItem.Content`. Bold, single line */
 function MenuItemTitle(props: MenuItemPrimaryTextProps) {
     const styles = useThemeStyles();
 

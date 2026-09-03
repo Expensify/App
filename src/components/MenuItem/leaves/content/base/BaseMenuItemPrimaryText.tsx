@@ -1,4 +1,3 @@
-import type {MenuItemLabelSlot} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {useMenuItemAccessibilityLabel} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {useMenuItemConfig} from '@components/MenuItem/MenuItemContext';
 import Text from '@components/Text';
@@ -9,26 +8,12 @@ import convertToLTR from '@libs/convertToLTR';
 
 import CONST from '@src/CONST';
 
-import type {StyleProp, TextStyle} from 'react-native';
-
 import React from 'react';
 
-import type {MenuItemPrimaryTextProps} from './types';
+import type {BaseMenuItemTextProps, MenuItemPrimaryTextProps} from './types';
 
-type BaseMenuItemPrimaryTextProps = MenuItemPrimaryTextProps & {
-    /** Which line of the row this leaf occupies, so the row announces its text in visual order */
-    slot: MenuItemLabelSlot;
-
-    /** Typography layered on top of the shared base — each leaf brings its own weight */
-    style?: StyleProp<TextStyle>;
-};
-
-/**
- * Everything the prominent text leaves of a `MenuItem.Content` have in common — the full-contrast type
- * face, single-line truncation, LTR handling and label registration. Each leaf layers its own weight
- * on top.
- */
-function BaseMenuItemPrimaryText({children, accessibilityLabel, slot, style}: BaseMenuItemPrimaryTextProps) {
+/** Base of the full-contrast leaves */
+function BaseMenuItemPrimaryText({children, accessibilityLabel, slot, style}: MenuItemPrimaryTextProps & BaseMenuItemTextProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemConfig();
 
