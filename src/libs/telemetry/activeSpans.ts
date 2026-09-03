@@ -16,7 +16,7 @@ type ActiveSpanEntry = {
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
 
-/** Converts an optional Sentry epoch start time into the `performance.now()` timebase used for monotonic duration logging. */
+/** Converts an optional Sentry epoch start time into the `performance.now()` clock used for monotonic duration logging. */
 function getPerformanceStartTimeForLog(startTime: StartSpanOptions['startTime']): number {
     const performanceTimestamp = performance.now();
     if (startTime === undefined) {
