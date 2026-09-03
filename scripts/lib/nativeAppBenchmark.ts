@@ -40,15 +40,11 @@ type NativeAppBenchmarkAdapterOptions = {
     deviceIdentifier?: string;
 };
 
-function fail(message: string): never {
-    throw new Error(message);
-}
-
 function createCommandHelpers(rootDirectory: string) {
     const run = (command: string, args: string[]): void => {
         const result = Bun.spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit'});
         if (!result.success) {
-            fail(`${command} exited with status ${result.exitCode}.`);
+            throw new Error(`${command} exited with status ${result.exitCode}.`);
         }
     };
 
@@ -56,7 +52,7 @@ function createCommandHelpers(rootDirectory: string) {
         const result = Bun.spawnSync([command, ...args], {cwd: rootDirectory, maxBuffer: 100 * 1024 * 1024});
         if (!result.success) {
             const stderr = result.stderr.toString().trim();
-            fail(stderr || `${command} exited with status ${result.exitCode}.`);
+            throw new Error(stderr || `${command} exited with status ${result.exitCode}.`);
         }
         return result.stdout.toString();
     };
@@ -136,30 +132,30 @@ function iosBenchmarkMarkerPath(spanName: string): string {
 
 function parseIosLaunchProcessIdentifier(response: unknown): number {
     if (!isRecord(response) || !isRecord(response.result) || !isRecord(response.result.process)) {
-        fail('CoreDevice returned an unexpected app-launch response.');
+        throw new Error('CoreDevice returned an unexpected app-launch response.');
     }
     const {processIdentifier} = response.result.process;
     if (typeof processIdentifier !== 'number' || !Number.isInteger(processIdentifier) || processIdentifier <= 0) {
-        fail('CoreDevice did not return a valid app process identifier.');
+        throw new Error('CoreDevice did not return a valid app process identifier.');
     }
     return processIdentifier;
 }
 
 function parseIosInstalledAppURL(response: unknown, appID: string): string {
     if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.apps)) {
-        fail('CoreDevice returned an unexpected installed-app response.');
+        throw new Error('CoreDevice returned an unexpected installed-app response.');
     }
     const apps: unknown[] = response.result.apps;
     const app: unknown = apps.find((candidate) => isRecord(candidate) && candidate.bundleIdentifier === appID);
     if (!isRecord(app) || typeof app.url !== 'string') {
-        fail(`Unable to find installed iOS app ${appID}.`);
+        throw new Error(`Unable to find installed iOS app ${appID}.`);
     }
     return app.url.endsWith('/') ? app.url : `${app.url}/`;
 }
 
 function parseIosRunningAppProcessIdentifier(response: unknown, appURL: string): number | undefined {
     if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.runningProcesses)) {
-        fail('CoreDevice returned an unexpected process-list response.');
+        throw new Error('CoreDevice returned an unexpected process-list response.');
     }
     const runningProcesses: unknown[] = response.result.runningProcesses;
     const runningProcess: unknown = runningProcesses.find((candidate) => {
@@ -182,7 +178,7 @@ function parseAndroidProcessIdentifier(output: string, appID: string): string {
         .split(/\s+/)
         .find((candidate) => /^\d+$/.test(candidate));
     if (!processIdentifier) {
-        fail(`Unable to find the running Android process for ${appID}.`);
+        throw new Error(`Unable to find the running Android process for ${appID}.`);
     }
     return processIdentifier;
 }
@@ -191,14 +187,14 @@ function assertAndroidAppInstalled(packagePath: string, appID: string): void {
     if (packagePath.trim().startsWith('package:')) {
         return;
     }
-    fail(`Android app ${appID} is not installed. Pass its APK path or install it before benchmarking.`);
+    throw new Error(`Android app ${appID} is not installed. Pass its APK path or install it before benchmarking.`);
 }
 
 function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): NativeAppBenchmarkAdapter {
     const {capture, run} = createCommandHelpers(rootDirectory);
     const selectedDeviceIdentifier = deviceIdentifier ?? capture('adb', ['get-serialno']).trim();
     if (!selectedDeviceIdentifier || selectedDeviceIdentifier === 'unknown') {
-        fail('Unable to resolve the Android device serial. Use --device to select one.');
+        throw new Error('Unable to resolve the Android device serial. Use --device to select one.');
     }
     const adbArgs = (args: string[]) => ['-s', selectedDeviceIdentifier, ...args];
     const adb = (args: string[]) => run('adb', adbArgs(args));
@@ -213,10 +209,10 @@ function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<Nat
             adb(['shell', 'am', 'force-stop', appID]);
             if (installArtifact) {
                 if (!appPath) {
-                    fail('Android artifact installation requires an app path.');
+                    throw new Error('Android artifact installation requires an app path.');
                 }
                 if (!existsSync(appPath)) {
-                    fail(`Android app not found at ${appPath}.`);
+                    throw new Error(`Android app not found at ${appPath}.`);
                 }
                 adb(['install', '-r', '-d', appPath]);
             }
@@ -243,7 +239,7 @@ function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<Nat
             }
             const events = parseBenchmarkLogEvents(logs);
             if (options.waitUntilSpan) {
-                fail(`Timed out after ${options.waitTimeSeconds}s waiting for benchmark span ${options.waitUntilSpan}.\n${logs}`);
+                throw new Error(`Timed out after ${options.waitTimeSeconds}s waiting for benchmark span ${options.waitUntilSpan}.\n${logs}`);
             }
             return latestBenchmarkEvents(events, options.spanNames);
         },
@@ -262,7 +258,7 @@ function resolveIosDevice(rootDirectory: string, configuredDevice: string | unde
         run('xcrun', ['devicectl', 'list', 'devices', '--json-output', jsonPath]);
         const response: unknown = JSON.parse(readFileSync(jsonPath, 'utf8'));
         if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.devices)) {
-            fail('CoreDevice returned an unexpected device-list response.');
+            throw new Error('CoreDevice returned an unexpected device-list response.');
         }
 
         const devices = response.result.devices.flatMap((device) => {
@@ -282,11 +278,11 @@ function resolveIosDevice(rootDirectory: string, configuredDevice: string | unde
             return [{name: deviceProperties.name, udid: hardwareProperties.udid}];
         });
         if (devices.length !== 1) {
-            fail(`Expected one booted physical iOS device, found ${devices.length}. Use --device to select one.`);
+            throw new Error(`Expected one booted physical iOS device, found ${devices.length}. Use --device to select one.`);
         }
         const device = devices.at(0);
         if (!device) {
-            fail('Unable to resolve the connected iOS device.');
+            throw new Error('Unable to resolve the connected iOS device.');
         }
         console.log(`Using iOS device ${device.name} (${device.udid}).`);
         return device.udid;
@@ -383,14 +379,14 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
             terminate();
             if (mode === 'cold' || installArtifact) {
                 if (!appPath) {
-                    fail(
+                    throw new Error(
                         mode === 'cold'
                             ? 'iOS true-cold startup requires --app-path so the app can be reinstalled after clearing its data.'
                             : 'iOS artifact installation requires an app path.',
                     );
                 }
                 if (!existsSync(appPath)) {
-                    fail(`iOS app not found at ${appPath}.`);
+                    throw new Error(`iOS app not found at ${appPath}.`);
                 }
                 if (mode === 'cold') {
                     runAllowFailure('xcrun', ['devicectl', 'device', 'uninstall', 'app', '--device', device, appID]);
@@ -423,7 +419,7 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
                 await sleep(POLL_INTERVAL_MS);
             }
             if (options.waitUntilSpan) {
-                fail(`Timed out after ${options.waitTimeSeconds}s waiting for benchmark span ${options.waitUntilSpan}.`);
+                throw new Error(`Timed out after ${options.waitTimeSeconds}s waiting for benchmark span ${options.waitUntilSpan}.`);
             }
             return latestBenchmarkEvents([...eventsBySpan.values()], options.spanNames);
         },
