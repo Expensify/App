@@ -7,6 +7,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
@@ -68,6 +69,8 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    // Only for the read-only modal a locked row still owes a member. `canWrite` is the `canWriteRules` prop already.
+    const {withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'CreditCard', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
 
@@ -126,9 +129,9 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
-    // There has to be a card to require before the rule means anything, and either card product counts. The lock has
-    // two reasons on this row, so they lead to different places: Collect goes to the upgrade the other rules use, and
-    // a Control workspace with no cards gets the tooltip pointing at More features instead.
+    // There has to be a card to require before the rule means anything, and either card product counts. Collect is the
+    // one lock reason the pre-revamp row didn't have, so it is the only one that behaves differently: it goes to the
+    // upgrade the other rules use, and drops the More features tooltip, which isn't why the row is locked there.
     const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
     const areAnyCardsEnabled = !!policy?.areCompanyCardsEnabled || !!policy?.areExpensifyCardsEnabled;
     const isRequireCompanyCardsLocked = !canWriteRules || isCollect || !areAnyCardsEnabled;
@@ -282,8 +285,8 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     isActive={requireCompanyCardsEnabled}
                     disabled={isRequireCompanyCardsLocked}
                     showLockIcon={isRequireCompanyCardsLocked}
-                    disabledText={!isCollect && !areAnyCardsEnabled ? translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip') : undefined}
-                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
+                    disabledText={isCollect ? undefined : translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
+                    disabledAction={withReadOnlyFallback(isCollect ? navigateToRulesControlUpgrade : undefined)}
                     onToggle={() => (canWriteRules && policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
                     pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
                     rowIcon={icons.CreditCard}
