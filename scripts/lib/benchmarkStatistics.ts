@@ -45,6 +45,7 @@ type ExportBenchmarkResultsOptions = {
 const BENCHMARK_SAMPLE_HEADER = 'run,span,duration_ms';
 const BENCHMARK_RESULTS_HEADER = 'span,runs,average,p50,p75,p90,p95,p99,min,max';
 
+/** Calculates a percentile from sorted samples using linear interpolation between adjacent values. */
 function percentileFromSortedValues(sortedValues: readonly number[], fraction: number): number {
     if (fraction < 0 || fraction > 1) {
         throw new Error(`Percentile fraction must be between 0 and 1. Received: ${fraction}`);
@@ -65,6 +66,7 @@ function percentileFromSortedValues(sortedValues: readonly number[], fraction: n
     return lowerValue + remainder * (upperValue - lowerValue);
 }
 
+/** Sorts a copy of the samples before calculating a percentile for a fraction between zero and one. */
 function percentile(values: readonly number[], fraction: number): number {
     return percentileFromSortedValues(
         values.toSorted((left, right) => left - right),
@@ -72,6 +74,7 @@ function percentile(values: readonly number[], fraction: number): number {
     );
 }
 
+/** Summarizes a non-empty sample set with its average, interpolated percentiles, and range. */
 function benchmarkStats(samples: readonly number[]): BenchmarkStats {
     const sortedValues = samples.toSorted((left, right) => left - right);
     const min = sortedValues.at(0);
@@ -93,6 +96,7 @@ function benchmarkStats(samples: readonly number[]): BenchmarkStats {
     };
 }
 
+/** Groups samples by span while retaining explicitly requested spans that have no samples. */
 function benchmarkMetrics(samples: readonly BenchmarkSample[], spanNames?: readonly string[]): Record<string, BenchmarkMetricResult> {
     const samplesBySpan = new Map<string, number[]>();
     for (const sample of samples) {
@@ -110,6 +114,7 @@ function benchmarkMetrics(samples: readonly BenchmarkSample[], spanNames?: reado
     );
 }
 
+/** Formats metrics for console and CSV output, representing spans without samples as `N/A`. */
 function benchmarkResultTable(metrics: Readonly<Record<string, BenchmarkMetricResult>>): BenchmarkResultTableRow[] {
     return Object.entries(metrics).map(([span, metric]) => ({
         span,
@@ -152,6 +157,7 @@ function writeBenchmarkResults(outputPath: string, table: readonly BenchmarkResu
     writeBenchmarkCsv(outputPath, benchmarkResultsCsv(table));
 }
 
+/** Reads and validates the exact raw-sample CSV schema produced by the benchmark runner. */
 function readBenchmarkSamples(inputPath: string): BenchmarkSample[] {
     const [header, ...rows] = readFileSync(inputPath, 'utf8').trim().split(/\r?\n/);
     if (header !== BENCHMARK_SAMPLE_HEADER) {
@@ -169,6 +175,7 @@ function readBenchmarkSamples(inputPath: string): BenchmarkSample[] {
     });
 }
 
+/** Combines raw sample files, calculates per-span statistics, and writes the summary CSV. */
 function exportBenchmarkResults(options: ExportBenchmarkResultsOptions): BenchmarkResultTableRow[] {
     if (options.inputPaths.length === 0) {
         throw new Error('At least one benchmark sample file is required.');

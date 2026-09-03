@@ -36,6 +36,7 @@ type NativeAppBenchmarkAdapterOptions = {
     deviceIdentifier?: string;
 };
 
+/** Creates command runners for inherited output, captured output, and expected best-effort failures. */
 function createCommandHelpers(rootDirectory: string) {
     const run = (command: string, args: string[]): void => {
         const result = spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit'});
@@ -66,6 +67,7 @@ function sleep(milliseconds: number): Promise<void> {
     });
 }
 
+/** Extracts valid benchmark events from mixed device logs and ignores unrelated, malformed, or incomplete tagged output. */
 function parseBenchmarkLogEvents(output: string): BenchmarkLogEvent[] {
     const events: BenchmarkLogEvent[] = [];
     let offset = 0;
@@ -103,10 +105,12 @@ function parseBenchmarkLogEvents(output: string): BenchmarkLogEvent[] {
     return events;
 }
 
+/** Returns the most recent duration for a span when device output contains repeated benchmark events. */
 function findBenchmarkDuration(output: string, spanName: string): number | undefined {
     return parseBenchmarkLogEvents(output).findLast((event) => event.span === spanName)?.durationMs;
 }
 
+/** Selects the latest event for each requested span while preserving the caller's span order. */
 function latestBenchmarkEvents(events: BenchmarkLogEvent[], spanNames: string[]): BenchmarkLogEvent[] {
     return [...new Set(spanNames)].flatMap((spanName) => {
         const event = events.findLast((candidate) => candidate.span === spanName);
@@ -114,6 +118,7 @@ function latestBenchmarkEvents(events: BenchmarkLogEvent[], spanNames: string[])
     });
 }
 
+/** Includes the completion sentinel in collection even when the caller does not want it in the reported metrics. */
 function benchmarkCollectionSpanNames(options: CollectBenchmarkEventsOptions): string[] {
     const waitUntilSpanNames = options.waitUntilSpan ? [options.waitUntilSpan] : [];
     const spanNames = [...options.spanNames, ...waitUntilSpanNames];

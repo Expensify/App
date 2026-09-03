@@ -112,6 +112,7 @@ function parseSpanNames(value: string | undefined): string[] {
     ];
 }
 
+/** Validates an optional single-span selection against the spans enabled in the benchmark build. */
 function selectBenchmarkSpanNames(configuredSpanNames: string[], selectedSpanName?: string): string[] {
     if (selectedSpanName && !configuredSpanNames.includes(selectedSpanName)) {
         throw new Error(`--span ${selectedSpanName} is not included in ${BENCHMARK_SPANS_ENVIRONMENT_VARIABLE}.`);
@@ -123,6 +124,7 @@ function selectBenchmarkSpanNames(configuredSpanNames: string[], selectedSpanNam
     return spanNames;
 }
 
+/** Prepares one startup, optionally installs its artifact, then collects the configured span events from the launched process. */
 async function measureStartup(
     adapter: NativeAppBenchmarkAdapter,
     options: Omit<BenchmarkStartupsOptions, 'runs' | 'outputPath'> & {installArtifact?: boolean},
@@ -135,6 +137,7 @@ async function measureStartup(
     return adapter.launchAndCollect({spanNames: options.spanNames, waitTimeSeconds: options.waitTimeSeconds, waitUntilSpan: options.waitUntilSpan});
 }
 
+/** Appends observed spans to the raw samples while reporting requested spans that did not finish during the run. */
 function recordBenchmarkEvents(events: BenchmarkLogEvent[], spanNames: string[], samples: BenchmarkSample[], runNumber: number): string[] {
     const eventsBySpan = new Map(events.map((event) => [event.span, event]));
     return spanNames.map((spanName) => {
@@ -147,6 +150,7 @@ function recordBenchmarkEvents(events: BenchmarkLogEvent[], spanNames: string[],
     });
 }
 
+/** Accumulates measured runs and writes both raw samples and summary statistics when recording completes. */
 function createBenchmarkRecorder(options: BenchmarkRecorderOptions): BenchmarkRecorder {
     const samples: BenchmarkSample[] = [];
     const resultsOutputPath = options.resultsOutputPath ?? benchmarkResultsOutputPath(options.outputPath);
@@ -179,6 +183,7 @@ function createBenchmarkRecorder(options: BenchmarkRecorderOptions): BenchmarkRe
     };
 }
 
+/** Runs one unmeasured warm-up followed by the requested number of measured startups. */
 async function benchmarkStartups(adapter: NativeAppBenchmarkAdapter, options: BenchmarkStartupsOptions): Promise<BenchmarkResult> {
     const resultsOutputPath = options.resultsOutputPath ?? benchmarkResultsOutputPath(options.outputPath);
     console.log('=== Native app startup benchmark ===');
@@ -211,6 +216,7 @@ async function benchmarkStartups(adapter: NativeAppBenchmarkAdapter, options: Be
     return recorder.complete();
 }
 
+/** Warms both binaries once, then alternates A and B measurements to reduce time-dependent comparison bias. */
 async function benchmarkAlternatingStartups(
     adapters: {binaryA: NativeAppBenchmarkAdapter; binaryB: NativeAppBenchmarkAdapter},
     options: BenchmarkAlternatingStartupsOptions,

@@ -6,6 +6,7 @@ import type {NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions} from '
 
 import {POLL_INTERVAL_MS, RELAUNCH_DELAY_MS, createCommandHelpers, latestBenchmarkEvents, parseBenchmarkLogEvents, sleep} from './shared';
 
+/** Extracts the numeric process ID from `adb shell pidof` output and rejects an empty result. */
 function parseAndroidProcessIdentifier(output: string, appID: string): string {
     const processIdentifier = output
         .trim()
@@ -24,6 +25,7 @@ function assertAndroidAppInstalled(packagePath: string, appID: string): void {
     throw new Error(`Android app ${appID} is not installed. Pass its APK path or install it before benchmarking.`);
 }
 
+/** Creates an Android benchmark adapter that controls installation, process state, compilation state, and scoped logcat collection. */
 function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): NativeAppBenchmarkAdapter {
     const {capture, run} = createCommandHelpers(rootDirectory);
     const selectedDeviceIdentifier = deviceIdentifier ?? capture('adb', ['get-serialno']).trim();

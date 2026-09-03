@@ -83,6 +83,7 @@ function decodeXml(value: string): string {
     return value.replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&apos;', "'");
 }
 
+/** Extracts the signing team from a decoded provisioning profile, excluding malformed and expired profiles. */
 function parseDevelopmentTeamFromProvisioningProfile(profile: string, now = new Date()): DevelopmentTeam | undefined {
     const teamID = profile.match(/<key>TeamIdentifier<\/key>\s*<array>\s*<string>([^<]+)<\/string>/)?.at(1);
     const teamName = profile.match(/<key>TeamName<\/key>\s*<string>([^<]+)<\/string>/)?.at(1);
@@ -93,11 +94,13 @@ function parseDevelopmentTeamFromProvisioningProfile(profile: string, now = new 
     return {id: teamID, name: decodeXml(teamName)};
 }
 
+/** Decodes the CMS payload in a provisioning profile, returning undefined when OpenSSL cannot verify or read it. */
 function decodeProvisioningProfile(path: string): string | undefined {
     const result = spawnSync(['openssl', 'smime', '-verify', '-inform', 'der', '-noverify', '-in', path], {stdin: 'ignore', stderr: 'ignore'});
     return result.success ? result.stdout.toString() : undefined;
 }
 
+/** Finds valid signing teams in Xcode's current and legacy provisioning-profile directories and deduplicates them by team ID. */
 function installedDevelopmentTeams(): DevelopmentTeam[] {
     const profileDirectories = [join(homedir(), 'Library/Developer/Xcode/UserData/Provisioning Profiles'), join(homedir(), 'Library/MobileDevice/Provisioning Profiles')];
     const teams = new Map<string, DevelopmentTeam>();
@@ -150,6 +153,7 @@ async function resolveDevelopmentTeam(developmentTeam: string | undefined, teams
     return prompt(teams);
 }
 
+/** Resolves the lowercase login associated with the configured GitHub token for use in a unique application identifier. */
 async function githubUsername(): Promise<string> {
     const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
     if (!token) {
@@ -166,6 +170,7 @@ async function githubUsername(): Promise<string> {
     }
 }
 
+/** Builds the platform-specific application identifier used when no identifier is supplied explicitly. */
 function defaultBundleIdentifier(username: string, platform: Platform = 'ios'): string {
     const normalizedUsername = username.trim().toLowerCase();
     if (!/^[a-z0-9-]+$/.test(normalizedUsername)) {
@@ -174,6 +179,7 @@ function defaultBundleIdentifier(username: string, platform: Platform = 'ios'): 
     return platform === 'ios' ? `com.${normalizedUsername}.expensify.expensifylite` : `com.${normalizeAndroidIdentifierSegment(normalizedUsername)}.expensify`;
 }
 
+/** Converts a GitHub-style name into a valid Java identifier segment, including names that begin with a digit. */
 function normalizeAndroidIdentifierSegment(value: string): string {
     const normalized = value.replaceAll('-', '_');
     return /^\d/.test(normalized) ? `developer_${normalized}` : normalized;
@@ -186,6 +192,7 @@ function validateAndroidApplicationID(value: string): string {
     return value;
 }
 
+/** Derives the package names used by every Android build type from the local release identifier. */
 function androidApplicationIDs(baseIdentifier: string, suffix?: string): AndroidApplicationIDs {
     const release = [baseIdentifier, suffix].filter(Boolean).join('.');
     return {
@@ -204,6 +211,7 @@ function googleServicesClientPackage(client: unknown): string | undefined {
     return typeof packageName === 'string' ? packageName : undefined;
 }
 
+/** Clones a registered Firebase client for a synthetic package and removes OAuth clients that cannot work with its unregistered package and certificate pair. */
 function cloneGoogleServicesClient(client: Record<string, unknown>, applicationID: string): Record<string, unknown> {
     const cloned: unknown = structuredClone(client);
     if (!isRecord(cloned) || !isRecord(cloned.client_info) || !isRecord(cloned.client_info.android_client_info)) {
@@ -215,6 +223,7 @@ function cloneGoogleServicesClient(client: Record<string, unknown>, applicationI
     return cloned;
 }
 
+/** Adds Firebase clients for missing local package variants by copying the corresponding registered build-type clients. */
 function patchGoogleServicesConfig(config: unknown, applicationIDs: AndroidApplicationIDs): Record<string, unknown> {
     if (!isRecord(config) || !isUnknownArray(config.client)) {
         throw new Error('Mobile-Expensify/Android/google-services.json has an unexpected structure.');
@@ -235,7 +244,7 @@ function patchGoogleServicesConfig(config: unknown, applicationIDs: AndroidAppli
     return {...config, client: clients};
 }
 
-/** Make release-derived builds locally signable under a side-by-side application ID. */
+/** Makes release-derived builds locally signable by changing the base application ID, using debug signing, and disabling release minification. */
 function patchAndroidBuildGradle(buildGradle: string, baseIdentifier: string): string {
     const applicationIDPattern = /(defaultConfig\s*\{[\s\S]*?applicationId\s+)["'][^"']+["']/;
     if (!applicationIDPattern.test(buildGradle)) {
@@ -248,15 +257,18 @@ function patchAndroidBuildGradle(buildGradle: string, baseIdentifier: string): s
     return buildWithoutMinification.replace(/^(\s*)(?!\/\/)(proguardFiles\s+.+)$/m, '$1// $2');
 }
 
+/** Points an Android shortcut resource at the package for its build type. */
 function patchAndroidShortcutPackage(shortcuts: string, applicationID: string): string {
     return shortcuts.replaceAll(/android:targetPackage="[^"]+"/g, `android:targetPackage="${applicationID}"`);
 }
 
+/** Replaces the manifest's hard-coded shortcut package with Gradle's application-ID placeholder. */
 function patchAndroidManifest(manifest: string): string {
     const applicationIDPlaceholder = ['$', '{applicationId}'].join('');
     return manifest.replace(/android:targetPackage="org\.me\.mobiexpensifyg"/, `android:targetPackage="${applicationIDPlaceholder}"`);
 }
 
+/** Replaces the Android app label while preserving the rest of the string resources. */
 function patchAndroidAppName(strings: string, name: string): string {
     const appNamePattern = /<string name="app_name">[^<]+<\/string>/;
     if (!appNamePattern.test(strings)) {
@@ -265,12 +277,14 @@ function patchAndroidAppName(strings: string, name: string): string {
     return strings.replace(appNamePattern, `<string name="app_name">${name}</string>`);
 }
 
+/** Composes a unique bundle identifier from the local suffix, build configuration, and native target. */
 function targetBundleIdentifier(baseIdentifier: string, target: Target, configuration: Configuration, suffix?: string): string {
     const configurationSuffix = configuration === 'AdHoc' ? 'adhoc' : undefined;
     const targetSuffix = target === 'Expensify' ? undefined : target;
     return [baseIdentifier, suffix, configurationSuffix, targetSuffix].filter(Boolean).join('.');
 }
 
+/** Maps each native target and build configuration to its XCBuildConfiguration identifier in the Xcode project. */
 function configurationIDsByTarget(project: string): Map<Target, Map<Configuration, string>> {
     const result = new Map<Target, Map<Configuration, string>>();
     for (const target of TARGETS) {
@@ -294,6 +308,7 @@ function configurationIDsByTarget(project: string): Map<Target, Map<Configuratio
     return result;
 }
 
+/** Replaces a build setting in an XCBuildConfiguration block or inserts it when absent. */
 function setBuildSetting(block: string, key: string, value: string): string {
     const escapedKey = key.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`^(\\s*)"?${escapedKey}"? = [^;]*;$`, 'gm');
@@ -303,11 +318,13 @@ function setBuildSetting(block: string, key: string, value: string): string {
     return block.replace(/(\n\s*buildSettings = \{)/, `$1\n\t\t\t\t${key} = ${value};`);
 }
 
+/** Removes every quoted or unquoted occurrence of a build setting from an XCBuildConfiguration block. */
 function removeBuildSetting(block: string, key: string): string {
     const escapedKey = key.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return block.replaceAll(new RegExp(`^\\s*"?${escapedKey}"? = [^;]*;\\n`, 'gm'), '');
 }
 
+/** Configures one Xcode build configuration for automatic local signing and its derived bundle identifier. */
 function patchBuildConfiguration(project: string, identifier: string, bundleIdentifier: string, developmentTeam: string, releaseEntitlements: boolean): string {
     const blockPattern = new RegExp(`(^\\s*${identifier} \\/\\* [^*]+ \\*\\/ = \\{[\\s\\S]*?^\\s*\\};)`, 'm');
     const block = project.match(blockPattern)?.at(1);
@@ -331,6 +348,7 @@ function patchBuildConfiguration(project: string, identifier: string, bundleIden
     return project.replace(block, patched);
 }
 
+/** Applies automatic signing and unique bundle identifiers to every supported Xcode target and configuration. */
 function patchProject(project: string, baseIdentifier: string, suffix: string | undefined, developmentTeam: string): string {
     const configurationsByTarget = configurationIDsByTarget(project);
     let patched = project.replaceAll('ProvisioningStyle = Manual;', 'ProvisioningStyle = Automatic;');
@@ -348,6 +366,7 @@ function patchProject(project: string, baseIdentifier: string, suffix: string | 
     return patched;
 }
 
+/** Creates the minimal entitlements plist shared by the locally signed app and its extensions. */
 function entitlementContents(appGroup: string): string {
     return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -362,6 +381,7 @@ function entitlementContents(appGroup: string): string {
 `;
 }
 
+/** Adds the optional local suffix to the iOS display name so side-by-side installations remain distinguishable. */
 function patchIOSAppDisplayName(infoPlist: string, suffix: string | undefined): string {
     const displayNamePattern = /(<key>CFBundleDisplayName<\/key>\s*<string>)[^<]*(<\/string>)/;
     if (!displayNamePattern.test(infoPlist)) {
@@ -371,6 +391,7 @@ function patchIOSAppDisplayName(infoPlist: string, suffix: string | undefined): 
     return infoPlist.replace(displayNamePattern, `$1Expensify${suffixLabel}$2`);
 }
 
+/** Rewrites the native iOS project, display name, and app-group entitlements for local device signing. */
 function bootstrapIOSForDevice(options: BootstrapOptions): void {
     const iosDirectory = resolve(options.rootDirectory, 'Mobile-Expensify/iOS');
     const projectPath = resolve(iosDirectory, 'Expensify.xcodeproj/project.pbxproj');
@@ -403,6 +424,7 @@ function bootstrapIOSForDevice(options: BootstrapOptions): void {
     });
 }
 
+/** Rewrites Android package, Firebase, shortcut, manifest, and label settings for a side-by-side local installation. */
 function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): void {
     const androidDirectory = resolve(options.rootDirectory, 'Mobile-Expensify/Android');
     const suffix = validateSuffix(options.suffix);

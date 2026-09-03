@@ -13,11 +13,13 @@ import {POLL_INTERVAL_MS, RELAUNCH_DELAY_MS, benchmarkCollectionSpanNames, creat
 
 const IOS_BENCHMARK_DIRECTORY = 'Library/Caches/ExpensifyBenchmark';
 
+/** Maps a span name to its encoded marker path inside the iOS app data container. */
 function iOSBenchmarkMarkerPath(spanName: string): string {
     return `${IOS_BENCHMARK_DIRECTORY}/${encodeURIComponent(spanName)}.log`;
 }
 
 // CoreDevice does not publish a runtime schema for `devicectl --json-output`, so keep parsed responses unknown until each required field is validated.
+/** Validates a CoreDevice launch response and returns the launched process identifier. */
 function parseIOSLaunchProcessIdentifier(response: unknown): number {
     if (!isRecord(response) || !isRecord(response.result) || !isRecord(response.result.process)) {
         throw new Error('CoreDevice returned an unexpected app-launch response.');
@@ -29,6 +31,7 @@ function parseIOSLaunchProcessIdentifier(response: unknown): number {
     return processIdentifier;
 }
 
+/** Finds the installed app's normalized container URL in an untyped CoreDevice response. */
 function parseIOSInstalledAppURL(response: unknown, appID: string): string {
     if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.apps)) {
         throw new Error('CoreDevice returned an unexpected installed-app response.');
@@ -41,6 +44,7 @@ function parseIOSInstalledAppURL(response: unknown, appID: string): string {
     return app.url.endsWith('/') ? app.url : `${app.url}/`;
 }
 
+/** Finds the app's main process by requiring its executable to be a direct child of the installed app URL. */
 function parseIOSRunningAppProcessIdentifier(response: unknown, appURL: string): number | undefined {
     if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.runningProcesses)) {
         throw new Error('CoreDevice returned an unexpected process-list response.');
@@ -60,6 +64,7 @@ function parseIOSRunningAppProcessIdentifier(response: unknown, appURL: string):
     return typeof processIdentifier === 'number' && Number.isInteger(processIdentifier) && processIdentifier > 0 ? processIdentifier : undefined;
 }
 
+/** Uses the configured device or requires exactly one booted physical iOS device when discovering automatically. */
 function resolveIOSDevice(rootDirectory: string, configuredDevice: string | undefined): string {
     if (configuredDevice) {
         return configuredDevice;
@@ -105,12 +110,14 @@ function resolveIOSDevice(rootDirectory: string, configuredDevice: string | unde
     }
 }
 
+/** Creates an iOS benchmark adapter that manages app state and polls per-span markers through CoreDevice. */
 function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): NativeAppBenchmarkAdapter {
     const {run, runAllowFailure} = createCommandHelpers(rootDirectory);
     const iOSDeviceID: unknown = process.env.IOS_DEVICE_ID;
     const environmentDeviceIdentifier = typeof iOSDeviceID === 'string' ? iOSDeviceID : undefined;
     const device = resolveIOSDevice(rootDirectory, deviceIdentifier ?? environmentDeviceIdentifier);
     let runningProcessIdentifier: number | undefined;
+    /** Best-effort terminates the process tracked by this adapter and clears the cached identifier. */
     const terminate = () => {
         if (runningProcessIdentifier === undefined) {
             return;
@@ -118,6 +125,7 @@ function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
         runAllowFailure('xcrun', ['devicectl', 'device', 'process', 'terminate', '--device', device, '--pid', String(runningProcessIdentifier)]);
         runningProcessIdentifier = undefined;
     };
+    /** Launches the app through CoreDevice and caches the process identifier from its JSON response. */
     const launch = (): void => {
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-ios-launch-'));
         const jsonPath = join(temporaryDirectory, 'launch.json');
@@ -129,6 +137,7 @@ function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
             rmSync(temporaryDirectory, {recursive: true, force: true});
         }
     };
+    /** Resolves a process that may predate this adapter by matching the app's installed executable path. */
     const resolveRunningProcessIdentifier = (): number | undefined => {
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-ios-process-'));
         const appsJSONPath = join(temporaryDirectory, 'apps.json');
@@ -157,6 +166,7 @@ function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
             rmSync(temporaryDirectory, {recursive: true, force: true});
         }
     };
+    /** Copies one marker from the app data container, returning undefined when the marker is unavailable. */
     const readBenchmarkMarker = (spanName: string): string | undefined => {
         // CoreDevice cannot stream the launched app's console output, so collect the marker written to the iOS app container instead.
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-ios-marker-'));
