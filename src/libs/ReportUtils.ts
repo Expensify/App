@@ -12689,7 +12689,7 @@ function prepareOnboardingOnyxData({
         workEmail: workEmail ?? '',
         // HOME is one of VERIFY_ACCOUNT's registered entryScreens, so this resolves. Basing the suffix on a screen that
         // is not listed there (for example the onboarding workspace list) produces a route the linker cannot match.
-        validateEmailLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path, ROUTES.HOME)}`,
+        validateEmailLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.getRoute(true), ROUTES.HOME)}`,
         workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute()}`,
         joinWorkspaceLink: `${environmentURL}/${ROUTES.ONBOARDING_WORKSPACES.getRoute()}`,
     };

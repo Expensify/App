@@ -5,7 +5,6 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,15 +13,11 @@ import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
-import {getAccessiblePolicies} from '@userActions/Policy/Policy';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -50,15 +45,6 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const isUserValidated = account?.validated ?? false;
-
-    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const onboardingIntent = useOnboardingIntent();
-    // This page has many unrelated callers (wallet enablement, 2FA, generic contact methods). The join-workspace
-    // intent's "validate your email" task is the only one of them that needs to fetch and land on the joinable
-    // workspace list after validating, so that behaviour is gated on Onyx state rather than on how this page was
-    // reached - a route match alone cannot tell these callers apart, since several of them can also land on
-    // home/verify-account depending on which screen was active when they were opened.
-    const isValidatingForJoinWorkspaceTask = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && hasCompletedGuidedSetupFlowSelector(onboardingValues);
 
     useEffect(() => () => clearUnvalidatedNewContactMethodAction(), []);
 
@@ -93,18 +79,12 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
 
         onValidationSuccess?.();
 
-        if (isValidatingForJoinWorkspaceTask) {
-            getAccessiblePolicies();
-            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
-            return;
-        }
-
         if (navigateForwardTo) {
             Navigation.navigate(navigateForwardTo, {forceReplace: true});
         } else {
             handleCloseWithFallback();
         }
-    }, [isUserValidated, navigateForwardTo, handleCloseWithFallback, handleClose, onValidationSuccess, isValidatingForJoinWorkspaceTask]);
+    }, [isUserValidated, navigateForwardTo, handleCloseWithFallback, handleClose, onValidationSuccess]);
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.
     if (isUserValidated) {

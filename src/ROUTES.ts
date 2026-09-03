@@ -112,6 +112,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
         ],
+        getRoute: (isJoinWorkspaceTask?: boolean) => getUrlWithParams('verify-account', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined}),
+        queryParams: ['isJoinWorkspaceTask'],
     },
     CONTACT_METHODS: {
         path: 'contact-methods',
