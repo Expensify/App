@@ -31,6 +31,8 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.ONFIDO_APPLICANT_ID,
     // maskFragileData won't catch this one, since the secret sits in a field named "token"
     ONYXKEYS.MAPBOX_ACCESS_TOKEN,
+    // Same story: the QA OAuth tokens sit in fields maskFragileData doesn't key on
+    ONYXKEYS.CLOUDFLARE_SESSION,
     // All three hold the picked image itself in "uri", as a base64 data URL on web. Masking it would only
     // trade a copy of the user's photo for an equally large blob of random characters.
     ONYXKEYS.AVATAR_CROP_DRAFT,
@@ -138,7 +140,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         maskList: ['merchant', 'description', 'comment'],
     },
     [ONYXKEYS.COLLECTION.POLICY]: {
-        allowList: ['id', 'type', 'role', 'outputCurrency', 'isPolicyExpenseChatEnabled', 'areCategoriesEnabled', 'areTagsEnabled'],
+        allowList: ['id', 'type', 'role', 'outputCurrency', 'areCategoriesEnabled', 'areTagsEnabled'],
         maskList: ['name', 'avatar'],
     },
     [ONYXKEYS.USER_WALLET]: {
@@ -185,6 +187,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME,
     ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD,
     ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED,
+    ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN,
     ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN,
     ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING,
     ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
@@ -246,6 +249,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
     ONYXKEYS.LAST_EXPORT_METHOD,
     ONYXKEYS.LAST_FULL_RECONNECT_TIME,
+    ONYXKEYS.LAST_MEASURED_DATABASE_SIZE,
     ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS,
     ONYXKEYS.MAX_CANVAS_AREA,
     ONYXKEYS.MAX_CANVAS_HEIGHT,
@@ -337,7 +341,6 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
     ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
     ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE,
-    ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH,
     ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
     ONYXKEYS.TRAVEL_BILLING_STATEMENT,
     ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE,
@@ -403,6 +406,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT,
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT,
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT,
+    ONYXKEYS.CONCIERGE_PROMPT_DRAFT,
     ONYXKEYS.CORPAY_FIELDS,
     ONYXKEYS.CORPAY_ONBOARDING_FIELDS,
     ONYXKEYS.COUNTRY,

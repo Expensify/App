@@ -1,7 +1,7 @@
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
+import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
@@ -2199,6 +2199,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 178,
         },
 
+        domainAlreadyExistsIllustrationStyle: {
+            width: 180,
+            height: 164,
+        },
+
         appContent: {
             backgroundColor: theme.appBG,
             overflow: 'hidden',
@@ -2749,6 +2754,11 @@ const staticStyles = (theme: ThemeColors) =>
         tableBottomRadius: {
             borderBottomLeftRadius: variables.componentBorderRadius,
             borderBottomRightRadius: variables.componentBorderRadius,
+        },
+
+        tableBorder: {
+            borderWidth: 1,
+            borderColor: 'transparent',
         },
 
         tableRowHeightCompact: {
@@ -3865,7 +3875,7 @@ const staticStyles = (theme: ThemeColors) =>
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
-            paddingRight: 48,
+            paddingRight: 44,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -5337,6 +5347,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.gap3,
         },
 
+        menuItemLeading: {
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsCenter,
+        },
+
         menuItemTrailing: {
             ...flex.flexRow,
             ...flex.alignItemsCenter,
@@ -5843,6 +5858,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
         },
 
+        spyPigeonRulesEmptyStateIllustration: {
+            width: variables.spyPigeonRulesEmptyStateIllustrationWidth,
+            height: variables.spyPigeonRulesEmptyStateIllustrationHeight,
+        },
+
         agentsRulesEmptyStateIllustration: {
             width: variables.agentsRulesEmptyStateIllustrationWidth,
             height: variables.agentsRulesEmptyStateIllustrationHeight,
@@ -6302,13 +6322,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: animatedWideRHPWidth,
         },
 
-        superWideRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
-            width: animatedSuperWideRHPWidth,
-        },
-
         singleRHPExtendedCardInterpolatorStyles: {
             position: 'absolute',
             height: '100%',
@@ -6514,7 +6527,6 @@ const staticStyles = (theme: ThemeColors) =>
         commuterExclusionStaticIllustration: {
             width: 160,
             height: 140,
-            alignSelf: 'center',
         },
         helpStaticIllustration: {
             width: 174,
@@ -6644,6 +6656,17 @@ const dynamicStyles = (theme: ThemeColors) =>
             width: amountWidth,
             marginRight: 4,
         }),
+
+        // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
+        // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
+        // See https://github.com/Expensify/App/issues/99035
+        getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
+            ({
+                position: 'absolute',
+                height: '100%',
+                right: 0,
+                width,
+            }) satisfies ViewStyle,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({

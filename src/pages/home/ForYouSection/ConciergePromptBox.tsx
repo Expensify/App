@@ -13,6 +13,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -28,12 +29,15 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 
 import SubmitDraftButton from '@pages/inbox/report/ReportActionCompose/SubmitDraftButton';
 import useDebouncedCommentMaxLengthValidation from '@pages/inbox/report/ReportActionCompose/useDebouncedCommentMaxLengthValidation';
+import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
 
 import variables from '@styles/variables';
 
 import {close} from '@userActions/Modal';
+import {saveConciergePromptDraft} from '@userActions/Report';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -73,13 +77,35 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const {askConcierge, askConciergeWithAttachment, shouldShowAskConcierge, conciergeTargetReportID} = useAskConcierge({forceConcierge: true});
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Send', 'Paperclip']);
     const {calculatePopoverPosition} = usePopoverPosition();
-    const [value, setValue] = useState('');
+    const [draft] = useOnyx(ONYXKEYS.CONCIERGE_PROMPT_DRAFT);
+    const [value, setValue] = useState(draft ?? '');
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID});
 
     // Composer is a controlled input: the caret position must be tracked and fed back in (with
     // shouldCalculateCaretPosition), otherwise every value update re-renders it with the caret at the start.
-    const [selection, setSelection] = useState({start: 0, end: 0});
+    const [selection, setSelection] = useState({start: value.length, end: value.length});
+    const [lastSyncedDraft, setLastSyncedDraft] = useState(draft);
+
+    const {saveDraft: debouncedSaveDraft, cancelSaveDraft} = useDebouncedSaveDraft(
+        (nextDraft: string) => {
+            setLastSyncedDraft(nextDraft);
+            saveConciergePromptDraft(nextDraft);
+        },
+        undefined,
+        true,
+    );
+
+    // Onyx owns the draft, so it survives refresh and is wiped along with the rest of the cache.
+    if (draft !== lastSyncedDraft) {
+        cancelSaveDraft();
+        setLastSyncedDraft(draft);
+        setValue(draft ?? '');
+        setSelection({start: draft?.length ?? 0, end: draft?.length ?? 0});
+        debouncedCommentMaxLengthValidation(draft ?? '');
+        debouncedCommentMaxLengthValidation.flush();
+    }
+
     const [isFocused, setIsFocused] = useState(false);
     const [longPlaceholderHeight, setLongPlaceholderHeight] = useState<number | null>(null);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
@@ -101,6 +127,9 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         debouncedCommentMaxLengthValidation('');
         debouncedCommentMaxLengthValidation.flush();
         scheduleOnUI(forceClearInput, animatedRef);
+        cancelSaveDraft();
+        setLastSyncedDraft(undefined);
+        saveConciergePromptDraft(null);
     };
 
     const sendAttachment = (attachments: FileObject | FileObject[]) => {
@@ -170,12 +199,15 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
             </View>
             <View style={styles.pRelative}>
                 <View
+                    testID="ConciergePromptBox"
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                         styles.flexRow,
                         styles.chatItemComposeBox,
                         isExceedingMaxLength && styles.borderColorDanger,
                     ]}
+                    // Claim taps here so that the ScrollView does not and we don't lose focus on disabled Send button tap
+                    onStartShouldSetResponder={() => true}
                 >
                     <View style={styles.composerButtonColumn}>
                         <View style={styles.composerButtonStack}>
@@ -203,13 +235,17 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                         }}
                                                         style={({hovered, pressed}) => [
                                                             styles.composerSizeButton,
-                                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && canAddAttachment, pressed && canAddAttachment)),
+                                                            StyleUtils.getButtonBackgroundColorStyle(
+                                                                getButtonState({isActive: hovered && canAddAttachment, isPressed: pressed && canAddAttachment}),
+                                                            ),
                                                         ]}
                                                     >
                                                         {({hovered, pressed}) => (
                                                             <Icon
                                                                 src={icons.Plus}
-                                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered && canAddAttachment, pressed && canAddAttachment))}
+                                                                fill={StyleUtils.getIconFillColor({
+                                                                    buttonState: getButtonState({isActive: hovered && canAddAttachment, isPressed: pressed && canAddAttachment}),
+                                                                })}
                                                             />
                                                         )}
                                                     </PressableWithoutFeedback>
@@ -258,6 +294,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                             onChangeText={(text) => {
                                 setValue(text);
                                 debouncedCommentMaxLengthValidation(text);
+                                debouncedSaveDraft(text);
                             }}
                             selection={selection}
                             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
@@ -307,6 +344,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                             icon={icons.Send}
                             label={translate('common.send')}
                             onPress={submit}
+                            onMouseDown={(e) => e.preventDefault()}
                         />
                     </View>
                 </View>
