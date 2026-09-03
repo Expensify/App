@@ -32,10 +32,10 @@ type UseDistanceTransactionBackupParams = {
     /** The Concierge chat report */
     conciergeChat: OnyxEntry<Report>;
 
-    /** Whether the user has seen the self tour — used by the offline-recovery `openReport` call. */
+    /** Whether the user has seen the self tour. Used by the offline-recovery `openReport` call. */
     isSelfTourViewed: boolean | undefined;
 
-    /** Whether the user has completed the guided setup flow — used by the offline-recovery `openReport` call. */
+    /** Whether the user has completed the guided setup flow. Used by the offline-recovery `openReport` call. */
     hasCompletedGuidedSetupFlow: boolean | undefined;
 
     /** Caller-owned ref. Set `.current = true` once the user has confirmed a save so the cleanup drops the backup instead of restoring it. */
