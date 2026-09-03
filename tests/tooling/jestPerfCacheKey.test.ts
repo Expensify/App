@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'bun:test';
 
 import fs from 'fs';
-import yaml from 'js-yaml';
 
 /**
  * reassurePerformanceTests.yml restores a Jest transform cache that seedJestPerfCache.yml writes.
@@ -26,8 +25,11 @@ type Job = {'runs-on'?: string; steps?: Step[]};
 type Workflow = {on?: Record<string, {paths?: string[]}>; jobs: Record<string, Job>};
 
 function readWorkflow(path: string): Workflow {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- yaml.load is untyped, and every field this test reads is optional, so a shape mismatch fails the assertion rather than throwing
-    return yaml.load(fs.readFileSync(path, 'utf8')) as Workflow;
+    // Bun.YAML rather than js-yaml: this suite already runs under Bun, and js-yaml is only present
+    // as a hoisted transitive at v3 while the repo declares @types/js-yaml v4, so importing it here
+    // would rest on an undeclared package whose types do not match its runtime.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Bun.YAML.parse returns unknown, and every field this test reads is optional, so a shape mismatch fails an assertion rather than throwing
+    return Bun.YAML.parse(fs.readFileSync(path, 'utf8')) as Workflow;
 }
 
 function cacheSteps(workflow: Workflow): Step[] {
