@@ -1,3 +1,4 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 
@@ -14,7 +15,6 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-import Avatar from '..';
 import getSubscriptAvatarSizing from './getSubscriptAvatarSizing';
 import SubscriptAvatarFrame from './SubscriptAvatarFrame';
 
@@ -61,14 +61,9 @@ function PressableSubscriptAvatar({size, primaryAvatar, secondaryAvatar, onAvata
                         accessibilityRole={CONST.ROLE.BUTTON}
                         sentryLabel={sentryLabel}
                     >
-                        <Avatar
+                        <AvatarFromIcon
                             containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
-                            type={primaryAvatar.type}
-                            source={primaryAvatar.source}
-                            name={primaryAvatar.name ?? ''}
-                            avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                            fallbackIcon={primaryAvatar.fallbackIcon}
-                            fill={primaryAvatar.fill}
+                            icon={primaryAvatar}
                             size={size}
                             testID="ReportActionAvatars-Subscript-MainAvatar"
                         />
@@ -86,14 +81,9 @@ function PressableSubscriptAvatar({size, primaryAvatar, secondaryAvatar, onAvata
                         accessibilityRole={CONST.ROLE.BUTTON}
                         sentryLabel={sentryLabel}
                     >
-                        <Avatar
+                        <AvatarFromIcon
                             iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(theme.componentBG)]}
-                            type={secondaryAvatar.type}
-                            source={secondaryAvatar.source}
-                            name={secondaryAvatar.name ?? ''}
-                            avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                            fallbackIcon={secondaryAvatar.fallbackIcon}
-                            fill={secondaryAvatar.fill}
+                            icon={secondaryAvatar}
                             size={subscriptSize}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
                         />

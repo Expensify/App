@@ -60,6 +60,7 @@ import {
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isArchivedPolicy,
+    isMaxExpenseAmountSet,
     isMergeHRCompleteSetupNeededSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
@@ -4342,7 +4343,7 @@ describe('PolicyUtils', () => {
         };
         const buildMergeHRPolicy = (seed: number, mergeHR: MergeHRTestConnection): Policy => Object.assign(createRandomPolicy(seed), {connections: {merge_hris: mergeHR}});
         const mergeHRBase = {
-            lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+            lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
             data: {groups: [{id: 'g1', name: 'Engineering'}]},
         };
 
@@ -4356,7 +4357,7 @@ describe('PolicyUtils', () => {
         });
 
         it('returns false when sync is not done', () => {
-            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING}});
+            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING}});
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
         });
 
@@ -4374,6 +4375,24 @@ describe('PolicyUtils', () => {
             const policy = buildMergeHRPolicy(5, mergeHRBase);
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
         });
+    });
+});
+
+describe('isMaxExpenseAmountSet', () => {
+    it('returns false when the amount was never set', () => {
+        expect(isMaxExpenseAmountSet(undefined)).toBe(false);
+    });
+
+    it('returns false when the amount is explicitly disabled', () => {
+        expect(isMaxExpenseAmountSet(CONST.DISABLED_MAX_EXPENSE_VALUE)).toBe(false);
+    });
+
+    it('returns true for an explicit 0, which means the receipt is always required', () => {
+        expect(isMaxExpenseAmountSet(0)).toBe(true);
+    });
+
+    it('returns true for a positive amount', () => {
+        expect(isMaxExpenseAmountSet(5000)).toBe(true);
     });
 });
 

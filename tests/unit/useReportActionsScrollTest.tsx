@@ -89,12 +89,16 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 
 // --- Navigation ---
 const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
 let mockReportRHPActiveRoute: string | undefined;
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         navigate: (...args: unknown[]) => {
             mockNavigate(...args);
+        },
+        setParams: (...args: unknown[]) => {
+            mockSetParams(...args);
         },
         getReportRHPActiveRoute: () => mockReportRHPActiveRoute,
     },
@@ -110,7 +114,7 @@ jest.mock('@userActions/Report', () => ({
 }));
 
 // --- react-navigation route ---
-let mockRouteParams: {reportActionID?: string; backTo?: string} = {};
+let mockRouteParams: {reportActionID?: string; backTo?: string; shouldScrollToLatest?: string} = {};
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
@@ -306,6 +310,28 @@ describe('useReportActionsScroll', () => {
             expect(result.current.initialScrollIndex).toBe(0);
             expect(result.current.initialScrollIndexParams).toBeUndefined();
         });
+
+        it('does not focus to top for a single-expense money request report opened from the X Replies link', async () => {
+            mockIsMoneyRequestReport = true;
+            mockRouteParams = {shouldScrollToLatest: 'true'};
+
+            const {result} = await renderScroll();
+
+            // Still aligned to top so short reports keep their layout, but the mount position is the latest message.
+            expect(result.current.shouldBeAlignedToTop).toBe(true);
+            expect(result.current.shouldFocusToTopOnMount).toBe(false);
+            expect(result.current.initialScrollIndex).toBeUndefined();
+        });
+
+        it('does not focus to top for an invoice report opened from the X Replies link', async () => {
+            mockIsInvoiceReport = true;
+            mockRouteParams = {shouldScrollToLatest: 'true'};
+
+            const {result} = await renderScroll();
+
+            expect(result.current.shouldBeAlignedToTop).toBe(true);
+            expect(result.current.shouldFocusToTopOnMount).toBe(false);
+        });
     });
 
     describe('scrollToBottomAndMarkReportAsRead', () => {
@@ -407,6 +433,25 @@ describe('useReportActionsScroll', () => {
             rerender(buildParams({sortedVisibleReportActions: actions, renderedVisibleReportActions: actions.toReversed()}));
 
             expect(mockScrollToBottom).not.toHaveBeenCalled();
+        });
+
+        it('scrolls to bottom on mount for a single-expense money request report opened from the X Replies link', async () => {
+            mockIsMoneyRequestReport = true;
+            mockRouteParams = {shouldScrollToLatest: 'true'};
+
+            await renderScroll();
+            flushTransitions();
+
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+        });
+
+        it('clears the X Replies flag once it has been applied', async () => {
+            mockIsMoneyRequestReport = true;
+            mockRouteParams = {shouldScrollToLatest: 'true'};
+
+            await renderScroll();
+
+            expect(mockSetParams).toHaveBeenCalledWith({shouldScrollToLatest: undefined});
         });
 
         it('does not schedule a competing scroll when a streamed draft grows', async () => {
