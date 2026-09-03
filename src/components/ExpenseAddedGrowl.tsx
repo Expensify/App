@@ -1,6 +1,7 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportTransactions from '@hooks/useReportTransactions';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {mergeExpenseAddedGrowlTransactionIDs} from '@libs/actions/Transaction';
@@ -90,6 +91,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     // navigateToCreatedExpense to open the transaction thread directly instead of an expense report RHP.
     const iouReport = isMoneyRequestReport(report) || isInvoiceReport(report) ? report : undefined;
     const iouReportID = iouReport?.reportID;
+    const reportTransactions = useReportTransactions(iouReportID);
 
     useEffect(() => {
         if (active) {
@@ -148,7 +150,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
             Log.warn('[ExpenseAddedGrowl] Unable to resolve transaction thread reportID on View press.');
             return;
         }
-        navigateToCreatedExpense({threadReportID, transactionID: active.transactionID, iouReportID});
+        navigateToCreatedExpense({threadReportID, transactionID: active.transactionID, iouReportID, reportTransactions});
     };
 
     return (

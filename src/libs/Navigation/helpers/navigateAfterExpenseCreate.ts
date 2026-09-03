@@ -4,7 +4,6 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {getReportTransactions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
@@ -12,6 +11,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
 import isReportOpenInRHP from './isReportOpenInRHP';
@@ -82,16 +82,19 @@ type NavigateToCreatedExpenseParams = {
 
     /** IOU report the transaction landed in, used to decide whether to stack the expense report underneath. */
     iouReportID?: string;
+
+    /** Transactions currently belonging to the IOU report. */
+    reportTransactions: Transaction[];
 };
 
 /**
  * Opens a just-created expense when "View" is pressed on the "Expense added" growl. The user may have
  * switched tabs while the growl was up, so the destination follows wherever they are now.
  */
-function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: NavigateToCreatedExpenseParams) {
+function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, reportTransactions}: NavigateToCreatedExpenseParams) {
     // Don't reopen an expense the user is already looking at
     const hasMultipleReportTransactions = iouReportID
-        ? getReportTransactions(iouReportID).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1
+        ? reportTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1
         : false;
     const focusedReportID = Navigation.getFocusedReportId();
     if (focusedReportID === threadReportID || (!hasMultipleReportTransactions && !!iouReportID && focusedReportID === iouReportID)) {

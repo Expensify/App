@@ -206,7 +206,7 @@ describe('ExpenseAddedGrowl', () => {
         // Then the existing thread is initialized and opened without creating a replacement
         expect(mockSetOptimisticTransactionThread).toHaveBeenCalledWith('thread-1', undefined, undefined, undefined);
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
-        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'thread-1', transactionID: '1', iouReportID: undefined});
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'thread-1', transactionID: '1', iouReportID: undefined, reportTransactions: []});
     });
 
     it('resolves an existing transaction thread from the IOU action when View is pressed', async () => {
@@ -231,7 +231,12 @@ describe('ExpenseAddedGrowl', () => {
         // Then the IOU action's thread is initialized and opened
         expect(mockSetOptimisticTransactionThread).toHaveBeenCalledWith(actionR14932.childReportID, undefined, actionR14932.reportActionID, undefined);
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
-        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: actionR14932.childReportID, transactionID, iouReportID: undefined});
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({
+            threadReportID: actionR14932.childReportID,
+            transactionID,
+            iouReportID: undefined,
+            reportTransactions: [],
+        });
     });
 
     it('creates and navigates to a transaction thread when View is pressed without an existing thread', async () => {
@@ -252,7 +257,7 @@ describe('ExpenseAddedGrowl', () => {
             }),
         );
         expect(mockSetOptimisticTransactionThread).not.toHaveBeenCalled();
-        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'created-thread', transactionID: '1', iouReportID: undefined});
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'created-thread', transactionID: '1', iouReportID: undefined, reportTransactions: []});
     });
 
     it('does not show a growl when there is no pending signal', () => {
