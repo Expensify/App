@@ -114,6 +114,9 @@ const renderPage = () =>
 
 const countWorkflowCards = () => screen.queryAllByText(TestHelper.translateLocal('workflowsExpensesFromPage.title')).length;
 const queryAddApprovalButton = () => screen.queryByText(TestHelper.translateLocal('workflowsPage.addApprovalButton'));
+// Both More-menu actions (Import workflows, Download workflows) are filtered out when the workflow is hidden, so the
+// dropdown that would hold them is gone too. Asserting on the button covers both filters at once.
+const queryMoreButton = () => screen.queryByText(TestHelper.translateLocal('common.more'));
 
 describe('WorkspaceWorkflowsPage - DEW "Hide People Table Columns"', () => {
     beforeAll(() => {
@@ -156,6 +159,7 @@ describe('WorkspaceWorkflowsPage - DEW "Hide People Table Columns"', () => {
         expect(screen.getByTestId('DEWInfoBanner')).toBeOnTheScreen();
         expect(countWorkflowCards()).toBe(0);
         expect(queryAddApprovalButton()).not.toBeOnTheScreen();
+        expect(queryMoreButton()).not.toBeOnTheScreen();
     });
 
     it('keeps the read-only approval workflows on a DEW workspace when the flag is absent', async () => {
@@ -165,6 +169,7 @@ describe('WorkspaceWorkflowsPage - DEW "Hide People Table Columns"', () => {
 
         expect(screen.getByTestId('DEWInfoBanner')).toBeOnTheScreen();
         expect(countWorkflowCards()).toBeGreaterThan(0);
+        expect(queryMoreButton()).toBeOnTheScreen();
     });
 
     it('keeps the approval workflows when a stale flag is left on a workspace that no longer uses a DEW', async () => {
@@ -175,5 +180,6 @@ describe('WorkspaceWorkflowsPage - DEW "Hide People Table Columns"', () => {
         expect(screen.queryByTestId('DEWInfoBanner')).not.toBeOnTheScreen();
         expect(countWorkflowCards()).toBeGreaterThan(0);
         expect(queryAddApprovalButton()).toBeOnTheScreen();
+        expect(queryMoreButton()).toBeOnTheScreen();
     });
 });

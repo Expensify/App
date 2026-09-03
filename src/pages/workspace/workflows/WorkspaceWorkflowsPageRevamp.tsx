@@ -232,7 +232,8 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
 
     // A Dynamic External Workflow with "Hide People Table Columns" keeps the approval workflows out of the customer's
     // hands entirely, so the importer that would edit them is blocked too.
-    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy) || shouldHideApprovalWorkflows;
 
     const approvalSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
     // Importing modifies the workflows, so only offer it when editing is allowed.
@@ -244,32 +245,37 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
         });
     }
-    // Downloading is read-only, so it stays available even when editing is blocked.
-    approvalSecondaryActions.push({
-        icon: expensifyIcons.Download,
-        text: translate('spreadsheet.downloadWorkflows'),
-        onSelected: downloadWorkflowsAction,
-        value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
-    });
+    // Downloading is read-only, so it stays available under the read-only HR modes. It is dropped when the workflow is
+    // hidden though: the exported file is the approval workflow written out per member, so offering it would hand back
+    // exactly what the section above stops rendering.
+    if (!shouldHideApprovalWorkflows) {
+        approvalSecondaryActions.push({
+            icon: expensifyIcons.Download,
+            text: translate('spreadsheet.downloadWorkflows'),
+            onSelected: downloadWorkflowsAction,
+            value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+        });
+    }
 
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
-    // Show the More dropdown whenever the user can manage workflows. When editing is blocked it renders download-only
-    // (the Import action is filtered out of approvalSecondaryActions above).
-    const headerButtons = canWriteApprovals ? (
-        <View style={[styles.flexRow, styles.gap2]}>
-            <ButtonWithDropdownMenu
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('common.more')}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
-                options={approvalSecondaryActions}
-                isSplitButton={false}
-                wrapperStyle={styles.flexGrow0}
-            />
-        </View>
-    ) : undefined;
+    // Show the More dropdown whenever the user can manage workflows and at least one action survives the filters above.
+    // Hiding the workflow removes both actions, so the dropdown itself goes with them rather than opening empty.
+    const headerButtons =
+        canWriteApprovals && approvalSecondaryActions.length > 0 ? (
+            <View style={[styles.flexRow, styles.gap2]}>
+                <ButtonWithDropdownMenu
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
+                    options={approvalSecondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={styles.flexGrow0}
+                />
+            </View>
+        ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
