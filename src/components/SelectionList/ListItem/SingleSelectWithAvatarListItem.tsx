@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -31,13 +31,9 @@ function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperSt
 
     const avatarElement = (
         <View>
-            <Avatar
-                source={icon.source}
+            <AvatarFromIcon
+                icon={icon}
                 size={CONST.AVATAR_SIZE.DEFAULT}
-                name={icon.name}
-                avatarID={icon.id}
-                type={icon.type ?? CONST.ICON_TYPE_AVATAR}
-                fallbackIcon={icon.fallbackIcon}
                 iconAdditionalStyles={styles.mr3}
             />
         </View>
@@ -47,7 +43,7 @@ function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperSt
         <SingleSelectListItem
             {...props}
             item={{...item, leftElement: avatarElement}}
-            wrapperStyle={[styles.optionRow, styles.pv0, styles.pv3, styles.w100, wrapperStyle]}
+            wrapperStyle={[styles.optionRow, styles.pv3, styles.w100, wrapperStyle]}
         />
     );
 }

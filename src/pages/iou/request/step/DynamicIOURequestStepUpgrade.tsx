@@ -107,7 +107,7 @@ function DynamicIOURequestStepUpgrade({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
@@ -169,6 +169,7 @@ function DynamicIOURequestStepUpgrade({
                 personalPolicyOutputCurrency: undefined,
                 delegateAccountID,
                 getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             clearSelectedTransactions();
@@ -279,6 +280,7 @@ function DynamicIOURequestStepUpgrade({
         isTrackIntentUser,
         delegateAccountID,
         getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const participant = transaction?.participants?.[0];
