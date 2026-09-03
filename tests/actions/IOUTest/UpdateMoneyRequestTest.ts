@@ -2799,6 +2799,12 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     personalDetailsList: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: fakeTransaction},
+                    transactionViolations: {},
+                    betas: undefined,
+                    introSelected: undefined,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
                 },
                 newMerchant,
             );
