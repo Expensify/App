@@ -2,7 +2,6 @@
 
 import type {TupleToUnion} from 'type-fest';
 
-import {spawnSync} from 'node:child_process';
 import {existsSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -47,30 +46,23 @@ function fail(message: string): never {
 
 function createCommandHelpers(rootDirectory: string) {
     const run = (command: string, args: string[]): void => {
-        const result = spawnSync(command, args, {cwd: rootDirectory, stdio: 'inherit'});
-        if (result.error) {
-            fail(`Failed to run ${command}: ${result.error.message}`);
-        }
-        if (result.status !== 0) {
-            fail(`${command} exited with status ${result.status ?? 'unknown'}.`);
+        const result = Bun.spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit'});
+        if (!result.success) {
+            fail(`${command} exited with status ${result.exitCode}.`);
         }
     };
 
     const capture = (command: string, args: string[]): string => {
-        const result = spawnSync(command, args, {cwd: rootDirectory, encoding: 'utf8', maxBuffer: 100 * 1024 * 1024});
-        if (result.error) {
-            fail(`Failed to run ${command}: ${result.error.message}`);
+        const result = Bun.spawnSync([command, ...args], {cwd: rootDirectory, maxBuffer: 100 * 1024 * 1024});
+        if (!result.success) {
+            const stderr = result.stderr.toString().trim();
+            fail(stderr || `${command} exited with status ${result.exitCode}.`);
         }
-        if (result.status !== 0) {
-            const stderr = result.stderr.trim();
-            fail(stderr || `${command} exited with status ${result.status ?? 'unknown'}.`);
-        }
-        return result.stdout;
+        return result.stdout.toString();
     };
 
     const runAllowFailure = (command: string, args: string[]): boolean => {
-        const result = spawnSync(command, args, {cwd: rootDirectory, stdio: 'ignore'});
-        return !result.error && result.status === 0;
+        return Bun.spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'ignore', stdout: 'ignore', stderr: 'ignore'}).success;
     };
 
     return {capture, run, runAllowFailure};
