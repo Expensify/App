@@ -53,6 +53,33 @@ import {View} from 'react-native';
 
 type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
 
+type ContentWrapperProps = {
+    /** Children to render inside the wrapper */
+    children: React.ReactNode;
+    /** Whether the page should be blocked while offline, because the custom unit hasn't been loaded yet */
+    shouldBlockWhenOffline: boolean;
+};
+
+function ContentWrapper({shouldBlockWhenOffline, children}: ContentWrapperProps) {
+    const styles = useThemeStyles();
+
+    const content = (
+        <ScrollView
+            contentContainerStyle={[styles.flexGrow1]}
+            keyboardShouldPersistTaps="always"
+            addBottomSafeAreaPadding
+        >
+            {children}
+        </ScrollView>
+    );
+
+    if (shouldBlockWhenOffline) {
+        return <FullPageOfflineBlockingView>{content}</FullPageOfflineBlockingView>;
+    }
+
+    return content;
+}
+
 function getCommuterExclusionsSummary(commuterExclusions: CommuterExclusions | undefined, defaultUnit: string | undefined, translate: ReturnType<typeof useLocalize>['translate']): string {
     if (commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
         return translate('workspace.distanceRates.commuterExclusions.summaryHomeAndOffice');
@@ -85,8 +112,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const defaultCategory = customUnit?.defaultCategory;
     const defaultUnit = customUnit?.attributes?.unit;
     const errorFields = customUnit?.errorFields;
-
-    const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
         if (!customUnit?.customUnitID) {
@@ -167,149 +192,143 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                 testID="PolicyDistanceRatesSettingsPage"
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                <ScrollView
-                    contentContainerStyle={[styles.flexGrow1]}
-                    keyboardShouldPersistTaps="always"
-                    addBottomSafeAreaPadding
-                >
-                    <FullPageBlockingView addBottomSafeAreaPadding={false}>
-                        {!!defaultUnit && (
-                            <OfflineWithFeedback
-                                errors={getLatestErrorField(customUnit ?? {}, 'attributes')}
-                                pendingAction={customUnit?.pendingFields?.attributes}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => clearErrorFields('attributes')}
-                            >
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon={canWriteDistanceRates}
-                                    title={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
-                                    description={translate('workspace.distanceRates.unit')}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID))}
-                                    interactive={canWriteDistanceRates}
-                                    wrapperStyle={[styles.ph5, styles.mt3]}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
-                                />
-                            </OfflineWithFeedback>
-                        )}
-                        {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && !!customUnit?.customUnitID && (
-                            <OfflineWithFeedback
-                                errors={getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
-                                pendingAction={customUnit?.pendingFields?.defaultCategory}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => clearErrorFields('defaultCategory')}
-                            >
-                                <CustomUnitDefaultCategorySelector
-                                    label={translate('workspace.common.defaultCategory')}
-                                    defaultValue={defaultCategory}
-                                    wrapperStyle={[styles.ph5, styles.mt3]}
-                                    customUnitID={customUnit.customUnitID}
-                                    interactive={canWriteDistanceRates}
-                                />
-                            </OfflineWithFeedback>
-                        )}
-                        {isAutoUpdateSupported && (
-                            <OfflineWithFeedback
-                                errors={getLatestErrorField(policy ?? {}, 'shouldAutoUpdateGovernmentDistanceRates')}
-                                errorRowStyles={styles.mh5}
-                                pendingAction={policy?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates}
-                                onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
-                            >
-                                <View style={[styles.mt2, styles.mb5, styles.mh5]}>
-                                    <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text
-                                            style={[styles.textNormal, styles.colorMuted]}
-                                            accessible={false}
-                                            aria-hidden
-                                        >
-                                            {translate('workspace.distanceRates.autoUpdateGovernmentRate')}
-                                        </Text>
-                                        <Switch
-                                            isOn={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
-                                            accessibilityLabel={translate('workspace.distanceRates.autoUpdateGovernmentRate')}
-                                            onToggle={toggleAutoUpdateGovernmentRate}
-                                            disabled={!canWriteDistanceRates}
-                                            disabledAction={withReadOnlyFallback()}
-                                            showLockIcon={!canWriteDistanceRates}
-                                        />
-                                    </View>
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>
-                                        {translate('workspace.distanceRates.autoUpdateGovernmentRateDescription', translate(countryPhraseTranslationKey))}
-                                    </Text>
-                                </View>
-                            </OfflineWithFeedback>
-                        )}
-                        <ToggleSettingOptionRow
-                            title={translate('distance.error.mapOrGpsDistanceRequired.title')}
-                            subtitle={translate('workspace.distanceRates.requireMapOrGPSDescription')}
-                            switchAccessibilityLabel={translate('distance.error.mapOrGpsDistanceRequired.title')}
-                            shouldPlaceSubtitleBelowSwitch
-                            shouldUseCompactSubtitleSpacing
-                            wrapperStyle={[styles.mt2, styles.mh5]}
-                            isActive={isRequired}
-                            onToggle={(isOn) => setPolicyRequireMapOrGPS(policyID, isOn, policy?.requireMapOrGPS)}
-                            disabled={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
-                            disabledAction={withReadOnlyFallback(isRequirementLockedByCommuterExclusions ? showRequirementLockedModal : undefined)}
-                            showLockIcon={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
-                            pendingAction={policy?.pendingFields?.requireMapOrGPS}
-                            errors={getLatestErrorField(policy ?? {}, 'requireMapOrGPS')}
-                            onCloseError={() => clearPolicyRequireMapOrGPSErrors(policyID)}
-                        />
-                        {isCommuterExclusionsEnabled && (
-                            <OfflineWithFeedback
-                                errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
-                                pendingAction={policy?.pendingFields?.commuterExclusions}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
-                            >
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={getCommuterExclusionsSummary(policy?.commuterExclusions, defaultUnit, translate)}
-                                    description={translate('workspace.distanceRates.commuterExclusions.title')}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
-                                    wrapperStyle={[styles.ph5, styles.mt3]}
-                                />
-                            </OfflineWithFeedback>
-                        )}
+                <ContentWrapper shouldBlockWhenOffline={!customUnit}>
+                    {!!defaultUnit && (
                         <OfflineWithFeedback
-                            errors={getLatestErrorField(customUnit ?? {}, 'taxEnabled')}
+                            errors={getLatestErrorField(customUnit ?? {}, 'attributes')}
+                            pendingAction={customUnit?.pendingFields?.attributes}
                             errorRowStyles={styles.mh5}
-                            pendingAction={customUnit?.pendingFields?.taxEnabled}
+                            onClose={() => clearErrorFields('attributes')}
                         >
-                            <View style={[styles.mt2, styles.mh5]}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={canWriteDistanceRates}
+                                title={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
+                                description={translate('workspace.distanceRates.unit')}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID))}
+                                interactive={canWriteDistanceRates}
+                                wrapperStyle={[styles.ph5, styles.mt3]}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                    {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && !!customUnit?.customUnitID && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
+                            pendingAction={customUnit?.pendingFields?.defaultCategory}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('defaultCategory')}
+                        >
+                            <CustomUnitDefaultCategorySelector
+                                label={translate('workspace.common.defaultCategory')}
+                                defaultValue={defaultCategory}
+                                wrapperStyle={[styles.ph5, styles.mt3]}
+                                customUnitID={customUnit.customUnitID}
+                                interactive={canWriteDistanceRates}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                    {isAutoUpdateSupported && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorField(policy ?? {}, 'shouldAutoUpdateGovernmentDistanceRates')}
+                            errorRowStyles={styles.mh5}
+                            pendingAction={policy?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates}
+                            onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
+                        >
+                            <View style={[styles.mt2, styles.mb5, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                     <Text
                                         style={[styles.textNormal, styles.colorMuted]}
                                         accessible={false}
                                         aria-hidden
                                     >
-                                        {translate('workspace.distanceRates.trackTax')}
+                                        {translate('workspace.distanceRates.autoUpdateGovernmentRate')}
                                     </Text>
                                     <Switch
-                                        isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
-                                        accessibilityLabel={translate('workspace.distanceRates.trackTax')}
-                                        onToggle={onToggleTrackTax}
-                                        disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
+                                        isOn={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
+                                        accessibilityLabel={translate('workspace.distanceRates.autoUpdateGovernmentRate')}
+                                        onToggle={toggleAutoUpdateGovernmentRate}
+                                        disabled={!canWriteDistanceRates}
                                         disabledAction={withReadOnlyFallback()}
                                         showLockIcon={!canWriteDistanceRates}
                                     />
                                 </View>
+                                <Text style={[styles.textLabel, styles.colorMuted]}>
+                                    {translate('workspace.distanceRates.autoUpdateGovernmentRateDescription', translate(countryPhraseTranslationKey))}
+                                </Text>
                             </View>
-                            {!isPolicyTrackTaxEnabled && (
-                                <View style={[styles.mh5, styles.mb2]}>
-                                    <RenderHTML
-                                        html={translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
-                                        onLinkPress={() => {
-                                            Navigation.dismissModal();
-                                            Navigation.isNavigationReady().then(() => {
-                                                Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-                                            });
-                                        }}
-                                    />
-                                </View>
-                            )}
                         </OfflineWithFeedback>
-                    </FullPageBlockingView>
-                </ScrollView>
+                    )}
+                    <ToggleSettingOptionRow
+                        title={translate('distance.error.mapOrGpsDistanceRequired.title')}
+                        subtitle={translate('workspace.distanceRates.requireMapOrGPSDescription')}
+                        switchAccessibilityLabel={translate('distance.error.mapOrGpsDistanceRequired.title')}
+                        shouldPlaceSubtitleBelowSwitch
+                        shouldUseCompactSubtitleSpacing
+                        wrapperStyle={[styles.mt2, styles.mh5]}
+                        isActive={isRequired}
+                        onToggle={(isOn) => setPolicyRequireMapOrGPS(policyID, isOn, policy?.requireMapOrGPS)}
+                        disabled={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
+                        disabledAction={withReadOnlyFallback(isRequirementLockedByCommuterExclusions ? showRequirementLockedModal : undefined)}
+                        showLockIcon={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
+                        pendingAction={policy?.pendingFields?.requireMapOrGPS}
+                        errors={getLatestErrorField(policy ?? {}, 'requireMapOrGPS')}
+                        onCloseError={() => clearPolicyRequireMapOrGPSErrors(policyID)}
+                    />
+                    {isCommuterExclusionsEnabled && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorField(policy ?? {}, 'commuterExclusions')}
+                            pendingAction={policy?.pendingFields?.commuterExclusions}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
+                        >
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={getCommuterExclusionsSummary(policy?.commuterExclusions, defaultUnit, translate)}
+                                description={translate('workspace.distanceRates.commuterExclusions.title')}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
+                                wrapperStyle={[styles.ph5, styles.mt3]}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                    <OfflineWithFeedback
+                        errors={getLatestErrorField(customUnit ?? {}, 'taxEnabled')}
+                        errorRowStyles={styles.mh5}
+                        pendingAction={customUnit?.pendingFields?.taxEnabled}
+                    >
+                        <View style={[styles.mt2, styles.mh5]}>
+                            <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                <Text
+                                    style={[styles.textNormal, styles.colorMuted]}
+                                    accessible={false}
+                                    aria-hidden
+                                >
+                                    {translate('workspace.distanceRates.trackTax')}
+                                </Text>
+                                <Switch
+                                    isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
+                                    accessibilityLabel={translate('workspace.distanceRates.trackTax')}
+                                    onToggle={onToggleTrackTax}
+                                    disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
+                                    disabledAction={withReadOnlyFallback()}
+                                    showLockIcon={!canWriteDistanceRates}
+                                />
+                            </View>
+                        </View>
+                        {!isPolicyTrackTaxEnabled && (
+                            <View style={[styles.mh5, styles.mb2]}>
+                                <RenderHTML
+                                    html={translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
+                                    onLinkPress={() => {
+                                        Navigation.dismissModal();
+                                        Navigation.isNavigationReady().then(() => {
+                                            Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                                        });
+                                    }}
+                                />
+                            </View>
+                        )}
+                    </OfflineWithFeedback>
+                </ContentWrapper>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
