@@ -1,6 +1,9 @@
 #!/usr/bin/env bun
 
-/** Defines the benchmark CLI, validates its arguments, and dispatches startup runs or result aggregation. */
+/**
+ * Defines the benchmark CLI, validates its arguments, and dispatches startup runs or result aggregation.
+ * If run directly, it will run the benchmark CLI and report uncaught failures as command-line errors.
+ */
 
 import {env} from 'bun';
 import CLI from 'expensify-common/CLI';
@@ -296,3 +299,10 @@ export type {
     BenchmarkResult,
     BenchmarkStartupsOptions,
 } from './lib/benchmarkAppStartup';
+
+if (import.meta.main) {
+    main(`${import.meta.dirname}/..`).catch((error: Error) => {
+        console.error(error.message);
+        process.exitCode = 1;
+    });
+}
