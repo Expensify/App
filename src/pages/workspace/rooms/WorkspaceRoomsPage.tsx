@@ -78,11 +78,15 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const sortBy = roomSort.columnKey;
 
     // The backend applies the search term and the sorting, so a change to either produces a different result set that
-    // has to restart at the first page. The requested page is derived from the query rather than reset in an effect,
-    // so the fetch below can never observe a new query still paired with the page number of the previous one.
+    // has to restart at the first page.
     const roomsQueryKey = `${policyID}|${searchValue}|${sortBy}|${roomSort.order}`;
     const [pagination, setPagination] = useState({queryKey: roomsQueryKey, pageNumber: 1});
-    const pageNumber = pagination.queryKey === roomsQueryKey ? pagination.pageNumber : 1;
+
+    // When the roomsMetadata doesn't exist and pageNumber > 1, it means we have the stale data and need to reset.
+    if (pagination.queryKey !== roomsQueryKey || (!roomsMetadata && pagination.pageNumber !== 1)) {
+        setPagination({queryKey: roomsQueryKey, pageNumber: 1});
+    }
+    const pageNumber = pagination.pageNumber;
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatRoomsSelector(policyID, reportNameValuePairs)});
     const [hasReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
