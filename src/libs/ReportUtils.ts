@@ -1308,7 +1308,7 @@ function getReportOrDraftReport(
 }
 
 /**
- * This function is being migrated to remove `deprecatedReportsTransactions`.
+ * @deprecated This function is being migrated and will be removed later.
  * If you need to use this function, you must explicitly pass the `allReportsTransactions` parameter
  * instead of relying on the default value. In React components, prefer using the `useReportTransactions` hook.
  */
