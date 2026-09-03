@@ -469,6 +469,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这比预期花费的时间更长…',
         domains: '域名',
+        actionRequired: '需要采取操作',
         duplicate: '复制',
         duplicated: '已重复',
         duplicateExpense: '重复报销',

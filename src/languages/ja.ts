@@ -473,6 +473,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '想定より時間がかかっています…',
         domains: 'ドメイン',
+        actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '複製済み',
         duplicateExpense: '重複経費',
