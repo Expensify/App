@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import RenderHTML from '@components/RenderHTML';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
 import useLocalize from '@hooks/useLocalize';
@@ -6,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, getReportActionText} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -33,7 +34,8 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress;
 
     return (
-        <ReportActionItemBasicMessage message={getReportActionText(action)}>
+        <ReportActionItemBasicMessage>
+            <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action) || getReportActionText(action)}</muted-text></comment>`} />
             {!isResolved && (
                 <ActionableItemButtons layout="horizontal">
                     <Button

@@ -27,6 +27,7 @@ export type {default as ConnectPolicyToMergeParams} from './ConnectPolicyToMerge
 export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';
 export type {default as ConnectPolicyToRilletParams} from './ConnectPolicyToRilletParams';
 export type {default as ConnectPolicyToDualEntryParams} from './ConnectPolicyToDualEntryParams';
+export type {default as ConnectPolicyToBusinessCentralParams} from './ConnectPolicyToBusinessCentralParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
@@ -76,6 +77,12 @@ export type {default as UpdateDualEntrySettlementsAccountParams} from './UpdateD
 export type {default as UpdateDualEntrySyncTravelInvoicingSettlementsParams} from './UpdateDualEntrySyncTravelInvoicingSettlementsParams';
 export type {default as UpdateDualEntryTravelInvoicingSettlementsAccountParams} from './UpdateDualEntryTravelInvoicingSettlementsAccountParams';
 export type {default as UpdateDualEntryTravelInvoicingPayableAccountParams} from './UpdateDualEntryTravelInvoicingPayableAccountParams';
+export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
+export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
+export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
+export type {default as UpdateBusinessCentralFieldMappingParams} from './UpdateBusinessCentralFieldMappingParams';
+export type {default as UpdateBusinessCentralSyncTaxRatesParams} from './UpdateBusinessCentralSyncTaxRatesParams';
+export type {default as UpdateBusinessCentralSyncItemsParams} from './UpdateBusinessCentralSyncItemsParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
@@ -271,7 +278,6 @@ export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspac
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
-export type {default as SetPolicyAutoCategorizeNewExpensesParams} from './SetPolicyAutoCategorizeNewExpensesParams';
 export type {default as SetPolicyShowCategoryGLCodesParams} from './SetPolicyShowCategoryGLCodesParams';
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
 export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePolicyCategoryPayrollCodeParams';
