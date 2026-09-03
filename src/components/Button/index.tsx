@@ -6,7 +6,7 @@
  *
  * @example
  * ```tsx
- * import Button from '@components/ButtonComposed';
+ * import Button from '@components/Button';
  * import * as icons from '@expensify/react-native-expensify-icons';
  *
  * <Button onPress={handlePress} success>

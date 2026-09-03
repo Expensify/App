@@ -38,9 +38,9 @@ function LinkButtonText({children, numberOfLines, style, hoverStyle}: ButtonText
 /**
  * LinkButton – composable link-style button.
  *
- * Drop-in replacement for `<Button link>` from the legacy `@components/Button`.
- * Built on top of the new `ButtonComposed` `Button`, but `Button` no longer
- * exposes a `'link'` variant — all link-specific behavior lives here:
+ * Drop-in replacement for the old `<Button link>` variant from the pre-composition Button.
+ * Built on top of the composed `Button`, which no longer exposes a `'link'`
+ * variant — all link-specific behavior lives here:
  *   - Transparent background applied as an invariant (callers cannot override
  *     it via `innerStyles`).
  *   - Default hover background neutralized via `hoverStyles={styles.bgTransparent}`,
