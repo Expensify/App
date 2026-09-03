@@ -575,10 +575,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         .map((report) => report.reportID)
         .filter((reportID) => reportID !== undefined);
 
-    // The reports in the selection the viewer can actually settle. Bulk pay degrades to this subset rather than
-    // disappearing when the selection also contains an ineligible report (see getPayOption), so everything that
-    // feeds the Pay menu — policy, currency, total, payment methods — and the payment itself is derived from here.
-    // That keeps the amount shown in "Mark as paid" equal to the amount that will actually be paid.
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
     const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
     // Fall back to the raw selection so transaction-only selections (which have no selected reports) and selections
@@ -707,9 +703,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentUserPersonalDetails.accountID,
     ]);
 
-    // Pay-scope the report the same way selectedPolicyID is scoped below. Taking the first *selected* report instead
-    // could hand useBulkPayOptions a report the viewer cannot settle (or one from another workspace) while the policy
-    // came from the payable subset, so the two describe different workspaces.
     const selectedBulkPayReportID = payScopedReportIDs.at(0) ?? selectedTransactionReportIDs.at(0);
     const selectedBulkPayReport = selectedBulkPayReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedBulkPayReportID}`] : undefined;
     const selectedBulkPayChatReportID = selectedBulkPayReport?.chatReportID;
@@ -1344,9 +1337,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            // Pay only the reports the viewer can settle. The menu is offered whenever at least one selected report is
-            // payable, so an ineligible report in the selection must be skipped here rather than aborting the whole run
-            // (it has no payment method, which the loop below treats as a reason to bail out of the entire bulk pay).
             const selectedOptions = selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions);
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
