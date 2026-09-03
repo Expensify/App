@@ -8,7 +8,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import HapticFeedback from '@libs/HapticFeedback';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 
@@ -34,6 +33,8 @@ function Button({
     onPressIn = () => {},
     onPressOut = () => {},
     onMouseDown = undefined,
+    onFocus = undefined,
+    onBlur = undefined,
     style = [],
     disabledStyle,
     innerStyles = [],
@@ -56,9 +57,6 @@ function Button({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
-    const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'Button',
-    };
 
     const contextValue = useMemo(
         () => ({
@@ -170,6 +168,8 @@ function Button({
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             onMouseDown={onMouseDown}
+            onFocus={onFocus}
+            onBlur={onBlur}
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
             onPress={(event) => {
@@ -217,7 +217,6 @@ function Button({
                 <ActivityIndicator
                     color={loadingIndicatorColor}
                     style={[styles.pAbsolute, styles.l0, styles.r0]}
-                    reasonAttributes={buttonLoadingReasonAttributes}
                 />
             )}
         </PressableWithFeedback>

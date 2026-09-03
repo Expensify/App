@@ -10,21 +10,24 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
-import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
+import {clearApprovalWorkflow, setApprovalWorkflowMembers} from '@libs/actions/Workflow';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {approverChainFingerprint, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -40,7 +43,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 
 type DynamicWorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM>;
@@ -58,20 +61,29 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path);
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {showConfirmModal} = useConfirmModal();
+    const {isBetaEnabled} = usePermissions();
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
+    const employeeAndApprovalMembersPersonalDetails = usePersonalDetailsByLogins([
+        ...Object.keys(policy?.employeeList ?? {}),
+        ...(approvalWorkflow?.members ?? []).map((member) => member.email),
+    ]);
 
-    const personalDetailLogins = useMemo(() => Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])), [personalDetails]);
+    const shouldInitializeSearch = useRunAfterTransitions(true);
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
-    const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
     // Set true when nextStep navigates to the invite-message page so the cleanup
     // effect below knows to leave the draft intact for that page to consume.
     const isHandingOffToInviteRef = useRef(false);
+    // Tracks whether we're still on the very first step of the create flow
+    const isInitialCreationFlowRef = useRef(false);
 
     const excludedUsers = useMemo(() => {
         return getExcludedUsers(policy?.employeeList);
@@ -87,7 +99,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
         includeRecentReports: false,
-        shouldInitialize: true,
+        shouldInitialize: shouldInitializeSearch,
     });
 
     useEffect(() => {
@@ -101,8 +113,16 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
-    // Build a map of member emails to their existing workflow's approver email (for non-default workflows only)
+    const policyRules = isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID) : {};
+
+    // Build a map of member emails to their existing workflow's first approver. With the beta on this
+    // is derived from the `ONYXKEYS.COLLECTION.RULE` rules; otherwise it falls back to the legacy
+    // employeeList `submitsTo` (non-default workflows only).
     const membersInExistingWorkflows = (() => {
+        if (isMultipleApproversBetaEnabled) {
+            return new Map(Object.entries(getRulesSubmitterToFirstApprover(policyRules, policy?.employeeList ?? {})));
+        }
+
         const employees = policy?.employeeList ?? {};
         const defaultApprover = getDefaultApprover(policy);
         const map = new Map<string, string>();
@@ -119,73 +139,75 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         return map;
     })();
 
-    useEffect(() => {
+    // Beta only: identity (full approver-chain fingerprint) of each submitter's current workflow, plus the
+    // identity of the workflow being edited. Comparing these — instead of just first approvers — lets us warn
+    // before moving a member out of a workflow that merely shares its first approver with this one.
+    const submitterToWorkflowKey = isMultipleApproversBetaEnabled ? new Map(Object.entries(getRulesSubmitterToWorkflowKey(policyRules, policy?.employeeList ?? {}))) : undefined;
+    const currentWorkflowKey = approverChainFingerprint(approvalWorkflow?.originalApprovers ?? []);
+
+    const selectedMembers = ((): SelectionListApprover[] => {
         if (!approvalWorkflow?.members) {
-            return;
+            return [];
         }
 
-        // Intentional: derives the selected-members list from the approval workflow data.
-        // This effect synchronizes local component state with the Onyx-sourced workflow when it changes.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedMembers(
-            approvalWorkflow.members
-                .filter((member) => {
-                    const isPolicyMember = !!policy?.employeeList?.[normalizeLogin(member.email)];
-                    // Keep policy members. For non-policy members, only keep if they're
-                    // in the invite draft (meaning an invite flow is actively in progress).
-                    // This mirrors the card flow's handleBackButtonPress cleanup pattern.
-                    return isPolicyMember || invitedEmailsToAccountIDsDraft?.[member.email] != null;
-                })
-                .map((member) => {
-                    let accountID = Number(policyMemberEmailsToAccountIDs[normalizeLogin(member.email)] ?? '');
-                    const isPolicyMember = !!policy?.employeeList?.[normalizeLogin(member.email)];
+        return approvalWorkflow.members
+            .filter((member) => {
+                const isPolicyMember = !!policy?.employeeList?.[normalizeLogin(member.email)];
+                // Keep policy members. For non-policy members, only keep if they're
+                // in the invite draft (meaning an invite flow is actively in progress).
+                // This mirrors the card flow's handleBackButtonPress cleanup pattern.
+                return isPolicyMember || invitedEmailsToAccountIDsDraft?.[member.email] != null;
+            })
+            .map((member) => {
+                let accountID = Number(policyMemberEmailsToAccountIDs[normalizeLogin(member.email)] ?? '');
+                const isPolicyMember = !!policy?.employeeList?.[normalizeLogin(member.email)];
 
-                    const personalDetail = getPersonalDetailByEmail(member.email);
+                const personalDetail = employeeAndApprovalMembersPersonalDetails[member.email];
 
-                    // Fall back when getMemberAccountIDsForWorkspace can't resolve an accountID — for
-                    // example a freshly invited user whose personal details haven't fully synced yet
-                    // (the helper requires personalDetail.login). Without a real accountID,
-                    // ReportActionAvatars renders the FallbackAvatar instead of the default avatar
-                    // assigned to that account.
-                    if (!accountID) {
-                        const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
-                        if (personalDetail?.accountID) {
-                            accountID = personalDetail.accountID;
-                        } else if (draftAccountID) {
-                            accountID = draftAccountID;
-                        }
+                // Fall back when getMemberAccountIDsForWorkspace can't resolve an accountID — for
+                // example a freshly invited user whose personal details haven't fully synced yet
+                // (the helper requires personalDetail.login). Without a real accountID,
+                // ReportActionAvatars renders the FallbackAvatar instead of the default avatar
+                // assigned to that account.
+                if (!accountID) {
+                    const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
+                    if (personalDetail?.accountID) {
+                        accountID = personalDetail.accountID;
+                    } else if (draftAccountID) {
+                        accountID = draftAccountID;
                     }
+                }
 
-                    const login = personalDetailLogins?.[accountID] ?? member.email;
-                    const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
-                    const avatar = member.avatar ?? personalDetail?.avatar;
+                const login = personalDetails?.[accountID]?.login ?? member.email;
+                const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
+                const avatar = member.avatar ?? personalDetail?.avatar;
 
-                    return {
-                        text: Str.removeSMSDomain(displayName),
-                        alternateText: member.email,
-                        keyForList: member.email,
-                        isSelected: true,
-                        login: member.email,
-                        icons: [
-                            {
-                                source: avatar ?? icons.FallbackAvatar,
-                                type: CONST.ICON_TYPE_AVATAR,
-                                name: Str.removeSMSDomain(displayName),
-                                id: accountID,
-                            },
-                        ],
-                        // Only show right element for policy members
-                        rightElement: isPolicyMember ? (
-                            <MemberRightIcon
-                                role={policy?.employeeList?.[normalizeLogin(member.email)]?.role}
-                                owner={policy?.owner}
-                                login={login}
-                            />
-                        ) : undefined,
-                    };
-                }),
-        );
-    }, [approvalWorkflow?.members, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft, personalDetailLogins, policy?.employeeList, policy?.owner, policyMemberEmailsToAccountIDs]);
+                return {
+                    text: Str.removeSMSDomain(displayName),
+                    alternateText: member.email,
+                    keyForList: member.email,
+                    isSelected: true,
+                    login: member.email,
+                    value: member.email,
+                    icons: [
+                        {
+                            source: avatar ?? icons.FallbackAvatar,
+                            type: CONST.ICON_TYPE_AVATAR,
+                            name: Str.removeSMSDomain(displayName),
+                            id: accountID,
+                        },
+                    ],
+                    // Only show right element for policy members
+                    rightElement: isPolicyMember ? (
+                        <MemberRightIcon
+                            role={policy?.employeeList?.[normalizeLogin(member.email)]?.role}
+                            owner={policy?.owner}
+                            login={login}
+                        />
+                    ) : undefined,
+                };
+            });
+    })();
 
     const workflowApprovers = approvalWorkflow?.approvers;
 
@@ -197,14 +219,14 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         return Object.values(employees)
             .filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((employee) => {
-                const personalDetail = getPersonalDetailByEmail(employee.email ?? '');
+                const personalDetail = employeeAndApprovalMembersPersonalDetails[employee.email ?? ''];
                 return {
                     email: employee.email ?? '',
                     displayName: personalDetail?.displayName ?? employee.email ?? '',
                     avatar: personalDetail?.avatar,
                 };
             });
-    }, [policy?.employeeList]);
+    }, [policy?.employeeList, employeeAndApprovalMembersPersonalDetails]);
 
     const allApprovers = useMemo(() => {
         const members: SelectionListApprover[] = [...selectedMembers];
@@ -220,6 +242,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                     keyForList: member.email,
                     isSelected: false,
                     login: member.email,
+                    value: member.email,
                     icons: [
                         {
                             source: member.avatar ?? icons.FallbackAvatar,
@@ -258,6 +281,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                         keyForList: userToInvite.login ?? '',
                         isSelected: false,
                         login: userToInvite.login ?? '',
+                        value: userToInvite.login ?? '',
                         icons: userToInvite.icons ?? [],
                     });
                 }
@@ -273,6 +297,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                     keyForList: option.login ?? '',
                     isSelected: false,
                     login: option.login ?? '',
+                    value: option.login ?? '',
                     icons: option.icons ?? [],
                 });
             }
@@ -430,6 +455,11 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         );
     }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles]);
 
+    // Keep the ref in sync so the unmount cleanup below reads the latest value.
+    useEffect(() => {
+        isInitialCreationFlowRef.current = !!isInitialCreationFlow;
+    }, [isInitialCreationFlow]);
+
     // Clean up invite draft when leaving the expenses-from page to prevent
     // stale non-member data from persisting in the approval workflow. Skip
     // when handing off to the invite-message page, which still needs the draft.
@@ -439,6 +469,11 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 return;
             }
             clearInviteDraft(route.params.policyID);
+            // Abandoning the initial create step must discard the eagerly-seeded approvalWorkflow
+            // draft, otherwise a stale draft stays in Onyx and pollutes the next session.
+            if (isInitialCreationFlowRef.current) {
+                clearApprovalWorkflow();
+            }
         };
     }, [route.params.policyID]);
 
@@ -447,10 +482,10 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             const applySelection = (nextMembers: SelectionListApprover[]) => {
                 // Persist non-policy members to the invite draft AND to approvalWorkflow.members
                 // so they survive re-renders triggered by Onyx updates (e.g. personalDetails
-                // changes from search results). The effect that syncs selectedMembers from
-                // approvalWorkflow.members filters non-policy members unless they're in the
-                // invite draft, so both stores must stay in sync to avoid dropping the locally
-                // selected new member.
+                // changes from search results). selectedMembers is derived from
+                // approvalWorkflow.members and only keeps non-policy members that are also in the
+                // invite draft, so both stores must stay in sync to avoid dropping the newly
+                // selected member.
                 const nextDraft: Record<string, number> = {};
                 const workflowMembers: Member[] = [];
                 for (const member of nextMembers) {
@@ -471,17 +506,26 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 }
                 setWorkspaceInviteMembersDraft(route.params.policyID, nextDraft);
                 setApprovalWorkflowMembers(workflowMembers);
-                setSelectedMembers(nextMembers);
             };
 
-            // Only show warning when creating a new workflow and a member is being added (not removed)
-            if (isCreateAction && members.length > selectedMembers.length) {
+            // Warn when adding a member who already belongs to another workflow. With the beta on this
+            // applies to both create and edit (a submitter can only be in one workflow, so confirming
+            // moves them); legacy keeps the create-only behavior.
+            const shouldCheckCrossWorkflow = isCreateAction || isMultipleApproversBetaEnabled;
+            if (shouldCheckCrossWorkflow && members.length > selectedMembers.length) {
                 const newMember = members.find((m) => !selectedMembers.some((s) => s.login === m.login));
                 const existingApproverEmail = newMember?.login ? membersInExistingWorkflows.get(newMember.login) : undefined;
 
-                if (newMember && existingApproverEmail) {
+                // With the beta on, compare full workflow identities so a member that submits to the same
+                // first approver but through a different chain is still treated as a cross-workflow move.
+                // Legacy has no diverging chains here, so first-approver comparison is enough.
+                const belongsToDifferentWorkflow = isMultipleApproversBetaEnabled
+                    ? !!newMember?.login && !!submitterToWorkflowKey?.get(newMember.login) && submitterToWorkflowKey.get(newMember.login) !== currentWorkflowKey
+                    : !!existingApproverEmail && existingApproverEmail !== firstApprover;
+
+                if (newMember && existingApproverEmail && belongsToDifferentWorkflow) {
                     const memberName = Str.removeSMSDomain(newMember.text ?? newMember.login ?? '');
-                    const approverDetails = getPersonalDetailByEmail(existingApproverEmail);
+                    const approverDetails = employeeAndApprovalMembersPersonalDetails[existingApproverEmail];
                     const approverName = Str.removeSMSDomain(approverDetails?.displayName ?? existingApproverEmail);
 
                     showConfirmModal({
@@ -501,7 +545,21 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
             applySelection(members);
         },
-        [policy?.employeeList, invitedEmailsToAccountIDsDraft, route.params.policyID, isCreateAction, selectedMembers, membersInExistingWorkflows, showConfirmModal, translate],
+        [
+            policy?.employeeList,
+            employeeAndApprovalMembersPersonalDetails,
+            invitedEmailsToAccountIDsDraft,
+            route.params.policyID,
+            isCreateAction,
+            isMultipleApproversBetaEnabled,
+            firstApprover,
+            selectedMembers,
+            membersInExistingWorkflows,
+            submitterToWorkflowKey,
+            currentWorkflowKey,
+            showConfirmModal,
+            translate,
+        ],
     );
 
     return (

@@ -1,4 +1,4 @@
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableRenderRowProps} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
@@ -29,6 +29,7 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
     emptyStateContent?: React.ReactElement;
     tableTitle: string;
     findRuleLabel: string;
@@ -37,6 +38,7 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     ruleColumnLabel: string;
     emptyState: TableEmptyStateProps;
     renderRow: (props: TableRenderRowProps<TItem>) => React.ReactElement;
+    typeColumnWidth?: number;
 };
 
 /**
@@ -48,6 +50,7 @@ function WorkspaceCategoryRulesTableImpl({
     selectionEnabled,
     selectedKeys,
     onRowSelectionChange,
+    headerComponent,
     tableTitle,
     findRuleLabel,
     typeColumnLabel,
@@ -55,6 +58,7 @@ function WorkspaceCategoryRulesTableImpl({
     ruleColumnLabel,
     emptyState,
     renderRow,
+    typeColumnWidth = variables.tableTypeColumnWidth,
 }: WorkspaceCategoryRulesTableProps<CategoryRulesTableItem>) {
     const {localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -66,7 +70,7 @@ function WorkspaceCategoryRulesTableImpl({
             key: 'type',
             label: typeColumnLabel,
             sortable: true,
-            width: variables.tableTypeColumnWidth,
+            width: typeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
         {key: 'condition', label: conditionColumnLabel, sortable: true},
@@ -99,6 +103,9 @@ function WorkspaceCategoryRulesTableImpl({
 
     const renderItem = ({item, index}: ListRenderItemInfo<CategoryRulesTableItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
 
+    const searchBarComponent = <Table.FilterBar label={findRuleLabel} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={rulesData}
@@ -114,7 +121,7 @@ function WorkspaceCategoryRulesTableImpl({
             narrowLayoutSortColumn="condition"
             title={tableTitle}
         >
-            <Table.FilterBar label={findRuleLabel} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
             <Table.Header />

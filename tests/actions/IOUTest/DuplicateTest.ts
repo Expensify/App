@@ -3,7 +3,7 @@ import type {RenderAPI} from '@testing-library/react-native';
 
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -25,7 +25,7 @@ import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction'
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -37,7 +37,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -229,6 +229,10 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action456: iouAction1, action789: iouAction2},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: {},
+                },
             });
             await waitForBatchedUpdates();
 
@@ -280,6 +284,82 @@ describe('actions/Duplicate', () => {
             );
         });
 
+        it('threads allReportActionsList into the transaction-thread cleanup instead of relying on the deprecated report-actions cache', async () => {
+            // Given: A duplicate whose transaction thread already has report actions cached in Onyx
+            const reportID = 'report456';
+            const mainTransactionID = 'main456';
+            const duplicate1ID = 'dup999';
+            const childReportID = 'child456';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID);
+            const duplicateTransaction1 = createMockTransaction(duplicate1ID, reportID, 100);
+            const expenseReport = createMockReport(reportID, 200);
+            const mainViolations = createMockViolations();
+            const duplicate1Violations = createMockViolations();
+
+            const iouAction1 = createMockIouAction(duplicate1ID, 'action789', childReportID);
+
+            // The value already cached via the deprecated Onyx.connect-backed report actions accessor —
+            // deliberately different from what's passed via allReportActionsList below.
+            const cachedChildReportActions = {staleComment: createMock<ReportAction>({reportActionID: 'staleComment', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicate1Violations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {action789: iouAction1});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`, cachedChildReportActions);
+            await waitForBatchedUpdates();
+
+            // The value explicitly passed in for the child report's actions, distinct from the cached one above.
+            const passedInChildReportActions = {freshComment: createMock<ReportAction>({reportActionID: 'freshComment', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})};
+
+            // When: Call mergeDuplicates, passing allReportActionsList with a DIFFERENT value for the child report
+            mergeDuplicates({
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                taxCode: '',
+                receiptID: 123,
+                reportID,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action789: iouAction1},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: passedInChildReportActions,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then: The rollback data for the transaction thread restores the PASSED-IN actions, not the stale
+            // cached ones — proving getCleanUpTransactionThreadReportOnyxData used the explicit allReportActionsList slice.
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.anything(),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+                            value: passedInChildReportActions,
+                        }),
+                    ]),
+                }),
+            );
+        });
+
         it('should handle empty duplicate transaction list', async () => {
             // Given: Set up test data with only main transaction
             const reportID = 'report123';
@@ -315,6 +395,7 @@ describe('actions/Duplicate', () => {
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: []},
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
             await waitForBatchedUpdates();
 
@@ -374,6 +455,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: [],
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: [],
                 },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
             await waitForBatchedUpdates();
 
@@ -477,6 +559,7 @@ describe('actions/Duplicate', () => {
                 betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction1?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             openReport({
                 hasReportActions: true,
@@ -487,6 +570,7 @@ describe('actions/Duplicate', () => {
                 betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction2?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -559,6 +643,9 @@ describe('actions/Duplicate', () => {
             expect(iouAction1?.childVisibleActionCount).toBe(2);
             expect(iouAction2?.childVisibleActionCount).toBe(1);
             expect(previewAction?.childVisibleActionCount).toBe(3);
+            if (!iouAction1 || !iouAction2) {
+                throw new Error('Expected iouAction1 and iouAction2 to be defined after fetching from Onyx.');
+            }
 
             await waitForBatchedUpdates();
 
@@ -589,11 +676,12 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {[iouAction1ID]: iouAction1, [iouAction2ID]: iouAction2}},
             });
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID) ?? undefined;
+            previewAction = getReportPreviewReportAction(chatReport?.reportID, expenseReport?.reportID) ?? undefined;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);
@@ -602,7 +690,6 @@ describe('actions/Duplicate', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -614,7 +701,6 @@ describe('actions/Duplicate', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -697,6 +783,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                 },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction, action456: dupIouAction}},
             });
             await waitForBatchedUpdates();
 
@@ -784,6 +871,10 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
                 },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptReportID}`]: {actionMain: mainIouAction},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${crossReportID}`]: {actionCross: crossIouAction},
+                },
             });
             await waitForBatchedUpdates();
 
@@ -866,13 +957,14 @@ describe('actions/Duplicate', () => {
             {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
         ];
 
-        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID: string) => ({
+        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID?: string): ReportAction => ({
             reportActionID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {
+            created: '2024-01-01 12:00:00',
+            originalMessage: createMock<OriginalMessageIOU>({
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            },
+            }),
             message: [{type: 'TEXT', text: 'Test IOU message'}],
             childReportID,
         });
@@ -933,6 +1025,7 @@ describe('actions/Duplicate', () => {
                     [duplicate1ID]: childReportID1,
                     [duplicate2ID]: childReportID2,
                 },
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates
@@ -942,6 +1035,9 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
+                },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action456: iouAction1, action789: iouAction2, mainAction123: mainIouAction},
                 },
             });
             await waitForBatchedUpdates();
@@ -1032,10 +1128,11 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID: 'report123',
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates with undefined transactionID
-            resolveDuplicates({...resolveParams, allTransactionViolations: {}});
+            resolveDuplicates({...resolveParams, allTransactionViolations: {}, allReportActionsList: undefined});
             await waitForBatchedUpdates();
 
             // Then: Verify API was not called
@@ -1075,12 +1172,14 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID,
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates with empty duplicate list
             resolveDuplicates({
                 ...resolveParams,
                 allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations},
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction}},
             });
             await waitForBatchedUpdates();
 
@@ -1117,7 +1216,14 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
+            // A non-money-request action and an IOU action with no IOUTransactionID should both be filtered out without matching.
+            const commentAction = createMock<ReportAction>({reportActionID: 'commentAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+            const iouActionWithoutTransactionID = createMock<ReportAction>({
+                reportActionID: 'iouActionWithoutTransactionID',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: createMock<OriginalMessageIOU>({type: CONST.IOU.REPORT_ACTION_TYPE.CREATE}),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {commentAction, iouActionWithoutTransactionID});
             await waitForBatchedUpdates();
 
             const resolveParams = {
@@ -1135,15 +1241,17 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID,
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
-            // When: Call resolveDuplicates without IOU actions
+            // When: Call resolveDuplicates without matching IOU actions
             resolveDuplicates({
                 ...resolveParams,
                 allTransactionViolations: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
                 },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {commentAction, iouActionWithoutTransactionID}},
             });
             await waitForBatchedUpdates();
 
@@ -1163,8 +1271,232 @@ describe('actions/Duplicate', () => {
                 ]),
             );
 
-            // Then: Verify API was called
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
+            // Then: Verify the duplicate with no IOU action is skipped from the server payload
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({transactionIDList: [], reportActionIDList: []}), expect.objectContaining({}));
+        });
+
+        it('should still resolve duplicates when the held duplicate transaction thread is missing', async () => {
+            // Given: A duplicate whose IOU action exists but has no transaction thread (childReportID),
+            // with an empty transactionThreadReportIDMap (admin resolving from the workspace chat without opening the expenses)
+            const reportID = 'report123';
+            const mainTransactionID = 'main123';
+            const duplicate1ID = 'dup456';
+            const mainChildReportID = 'mainChild123';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
+            const duplicateTransaction = createMockTransaction(duplicate1ID, reportID, 100);
+            const mainViolations = createMockViolations();
+            const duplicateViolations = createMockViolations();
+
+            const mainIouAction = createMockIouAction(mainTransactionID, 'mainAction123', mainChildReportID);
+            // The duplicate's IOU action exists, but its transaction thread was never created
+            const duplicateIouAction = createMockIouAction(duplicate1ID, 'action456');
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                mainAction123: mainIouAction,
+                action456: duplicateIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mainChildReportID}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+                transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
+            };
+
+            // When: Call resolveDuplicates while the duplicate has no thread
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
+                },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction, action456: duplicateIouAction}},
+            });
+            await waitForBatchedUpdates();
+
+            // Then: The duplicate is still sent to the backend instead of being silently dropped
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    transactionIDList: [duplicate1ID],
+                    reportActionIDList: expect.arrayContaining([expect.any(String)]),
+                    dismissedViolationReportActionID: expect.anything(),
+                }),
+                expect.objectContaining({}),
+            );
+
+            // And: The duplicate transaction is optimistically put on hold
+            const updatedDuplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`);
+            expect(updatedDuplicate?.comment?.hold).toBeDefined();
+        });
+
+        it('should restore the pre-existing comment.hold value in failureData', async () => {
+            // Given: A duplicate transaction that already carries a hold before it is resolved again
+            const reportID = 'report123';
+            const mainTransactionID = 'main123';
+            const duplicate1ID = 'dup456';
+            const childReportID1 = 'child456';
+            const mainChildReportID = 'mainChild123';
+            const preExistingHoldID = 'preExistingHold789';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
+            const duplicateTransaction: Transaction = {
+                ...createMockTransaction(duplicate1ID, reportID, 100),
+                comment: {comment: 'Updated comment', hold: preExistingHoldID},
+            };
+            const mainViolations = createMockViolations();
+            const duplicateViolations = createMockViolations();
+
+            const mainIouAction = createMockIouAction(mainTransactionID, 'mainAction123', mainChildReportID);
+            const duplicateIouAction = createMockIouAction(duplicate1ID, 'action456', childReportID1);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                mainAction123: mainIouAction,
+                action456: duplicateIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID1}`, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mainChildReportID}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+                transactionThreadReportIDMap: {
+                    [duplicate1ID]: childReportID1,
+                },
+                delegateAccountID: undefined,
+            };
+
+            // When: Call resolveDuplicates
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
+                },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction, action456: duplicateIouAction}},
+            });
+            await waitForBatchedUpdates();
+
+            // Then: failureData restores the duplicate's original comment.hold instead of clearing it
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({transactionID: mainTransactionID, transactionIDList: [duplicate1ID]}),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`,
+                            value: {comment: {hold: preExistingHoldID}},
+                        }),
+                    ]),
+                }),
+            );
+        });
+
+        it('should not write a report action to an undefined thread when the kept transaction thread is missing', async () => {
+            // Given: The kept (selected) transaction has no IOU action/thread, while the duplicate has both
+            const reportID = 'report123';
+            const mainTransactionID = 'main123';
+            const duplicate1ID = 'dup456';
+            const childReportID1 = 'child456';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
+            const duplicateTransaction = createMockTransaction(duplicate1ID, reportID, 100);
+            const mainViolations = createMockViolations();
+            const duplicateViolations = createMockViolations();
+
+            const duplicateIouAction = createMockIouAction(duplicate1ID, 'action456', childReportID1);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
+            // Only the duplicate has an IOU action; the kept transaction's thread cannot be resolved
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                action456: duplicateIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID1}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+                transactionThreadReportIDMap: {
+                    [duplicate1ID]: childReportID1,
+                },
+                delegateAccountID: undefined,
+            };
+
+            // When: Call resolveDuplicates while the kept transaction has no thread
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
+                },
+                allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action456: duplicateIouAction}},
+            });
+            await waitForBatchedUpdates();
+
+            // Then: No report action is written to the malformed `reportActions_undefined` key
+            const undefinedThreadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}undefined`);
+            expect(undefinedThreadActions).toBeFalsy();
+
+            // And: The dismissed-violation action id is still sent so the backend records the dismissal
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    transactionIDList: [duplicate1ID],
+                    dismissedViolationReportActionID: expect.anything(),
+                }),
+                expect.objectContaining({}),
+            );
         });
 
         it('should handle cross-report duplicates by finding IOU actions in each transaction own report', async () => {
@@ -1220,6 +1552,7 @@ describe('actions/Duplicate', () => {
                 transactionThreadReportIDMap: {
                     [crossReportDuplicateID]: childReportIDCross,
                 },
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates with cross-report duplicates
@@ -1228,6 +1561,10 @@ describe('actions/Duplicate', () => {
                 allTransactionViolations: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
+                },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportA}`]: {actionMain: mainIouAction},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportB}`]: {actionCross: crossIouAction},
                 },
             });
             await waitForBatchedUpdates();
@@ -1306,7 +1643,6 @@ describe('actions/Duplicate', () => {
             recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     targetPolicyTags = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`] ?? {};
                 },
@@ -1316,6 +1652,44 @@ describe('actions/Duplicate', () => {
 
         afterEach(() => {
             writeSpy.mockRestore();
+        });
+
+        it('threads the conciergeChat report through to requestMoney', () => {
+            const requestMoneySpy = jest.spyOn(require('@libs/actions/IOU/TrackExpense'), 'requestMoney');
+            const conciergeChat = {reportID: 'concierge-duplicate-1'};
+
+            duplicateExpenseTransaction({
+                conciergeChat,
+                dateFnsLocale: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                transaction: {...mockTransaction, amount: mockTransaction.amount * -1},
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                personalDetails: mockPersonalDetails,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+            });
+
+            expect(requestMoneySpy).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
+            requestMoneySpy.mockRestore();
         });
 
         it('should create a duplicate expense successfully', async () => {
@@ -1331,6 +1705,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1353,6 +1729,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1361,7 +1740,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1398,6 +1776,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1420,6 +1800,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1428,7 +1811,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
                     expect(transactions).toHaveLength(1);
@@ -1457,6 +1839,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1479,6 +1863,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1486,7 +1873,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1509,6 +1895,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1531,6 +1919,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1538,7 +1929,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1561,6 +1951,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1583,6 +1975,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1591,7 +1986,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1617,6 +2011,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1638,6 +2034,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1646,7 +2045,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1682,6 +2080,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1703,6 +2103,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1711,7 +2114,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
                     expect(transactions).toHaveLength(1);
@@ -1731,6 +2133,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: undefined,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1753,6 +2157,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1774,6 +2181,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1796,12 +2205,64 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
 
             // Verify API was called with TRACK_EXPENSE (trackExpense path, not requestMoney)
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.TRACK_EXPENSE, expect.objectContaining({}), expect.objectContaining({}));
+        });
+
+        it('should call trackExpense when the source expense is unreported even though a targetPolicy is provided', async () => {
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockUnreportedTransaction = {
+                ...mockTransaction,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: mockTransaction.amount * -1,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: mockUnreportedTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: mockPersonalDetails,
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.TRACK_EXPENSE, expect.objectContaining({}), expect.objectContaining({}));
+            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_MONEY, expect.objectContaining({}), expect.objectContaining({}));
         });
 
         it('should call createDistanceRequest for distance transactions', async () => {
@@ -1820,6 +2281,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1842,6 +2305,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1872,6 +2338,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1894,6 +2362,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1901,7 +2372,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== transactionID);
                 },
@@ -1940,6 +2410,8 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockPerDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1962,6 +2434,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2008,6 +2483,8 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockTransactionWithLinkedAction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2030,6 +2507,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2059,6 +2539,8 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2081,6 +2563,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2097,7 +2582,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -2122,6 +2606,8 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpense,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2144,6 +2630,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2153,7 +2642,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -2173,7 +2661,7 @@ describe('actions/Duplicate', () => {
     describe('resolveDuplicate', () => {
         test('Resolving duplicates of two transaction by keeping one of them should properly set the other one on hold even if the transaction thread reports do not exist in onyx', () => {
             // Given two duplicate transactions
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -2202,6 +2690,7 @@ describe('actions/Duplicate', () => {
                         comment: '',
                         participants: [],
                         transactionID: transaction.transactionID,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     }),
                 );
             }
@@ -2210,6 +2699,9 @@ describe('actions/Duplicate', () => {
                 actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction;
             }
             const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            const allReportActionsList: OnyxCollection<ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: Object.fromEntries(iouActions.map((iouAction) => [iouAction.reportActionID, iouAction])),
+            };
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
@@ -2228,6 +2720,8 @@ describe('actions/Duplicate', () => {
                             [transaction2.transactionID]: 'transactionThread-2',
                         },
                         allTransactionViolations: {},
+                        allReportActionsList,
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2290,6 +2784,7 @@ describe('actions/Duplicate', () => {
         const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
+            dateFnsLocale: undefined,
             sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
@@ -2317,6 +2812,10 @@ describe('actions/Duplicate', () => {
             recentWaypoints: [],
             isTrackIntentUser: false,
             delegateAccountID: undefined,
+            formatPhoneNumber,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participantsPolicyTags: {},
+            conciergeChat: undefined,
             ...overrides,
         });
 
@@ -2472,7 +2971,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== scanExpenseTx.transactionID);
                 },
@@ -2753,7 +3251,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransactions: Transaction[] = [];
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransactions = Object.values(allTransactions ?? {}).filter((tx): tx is Transaction => !!tx && tx.transactionID !== splitDistanceTx.transactionID);
                 },
@@ -2868,6 +3365,8 @@ describe('actions/Duplicate', () => {
             };
 
             bulkDuplicateExpenses({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
                 allTransactions,
                 sourcePolicyIDMap: {},
@@ -2889,6 +3388,9 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2898,6 +3400,63 @@ describe('actions/Duplicate', () => {
 
             const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
             expect(iouReportIDs.size).toBe(1);
+        });
+
+        it('should not defer auto submit when the last selected expense is unreported', async () => {
+            const reportedTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'bulk_reported',
+                amount: -500,
+                currency: 'USD',
+            };
+            const unreportedTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'bulk_unreported',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: -300,
+                currency: 'USD',
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_reported`]: reportedTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_unreported`]: unreportedTransaction,
+            };
+
+            bulkDuplicateExpenses({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transactionIDs: ['bulk_reported', 'bulk_unreported'],
+                allTransactions,
+                sourcePolicyIDMap: {},
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: policyExpenseChat,
+                policyTagList: {},
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const trackExpenseCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            expect(requestMoneyCalls).toHaveLength(1);
+            expect(trackExpenseCalls).toHaveLength(1);
+            expect(requestMoneyCalls.at(0)?.[1].shouldDeferAutoSubmit).toBeFalsy();
         });
     });
 
@@ -2965,6 +3524,7 @@ describe('actions/Duplicate', () => {
         });
 
         const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
+            dateFnsLocale: undefined,
             selectedReports: reportIDs.map((id) => ({
                 reportID: id,
                 policyID: undefined,
@@ -3001,6 +3561,9 @@ describe('actions/Duplicate', () => {
             recentWaypoints: [],
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            conciergeChat: undefined,
             ...overrides,
         });
 
@@ -3060,11 +3623,72 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+        });
+
+        it('should not duplicate every selected report in a single synchronous pass', async () => {
+            const reportIDs = ['rpt1', 'rpt2', 'rpt3'];
+            const allReports: Record<string, Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            for (const reportID of reportIDs) {
+                allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
+                    reportID,
+                    policyID: SOURCE_POLICY_ID,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    reportName: `Report ${reportID}`,
+                    chatReportID: ACTIVE_PEC_REPORT_ID,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx-${reportID}`, createCashTransaction(`1${reportID.slice(-1)}`, reportID));
+            }
+
+            const duplicating = bulkDuplicateReports(getDefaultBulkParams(reportIDs, {allReports}));
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+
+            await duplicating;
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(3);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(3);
+        });
+
+        it('should stop duplicating the remaining reports when the account changes mid-flight', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const reportIDs = ['rpt1', 'rpt2', 'rpt3'];
+            const allReports: Record<string, Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+            for (const reportID of reportIDs) {
+                allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
+                    reportID,
+                    policyID: SOURCE_POLICY_ID,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    reportName: `Report ${reportID}`,
+                    chatReportID: ACTIVE_PEC_REPORT_ID,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx-${reportID}`, createCashTransaction(`1${reportID.slice(-1)}`, reportID));
+            }
+
+            const duplicating = bulkDuplicateReports(getDefaultBulkParams(reportIDs, {allReports}));
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID + 1});
+            await waitForBatchedUpdates();
+            await duplicating;
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
         });
 
         it('should use source policy when accessible, and fall back to default policy when not', async () => {
@@ -3108,7 +3732,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(
+            await bulkDuplicateReports(
                 getDefaultBulkParams(['rpt1', 'rpt2'], {
                     allReports,
                     allPolicyCategories: {
@@ -3152,7 +3776,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -3177,7 +3801,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -3213,7 +3837,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -3241,7 +3865,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'nonexistent1', 'nonexistent2'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'nonexistent1', 'nonexistent2'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -3263,7 +3887,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -3301,7 +3925,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
@@ -3355,7 +3979,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(
+            await bulkDuplicateReports(
                 getDefaultBulkParams(['rpt1', 'rpt2'], {
                     allReports,
                     allPolicyTags: {
@@ -3395,7 +4019,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);

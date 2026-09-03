@@ -10,12 +10,13 @@ import FlagForReviewRuleAmountPageBase from './FlagForReviewRuleAmountPageBase';
 type EditFlagForReviewRuleAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT>;
 
 function EditFlagForReviewRuleAmountPage({route}: EditFlagForReviewRuleAmountPageProps) {
-    const {policyID, categoryName} = route.params;
+    const {policyID, categoryName, isCategoryLocked} = route.params;
 
     return (
         <FlagForReviewRuleAmountPageBase
             policyID={policyID}
             categoryName={categoryName}
+            isCategoryLocked={isCategoryLocked === 'true'}
         />
     );
 }

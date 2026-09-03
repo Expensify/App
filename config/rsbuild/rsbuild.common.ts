@@ -14,6 +14,9 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
+// Relative on purpose: module aliases are not resolved when this config is evaluated.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -46,8 +49,20 @@ function getOxcAndWorkletsLoaders(isDevServer: boolean) {
         {
             loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
             options: {
-                reactCompiler: {target: '19', panicThreshold: 'none', isDev: isDevServer},
-                target: 'node20',
+                reactCompiler: {
+                    target: '19',
+                    panicThreshold: 'none',
+                    // `sources` is a filename allowlist: the compiler only runs on files whose path
+                    // contains one of these strings. Every path contains the empty string, so this
+                    // replaces the default filter (which skips `node_modules`) and keeps the compiler
+                    // running over INCLUDED_NODE_MODULES the same way it does over app source.
+                    sources: [''],
+                    // The compiler treats `react-hooks/exhaustive-deps` and `react-hooks/rules-of-hooks`
+                    // suppressions as an opt-out by default. babel-plugin-react-compiler disables that
+                    // default whenever exhaustive-memo and hooks-usage validation are both on, which is
+                    // its own default, so an empty list keeps web and Metro/Jest compiling the same files.
+                    eslintSuppressionRules: [],
+                },
                 jsx: {runtime: 'automatic', development: isDevServer, refresh: isDevServer},
             },
         },
@@ -113,6 +128,10 @@ function getDefineValues(file: string): DefinePluginOptions {
     /* eslint-disable @typescript-eslint/naming-convention */
     return {
         process: {env: {}},
+        // react-native-worklets (and other RN libs) reference the Node.js `global` identifier,
+        // which is undefined in the browser. Map it to `globalThis` so the web bundle doesn't throw
+        // "global is not defined". Rspack (unlike webpack 4) does not auto-provide `global`.
+        global: 'globalThis',
         // Define EXPO_OS for web platform to fix expo-modules-core warning
         'process.env.EXPO_OS': JSON.stringify('web'),
         __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
@@ -153,6 +172,9 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                 'victory-native': path.resolve(dirname, '../../node_modules/victory-native/src/index.ts'),
                 // Required for @shopify/react-native-skia web support
                 'react-native/Libraries/Image/AssetRegistry': false,
+                // @sentry/react-native references the optional expo-updates module. We do not install it,
+                // so web/Storybook bundles should treat it as unavailable instead of failing resolution.
+                'expo-updates': false,
                 // Use legacy build of pdfjs-dist to support older browsers
                 'pdfjs-dist$': path.resolve(dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.mjs'),
                 '@assets': path.resolve(dirname, '../../assets'),
@@ -277,10 +299,21 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                     },
                     // Included node_modules: Same OXC + React Compiler pass as app source above,
                     // minus the Fullstory pass, which only makes sense for our own components.
+                    //
+                    // `type: 'javascript/auto'` is required: some of these packages (e.g.
+                    // react-native-reanimated's `webUtils.web.js`) mix ESM `export` with guarded
+                    // CommonJS `require()` calls in the same file. Without this, rspack classifies
+                    // the file as `javascript/esm` (because of the `export`s) and leaves `require()`
+                    // as an unresolved free variable, so `require('react-native-web/...')` throws at
+                    // runtime, gets swallowed by the surrounding try/catch, and leaves
+                    // `createReactDOMStyle` undefined. That in turn makes reanimated's `_updatePropsJS`
+                    // crash with "Cannot convert undefined or null to object", breaking every
+                    // animated component on web (text input labels, tooltips, popovers, modals).
                     {
                         test: /\.(js|ts)x?$/,
                         include: [includedNodeModulesRegex],
                         exclude: [/\.native\.(js|jsx|ts|tsx)$/],
+                        type: 'javascript/auto',
                         use: getOxcAndWorkletsLoaders(isDevServer),
                     },
                 ]);
@@ -312,6 +345,13 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
         ...shared,
         source: {
             ...shared.source,
+            define: {
+                ...shared.source?.define,
+                // Did `@sentry/webpack-plugin` stamp `applicationKey` into the chunks? Gates
+                // `thirdPartyErrorFilterIntegration` in `src/libs/telemetry/integrations/index.web.ts`,
+                // which can only classify frames when it did.
+                __SENTRY_APPLICATION_KEY_STAMPED__: !!sentryWebpackPlugin,
+            },
             entry: {main: './index.js'},
         },
         output: {
@@ -523,7 +563,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(sentryWebpackPlugin
                         ? ([
                               sentryWebpackPlugin({
-                                  authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
+                                  authToken: process.env.SENTRY_AUTH_TOKEN,
                                   org: 'expensify',
                                   project: 'app',
                                   release: {
@@ -535,6 +575,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                       assets: './dist/**/*.{js,map}',
                                       filesToDeleteAfterUpload: './dist/**/*.map',
                                   },
+                                  // Stamps every chunk so the SDK can tell our frames from injected ones at runtime.
+                                  // Reported to the app as `__SENTRY_APPLICATION_KEY_STAMPED__` (see `source.define`).
+                                  applicationKey: SENTRY_APPLICATION_KEY,
                                   debug: false,
                                   telemetry: false,
                               }),

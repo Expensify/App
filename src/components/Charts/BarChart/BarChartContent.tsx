@@ -14,13 +14,11 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {calculateMinDomainPadding, getYAxisLabelWidth} from '@components/Charts/utils';
+import {calculateMinDomainPadding, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -90,7 +88,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = barAreaWidth > 0 ? barAreaWidth / (barAreaWidth + totalDomainPadding) : 0;
 
-    const originalLabels = data.map((p) => p.label);
+    const originalLabels = data.map(getXAxisLabel);
 
     const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
 
@@ -236,13 +234,9 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
 
     if (isLoading || !fontManager) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !fontManager};
         return (
             <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator
-                    size="large"
-                    reasonAttributes={reasonAttributes}
-                />
+                <ActivityIndicator size="large" />
             </View>
         );
     }

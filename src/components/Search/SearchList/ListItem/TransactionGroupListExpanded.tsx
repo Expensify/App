@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import LinkButton from '@components/ButtonComposed/composed/LinkButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
@@ -9,6 +10,7 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,7 +29,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
@@ -80,10 +81,14 @@ function TransactionGroupListExpandedImpl({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
@@ -199,12 +204,15 @@ function TransactionGroupListExpandedImpl({
             if (!transactionItem?.reportAction?.childReportID) {
                 if (isModifiedMousePress(event)) {
                     const targetReportID = createAndOpenSearchTransactionThread({
+                        conciergeChat,
+                        getCurrencyDecimals,
                         item: transactionItem,
                         introSelected,
                         backTo,
                         currentUserLogin: currentUserDetails.email ?? '',
                         currentUserAccountID: currentUserDetails.accountID,
                         betas,
+                        personalDetails,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         IOUTransactionID: transactionItem?.reportAction?.childReportID,
@@ -216,12 +224,15 @@ function TransactionGroupListExpandedImpl({
                     return;
                 }
                 createAndOpenSearchTransactionThread({
+                    conciergeChat,
+                    getCurrencyDecimals,
                     item: transactionItem,
                     introSelected,
                     backTo,
                     currentUserLogin: currentUserDetails.email ?? '',
                     currentUserAccountID: currentUserDetails.accountID,
                     betas,
+                    personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     IOUTransactionID: transactionItem?.reportAction?.childReportID,
@@ -249,12 +260,12 @@ function TransactionGroupListExpandedImpl({
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
         if (isModifiedMousePress(event)) {
-            setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash);
+            setActiveTransactionIDs(siblingTransactionIDs);
             navigateToTransactionThread();
             return;
         }
 
-        setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash).then(navigateToTransactionThread);
+        setActiveTransactionIDs(siblingTransactionIDs).then(navigateToTransactionThread);
     };
 
     const onShowMoreButtonPress = () => {
@@ -263,11 +274,6 @@ function TransactionGroupListExpandedImpl({
         } else if (!isOffline && transactionsQueryJSON) {
             searchTransactions(CONST.SEARCH.RESULTS_PAGE_SIZE);
         }
-    };
-
-    const transactionGroupLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'TransactionGroupListExpanded',
-        isOffline: !!isOffline,
     };
 
     if (shouldDisplayEmptyView) {
@@ -330,7 +336,7 @@ function TransactionGroupListExpandedImpl({
             )}
             {visibleTransactions.map((transaction, index) => {
                 const shouldShowBottomBorder = !isLastTransaction(index);
-                const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
+                const reportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
                 const isDeletedOrPendingDelete = isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction);
 
                 return (
@@ -348,7 +354,7 @@ function TransactionGroupListExpandedImpl({
                             onMouseDown={(e) => e.preventDefault()}
                             hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG, transaction.isSelected && styles.activeComponentBG]}
                             wrapperStyle={isDeletedOrPendingDelete ? styles.cursorDisabled : undefined}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                             id={transaction.transactionID}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
                         >
@@ -378,7 +384,7 @@ function TransactionGroupListExpandedImpl({
                                     shouldShowBottomBorder={shouldShowBottomBorder}
                                     onArrowRightPress={isDeletedOrPendingDelete ? undefined : (event) => openReportInRHP(transaction, event)}
                                     shouldShowArrowRightOnNarrowLayout
-                                    reportActions={exportedReportActions}
+                                    reportActions={reportActions}
                                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                     isActionColumnWide={isActionColumnWide}
                                     isHover={hovered}
@@ -390,16 +396,14 @@ function TransactionGroupListExpandedImpl({
             })}
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                 <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
-                    <Button
-                        text={translate('common.showMore')}
+                    <LinkButton
                         onPress={onShowMoreButtonPress}
-                        link
-                        shouldUseDefaultHover={false}
                         isNested
-                        medium
-                        innerStyles={[styles.ph3]}
-                        textStyles={[styles.fontSizeNormal]}
-                    />
+                        size={CONST.BUTTON_SIZE.MEDIUM}
+                        innerStyles={[styles.ph2]}
+                    >
+                        <LinkButton.Text style={[styles.fontSizeNormal]}>{translate('common.showMore')}</LinkButton.Text>
+                    </LinkButton>
                 </View>
             )}
             {shouldDisplayLoadingIndicator && (
@@ -408,7 +412,6 @@ function TransactionGroupListExpandedImpl({
                         color={theme.spinner}
                         size={25}
                         style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
-                        reasonAttributes={transactionGroupLoadingReasonAttributes}
                     />
                 </View>
             )}

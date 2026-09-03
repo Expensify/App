@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getValidConnectedIntegration} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, isGroupPolicy} from '@libs/PolicyUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
 import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
@@ -71,14 +71,14 @@ describe('getReportPreviewAction', () => {
     });
 
     it('getReportPreviewAction should return ADD_EXPENSE action for report preview with no transactions', async () => {
-        const report = {
-            reportID: REPORT_ID,
+        const report = createMock<Report>({
+            reportID: `${REPORT_ID}`,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             isWaitingOnBankAccount: false,
-        } as unknown as Report;
+        });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const policy = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
@@ -114,12 +114,12 @@ describe('getReportPreviewAction', () => {
             policy.harvesting.enabled = false;
         }
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             amount: 100,
             merchant: 'Test Merchant',
             created: '2025-01-01',
-        } as unknown as Transaction;
+        });
 
         // Simulate how components use a hook to pass the isReportArchived parameter
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
@@ -207,12 +207,12 @@ describe('getReportPreviewAction', () => {
         }
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(ONYXKEYS.SESSION, {email: MANAGER_EMAIL, accountID: MANAGER_ACCOUNT_ID});
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             amount: 100,
             merchant: 'Test Merchant',
             created: '2025-01-01',
-        } as unknown as Transaction;
+        });
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
@@ -254,12 +254,12 @@ describe('getReportPreviewAction', () => {
         }
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             amount: 100,
             merchant: 'Test Merchant',
             created: '2025-01-01',
-        } as unknown as Transaction;
+        });
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
@@ -300,12 +300,12 @@ describe('getReportPreviewAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             amount: 100,
             merchant: 'Test Merchant',
             created: '2025-01-01',
-        } as unknown as Transaction;
+        });
 
         // Simulate how components use a hook to pass the isReportArchived parameter
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
@@ -341,13 +341,13 @@ describe('getReportPreviewAction', () => {
             policy.harvesting.enabled = false;
         }
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             status: CONST.TRANSACTION.STATUS.PENDING,
             amount: 10,
             merchant: 'Merchant',
-            date: '2025-01-01',
-        } as unknown as Transaction;
+            created: '2025-01-01',
+        });
 
         // Simulate how components use a hook to pass the isReportArchived parameter
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
@@ -369,7 +369,7 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
-    it('canSubmit should return true for workflow approver on OPEN expense report with stale managerID', async () => {
+    it('getReportPreviewAction should return VIEW for a workflow approver who does not own the OPEN expense report', async () => {
         const SUBMITTER_ACCOUNT_ID = 2;
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         const OWNER_ACCOUNT_ID = 3;
@@ -397,7 +397,6 @@ describe('getReportPreviewAction', () => {
             owner: OWNER_EMAIL,
             ownerAccountID: OWNER_ACCOUNT_ID,
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
             approver: OWNER_EMAIL,
             preventSelfApproval: false,
@@ -431,144 +430,7 @@ describe('getReportPreviewAction', () => {
                 reportMetadata: undefined,
                 ownerLogin: SUBMITTER_EMAIL,
             }),
-        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
-    });
-
-    it('canSubmit should return false for workflow approver on Submit & Close policy', async () => {
-        const SUBMITTER_ACCOUNT_ID = 2;
-        const SUBMITTER_EMAIL = 'submitter@mail.com';
-        // beforeEach's Onyx.clear isn't awaited; explicit clear + reset guarantees state.
-        await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
-        const report: Report = {
-            reportID: `${REPORT_ID}`,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: SUBMITTER_ACCOUNT_ID,
-            managerID: SUBMITTER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            isWaitingOnBankAccount: false,
-            policyID: '0',
-            currency: 'USD',
-        };
-
-        const policy: Policy = {
-            id: '0',
-            name: 'Test Workspace',
-            type: CONST.POLICY.TYPE.CORPORATE,
-            role: CONST.POLICY.ROLE.USER,
-            owner: CURRENT_USER_EMAIL,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
-            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, // Submit&Close
-            approver: CURRENT_USER_EMAIL,
-            preventSelfApproval: false,
-            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-            harvesting: {enabled: false},
-            employeeList: {
-                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: CURRENT_USER_EMAIL},
-            },
-        };
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = createMock<Transaction>({
-            reportID: `${REPORT_ID}`,
-            amount: 100,
-            merchant: 'Test Merchant',
-            created: '2025-01-01',
-        });
-
-        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        await waitForBatchedUpdatesWithAct();
-
-        expect(
-            getReportPreviewAction({
-                isReportArchived: isReportArchived.current,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserLogin: CURRENT_USER_EMAIL,
-                report,
-                policy,
-                transactions: [transaction],
-                bankAccountList: {},
-                reportMetadata: undefined,
-                ownerLogin: SUBMITTER_EMAIL,
-            }),
-        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
-    });
-
-    it('canSubmit should return false for rule-only approver', async () => {
-        const SUBMITTER_ACCOUNT_ID = 2;
-        const SUBMITTER_EMAIL = 'submitter@mail.com';
-        const OTHER_WORKFLOW_APPROVER_EMAIL = 'other-approver@mail.com';
-        // beforeEach's Onyx.clear isn't awaited; explicit clear + reset guarantees state.
-        await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
-        const report: Report = {
-            reportID: `${REPORT_ID}`,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: SUBMITTER_ACCOUNT_ID,
-            managerID: SUBMITTER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            isWaitingOnBankAccount: false,
-            policyID: '0',
-            currency: 'USD',
-        };
-
-        const policy: Policy = {
-            id: '0',
-            name: 'Test Workspace',
-            type: CONST.POLICY.TYPE.CORPORATE,
-            role: CONST.POLICY.ROLE.USER,
-            owner: OTHER_WORKFLOW_APPROVER_EMAIL,
-            ownerAccountID: 999,
-            outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
-            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-            approver: OTHER_WORKFLOW_APPROVER_EMAIL,
-            preventSelfApproval: false,
-            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-            harvesting: {enabled: false},
-            employeeList: {
-                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: OTHER_WORKFLOW_APPROVER_EMAIL},
-            },
-            rules: {
-                approvalRules: [
-                    {
-                        approver: CURRENT_USER_EMAIL,
-                        applyWhen: [{condition: 'matches', field: 'category', value: 'Travel'}],
-                        id: 'rule-1',
-                    },
-                ],
-            },
-        };
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = createMock<Transaction>({
-            reportID: `${REPORT_ID}`,
-            amount: 100,
-            merchant: 'Test Merchant',
-            created: '2025-01-01',
-            category: 'Travel',
-        });
-
-        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        await waitForBatchedUpdatesWithAct();
-
-        expect(
-            getReportPreviewAction({
-                isReportArchived: isReportArchived.current,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserLogin: CURRENT_USER_EMAIL,
-                report,
-                policy,
-                transactions: [transaction],
-                bankAccountList: {},
-                reportMetadata: undefined,
-                ownerLogin: SUBMITTER_EMAIL,
-            }),
-        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     it('canSubmit should return false for expense preview report with smartscan failed violation', async () => {
@@ -590,10 +452,10 @@ describe('getReportPreviewAction', () => {
         }
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const transaction = {
+        const transaction = createMock<Transaction>({
             transactionID: TRANSACTION_ID,
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+        });
 
         const violations = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
@@ -650,13 +512,13 @@ describe('getReportPreviewAction', () => {
         }
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const transaction = {
+        const transaction = createMock<Transaction>({
             transactionID: TRANSACTION_ID,
             reportID: `${REPORT_ID}`,
             iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             merchant: '',
-        } as unknown as Transaction;
+        });
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
@@ -696,12 +558,12 @@ describe('getReportPreviewAction', () => {
             policy.preventSelfApproval = false;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 reportID: `${REPORT_ID}`,
                 amount: 100,
                 merchant: 'Test Merchant',
                 created: '2025-01-01',
-            } as unknown as Transaction;
+            });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
             await waitForBatchedUpdatesWithAct();
@@ -738,12 +600,12 @@ describe('getReportPreviewAction', () => {
             policy.preventSelfApproval = false;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 reportID: `${REPORT_ID}`,
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
                 },
-            } as unknown as Transaction;
+            });
 
             expect(
                 getReportPreviewAction({
@@ -778,13 +640,13 @@ describe('getReportPreviewAction', () => {
             policy.preventSelfApproval = false;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 reportID: `${REPORT_ID}`,
                 status: CONST.TRANSACTION.STATUS.PENDING,
                 amount: 10,
                 merchant: 'Merchant',
-                date: '2025-01-01',
-            } as unknown as Transaction;
+                created: '2025-01-01',
+            });
 
             expect(
                 getReportPreviewAction({
@@ -817,12 +679,12 @@ describe('getReportPreviewAction', () => {
             policy.preventSelfApproval = false;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 reportID: `${REPORT_ID}`,
                 amount: 100,
                 merchant: 'Test Merchant',
                 created: '2025-01-01',
-            } as unknown as Transaction;
+            });
 
             expect(
                 getReportPreviewAction({
@@ -856,12 +718,12 @@ describe('getReportPreviewAction', () => {
             policy.preventSelfApproval = false;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 reportID: `${REPORT_ID}`,
                 amount: 100,
                 merchant: 'Test Merchant',
                 created: '2025-01-01',
-            } as unknown as Transaction;
+            });
 
             expect(
                 getReportPreviewAction({
@@ -937,9 +799,9 @@ describe('getReportPreviewAction', () => {
         policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+        });
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
@@ -1006,6 +868,59 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
+    it('canPay should not return PAY for the expense owner in a 1:1 IOU on a personal policy with manual reimbursement', async () => {
+        const managerAccountID = CURRENT_USER_ACCOUNT_ID + 1;
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            managerID: managerAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -100,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+        policy.employeeList = {
+            [CURRENT_USER_EMAIL]: {
+                email: CURRENT_USER_EMAIL,
+                role: CONST.POLICY.ROLE.ADMIN,
+            },
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        });
+
+        const {isGroupPolicy: actualIsGroupPolicy} = jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils');
+        jest.mocked(isGroupPolicy).mockImplementation(actualIsGroupPolicy);
+
+        try {
+            expect(
+                getReportPreviewAction({
+                    isReportArchived: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                    report,
+                    policy,
+                    transactions: [transaction],
+                    bankAccountList: {},
+                    reportMetadata: undefined,
+                    ownerLogin: CURRENT_USER_EMAIL,
+                }),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        } finally {
+            jest.mocked(isGroupPolicy).mockReturnValue(true);
+        }
+    });
+
     it('canPay should return false for Expense report with zero total amount', async () => {
         const report = {
             ...createRandomReport(REPORT_ID, undefined),
@@ -1023,9 +938,9 @@ describe('getReportPreviewAction', () => {
         policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+        });
 
         await waitForBatchedUpdatesWithAct();
         // Should not show PAY button for zero amount Expenses
@@ -1064,9 +979,9 @@ describe('getReportPreviewAction', () => {
         jest.mocked(hasOnlyNonReimbursableTransactions).mockReturnValueOnce(true);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+        });
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
@@ -1106,9 +1021,9 @@ describe('getReportPreviewAction', () => {
         jest.mocked(getValidConnectedIntegration).mockReturnValueOnce(undefined);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+        });
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
@@ -1147,9 +1062,9 @@ describe('getReportPreviewAction', () => {
         invoiceReceiverPolicy.role = CONST.POLICY.ROLE.ADMIN;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+        });
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
@@ -1202,9 +1117,9 @@ describe('getReportPreviewAction', () => {
         const invoiceReceiverPolicy = createRandomPolicy(0);
         invoiceReceiverPolicy.role = CONST.POLICY.ROLE.ADMIN;
 
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+        });
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, parentReport);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -1252,9 +1167,9 @@ describe('getReportPreviewAction', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
             private_isArchived: new Date().toString(),
         });
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+        });
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
         expect(
@@ -1290,9 +1205,9 @@ describe('getReportPreviewAction', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`, {
             private_isArchived: new Date().toString(),
         });
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+        });
 
         // Simulate how components determined if a chat report is archived by using this hook
         const {result: isChatReportArchived} = renderHook(() => useReportIsArchived(report?.chatReportID));
@@ -1325,12 +1240,12 @@ describe('getReportPreviewAction', () => {
 
         const policy = createRandomPolicy(0);
         policy.type = CONST.POLICY.TYPE.CORPORATE;
-        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {} as NetSuiteConnection};
+        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({})};
         policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
-        } as unknown as Transaction;
+        });
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
@@ -1365,9 +1280,9 @@ describe('getReportPreviewAction', () => {
             policy.type = CONST.POLICY.TYPE.CORPORATE;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 reportID: `${REPORT_ID}`,
-            } as unknown as Transaction;
+            });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
@@ -1412,9 +1327,9 @@ describe('getReportPreviewAction', () => {
             }
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 reportID: `${REPORT_ID}`,
-            } as unknown as Transaction;
+            });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
@@ -1459,9 +1374,9 @@ describe('getReportPreviewAction', () => {
             }
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 reportID: `${REPORT_ID}`,
-            } as unknown as Transaction;
+            });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
@@ -1507,12 +1422,12 @@ describe('getReportPreviewAction', () => {
             policy.preventSelfApproval = false;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 reportID: `${REPORT_ID}`,
                 amount: 100,
                 merchant: 'Test Merchant',
                 created: '2025-01-01',
-            } as unknown as Transaction;
+            });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
             await waitForBatchedUpdatesWithAct();
@@ -1554,12 +1469,12 @@ describe('getReportPreviewAction', () => {
             policy.preventSelfApproval = false;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 reportID: `${REPORT_ID}`,
                 amount: 100,
                 merchant: 'Test Merchant',
                 created: '2025-01-01',
-            } as unknown as Transaction;
+            });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
             await waitForBatchedUpdatesWithAct();

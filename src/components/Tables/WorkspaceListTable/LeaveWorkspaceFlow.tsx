@@ -39,7 +39,7 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const ownerAccountID = policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [policyOwnerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerDisplayNameSelector(ownerAccountID)}, [ownerAccountID]);
+    const [policyOwnerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerDisplayNameSelector(ownerAccountID)});
 
     const isLoadingData = isLoadingOnyxValue(policyResult);
 
@@ -56,21 +56,21 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
             const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userLogin, policyOwnerDisplayName ?? '', translate);
             if (policy?.achAccount?.reimburser === userLogin) {
                 showConfirmModal({
-                    title: translate('common.leaveWorkspace'),
+                    title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),
                     prompt,
                     confirmText: translate('common.buttonConfirm'),
-                    success: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                     shouldShowCancelButton: false,
                 }).then(() => onDismiss());
                 return;
             }
 
             showConfirmModal({
-                title: translate('common.leaveWorkspace'),
+                title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),
                 prompt,
-                confirmText: translate('common.leaveWorkspace'),
+                confirmText: translate('common.leave'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             }).then((result) => {
                 if (result.action === ModalActions.CONFIRM && policy) {
                     leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', policy);

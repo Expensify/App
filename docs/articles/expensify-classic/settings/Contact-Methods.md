@@ -22,7 +22,7 @@ Your **primary contact method** on Expensify is used for receiving all notificat
 2. Under **Profile**, find **Contact Methods**, and click **Add Contact Method**.
 3. Enter the Email address or phone number you want to use.  
    - For phone numbers, include the international code if applicable.
-4. Check your Email or text messages for a verification Magic Code and enter it in the required field.
+4. Check your Email or text messages for a verification Security Code and enter it in the required field.
 
 ---
 

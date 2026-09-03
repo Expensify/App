@@ -1,8 +1,6 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -14,7 +12,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -67,7 +65,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
     const centralBillingAccountEmail = !!integrations?.uber?.centralBillingAccountEmail;
-    const {asset: ReceiptPartners} = useMemoizedLazyAsset(() => loadIllustration('ReceiptPartners' as IllustrationName));
     // Track focus and connection change to route to the invite flow once after successful connection
     const prevIsUberConnected = usePrevious(isUberConnected);
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
@@ -169,7 +166,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                     prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.description'),
                                     confirmText: translate('workspace.accounting.disconnect'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 }).then(({action}) => {
                                     if (action !== ModalActions.CONFIRM) {
                                         return;
@@ -229,14 +226,15 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                     }
                                     startIntegrationFlow({name: integration});
                                 }}
-                                text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
                                 innerStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
                                 hoverStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 isLoading={!policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners}
                                 isDisabled={canWriteMoreFeatures && isOffline}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
+                            </Button>
                         );
                     }
 
@@ -299,7 +297,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 <FullScreenLoadingIndicator
                     shouldUseGoBackButton
                     style={styles.flex1}
-                    reasonAttributes={{context: 'WorkspaceReceiptPartnersPage'}}
                 />
             ) : (
                 <ScreenWrapper
@@ -309,7 +306,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     <HeaderWithBackButton
                         title={translate('workspace.common.receiptPartners')}
                         shouldShowBackButton={shouldUseNarrowLayout}
-                        icon={ReceiptPartners}
                         shouldUseHeadlineHeader
                         shouldDisplayHelpButton
                         onBackButtonPress={Navigation.goBack}

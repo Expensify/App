@@ -56,6 +56,8 @@ You can move expenses to a different report, create a new report, or remove them
 3. Choose the green **selected** button > **Move expense(s)**.
 4. Choose a destination report, select **Create report** to create a new report, or select **Remove from report**.
 
+**Note:** Reports are limited to 500 expenses. If you choose a destination report that already has 500 expenses, the move is blocked and a message appears: *Reports are limited to 500 expenses. Please move some to another report.* Move some expenses out of that report or pick a different destination.
+
 **Note:** Workspace Admins can also create reports on behalf of employees by moving expenses to a new report. This is particularly useful for processing company card expenses or splitting expenses across different accounting periods. See [Create and Submit Reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports) for more details.
 
 ---
@@ -137,17 +139,6 @@ Every report has a comment thread where you can:
 
 Comments update live for everyone with access to the report.
 
-## How to edit expenses inline on desktop
-
-On desktop, you can edit certain expense fields directly in the table without opening the expense details:
-
-1. Hover over a **date**, **merchant**, **description**, **category**, or **amount** cell in the expense table, or use the Tab key to move to it.
-2. Click the pencil edit icon that appears in the cell.
-3. Edit the value using the inline editor that appears (a text input, date picker, or category picker depending on the field).
-4. Click outside the cell or press Enter to save your changes.
-
-**Note:** Clicking anywhere else in the cell or row (outside the pencil edit icon) opens the expense instead of editing inline. Inline editing is only available on desktop (wide layout). On mobile, tap the expense row to open the full details screen.
-
 ---
 
 # FAQ
@@ -166,5 +157,6 @@ You may be filtered into a different workspace or be using a mismatched search t
 
   - You don’t have permission to edit the report.
   - The report is approved or paid.
+  - The destination report already has 500 expenses (the per-report limit).
 
-**Solution**: Ask a Workspace Admin to unapprove the report, or retract it if you submitted it.
+**Solution**: Ask a Workspace Admin to unapprove the report, or retract it if you submitted it. If the destination report is at the 500-expense limit, move some expenses out of it or choose a different destination report.

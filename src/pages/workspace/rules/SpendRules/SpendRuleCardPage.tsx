@@ -11,6 +11,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useControlOnlyRuleUpgradeRedirect from '@hooks/useControlOnlyRuleUpgradeRedirect';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterCardsByPersonalDetails, filterInactiveCards, getCardFeedIcon, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
@@ -45,7 +47,7 @@ import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 
 type ExpensifyCardListItem = ListItem &
@@ -84,10 +86,9 @@ function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCar
 }
 
 function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
-    const navigation = useNavigation();
     const {policyID, ruleID} = route.params;
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const canWriteCardSpendRules = useCanWriteCardSpendRules(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -104,6 +105,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
     const {isLoading, startWithLoading} = usePressLoading();
+    useControlOnlyRuleUpgradeRedirect(policyID);
 
     useFocusEffect(
         useCallback(() => {
@@ -111,7 +113,9 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }, [spendRuleForm?.cardIDs]),
     );
 
-    const goBack = () => navigation.goBack();
+    const goBack = () => Navigation.goBack();
+
+    const saveAndGoBack = () => Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
 
     const {isOffline} = useNetwork({
         onReconnect: () => {
@@ -123,7 +127,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings, ruleID === ROUTES.NEW ? undefined : ruleID) : [];
 
     const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
-    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate);
+    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate, formatPhoneNumber);
 
     const [inputValue, setInputValue, filteredCards] = useSearchResults(eligibleCards, filterCard, sortCards);
 
@@ -131,7 +135,13 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const cardOwnerPersonalDetails = personalDetails?.[accountID] ?? undefined;
         const cardName = card.nameValuePairs?.cardTitle;
-        const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardOwnerPersonalDetails, defaultValue: '', shouldFallbackToHidden: false, translate});
+        const displayName = temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: cardOwnerPersonalDetails,
+            defaultValue: '',
+            shouldFallbackToHidden: false,
+            translate,
+            formatPhoneNumber,
+        });
         return {
             keyForList: String(card.cardID),
             text: displayName !== '' ? displayName : (cardName ?? ''),
@@ -195,7 +205,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
 
         startWithLoading(() => {
             updateDraftSpendRule({cardIDs: validSelectedCardIDs});
-            goBack();
+            saveAndGoBack();
         });
     };
 
@@ -211,14 +221,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             shouldBeBlocked={!canWriteCardSpendRules}
         >
             {isCardSettingsLoading ? (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    reasonAttributes={{
-                        context: 'SpendRuleCardPage',
-                        isOffline,
-                        hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
-                    }}
-                />
+                <FullScreenLoadingIndicator shouldUseGoBackButton />
             ) : (
                 <ScreenWrapper
                     testID="SpendRuleCardPage"

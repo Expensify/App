@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,6 +26,7 @@ import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +34,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type FilterValueProps = {
@@ -76,7 +78,8 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY
     ) {
         return <FilterUserValue value={value} />;
     }
@@ -151,25 +154,26 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 
 function SearchSavePage() {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const [name, setName] = useState('');
 
     const {currentSearchQueryJSON} = useSearchQueryContext();
 
-    const onSaveSearch = () => {
+    const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>) => {
         if (!currentSearchQueryJSON) {
             Navigation.goBack();
             return;
         }
 
-        const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
-        saveSearch({queryJSON: currentSearchQueryJSON, newName});
+        saveSearch({queryJSON: currentSearchQueryJSON, newName: values[INPUT_IDS.NAME].trim()});
         Navigation.goBack();
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM> =>
+        getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
+
+    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate, dateFnsLocale, localeCompare, convertToDisplayStringWithoutCurrency);
     const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
 
     const {inputCallbackRef} = useAutoFocusInput();
@@ -184,6 +188,7 @@ function SearchSavePage() {
                 formID={ONYXKEYS.FORMS.SEARCH_SAVE_FORM}
                 submitButtonText={translate('search.saveView')}
                 onSubmit={onSaveSearch}
+                validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
@@ -193,8 +198,6 @@ function SearchSavePage() {
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME}
                     ref={inputCallbackRef}
-                    value={name}
-                    onChangeText={setName}
                     placeholder={translate('common.name')}
                     accessibilityLabel={translate('common.name')}
                     role={CONST.ROLE.PRESENTATION}

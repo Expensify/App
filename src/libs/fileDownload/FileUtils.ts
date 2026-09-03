@@ -563,7 +563,7 @@ function getFileResolution(targetFile: FileObject | undefined): Promise<{width: 
 }
 
 function isHighResolutionImage(resolution: {width: number; height: number} | null): boolean {
-    return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
+    return resolution !== null && resolution.width * resolution.height > CONST.MAX_IMAGE_PIXEL_COUNT;
 }
 
 /**
@@ -735,9 +735,9 @@ const normalizeFileObject = async (file: FileObject): Promise<FileObject> => {
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
-    const isNativePlatform = isAndroidNative || isIOSNative;
+    const isNative = isAndroidNative || isIOSNative;
 
-    if (!isNativePlatform || 'size' in file) {
+    if (!isNative || 'size' in file) {
         return file;
     }
 
@@ -825,6 +825,11 @@ const getFileValidationErrorText = (
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED:
+            return {
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.errorWhileConvertingHeic'),
             };
         case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
             return {

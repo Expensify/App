@@ -1,8 +1,8 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax]
-internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views, and where to enter operator queries. Does not cover saved search management.
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs]
+internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
 # Use Search Operators to Filter and Analyze
@@ -72,10 +72,11 @@ You can use the following operators to filter expenses:
 - `date:` – expense date, supports relative dates like `date:this-month`, `date:last-month`, `date:year-to-date`, `date:this-week`. Also supports comparisons (`date>=2024-01-01 date<=2024-01-31`) for date ranges
 - `has:` – attachment, receipt, category, tag
 - `expense-type:` – cash, card, distance, per-diem
-- `receipt-type:` – ereceipt, itemized, hotel
+- `receipt-type:` – ereceipt, itemized
 - `reimbursable:` and `billable:` – yes or no
 - `attendee:` – expense attendees (email, phone, display name, or `me`), e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
+- `bank-account:` – settlement bank account an expense was reimbursed from. Start typing after the colon to choose from your bank accounts, each shown as the bank name and last four digits (e.g. `Chase xx1234`). Available only when you have at least one bank account.
 
 **Example queries:**
 - `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
@@ -93,10 +94,15 @@ You can use the following operators to filter reports:
 - `exported-to:` – filter by where reports or expenses were exported, such as a connected accounting integration.
 - `title:` – report title
 - `total:` – total amount with relative comparisons
+- `amount-debited:` – amount the company was debited when a report was reimbursed across currencies, in the settlement currency. Supports `=`, `>`, `<`, `>=`, `<=`
+- `amount-reimbursed:` – amount the member was reimbursed when a report was paid across currencies, in their deposit account's currency. Supports `=`, `>`, `<`, `>=`, `<=`
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
 - `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`
 - `action:` – blocking report action, e.g. `action:approve`
+- `submitter-user-id:` – Custom field 1 value set for the report submitter
+- `submitter-payroll-id:` – Custom field 2 value set for the report submitter
+- `order-deal-numbers:` – International reimbursement IDs on the report
 
 **Example query:**
 `status:paid exported<=2026-01-01 exported-to:xero`
@@ -227,3 +233,10 @@ If the search operator isn’t recognized, the system will ignore it and return 
 ## Do I need to use quotes for everything?
 
 Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
+
+## How do I find all messages from a specific person?
+
+You have two options:
+
+- Enter `type:chat from:` followed by the person's email, phone, or display name in the search bar (for example, `type:chat from:alice@acme.com`).
+- Open the person's profile and select **View user history** (or **View agent history** for an agent). This opens the **Search** page filtered to that person's messages.

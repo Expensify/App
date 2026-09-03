@@ -1,3 +1,4 @@
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -5,20 +6,21 @@ import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isUsingStagingApi} from '@libs/ApiUtils';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {Platform} from 'react-native';
 
 import BiometricsTestToolRow from './BiometricsTestToolRow';
-import Button from './Button';
+import Button from './ButtonComposed';
+import QAAuthTestToolRows from './QAAuthTestToolRows';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
@@ -77,41 +79,45 @@ function TestToolMenu() {
                     {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
                         <Button
-                            small
-                            text={translate('initialSettingsPage.troubleshoot.invalidate')}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => invalidateAuthToken()}
-                        />
+                        >
+                            <Button.Text>{translate('initialSettingsPage.troubleshoot.invalidate')}</Button.Text>
+                        </Button>
                     </TestToolRow>
 
-                    {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
+                    {/* Clears stored auto-generated credentials, corrupts the local authToken and fires a request so reauth fails and the user is signed out. Useful for manually testing sign out logic. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.deviceCredentials')}>
                         <Button
-                            small
-                            text={translate('initialSettingsPage.troubleshoot.destroy')}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => invalidateCredentials()}
-                        />
+                        >
+                            <Button.Text>{translate('initialSettingsPage.troubleshoot.destroy')}</Button.Text>
+                        </Button>
                     </TestToolRow>
 
                     {/* Sends an expired session to the FE and invalidates the session by the same time in the BE. Action is delayed for 15s */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
                         <Button
-                            small
-                            text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => expireSessionWithDelay()}
-                        />
+                        >
+                            <Button.Text>{translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}</Button.Text>
+                        </Button>
                     </TestToolRow>
 
                     {/* Clears the useSidebarOrderedReports cache to re-compute from latest onyx values */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.leftHandNavCache')}>
                         <Button
-                            small
-                            text={translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             onPress={clearLHNCache}
-                        />
+                        >
+                            <Button.Text>{translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}</Button.Text>
+                        </Button>
                     </TestToolRow>
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
-                    {!isAgentAccount && <BiometricsTestToolRow />}
+                    {isAgentAccount === false && <BiometricsTestToolRow />}
                 </>
             )}
 
@@ -130,6 +136,9 @@ function TestToolMenu() {
                     />
                 </TestToolRow>
             )}
+
+            {/* QA server auth flow. Web only, and only when it is configured. */}
+            <QAAuthTestToolRows />
 
             {/* When toggled the app will be forced offline. */}
             <TestToolRow

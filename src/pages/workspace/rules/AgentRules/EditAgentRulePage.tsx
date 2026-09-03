@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -55,11 +55,13 @@ function EditAgentRulePage({
     const formRef = useRef<FormRef>(null);
     const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
-    const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
-        if (!('key' in e)) {
+    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
+        if (!('key' in event)) {
             return;
         }
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
+            event.preventDefault();
             formRef.current?.submit();
         }
     };
@@ -76,7 +78,7 @@ function EditAgentRulePage({
         const newPrompt = values[INPUT_IDS.PROMPT];
         const previousPrompt = agentRule?.prompt ?? '';
         if (newPrompt !== previousPrompt) {
-            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt);
+            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt, agentRule?.title);
         }
         Navigation.goBack();
     };
@@ -91,7 +93,7 @@ function EditAgentRulePage({
             prompt: translate('workspace.rules.agentRules.deleteRuleConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -115,7 +117,7 @@ function EditAgentRulePage({
             policyID={policyID}
             shouldBeBlocked={!isCustomAgentEnabled}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
         >
             <ScreenWrapper
                 testID="EditAgentRulePage"
@@ -141,12 +143,13 @@ function EditAgentRulePage({
                     shouldRenderFooterAboveSubmit
                     footerContent={
                         <Button
-                            text={translate('workspace.rules.agentRules.deleteRule')}
                             onPress={handleDelete}
                             style={[styles.mb4]}
-                            large
+                            size={CONST.BUTTON_SIZE.LARGE}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE}
-                        />
+                        >
+                            <Button.Text>{translate('workspace.rules.agentRules.deleteRule')}</Button.Text>
+                        </Button>
                     }
                 >
                     <View style={styles.flex1}>
@@ -157,7 +160,9 @@ function EditAgentRulePage({
                                 label={describeRuleLabel}
                                 accessibilityLabel={describeRuleLabel}
                                 role={CONST.ROLE.PRESENTATION}
-                                onKeyPress={handleKeyPress}
+                                type="markdown"
+                                excludedMarkdownStyles={['mentionReport']}
+                                onKeyPress={submitFormOnModEnter}
                                 defaultValue={agentRule.prompt}
                                 multiline
                                 shouldLabelStayOnSingleLine

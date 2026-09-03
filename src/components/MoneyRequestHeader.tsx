@@ -9,7 +9,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
-import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -18,10 +17,12 @@ import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    isBrokenConnectionViolation,
     isDuplicate as isDuplicateTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isScanning,
+    shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 
@@ -98,11 +99,10 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
 
     const reportID = report?.reportID;
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-    const isFromReviewDuplicates = !!route.params.backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review');
+    const isFromReviewDuplicates = !!route.params.backTo && /\/duplicates\/review\/[^/]+$/.test(route.params.backTo.replaceAll(/\?.*/g, ''));
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine() && (wideRHPRouteKeys.length === 0 || isSmallScreenWidth);
-    const shouldDisplayNarrowVersion = shouldDisplayButtonsInSeparateLine;
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
@@ -129,12 +129,11 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
             return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
-            const cardID = brokenConnectionError?.data?.cardID;
-            const card = cardID ? cardList?.[cardID] : undefined;
-            const isBrokenPersonalCard = isPersonalCard(card);
+            const brokenConnectionViolations = transactionViolations.filter(isBrokenConnectionViolation);
 
-            if (isBrokenPersonalCard && brokenConnectionError) {
+            // Suppress the status only when every broken connection is on a personal card the current user holds.
+            // A company card missing from their cardList must still surface to admins and approvers.
+            if (shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList)) {
                 return undefined;
             }
             return {
@@ -180,7 +179,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
-                {!shouldDisplayButtonsInSeparateLine && !statusBarProps && (
+                {!shouldDisplayButtonsInSeparateLine && (
                     <MoneyRequestHeaderActions
                         reportID={reportID}
                         onBackButtonPress={onBackButtonPress}
@@ -190,32 +189,21 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                     <MoneyRequestReportTransactionsNavigation
                         currentTransactionID={transaction.transactionID}
                         isFromReviewDuplicates={isFromReviewDuplicates}
-                        shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
                     />
                 )}
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && (
-                <View style={styles.mtn1}>
-                    <MoneyRequestHeaderActions
-                        reportID={reportID}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                </View>
+                <MoneyRequestHeaderActions
+                    reportID={reportID}
+                    onBackButtonPress={onBackButtonPress}
+                />
             )}
             {!!statusBarProps && (
-                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3, styles.mtn1]}>
-                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                        <MoneyRequestHeaderStatusBar
-                            icon={statusBarProps.icon}
-                            description={statusBarProps.description}
-                        />
-                    </View>
-                    {!shouldDisplayButtonsInSeparateLine && (
-                        <MoneyRequestHeaderActions
-                            reportID={reportID}
-                            onBackButtonPress={onBackButtonPress}
-                        />
-                    )}
+                <View style={[styles.ph5, styles.pb3]}>
+                    <MoneyRequestHeaderStatusBar
+                        icon={statusBarProps.icon}
+                        description={statusBarProps.description}
+                    />
                 </View>
             )}
             <HeaderLoadingBar />

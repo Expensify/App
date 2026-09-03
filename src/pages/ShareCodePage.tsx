@@ -3,6 +3,7 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +14,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +24,7 @@ import Clipboard from '@libs/Clipboard';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
+import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getChatRoomSubtitle,
@@ -107,8 +109,11 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const reportAttributes = useReportAttributes();
-    const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const reportForTitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
+    const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForTitle?.reportID]);
+    const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
+    const derivedTitleReportName = getReportNameFromNames(derivedReportNames, reportForTitle?.reportID);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isReport = !!report?.reportID;
@@ -134,9 +139,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID, translate, derivedParentReportName]);
 
-    const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
-
-    const title = isReport ? getReportName(reportForTitle, reportAttributes) : (currentUserPersonalDetails.displayName ?? '');
+    const title = isReport ? getReportName(reportForTitle, derivedTitleReportName) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
@@ -218,13 +221,12 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         />
                     )}
 
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
                         icon={icons.Cash}
                         onPress={() => {
                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE)));
                         }}
-                        shouldShowRightIcon
                     />
                 </View>
             </ScrollView>

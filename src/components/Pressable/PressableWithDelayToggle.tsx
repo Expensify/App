@@ -1,6 +1,6 @@
 import Icon from '@components/Icon';
 import InlineIcon from '@components/Icon/InlineIcon';
-import type {IconSize} from '@components/Icon/utils/resolveIconSize';
+import type IconSize from '@components/Icon/types';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
@@ -160,7 +160,11 @@ function PressableWithDelayToggle({
                         !isActive && styles.cursorDefault,
                         shouldUseButtonBackground &&
                             StyleUtils.getButtonBackgroundColorStyle(
-                                getButtonState(!!shouldHaveActiveBackground || hovered, shouldHaveActiveBackground ? hovered : pressed, !shouldHaveActiveBackground && !isActive),
+                                getButtonState({
+                                    isActive: !!shouldHaveActiveBackground || hovered,
+                                    isPressed: shouldHaveActiveBackground ? hovered : pressed,
+                                    isComplete: !shouldHaveActiveBackground && !isActive,
+                                }),
                                 true,
                             ),
                     ]}
@@ -170,7 +174,7 @@ function PressableWithDelayToggle({
                             {shouldShowIcon && (
                                 <IconComponent
                                     src={!isActive ? resolvedIconChecked : (icon ?? resolvedIconChecked)}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
+                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed, isComplete: !isActive})})}
                                     additionalStyles={[styles.mr2, iconStyles]}
                                     size={iconSize}
                                 />

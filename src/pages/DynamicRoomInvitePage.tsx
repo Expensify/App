@@ -16,7 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePressLoading from '@hooks/usePressLoading';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -63,7 +63,7 @@ type DynamicRoomInvitePageProps = WithReportOrNotFoundProps &
 type MembersSection = SectionListData<OptionData, Section<OptionData>>;
 function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: DynamicRoomInvitePageProps) {
     const styles = useThemeStyles();
-    const reportAttributes = useReportAttributes();
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
     const {translate, formatPhoneNumber} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_INVITE.path);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
@@ -134,7 +134,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
     const reportDetailsRoute = reportID ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)) : undefined;
     const backRoute = reportID && (!isPolicyEmployee || isReportArchived) ? reportDetailsRoute : backPath;
-    const reportName = getReportName(report, reportAttributes);
+    const reportName = getReportName(report, derivedReportName);
 
     const ancestors = useAncestors(report);
 

@@ -32,7 +32,7 @@ import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {isHiddenForCurrentUser} from '@libs/ReportUtils';
+import {isHiddenForCurrentUser, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -53,7 +53,7 @@ import type Report from '@src/types/onyx/Report';
 import type {TextInputProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -67,26 +67,29 @@ import {clearPendingRouterState, peekPendingRouterState} from './SearchRouterCon
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 import useAskConcierge from './useAskConcierge';
+import useNavigationSuggestions from './useNavigationSuggestions';
 
 const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => !!nvp?.private_isArchived;
 
 type SearchRouterProps = {
-    onRouterClose: () => void;
+    onRouterClose: (afterClose?: () => void) => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
     ref?: React.Ref<View>;
 };
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const personalDetails = usePersonalDetails();
     const sortedActions = useSortedActions();
@@ -129,6 +132,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             currentUserAccountID,
             autoCompleteWithSpace: false,
             translate,
+            formatPhoneNumber,
             feedKeysWithCards,
             reportAttributes,
             bankAccountList,
@@ -143,16 +147,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             policies,
             currentUserAccountID,
             translate,
+            formatPhoneNumber,
             reportAttributes,
             bankAccountList,
         );
         return [query, substitutions];
     });
 
-    // The actual input text that the user sees
-    const [textInputValue, , setTextInputValue] = useDebouncedState(initialQuery, 500);
-    // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
-    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(initialQuery);
+    const [textInputValue, setTextInputValue] = useState(initialQuery);
+    // Debounced value gates expensive filtering in the autocomplete list
+    const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
 
     useEffect(() => {
@@ -162,6 +166,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
+    // Only watch for reports awaiting approval while the router is active as a popover or full-screen page.
+    const navigationSuggestions = useNavigationSuggestions(textInputValue, !!isSearchRouterDisplayed || isSearchRouterScreen);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
     const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
@@ -187,13 +193,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
         ({recentReports}, sectionIndex) => {
+            const getNavigationSuggestionsSection = () => (navigationSuggestions.length ? [{sectionIndex, data: navigationSuggestions}] : undefined);
+
             if (!contextualReportID) {
-                return undefined;
+                return getNavigationSuggestionsSection();
             }
 
             // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
-                return undefined;
+                return getNavigationSuggestionsSection();
             }
 
             if (!isSearchRouterDisplayed && !isSearchRouterScreen) {
@@ -208,20 +216,20 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = createOptionFromReport(
-                    contextualReport,
+                const option = createOptionFromReport({
+                    dateFnsLocale,
+                    report: contextualReport,
                     personalDetails,
-                    contextualReportNVP,
-                    contextualReportPolicy,
+                    privateIsArchived: contextualReportNVP,
+                    policy: contextualReportPolicy,
                     sortedActions,
-                    undefined,
-                    {
-                        showPersonalDetails: true,
+                    conciergeReportID,
+                    reportAttributesDerived: reportAttributes,
+                    config: {
+                        showPersonalDetails: isOneOnOneChat(contextualReport),
                     },
-                    undefined,
-                    undefined,
                     isTrackIntentUser,
-                );
+                });
                 reportForContextualSearch = option;
             }
 
@@ -275,6 +283,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         },
         [
             contextualReportID,
+            conciergeReportID,
+            navigationSuggestions,
             textInputValue,
             isSearchRouterDisplayed,
             isSearchRouterScreen,
@@ -286,7 +296,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             sortedActions,
             contextualReportNVP,
             contextualReportPolicy,
+            reportAttributes,
             isTrackIntentUser,
+            dateFnsLocale,
         ],
     );
 
@@ -342,13 +354,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 setAutocompleteSubstitutions(updatedSubstitutionsMap);
             }
         },
-        [autocompleteSubstitutions, setTextInputValue, textInputValue],
+        [autocompleteSubstitutions, setAutocompleteQueryValue, setTextInputValue, textInputValue],
     );
 
     const submitSearch = useCallback(
         (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion, policies);
             if (!updatedQuery) {
                 return;
             }
@@ -367,7 +379,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton],
+        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setAutocompleteQueryValue, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton, policies],
     );
 
     const onListItemPress = useCallback(
@@ -381,6 +393,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             };
 
             if (isSearchQueryItem(item)) {
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.action) {
+                    backHistory(() => {
+                        onRouterClose(item.action);
+                    });
+                    return;
+                }
+
                 if (!item.searchQuery) {
                     return;
                 }
@@ -428,7 +447,17 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
-                        navigateToAndOpenReport(item.login ? [item.login] : [], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
+                        navigateToAndOpenReport({
+                            userLogins: item.login ? [item.login] : [],
+                            personalDetails,
+                            currentUserAccountID,
+                            introSelected,
+                            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                            betas,
+                            conciergeChat,
+                            shouldDismissModal: false,
+                        });
                     }
                 });
                 onRouterClose();
@@ -443,8 +472,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             textInputValue,
             currentUserAccountID,
             introSelected,
-            isSelfTourViewed,
+            guidedSetupAndTourStatus?.isSelfTourViewed,
+            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
+            conciergeChat,
             contextualPoliciesMap,
             contextualReportsMap,
             askConcierge,
@@ -477,6 +508,18 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     onSearchQueryChange={onSearchQueryChange}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption?.();
+                        const isInputAheadOfDebounce = !!textInputValue && textInputValue !== debouncedAutocompleteQueryValue;
+
+                        // During the debounce window, keep keyboard behavior for focused search rows
+                        // (e.g. Ask Concierge / typed query row), but avoid stale non-search row submits.
+                        if (isInputAheadOfDebounce) {
+                            if (focusedOption && isSearchQueryItem(focusedOption)) {
+                                onListItemPress(focusedOption);
+                                return;
+                            }
+                            submitSearch(textInputValue);
+                            return;
+                        }
 
                         if (!focusedOption) {
                             submitSearch(textInputValue);
@@ -497,7 +540,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 />
             </View>
             <DeferredAutocompleteList
-                autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                autocompleteQueryValue={textInputValue.trim() === '' ? '' : debouncedAutocompleteQueryValue}
+                inputQueryValue={textInputValue}
                 handleSearch={searchInServer}
                 searchQueryItems={searchQueryItems}
                 getAdditionalSections={getAdditionalSections}

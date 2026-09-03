@@ -1,0 +1,68 @@
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
+index 7ea5fc3..b30a23f 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
+@@ -176,10 +176,7 @@ Scheduler::~Scheduler() {
+   // captured a raw delegate_ pointer; without this they'd dereference a
+   // dangling SchedulerDelegate after Scheduler teardown. (No replacement
+   // token is allocated here — Scheduler is going away.)
+-  // Gated to allow controlled rollout / rollback.
+-  if (ReactNativeFeatureFlags::enableSchedulerDelegateInvalidation()) {
+-    *delegateInvalidated_ = true;
+-  }
++  *delegateInvalidated_ = true;
+ 
+   auto weakRuntimeScheduler =
+       contextContainer_->find<std::weak_ptr<RuntimeScheduler>>(
+@@ -270,9 +267,7 @@ Scheduler::findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN(
+ #pragma mark - Delegate
+ 
+ void Scheduler::setDelegate(SchedulerDelegate* delegate) {
+-  // Gated to allow controlled rollout / rollback.
+-  if (ReactNativeFeatureFlags::enableSchedulerDelegateInvalidation() &&
+-      delegate_ != delegate) {
++  if (delegate_ != delegate) {
+     // Mark the *current* token invalid: any rendering-update lambda already
+     // queued holds a shared_ptr to this atomic and will observe `true` on
+     // its next read, so it no-ops instead of calling into the previous
+@@ -313,19 +308,12 @@ void Scheduler::uiManagerDidFinishTransaction(
+     if (!mountSynchronously) {
+       auto surfaceId = mountingCoordinator->getSurfaceId();
+ 
+-      // Capture the gating flag at queue time: the lambda's decision to
+-      // honor the invalidation guard is fixed when we enqueue, not when it
+-      // later runs. Avoids per-invocation feature-flag reads and keeps the
+-      // contract for an in-flight lambda stable across flag flips.
+-      auto guardEnabled =
+-          ReactNativeFeatureFlags::enableSchedulerDelegateInvalidation();
+       runtimeScheduler_->scheduleRenderingUpdate(
+           surfaceId,
+           [delegate = delegate_,
+            invalidated = delegateInvalidated_,
+-           guardEnabled,
+            mountingCoordinator = std::move(mountingCoordinator)]() {
+-            if (guardEnabled && *invalidated) {
++            if (*invalidated) {
+               return;
+             }
+             delegate->schedulerShouldRenderTransactions(mountingCoordinator);
+@@ -350,18 +338,14 @@ void Scheduler::uiManagerDidDispatchCommand(
+       "Scheduler::uiManagerDispatchCommand", "commandName", commandName);
+   if (delegate_ != nullptr) {
+     auto shadowView = ShadowView(*shadowNode);
+-    // See comment in uiManagerDidFinishTransaction above for gating shape.
+-    auto guardEnabled =
+-        ReactNativeFeatureFlags::enableSchedulerDelegateInvalidation();
+     runtimeScheduler_->scheduleRenderingUpdate(
+         shadowNode->getSurfaceId(),
+         [delegate = delegate_,
+          invalidated = delegateInvalidated_,
+-         guardEnabled,
+          shadowView = std::move(shadowView),
+          commandName,
+          args]() {
+-          if (guardEnabled && *invalidated) {
++          if (*invalidated) {
+             return;
+           }
+           delegate->schedulerDidDispatchCommand(shadowView, commandName, args);

@@ -22,7 +22,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +35,7 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import useSavedSearchIcons from './hooks/useSavedSearchIcons';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 
 type SearchTypeMenuNarrowProps = {
@@ -79,7 +80,8 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections(
         {
@@ -118,6 +120,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         policies: allPolicies,
         currentUserAccountID,
         translate,
+        formatPhoneNumber,
         feedKeysWithCards,
         reportAttributes,
         bankAccountList,
@@ -130,26 +133,10 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const {copiedHash, handleShare} = useShareSavedSearch();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Basket',
-        'CalendarSolid',
-        'Bookmark',
-        'Pencil',
-        'Trashcan',
-        'LinkCopy',
-        'Checkmark',
-        'Document',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, ...SAVED_SEARCH_ICON_NAMES, 'Trashcan', 'LinkCopy', 'Checkmark']);
+
+    // Resolve each saved search's icon once per collection change (see useSavedSearchIcons for why).
+    const savedSearchIconNames = useSavedSearchIcons(savedSearches);
 
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
@@ -181,10 +168,12 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   return {
                       key,
-                      icon: expensifyIcons.Bookmark,
+                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME],
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                       pendingAction: item.pendingAction,
+                      // Saved-search tabs opt into the long-press / right-click menu (share / delete) via onLongTabPress.
+                      shouldEnableLongPress: true,
                   };
               })
               .filter((item) => item !== null)
@@ -204,6 +193,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     icon: expensifyIcons[item.icon],
                     title,
                     badgeText,
+                    isBadgeCondensed: true,
+                    badgeStyles: styles.tabSelectorBadge,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
                 if (item.key === activeTypeMenuKey) {
@@ -278,6 +269,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                 anchorRef={menuAnchorRef}
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
+                enableEdgeToEdgeBottomSafeAreaPadding
             />
         </SearchTypeMenuNarrowContent>
     );

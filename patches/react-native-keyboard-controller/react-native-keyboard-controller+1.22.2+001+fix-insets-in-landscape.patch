@@ -1,0 +1,28 @@
+diff --git a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
+index a8b8a7a..e227a3e 100644
+--- a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
++++ b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
+@@ -119,13 +119,21 @@ class EdgeToEdgeReactViewGroup(
+           if (!shouldApplyBottomPadding) 0 else insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+ 
+         params.setMargins(
+-          navBarInsets.left,
++          if (this.isNavigationBarTranslucent) {
++            0
++          } else {
++            navBarInsets.left
++          },
+           if (this.isStatusBarTranslucent) {
+             0
+           } else {
+             systemBarInsets.top
+           },
+-          navBarInsets.right,
++          if (this.isNavigationBarTranslucent) {
++            0
++          } else {
++            navBarInsets.right
++          },
+           if (this.isNavigationBarTranslucent) {
+             keyboardInsets
+           } else {

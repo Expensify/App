@@ -1,8 +1,8 @@
-import Avatar from '@components/Avatar';
-import Button from '@components/Button';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -60,7 +60,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = () => {
@@ -89,13 +89,11 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
             />
             <ScrollView contentContainerStyle={[!isInLandscapeMode && [styles.containerWithSpaceBetween, styles.justifyContentStart], styles.pointerEventsBoxNone]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                    <Avatar
-                        containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
-                        imageStyles={[styles.avatarXLarge]}
+                    <UserAvatar
+                        containerStyles={[styles.mv5, styles.noOutline]}
                         source={details.avatar}
-                        avatarID={accountID}
-                        type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        accountID={accountID}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         fallbackIcon={fallbackIcon}
                     />
                     {!!(displayName ?? '') && (
@@ -109,15 +107,18 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                     {isCurrentUserAdmin && (
                         <>
                             <Button
-                                text={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
                                 isDisabled={isSelectedMemberCurrentUser}
-                                icon={icons.RemoveMembers}
-                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                                 style={styles.mv5}
-                            />
+                            >
+                                <Button.Icon
+                                    src={icons.RemoveMembers}
+                                    style={StyleUtils.getTransformScaleStyle(0.8)}
+                                />
+                                <Button.Text>{translate('workspace.people.removeGroupMemberButtonTitle')}</Button.Text>
+                            </Button>
                             <ConfirmModal
-                                danger
+                                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                                 title={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 isVisible={isRemoveMemberConfirmModalVisible}
                                 onConfirm={removeUser}
@@ -141,11 +142,10 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                             />
                         </OfflineWithFeedback>
                     )}
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate('common.profile')}
                         icon={icons.Info}
                         onPress={navigateToProfile}
-                        shouldShowRightIcon
                     />
                 </View>
             </ScrollView>

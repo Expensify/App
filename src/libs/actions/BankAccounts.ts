@@ -157,11 +157,12 @@ function openPersonalBankAccountSetupView({
         Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
 
         if (!isUserValidated) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
+            // This flow always adds a personal deposit account, so the purpose screen is skipped once the account is validated.
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, shouldSetUpUSBankAccount)));
             return;
         }
         if (shouldSetUpUSBankAccount) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+            Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
@@ -915,6 +916,11 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
 }
 
 function getCorpayOnboardingFields(country: Country | '') {
+    // No request when there is no country yet — the calling effects re-fire once Onyx hydrates the selected country.
+    if (!country) {
+        return;
+    }
+
     return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
 }
 

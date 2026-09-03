@@ -27,24 +27,25 @@ function reportIDsWithActiveTransactionsSelector(transactions: OnyxCollection<Tr
 function useShouldShowEmptyReportConfirmation(policyID: string | undefined, skip?: boolean): boolean {
     const [hasDismissedConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [reportIDsWithActiveTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: reportIDsWithActiveTransactionsSelector});
+    const activeTransactionsSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) => {
+            if (skip) {
+                return {};
+            }
+            return reportIDsWithActiveTransactionsSelector(transactions);
+        },
+        [skip],
+    );
+    const [reportIDsWithActiveTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: activeTransactionsSelector});
 
-    const hasEmptyReportSelector = useCallback(
-        (reports: Parameters<typeof hasEmptyReportsForPolicy>[0]) => {
+    const [hasEmptyReport = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports: Parameters<typeof hasEmptyReportsForPolicy>[0]) => {
             if (skip || hasDismissedConfirmation) {
                 return false;
             }
             return hasEmptyReportsForPolicy(reports, policyID, reportIDsWithActiveTransactions ?? {}, accountID);
         },
-        [policyID, accountID, hasDismissedConfirmation, skip, reportIDsWithActiveTransactions],
-    );
-    const [hasEmptyReport = false] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            selector: hasEmptyReportSelector,
-        },
-        [policyID, accountID, hasDismissedConfirmation, skip, reportIDsWithActiveTransactions],
-    );
+    });
 
     return hasEmptyReport;
 }

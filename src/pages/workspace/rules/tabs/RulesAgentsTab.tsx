@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,20 +17,24 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type RulesAgentsTabProps = {
     policyID: string;
     canWriteRules: boolean;
     showReadOnlyModal: () => void;
+    headerComponent?: React.ReactElement;
 };
 
-function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgentsTabProps) {
+function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerComponent}: RulesAgentsTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const illustrations = useMemoizedLazyIllustrations(['AgentsIceCream']);
@@ -55,29 +60,32 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
         return (
             <ScrollView
                 style={[styles.flex1, styles.mnh0]}
-                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, styles.justifyContentCenter, styles.w100]}
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, styles.w100]}
                 addBottomSafeAreaPadding
             >
-                <GenericEmptyStateComponent
-                    headerMedia={illustrations.AgentsIceCream}
-                    headerStyles={styles.emptyStateCardIllustrationContainer}
-                    headerContentStyles={styles.agentsRulesEmptyStateIllustration}
-                    title={translate('workspace.rules.agentRulesEmptyState.title')}
-                    subtitle={translate('workspace.rules.agentRulesEmptyState.subtitle')}
-                    subtitleStyles={[styles.textLabel, styles.textSupporting]}
-                    minModalHeight={0}
-                    cardContentStyles={styles.ph0}
-                    containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
-                    buttons={[
-                        {
-                            buttonText: translate('workspace.rules.agentRulesEmptyState.cta'),
-                            buttonAction: handleAddAgentRule,
-                            success: true,
-                            icon: icons.Plus,
-                            isDisabled: !canWriteRules,
-                        },
-                    ]}
-                />
+                {headerComponent}
+                <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.w100]}>
+                    <GenericEmptyStateComponent
+                        headerMedia={illustrations.AgentsIceCream}
+                        headerStyles={styles.emptyStateCardIllustrationContainer}
+                        headerContentStyles={styles.agentsRulesEmptyStateIllustration}
+                        title={translate('workspace.rules.agentRulesEmptyState.title')}
+                        subtitle={translate('workspace.rules.agentRulesEmptyState.subtitle')}
+                        subtitleStyles={[styles.textSupporting]}
+                        minModalHeight={0}
+                        cardContentStyles={styles.ph0}
+                        containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
+                        buttons={[
+                            {
+                                buttonText: translate('workspace.rules.agentRulesEmptyState.cta'),
+                                buttonAction: handleAddAgentRule,
+                                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                                icon: icons.Plus,
+                                isDisabled: !canWriteRules,
+                            },
+                        ]}
+                    />
+                </View>
             </ScrollView>
         );
     }
@@ -85,24 +93,27 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
     return (
         <ScrollView
             style={[styles.flex1, styles.mnh0]}
-            contentContainerStyle={styles.flexGrow1}
+            contentContainerStyle={[styles.flexGrow1, styles.w100]}
             addBottomSafeAreaPadding
         >
-            <Section
-                isCentralPane
-                renderTitle={renderTitle}
-                renderSubtitle={renderSubtitle}
-                containerStyles={styles.mh5}
-            >
-                <AgentRulesList
-                    policyID={policyID}
-                    rules={visibleRules}
-                    canWriteRules={canWriteRules}
-                    showReadOnlyModal={showReadOnlyModal}
-                    listContainerStyle={[styles.mt6, styles.gap2]}
-                    menuItemWrapperStyle={styles.justifyContentCenter}
-                />
-            </Section>
+            {headerComponent}
+            <View style={[styles.w100, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <Section
+                    isCentralPane
+                    renderTitle={renderTitle}
+                    renderSubtitle={renderSubtitle}
+                    containerStyles={styles.mh5}
+                >
+                    <AgentRulesList
+                        policyID={policyID}
+                        rules={visibleRules}
+                        canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
+                        listContainerStyle={[styles.mt6, styles.gap2]}
+                        menuItemWrapperStyle={styles.justifyContentCenter}
+                    />
+                </Section>
+            </View>
         </ScrollView>
     );
 }

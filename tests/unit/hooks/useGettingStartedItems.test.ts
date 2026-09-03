@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import useGettingStartedItems from '@pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 
 import CONST from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
@@ -12,6 +15,7 @@ import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize', () =>
@@ -103,7 +107,7 @@ async function setupTrackPersonalScenario(overrides: {policy?: Partial<Policy>; 
     await waitForBatchedUpdates();
 }
 
-async function setupManageTeamScenario(overrides: {policy?: Partial<Policy>; accounting?: string | null; firstDayTrial?: string; lastDayTrial?: string} = {}) {
+async function setupManageTeamScenario(overrides: {policy?: Partial<Policy>; accounting?: OnboardingAccounting; firstDayTrial?: string; lastDayTrial?: string} = {}) {
     // New workspaces enable Categories by default, so keep the categories step visible unless a test opts out.
     const policy = buildPolicy({areCategoriesEnabled: true, ...overrides.policy});
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
@@ -111,7 +115,7 @@ async function setupManageTeamScenario(overrides: {policy?: Partial<Policy>; acc
     await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
 
     if (overrides.accounting !== undefined) {
-        await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, overrides.accounting as never);
+        await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, overrides.accounting);
     }
 
     const now = new Date();
@@ -186,7 +190,7 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
             await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
-            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
+            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -246,7 +250,7 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             const policy = buildPolicy();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
+            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -348,13 +352,13 @@ describe('useGettingStartedItems', () => {
 
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
-                    connections: {
+                    connections: createMock<NonNullable<Policy['connections']>>({
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
                             lastSync: {isConnected: true},
                         },
-                    } as Policy['connections'],
+                    }),
                 },
             });
 
@@ -372,13 +376,13 @@ describe('useGettingStartedItems', () => {
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
                     areConnectionsEnabled: true,
-                    connections: {
+                    connections: createMock<NonNullable<Policy['connections']>>({
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
                             lastSync: {isConnected: false},
                         },
-                    } as Policy['connections'],
+                    }),
                 },
             });
 
@@ -397,13 +401,13 @@ describe('useGettingStartedItems', () => {
 
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
-                    connections: {
+                    connections: createMock<NonNullable<Policy['connections']>>({
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
                             lastSync: {isConnected: false, successfulDate: '2024-01-01'},
                         },
-                    } as Policy['connections'],
+                    }),
                 },
             });
 
@@ -433,13 +437,13 @@ describe('useGettingStartedItems', () => {
 
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
-                    connections: {
+                    connections: createMock<NonNullable<Policy['connections']>>({
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
                             lastSync: {isConnected: true},
                         },
-                    } as Policy['connections'],
+                    }),
                 },
             });
 
@@ -471,13 +475,13 @@ describe('useGettingStartedItems', () => {
 
                     // Keep an incomplete card row so the section stays visible; it hides once every item is complete.
                     areCompanyCardsEnabled: true,
-                    connections: {
+                    connections: createMock<NonNullable<Policy['connections']>>({
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
                             lastSync: {isConnected: true},
                         },
-                    } as Policy['connections'],
+                    }),
                 },
             });
 
@@ -761,6 +765,88 @@ describe('useGettingStartedItems', () => {
         });
     });
 
+    describe('row - Setup travel', () => {
+        it('should be shown when the travel feature is enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem).toBeDefined();
+        });
+
+        it('should not be shown when the travel feature is not enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: false},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem).toBeUndefined();
+        });
+
+        it('should navigate to the workspace travel route', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.route).toBe(ROUTES.WORKSPACE_TRAVEL.getRoute(POLICY_ID));
+        });
+
+        it('should be not completed when the workspace has not been provisioned with Spotnana', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true, travelSettings: undefined},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.isComplete).toBe(false);
+        });
+
+        it('should be completed once the workspace is provisioned with a Spotnana company ID', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true, travelSettings: {spotnanaCompanyID: 'spotnana-company-1'}},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.isComplete).toBe(true);
+        });
+
+        it('should be completed once the workspace is provisioned with an associated Spotnana travel domain account (no Spotnana company ID)', async () => {
+            // Real-world Spotnana entity-based provisioning populates associatedTravelDomainAccountID rather
+            // than spotnanaCompanyID, so isComplete must not rely on spotnanaCompanyID alone.
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true, travelSettings: {associatedTravelDomainAccountID: '12345', hasAcceptedTerms: true}},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.isComplete).toBe(true);
+        });
+    });
+
     describe('row 4 - Set up spend rules', () => {
         it('should be shown when areRulesEnabled is true', async () => {
             await setupManageTeamScenario({
@@ -833,7 +919,7 @@ describe('useGettingStartedItems', () => {
                 policy: {
                     areRulesEnabled: true,
                     type: CONST.POLICY.TYPE.CORPORATE,
-                    rules: {
+                    rules: createMock<NonNullable<Policy['rules']>>({
                         approvalRules: [
                             {
                                 applyWhen: [{condition: 'matches', field: 'amount', value: '1000'}],
@@ -841,7 +927,7 @@ describe('useGettingStartedItems', () => {
                                 id: 'rule-1',
                             },
                         ],
-                    } as Policy['rules'],
+                    }),
                 },
             });
 
@@ -898,7 +984,7 @@ describe('useGettingStartedItems', () => {
             await waitForBatchedUpdates();
 
             const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
-            expect(approvalsItem?.route).toBe(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID));
+            expect(approvalsItem?.route).toBe(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID, CONST.TAB.WORKFLOWS.APPROVALS));
         });
 
         it('should be not completed for the default workflow (approver is the owner, no forwarding, no custom submitters)', async () => {
@@ -1178,7 +1264,7 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
             await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
-            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
+            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -1315,6 +1401,27 @@ describe('useGettingStartedItems', () => {
                 expect(createWorkspaceItem?.route).toContain(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID).split('?').at(0) ?? '');
             });
 
+            it('should pin the createWorkspace backTo to Home on narrow layout even when the active route has drifted to the workspace page', async () => {
+                // Regression guard for #96172: opening the Connect-to-accounting task re-renders this section while a
+                // workspaces/{id} route is active, so Navigation.getActiveRoute() returns that route. Baking it into backTo
+                // made the createWorkspace route self-referential (workspaces/{id}?backTo=workspaces/{id}), which the linkTo
+                // arePathAndBackToEqual guard swallows, so the tap did nothing. backTo must stay Home regardless of the live route.
+                const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID));
+                // renderHook re-renders as Onyx settles, so pin narrow across every render (mockReturnValueOnce gets consumed by an early render).
+                useResponsiveLayoutMock.mockReturnValue({shouldUseNarrowLayout: true});
+                try {
+                    await setupTrackWorkspaceScenario();
+
+                    const {result} = renderHook(() => useGettingStartedItems());
+
+                    const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
+                    expect(createWorkspaceItem?.route).toBe(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID, ROUTES.HOME));
+                } finally {
+                    useResponsiveLayoutMock.mockReturnValue({shouldUseNarrowLayout: false});
+                    getActiveRouteSpy.mockRestore();
+                }
+            });
+
             it('should resolve customizeCategories route to WORKSPACE_CATEGORIES', async () => {
                 await setupTrackWorkspaceScenario();
 
@@ -1359,16 +1466,16 @@ describe('useGettingStartedItems', () => {
                 await setupTrackWorkspaceScenario({
                     policy: {
                         areConnectionsEnabled: true,
-                        connections: {
+                        connections: createMock<NonNullable<Policy['connections']>>({
                             [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                                 config: {},
                                 data: {},
                                 lastSync: {isConnected: true},
                             },
-                        } as Policy['connections'],
+                        }),
                     },
                 });
-                await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
+                await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO);
                 await waitForBatchedUpdates();
 
                 const {result} = renderHook(() => useGettingStartedItems());
@@ -1492,6 +1599,53 @@ describe('useGettingStartedItems', () => {
 
                 const {result} = renderHook(() => useGettingStartedItems());
                 await waitFor(() => expect(result.current.items.find((item) => item.key === 'linkCompanyCards')?.isComplete).toBe(true));
+            });
+        });
+
+        describe('setup travel step', () => {
+            it('should insert setupTravel after linkCompanyCards when both travel and company cards are enabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const keys = result.current.items.map((item) => item.key);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'setupTravel', 'inviteAccountant']);
+            });
+
+            it('should not show setupTravel when travel is not enabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: false}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem).toBeUndefined();
+            });
+
+            it('should navigate to the workspace travel route', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem?.route).toBe(ROUTES.WORKSPACE_TRAVEL.getRoute(POLICY_ID));
+            });
+
+            it('should be completed once the workspace is provisioned with a Spotnana company ID', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, travelSettings: {spotnanaCompanyID: 'spotnana-company-1'}}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem?.isComplete).toBe(true);
+            });
+
+            it('should be completed once the workspace is provisioned with an associated Spotnana travel domain account (no Spotnana company ID)', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, travelSettings: {associatedTravelDomainAccountID: '12345', hasAcceptedTerms: true}}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem?.isComplete).toBe(true);
             });
         });
 

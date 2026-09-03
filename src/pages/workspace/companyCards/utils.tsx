@@ -1,12 +1,21 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 
+import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
+
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
+
+import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Card, Policy} from '@src/types/onyx';
+import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {Card, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
 import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
@@ -14,9 +23,11 @@ import type {ValueOf} from 'type-fest';
 type ExportIntegration = {
     title?: string;
     description?: string;
-    exportPageLink: string;
+    exportPageLink?: string;
     data: SelectorType[];
     exportType?: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>;
+    shouldHideMenuItemDescription?: boolean;
+    shouldShowMenuItemIcon?: boolean;
     shouldShowMenuItem?: boolean;
 };
 
@@ -24,12 +35,13 @@ function getExportMenuItem(
     connectionName: PolicyConnectionName | undefined,
     policyID: string,
     translate: LocaleContextProps['translate'],
+    styles: ThemeStyles,
     policy?: Policy,
     companyCard?: Card,
     backTo?: string | undefined,
 ): ExportIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
     const defaultAccount = translate('workspace.accounting.defaultAccount');
@@ -154,7 +166,6 @@ function getExportMenuItem(
                 exportType,
                 shouldShowMenuItem: !!exportConfiguration?.nonReimbursableAccount,
                 title: isDefaultTitle ? defaultAccount : selectedAccount?.name,
-                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, basePath),
                 data: (resultData ?? []).map((card) => {
                     return {
                         value: card.id,
@@ -373,11 +384,11 @@ function getExportMenuItem(
             const rilletData = policy?.connections?.rillet?.data;
             const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT;
             const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
-            const exportCompanyCard = rilletConfig?.export?.companyCard ?? CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
+            const exportNonReimbursable = rilletConfig?.export?.nonReimbursable ?? CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE;
             const shouldShowMenuItem =
                 rilletConfig?.export?.exportToMultipleAccounts &&
                 exportReimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL &&
-                exportCompanyCard === CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
+                exportNonReimbursable === CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE;
             const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
             const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
             const cardProgramAccountCode = (companyCard?.bank ? cardProgramsUsingCustomAccounts?.[companyCard.bank] : undefined) ?? creditCardAccountCode;
@@ -389,31 +400,84 @@ function getExportMenuItem(
                     : undefined) ?? cardProgramAccount?.id;
             const cardAccount = rilletData?.accounts?.find((account) => account.id === cardAccountID);
             const cardAccountDisplayName = cardAccount ? `${cardAccount.code} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}` : '';
-            const title = cardAccountDisplayName;
+            const title = `${translate('common.exportsTo')} ${cardAccountDisplayName}`;
             const description = currentConnectionName
                 ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.rillet.cardAccount.label'))
                 : undefined;
+            const filteredUnprocessedData =
+                rilletData?.accounts
+                    ?.filter(
+                        (accountItem) =>
+                            accountItem.type === CONST.RILLET_ACCOUNT_TYPE.LIABILITY &&
+                            accountItem.subtype === CONST.RILLET_ACCOUNT_SUBTYPE.CREDIT_CARD &&
+                            accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE,
+                    )
+                    .map((accountItem) => ({
+                        value: cardProgramAccount?.id === accountItem.id ? '' : accountItem.id,
+                        text: `${cardProgramAccount?.id === accountItem.id ? `${translate('common.default')} - ` : ''}${accountItem.code} ${accountItem.name}`,
+                        keyForList: accountItem.id,
+                        isSelected: cardAccountID === accountItem.id,
+                    })) ?? [];
+            const filteredData = sortDefaultToTop(filteredUnprocessedData, (accountItem) => cardProgramAccount?.id === accountItem.keyForList, styles);
 
             return {
                 title,
                 description,
                 exportType,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
                 shouldShowMenuItem,
-                exportPageLink: ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID),
-                data:
-                    rilletData?.accounts
-                        ?.filter(
-                            (accountItem) =>
-                                accountItem.type === CONST.RILLET_ACCOUNT_TYPE.LIABILITY &&
-                                accountItem.subtype === CONST.RILLET_ACCOUNT_SUBTYPE.CREDIT_CARD &&
-                                accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE,
-                        )
-                        .map((accountItem) => ({
-                            value: cardProgramAccount?.id === accountItem.id ? '' : accountItem.id,
-                            text: `${cardProgramAccount?.id === accountItem.id ? `${translate('common.default')} - ` : ''}${accountItem.code} ${accountItem.name}`,
-                            keyForList: accountItem.id,
-                            isSelected: cardAccountID === accountItem.id,
-                        })) ?? [],
+                data: filteredData,
+            };
+        }
+
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY: {
+            const dualentryConfig = policy?.connections?.dualEntry?.config;
+            const dualentryData = policy?.connections?.dualEntry?.data;
+            const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT;
+            const exportReimbursable = dualentryConfig?.export?.reimbursable ?? CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL;
+            const exportNonReimbursable = dualentryConfig?.export?.nonReimbursable ?? CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE;
+            const shouldShowMenuItem =
+                dualentryConfig?.export?.exportToMultipleAccounts &&
+                exportReimbursable === CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL &&
+                exportNonReimbursable === CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE;
+            const creditCardAccountID = dualentryConfig?.export?.creditCardAccountID;
+            const cardProgramsUsingCustomAccounts = dualentryConfig?.export?.cardProgramAccounts;
+            const cardProgramAccountID = (companyCard?.bank ? cardProgramsUsingCustomAccounts?.[companyCard.bank] : undefined) ?? creditCardAccountID;
+            const cardProgramAccount = dualentryData?.accounts?.find((account) => account.id === cardProgramAccountID);
+            const isUsingCustomAccount = companyCard?.nameValuePairs && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT in companyCard.nameValuePairs;
+            const cardAccountID =
+                (companyCard?.nameValuePairs && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT in companyCard.nameValuePairs
+                    ? companyCard.nameValuePairs[CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT]
+                    : undefined) ?? cardProgramAccount?.id;
+            const cardAccount = dualentryData?.accounts?.find((account) => account.id === cardAccountID);
+            const cardAccountDisplayName = cardAccount ? `${cardAccount.id} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}` : '';
+            const title = `${translate('common.exportsTo')} ${cardAccountDisplayName}`;
+            const description = currentConnectionName
+                ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.dualEntry.cardAccount.label'))
+                : undefined;
+            const filteredUnprocessedData =
+                dualentryData?.accounts
+                    ?.filter(
+                        (accountItem) =>
+                            accountItem.isActive && (accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.CREDIT_CARD || accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.BANK),
+                    )
+                    .map((accountItem) => ({
+                        value: cardProgramAccount?.id === accountItem.id ? '' : accountItem.id,
+                        text: `${cardProgramAccount?.id === accountItem.id ? `${translate('common.default')} - ` : ''}${accountItem.id} ${accountItem.name}`,
+                        keyForList: accountItem.id,
+                        isSelected: cardAccountID === accountItem.id,
+                    })) ?? [];
+            const filteredData = sortDefaultToTop(filteredUnprocessedData, (accountItem) => cardProgramAccount?.id === accountItem.keyForList, styles);
+
+            return {
+                title,
+                description,
+                exportType,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
+                shouldShowMenuItem,
+                data: filteredData,
             };
         }
 
@@ -422,5 +486,44 @@ function getExportMenuItem(
     }
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getExportMenuItem};
+/**
+ * Builds a back path to company card details using Members when the matching details
+ * entry has accountID, otherwise Company Cards, so goBack can match the stack entry.
+ */
+function getCompanyCardDetailsBackPath(
+    policyID: string,
+    feed: CompanyCardFeedWithDomainID,
+    cardID: string,
+    settingsNavigatorState: PlatformStackNavigationState<SettingsNavigatorParamList>,
+): Route {
+    const decodedFeed = decodeURIComponent(feed);
+    const detailsRoute = settingsNavigatorState.routes.findLast((route) => {
+        if (route.name !== SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS) {
+            return false;
+        }
+
+        const {params} = route;
+        if (!params || !('cardID' in params) || !('feed' in params)) {
+            return false;
+        }
+
+        const routeCardID = params.cardID;
+        const routeFeed = params.feed;
+        if (typeof routeCardID !== 'string' || typeof routeFeed !== 'string') {
+            return false;
+        }
+
+        return routeCardID === cardID && decodeURIComponent(routeFeed) === decodedFeed;
+    });
+    const detailsParams = detailsRoute?.params;
+    const accountIDParam = detailsParams && 'accountID' in detailsParams ? detailsParams.accountID : undefined;
+    const accountID = typeof accountIDParam === 'string' || typeof accountIDParam === 'number' ? Number(accountIDParam) : undefined;
+    const detailsBasePath =
+        accountID !== undefined && accountIDParam !== '' && Number.isFinite(accountID) && accountID > 0
+            ? ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)
+            : ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID);
+
+    return createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feed, cardID), detailsBasePath);
+}
+
+export {getCompanyCardDetailsBackPath, getExportMenuItem};

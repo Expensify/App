@@ -4,16 +4,20 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
 
-import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
+import IOURequestStepConfirmationWithWritableReportOrNotFound, {IOURequestStepConfirmationContentWithWritableReportOrNotFound} from '@pages/iou/request/step/IOURequestStepConfirmation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, TaxRatesWithDefault} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -43,6 +47,7 @@ jest.mock('@src/languages/IntlStore', () => {
     cache.set('en', flatten(en));
     return {
         getCurrentLocale: jest.fn(() => 'en'),
+        getDateFnsLocale: jest.fn(() => undefined),
         load: jest.fn(() => Promise.resolve()),
         get: jest.fn((key: string, locale?: string) => {
             const translations = cache.get(locale ?? 'en');
@@ -90,6 +95,27 @@ jest.mock('@libs/actions/IOU/TrackExpense', () => {
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
+
+// Stands in for the participant picker so a test can hand the page a selection without driving the real selector.
+// The picker is only rendered under the new manual expense flow beta, so this is inert for every other test here.
+let mockSelectedParticipants: Participant[] = [];
+let mockSelectedPolicy: OnyxEntry<Policy>;
+jest.mock('@components/ParticipantPicker', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {Text, TouchableOpacity} = jest.requireActual<{
+        Text: React.ComponentType<{children?: React.ReactNode}>;
+        TouchableOpacity: React.ComponentType<{testID: string; onPress: () => void; children?: React.ReactNode}>;
+    }>('react-native');
+    return {
+        __esModule: true,
+        default: ({onParticipantsAdded}: {onParticipantsAdded: (participants: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void}) =>
+            ReactModule.createElement(
+                TouchableOpacity,
+                {testID: 'MockParticipantPicker', onPress: () => onParticipantsAdded(mockSelectedParticipants, mockSelectedPolicy)},
+                ReactModule.createElement(Text, null, 'Select participant'),
+            ),
+    };
+});
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/getCurrentPosition');
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
@@ -151,6 +177,7 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
@@ -1030,7 +1057,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
+            const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report).toBeUndefined();
         });
@@ -1097,7 +1124,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
+            const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report?.reportID).toBe(routeReportID);
         });
@@ -1173,7 +1200,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
                 await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-                const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
+                const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
                 const params = requestMoneyMock.mock.calls.at(0)?.at(0);
                 expect(params?.report?.reportID).toBe(transactionReportID);
             } finally {
@@ -1391,7 +1418,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
             await waitFor(() => expect(Split.createDistanceRequest).toHaveBeenCalled());
-            const createDistanceRequestMock = Split.createDistanceRequest as jest.MockedFunction<typeof Split.createDistanceRequest>;
+            const createDistanceRequestMock = jest.mocked(Split.createDistanceRequest);
             const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();
         });
@@ -1464,6 +1491,291 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
             fireEvent.press(prevButton);
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+        });
+    });
+
+    describe('Participant switch field resets', () => {
+        const SOURCE_POLICY_ID = 'sourcePolicy';
+        const DESTINATION_POLICY_ID = 'destinationPolicy';
+        const SOURCE_CHAT_REPORT_ID = 'sourceChat';
+        const DESTINATION_CHAT_REPORT_ID = 'destinationChat';
+        const DESTINATION_DEFAULT_CATEGORY = 'Destination default category';
+
+        function createPolicyExpenseChat(reportID: string, policyID: string) {
+            return {
+                reportID,
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+        }
+
+        function createWorkspaceParticipant(reportID: string, policyID: string): Participant {
+            return {reportID, policyID, isPolicyExpenseChat: true, selected: true};
+        }
+
+        beforeEach(async () => {
+            mockSelectedParticipants = [];
+            mockSelectedPolicy = undefined;
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Source policy'), id: SOURCE_POLICY_ID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`, {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE, 'Destination policy'),
+                    id: DESTINATION_POLICY_ID,
+                    customUnits: {
+                        [CONST.CUSTOM_UNITS.NAME_DISTANCE]: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            enabled: true,
+                            defaultCategory: DESTINATION_DEFAULT_CATEGORY,
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            rates: {},
+                        },
+                    },
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_CHAT_REPORT_ID}`, createPolicyExpenseChat(SOURCE_CHAT_REPORT_ID, SOURCE_POLICY_ID));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_CHAT_REPORT_ID}`, createPolicyExpenseChat(DESTINATION_CHAT_REPORT_ID, DESTINATION_POLICY_ID));
+            });
+        });
+
+        /**
+         * Renders the confirmation for a manual expense that is currently assigned to the source workspace and carries
+         * a category and a tag from it.
+         */
+        async function renderConfirmationOnSourceWorkspace(extraTransactionData: Partial<Transaction> = {}) {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    transactionID: TRANSACTION_ID,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    amount: 1000,
+                    currency: 'USD',
+                    created: '2025-08-29',
+                    merchant: '(none)',
+                    reportID: SOURCE_CHAT_REPORT_ID,
+                    participants: [createWorkspaceParticipant(SOURCE_CHAT_REPORT_ID, SOURCE_POLICY_ID)],
+                    category: 'Source category',
+                    tag: 'Source tag',
+                    ...extraTransactionData,
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: SOURCE_CHAT_REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error only setParams is used by the participant selection handler.
+                                    navigation={{setParams: jest.fn()}}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        function getPolicyByID(policyID?: string) {
+            return new Promise<OnyxEntry<Policy>>((resolve) => {
+                if (!policyID) {
+                    resolve(undefined);
+                    return;
+                }
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (value) => {
+                        resolve(value);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+        }
+
+        async function selectParticipants(participants: Participant[]) {
+            mockSelectedParticipants = participants;
+            // Mirror the real picker: resolve the chosen workspace's policy and pass it to onParticipantsAdded.
+            mockSelectedPolicy = await getPolicyByID(participants.at(0)?.policyID);
+            fireEvent.press(await screen.findByTestId('MockParticipantPicker'));
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        function getDraftTransaction() {
+            return new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`,
+                    callback: (value) => {
+                        resolve(value);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+        }
+
+        it('resets the category and the tag when the expense is moved to another workspace', async () => {
+            // Given a manual expense assigned to the source workspace with one of its categories and tags selected
+            await renderConfirmationOnSourceWorkspace();
+
+            // When a different workspace is selected in the participant picker
+            await selectParticipants([createWorkspaceParticipant(DESTINATION_CHAT_REPORT_ID, DESTINATION_POLICY_ID)]);
+
+            // Then the source workspace's category and tag are cleared, since they don't exist in the destination one
+            const draftTransaction = await getDraftTransaction();
+            expect(draftTransaction?.category).toBe('');
+            expect(draftTransaction?.tag).toBe('');
+        });
+
+        it('keeps the category and the tag when the same workspace is selected again', async () => {
+            // Given a manual expense assigned to the source workspace with one of its categories and tags selected
+            await renderConfirmationOnSourceWorkspace();
+
+            // When the same workspace is selected again in the participant picker
+            await selectParticipants([createWorkspaceParticipant(SOURCE_CHAT_REPORT_ID, SOURCE_POLICY_ID)]);
+
+            // Then the already selected category and tag are left untouched
+            const draftTransaction = await getDraftTransaction();
+            expect(draftTransaction?.category).toBe('Source category');
+            expect(draftTransaction?.tag).toBe('Source tag');
+        });
+
+        it('resets the category and the tag when a P2P recipient is selected', async () => {
+            // Given a manual expense assigned to the source workspace with one of its categories and tags selected
+            await renderConfirmationOnSourceWorkspace();
+
+            // When a P2P recipient is selected in the participant picker
+            await selectParticipants([{accountID: PARTICIPANT_ACCOUNT_ID, login: 'recipient@user.com', selected: true}]);
+
+            // Then the workspace's category and tag no longer apply and are cleared
+            const draftTransaction = await getDraftTransaction();
+            expect(draftTransaction?.category).toBe('');
+            expect(draftTransaction?.tag).toBe('');
+        });
+
+        it("applies the destination workspace's default distance category when the expense is moved to it", async () => {
+            // Given a distance expense assigned to the source workspace, and a destination workspace with a default
+            // category configured on its distance unit
+            await renderConfirmationOnSourceWorkspace({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {waypoints: createWaypoints('New York', 'Boston')},
+            });
+
+            // When the destination workspace is selected in the participant picker
+            await selectParticipants([createWorkspaceParticipant(DESTINATION_CHAT_REPORT_ID, DESTINATION_POLICY_ID)]);
+
+            // Then the destination workspace's default category is applied instead of the source workspace's one
+            const draftTransaction = await getDraftTransaction();
+            expect(draftTransaction?.category).toBe(DESTINATION_DEFAULT_CATEGORY);
+            expect(draftTransaction?.tag).toBe('');
+        });
+    });
+
+    describe('Embedded on IOURequestStartPage', () => {
+        // IOURequestStartPage renders its own ScreenWrapper and hands it the focus trap containers for the
+        // header (which holds the Back button), the tab bar and the active tab. This stands in for that wrapper.
+        //
+        // These assert on which component owns the ScreenWrapper, which is a proxy for the fix rather than a test of
+        // it: every ScreenWrapper mounts a FocusTrapForScreen, so no wrapper means no competing trap. The reported
+        // Tab-order behaviour itself cannot be exercised here, because FocusTrapForScreen is a pass-through on the
+        // native platform Jest resolves - a green run here is not coverage of the focus-trap regression.
+        const PARENT_SCREEN_TEST_ID = 'IOURequestStartPage';
+        const CONFIRMATION_SCREEN_TEST_ID = 'IOURequestStepConfirmation';
+
+        beforeEach(async () => {
+            mockSelectedParticipants = [];
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
+            });
+        });
+
+        /**
+         * Renders the body the way the manual tab composes it (inside the start page's ScreenWrapper), or the
+         * standalone RHP route, which brings its own.
+         */
+        async function renderConfirmation({isEmbedded, iouType = 'submit'}: {isEmbedded: boolean; iouType?: 'submit' | 'split'}) {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    amount: 1000,
+                });
+            });
+
+            const Confirmation = isEmbedded ? IOURequestStepConfirmationContentWithWritableReportOrNotFound : IOURequestStepConfirmationWithWritableReportOrNotFound;
+            const confirmation = (
+                <Confirmation
+                    route={{
+                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                        name: 'Money_Request_Step_Confirmation',
+                        params: {
+                            action: 'create',
+                            iouType,
+                            transactionID: TRANSACTION_ID,
+                            reportID: REPORT_ID,
+                        },
+                    }}
+                    // @ts-expect-error only setParams is used by the participant selection handler.
+                    navigation={{setParams: jest.fn()}}
+                    shouldHideHeader={isEmbedded}
+                />
+            );
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>{isEmbedded ? <ScreenWrapper testID={PARENT_SCREEN_TEST_ID}>{confirmation}</ScreenWrapper> : confirmation}</LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it('mounts no ScreenWrapper of its own when embedded, so the start page keeps sole ownership of the focus trap', async () => {
+            // Given the body composed the way the manual tab composes it, inside the start page's ScreenWrapper
+            await renderConfirmation({isEmbedded: true});
+
+            // Then the confirmation content is on the screen
+            expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
+
+            // And the only ScreenWrapper is the start page's, so no second FocusTrapForScreen is pushed onto the
+            // shared trap stack to pause the trap holding the Back button and the tab bar
+            expect(screen.getByTestId(PARENT_SCREEN_TEST_ID)).toBeOnTheScreen();
+            expect(screen.queryByTestId(CONFIRMATION_SCREEN_TEST_ID)).not.toBeOnTheScreen();
+        });
+
+        it('mounts no ScreenWrapper of its own when embedded in the split expense flow either', async () => {
+            // Given the same embedded composition for the split flow, which reuses the start page and this same body
+            await renderConfirmation({isEmbedded: true, iouType: 'split'});
+
+            // Then the split manual tab is covered by the same fix
+            expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
+            expect(screen.getByTestId(PARENT_SCREEN_TEST_ID)).toBeOnTheScreen();
+            expect(screen.queryByTestId(CONFIRMATION_SCREEN_TEST_ID)).not.toBeOnTheScreen();
+        });
+
+        it('keeps its own ScreenWrapper - and therefore its own focus trap - on the standalone route', async () => {
+            // Given the standalone RHP route, with no parent owning its trap
+            await renderConfirmation({isEmbedded: false});
+
+            // Then it still wraps itself, so the standalone screen keeps trapping focus exactly as before
+            expect(await screen.findByTestId(CONFIRMATION_SCREEN_TEST_ID)).toBeOnTheScreen();
         });
     });
 });

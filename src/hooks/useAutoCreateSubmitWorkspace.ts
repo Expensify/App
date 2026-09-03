@@ -1,7 +1,7 @@
 import Log from '@libs/Log';
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
-import {canEditWorkspaceSettings, isGroupPolicy} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, isGroupPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
@@ -49,6 +49,13 @@ function useAutoCreateSubmitWorkspace() {
         [],
     );
     const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
+    const existingSubmitPolicyIDSelector = useMemo(
+        // Pass the login so the per-employee role fallback in canEditWorkspaceSettings covers
+        // partially-loaded policies where the top-level `role` isn't populated yet.
+        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).find((policy) => isSubmitPolicy(policy) && canEditWorkspaceSettings(policy, currentUserEmail))?.id,
+        [currentUserEmail],
+    );
+    const [existingSubmitPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: existingSubmitPolicyIDSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
@@ -71,6 +78,7 @@ function useAutoCreateSubmitWorkspace() {
                       shouldAddOnboardingTasks: false,
                       introSelected,
                       activePolicy,
+                      conciergeChat,
                       currentUserAccountIDParam: currentUserAccountID,
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,
@@ -93,6 +101,10 @@ function useAutoCreateSubmitWorkspace() {
                         introSelected,
                         isSelfTourViewed,
                         conciergeChat,
+                        // Creating a Submit workspace posts a Concierge welcome with suggested responses in its
+                        // #admins room, so a Concierge DM checklist on top of that is a competing second onboarding
+                        // experience. Without a new workspace there is no #admins welcome, so the checklist stays.
+                        shouldSkipConciergeOnboarding: shouldCreateWorkspace,
                     });
                 } catch (error) {
                     // Swallow onboarding completion failures so a network error doesn't block workspace
@@ -105,7 +117,16 @@ function useAutoCreateSubmitWorkspace() {
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
 
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(newPolicyID, shouldUseNarrowLayout);
+            // Already-onboarded callers (the Submit plan welcome modal) can reach this point with no workspace
+            // created and no onboarding policy ID when an editable Submit workspace already exists. Navigate to
+            // that existing workspace instead of falling back to Home. Onboarding callers keep the current
+            // behavior since they complete onboarding with `newPolicyID` and should land accordingly.
+            let policyIDForNavigation = newPolicyID;
+            if (!policyIDForNavigation && !shouldCompleteOnboarding) {
+                policyIDForNavigation = existingSubmitPolicyID;
+            }
+
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout);
         },
         [
             currentUserEmail,
@@ -116,6 +137,7 @@ function useAutoCreateSubmitWorkspace() {
             isRestrictedPolicyCreation,
             onboardingPolicyID,
             hasEditableGroupPolicy,
+            existingSubmitPolicyID,
             onboardingAdminsChatReportID,
             localCurrencyCode,
             introSelected,

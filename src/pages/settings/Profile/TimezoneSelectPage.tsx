@@ -48,8 +48,28 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
-    const saveSelectedTimezone = ({text}: {text: string}) => {
-        updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
+    const [selectedTimezone, setSelectedTimezone] = useState<SelectedTimezone>();
+    const currentSelectedTimezone = selectedTimezone ?? timezone.selected;
+
+    const timezoneData = timezoneOptions.map((tz) => ({...tz, isSelected: tz.text === currentSelectedTimezone}));
+
+    const selectTimezone = ({text}: {text: string}) => {
+        setSelectedTimezone(text as SelectedTimezone);
+    };
+
+    const saveSelectedTimezone = () => {
+        if (!currentSelectedTimezone) {
+            Navigation.goBack(ROUTES.SETTINGS_TIMEZONE);
+            return;
+        }
+        updateSelectedTimezone(currentSelectedTimezone, currentUserPersonalDetails.accountID);
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveSelectedTimezone,
+        isDisabled: !!timezone.automatic || currentSelectedTimezone === timezone.selected,
     };
 
     const filterShownTimezones = useCallback(
@@ -82,7 +102,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="TimezoneSelectPage"
         >
             <HeaderWithBackButton
@@ -90,15 +110,17 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionList
-                data={timezoneOptions}
+                data={timezoneData}
                 ListItem={SingleSelectListItem}
-                onSelectRow={saveSelectedTimezone}
+                onSelectRow={selectTimezone}
                 textInputOptions={textInputOptions}
+                confirmButtonOptions={confirmButtonOptions}
                 initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
                 isDisabled={!!timezone.automatic}
                 shouldShowTooltips={false}
                 shouldSingleExecuteRowSelect
                 showScrollIndicator
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );

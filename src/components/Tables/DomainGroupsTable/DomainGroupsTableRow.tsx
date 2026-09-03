@@ -2,6 +2,7 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -48,6 +49,8 @@ export default function DomainGroupsTableRow({item, rowIndex, shouldUseNarrowTab
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator']);
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const memberCountSubtitle = translate('domain.groups.memberCount', {count: item.memberCount});
     const accessibilityLabel = [item.name, memberCountSubtitle, item.isDefault ? translate('common.default') : null].filter(Boolean).join(', ');
@@ -115,7 +118,10 @@ export default function DomainGroupsTableRow({item, rowIndex, shouldUseNarrowTab
 
                     {!shouldUseNarrowTableLayout && (
                         <>
-                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                            <View
+                                style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     text={item.name}
@@ -130,11 +136,17 @@ export default function DomainGroupsTableRow({item, rowIndex, shouldUseNarrowTab
                                 )}
                             </View>
 
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <View
+                                style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <Text numberOfLines={1}>{memberCountSubtitle}</Text>
                             </View>
 
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>
+                            <View
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 {brickRoadIndicator}
                                 <Icon
                                     src={icons.ArrowRight}
