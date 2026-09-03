@@ -211,7 +211,7 @@ describe('Pusher.subscribe on web', () => {
     it('should authorize again when a caller subscribes after a subscription error', async () => {
         // Given a channel that failed authorization, because pusher-js keeps such a channel and the
         // old guard read it as usable and never asked for authorization again
-        const failed = Pusher.subscribe(CHANNEL, 'pong', () => {});
+        const failed = Pusher.subscribe(CHANNEL, 'reportComment', () => {});
         await jest.runAllTimersAsync();
 
         const channel = mockChannels.get(CHANNEL);
@@ -221,7 +221,7 @@ describe('Pusher.subscribe on web', () => {
         await expect(failed).rejects.toBe('Forbidden');
 
         // When a caller subscribes to the same channel after that failure
-        const retried = Pusher.subscribe(CHANNEL, 'pong', () => {});
+        const retried = Pusher.subscribe(CHANNEL, 'reportComment', () => {});
         await jest.runAllTimersAsync();
         channel?.completeHandshake();
         await retried;
@@ -235,7 +235,7 @@ describe('Pusher.subscribe on web', () => {
         // channel on its own at the next reconnect and the caller must not stay silent
         const onEvent = jest.fn();
 
-        const failed = Pusher.subscribe(CHANNEL, 'pong', onEvent);
+        const failed = Pusher.subscribe(CHANNEL, 'reportComment', onEvent);
         await jest.runAllTimersAsync();
 
         const channel = mockChannels.get(CHANNEL);
@@ -245,7 +245,7 @@ describe('Pusher.subscribe on web', () => {
         // When pusher-js authorizes the channel again and the channel then carries one event
         channel?.startSubscription();
         channel?.completeHandshake();
-        channel?.receiveEvent('pong', {});
+        channel?.receiveEvent('reportComment', {});
 
         // Then the caller reads the event, because its success handler stays bound after a failure
         expect(onEvent).toHaveBeenCalledTimes(1);
@@ -254,7 +254,7 @@ describe('Pusher.subscribe on web', () => {
     it('should reject every caller waiting on a failed handshake, not only the first', async () => {
         // Given two callers that wait on the same first handshake, because one shared error handler
         // rejected only the caller that opened the channel
-        const first = Pusher.subscribe(CHANNEL, 'pong', () => {});
+        const first = Pusher.subscribe(CHANNEL, 'reportComment', () => {});
         const second = Pusher.subscribe(CHANNEL, 'multipleEvents', () => {});
         await jest.runAllTimersAsync();
 
@@ -386,13 +386,13 @@ describe('Pusher.subscribe on web', () => {
     });
 
     it('should trigger one reconnect per drop, however many events subscribe to the private user channel', async () => {
-        // Given a private user channel with both PONG and MULTIPLE_EVENTS subscribed, because each
+        // Given a private user channel with both REPORT_COMMENT and MULTIPLE_EVENTS subscribed, because each
         // call carried its own onResubscribe and one drop sent two ReconnectApp requests
         const accountID = '1';
         const userChannel = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
 
         PusherUtils.onPrivateUserChannelResubscribe(accountID);
-        PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, accountID, () => {});
+        PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.REPORT_COMMENT, accountID, () => {});
         PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, accountID, () => {});
         await jest.runAllTimersAsync();
 
