@@ -30,7 +30,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -98,7 +98,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     // Use original Onyx here because the useOnyx wrapper can read the partial Search snapshot report actions, which may miss
     // the workflow (submitted/forwarded) actions that canEditMoneyRequest needs to evaluate for the submitter.
-    const [parentReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
+    const [parentReportActions] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
     const resolvedParentReportAction = linkedReportActionID
         ? parentReportActions?.[linkedReportActionID]
         : getIOUActionForTransactionID(Object.values(parentReportActions ?? {}), transactionID);
@@ -132,8 +132,10 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     // Use original Onyx here because the useOnyx wrapper can read partial Search snapshot policy data instead of the full policy object.
-    const [completePolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
+    const [completePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
@@ -192,6 +194,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             isOffline,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
+            conciergeChat,
             distanceOriginalPolicy,
             personalDetailsList,
             delegateAccountID,

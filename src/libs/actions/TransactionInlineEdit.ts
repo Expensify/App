@@ -194,6 +194,7 @@ type GetIouParamsInput = {
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
+    conciergeChat: OnyxEntry<Report>;
     distanceOriginalPolicy?: OnyxEntry<Policy>;
     personalDetailsList: OnyxEntry<PersonalDetailsList>;
     delegateAccountID: number | undefined;
@@ -227,6 +228,7 @@ function getIouParamsForTransaction({
     reportPolicyTags,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
+    conciergeChat,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
     personalDetailsList,
@@ -271,8 +273,7 @@ function getIouParamsForTransaction({
     if (!resolvedTransactionThreadReport && resolvedParentReportAction && transaction) {
         resolvedTransactionThreadReport = createTransactionThreadReport({
             introSelected,
-            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-            conciergeChat: undefined,
+            conciergeChat,
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
             betas: allBetas,

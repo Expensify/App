@@ -209,7 +209,7 @@ function useReconcileSelectionWithData({
                     const liveSelectionEntry: SelectedTransactionInfo = {
                         ...baseEntry,
                         isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows),
-                        canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID) : false,
+                        canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID, transactionItem.policy) : false,
                         policyID: transactionItem.report?.policyID,
                         groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
                         isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
@@ -253,7 +253,7 @@ function useReconcileSelectionWithData({
                 const liveSelectionEntry: SelectedTransactionInfo = {
                     ...baseEntry,
                     isSelected: areAllMatchingItemsSelected || !!flatPreviousSelection?.isSelected,
-                    canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID) : false,
+                    canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID, transactionItem.policy) : false,
                     policyID: transactionItem.report?.policyID,
                 };
                 liveSelectionEntries.set(listKey, liveSelectionEntry);
