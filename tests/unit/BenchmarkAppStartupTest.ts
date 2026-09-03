@@ -17,6 +17,8 @@ import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
+import '../utils/mockBun';
+
 describe('benchmarkAppStartup', () => {
     it('parses structured benchmark logs among platform output', () => {
         const output = [

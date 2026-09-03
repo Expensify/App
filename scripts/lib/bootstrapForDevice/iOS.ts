@@ -1,10 +1,10 @@
 import type {TupleToUnion} from 'type-fest';
 
-import {readFileSync, writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 
 import type {BootstrapOptions} from './shared';
 
+import {readTextFile, writeTextFile} from '../bunFile';
 import {validateSuffix} from './shared';
 
 const CONFIGURATIONS = ['Debug', 'Release', 'AdHoc'] as const;
@@ -25,7 +25,7 @@ type Configuration = TupleToUnion<typeof CONFIGURATIONS>;
 type Target = TupleToUnion<typeof TARGETS>;
 
 /** Rewrites the native iOS project, display name, and app-group entitlements for local device signing. */
-function bootstrapIOSForDevice(options: BootstrapOptions): void {
+async function bootstrapIOSForDevice(options: BootstrapOptions): Promise<void> {
     const iosDirectory = resolve(options.rootDirectory, 'Mobile-Expensify/iOS');
     const projectPath = resolve(iosDirectory, 'Expensify.xcodeproj/project.pbxproj');
     const suffix = validateSuffix(options.suffix);
@@ -34,18 +34,18 @@ function bootstrapIOSForDevice(options: BootstrapOptions): void {
         throw new Error(`Apple development team must be a 10-character team ID. Received: ${options.developmentTeam}`);
     }
 
-    const project = readFileSync(projectPath, 'utf8');
+    const project = await readTextFile(projectPath);
     const patchedProject = patchProject(project, baseIdentifier, suffix, options.developmentTeam);
-    writeFileSync(projectPath, patchedProject);
+    await writeTextFile(projectPath, patchedProject);
 
     const infoPlistPath = resolve(iosDirectory, 'Expensify/Expensify-Info.plist');
-    const infoPlist = readFileSync(infoPlistPath, 'utf8');
-    writeFileSync(infoPlistPath, patchIOSAppDisplayName(infoPlist, suffix));
+    const infoPlist = await readTextFile(infoPlistPath);
+    await writeTextFile(infoPlistPath, patchIOSAppDisplayName(infoPlist, suffix));
 
     const appGroup = `group.${[baseIdentifier, suffix].filter(Boolean).join('.')}`;
     const entitlements = entitlementContents(appGroup);
     for (const entitlementFile of APP_GROUP_ENTITLEMENT_FILES) {
-        writeFileSync(resolve(iosDirectory, entitlementFile), entitlements);
+        await writeTextFile(resolve(iosDirectory, entitlementFile), entitlements);
     }
 
     console.log('Configured Mobile-Expensify for automatic iOS signing.');

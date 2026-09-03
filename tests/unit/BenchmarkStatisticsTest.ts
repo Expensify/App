@@ -4,6 +4,8 @@ import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
+import '../utils/mockBun';
+
 describe('benchmarkStatistics', () => {
     it('calculates interpolated percentiles and summary statistics without changing the samples', () => {
         const samples = [300, 100, 200];
@@ -35,24 +37,24 @@ describe('benchmarkStatistics', () => {
         expect(benchmarkResultsOutputPath('/tmp/startup')).toBe('/tmp/startup-results.csv');
     });
 
-    it('reads raw sample files and writes their combined statistics as a results CSV', () => {
+    it('reads raw sample files and writes their combined statistics as a results CSV', async () => {
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-statistics-test-'));
         const inputPathA = join(temporaryDirectory, 'samples-a.csv');
         const inputPathB = join(temporaryDirectory, 'samples-b.csv');
         const outputPath = join(temporaryDirectory, 'results.csv');
 
         try {
-            writeBenchmarkSamples(inputPathA, [
+            await writeBenchmarkSamples(inputPathA, [
                 {run: 1, span: 'ManualAppStartup', durationMs: 100},
                 {run: 1, span: 'ManualAppStartupNetworkRequest', durationMs: 20},
             ]);
-            writeBenchmarkSamples(inputPathB, [{run: 1, span: 'ManualAppStartup', durationMs: 300}]);
+            await writeBenchmarkSamples(inputPathB, [{run: 1, span: 'ManualAppStartup', durationMs: 300}]);
 
-            expect(readBenchmarkSamples(inputPathA)).toEqual([
+            await expect(readBenchmarkSamples(inputPathA)).resolves.toEqual([
                 {run: 1, span: 'ManualAppStartup', durationMs: 100},
                 {run: 1, span: 'ManualAppStartupNetworkRequest', durationMs: 20},
             ]);
-            expect(exportBenchmarkResults({inputPaths: [inputPathA, inputPathB], outputPath})).toEqual([
+            await expect(exportBenchmarkResults({inputPaths: [inputPathA, inputPathB], outputPath})).resolves.toEqual([
                 {
                     span: 'ManualAppStartup',
                     runs: 2,
@@ -86,18 +88,18 @@ describe('benchmarkStatistics', () => {
         }
     });
 
-    it('rejects invalid or empty raw sample inputs', () => {
+    it('rejects invalid or empty raw sample inputs', async () => {
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-statistics-invalid-test-'));
         const invalidPath = join(temporaryDirectory, 'invalid.csv');
         const emptyPath = join(temporaryDirectory, 'empty.csv');
 
         try {
             writeFileSync(invalidPath, 'span,duration_ms\nManualAppStartup,100\n');
-            writeBenchmarkSamples(emptyPath, []);
+            await writeBenchmarkSamples(emptyPath, []);
 
-            expect(() => readBenchmarkSamples(invalidPath)).toThrow('Invalid benchmark sample header');
-            expect(() => exportBenchmarkResults({inputPaths: [], outputPath: join(temporaryDirectory, 'results.csv')})).toThrow('At least one benchmark sample file is required.');
-            expect(() => exportBenchmarkResults({inputPaths: [emptyPath], outputPath: join(temporaryDirectory, 'results.csv')})).toThrow(
+            await expect(readBenchmarkSamples(invalidPath)).rejects.toThrow('Invalid benchmark sample header');
+            await expect(exportBenchmarkResults({inputPaths: [], outputPath: join(temporaryDirectory, 'results.csv')})).rejects.toThrow('At least one benchmark sample file is required.');
+            await expect(exportBenchmarkResults({inputPaths: [emptyPath], outputPath: join(temporaryDirectory, 'results.csv')})).rejects.toThrow(
                 'No benchmark samples were found in the input files.',
             );
         } finally {

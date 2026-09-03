@@ -1,5 +1,6 @@
-import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
-import {dirname, extname} from 'node:path';
+import {extname} from 'node:path';
+
+import {readTextFile, writeTextFile} from './bunFile';
 
 type BenchmarkStats = {
     runs: number;
@@ -46,16 +47,17 @@ const BENCHMARK_SAMPLE_HEADER = 'run,span,duration_ms';
 const BENCHMARK_RESULTS_HEADER = 'span,runs,average,p50,p75,p90,p95,p99,min,max';
 
 /** Combines raw sample files, calculates per-span statistics, and writes the summary CSV. */
-function exportBenchmarkResults(options: ExportBenchmarkResultsOptions): BenchmarkResultTableRow[] {
+async function exportBenchmarkResults(options: ExportBenchmarkResultsOptions): Promise<BenchmarkResultTableRow[]> {
     if (options.inputPaths.length === 0) {
         throw new Error('At least one benchmark sample file is required.');
     }
-    const samples = options.inputPaths.flatMap(readBenchmarkSamples);
+    const sampleGroups = await Promise.all(options.inputPaths.map(readBenchmarkSamples));
+    const samples = sampleGroups.flat();
     if (samples.length === 0) {
         throw new Error('No benchmark samples were found in the input files.');
     }
     const table = benchmarkResultTable(benchmarkMetrics(samples));
-    writeBenchmarkResults(options.outputPath, table);
+    await writeBenchmarkResults(options.outputPath, table);
     return table;
 }
 
@@ -115,17 +117,17 @@ function benchmarkResultTable(metrics: Readonly<Record<string, BenchmarkMetricRe
     }));
 }
 
-function writeBenchmarkSamples(outputPath: string, samples: readonly BenchmarkSample[]): void {
-    writeBenchmarkCsv(outputPath, benchmarkSamplesCsv(samples));
+function writeBenchmarkSamples(outputPath: string, samples: readonly BenchmarkSample[]): Promise<void> {
+    return writeBenchmarkCsv(outputPath, benchmarkSamplesCsv(samples));
 }
 
-function writeBenchmarkResults(outputPath: string, table: readonly BenchmarkResultTableRow[]): void {
-    writeBenchmarkCsv(outputPath, benchmarkResultsCsv(table));
+function writeBenchmarkResults(outputPath: string, table: readonly BenchmarkResultTableRow[]): Promise<void> {
+    return writeBenchmarkCsv(outputPath, benchmarkResultsCsv(table));
 }
 
 /** Reads and validates the exact raw-sample CSV schema produced by the benchmark runner. */
-function readBenchmarkSamples(inputPath: string): BenchmarkSample[] {
-    const [header, ...rows] = readFileSync(inputPath, 'utf8').trim().split(/\r?\n/);
+async function readBenchmarkSamples(inputPath: string): Promise<BenchmarkSample[]> {
+    const [header, ...rows] = (await readTextFile(inputPath)).trim().split(/\r?\n/);
     if (header !== BENCHMARK_SAMPLE_HEADER) {
         throw new Error(`Invalid benchmark sample header in ${inputPath}. Expected: ${BENCHMARK_SAMPLE_HEADER}`);
     }
@@ -163,9 +165,8 @@ function percentile(values: readonly number[], fraction: number): number {
     );
 }
 
-function writeBenchmarkCsv(outputPath: string, csvRows: readonly string[]): void {
-    mkdirSync(dirname(outputPath), {recursive: true});
-    writeFileSync(outputPath, [...csvRows, ''].join('\n'));
+async function writeBenchmarkCsv(outputPath: string, csvRows: readonly string[]): Promise<void> {
+    await writeTextFile(outputPath, [...csvRows, ''].join('\n'));
 }
 
 /** Calculates a percentile from sorted samples using linear interpolation between adjacent values. */

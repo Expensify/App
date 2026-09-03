@@ -2,12 +2,12 @@
 
 import CLI from 'expensify-common/CLI';
 import {join, resolve} from 'node:path';
-import process from 'node:process';
 
 import type {PlatformName, StartupMode} from './lib/nativeAppBenchmark';
 
 import {benchmarkAlternatingStartups, benchmarkAppStartups, benchmarkAppStartupsAlternating, benchmarkStartups, createBenchmarkRecorder} from './lib/benchmarkAppStartup';
 import {exportBenchmarkResults} from './lib/benchmarkStatistics';
+import environmentString from './lib/bunEnvironment';
 import {PLATFORM_NAMES} from './lib/nativeAppBenchmark';
 
 const DEFAULT_RUNS = 20;
@@ -125,7 +125,7 @@ async function main(rootDirectory: string): Promise<void> {
             throw new Error('Supply at least one raw sample CSV file with --input-files.');
         }
         const outputPath = resolve(resultsOutputPath ?? join(rootDirectory, '.benchmarks', 'results.csv'));
-        const table = exportBenchmarkResults({inputPaths, outputPath});
+        const table = await exportBenchmarkResults({inputPaths, outputPath});
         console.table(table);
         console.log(`Recorded benchmark results in ${outputPath}`);
         return;
@@ -257,11 +257,6 @@ function parseSpanNames(value: string | undefined): string[] {
                 .filter(Boolean),
         ),
     ];
-}
-
-function environmentString(name: string): string | undefined {
-    const value: unknown = process.env[name];
-    return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
 function parsePositiveInteger(value: string, label: string): number {

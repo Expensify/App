@@ -3,7 +3,6 @@
 import type {TupleToUnion} from 'type-fest';
 
 import CLI from 'expensify-common/CLI';
-import process from 'node:process';
 
 import type {AndroidApplicationIDs} from './lib/bootstrapForDevice/android';
 import type {DevelopmentTeam} from './lib/bootstrapForDevice/developmentTeams';
@@ -14,6 +13,7 @@ import {bootstrapAndroidForDevice, normalizeAndroidIdentifierSegment} from './li
 import {resolveDevelopmentTeam} from './lib/bootstrapForDevice/developmentTeams';
 import {bootstrapIOSForDevice} from './lib/bootstrapForDevice/iOS';
 import {PLATFORMS} from './lib/bootstrapForDevice/shared';
+import environmentString from './lib/bunEnvironment';
 
 type Platform = TupleToUnion<typeof PLATFORMS>;
 
@@ -54,11 +54,11 @@ async function main(rootDirectory: string): Promise<void> {
     const username = cli.namedArgs['github-username'] ?? (cli.namedArgs['bundle-identifier'] ? undefined : await githubUsername());
     const bundleIdentifier = cli.namedArgs['bundle-identifier'] ?? defaultBundleIdentifier(username ?? '', platform);
     if (platform === 'android') {
-        bootstrapAndroidForDevice({rootDirectory, bundleIdentifier, suffix: cli.namedArgs.suffix});
+        await bootstrapAndroidForDevice({rootDirectory, bundleIdentifier, suffix: cli.namedArgs.suffix});
         return;
     }
     const developmentTeam = await resolveDevelopmentTeam(cli.namedArgs['development-team']);
-    bootstrapIOSForDevice({
+    await bootstrapIOSForDevice({
         rootDirectory,
         developmentTeam,
         bundleIdentifier,
@@ -68,7 +68,7 @@ async function main(rootDirectory: string): Promise<void> {
 
 /** Resolves the lowercase login associated with the configured GitHub token for use in a unique application identifier. */
 async function githubUsername(): Promise<string> {
-    const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
+    const token = environmentString('GH_TOKEN') ?? environmentString('GITHUB_TOKEN');
     if (!token) {
         throw new Error('Could not determine your GitHub username. Set GH_TOKEN or GITHUB_TOKEN, or pass --github-username/--bundle-identifier.');
     }

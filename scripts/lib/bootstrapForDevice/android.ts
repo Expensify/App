@@ -2,11 +2,11 @@ import {isRecord, isUnknownArray} from '@src/types/utils/ObjectUtils';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {readFileSync, writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 
 import type {AndroidBootstrapOptions} from './shared';
 
+import {readJSONFile, readTextFile, writeTextFile} from '../bunFile';
 import {validateSuffix} from './shared';
 
 const ANDROID_BUILD_TYPES = ['release', 'debug', 'adhoc', 'appTestFork'] as const;
@@ -22,7 +22,7 @@ type AndroidBuildType = TupleToUnion<typeof ANDROID_BUILD_TYPES>;
 type AndroidApplicationIDs = Record<AndroidBuildType, string>;
 
 /** Rewrites Android package, Firebase, shortcut, manifest, and label settings for a side-by-side local installation. */
-function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): void {
+async function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): Promise<void> {
     const androidDirectory = resolve(options.rootDirectory, 'Mobile-Expensify/Android');
     const suffix = validateSuffix(options.suffix);
     const androidSuffix = suffix ? normalizeAndroidIdentifierSegment(suffix) : undefined;
@@ -30,15 +30,15 @@ function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): void {
     const applicationIDs = androidApplicationIDs(baseIdentifier, androidSuffix);
 
     const buildGradlePath = resolve(androidDirectory, 'build.gradle');
-    const buildGradle = readFileSync(buildGradlePath, 'utf8');
-    writeFileSync(buildGradlePath, patchAndroidBuildGradle(buildGradle, applicationIDs.release));
+    const buildGradle = await readTextFile(buildGradlePath);
+    await writeTextFile(buildGradlePath, patchAndroidBuildGradle(buildGradle, applicationIDs.release));
 
     const googleServicesPath = resolve(androidDirectory, 'google-services.json');
-    const googleServices: unknown = JSON.parse(readFileSync(googleServicesPath, 'utf8'));
-    writeFileSync(googleServicesPath, `${JSON.stringify(patchGoogleServicesConfig(googleServices, applicationIDs), null, 2)}\n`);
+    const googleServices = await readJSONFile(googleServicesPath);
+    await writeTextFile(googleServicesPath, `${JSON.stringify(patchGoogleServicesConfig(googleServices, applicationIDs), null, 2)}\n`);
 
     const manifestPath = resolve(androidDirectory, 'AndroidManifest.xml');
-    writeFileSync(manifestPath, patchAndroidManifest(readFileSync(manifestPath, 'utf8')));
+    await writeTextFile(manifestPath, patchAndroidManifest(await readTextFile(manifestPath)));
 
     const shortcutsByBuildType = {
         release: 'res/xml-v25/shortcuts.xml',
@@ -48,7 +48,7 @@ function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): void {
     for (const buildType of ['release', 'debug', 'adhoc'] as const) {
         const relativePath = shortcutsByBuildType[buildType];
         const shortcutsPath = resolve(androidDirectory, relativePath);
-        writeFileSync(shortcutsPath, patchAndroidShortcutPackage(readFileSync(shortcutsPath, 'utf8'), applicationIDs[buildType]));
+        await writeTextFile(shortcutsPath, patchAndroidShortcutPackage(await readTextFile(shortcutsPath), applicationIDs[buildType]));
     }
 
     const suffixLabel = suffix ? ` (${suffix})` : '';
@@ -59,7 +59,7 @@ function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): void {
     } as const;
     for (const {path, name} of Object.values(appNamesByBuildType)) {
         const stringsPath = resolve(androidDirectory, path);
-        writeFileSync(stringsPath, patchAndroidAppName(readFileSync(stringsPath, 'utf8'), name));
+        await writeTextFile(stringsPath, patchAndroidAppName(await readTextFile(stringsPath), name));
     }
 
     console.log('Configured Mobile-Expensify for local Android release builds.');

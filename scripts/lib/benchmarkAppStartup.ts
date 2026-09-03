@@ -54,18 +54,20 @@ type BenchmarkRecorderOptions = {
 };
 type BenchmarkRecorder = {
     record: (events: BenchmarkLogEvent[], runNumber: number) => string[];
-    complete: (label?: string) => BenchmarkResult;
+    complete: (label?: string) => Promise<BenchmarkResult>;
 };
 
 async function benchmarkAppStartups(options: BenchmarkAppStartupsOptions): Promise<BenchmarkResult> {
-    const adapter = createNativeAppBenchmarkAdapter(options);
+    const adapter = await createNativeAppBenchmarkAdapter(options);
     return benchmarkStartups(adapter, options);
 }
 
 async function benchmarkAppStartupsAlternating(options: BenchmarkAppStartupsAlternatingOptions): Promise<BenchmarkAlternatingResult> {
     const {appIDA, appIDB, ...adapterOptions} = options;
-    const adapterA = createNativeAppBenchmarkAdapter({...adapterOptions, appID: appIDA});
-    const adapterB = createNativeAppBenchmarkAdapter({...adapterOptions, appID: appIDB});
+    const [adapterA, adapterB] = await Promise.all([
+        createNativeAppBenchmarkAdapter({...adapterOptions, appID: appIDA}),
+        createNativeAppBenchmarkAdapter({...adapterOptions, appID: appIDB}),
+    ]);
     return benchmarkAlternatingStartups({binaryA: adapterA, binaryB: adapterB}, options);
 }
 
@@ -159,8 +161,8 @@ async function benchmarkAlternatingStartups(
         console.log(`Binary B run ${runNumber}/${options.runs}: ${runMetricsB.join(', ')}`);
     }
 
-    const resultA = recorderA.complete('Binary A metrics');
-    const resultB = recorderB.complete('Binary B metrics');
+    const resultA = await recorderA.complete('Binary A metrics');
+    const resultB = await recorderB.complete('Binary B metrics');
     return {binaryA: resultA, binaryB: resultB};
 }
 
@@ -173,11 +175,10 @@ function createBenchmarkRecorder(options: BenchmarkRecorderOptions): BenchmarkRe
         record(events: BenchmarkLogEvent[], runNumber: number): string[] {
             return recordBenchmarkEvents(events, options.spanNames, samples, runNumber);
         },
-        complete(label?: string): BenchmarkResult {
+        async complete(label?: string): Promise<BenchmarkResult> {
             const metrics = benchmarkMetrics(samples, options.spanNames);
             const table = benchmarkResultTable(metrics);
-            writeBenchmarkSamples(options.outputPath, samples);
-            writeBenchmarkResults(resultsOutputPath, table);
+            await Promise.all([writeBenchmarkSamples(options.outputPath, samples), writeBenchmarkResults(resultsOutputPath, table)]);
             if (label) {
                 console.log(label);
             }

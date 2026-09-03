@@ -4,7 +4,7 @@ import {assertAndroidAppInstalled, createAndroidAdapter, parseAndroidProcessIden
 import {createIOSAdapter, iOSBenchmarkMarkerPath, parseIOSInstalledAppURL, parseIOSLaunchProcessIdentifier, parseIOSRunningAppProcessIdentifier} from './nativeAppBenchmark/ios';
 import {BENCHMARK_LOG_TAG, PLATFORM_NAMES, findBenchmarkDuration, latestBenchmarkEvents, parseBenchmarkLogEvents} from './nativeAppBenchmark/shared';
 
-function createNativeAppBenchmarkAdapter(options: NativeAppBenchmarkAdapterOptions): NativeAppBenchmarkAdapter {
+async function createNativeAppBenchmarkAdapter(options: NativeAppBenchmarkAdapterOptions): Promise<NativeAppBenchmarkAdapter> {
     if (options.platform === 'android') {
         return createAndroidAdapter(options);
     }
