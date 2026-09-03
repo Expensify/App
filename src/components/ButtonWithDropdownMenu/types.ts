@@ -65,6 +65,9 @@ type DropdownOption<TValueType> = WithSentryLabel & {
 
     /** Whether to show the default right chevron icon (e.g. for a row that opens another page) */
     shouldShowRightIcon?: boolean;
+
+    /** Style for the row that holds the title and the rightComponent (e.g. to vertically center a toggle against wrapped text) */
+    innerContainerStyle?: StyleProp<ViewStyle>;
     /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     /** Whether selecting this option should bypass the delete confirmation modal */

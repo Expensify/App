@@ -524,6 +524,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     interactive: false,
                     shouldShowRightComponent: true,
                     shouldCloseModalOnSelect: false,
+                    // Let the label wrap fully and keep the Switch centered against it on narrow screens.
+                    numberOfLinesTitle: 0,
+                    innerContainerStyle: styles.alignItemsCenter,
+                    titleStyle: [styles.textLabel, styles.fontWeightNormal],
                     pendingAction: policy?.pendingFields?.showTagGLCodes,
                     rightComponent: (
                         <Switch
@@ -617,6 +621,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         policy?.showTagGLCodes,
         policy?.areTagsEnabled,
         policy?.pendingFields?.showTagGLCodes,
+        styles.alignItemsCenter,
+        styles.textLabel,
+        styles.fontWeightNormal,
     ]);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();

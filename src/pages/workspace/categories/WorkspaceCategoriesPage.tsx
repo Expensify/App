@@ -373,8 +373,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        // Under the revamp the other settings moved to Rules, so the only remaining setting is the GL codes toggle,
-        // which we surface directly in this menu instead of behind a dedicated Settings page.
+        // Under the revamp the Settings page is gone, so its remaining GL codes toggle is surfaced directly in this
+        // menu instead of behind a dedicated Settings page.
         if (isRulesRevampEnabled) {
             if (canWriteCategories && !!policy?.glCodes) {
                 menuItems.push({
@@ -384,6 +384,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     interactive: false,
                     shouldShowRightComponent: true,
                     shouldCloseModalOnSelect: false,
+                    numberOfLinesTitle: 0,
+                    innerContainerStyle: styles.alignItemsStart,
+                    titleStyle: [styles.textLabel, styles.fontWeightNormal],
                     pendingAction: policy?.pendingFields?.showCategoryGLCodes,
                     rightComponent: (
                         <Switch
@@ -455,6 +458,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         navigateToImportSpreadsheet,
         isOffline,
         policyId,
+        styles.alignItemsStart,
+        styles.textLabel,
+        styles.fontWeightNormal,
     ]);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
