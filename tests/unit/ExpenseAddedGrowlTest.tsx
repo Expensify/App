@@ -1,16 +1,24 @@
 import {act, render} from '@testing-library/react-native';
 
 import ExpenseAddedGrowl from '@components/ExpenseAddedGrowl';
+import type GrowlNotificationContent from '@components/GrowlNotification/GrowlNotificationContent';
+
+import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
+import {navigateToCreatedExpense} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
+import type {ComponentProps} from 'react';
+
 import Onyx from 'react-native-onyx';
 
+import {actionR14932} from '../../__mocks__/reportData/actions';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type GrowlContentProps = {bodyText: string; type: string};
+type GrowlContentProps = ComponentProps<typeof GrowlNotificationContent>;
 
 const mockGetTopmostReportId = jest.fn<string | undefined, []>();
 
@@ -34,10 +42,14 @@ jest.mock('@libs/actions/Report', () => ({
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1, login: 'me@example.com'}));
 
+const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
+const mockSetOptimisticTransactionThread = jest.mocked(setOptimisticTransactionThread);
+const mockNavigateToCreatedExpense = jest.mocked(navigateToCreatedExpense);
+
 const EXPENSE = CONST.SEARCH.DATA_TYPES.EXPENSE;
 const INVOICE = CONST.SEARCH.DATA_TYPES.INVOICE;
 
-function flush(mutate: () => Promise<unknown>) {
+function flush(mutate: () => unknown) {
     return act(async () => {
         await mutate();
         await waitForBatchedUpdates();
@@ -62,6 +74,7 @@ describe('ExpenseAddedGrowl', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockCreateTransactionThreadReport.mockReset();
         mockGetTopmostReportId.mockReturnValue(undefined);
         await Onyx.clear();
         await waitForBatchedUpdates();
@@ -78,6 +91,7 @@ describe('ExpenseAddedGrowl', () => {
         expect(mockGrowlContent).toHaveBeenCalled();
         expect(lastGrowlProps()?.bodyText).toBe('iou.expenseAdded');
         expect(lastGrowlProps()?.type).toBe(CONST.GROWL.SUCCESS);
+        expect(lastGrowlProps()?.action?.label).toBe('common.view');
     });
 
     it('uses the invoice copy for an invoice', async () => {
@@ -143,6 +157,102 @@ describe('ExpenseAddedGrowl', () => {
             });
         });
         expect(remaining ?? {}).toEqual({});
+    });
+
+    it('shows the next queued expense after dismissal and ignores a stale dismissal', async () => {
+        // Given one growl is active and another expense is queued
+        render(<ExpenseAddedGrowl />);
+        await seedExpense('1', 'report-1');
+        const firstGrowl = lastGrowlProps();
+        expect(firstGrowl).toBeDefined();
+
+        await seedExpense('2', 'report-2');
+        expect(lastGrowlProps()?.nonce).toBe(firstGrowl?.nonce);
+
+        // When the active growl is dismissed
+        await flush(() => firstGrowl?.onDismissed(firstGrowl.nonce));
+        const secondGrowl = lastGrowlProps();
+
+        // Then the queued expense is shown
+        expect(secondGrowl?.nonce).toBeGreaterThan(firstGrowl?.nonce ?? 0);
+
+        // When the old growl reports another, stale dismissal and a third expense is queued
+        await flush(() => firstGrowl?.onDismissed(firstGrowl.nonce));
+        await seedExpense('3', 'report-3');
+
+        // Then the current growl remains active until its own dismissal
+        expect(lastGrowlProps()?.nonce).toBe(secondGrowl?.nonce);
+        await flush(() => secondGrowl?.onDismissed(secondGrowl.nonce));
+        expect(lastGrowlProps()?.nonce).toBeGreaterThan(secondGrowl?.nonce ?? 0);
+    });
+
+    it('navigates to an existing transaction thread when View is pressed', async () => {
+        // Given an expense already has a transaction thread
+        render(<ExpenseAddedGrowl />);
+        await flush(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {
+                transactionID: '1',
+                reportID: 'report-1',
+                transactionThreadReportID: 'thread-1',
+            });
+            const signal: Record<string, SearchDataTypes> = {};
+            signal['1'] = EXPENSE;
+            await Onyx.merge(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
+        });
+
+        // When View is pressed
+        lastGrowlProps()?.action?.onPress();
+
+        // Then the existing thread is initialized and opened without creating a replacement
+        expect(mockSetOptimisticTransactionThread).toHaveBeenCalledWith('thread-1', undefined, undefined, undefined);
+        expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'thread-1', transactionID: '1', iouReportID: undefined});
+    });
+
+    it('resolves an existing transaction thread from the IOU action when View is pressed', async () => {
+        // Given the transaction thread is recorded on its IOU action
+        const transactionID = getOriginalMessage(actionR14932)?.IOUTransactionID;
+        if (!transactionID) {
+            throw new Error('Expected the IOU action fixture to contain a transaction ID');
+        }
+        const reportID = actionR14932.reportID;
+        render(<ExpenseAddedGrowl />);
+        await flush(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {transactionID, reportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[actionR14932.reportActionID]: actionR14932});
+            const signal: Record<string, SearchDataTypes> = {};
+            signal[transactionID] = EXPENSE;
+            await Onyx.merge(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
+        });
+
+        // When View is pressed
+        lastGrowlProps()?.action?.onPress();
+
+        // Then the IOU action's thread is initialized and opened
+        expect(mockSetOptimisticTransactionThread).toHaveBeenCalledWith(actionR14932.childReportID, undefined, actionR14932.reportActionID, undefined);
+        expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: actionR14932.childReportID, transactionID, iouReportID: undefined});
+    });
+
+    it('creates and navigates to a transaction thread when View is pressed without an existing thread', async () => {
+        // Given an expense does not have a transaction thread yet
+        mockCreateTransactionThreadReport.mockReturnValue({reportID: 'created-thread'});
+        render(<ExpenseAddedGrowl />);
+        await seedExpense('1', 'report-1');
+
+        // When View is pressed
+        lastGrowlProps()?.action?.onPress();
+
+        // Then a thread is created from the current expense data and opened
+        expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                currentUserLogin: 'me@example.com',
+                currentUserAccountID: 1,
+                transaction: expect.objectContaining({transactionID: '1', reportID: 'report-1'}),
+            }),
+        );
+        expect(mockSetOptimisticTransactionThread).not.toHaveBeenCalled();
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'created-thread', transactionID: '1', iouReportID: undefined});
     });
 
     it('does not show a growl when there is no pending signal', () => {

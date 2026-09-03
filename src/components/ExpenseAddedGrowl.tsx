@@ -45,7 +45,7 @@ type ExpenseAddedGrowlContentProps = {
     setActive: Dispatch<SetStateAction<ActiveGrowl | null>>;
 };
 
-/**  Watches the "an expense was just added" Onyx signal and shows an "Expense added" growl with a "View" action. */
+/** Watches the "an expense was just added" Onyx signal and shows an "Expense added" growl with a "View" action. */
 function ExpenseAddedGrowl() {
     const [active, setActive] = useState<ActiveGrowl | null>(null);
     const [signal] = useOnyx(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
