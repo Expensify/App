@@ -30,7 +30,6 @@ type RootProps = {
     maxLength?: number;
     errorText?: string;
     onInputChange?: jest.Mock;
-    ref?: React.Ref<BaseTextInputRef>;
     numericEditingRef?: React.Ref<NumericFieldRef>;
 };
 
@@ -339,7 +338,7 @@ describe('NumericField.TextInput', () => {
         const onBlur = jest.fn();
 
         // Given a TextInput with an error message, onBlur, and a ref
-        renderTextInput({prefixCharacter: '$', label: 'Amount', onBlur}, {value: '10', errorText: 'Invalid text number', ref: inputRef});
+        renderTextInput({prefixCharacter: '$', label: 'Amount', onBlur, ref: inputRef}, {value: '10', errorText: 'Invalid text number'});
         await waitForBatchedUpdatesWithAct();
 
         expect(inputRef.current).toBeTruthy();

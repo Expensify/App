@@ -119,7 +119,6 @@ function AmountForm({
                 decimals={decimals}
                 maxLength={amountMaxLength}
                 errorText={errorText}
-                ref={ref}
                 numericEditingRef={numberFormRef}
             >
                 <NumericField.TextInput
@@ -131,6 +130,7 @@ function AmountForm({
                     onFocus={onFocus}
                     onBlur={onBlur}
                     onSubmitEditing={onSubmitEditing}
+                    ref={ref}
                 />
             </NumericField>
         );

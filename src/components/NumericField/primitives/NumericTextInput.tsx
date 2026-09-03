@@ -5,8 +5,6 @@ import TextInput from '@components/TextInput';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import mergeRefs from '@libs/mergeRefs';
-
 import CONST from '@src/CONST';
 
 import type {TextInputSelectionChangeEvent} from 'react-native';
@@ -36,7 +34,7 @@ function NumericTextInput({
 }: NumericTextInputProps) {
     const styles = useThemeStyles();
     const {errorText, formattedNumber, selection} = useNumericFieldState();
-    const {handleKeyPress, handleSelectionChange, inputRef, setNumber} = useNumericFieldActions();
+    const {handleKeyPress, handleSelectionChange, setNumber} = useNumericFieldActions();
 
     const handleInputKeyPress = (event: NumericEditingKeyPressEvent) => {
         handleKeyPress(event);
@@ -67,7 +65,7 @@ function NumericTextInput({
             prefixCharacter={prefixCharacter}
             prefixContainerStyle={prefixContainerStyle}
             prefixStyle={styles.colorMuted}
-            ref={mergeRefs(inputRef, ref)}
+            ref={ref}
             selection={selection}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
