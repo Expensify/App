@@ -47,45 +47,29 @@ const baseParams: Params = {
 };
 
 describe('useDistanceRequestState', () => {
-    describe('isDistanceRequestWithPendingRoute', () => {
-        const homeAndOfficePolicy = createMock<OnyxTypes.Policy>({
-            id: 'policy1',
-            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
-        });
+    // A home and office exclusion is decided server-side, so the confirmation screen waits for the verdict rather
+    // than showing an undeducted amount. The cases that can never receive one must not wait forever.
+    it.each([
+        ['waits while the verdict for this workspace has not arrived yet', {}, true, true],
+        [
+            'stops waiting once the verdict for this workspace arrives',
+            {commuterExclusionPreview: {policyID: 'policy1', hasExclusion: false, isWholeTripExcluded: false, commuteDistanceMeters: 0}},
+            true,
+            false,
+        ],
+        ['stops waiting when the route errored, so no verdict can arrive', {errorFields: {route: {error: 'oops'}}}, true, false],
+        ['does not wait for a personal expense, which no workspace exclusion governs', {}, false, false],
+    ])('%s', (_caseName, transactionOverrides, isPolicyExpenseChat, expected) => {
+        const {result} = renderHook(() =>
+            useDistanceRequestState({
+                ...baseParams,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {customUnit: {routeDistanceMeters: 10}}, ...transactionOverrides}),
+                policy: createMock<OnyxTypes.Policy>({id: 'policy1', commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE}}),
+                isPolicyExpenseChat,
+            }),
+        );
 
-        it('stays pending while the home and office exclusion has not been decided for this workspace yet', () => {
-            const {result} = renderHook(() => useDistanceRequestState({...baseParams, policy: homeAndOfficePolicy, isPolicyExpenseChat: true}));
-
-            expect(result.current.isDistanceRequestWithPendingRoute).toBe(true);
-        });
-
-        it('stops being pending once the verdict for this workspace arrives', () => {
-            const transaction = createMock<OnyxTypes.Transaction>({
-                transactionID: 'txn1',
-                comment: {customUnit: {routeDistanceMeters: 10}},
-                commuterExclusionPreview: {policyID: 'policy1', hasExclusion: false, isWholeTripExcluded: false, commuteDistanceMeters: 0},
-            });
-            const {result} = renderHook(() => useDistanceRequestState({...baseParams, transaction, policy: homeAndOfficePolicy, isPolicyExpenseChat: true}));
-
-            expect(result.current.isDistanceRequestWithPendingRoute).toBe(false);
-        });
-
-        it('does not wait on a verdict that can no longer arrive because the route errored', () => {
-            const transaction = createMock<OnyxTypes.Transaction>({
-                transactionID: 'txn1',
-                comment: {customUnit: {routeDistanceMeters: 10}},
-                errorFields: {route: {error: 'oops'}},
-            });
-            const {result} = renderHook(() => useDistanceRequestState({...baseParams, transaction, policy: homeAndOfficePolicy, isPolicyExpenseChat: true}));
-
-            expect(result.current.isDistanceRequestWithPendingRoute).toBe(false);
-        });
-
-        it('does not wait on a verdict for a personal expense that a workspace exclusion cannot govern', () => {
-            const {result} = renderHook(() => useDistanceRequestState({...baseParams, policy: homeAndOfficePolicy, isPolicyExpenseChat: false}));
-
-            expect(result.current.isDistanceRequestWithPendingRoute).toBe(false);
-        });
+        expect(result.current.isDistanceRequestWithPendingRoute).toBe(expected);
     });
 
     it('shouldCalculateDistanceAmount is true on initial mount when iouAmount is 0', () => {
