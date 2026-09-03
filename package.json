@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.4.65-3",
+  "version": "9.4.69-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -340,7 +340,7 @@
     "nitrogen": "0.36.3",
     "onchange": "^7.1.0",
     "openai": "^7.0.0",
-    "oxc-transform-react": "0.145.0",
+    "oxc-transform-react": "0.148.0",
     "oxfmt": "^0.55.0",
     "patch-package": "^8.1.0-canary.1",
     "peggy": "^4.0.3",
