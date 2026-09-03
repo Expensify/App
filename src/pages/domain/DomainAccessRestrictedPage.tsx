@@ -61,7 +61,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
                         heading={translate('domain.accessRestricted.title')}
                         innerContainerStyle={styles.p10}
                         descriptionComponent={
-                            <View style={[styles.renderHTML, styles.flexRow]}>
+                            <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                                 <RenderHTML html={translate('domain.accessRestricted.description', domainName)} />
                             </View>
                         }
