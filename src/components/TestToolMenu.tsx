@@ -129,7 +129,7 @@ function TestToolMenu() {
                                     if (Navigation.getActiveRoute().includes(ROUTES.TEST_TOOLS_MODAL.route)) {
                                         Navigation.dismissModal();
                                     }
-                                    Navigation.navigate(ROUTES.BETA_OVERRIDES);
+                                    Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
                                 }}
                             >
                                 <Button.Text>{translate('common.view')}</Button.Text>
