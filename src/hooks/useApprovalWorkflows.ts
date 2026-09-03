@@ -36,7 +36,7 @@ function useApprovalWorkflows({policy, firstApprover, currentUserLogin}: UseAppr
 
     const params = {policy, personalDetails: personalDetails ?? {}, localeCompare, firstApprover, currentUserLogin};
 
-    // Only the rules converter reads `rules`, so the collection is left unwalked on the default path.
+    // Only the rules converter reads `rules`, so the collection is not traversed on the default path.
     if (!isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
         return convertPolicyEmployeesToApprovalWorkflows(params);
     }
