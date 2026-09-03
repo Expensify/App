@@ -7,7 +7,7 @@ import {
     iOSBenchmarkMarkerPath,
     latestBenchmarkEvents,
     parseAndroidProcessIdentifier,
-    parseIosInstalledAppURL,
+    parseIOSInstalledAppURL,
     parseBenchmarkLogEvents,
     parseIOSLaunchProcessIdentifier,
     parseIosRunningAppProcessIdentifier,
@@ -56,7 +56,7 @@ describe('benchmarkAppStartup', () => {
 
     it('finds an already-running iOS app process from CoreDevice output', () => {
         const appID = 'com.example.app';
-        const appURL = parseIosInstalledAppURL({result: {apps: [{bundleIdentifier: appID, url: 'file:///containers/Example.app'}]}}, appID);
+        const appURL = parseIOSInstalledAppURL({result: {apps: [{bundleIdentifier: appID, url: 'file:///containers/Example.app'}]}}, appID);
         const processIdentifier = parseIosRunningAppProcessIdentifier(
             {
                 result: {

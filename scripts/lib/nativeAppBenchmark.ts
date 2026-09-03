@@ -143,7 +143,7 @@ function parseIOSLaunchProcessIdentifier(response: unknown): number {
     return processIdentifier;
 }
 
-function parseIosInstalledAppURL(response: unknown, appID: string): string {
+function parseIOSInstalledAppURL(response: unknown, appID: string): string {
     if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.apps)) {
         throw new Error('CoreDevice returned an unexpected installed-app response.');
     }
@@ -324,7 +324,7 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
         try {
             run('xcrun', ['devicectl', 'device', 'info', 'apps', '--device', device, '--bundle-id', appID, '--json-output', appsJSONPath, '--quiet']);
             const appsResponse: unknown = JSON.parse(readFileSync(appsJSONPath, 'utf8'));
-            const appURL = parseIosInstalledAppURL(appsResponse, appID);
+            const appURL = parseIOSInstalledAppURL(appsResponse, appID);
             const escapedAppURL = appURL.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
             run('xcrun', [
                 'devicectl',
@@ -442,7 +442,7 @@ export {
     createNativeAppBenchmarkAdapter,
     findBenchmarkDuration,
     iOSBenchmarkMarkerPath,
-    parseIosInstalledAppURL,
+    parseIOSInstalledAppURL,
     parseBenchmarkLogEvents,
     parseIOSLaunchProcessIdentifier,
     parseIosRunningAppProcessIdentifier,
