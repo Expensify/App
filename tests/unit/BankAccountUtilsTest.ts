@@ -369,7 +369,7 @@ describe('BankAccountUtils', () => {
         });
 
         it.each([CONST.CURRENCY.USD, undefined])('keeps the confirm action for a PENDING account in currency "%s"', (currency) => {
-            expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.PENDING, currency})).toEqual(
+            expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.PENDING}, currency)).toEqual(
                 expect.objectContaining({
                     labelKey: 'walletPage.bankAccountStatus.pending',
                     actionKey: 'common.confirm',
@@ -378,7 +378,7 @@ describe('BankAccountUtils', () => {
         });
 
         it.each(['GBP', 'EUR', 'AUD'])('maps a PENDING account in currency "%s" to Incomplete, since only USD accounts have test transactions', (currency) => {
-            expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.PENDING, currency})).toEqual({
+            expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.PENDING}, currency)).toEqual({
                 labelKey: 'walletPage.bankAccountStatus.incomplete',
                 messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
                 actionKey: 'walletPage.bankAccountStatus.finish',
@@ -390,7 +390,7 @@ describe('BankAccountUtils', () => {
         it.each([CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
             'is unaffected by a non-USD currency in state "%s"',
             (state) => {
-                expect(getBankAccountConnectionStatus({state, currency: 'GBP'})).toEqual(getBankAccountConnectionStatus({state}));
+                expect(getBankAccountConnectionStatus({state}, 'GBP')).toEqual(getBankAccountConnectionStatus({state}));
             },
         );
 
