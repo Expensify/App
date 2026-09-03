@@ -15,7 +15,7 @@ const INVERTED_THEMES: Record<ThemePreferenceWithoutSystem, ThemePreferenceWitho
  * The opposite of the theme the app is currently showing, for a surface that is meant to stand out against the page
  * behind it. The user's contrast preference is carried across, so a contrast theme inverts to the other contrast theme.
  *
- * Pass the result to `<ThemeProvider theme={...}>` to render a subtree inverted, which colours everything inside it —
+ * Pass the result to `<ThemeProvider theme={...}>` to render a subtree inverted, which colors everything inside it —
  * including popovers, which read the theme themselves and so cannot be inverted with style props.
  */
 function useInvertedThemePreference(): ThemePreferenceWithoutSystem {

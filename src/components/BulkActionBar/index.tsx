@@ -26,7 +26,7 @@ import BulkActionBarButton from './BulkActionBarButton';
 import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popoverPosition';
 
 /**
- * The bar's contents. Everything here takes its colours from the theme it is rendered under, which `BulkActionBar`
+ * The bar's contents. Everything here takes its colors from the theme it is rendered under, which `BulkActionBar`
  * inverts — so the surface, the buttons and the "More" menu all read as one layer without any of them being styled
  * specially. Split out from `BulkActionBar` because these styles have to resolve from the inverted theme, while the
  * positioning layer around it belongs to the page's own.

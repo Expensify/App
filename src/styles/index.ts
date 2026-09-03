@@ -5401,7 +5401,7 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
-        // The layer BulkActionBar floats in. It covers its container so the bar can centre itself over the table, and
+        // The layer BulkActionBar floats in. It covers its container so the bar can center itself over the table, and
         // passes touches through everywhere except the bar itself.
         bulkActionBarLayer: {
             position: 'absolute',
@@ -5412,7 +5412,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         // Resolved under the inverted theme BulkActionBar renders its contents in, so `appBG` here is the opposite of
-        // the page's background. Everything inside the bar is coloured by that same theme rather than styled specially.
+        // the page's background. Everything inside the bar is colored by that same theme rather than styled specially.
         bulkActionBar: {
             flexDirection: 'row',
             alignItems: 'center',
