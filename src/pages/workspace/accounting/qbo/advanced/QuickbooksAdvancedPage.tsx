@@ -142,16 +142,13 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription', integrationName),
             isActive: !!qboConfig?.autoCreateVendor,
             onToggle: (isOn: boolean) => {
-                const nonReimbursableVendorUpdateValue = isOn
-                    ? (policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE)
-                    : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
                 const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
 
                 updateQuickbooksOnlineAutoCreateVendor(
                     policyID,
                     {
                         [autoCreateVendorConst]: isOn,
-                        [defaultVendorConst]: nonReimbursableVendorUpdateValue,
+                        [defaultVendorConst]: nonReimbursableVendorCurrentValue,
                     },
                     {
                         [autoCreateVendorConst]: !!qboConfig?.autoCreateVendor,
