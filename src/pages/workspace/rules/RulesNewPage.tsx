@@ -7,12 +7,16 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftFlagForReviewRule, setDraftMerchantRule, setDraftRequireFieldsRule, setDraftSpendRule} from '@libs/actions/User';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -32,6 +36,7 @@ import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
 import type {GeneratedRule} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -73,9 +78,31 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const [canOfferAgentRule, setCanOfferAgentRule] = useState(false);
     const [generatedRule] = useOnyx(ONYXKEYS.NVP_GENERATED_RULE);
     const [isBuildingRule] = useOnyx(ONYXKEYS.IS_LOADING_GENERATED_RULE);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const policy = usePolicy(policyID);
+
+    // Fetch categories if they're not loaded (e.g. after cache clear), so a generated rule can name one.
+    const fetchPolicyCategories = () => {
+        if (!policy?.areCategoriesEnabled || policyCategories) {
+            return;
+        }
+        openPolicyCategoriesPage(policyID);
+    };
+
+    useNetwork({onReconnect: fetchPolicyCategories});
+
+    useFocusEffect(() => {
+        fetchPolicyCategories();
+    });
 
     const seedDraftAndNavigate = (rule: GeneratedRule) => {
-        const draft = rule.rule ?? {};
+        const {category, ...ruleValues} = rule.rule ?? {};
+
+        // Concierge answers with the category name the admin typed, so it only seeds a draft once it matches a category they can pick.
+        const matchedCategory = category
+            ? Object.values(policyCategories ?? {}).find((policyCategory) => policyCategory.enabled && getDecodedCategoryName(policyCategory.name) === getDecodedCategoryName(category))
+            : undefined;
+        const draft: NonNullable<GeneratedRule['rule']> = matchedCategory ? {...ruleValues, category: matchedCategory.name} : ruleValues;
 
         if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS) {
             setDraftRequireFieldsRule(draft);
