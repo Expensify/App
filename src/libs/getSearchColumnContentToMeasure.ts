@@ -58,6 +58,26 @@ const USER_INFO_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spa
 const STATUS_BADGE_CHROME_WIDTH = 6 * 2 + 1 * 2;
 
 /**
+ * Width an editable cell spends around its value: `editableCell`'s padding plus the border it reserves for its focus
+ * ring. It applies whether or not the value can actually be edited, and the cell hides its overflow, so a column
+ * measured without it clips its own content.
+ */
+const EDITABLE_CELL_CHROME_WIDTH = 4 * 2 + 1 * 2;
+
+/** The columns whose cells render inside an `EditableCell`, and so spend width on its padding and border. */
+const EDITABLE_SEARCH_COLUMNS = new Set<SearchColumnType>([
+    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.DATE,
+    CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+    CONST.SEARCH.TABLE_COLUMNS.APPROVED,
+    CONST.SEARCH.TABLE_COLUMNS.POSTED,
+    CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+]);
+
+/**
  * The Search columns sized from their content: the free-text ones that share the table's leftover space today, and so
  * the ones that truncate while a short column beside them keeps room it doesn't need.
  *
@@ -119,14 +139,16 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
 
 /** Width a column needs on top of its text, for the non-text content its cell renders. */
 function getSearchColumnExtraWidth(column: SearchColumnType): number {
+    const editableCellWidth = EDITABLE_SEARCH_COLUMNS.has(column) ? EDITABLE_CELL_CHROME_WIDTH : 0;
+
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
         case CONST.SEARCH.TABLE_COLUMNS.TO:
-            return USER_INFO_CELL_AVATAR_WIDTH;
+            return editableCellWidth + USER_INFO_CELL_AVATAR_WIDTH;
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
-            return STATUS_BADGE_CHROME_WIDTH;
+            return editableCellWidth + STATUS_BADGE_CHROME_WIDTH;
         default:
-            return 0;
+            return editableCellWidth;
     }
 }
 
