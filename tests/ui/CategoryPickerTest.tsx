@@ -13,11 +13,11 @@ import type * as ReactNativeOnyx from 'react-native-onyx';
 
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports -- CategoryPicker reads the GL-code flags via the raw react-native-onyx useOnyx (to bypass the Search snapshot); the test drives that same hook.
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 // The GL-code visibility flag must be read from live Onyx, not the Search snapshot (which trims
 // `showCategoryGLCodes`/`glCodes` from the policy). CategoryPicker reads the flag via the raw
-// react-native-onyx `useOnyx` (mocked here as `originalUseOnyx`) and the categories via the
+// react-native-onyx `useOnyx` (mocked here as `useOnyxWithoutSnapshots`) and the categories via the
 // snapshot-aware `@hooks/useOnyx`, so we can drive the two independently.
 jest.mock('@components/SelectionList/SelectionListWithSections', () => jest.fn(() => null));
 jest.mock('@hooks/useOnyx', () => jest.fn());
@@ -59,7 +59,7 @@ const findRow = (searchText: string) =>
 
 describe('CategoryPicker', () => {
     const mockedUseOnyx = jest.mocked(useOnyx);
-    const mockedOriginalUseOnyx = jest.mocked(originalUseOnyx);
+    const mockedUseOnyxWithoutSnapshots = jest.mocked(useOnyxWithoutSnapshots);
 
     beforeEach(() => {
         jest.mocked(SelectionListWithSections).mockClear();
@@ -76,7 +76,7 @@ describe('CategoryPicker', () => {
 
     it('shows GL codes on Search even when the snapshot policy is missing the GL-code flags (regression #96810)', () => {
         // Live policy has the GL-code flags → selector resolves to true.
-        mockedOriginalUseOnyx.mockReturnValue([true, {status: 'loaded'}]);
+        mockedUseOnyxWithoutSnapshots.mockReturnValue([true, {status: 'loaded'}]);
 
         render(
             <CategoryPicker
@@ -91,7 +91,7 @@ describe('CategoryPicker', () => {
 
     it('does not show GL codes when the policy has the GL-code flags disabled', () => {
         // Live policy has the flag disabled → selector resolves to false.
-        mockedOriginalUseOnyx.mockReturnValue([false, {status: 'loaded'}]);
+        mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
 
         render(
             <CategoryPicker
@@ -105,7 +105,7 @@ describe('CategoryPicker', () => {
     });
 
     it('never reads a bare collection key when the policy ID is an empty string', () => {
-        mockedOriginalUseOnyx.mockReturnValue([false, {status: 'loaded'}]);
+        mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
 
         render(
             <CategoryPicker
@@ -120,7 +120,7 @@ describe('CategoryPicker', () => {
             ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT,
             ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
         ];
-        const requestedKeys = [...mockedUseOnyx.mock.calls, ...mockedOriginalUseOnyx.mock.calls].map(([key]) => key);
+        const requestedKeys = [...mockedUseOnyx.mock.calls, ...mockedUseOnyxWithoutSnapshots.mock.calls].map(([key]) => key);
 
         expect(requestedKeys.length).toBeGreaterThan(0);
         for (const key of requestedKeys) {

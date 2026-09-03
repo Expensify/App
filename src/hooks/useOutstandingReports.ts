@@ -1,3 +1,4 @@
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getOutstandingReportsForUser, isSelfDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -28,7 +29,8 @@ export default function useOutstandingReports(selectedReportID: string | undefin
     if (shouldUseAllPolicies) {
         const result = [];
         for (const policyID of Object.values(allPoliciesID ?? {})) {
-            if (!policyID || policyID === personalPolicyID) {
+            // Teachers Unite only supports expenses via split expense, so its reports can never be a move-expense destination.
+            if (!policyID || policyID === personalPolicyID || isTeachersUnitePolicyID(policyID)) {
                 continue;
             }
 
@@ -36,6 +38,10 @@ export default function useOutstandingReports(selectedReportID: string | undefin
             result.push(...reports);
         }
         return result;
+    }
+
+    if (isTeachersUnitePolicyID(selectedPolicyID)) {
+        return [];
     }
 
     return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, reportNameValuePairs, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, isEditing);
