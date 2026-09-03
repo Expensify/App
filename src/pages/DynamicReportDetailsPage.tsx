@@ -245,7 +245,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email), [currentUserPersonalDetails?.email]);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const {showConfirmModal} = useConfirmModal();
-    const reportForHeader = getReportForHeader(report);
+    const reportForHeader = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
     const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForHeader?.reportID]);
     const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
     const derivedHeaderReportName = getReportNameFromNames(derivedReportNames, reportForHeader?.reportID);
@@ -426,7 +426,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             prompt: translate('groupChat.lastMemberWarning'),
             confirmText: translate('common.leave'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
         if (action !== ModalActions.CONFIRM) {
@@ -1198,7 +1198,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             prompt: deletePrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldEnableNewFocusManagement: true,
         });
         if (action !== ModalActions.CONFIRM) {

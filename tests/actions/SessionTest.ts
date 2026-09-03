@@ -36,6 +36,7 @@ import {openAuthSessionAsync} from 'expo-web-browser';
 import {clearTokenRefresh, removeAllFromAutoprefetch} from 'react-native-nitro-fetch';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -1105,6 +1106,45 @@ describe('Session', () => {
         });
     });
 
+    describe('GPS trip on the sign in redirect', () => {
+        const gpsTrip = {
+            gpsPoints: [[{lat: 1, long: 2}]],
+            distanceInMeters: 100,
+            isTracking: true,
+            reportID: '1',
+            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        };
+
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('keeps the in-progress trip when a SAML re-auth forces the redirect', async () => {
+            await TestHelper.signInWithTestUser();
+            const accountID = (await getOnyxValue(ONYXKEYS.SESSION))?.accountID;
+            await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {...gpsTrip, accountID});
+            await waitForBatchedUpdates();
+
+            await SignInRedirect.default(undefined, true);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS);
+            expect(draft?.isTracking).toBe(true);
+            expect(draft?.accountID).toBe(accountID);
+        });
+
+        test('discards the in-progress trip on a sign out redirect', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, gpsTrip);
+            await waitForBatchedUpdates();
+
+            await SignInRedirect.default();
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS)).toBeUndefined();
+        });
+    });
+
     describe('signIn', () => {
         test('sends the login and validate code arguments to the API, independent of the CREDENTIALS Onyx cache', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
@@ -1128,6 +1168,29 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({validateCode: 'stored-code', twoFactorAuthCode: '654321'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('sends the stored authToken during the 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signIn('', undefined, '654321', 'user@expensify.com', 'stored-code', 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'stored-auth-token'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('does not send an authToken on the initial validate code submission', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // No 2FA code yet, even though a stored authToken is passed in - shouldn't be sent.
+            SessionUtil.signIn('112233', undefined, undefined, 'user@expensify.com', undefined, 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('authToken');
 
             writeSpy.mockRestore();
         });
@@ -1171,6 +1234,28 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({validateCode: 'stored-code', twoFactorAuthCode: '654321'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('sends the stored authToken during the 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signInWithValidateCode(123, 'ignored-code', undefined, '654321', 'stored-code', 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'stored-auth-token'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('does not send an authToken on the initial validate code submission', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signInWithValidateCode(123, '112233', undefined, undefined, undefined, 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('authToken');
 
             writeSpy.mockRestore();
         });
