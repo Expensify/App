@@ -1228,7 +1228,6 @@
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardsSettingsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/companyCards/addNew/DynamicAddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/companyCards/addNew/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1257,7 +1256,6 @@
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/taxes/WorkspaceTaxesPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/travel/WorkspaceTravelBillingSection.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/workspace/travel/WorkspaceTravelBillingSettlementAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/upgrade/UpgradeIntro.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/upgrade/WorkspaceUpgradePage.tsx"	"no-restricted-imports"	1
@@ -1266,7 +1264,6 @@
 "../../src/pages/workspace/withPolicyConnections.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/workflows/WorkspaceWorkflowsPayerPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/workspace/workflows/tabs/WorkflowsPaymentsTab.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/polyfills/requestIdleCallback.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/selectors/AdvancedSearchFiltersForm.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

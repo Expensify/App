@@ -1,5 +1,4 @@
 import Button from '@components/ButtonComposed';
-import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -57,7 +56,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import TravelBillingLearnHow from './TravelBillingLearnHow';
@@ -81,9 +80,6 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const defaultFundID = useDefaultFundID(policyID);
 
     const {showConfirmModal, closeModal} = useConfirmModal();
-    const [isDisableConfirmModalVisible, setIsDisableConfirmModalVisible] = useState(false);
-    const [isOutstandingBalanceModalVisible, setIsOutstandingBalanceModalVisible] = useState(false);
-    const [isPayBalanceModalVisible, setIsPayBalanceModalVisible] = useState(false);
 
     // Ref to track if the "Update to USD" modal is open
     const isCurrencyModalOpen = useRef(false);
@@ -186,10 +182,20 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const hasTravelProvisioningErrors = isTravelBillingEnabled && !!travelProvisioningErrors && Object.keys(travelProvisioningErrors).length > 0;
 
     /**
-     * Opens the pay balance confirmation modal.
+     * Opens the pay balance confirmation modal and, once confirmed, triggers the API call with optimistic Onyx update.
      */
-    const handlePayBalance = () => {
-        setIsPayBalanceModalVisible(true);
+    const handlePayBalance = async () => {
+        const result = await showConfirmModal({
+            title: payBalanceModalTitle,
+            prompt: payBalanceModalBody,
+            confirmText: payBalanceCtaText,
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        payTravelBillingSpend(policyID, defaultFundID, travelSpend);
     };
 
     /**
@@ -203,15 +209,6 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             feed: [travelFeedID],
         });
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
-    };
-
-    /**
-     * Handles the confirmed payment of the outstanding travel balance.
-     * Closes the modal and triggers the API call with optimistic Onyx update.
-     */
-    const handleConfirmPayBalance = () => {
-        setIsPayBalanceModalVisible(false);
-        payTravelBillingSpend(policyID, defaultFundID, travelSpend);
     };
 
     const continueToggleFlow = () => {
@@ -264,6 +261,20 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
         continueToggleFlow();
     };
 
+    const promptDisableAndDeactivate = async () => {
+        const result = await showConfirmModal({
+            title: translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.title'),
+            prompt: translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.body'),
+            confirmText: translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.confirm'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deactivateTravelBilling(policyID, defaultFundID);
+    };
+
     /**
      * Handle toggle change for Travel Billing.
      * When turning ON:
@@ -288,12 +299,17 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
         if (!isEnabled) {
             // Trying to disable - check for outstanding balance first
             if (hasOutstandingBalance) {
-                // Show blocker modal with error message
-                setIsOutstandingBalanceModalVisible(true);
+                // Show blocker modal with error message. It is acknowledgement-only, so the result is ignored.
+                showConfirmModal({
+                    title: translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.title'),
+                    prompt: translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.body'),
+                    confirmText: translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.confirm'),
+                    shouldShowCancelButton: false,
+                });
                 return;
             }
             // Show confirmation modal before disabling
-            setIsDisableConfirmModalVisible(true);
+            promptDisableAndDeactivate();
             return;
         }
 
@@ -303,11 +319,6 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
         }
 
         continueToggleFlow();
-    };
-
-    const handleConfirmDisable = () => {
-        setIsDisableConfirmModalVisible(false);
-        deactivateTravelBilling(policyID, defaultFundID);
     };
 
     // Dismiss the "Update to USD" modal check if the currency changes to USD externally (e.g. from another device)
@@ -473,57 +484,23 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     );
 
     return (
-        <>
-            <Section isCentralPane>
-                <ToggleSettingOptionRow
-                    title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.title')}
-                    titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}
-                    subtitle={getTravelBillingSubtitle()}
-                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subtitle')}
-                    onToggle={handleToggle}
-                    isActive={isTravelBillingEnabled}
-                    disabled={!canWriteMoreFeatures || isOnWaitlist}
-                    disabledAction={getToggleDisabledAction()}
-                    showLockIcon={!canWriteMoreFeatures || isOnWaitlist || hasOutstandingBalance}
-                    pendingAction={togglePendingAction}
-                    errors={toggleErrors}
-                    onCloseError={() => clearTravelBillingErrors(defaultFundID)}
-                    subMenuItems={travelBillingSubMenuItems}
-                />
-            </Section>
-
-            <ConfirmModal
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.title')}
-                isVisible={isDisableConfirmModalVisible}
-                onConfirm={handleConfirmDisable}
-                onCancel={() => setIsDisableConfirmModalVisible(false)}
-                prompt={translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.body')}
-                confirmText={translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.confirm')}
-                cancelText={translate('common.cancel')}
-                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
+        <Section isCentralPane>
+            <ToggleSettingOptionRow
+                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.title')}
+                titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}
+                subtitle={getTravelBillingSubtitle()}
+                switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subtitle')}
+                onToggle={handleToggle}
+                isActive={isTravelBillingEnabled}
+                disabled={!canWriteMoreFeatures || isOnWaitlist}
+                disabledAction={getToggleDisabledAction()}
+                showLockIcon={!canWriteMoreFeatures || isOnWaitlist || hasOutstandingBalance}
+                pendingAction={togglePendingAction}
+                errors={toggleErrors}
+                onCloseError={() => clearTravelBillingErrors(defaultFundID)}
+                subMenuItems={travelBillingSubMenuItems}
             />
-
-            <ConfirmModal
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.title')}
-                isVisible={isOutstandingBalanceModalVisible}
-                onConfirm={() => setIsOutstandingBalanceModalVisible(false)}
-                onCancel={() => setIsOutstandingBalanceModalVisible(false)}
-                prompt={translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.body')}
-                confirmText={translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.confirm')}
-                shouldShowCancelButton={false}
-            />
-
-            <ConfirmModal
-                title={payBalanceModalTitle}
-                isVisible={isPayBalanceModalVisible}
-                onConfirm={handleConfirmPayBalance}
-                onCancel={() => setIsPayBalanceModalVisible(false)}
-                prompt={payBalanceModalBody}
-                confirmText={payBalanceCtaText}
-                cancelText={translate('common.cancel')}
-                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
-            />
-        </>
+        </Section>
     );
 }
 
