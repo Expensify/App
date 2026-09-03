@@ -574,6 +574,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedReportIDs = Object.values(selectedReports)
         .map((report) => report.reportID)
         .filter((reportID) => reportID !== undefined);
+
+    // The reports in the selection the viewer can actually settle. Bulk pay degrades to this subset rather than
+    // disappearing when the selection also contains an ineligible report (see getPayOption), so everything that
+    // feeds the Pay menu — policy, currency, total, payment methods — and the payment itself is derived from here.
+    // That keeps the amount shown in "Mark as paid" equal to the amount that will actually be paid.
+    const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
+    // Fall back to the raw selection so transaction-only selections (which have no selected reports) and selections
+    // with nothing payable keep their previous derivations. The Pay group is hidden in the latter case anyway.
+    const payScopedReports = useMemo(() => (payableSelectedReports.length > 0 ? payableSelectedReports : selectedReports), [payableSelectedReports, selectedReports]);
+    const payScopedReportIDs = useMemo(() => payScopedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payScopedReports]);
+
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
 
     const doSelectedItemsBelongToSubmitPolicy = useMemo(() => {
@@ -591,6 +602,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedPolicyIDs = useMemo(
         () => [...new Set([...Object.values(selectedTransactions).map((transaction) => transaction.policyID), ...selectedReports.map((report) => report.policyID)].filter(Boolean))],
         [selectedTransactions, selectedReports],
+    );
+
+    // The Pay menu resolves its payment methods from the first policy in this list, so it must not be led by a
+    // workspace whose report is not being paid. Everything else (export, templates) still uses the full selection.
+    const payScopedPolicyIDs = useMemo(
+        () => [...new Set([...payScopedReports.map((report) => report.policyID), ...Object.values(selectedTransactions).map((transaction) => transaction.policyID)].filter(Boolean))],
+        [selectedTransactions, payScopedReports],
     );
 
     // A bulk selection can span several workspaces, so the Canadian Multiple Tax Export template is only offered when every selected item belongs to a workspace that outputs in CAD.
@@ -626,13 +644,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
 
-    const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
-    const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
+    const selectedBulkCurrency = payScopedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
+    const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, payScopedReports, selectedTransactions, selectedBulkCurrency);
 
     const onlyShowPayElsewhere = useMemo(() => {
         const selectedCurrencies =
-            selectedReports.length > 0
-                ? selectedReports.map((report) => report.currency).filter(Boolean)
+            payScopedReports.length > 0
+                ? payScopedReports.map((report) => report.currency).filter(Boolean)
                 : Object.values(selectedTransactions)
                       .map((transaction) => transaction.currency)
                       .filter(Boolean);
@@ -640,9 +658,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return true;
         }
 
-        const firstPolicyID = selectedPolicyIDs.at(0);
+        const firstPolicyID = payScopedPolicyIDs.at(0);
         const selectedPolicy = firstPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`] : undefined;
-        return (selectedTransactionReportIDs ?? selectedReportIDs).some((reportID) => {
+        return (selectedTransactionReportIDs ?? payScopedReportIDs).some((reportID) => {
             const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReportID = report?.chatReportID;
             const chatReport = chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
@@ -677,22 +695,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             );
         });
     }, [
-        selectedPolicyIDs,
+        payScopedPolicyIDs,
         currentSearchResults?.data,
         selectedTransactionReportIDs,
-        selectedReportIDs,
+        payScopedReportIDs,
         bankAccountList,
-        selectedReports,
+        payScopedReports,
         selectedTransactions,
-        currentUserPersonalDetails?.login,
+        currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
     ]);
 
-    const selectedBulkPayReportID = selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0);
+    const selectedBulkPayReportID = selectedTransactionReportIDs.at(0) ?? payScopedReportIDs.at(0);
     const selectedBulkPayReport = selectedBulkPayReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedBulkPayReportID}`] : undefined;
     const selectedBulkPayChatReportID = selectedBulkPayReport?.chatReportID;
     const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
-        selectedPolicyID: selectedPolicyIDs.at(0),
+        selectedPolicyID: payScopedPolicyIDs.at(0),
         selectedReportID: selectedBulkPayReportID,
         selectedReport: selectedBulkPayReport,
         selectedChatReport: selectedBulkPayChatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedBulkPayChatReportID}`] : undefined,
@@ -1322,7 +1340,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+            // Pay only the reports the viewer can settle. The menu is offered whenever at least one selected report is
+            // payable, so an ineligible report in the selection must be skipped here rather than aborting the whole run
+            // (it has no payment method, which the loop below treats as a reason to bail out of the entire bulk pay).
+            const selectedOptions = selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions);
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
             const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
@@ -1425,7 +1446,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             const itemsToPay =
                 selectedReports.length > 0
-                    ? selectedReports.map((report) => ({
+                    ? payableSelectedReports.map((report) => ({
                           reportID: report.reportID,
                           amount: report.total,
                           policyID: report.policyID,
@@ -1588,7 +1609,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             queryJSON,
             isOffline,
             isDelegateAccessRestricted,
-            selectedReports,
+            selectedReports.length,
+            payableSelectedReports,
             selectedTransactions,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,

@@ -458,6 +458,43 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
         );
     });
 
+    it('pays only the payable reports when the selection also contains one the viewer cannot settle', async () => {
+        // Given a selection of two reports where only the first one can be paid, e.g. the second is still awaiting approval
+        mockSelectedReports = [
+            {
+                reportID: '1',
+                policyID: 'policy1',
+                chatReportID: '2',
+                total: 100,
+                action: CONST.SEARCH.ACTION_TYPES.PAY,
+                canPay: true,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+            },
+            {
+                reportID: '3',
+                policyID: 'policy1',
+                chatReportID: '4',
+                total: 100,
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+            },
+        ];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {reportID: '3', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '4', policyID: 'policy1'});
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then only the payable report is paid: the ineligible one is left out of the run entirely rather than
+        // being paid alongside it or aborting the whole bulk payment
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '1'})}));
+    });
+
     it('skips a report when the chat is not loaded and no chatReportID is available', async () => {
         // Given a payable selected expense report whose chat report is not loaded and which has no chatReportID to build a fallback from
         mockSelectedReports = [

@@ -1,10 +1,12 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {
     exportSearchItemsToCSV,
     getChatReportWithFallback,
     getExportTemplates,
     getFooterConvertedAmounts,
+    getPayOption,
     openSearch,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -370,5 +372,76 @@ describe('getChatReportWithFallback', () => {
 
     it('returns no chat report when the chat is not loaded and there is no fallback chatReportID', () => {
         expect(getChatReportWithFallback(undefined, undefined, 'policyB')).toEqual({chatReport: undefined, isFallbackChatReport: false});
+    });
+});
+
+describe('getPayOption', () => {
+    function makeSelectedReport(reportID: string, canPay: boolean): SelectedReports {
+        return {
+            reportID,
+            policyID: 'policy1',
+            chatReportID: 'chat1',
+            total: 100,
+            action: canPay ? CONST.SEARCH.ACTION_TYPES.PAY : CONST.SEARCH.ACTION_TYPES.VIEW,
+            canPay,
+            canApprove: false,
+            canSubmit: false,
+            canChangeApprover: false,
+        };
+    }
+
+    function getShouldEnableBulkPayOption(selectedReports: SelectedReports[]) {
+        return getPayOption(selectedReports, {}, undefined, selectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), undefined).shouldEnableBulkPayOption;
+    }
+
+    it('enables bulk pay when every selected report is payable', () => {
+        expect(getShouldEnableBulkPayOption([makeSelectedReport('1', true), makeSelectedReport('2', true)])).toBe(true);
+    });
+
+    it('keeps bulk pay enabled when only some of the selected reports are payable', () => {
+        // Given a selection mixing two payable reports with one the viewer cannot settle (it only offers View)
+
+        // When the bulk pay eligibility is computed
+        const shouldEnableBulkPayOption = getShouldEnableBulkPayOption([makeSelectedReport('1', true), makeSelectedReport('2', true), makeSelectedReport('3', false)]);
+
+        // Then bulk pay stays available because it degrades to the payable subset instead of dropping the whole Pay
+        // group — the ineligible report is skipped at payment time rather than hiding Pay and Mark as paid for all three
+        expect(shouldEnableBulkPayOption).toBe(true);
+    });
+
+    it('disables bulk pay when no selected report is payable', () => {
+        expect(getShouldEnableBulkPayOption([makeSelectedReport('1', false), makeSelectedReport('2', false)])).toBe(false);
+    });
+
+    it('keeps transaction selections all-or-nothing', () => {
+        // Given a transaction-level selection where one transaction cannot be paid. Individual transactions are not
+        // paid one by one, so unlike whole reports there is no payable subset to degrade to.
+        function makeSelectedTransaction(reportID: string, action: SelectedTransactions[string]['action']): SelectedTransactions[string] {
+            return {
+                isSelected: true,
+                canReject: false,
+                canHold: false,
+                canSplit: false,
+                hasBeenSplit: false,
+                canChangeReport: false,
+                isHeld: false,
+                canUnhold: false,
+                action,
+                reportID,
+                policyID: 'policy1',
+                amount: 100,
+                currency: 'USD',
+                isFromOneTransactionReport: false,
+            };
+        }
+        const selectedTransactions: SelectedTransactions = {
+            tx1: makeSelectedTransaction('1', CONST.SEARCH.ACTION_TYPES.PAY),
+            tx2: makeSelectedTransaction('2', CONST.SEARCH.ACTION_TYPES.VIEW),
+        };
+
+        // When the bulk pay eligibility is computed
+
+        // Then bulk pay is unavailable, as it was before whole-report selections learned to degrade
+        expect(getPayOption([], selectedTransactions, undefined, [], undefined).shouldEnableBulkPayOption).toBe(false);
     });
 });
