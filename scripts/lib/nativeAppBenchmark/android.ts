@@ -9,9 +9,9 @@ import type {NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions} from '
 import {POLL_INTERVAL_MS, RELAUNCH_DELAY_MS, createCommandHelpers, latestBenchmarkEvents, parseBenchmarkLogEvents, sleep} from './shared';
 
 /** Creates an Android benchmark adapter that controls installation, process state, compilation state, and scoped logcat collection. */
-function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): NativeAppBenchmarkAdapter {
+async function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): Promise<NativeAppBenchmarkAdapter> {
     const {capture, run} = createCommandHelpers(rootDirectory);
-    const selectedDeviceIdentifier = deviceIdentifier ?? capture('adb', ['get-serialno']).trim();
+    const selectedDeviceIdentifier = deviceIdentifier ?? (await capture('adb', ['get-serialno'])).trim();
     if (!selectedDeviceIdentifier || selectedDeviceIdentifier === 'unknown') {
         throw new Error('Unable to resolve the Android device serial. Use --device to select one.');
     }
@@ -25,7 +25,7 @@ function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<Nat
         appID,
         deviceIdentifier: selectedDeviceIdentifier,
         prepareStartup: async (mode, appPath, installArtifact = false) => {
-            adb(['shell', 'am', 'force-stop', appID]);
+            await adb(['shell', 'am', 'force-stop', appID]);
             if (installArtifact) {
                 if (!appPath) {
                     throw new Error('Android artifact installation requires an app path.');
@@ -33,23 +33,23 @@ function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<Nat
                 if (!(await file(appPath).exists())) {
                     throw new Error(`Android app not found at ${appPath}.`);
                 }
-                adb(['install', '-r', '-d', appPath]);
+                await adb(['install', '-r', '-d', appPath]);
             }
-            assertAndroidAppInstalled(adbCapture(['shell', 'pm', 'path', appID]), appID);
+            assertAndroidAppInstalled(await adbCapture(['shell', 'pm', 'path', appID]), appID);
             if (mode === 'cold') {
-                adb(['shell', 'pm', 'clear', appID]);
-                adb(['shell', 'cmd', 'package', 'compile', '--reset', appID]);
+                await adb(['shell', 'pm', 'clear', appID]);
+                await adb(['shell', 'cmd', 'package', 'compile', '--reset', appID]);
             }
-            adb(['logcat', '-c']);
+            await adb(['logcat', '-c']);
             await sleep(RELAUNCH_DELAY_MS);
         },
         launchAndCollect: async (options) => {
-            adb(['shell', 'am', 'start', '-W', '-n', activity]);
-            const processIdentifier = parseAndroidProcessIdentifier(adbCapture(['shell', 'pidof', appID]), appID);
+            await adb(['shell', 'am', 'start', '-W', '-n', activity]);
+            const processIdentifier = parseAndroidProcessIdentifier(await adbCapture(['shell', 'pidof', appID]), appID);
             const deadline = Date.now() + options.waitTimeSeconds * 1000;
             let logs = '';
             while (Date.now() < deadline) {
-                logs = adbCapture(['logcat', `--pid=${processIdentifier}`, '-d', '-v', 'raw']);
+                logs = await adbCapture(['logcat', `--pid=${processIdentifier}`, '-d', '-v', 'raw']);
                 const events = parseBenchmarkLogEvents(logs);
                 if (options.waitUntilSpan && events.some((event) => event.span === options.waitUntilSpan)) {
                     return latestBenchmarkEvents(events, options.spanNames);

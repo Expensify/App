@@ -4,7 +4,7 @@ import {isJSONObject} from '@src/types/utils/JSONUtils';
 
 import type {JsonValue, TupleToUnion} from 'type-fest';
 
-import {spawnSync} from 'bun';
+import {$} from 'bun';
 
 const PLATFORM_NAMES = ['android', 'ios'] as const;
 const RELAUNCH_DELAY_MS = 500;
@@ -95,24 +95,25 @@ function benchmarkCollectionSpanNames(options: CollectBenchmarkEventsOptions): s
 
 /** Creates command runners for inherited output, captured output, and expected best-effort failures. */
 function createCommandHelpers(rootDirectory: string) {
-    const run = (command: string, args: string[]): void => {
-        const result = spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit'});
-        if (!result.success) {
+    const run = async (command: string, args: string[]): Promise<void> => {
+        const result = await $`${command} ${args}`.cwd(rootDirectory).nothrow();
+        if (result.exitCode !== 0) {
             throw new Error(`${command} exited with status ${result.exitCode}.`);
         }
     };
 
-    const capture = (command: string, args: string[]): string => {
-        const result = spawnSync([command, ...args], {cwd: rootDirectory, maxBuffer: 100 * 1024 * 1024});
-        if (!result.success) {
+    const capture = async (command: string, args: string[]): Promise<string> => {
+        const result = await $`${command} ${args}`.cwd(rootDirectory).quiet().nothrow();
+        if (result.exitCode !== 0) {
             const stderr = result.stderr.toString().trim();
             throw new Error(stderr || `${command} exited with status ${result.exitCode}.`);
         }
         return result.stdout.toString();
     };
 
-    const runAllowFailure = (command: string, args: string[]): boolean => {
-        return spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'ignore', stdout: 'ignore', stderr: 'ignore'}).success;
+    const runAllowFailure = async (command: string, args: string[]): Promise<boolean> => {
+        const result = await $`${command} ${args}`.cwd(rootDirectory).quiet().nothrow();
+        return result.exitCode === 0;
     };
 
     return {capture, run, runAllowFailure};

@@ -36,11 +36,11 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
     const device = await resolveIOSDevice(rootDirectory, deviceIdentifier ?? environmentDeviceIdentifier);
     let runningProcessIdentifier: number | undefined;
     /** Best-effort terminates the process tracked by this adapter and clears the cached identifier. */
-    const terminate = () => {
+    const terminate = async (): Promise<void> => {
         if (runningProcessIdentifier === undefined) {
             return;
         }
-        runAllowFailure('xcrun', ['devicectl', 'device', 'process', 'terminate', '--device', device, '--pid', String(runningProcessIdentifier)]);
+        await runAllowFailure('xcrun', ['devicectl', 'device', 'process', 'terminate', '--device', device, '--pid', String(runningProcessIdentifier)]);
         runningProcessIdentifier = undefined;
     };
     /** Launches the app through CoreDevice and caches the process identifier from its JSON response. */
@@ -48,7 +48,7 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
         const temporaryDirectory = createTemporaryDirectory('expensify-benchmark-ios-launch-');
         const jsonPath = join(temporaryDirectory, 'launch.json');
         try {
-            run('xcrun', ['devicectl', 'device', 'process', 'launch', '--device', device, '--terminate-existing', '--json-output', jsonPath, '--quiet', appID]);
+            await run('xcrun', ['devicectl', 'device', 'process', 'launch', '--device', device, '--terminate-existing', '--json-output', jsonPath, '--quiet', appID]);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const response = (await file(jsonPath).json()) as JsonValue;
             runningProcessIdentifier = parseIOSLaunchProcessIdentifier(response);
@@ -62,13 +62,13 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
         const appsJSONPath = join(temporaryDirectory, 'apps.json');
         const processesJSONPath = join(temporaryDirectory, 'processes.json');
         try {
-            run('xcrun', ['devicectl', 'device', 'info', 'apps', '--device', device, '--bundle-id', appID, '--json-output', appsJSONPath, '--quiet']);
+            await run('xcrun', ['devicectl', 'device', 'info', 'apps', '--device', device, '--bundle-id', appID, '--json-output', appsJSONPath, '--quiet']);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const rawAppsResponse = (await file(appsJSONPath).json()) as JsonValue;
             const appsResponse = parseIOSInstalledAppsResponse(rawAppsResponse);
             const appURL = parseIOSInstalledAppURL(appsResponse, appID);
             const escapedAppURL = appURL.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
-            run('xcrun', [
+            await run('xcrun', [
                 'devicectl',
                 'device',
                 'info',
@@ -94,7 +94,7 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
         const temporaryDirectory = createTemporaryDirectory('expensify-benchmark-ios-marker-');
         const localPath = join(temporaryDirectory, 'benchmark.log');
         try {
-            const copied = runAllowFailure('xcrun', [
+            const copied = await runAllowFailure('xcrun', [
                 'devicectl',
                 'device',
                 'copy',
@@ -124,7 +124,7 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
         deviceIdentifier: device,
         prepareStartup: async (mode, appPath, installArtifact = false) => {
             runningProcessIdentifier ??= await resolveRunningProcessIdentifier();
-            terminate();
+            await terminate();
             if (mode === 'cold' || installArtifact) {
                 if (!appPath) {
                     throw new Error(
@@ -137,9 +137,9 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
                     throw new Error(`iOS app not found at ${appPath}.`);
                 }
                 if (mode === 'cold') {
-                    runAllowFailure('xcrun', ['devicectl', 'device', 'uninstall', 'app', '--device', device, appID]);
+                    await runAllowFailure('xcrun', ['devicectl', 'device', 'uninstall', 'app', '--device', device, appID]);
                 }
-                run('xcrun', ['devicectl', 'device', 'install', 'app', '--device', device, appPath]);
+                await run('xcrun', ['devicectl', 'device', 'install', 'app', '--device', device, appPath]);
             }
             await sleep(RELAUNCH_DELAY_MS);
         },
@@ -184,7 +184,7 @@ async function resolveIOSDevice(rootDirectory: string, configuredDevice: string 
     const temporaryDirectory = createTemporaryDirectory('expensify-benchmark-ios-devices-');
     const jsonPath = join(temporaryDirectory, 'devices.json');
     try {
-        run('xcrun', ['devicectl', 'list', 'devices', '--json-output', jsonPath]);
+        await run('xcrun', ['devicectl', 'list', 'devices', '--json-output', jsonPath]);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const response = (await file(jsonPath).json()) as JsonValue;
         if (!isJSONObject(response) || !isJSONObject(response.result) || !isJSONArray(response.result.devices)) {

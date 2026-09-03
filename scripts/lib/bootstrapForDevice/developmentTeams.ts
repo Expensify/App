@@ -2,7 +2,7 @@
 
 /** Discovers local Apple development teams from provisioning profiles and prompts for a team when none was provided. */
 
-import {env, Glob, spawnSync} from 'bun';
+import {$, env, Glob} from 'bun';
 import {join} from 'node:path';
 import {createInterface} from 'node:readline/promises';
 
@@ -13,15 +13,15 @@ type DevelopmentTeam = {
     name: string;
 };
 
-async function resolveDevelopmentTeam(developmentTeam: string | undefined, teams = installedDevelopmentTeams(), prompt = promptForDevelopmentTeam): Promise<string> {
+async function resolveDevelopmentTeam(developmentTeam: string | undefined, teams?: DevelopmentTeam[], prompt = promptForDevelopmentTeam): Promise<string> {
     if (developmentTeam) {
         return developmentTeam;
     }
-    return prompt(teams);
+    return prompt(teams ?? (await installedDevelopmentTeams()));
 }
 
 /** Finds valid signing teams in Xcode's current and legacy provisioning-profile directories and deduplicates them by team ID. */
-function installedDevelopmentTeams(): DevelopmentTeam[] {
+async function installedDevelopmentTeams(): Promise<DevelopmentTeam[]> {
     const homeDirectory = env.HOME;
     if (!homeDirectory) {
         throw new Error('Could not locate provisioning profiles because HOME is not set.');
@@ -36,7 +36,7 @@ function installedDevelopmentTeams(): DevelopmentTeam[] {
             continue;
         }
         for (const profileName of profileNames) {
-            const profile = decodeProvisioningProfile(join(directory, profileName));
+            const profile = await decodeProvisioningProfile(join(directory, profileName));
             const team = profile ? parseDevelopmentTeamFromProvisioningProfile(profile) : undefined;
             if (team) {
                 teams.set(team.id, team);
@@ -82,9 +82,9 @@ function parseDevelopmentTeamFromProvisioningProfile(profile: string, now = new 
 }
 
 /** Decodes the CMS payload in a provisioning profile, returning undefined when OpenSSL cannot verify or read it. */
-function decodeProvisioningProfile(path: string): string | undefined {
-    const result = spawnSync(['openssl', 'smime', '-verify', '-inform', 'der', '-noverify', '-in', path], {stdin: 'ignore', stderr: 'ignore'});
-    return result.success ? result.stdout.toString() : undefined;
+async function decodeProvisioningProfile(path: string): Promise<string | undefined> {
+    const result = await $`openssl smime -verify -inform der -noverify -in ${path}`.quiet().nothrow();
+    return result.exitCode === 0 ? result.stdout.toString() : undefined;
 }
 
 function decodeXml(value: string): string {
