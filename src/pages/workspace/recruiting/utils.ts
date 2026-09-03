@@ -18,6 +18,15 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+type GetRecruitingCardsParams = {
+    policy: OnyxEntry<Policy>;
+    policyEmployeePersonalDetails: PersonalDetailsByLogin;
+    policyID: string;
+    icons: Record<'Download', IconAsset>;
+    translate: LocaleContextProps['translate'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
+
 function getApproverFieldLabel(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
     const approverField = getMergeATSApproverField(policy);
     switch (approverField) {
@@ -129,15 +138,6 @@ function getConfigRows(
 
     return rows;
 }
-
-type GetRecruitingCardsParams = {
-    policy: OnyxEntry<Policy>;
-    policyEmployeePersonalDetails: PersonalDetailsByLogin;
-    policyID: string;
-    icons: Record<'Download', IconAsset>;
-    translate: LocaleContextProps['translate'];
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-};
 
 function getRecruitingCards({policy, policyEmployeePersonalDetails, policyID, icons, translate, formatPhoneNumber}: GetRecruitingCardsParams): MergeProviderCardDescriptor[] {
     return ObjectUtils.typedKeys(MERGE_ATS_PROVIDERS).map((slug) => {
