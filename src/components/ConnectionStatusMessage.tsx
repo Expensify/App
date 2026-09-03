@@ -64,7 +64,7 @@ function ConnectionStatusMessage({
             )}
             <View style={[styles.flex1, styles.flexRow]}>
                 {isSuccessStatus ? (
-                    <Text style={[styles.textLabelError, styles.textSuccess]}>{message}</Text>
+                    <Text style={[styles.textLabelError, styles.badgeSuccessText]}>{message}</Text>
                 ) : (
                     <RenderHTML
                         html={messageHTML}
@@ -77,7 +77,7 @@ function ConnectionStatusMessage({
 
     const actionButton = shouldShowActionButton ? (
         <Button
-            variant={statusTone === 'success' ? CONST.BUTTON_VARIANT.SUCCESS : CONST.BUTTON_VARIANT.DANGER}
+            variant={isSuccessStatus ? CONST.BUTTON_VARIANT.SUCCESS : CONST.BUTTON_VARIANT.DANGER}
             size={CONST.BUTTON_SIZE.SMALL}
             style={styles.alignSelfStart}
             onPress={onActionPress}
