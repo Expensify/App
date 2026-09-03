@@ -1,12 +1,12 @@
 /**
- * Lowers ES modules to CommonJS and defers each `require()` to its first use site — the same
- * import-cycle tolerance Metro gets from `inlineRequires` (see metro.config.js), which this app
- * relies on to boot.
+ * Lowers ES modules to CommonJS and defers each `require()` to its first use site. This gives the
+ * same import-cycle tolerance Metro gets from `inlineRequires` (see metro.config.js), which this
+ * app relies on to boot.
  *
  * Uses Metro's own `inlineRequiresPlugin` rather than SWC's `module.lazy`. Both defer ~100% of
- * imports, but SWC's lazy mode emits a memoizing wrapper function per imported module — ~103k
- * extra functions here, worth ~7MB of Hermes bytecode. Inlining the require at the use site
- * defers identically and emits no wrapper.
+ * imports, but SWC's lazy mode emits a memoizing wrapper function per imported module. That is
+ * about 103k extra functions here, worth about 7MB of Hermes bytecode. Inlining the require at
+ * the use site defers identically and emits no wrapper.
  *
  * Needed as a separate stage because OXC transpiles only and has no CJS lowering.
  */
@@ -25,13 +25,13 @@ const INTEROP_HELPERS = new Set(['_interop_require_default', '_interop_require_w
  * Extends inline-requires to SWC's interop-wrapped imports, which Metro's plugin alone cannot
  * defer: it requires `arguments[0]` to be a string literal (SWC passes a `require()` call) and
  * skips any call whose function is bound locally (SWC declares the helper in-file). Without this,
- * default and namespace imports stay hoisted and eager — about half of all imports here, and
- * exactly the cycle tolerance the loader exists to provide.
+ * default and namespace imports stay hoisted and eager. That is about half of all imports here,
+ * and exactly the cycle tolerance the loader exists to provide.
  *
  * Metro sidesteps the problem with a global `_$$_IMPORT_DEFAULT('x')` helper that resolves the
  * module id at runtime. That is not portable to webpack, which must see a literal `require('x')`
  * to add the module to the graph at all. So instead of hoisting the helper, we inline the whole
- * initializer — interop call and literal require together — down to each use site.
+ * initializer (the interop call and the literal require together) down to each use site.
  *
  * Repeating the interop call per use site is cheap: `_interop_require_wildcard` early-returns for
  * `__esModule` objects and memoizes the rest in a WeakMap, and `_interop_require_default` is a
@@ -60,8 +60,8 @@ function inlineInteropRequiresPlugin({types: t}) {
                         continue;
                     }
                     // With no references there is nothing to inline into, and dropping the
-                    // declaration would stop the module loading at all - side-effect imports rely
-                    // on it. Metro's plugin does remove these; staying conservative here.
+                    // declaration would stop the module loading at all, since side-effect imports
+                    // rely on it. Metro's plugin does remove these, but we stay conservative here.
                     if (binding.referencePaths.length === 0) {
                         continue;
                     }
@@ -79,13 +79,13 @@ export default async function cjsInlineRequiresLoader(source, inputSourceMap) {
     const callback = this.async();
     try {
         const options = this.getOptions() || {};
-        // On prebuilt bundles SWC can emit a multi-source map, which remapping() below rejects —
-        // the node_modules rule passes `sourcemap: false` to skip maps entirely.
+        // On prebuilt bundles SWC can emit a multi-source map, which remapping() below rejects.
+        // The node_modules rule passes `sourcemap: false` to skip maps entirely.
         const sourceMaps = options.sourcemap !== undefined ? options.sourcemap : !!this.sourceMap;
 
         // App source only needs block-scoping (Hermes shares one binding across loop iterations).
         // node_modules also ship async generators, which Hermes cannot parse, so the node_modules
-        // rule opts into lowering those too; everything else modern Hermes handles natively.
+        // rule opts into lowering those too. Everything else modern Hermes handles natively.
         const envInclude = options.hermesLowering ? ['transform-block-scoping', 'transform-async-to-generator', 'transform-async-generator-functions'] : ['transform-block-scoping'];
 
         const swcResult = await rspack.experiments.swc.transform(source, {

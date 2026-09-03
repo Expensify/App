@@ -14,7 +14,7 @@ const projectRoot = path.resolve(__dirname, '../..');
 /**
  * Packages that must stay on babel + hermes-parser: Flow-typed runtime JS (OXC/SWC can't parse
  * Flow) and packages calling `codegenNativeComponent` in shipped JS, which needs the RN preset's
- * codegen plugin to register Fabric view configs — without it the app crashes on boot.
+ * codegen plugin to register Fabric view configs. Without it the app crashes on boot.
  */
 const BABEL_PACKAGES = [
     // Flow-typed:
@@ -63,8 +63,8 @@ export default Repack.defineRspackConfig((env) => {
         entry: './index.js',
         cache: {
             type: 'persistent',
-            // `buildDependencies` defaults to [] and rspack cannot see files that loaders read at runtime, so
-            // without this the cache silently reuses stale transform output after a babel/loader/.env change —
+            // `buildDependencies` defaults to [] and rspack cannot see files that loaders read at runtime.
+            // Without this the cache reuses stale transform output after a babel, loader or .env change.
             buildDependencies: [
                 path.resolve(projectRoot, 'babel.config.js'),
                 path.resolve(projectRoot, 'config/babel/reactCompilerConfig.js'),
@@ -112,7 +112,8 @@ export default Repack.defineRspackConfig((env) => {
             rules: [
                 // App source: the web build's OXC pipeline (config/rsbuild/loaders), so React Compiler
                 // runs through the same Rust compiler on both platforms. Loaders run bottom-up:
-                // fullstory (needs JSX) → oxc → worklets → CJS lowering with inlined requires.
+                // fullstory (which needs JSX), then oxc, then worklets, then CJS lowering with
+                // inlined requires.
                 {
                     test: /\.[cm]?[jt]sx?$/,
                     include: [path.resolve(projectRoot, 'src')],
@@ -139,8 +140,8 @@ export default Repack.defineRspackConfig((env) => {
                         loader: '@callstack/repack/babel-swc-loader',
                         parallel: true,
                         options: {
-                            // SWC's equivalent of Metro's `inlineRequires` — required to tolerate the
-                            // app's import cycles (without it the app crashes on boot).
+                            // SWC's equivalent of Metro's `inlineRequires`, required to tolerate
+                            // the app's import cycles. Without it the app crashes on boot.
                             lazyImports: true,
                             // Re.Pack parses every non-TS file with hermes-parser; this restores Metro's
                             // pragma gate so only Flow files pay for it. See the shim for details.
@@ -150,7 +151,7 @@ export default Repack.defineRspackConfig((env) => {
                 },
                 // All other node_modules: same OXC pipeline as app source, minus Fullstory and
                 // React Compiler. Skips hermes-parser, which is pathological on prebuilt minified
-                // bundles; worklet-containing libs still get the plugin via worklets-loader's sniff.
+                // bundles. Worklet-containing libs still get the plugin via worklets-loader's sniff.
                 {
                     test: /\.[cm]?[jt]sx?$/,
                     exclude: [path.resolve(projectRoot, 'src'), babelPackagesRegex],
@@ -193,7 +194,7 @@ export default Repack.defineRspackConfig((env) => {
             Boolean,
         ),
         ignoreWarnings: [
-            // React Compiler bailouts on rule-violating components — silenced the same way as web.
+            // React Compiler bailouts on rule-violating components, silenced the same way as web.
             /oxc-react-compiler-loader:/,
             /Module not found: Can't resolve '@react-native-masked-view\/masked-view'/,
             /Module not found: Can't resolve 'react-native-worklets-core'/,

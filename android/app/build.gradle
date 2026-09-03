@@ -52,8 +52,9 @@ react {
     //
     //   A list of extra flags to pass to the 'bundle' commands.
     //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
-    // Force `--minify true` for Repack: RN gradle task hardcodes minifyEnabled=false when Hermes is on
-    // (Metro-era assumption). Under Repack SWC minifier does real DCE + tree-shake; commander last-wins.
+    // Force `--minify true` for Repack. The RN gradle task hardcodes minifyEnabled=false when Hermes
+    // is on, an assumption from the Metro era. Under Repack the SWC minifier does real dead-code
+    // elimination and tree-shaking, and commander applies the last value passed.
     extraPackagerArgs = ["--minify", "true"]
 
     /* Hermes Commands */
