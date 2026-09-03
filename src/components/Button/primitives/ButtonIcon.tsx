@@ -53,4 +53,3 @@ function ButtonIcon({src, style, hoverFill, fill, accessibilityLabel}: ButtonIco
 }
 
 export default ButtonIcon;
-export type {ButtonIconProps};

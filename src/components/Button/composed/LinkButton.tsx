@@ -90,4 +90,3 @@ const LinkButton = Object.assign(LinkButtonComponent, {
 });
 
 export default LinkButton;
-export type {LinkButtonProps};
