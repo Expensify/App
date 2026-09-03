@@ -108,7 +108,6 @@ function ReceiptSection({
                 receiptThumbnail={receiptSource.receiptThumbnail}
                 resolvedReceiptImage={receiptSource.resolvedReceiptImage as string | undefined}
                 effectiveReceiptSource={receiptSource.effectiveReceiptSource}
-                receiptPageCount={transaction?.receipt?.pageCount ?? 0}
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
                 isDistanceRequest={isDistanceRequest}
                 compactReceiptContainerStyle={compact.compactReceiptContainerStyle}
