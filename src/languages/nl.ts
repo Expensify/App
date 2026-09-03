@@ -1608,37 +1608,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Je kunt dit rapport niet markeren als voltooid omdat alle transacties in behandeling zijn. Het kan een paar dagen duren voordat ze worden verwerkt.',
             allExpensesOnHoldDescription: 'Je kunt dit rapport niet indienen omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om het in te dienen.',
             allExpensesOnHoldMarkAsDoneDescription: 'Je kunt dit rapport niet markeren als voltooid omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om door te gaan.',
-            unableToSubmitSomeReports: 'Sommige rapporten kunnen niet worden ingediend',
-            unableToMarkSomeReportsAsDone: 'Sommige rapporten kunnen niet worden gemarkeerd als voltooid',
-            someReportsOnHoldDescription: () => ({
-                one: '1 van de geselecteerde rapporten kan niet worden ingediend omdat alle uitgaven ervan zijn gepauzeerd. De overige rapporten indienen?',
-                other: (count: number) => `${count} van de geselecteerde rapporten kunnen niet worden ingediend omdat alle uitgaven ervan zijn gepauzeerd. De overige rapporten indienen?`,
-            }),
-            someReportsOnHoldMarkAsDoneDescription: () => ({
-                one: '1 van de geselecteerde rapporten kan niet worden gemarkeerd als voltooid omdat alle uitgaven ervan zijn gepauzeerd. De overige rapporten markeren als voltooid?',
-                other: (count: number) =>
-                    `${count} van de geselecteerde rapporten kunnen niet worden gemarkeerd als voltooid omdat alle uitgaven ervan zijn gepauzeerd. De overige rapporten markeren als voltooid?`,
-            }),
-            someReportsPendingDescription: () => ({
-                one: '1 van de geselecteerde rapporten kan niet worden ingediend omdat alle transacties ervan in behandeling zijn. De overige rapporten indienen?',
-                other: (count: number) =>
-                    `${count} van de geselecteerde rapporten kunnen niet worden ingediend omdat alle transacties ervan in behandeling zijn. De overige rapporten indienen?`,
-            }),
-            someReportsPendingMarkAsDoneDescription: () => ({
-                one: '1 van de geselecteerde rapporten kan niet worden gemarkeerd als voltooid omdat alle transacties ervan in behandeling zijn. De overige rapporten markeren als voltooid?',
-                other: (count: number) =>
-                    `${count} van de geselecteerde rapporten kunnen niet worden gemarkeerd als voltooid omdat alle transacties ervan in behandeling zijn. De overige rapporten markeren als voltooid?`,
-            }),
-            someReportsOnHoldOrPendingDescription: () => ({
-                one: '1 van de geselecteerde rapporten kan niet worden ingediend omdat alle uitgaven ervan zijn gepauzeerd of in behandeling zijn. De overige rapporten indienen?',
-                other: (count: number) =>
-                    `${count} van de geselecteerde rapporten kunnen niet worden ingediend omdat alle uitgaven ervan zijn gepauzeerd of in behandeling zijn. De overige rapporten indienen?`,
-            }),
-            someReportsOnHoldOrPendingMarkAsDoneDescription: () => ({
-                one: '1 van de geselecteerde rapporten kan niet worden gemarkeerd als voltooid omdat alle uitgaven ervan zijn gepauzeerd of in behandeling zijn. De overige rapporten markeren als voltooid?',
-                other: (count: number) =>
-                    `${count} van de geselecteerde rapporten kunnen niet worden gemarkeerd als voltooid omdat alle uitgaven ervan zijn gepauzeerd of in behandeling zijn. De overige rapporten markeren als voltooid?`,
-            }),
+            reportsNotSubmittedTitle: 'Rapporten indienen',
+            reportsNotMarkedAsDoneTitle: 'Rapporten markeren als voltooid',
+            reportsNotSubmittedDescription: 'Deze rapporten konden niet worden ingediend. Controleer of er geen uitgaven gepauzeerd of in behandeling zijn en probeer het opnieuw.',
+            reportsNotMarkedAsDoneDescription:
+                'Deze rapporten konden niet worden gemarkeerd als voltooid. Controleer of er geen uitgaven gepauzeerd of in behandeling zijn en probeer het opnieuw.',
             stitchOdometerImagesFailed: 'Odometerafbeeldingen combineren mislukt. Probeer het later opnieuw.',
             failedToSaveOdometerDraft: 'De conceptkilometerstand kon niet worden opgeslagen. Probeer het opnieuw.',
         },

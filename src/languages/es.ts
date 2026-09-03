@@ -1578,35 +1578,10 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: 'No puedes marcar este informe como listo porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
             allExpensesOnHoldDescription: 'No puedes enviar este informe porque todos los gastos están retenidos. Elimina la retención para enviarlo.',
             allExpensesOnHoldMarkAsDoneDescription: 'No puedes marcar este informe como listo porque todos los gastos están retenidos. Elimina la retención para continuar.',
-            unableToSubmitSomeReports: 'No se pueden enviar algunos informes',
-            unableToMarkSomeReportsAsDone: 'No se pueden marcar algunos informes como listos',
-            someReportsOnHoldDescription: () => ({
-                one: '1 de los informes seleccionados no se puede enviar porque todos sus gastos están retenidos. ¿Enviar los informes restantes?',
-                other: (count: number) => `${count} de los informes seleccionados no se pueden enviar porque todos sus gastos están retenidos. ¿Enviar los informes restantes?`,
-            }),
-            someReportsOnHoldMarkAsDoneDescription: () => ({
-                one: '1 de los informes seleccionados no se puede marcar como listo porque todos sus gastos están retenidos. ¿Marcar los informes restantes como listos?',
-                other: (count: number) =>
-                    `${count} de los informes seleccionados no se pueden marcar como listos porque todos sus gastos están retenidos. ¿Marcar los informes restantes como listos?`,
-            }),
-            someReportsPendingDescription: () => ({
-                one: '1 de los informes seleccionados no se puede enviar porque todas sus transacciones están pendientes. ¿Enviar los informes restantes?',
-                other: (count: number) => `${count} de los informes seleccionados no se pueden enviar porque todas sus transacciones están pendientes. ¿Enviar los informes restantes?`,
-            }),
-            someReportsPendingMarkAsDoneDescription: () => ({
-                one: '1 de los informes seleccionados no se puede marcar como listo porque todas sus transacciones están pendientes. ¿Marcar los informes restantes como listos?',
-                other: (count: number) =>
-                    `${count} de los informes seleccionados no se pueden marcar como listos porque todas sus transacciones están pendientes. ¿Marcar los informes restantes como listos?`,
-            }),
-            someReportsOnHoldOrPendingDescription: () => ({
-                one: '1 de los informes seleccionados no se puede enviar porque todos sus gastos están retenidos o pendientes. ¿Enviar los informes restantes?',
-                other: (count: number) => `${count} de los informes seleccionados no se pueden enviar porque todos sus gastos están retenidos o pendientes. ¿Enviar los informes restantes?`,
-            }),
-            someReportsOnHoldOrPendingMarkAsDoneDescription: () => ({
-                one: '1 de los informes seleccionados no se puede marcar como listo porque todos sus gastos están retenidos o pendientes. ¿Marcar los informes restantes como listos?',
-                other: (count: number) =>
-                    `${count} de los informes seleccionados no se pueden marcar como listos porque todos sus gastos están retenidos o pendientes. ¿Marcar los informes restantes como listos?`,
-            }),
+            reportsNotSubmittedTitle: 'Enviar informes',
+            reportsNotMarkedAsDoneTitle: 'Marcar informes como listos',
+            reportsNotSubmittedDescription: 'No se pudieron enviar estos informes. Comprueba que ningún gasto esté retenido o pendiente e inténtalo de nuevo.',
+            reportsNotMarkedAsDoneDescription: 'No se pudieron marcar estos informes como listos. Comprueba que ningún gasto esté retenido o pendiente e inténtalo de nuevo.',
             stitchOdometerImagesFailed: 'No se pudieron combinar las imágenes del odómetro. Por favor, inténtalo de nuevo más tarde.',
             failedToSaveOdometerDraft: 'No se pudo guardar el borrador del odómetro. Por favor, inténtalo de nuevo.',
             invalidIntegerAmount: 'Por favor, introduce un importe entero en dólares antes de continuar',

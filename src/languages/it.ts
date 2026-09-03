@@ -1610,35 +1610,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Non puoi segnare questo report come completato perché tutte le transazioni sono in sospeso. Potrebbero volerci alcuni giorni prima che vengano registrate.',
             allExpensesOnHoldDescription: 'Non puoi inviare questo report perché tutte le spese sono in sospeso. Rimuovi il blocco per inviarlo.',
             allExpensesOnHoldMarkAsDoneDescription: 'Non puoi segnare questo report come completato perché tutte le spese sono in sospeso. Rimuovi il blocco per continuare.',
-            unableToSubmitSomeReports: 'Impossibile inviare alcuni report',
-            unableToMarkSomeReportsAsDone: 'Impossibile segnare alcuni report come completati',
-            someReportsOnHoldDescription: () => ({
-                one: '1 dei report selezionati non può essere inviato perché tutte le sue spese sono bloccate. Inviare i report rimanenti?',
-                other: (count: number) => `${count} dei report selezionati non possono essere inviati perché tutte le loro spese sono bloccate. Inviare i report rimanenti?`,
-            }),
-            someReportsOnHoldMarkAsDoneDescription: () => ({
-                one: '1 dei report selezionati non può essere segnato come completato perché tutte le sue spese sono bloccate. Segnare i report rimanenti come completati?',
-                other: (count: number) =>
-                    `${count} dei report selezionati non possono essere segnati come completati perché tutte le loro spese sono bloccate. Segnare i report rimanenti come completati?`,
-            }),
-            someReportsPendingDescription: () => ({
-                one: '1 dei report selezionati non può essere inviato perché tutte le sue transazioni sono in sospeso. Inviare i report rimanenti?',
-                other: (count: number) => `${count} dei report selezionati non possono essere inviati perché tutte le loro transazioni sono in sospeso. Inviare i report rimanenti?`,
-            }),
-            someReportsPendingMarkAsDoneDescription: () => ({
-                one: '1 dei report selezionati non può essere segnato come completato perché tutte le sue transazioni sono in sospeso. Segnare i report rimanenti come completati?',
-                other: (count: number) =>
-                    `${count} dei report selezionati non possono essere segnati come completati perché tutte le loro transazioni sono in sospeso. Segnare i report rimanenti come completati?`,
-            }),
-            someReportsOnHoldOrPendingDescription: () => ({
-                one: '1 dei report selezionati non può essere inviato perché tutte le sue spese sono bloccate o in sospeso. Inviare i report rimanenti?',
-                other: (count: number) => `${count} dei report selezionati non possono essere inviati perché tutte le loro spese sono bloccate o in sospeso. Inviare i report rimanenti?`,
-            }),
-            someReportsOnHoldOrPendingMarkAsDoneDescription: () => ({
-                one: '1 dei report selezionati non può essere segnato come completato perché tutte le sue spese sono bloccate o in sospeso. Segnare i report rimanenti come completati?',
-                other: (count: number) =>
-                    `${count} dei report selezionati non possono essere segnati come completati perché tutte le loro spese sono bloccate o in sospeso. Segnare i report rimanenti come completati?`,
-            }),
+            reportsNotSubmittedTitle: 'Invia report',
+            reportsNotMarkedAsDoneTitle: 'Segna report come completati',
+            reportsNotSubmittedDescription: 'Non è stato possibile inviare questi report. Verifica che nessuna spesa sia bloccata o in sospeso, poi riprova.',
+            reportsNotMarkedAsDoneDescription: 'Non è stato possibile segnare questi report come completati. Verifica che nessuna spesa sia bloccata o in sospeso, poi riprova.',
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
             failedToSaveOdometerDraft: 'Impossibile salvare la tua bozza del contachilometri. Riprova.',

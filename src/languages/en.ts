@@ -1666,33 +1666,10 @@ const translations = {
             allTransactionsPendingMarkAsDoneDescription: "You can't mark this report as done because all transactions are pending. They may take a few days to post.",
             allExpensesOnHoldDescription: "You can't submit this report because all expenses are on hold. Remove the hold to submit.",
             allExpensesOnHoldMarkAsDoneDescription: "You can't mark this report as done because all expenses are on hold. Remove the hold to continue.",
-            unableToSubmitSomeReports: 'Unable to submit some reports',
-            unableToMarkSomeReportsAsDone: 'Unable to mark some reports as done',
-            someReportsOnHoldDescription: () => ({
-                one: "1 of the selected reports can't be submitted because all of its expenses are on hold. Submit the remaining reports?",
-                other: (count: number) => `${count} of the selected reports can't be submitted because all of their expenses are on hold. Submit the remaining reports?`,
-            }),
-            someReportsOnHoldMarkAsDoneDescription: () => ({
-                one: "1 of the selected reports can't be marked as done because all of its expenses are on hold. Mark the remaining reports as done?",
-                other: (count: number) => `${count} of the selected reports can't be marked as done because all of their expenses are on hold. Mark the remaining reports as done?`,
-            }),
-            someReportsPendingDescription: () => ({
-                one: "1 of the selected reports can't be submitted because all of its transactions are pending. Submit the remaining reports?",
-                other: (count: number) => `${count} of the selected reports can't be submitted because all of their transactions are pending. Submit the remaining reports?`,
-            }),
-            someReportsPendingMarkAsDoneDescription: () => ({
-                one: "1 of the selected reports can't be marked as done because all of its transactions are pending. Mark the remaining reports as done?",
-                other: (count: number) => `${count} of the selected reports can't be marked as done because all of their transactions are pending. Mark the remaining reports as done?`,
-            }),
-            someReportsOnHoldOrPendingDescription: () => ({
-                one: "1 of the selected reports can't be submitted because all of its expenses are on hold or pending. Submit the remaining reports?",
-                other: (count: number) => `${count} of the selected reports can't be submitted because all of their expenses are on hold or pending. Submit the remaining reports?`,
-            }),
-            someReportsOnHoldOrPendingMarkAsDoneDescription: () => ({
-                one: "1 of the selected reports can't be marked as done because all of its expenses are on hold or pending. Mark the remaining reports as done?",
-                other: (count: number) =>
-                    `${count} of the selected reports can't be marked as done because all of their expenses are on hold or pending. Mark the remaining reports as done?`,
-            }),
+            reportsNotSubmittedTitle: 'Submit reports',
+            reportsNotMarkedAsDoneTitle: 'Mark reports as done',
+            reportsNotSubmittedDescription: "These reports weren't able to be submitted. Please check all expenses aren't held or pending, then try again.",
+            reportsNotMarkedAsDoneDescription: "These reports weren't able to be marked as done. Please check all expenses aren't held or pending, then try again.",
             failedToSaveOdometerDraft: "Couldn't save your odometer draft. Please try again.",
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,

@@ -101,7 +101,7 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
 }));
 
-const mockShowConfirmModal = jest.fn();
+const mockShowConfirmModal = jest.fn<Promise<{action: string}>, [{prompt?: string}]>();
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
     default: () => ({showConfirmModal: mockShowConfirmModal}),
@@ -221,6 +221,7 @@ jest.mock('@hooks/usePaymentContext', () => {
 const POLICY_ID = 'policy1';
 const REPORT_A_ID = 'reportA';
 const REPORT_B_ID = 'reportB';
+const REPORT_C_ID = 'reportC';
 
 const baseQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense-report status:all',
@@ -290,9 +291,7 @@ async function triggerBulkSubmit() {
 
     await act(async () => {
         result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT)?.onSelected?.();
-        // Flush pending microtasks so the async confirm-modal await resolves.
-        await Promise.resolve();
-        await Promise.resolve();
+        await waitForBatchedUpdates();
     });
 }
 
@@ -307,6 +306,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
         await Onyx.clear();
         mockSelectedReports = [];
         mockSelectedTransactions = {};
@@ -318,63 +318,52 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
             type: CONST.POLICY.TYPE.TEAM,
             role: CONST.POLICY.ROLE.ADMIN,
         });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_A_ID}`, {reportID: REPORT_A_ID, policyID: POLICY_ID, reportName: 'Report A'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_B_ID}`, {reportID: REPORT_B_ID, policyID: POLICY_ID, reportName: 'Report B'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_C_ID}`, {reportID: REPORT_C_ID, policyID: POLICY_ID, reportName: 'Report C'});
     });
 
     afterEach(async () => {
         await Onyx.clear();
     });
 
-    it('warns about a held-only report in a mixed selection and submits only the submittable one on confirm', async () => {
+    it('submits the submittable report and lists the held-only report that was skipped', async () => {
         mockSelectedReports = [makeSelectedReport(REPORT_A_ID), makeSelectedReport(REPORT_B_ID)];
         await mergeTransaction('txHeld', REPORT_A_ID, {comment: {hold: 'holdReportAction1'}});
         await mergeTransaction('txNormal', REPORT_B_ID);
-        mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
 
         await triggerBulkSubmit();
 
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(
-            expect.objectContaining({
-                title: 'iou.error.unableToSubmitSomeReports',
-                prompt: 'iou.error.someReportsOnHoldDescription',
-                confirmText: 'common.submit',
-                cancelText: 'common.cancel',
-            }),
-        );
         await waitFor(() => {
             expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledTimes(1);
         });
         expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(1)).toEqual([expect.objectContaining({reportID: REPORT_B_ID})]);
-    });
-
-    it('submits nothing when the mixed-selection warning is cancelled', async () => {
-        mockSelectedReports = [makeSelectedReport(REPORT_A_ID), makeSelectedReport(REPORT_B_ID)];
-        await mergeTransaction('txHeld', REPORT_A_ID, {comment: {hold: 'holdReportAction1'}});
-        await mergeTransaction('txNormal', REPORT_B_ID);
-        mockShowConfirmModal.mockResolvedValue({action: 'CLOSE'});
-
-        await triggerBulkSubmit();
-
-        expect(mockShowConfirmModal).toHaveBeenCalled();
-        expect(mockSubmitMoneyRequestOnSearch).not.toHaveBeenCalled();
-    });
-
-    it('uses the pending copy when the blocked report has only pending card transactions', async () => {
-        mockSelectedReports = [makeSelectedReport(REPORT_A_ID), makeSelectedReport(REPORT_B_ID)];
-        await mergeTransaction('txPending', REPORT_A_ID, {status: CONST.TRANSACTION.STATUS.PENDING});
-        await mergeTransaction('txNormal', REPORT_B_ID);
-        mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
-
-        await triggerBulkSubmit();
-
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
-                prompt: 'iou.error.someReportsPendingDescription',
+                title: 'iou.error.reportsNotSubmittedTitle',
+                subtitle: 'iou.error.reportsNotSubmittedDescription',
+                prompt: 'Report A',
+                confirmText: 'common.buttonConfirm',
+                shouldShowCancelButton: false,
             }),
         );
+    });
+
+    it('lists every skipped report when the selection mixes held-only and pending-only reports', async () => {
+        mockSelectedReports = [makeSelectedReport(REPORT_A_ID), makeSelectedReport(REPORT_B_ID), makeSelectedReport(REPORT_C_ID)];
+        await mergeTransaction('txHeld', REPORT_A_ID, {comment: {hold: 'holdReportAction1'}});
+        await mergeTransaction('txPending', REPORT_B_ID, {status: CONST.TRANSACTION.STATUS.PENDING});
+        await mergeTransaction('txNormal', REPORT_C_ID);
+
+        await triggerBulkSubmit();
+
         await waitFor(() => {
             expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledTimes(1);
         });
-        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(1)).toEqual([expect.objectContaining({reportID: REPORT_B_ID})]);
+        expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(1)).toEqual([expect.objectContaining({reportID: REPORT_C_ID})]);
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual(['Report A', 'Report B']);
     });
 
     it('shows the held block modal and submits nothing when every selected report has only held expenses', async () => {

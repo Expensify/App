@@ -99,7 +99,6 @@ import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
@@ -2279,7 +2278,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 text: allReportsShouldMarkAsDone ? translate('common.markAsDone') : translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
-                onSelected: async () => {
+                onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
                         return;
@@ -2317,48 +2316,25 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     const blockedReportIDs = new Set<string>();
-                    let hasPendingOnlyReport = false;
                     let hasHeldOnlyReport = false;
                     for (const [reportID, reportTransactions] of transactionsByReportID) {
                         if (hasOnlyPendingCardTransactions(reportTransactions)) {
                             blockedReportIDs.add(reportID);
-                            hasPendingOnlyReport = true;
                         } else if (hasOnlyHeldExpenses(reportTransactions)) {
                             blockedReportIDs.add(reportID);
                             hasHeldOnlyReport = true;
                         }
                     }
 
-                    if (blockedReportIDs.size > 0) {
-                        if (blockedReportIDs.size === transactionsByReportID.size) {
-                            // Held expenses are the reason the user can act on (remove the hold), so that
-                            // modal wins when the blocked reports mix both reasons.
-                            if (hasHeldOnlyReport) {
-                                showHeldExpensesBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
-                            } else {
-                                showPendingCardTransactionsBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
-                            }
-                            return;
-                        }
-
-                        let promptKey: TranslationPaths;
-                        if (hasHeldOnlyReport && hasPendingOnlyReport) {
-                            promptKey = allReportsShouldMarkAsDone ? 'iou.error.someReportsOnHoldOrPendingMarkAsDoneDescription' : 'iou.error.someReportsOnHoldOrPendingDescription';
-                        } else if (hasHeldOnlyReport) {
-                            promptKey = allReportsShouldMarkAsDone ? 'iou.error.someReportsOnHoldMarkAsDoneDescription' : 'iou.error.someReportsOnHoldDescription';
+                    if (blockedReportIDs.size > 0 && blockedReportIDs.size === transactionsByReportID.size) {
+                        // Held expenses are the reason the user can act on (remove the hold), so that
+                        // modal wins when the blocked reports mix both reasons.
+                        if (hasHeldOnlyReport) {
+                            showHeldExpensesBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
                         } else {
-                            promptKey = allReportsShouldMarkAsDone ? 'iou.error.someReportsPendingMarkAsDoneDescription' : 'iou.error.someReportsPendingDescription';
+                            showPendingCardTransactionsBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
                         }
-
-                        const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
-                            title: translate(allReportsShouldMarkAsDone ? 'iou.error.unableToMarkSomeReportsAsDone' : 'iou.error.unableToSubmitSomeReports'),
-                            prompt: translate(promptKey, {count: blockedReportIDs.size}),
-                            confirmText: translate(allReportsShouldMarkAsDone ? 'common.markAsDone' : 'common.submit'),
-                            cancelText: translate('common.cancel'),
-                        });
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
-                        }
+                        return;
                     }
 
                     const selectedReportForSubmit = selectedReports.at(0);
@@ -2411,6 +2387,29 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
                         }
                     }
+
+                    // Blocked reports are skipped rather than aborting the whole action, so list the ones that were
+                    // left out. The live Onyx report can be an incomplete optimistic record that lacks `reportName`,
+                    // so fall back to the Search snapshot for the name.
+                    if (blockedReportIDs.size > 0) {
+                        const blockedReportNames: string[] = [];
+                        for (const reportID of blockedReportIDs) {
+                            const reportName =
+                                allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+                            if (reportName) {
+                                blockedReportNames.push(reportName);
+                            }
+                        }
+                        showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
+                            title: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneTitle' : 'iou.error.reportsNotSubmittedTitle'),
+                            subtitle: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneDescription' : 'iou.error.reportsNotSubmittedDescription'),
+                            prompt: blockedReportNames.join('\n'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                            shouldEnablePromptScroll: true,
+                        });
+                    }
+
                     // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
                     // context (which still offers Submit) until the snapshot is refetched, the same way approving and
                     // paying from Search already do.
