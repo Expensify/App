@@ -9891,8 +9891,9 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             // dot, the Fix action badge or the Inbox To-do. The back end owns the violation type, so it is excluded by name
             // before the type checks — the exclusion has to hold whichever bucket (violation/warning/notice) it lands in.
             const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.COMPANY_CARD_REQUIRED] : [];
-            // `modifiedAmount` stays notice-only, exactly as before: it also arrives typed `violation` and `warning`
-            // (see TransactionPreviewUtils), and those buckets have always driven the RBR here.
+            // `modifiedAmount` stays notice-only, exactly as before: it also arrives typed `violation` — the
+            // `modifiedAmount` checks in TransactionPreviewUtils match `VIOLATION` or `NOTICE` — and that bucket has
+            // always driven the RBR here.
             const excludedNoticeNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 
             return (

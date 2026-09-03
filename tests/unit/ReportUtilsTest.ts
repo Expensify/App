@@ -17507,21 +17507,20 @@ describe('ReportUtils', () => {
             });
 
             // Guards the scope of the change: `modifiedAmount` has always been excluded from the notice check only, and it
-            // also arrives typed `violation`. Widening its exclusion to every bucket would silently drop the RBR here.
-            it.each([CONST.VIOLATION_TYPES.VIOLATION, CONST.VIOLATION_TYPES.WARNING])(
-                'should still surface RBR on a submitted report when the only violation is a modifiedAmount %s',
-                async (violationType) => {
-                    await Onyx.clear();
+            // also arrives typed `violation` (the `modifiedAmount` checks in TransactionPreviewUtils match `VIOLATION` or
+            // `NOTICE`). Widening its exclusion to the hard-violation bucket would silently drop the RBR here. There is no
+            // evidence the back end ever types `modifiedAmount` as `warning`, so that bucket is deliberately not asserted.
+            it('should still surface RBR on a submitted report when the only violation is a modifiedAmount violation', async () => {
+                await Onyx.clear();
 
-                    const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(`modified-amount-${violationType}`, [
-                        {name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: violationType, showInReview: true},
-                    ]);
+                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario('modified-amount-violation', [
+                    {name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                ]);
 
-                    expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
 
-                    await Onyx.clear();
-                },
-            );
+                await Onyx.clear();
+            });
 
             // The exclusion is scoped to the RBR decision only. The violation message itself has to stay visible on the
             // expense to everyone, which is what keeps the submitter able to see why the report is stuck.
