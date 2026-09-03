@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import {useEnvironmentActions} from '@components/EnvironmentContextProvider';
 import RenderHTML from '@components/RenderHTML';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
@@ -13,9 +14,11 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 
+import {DomUtils, parseDocument} from 'htmlparser2';
 import type {OnyxEntry} from 'react-native-onyx';
 
 type HomeAddressRequiredContentProps = {
@@ -24,8 +27,45 @@ type HomeAddressRequiredContentProps = {
 
 const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) => !!getCurrentAddress(privatePersonalDetails)?.street?.trim();
 
+const PRIVATE_PERSONAL_DETAILS_ROUTE = ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route;
+const PRIVATE_PERSONAL_DETAILS_ROUTE_WITH_FOCUS = ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1);
+
+/**
+ * The home address link in the action HTML points at the private personal details page without a `fieldToFocus` param,
+ * so Address line 1 isn't focused when the page is opened that way. Point those anchors at the exact route the
+ * "Add address" button below navigates to, so both entry points behave identically.
+ */
+function focusAddressLineOnPrivatePersonalDetailsLinks(html: string): string {
+    if (!html) {
+        return html;
+    }
+
+    try {
+        const dom = parseDocument(html);
+        const anchorTags = DomUtils.findAll((el) => el.name?.toLowerCase() === 'a', dom);
+
+        let adjustedHtml = html;
+
+        for (const anchorTag of anchorTags) {
+            const href = anchorTag.attribs?.href;
+            const [path] = href?.split('?') ?? [];
+
+            if (href && path?.endsWith(PRIVATE_PERSONAL_DETAILS_ROUTE)) {
+                const newHref = `${path.slice(0, -PRIVATE_PERSONAL_DETAILS_ROUTE.length)}${PRIVATE_PERSONAL_DETAILS_ROUTE_WITH_FOCUS}`;
+
+                adjustedHtml = adjustedHtml.replace(`href="${href}"`, `href="${newHref}"`);
+            }
+        }
+
+        return adjustedHtml;
+    } catch {
+        return html;
+    }
+}
+
 function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const {translate} = useLocalize();
+    const {adjustExpensifyLinksForEnv} = useEnvironmentActions();
     const [hasHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: hasHomeAddressSelector});
 
     // The prompt is resolved once the member saves a home address. Keep the CTA in sync with the local
@@ -33,9 +73,11 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     // stamps the action as resolved.
     const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress;
 
+    const messageHtml = focusAddressLineOnPrivatePersonalDetailsLinks(adjustExpensifyLinksForEnv(getReportActionHtml(action) || getReportActionText(action)));
+
     return (
         <ReportActionItemBasicMessage>
-            <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action) || getReportActionText(action)}</muted-text></comment>`} />
+            <RenderHTML html={`<comment><muted-text>${messageHtml}</muted-text></comment>`} />
             {!isResolved && (
                 <ActionableItemButtons layout="horizontal">
                     <Button
