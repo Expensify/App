@@ -158,6 +158,7 @@ function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
         }
     };
     const readBenchmarkMarker = (spanName: string): string | undefined => {
+        // CoreDevice cannot stream the launched app's console output, so collect the marker written to the iOS app container instead.
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-ios-marker-'));
         const localPath = join(temporaryDirectory, 'benchmark.log');
         try {

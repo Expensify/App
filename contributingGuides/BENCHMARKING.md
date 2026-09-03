@@ -138,6 +138,8 @@ The percentile and summary-statistics functions in `scripts/lib/benchmarkStatist
 
 Android benchmark logs are scoped to the PID launched for each application ID. This prevents log events from the other installed comparison binary from being counted in the current sample.
 
+The Android collector reads tagged warnings from that process through `adb logcat`. CoreDevice does not provide the benchmark script with an equivalent stream of iOS app logs, so the iOS logger also writes one marker file per span to the app cache. The collector copies those markers from the app container with `devicectl`.
+
 For example, another build or profiling script can install an artifact and call `benchmarkAppStartups` with its platform, device, bundle identifier, output paths, and span names. This keeps artifact building and installation in the caller while sharing startup measurement and platform-device behavior.
 
 ```ts
