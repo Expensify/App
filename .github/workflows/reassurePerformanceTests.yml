@@ -1,10 +1,18 @@
 name: Reassure Performance Tests
+# cspell:ignore nvmrc -- the filename `.nvmrc`, hashed into the cache key below
 
 on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
     paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, tests/**, '**.md', '**.sh']
+
+# 9.0% of the 300 most recent runs were superseded by another push to the same PR while still
+# running, at a mean of 303s across 2.7 of their 3 jobs. pull_request-only, so github.ref is
+# refs/pull/<n>/merge and the group is a single PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   baseline-perf-tests:
@@ -26,9 +34,37 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
 
+      # Skips re-transforming ~7,000 files through Babel, which is 45% of this job. The entry is
+      # written on main by seedJestPerfCache.yml, which is also where the key is explained.
+      #
+      # Restore only, never save, so nothing an untrusted PR runs can end up in an entry a later
+      # run executes. No restore-keys either: babel-jest does not hash Babel plugin versions into
+      # an entry's name, so a prefix fallback could serve output built by an older
+      # babel-plugin-react-compiler and move the render counts this workflow gates at
+      # COUNT_DEVIATION: 0. Keep this key byte-identical to the other three.
+      - name: Restore Jest transform cache
+        # v5.0.1
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          key: ${{ format('{0}-{1}-jest-perf-{2}', runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc')) }}
+
       - name: Run baseline performance tests
         shell: bash
         run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+
+      # Healthy is ~120MB / ~7,000 files, and this notice is the only signal if that stops being
+      # true. Near zero: seedJestPerfCache.yml is no longer running, so runs go cold again. Roughly
+      # double: the two measure jobs stopped passing Jest identical arguments, which quietly writes
+      # a second full set of entries.
+      - name: Report Jest cache size
+        if: always()
+        run: |
+          if [[ -d .jest-cache ]]; then
+            echo "::notice::Jest perf cache: $(du -sm .jest-cache | cut -f1)MB, $(find .jest-cache -type f | wc -l) files"
+          else
+            echo "::notice::Jest perf cache: absent"
+          fi
 
       - name: Upload baseline performance results
         # v6
@@ -48,12 +84,40 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
 
+      # Skips re-transforming ~7,000 files through Babel, which is 45% of this job. The entry is
+      # written on main by seedJestPerfCache.yml, which is also where the key is explained.
+      #
+      # Restore only, never save, so nothing an untrusted PR runs can end up in an entry a later
+      # run executes. No restore-keys either: babel-jest does not hash Babel plugin versions into
+      # an entry's name, so a prefix fallback could serve output built by an older
+      # babel-plugin-react-compiler and move the render counts this workflow gates at
+      # COUNT_DEVIATION: 0. Keep this key byte-identical to the other three.
+      - name: Restore Jest transform cache
+        # v5.0.1
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          key: ${{ format('{0}-{1}-jest-perf-{2}', runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc')) }}
+
       - name: Run branch performance tests
         shell: bash
         env:
           BRANCH: ${{ github.head_ref }}
           COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
         run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare
+
+      # Healthy is ~120MB / ~7,000 files, and this notice is the only signal if that stops being
+      # true. Near zero: seedJestPerfCache.yml is no longer running, so runs go cold again. Roughly
+      # double: the two measure jobs stopped passing Jest identical arguments, which quietly writes
+      # a second full set of entries.
+      - name: Report Jest cache size
+        if: always()
+        run: |
+          if [[ -d .jest-cache ]]; then
+            echo "::notice::Jest perf cache: $(du -sm .jest-cache | cut -f1)MB, $(find .jest-cache -type f | wc -l) files"
+          else
+            echo "::notice::Jest perf cache: absent"
+          fi
 
       - name: Upload branch performance results
         # v6
