@@ -1,6 +1,7 @@
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
+import {isRecord} from '@libs/ObjectUtils';
 
 import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
 
@@ -8,7 +9,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
-import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 

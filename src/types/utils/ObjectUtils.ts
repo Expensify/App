@@ -1,4 +1,4 @@
-import type {Entries, ValueOf} from 'type-fest';
+import type {Entries} from 'type-fest';
 
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
 function typedEntries<T extends object>(obj: T): Entries<T> {
@@ -21,26 +21,8 @@ function hasMethod<T extends string>(value: unknown, methodName: T): value is Re
     return value != null && typeof (value as Record<string, unknown>)[methodName] === 'function';
 }
 
-function getObjectKeys<T extends Record<string, unknown>>(obj: T): Array<keyof T> {
-    return Object.keys(obj) as Array<keyof T>;
-}
-
-function getObjectValues<T extends Record<string, unknown>>(obj: T): Array<ValueOf<T>> {
-    // Needed for functionality
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return Object.values(obj) as Array<ValueOf<T>>;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function isUnknownArray(value: unknown): value is unknown[] {
     return Array.isArray(value);
-}
-
-function hasKey<T extends Record<string, unknown>>(obj: T, key: PropertyKey): key is keyof T {
-    return key in obj;
 }
 
 export default {
@@ -49,4 +31,4 @@ export default {
     typedKeys,
     hasMethod,
 };
-export {getObjectKeys, getObjectValues, hasKey, isRecord, isUnknownArray};
+export {isUnknownArray};

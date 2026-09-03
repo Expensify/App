@@ -1,9 +1,8 @@
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import {isRecord} from '@libs/ObjectUtils';
 import {RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
 
 import {getAll, getOngoingRequest} from '@userActions/PersistedRequests';
-
-import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import type {PendingReceipt} from './types';
 

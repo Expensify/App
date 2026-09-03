@@ -15,19 +15,19 @@ import HttpUtils from '@libs/HttpUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
+import {isRecord} from '@libs/ObjectUtils';
 import reauthenticate from '@libs/Reauthentication';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import * as SessionUtil from '@src/libs/actions/Session';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribeToPushNotifications';
 
+import * as SessionUtil from '@src/libs/actions/Session';
 import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, Session} from '@src/types/onyx';
-import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 

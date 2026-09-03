@@ -2,7 +2,6 @@ import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxState from '@src/types/onyx/OnyxState';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import type {UnknownRecord} from 'type-fest';
@@ -10,6 +9,7 @@ import type {UnknownRecord} from 'type-fest';
 import cloneDeep from 'lodash/cloneDeep';
 
 import {clearOnyxStateBeforeImport, importOnyxCollectionState, importOnyxRegularState} from './actions/ImportOnyxState';
+import {isRecord} from './ObjectUtils';
 
 // List of Onyx keys from the .txt file we want to keep for the local override.
 // PRESERVED_USER_SESSION/PRESERVED_ACCOUNT are local-only restoration state that the import flow

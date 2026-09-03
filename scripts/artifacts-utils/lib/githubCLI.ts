@@ -1,4 +1,4 @@
-import {isRecord} from '@src/types/utils/ObjectUtils';
+import {isRecord} from '@libs/ObjectUtils';
 
 import {execFileSync} from 'child_process';
 

@@ -1,4 +1,4 @@
-import {isRecord} from '@src/types/utils/ObjectUtils';
+import {isRecord} from '@libs/ObjectUtils';
 
 import type {TupleToUnion} from 'type-fest';
 

@@ -1,6 +1,7 @@
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import {
@@ -12,7 +13,6 @@ import {
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {IntuitEnterpriseSuiteEntity, QBOConnectionConfig} from '@src/types/onyx/Policy';
-import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import type {NullishDeep, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 

@@ -1,7 +1,7 @@
+import {isRecord} from '@libs/ObjectUtils';
 import {parse} from '@libs/SearchParser/searchParser';
 
 import CONST from '@src/CONST';
-import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 

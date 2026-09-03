@@ -1,10 +1,11 @@
-import CONFIG from '@src/CONFIG';
-import type CloudflareSession from '@src/types/onyx/CloudflareSession';
 /**
  * Strictly-validating client for Cloudflare Access's Managed OAuth endpoints. Protocol failures surface as
  * OAuthError, so callers can tell terminal outcomes from transient transport errors.
  */
-import {isRecord} from '@src/types/utils/ObjectUtils';
+import {isRecord} from '@libs/ObjectUtils';
+
+import CONFIG from '@src/CONFIG';
+import type CloudflareSession from '@src/types/onyx/CloudflareSession';
 
 import {getAuthServerEndpoints} from './AuthServerMetadata';
 import {getOAuthRedirectURI, getQAOrigin} from './Config';

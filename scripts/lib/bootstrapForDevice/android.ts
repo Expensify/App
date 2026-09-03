@@ -1,4 +1,6 @@
-import {isRecord, isUnknownArray} from '@src/types/utils/ObjectUtils';
+import {isRecord} from '@libs/ObjectUtils';
+
+import {isUnknownArray} from '@src/types/utils/ObjectUtils';
 
 import type {TupleToUnion} from 'type-fest';
 

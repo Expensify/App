@@ -1,13 +1,13 @@
 import {search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
+import {isRecord} from '@libs/ObjectUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/onyx/Response';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
-import {isRecord} from '@src/types/utils/ObjectUtils';
 
 import createMock from '../../utils/createMock';
 
