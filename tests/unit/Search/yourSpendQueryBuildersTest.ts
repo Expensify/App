@@ -13,6 +13,7 @@ import {buildSearchQueryJSON, getFilterFromQuery} from '@src/libs/SearchQueryUti
 
 const ACCOUNT_ID = 12345;
 const CARD_ID = 67890;
+const SECOND_CARD_ID = 67891;
 
 // Helpers
 
@@ -169,7 +170,7 @@ describe('buildRecentCardTransactionsQuery', () => {
     let queryString: string;
 
     beforeEach(() => {
-        queryString = buildRecentCardTransactionsQuery(ACCOUNT_ID, CARD_ID);
+        queryString = buildRecentCardTransactionsQuery(ACCOUNT_ID, [CARD_ID]);
     });
 
     it('returns a non-empty query string', () => {
@@ -212,5 +213,33 @@ describe('buildRecentCardTransactionsQuery', () => {
         const diffDays = (today.getTime() - parsedDate.getTime()) / (1000 * 60 * 60 * 24);
         expect(diffDays).toBeGreaterThanOrEqual(29);
         expect(diffDays).toBeLessThanOrEqual(31);
+    });
+
+    it('includes every cardID of a combo card duo', () => {
+        const comboQueryString = buildRecentCardTransactionsQuery(ACCOUNT_ID, [CARD_ID, SECOND_CARD_ID]);
+        const cardFilters = getRawFiltersForKey(comboQueryString, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+        const values = cardFilters.flatMap((f) => (Array.isArray(f.value) ? f.value : [f.value]));
+        expect(values).toContain(String(CARD_ID));
+        expect(values).toContain(String(SECOND_CARD_ID));
+    });
+
+    it('joins a combo card duo into a single comma-separated card filter', () => {
+        const comboQueryString = buildRecentCardTransactionsQuery(ACCOUNT_ID, [CARD_ID, SECOND_CARD_ID]);
+        expect(comboQueryString).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${CARD_ID},${SECOND_CARD_ID}`);
+    });
+
+    it('emits a single cardID without a comma', () => {
+        expect(queryString).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${CARD_ID}`);
+        expect(queryString).not.toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID}:${CARD_ID},`);
+    });
+
+    it('keeps the other filters intact for a combo card duo', () => {
+        const comboQueryString = buildRecentCardTransactionsQuery(ACCOUNT_ID, [CARD_ID, SECOND_CARD_ID]);
+        const queryJSON = buildSearchQueryJSON(comboQueryString);
+        expect(queryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+        expect(comboQueryString).toMatch(/date>[0-9]{4}-[0-9]{2}-[0-9]{2}/);
+        const fromFilters = getRawFiltersForKey(comboQueryString, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+        const fromValues = fromFilters.flatMap((f) => (Array.isArray(f.value) ? f.value : [f.value]));
+        expect(fromValues).toContain(String(ACCOUNT_ID));
     });
 });

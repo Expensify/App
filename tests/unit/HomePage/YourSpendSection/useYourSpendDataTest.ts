@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 
 import {search} from '@libs/actions/Search';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import type {DisplayableExpensifyCards} from '@libs/CardUtils';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -94,7 +95,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 
 jest.mock('@libs/CardUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/CardUtils'),
-    getDisplayableExpensifyCards: jest.fn(() => []),
+    getDisplayableExpensifyCards: jest.fn(() => ({cards: [], cardIDsByCardID: {}})),
     getDisplayableThirdPartyCards: jest.fn(() => []),
 }));
 
@@ -255,9 +256,15 @@ function networkState(isOffline: boolean): ReturnType<typeof useNetwork> {
     return {isOffline};
 }
 
-/** Builds a `Card[]` payload for `getDisplayableExpensifyCards.mockReturnValue`. */
-function makeDisplayableCards(cards: Array<{cardID: number; lastFourPAN: string}>): Card[] {
-    return cards.map((card) => createMock<Card>(card));
+/** Builds a `DisplayableExpensifyCards` payload for `getDisplayableExpensifyCards.mockReturnValue`. */
+function makeDisplayableCards(cards: Array<{cardID: number; lastFourPAN: string; comboCardIDs?: number[]}>): DisplayableExpensifyCards {
+    return {
+        cards: cards.map(({cardID, lastFourPAN}) => createMock<Card>({cardID, lastFourPAN})),
+        cardIDsByCardID: cards.reduce<Record<number, number[]>>((acc, {cardID, comboCardIDs}) => {
+            acc[cardID] = comboCardIDs ?? [cardID];
+            return acc;
+        }, {}),
+    };
 }
 
 // Common beforeEach
@@ -271,8 +278,8 @@ beforeEach(() => {
 
     mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY);
     mockedBuildRepaidLast30DaysQuery.mockReturnValue(PAYMENT_QUERY);
-    mockedBuildRecentCardTransactionsQuery.mockImplementation((_accountID: number, cardID: number) => {
-        switch (cardID) {
+    mockedBuildRecentCardTransactionsQuery.mockImplementation((_accountID: number, cardIDs: number[]) => {
+        switch (cardIDs.at(0)) {
             case CARD_ID_1:
                 return CARD_QUERY_1;
             case CARD_ID_2:
@@ -288,7 +295,7 @@ beforeEach(() => {
 
     mockedUseNetwork.mockReturnValue(networkState(false));
     mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
-    mockedGetDisplayableExpensifyCards.mockReturnValue([]);
+    mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByCardID: {}});
     mockedGetDisplayableThirdPartyCards.mockReturnValue([]);
     mockedIsPaidGroupPolicy.mockReturnValue(false);
 
@@ -397,7 +404,7 @@ describe('useYourSpendData — paymentRowState', () => {
 
 describe('useYourSpendData — cardRows', () => {
     it('returns an empty array when there are no displayable cards', () => {
-        mockedGetDisplayableExpensifyCards.mockReturnValue([]);
+        mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByCardID: {}});
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toEqual([]);
     });
@@ -456,6 +463,25 @@ describe('useYourSpendData — cardRows', () => {
         expect(result.current.cardRows).toHaveLength(1);
         expect(result.current.cardRows.at(0)).toMatchObject({cardID: CARD_ID_2, lastFour: CARD_LAST_FOUR_2});
     });
+
+    it('returns a single row keyed by the physical card for a combo card duo', () => {
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1, comboCardIDs: [CARD_ID_1, CARD_ID_2]}]));
+        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(3));
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.cardRows).toHaveLength(1);
+        expect(result.current.cardRows.at(0)).toMatchObject({
+            cardID: CARD_ID_1,
+            lastFour: CARD_LAST_FOUR_1,
+            query: CARD_QUERY_1,
+        });
+    });
+
+    it('excludes a combo card duo whose snapshot has count === 0', () => {
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1, comboCardIDs: [CARD_ID_1, CARD_ID_2]}]));
+        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(0));
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.cardRows).toHaveLength(0);
+    });
 });
 
 // query builder integration
@@ -493,7 +519,13 @@ describe('useYourSpendData — query builder integration', () => {
     it('calls buildRecentCardTransactionsQuery with accountID and the card cardID', () => {
         mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
         renderHook(() => useYourSpendData());
-        expect(buildRecentCardTransactionsQuery).toHaveBeenCalledWith(ACCOUNT_ID, CARD_ID_1);
+        expect(buildRecentCardTransactionsQuery).toHaveBeenCalledWith(ACCOUNT_ID, [CARD_ID_1]);
+    });
+
+    it('calls buildRecentCardTransactionsQuery with both cardIDs of a combo card duo', () => {
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1, comboCardIDs: [CARD_ID_1, CARD_ID_2]}]));
+        renderHook(() => useYourSpendData());
+        expect(buildRecentCardTransactionsQuery).toHaveBeenCalledWith(ACCOUNT_ID, [CARD_ID_1, CARD_ID_2]);
     });
 
     it('exposes awaitingApprovalQuery from the builder return value', () => {
@@ -526,6 +558,32 @@ describe('useYourSpendData — search dispatch', () => {
         mockedUseNetwork.mockReturnValue(networkState(true));
         renderHook(() => useYourSpendData());
         expect(search).not.toHaveBeenCalled();
+    });
+
+    it('re-fires the searches when a combo card duo gains its virtual half', () => {
+        // `getDisplayableExpensifyCards` runs inside a memo keyed on the CARD_LIST value, so the
+        // second render only picks up the new duo when that value changes identity too.
+        onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}};
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        const {rerender} = renderHook(() => useYourSpendData());
+        const callCountAfterFirstRender = mockedSearch.mock.calls.length;
+
+        onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}, [CARD_ID_2]: {cardID: CARD_ID_2}};
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1, comboCardIDs: [CARD_ID_1, CARD_ID_2]}]));
+        rerender();
+
+        expect(mockedSearch.mock.calls.length).toBeGreaterThan(callCountAfterFirstRender);
+    });
+
+    it('does not re-fire the searches when the card set is unchanged', () => {
+        onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}, [CARD_ID_2]: {cardID: CARD_ID_2}};
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1, comboCardIDs: [CARD_ID_1, CARD_ID_2]}]));
+        const {rerender} = renderHook(() => useYourSpendData());
+        const callCountAfterFirstRender = mockedSearch.mock.calls.length;
+
+        rerender();
+
+        expect(mockedSearch.mock.calls.length).toBe(callCountAfterFirstRender);
     });
 
     it('dispatches search() with the approval queryJSON hash', () => {

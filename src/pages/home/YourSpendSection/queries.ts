@@ -33,11 +33,13 @@ function buildRepaidLast30DaysQuery(accountID: number): string {
     });
 }
 
-function buildRecentCardTransactionsQuery(accountID: number, cardID: number): string {
+// A combo card duo shows as one row, so the row takes every cardID it stands for and the
+// search counts transactions made on either half of the duo.
+function buildRecentCardTransactionsQuery(accountID: number, cardIDs: number[]): string {
     return buildQueryStringFromFilterFormValues({
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         from: [String(accountID)],
-        cardID: [String(cardID)],
+        cardID: cardIDs.map(String),
         [FILTER_KEYS.DATE_AFTER]: get30DaysAgoDateString(),
     });
 }

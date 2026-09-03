@@ -401,7 +401,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     // Memo anchor: the compiler does not auto-cache these calls, so downstream
     // memos would invalidate every render without it.
-    const expensifyCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
+    const {cards: expensifyCards, cardIDsByCardID: expensifyCardIDsByCardID} = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
     const thirdPartyCards = useMemo(
         () => getDisplayableThirdPartyCards(cardList, {cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection}),
         [cardList, cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection],
@@ -416,21 +416,33 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [expensifyCards, thirdPartyCards],
     );
 
+    // A combo card duo collapses to one row keyed by the physical card, so that row queries both
+    // halves. Third-party cards are never part of a duo and stand only for themselves.
+    const queriedCardIDsByCardID = useMemo(
+        () =>
+            displayableCards.reduce<Record<number, number[]>>((acc, {card}) => {
+                acc[card.cardID] = expensifyCardIDsByCardID[card.cardID] ?? [card.cardID];
+                return acc;
+            }, {}),
+        [displayableCards, expensifyCardIDsByCardID],
+    );
+
     // Stable signature for the search-firing effect. Re-fires on card-set changes
-    // but not on unrelated `cardList` mutations.
-    const displayableCardIDsKey = displayableCards
-        .map(({card}) => card.cardID)
+    // but not on unrelated `cardList` mutations. Covers the hidden half of a combo
+    // card duo so the searches re-fire when a duo gains or loses its virtual card.
+    const displayableCardIDsKey = Object.values(queriedCardIDsByCardID)
+        .flat()
         .sort((a, b) => a - b)
         .join(',');
 
     const cardQueryByCardID = useMemo(
         () =>
             displayableCards.reduce<Record<number, {query: string; queryJSON: ReturnType<typeof buildSearchQueryJSON>}>>((acc, {card}) => {
-                const query = buildRecentCardTransactionsQuery(accountID, card.cardID);
+                const query = buildRecentCardTransactionsQuery(accountID, queriedCardIDsByCardID[card.cardID]);
                 acc[card.cardID] = {query, queryJSON: buildSearchQueryJSON(query)};
                 return acc;
             }, {}),
-        [displayableCards, accountID],
+        [displayableCards, queriedCardIDsByCardID, accountID],
     );
 
     const cardSnapshotKeys = useMemo(
