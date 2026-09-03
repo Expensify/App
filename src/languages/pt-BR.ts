@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Faturável',
         nonBillable: 'Não faturável',
         tag: 'Etiqueta',
+        violations: 'Violações',
         receipt: 'Recibo',
         verified: 'Verificado',
         replace: 'Substituir',
@@ -471,7 +472,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
-        actionRequired: 'Ação necessária',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
         duplicateExpense: 'Duplicar despesa',
@@ -3753,11 +3753,6 @@ ${amount} para ${merchant} - ${date}`,
         thisBankAccount: 'Esta conta bancária será usada para pagamentos empresariais no seu workspace',
         accountNumber: 'Número da conta',
         routingNumber: 'Número de roteamento',
-        internationalBankAccountDetails: 'Dados da conta bancária internacional',
-        internationalBankAccountDetailsTitle: 'Quais são os dados da sua conta internacional?',
-        internationalBankAccountDetailsSubtitle: 'Um dos seus espaços de trabalho precisa de dados de conta internacional para processar reembolsos',
-        iban: 'IBAN',
-        swiftBicCode: 'Código SWIFT/BIC',
         chooseAnAccountBelow: 'Escolha uma conta abaixo',
         addBankAccount: 'Adicionar conta bancária',
         chooseAnAccount: 'Escolha uma conta',
@@ -3807,8 +3802,6 @@ ${amount} para ${merchant} - ${date}`,
             restrictedBusiness: 'Confirme que a empresa não está na lista de empresas restritas',
             routingNumber: 'Insira um número de roteamento válido',
             accountNumber: 'Insira um número de conta válido',
-            iban: 'Insira um IBAN válido',
-            swiftCode: 'Insira um código SWIFT/BIC válido',
             routingAndAccountNumberCannotBeSame: 'Os números de roteamento e da conta não podem ser iguais',
             companyType: 'Selecione um tipo de empresa válido',
             tooManyAttempts: 'Devido ao alto número de tentativas de login, esta opção foi desativada por 24 horas. Tente novamente mais tarde ou insira os dados manualmente.',
@@ -5890,9 +5883,34 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 label: 'Conta de cartão corporativo',
                 description: 'Escolha para onde exportar as transações do cartão corporativo.',
             },
-            expensifyCardAccount: {
-                label: 'Conta do Expensify Card',
-                description: 'Escolha para onde exportar as transações do Expensify Card.',
+            exportToMultipleAccounts: 'Configurar exportação para várias contas',
+            cardProgramAccount: {
+                label: 'Conta do programa de cartão',
+                description: 'Substitua a conta do espaço de trabalho para esses programas de cartão.',
+                descriptionLevel2: 'Substituir a conta do workspace para este programa de cartão.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos os programas usam a conta padrão';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa com conta personalizada`;
+                    }
+                    return `${customAccountsCount} programas com contas personalizadas`;
+                },
+            },
+            cardAccount: {
+                label: 'Conta por cartão',
+                description: 'Substitua a conta do programa para cartões individuais.',
+                descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos os cartões usam contas de programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} cartão com conta personalizada`;
+                    }
+                    return `${customAccountsCount} cartões com contas personalizadas`;
+                },
             },
             autoSyncDescription: 'Sincronize DualEntry e Expensify automaticamente, todos os dias. Os relatórios são sincronizados em tempo real.',
             accountingMethods: {
@@ -6142,6 +6160,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             finishSetup: 'Concluir configuração',
             chooseBankAccount: 'Escolher conta bancária',
             chooseExistingBank: 'Escolha uma conta bancária empresarial existente para pagar o saldo do seu Cartão Expensify ou adicione uma nova conta bancária',
+            chooseExistingBankForTravelBilling: 'Escolha uma conta bancária empresarial existente para pagar o saldo da sua Fatura Consolidada de Viagem ou adicione uma nova conta bancária',
             accountEndingIn: 'Conta com final',
             addNewBankAccount: 'Adicionar uma nova conta bancária',
             settlementAccount: 'Conta de liquidação',
@@ -7242,6 +7261,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                     `Tenha certeza de que esta conta corresponde à sua conta de liquidação de Faturamento Consolidado de Viagem (terminando em ${lastFourPAN}) para que a Conciliação Contínua funcione corretamente.`,
             },
             syncTravelInvoicingSettlements: 'Sincronizar liquidações de Faturamento de Viagens Consolidado',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',
@@ -8224,6 +8245,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 requireAboveAmount: 'Exigir valor acima',
                 saveRule: 'Salvar regra',
                 emptyAmountError: 'Informe um valor válido antes de salvar',
+                receiptAmountGreaterThanItemizedError: 'O valor exigido de recibo não pode ser maior que o valor exigido de recibo itemizado.',
             },
             requireFields: {title: 'Exigir campos para todas as despesas', category: 'Categoria', tag: 'Etiqueta', save: 'Salvar regra'},
             newRule: {
@@ -8608,10 +8630,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `adicionou a alíquota de imposto "${newValue} (${newTaxPercentage})" à tarifa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `alterou a parte recuperável de impostos na taxa de distância "${customUnitRateName}" para "${newValue}" (antes "${oldValue}")`;
+            if (oldValue !== undefined) {
+                return `alterou a parte recuperável de impostos na taxa de distância "${customUnitRateName}" para "${newValue}%" (antes "${oldValue}%")`;
             }
-            return `adicionou uma parte recuperável de impostos de "${newValue}" à taxa de distância "${customUnitRateName}"`;
+            return `adicionou uma parte recuperável de impostos de "${newValue}%" à taxa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `renomeou a taxa de ${customUnitName} de "${oldValue}" para "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -9425,6 +9447,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             topSpenders: 'Maiores gastadores',
             topCategories: 'Principais categorias',
             topMerchants: 'Principais estabelecimentos',
+            violationsBySubmitter: 'Violações por quem enviou',
         },
     },
     genericErrorPage: {
@@ -9602,6 +9625,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         time: 'Horário (formato de 24 horas)',
         durationAmount: 'Duração',
         durationUnit: 'Unidade',
+        leaveType: 'Tipo de licença',
+        normalOOO: 'Fora do escritório normal',
         reason: 'Motivo',
         workingPercentage: 'Porcentagem de trabalho',
         dateRequired: 'A data de início é obrigatória.',
@@ -10041,47 +10066,51 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Não é possível conciliar automaticamente o recibo devido a uma conexão bancária com erro.';
+                return 'Não foi possível associar o recibo automaticamente devido a uma conexão bancária com problema.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Não foi possível associar automaticamente o recibo devido a um problema temporário no banco. Tente novamente mais tarde.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada.';
+                        return 'Não foi possível associar o recibo automaticamente porque sua conexão bancária precisa ser reautenticada.';
                     }
                     return isMarkAsCash
-                        ? `Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada. Marque como dinheiro para ignorar ou <a href="${connectionLink}">reconecte</a> para corresponder o recibo.`
-                        : `Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada. <a href="${connectionLink}">Reconecte</a> para corresponder o recibo.`;
+                        ? `Não é possível fazer a correspondência automática do recibo porque a conexão com seu banco precisa ser reautenticada. Marque como dinheiro para ignorar ou <a href="${connectionLink}">reconecte</a> para corresponder o recibo.`
+                        : `Não é possível fazer a correspondência automática do recibo porque a conexão com seu banco precisa ser reautenticada. <a href="${connectionLink}">Reconectar</a> para corresponder o recibo.`;
                 }
                 return isAdmin
-                    ? `A conexão bancária precisa ser reautenticada. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
-                    : 'A conexão bancária precisa ser reautenticada. Peça para um administrador reconectar para corresponder ao recibo.';
+                    ? `A conexão bancária precisa ser autenticada novamente. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
+                    : 'A conexão com o banco precisa de nova autenticação. Peça para um administrador reconectar para corresponder ao recibo.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Não é possível conciliar automaticamente o recibo devido a uma conexão bancária com erro.';
+                    return 'Não foi possível associar o recibo automaticamente devido a uma conexão bancária com problema.';
                 }
                 return isMarkAsCash
-                    ? `Não é possível corresponder automaticamente o recibo devido a uma conexão de cartão com problema. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para corresponder o recibo.`
-                    : `Não é possível corresponder automaticamente o recibo devido a uma conexão quebrada com o cartão. <a href="${connectionLink}">Corrigir o cartão</a> para corresponder o recibo.`;
+                    ? `Não é possível corresponder o recibo automaticamente devido a uma conexão de cartão com problema. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para corresponder o recibo.`
+                    : `Não foi possível conciliar automaticamente o recibo devido a uma conexão quebrada do cartão. <a href="${connectionLink}">Corrija o cartão</a> para conciliar o recibo.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Conexão bancária interrompida. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
-                    : 'Conexão bancária interrompida. Peça para um administrador reconectar para corresponder ao recibo.';
+                    ? `Conexão bancária interrompida. <a href="${companyCardPageURL}">Reconectar para combinar com o recibo</a>`
+                    : 'Conexão bancária interrompida. Peça para um administrador reconectar para coincidir com o recibo.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Peça para ${member} marcar como dinheiro ou aguarde 7 dias e tente novamente` : 'Aguardando associação com a transação do cartão.';
+                return isAdmin ? `Peça para ${member} marcar como dinheiro ou aguarde 7 dias e tente novamente` : 'Aguardando combinação com a transação do cartão.';
             }
             return '';
         },
         brokenConnection530Error: 'Recibo pendente devido à conexão bancária interrompida',
+        brokenConnection531Error: 'Não foi possível associar automaticamente o recibo devido a um problema temporário no banco. Tente novamente mais tarde.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Recibo pendente devido a uma conexão bancária interrompida. Resolva em <a href="${workspaceCompanyCardRoute}">Cartões corporativos</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendente devido à conexão bancária com problemas. Peça a um administrador do workspace para resolver.',
@@ -10124,6 +10153,53 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `A tarifa só é válida a partir de ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `A tarifa só é válida até ${endDate}`,
         cannotMergeDuplicates: 'Você só pode mesclar despesas em relatórios rascunho ou pendentes. Retraia o relatório e tente novamente.',
+        shortName: {
+            allTagLevelsRequired: 'Todas as tags obrigatórias',
+            autoReportedRejectedExpense: 'Despesa rejeitada',
+            billableExpense: 'Faturável não é mais válido',
+            cashExpenseWithNoReceipt: 'Recibo obrigatório',
+            categoryOutOfPolicy: 'Categoria não é mais válida',
+            companyCardRequired: 'Cartão corporativo obrigatório',
+            conversionSurcharge: 'Taxa de conversão aplicada',
+            customUnitOutOfPolicy: 'Tarifa inválida para o espaço de trabalho',
+            customUnitRateOutOfDateRange: 'Tarifa fora das datas válidas',
+            duplicatedTransaction: 'Possível duplicado',
+            fieldRequired: 'Campo de relatório obrigatório',
+            futureDate: 'Data futura não é permitida',
+            hold: 'Despesa em espera',
+            inactiveVendor: 'Fornecedor não é mais válido',
+            increasedDistance: 'A distância excede a rota',
+            invoiceMarkup: 'Fatura com acréscimo',
+            itemizedReceiptRequired: 'É necessário recibo detalhado',
+            maxAge: 'Data anterior ao limite máximo de idade da despesa',
+            missingAttendees: 'Participantes obrigatórios',
+            missingCategory: 'Categoria ausente',
+            missingComment: 'Descrição obrigatória',
+            missingTag: 'Tag ausente',
+            modifiedAmount: 'Valor modificado',
+            modifiedDate: 'Data de modificação',
+            noRoute: 'Nenhuma rota válida',
+            nonExpensiworksExpense: 'Despesa fora do Expensiworks',
+            overAutoApprovalLimit: 'Acima do limite de aprovação automática',
+            overCategoryLimit: 'Acima do limite da categoria',
+            overLimit: 'Acima do limite',
+            overTripLimit: 'Acima do limite da viagem',
+            perDayLimit: 'Acima do limite diário',
+            prohibitedExpense: 'Despesa proibida',
+            receiptGeneratedWithAI: 'Possível recibo gerado por IA',
+            receiptNotSmartScanned: 'Recibo adicionado manualmente',
+            receiptRequired: 'Recibo obrigatório',
+            rter: 'Aguardando correspondência do cartão',
+            smartscanFailed: 'Falha ao escanear recibo',
+            someTagLevelsRequired: 'Tag obrigatória',
+            tagOutOfPolicy: 'Tag não é mais válida',
+            overLimitAttendee: 'Acima do limite de pessoas',
+            customRules: 'Violação de regra personalizada',
+            taxAmountChanged: 'Valor do imposto modificado',
+            taxOutOfPolicy: 'Alíquota de imposto não é mais válida',
+            taxRateChanged: 'Alíquota de imposto modificada',
+            taxRequired: 'Alíquota de imposto ausente',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,
@@ -10716,6 +10792,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
     domain: {
         notVerified: 'Não verificado',
         retry: 'Tentar novamente',
+        requestSent: 'Solicitação enviada',
         verifyDomain: {
             title: 'Verificar domínio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10788,6 +10865,14 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             subtitle: 'Insira o nome do domínio privado que você quer acessar (por exemplo, expensify.com).',
             domainName: 'Nome de domínio',
             newDomain: 'Novo domínio',
+            alreadyHaveAccessError: 'Este domínio já existe na sua conta.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'O domínio já existe',
+            title: 'Domínio já configurado. Solicitar acesso?',
+            description: 'Alguém já configurou este domínio no Expensify. Quer solicitar acesso de administrador?',
+            requestAccess: 'Solicitar acesso de administrador',
+            requestAccessError: 'Não foi possível enviar sua solicitação. Tente novamente.',
         },
         domainAdded: {
             title: 'Domínio adicionado',
@@ -10882,6 +10967,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             forceTwoFactorAuthError: 'Não foi possível alterar a exigência de autenticação em duas etapas. Tente novamente mais tarde.',
             resetTwoFactorAuth: 'Redefinir autenticação de dois fatores',
             error: 'Não foi possível salvar esta alteração. Tente novamente.',
+            neverMind: 'Deixa pra lá',
         },
         groups: {
             title: 'Grupos',
@@ -10890,7 +10976,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Tem certeza de que deseja tornar ${newName} o grupo padrão? Novos membros serão convidados para este grupo em vez do grupo padrão anterior (${currentName}). `,
             makeDefault: 'Tornar padrão',
-            neverMind: 'Deixa pra lá',
             createGroupError: 'Não foi possível criar este grupo. Tente novamente.',
             permissions: 'Permissões do grupo',
             createNewGroupButton: 'Novo grupo',
