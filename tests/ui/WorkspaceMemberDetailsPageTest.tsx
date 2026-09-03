@@ -319,7 +319,7 @@ describe('WorkspaceMemberDetailsPage', () => {
 
         const approverItem = await screen.findByTestId('member-approver-menu-item');
 
-        expect(within(approverItem).getByText('AdminPayer')).toBeOnTheScreen();
+        expect(within(approverItem).getByText('AdminPayer User')).toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -339,7 +339,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         const approverItem = await screen.findByTestId('member-approver-menu-item');
 
         expect(approverItem).not.toBeDisabled();
-        expect(within(approverItem).queryByText('Owner')).not.toBeOnTheScreen();
+        expect(within(approverItem).queryByText('Owner User')).not.toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
