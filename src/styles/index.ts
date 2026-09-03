@@ -5007,11 +5007,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         bankIconContainer: {
-            height: variables.cardIconWidth,
-            width: variables.cardIconWidth,
+            height: variables.bankIconContainerSize,
+            width: variables.bankIconContainerSize,
             borderRadius: 8,
             overflow: 'hidden',
             alignSelf: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         staticHeaderImage: {
@@ -7284,7 +7286,7 @@ const plainStyles = (theme: ThemeColors) =>
             ({
                 flexGrow: 1,
                 paddingTop: 0,
-                paddingHorizontal: shouldUseNarrowLayout ? 16 : 20,
+                paddingHorizontal: shouldUseNarrowLayout ? 12 : 20,
                 paddingBottom: 20,
             }) satisfies ViewStyle,
 

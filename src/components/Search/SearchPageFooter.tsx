@@ -118,7 +118,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
     );
 
     return (
-        <View style={[styles.borderTop, shouldUseNarrowLayout ? styles.ph4 : styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+        <View style={[styles.borderTop, shouldUseNarrowLayout ? styles.ph3 : styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
             <View
                 style={[
                     shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
@@ -153,7 +153,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                         StyleSheet.absoluteFill,
                         styles.flexRow,
                         styles.alignItemsCenter,
-                        shouldUseNarrowLayout ? styles.ph4 : styles.ph5,
+                        shouldUseNarrowLayout ? styles.ph3 : styles.ph5,
                         shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
                     ]}
                 >

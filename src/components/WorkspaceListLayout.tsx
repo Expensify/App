@@ -68,12 +68,12 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     };
 
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, shouldUseNarrowLayout ? styles.pr4 : styles.pr5, styles.pt1, styles.pb2]}>
+        <View style={[styles.flexRow, styles.justifyContentBetween, shouldUseNarrowLayout ? styles.pr3 : styles.pr5, styles.pt1, styles.pb2]}>
             <TabSelectorBase
                 tabs={navigationOptions}
                 activeTabKey={activeTabKey}
                 onTabPress={onTabPress}
-                contentContainerStyles={shouldUseNarrowLayout ? styles.ph4 : undefined}
+                contentContainerStyles={shouldUseNarrowLayout ? styles.ph3 : undefined}
             />
             {shouldShowHeaderButton && headerButton}
         </View>

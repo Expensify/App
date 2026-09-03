@@ -144,7 +144,7 @@ function Section({
 
     const lottieIllustration = isLottie ? illustration : undefined;
     return (
-        <View style={[styles.pageWrapper, styles.cardSectionContainer, shouldUseNarrowLayout && styles.mh4, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
+        <View style={[styles.pageWrapper, styles.cardSectionContainer, shouldUseNarrowLayout && styles.mh3, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
             {banner}
             {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                 <IconSection

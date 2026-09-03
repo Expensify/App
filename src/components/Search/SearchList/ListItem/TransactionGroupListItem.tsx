@@ -529,7 +529,7 @@ function TransactionGroupListItemImpl({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    isLargeScreenWidth ? styles.mh5 : styles.mh4,
+                    isLargeScreenWidth ? styles.mh5 : styles.mh3,
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth

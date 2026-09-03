@@ -16,18 +16,9 @@ function StaticSearchPageInput() {
     const {translate} = useLocalize();
 
     return (
-        <View
-            style={[
-                styles.flex1,
-                styles.searchRouterTextInputContainer,
-                styles.searchAutocompleteInputResults,
-                styles.br2,
-                styles.justifyContentCenter,
-                styles.searchPageInputNarrowTouchableWrapper,
-            ]}
-        >
+        <View style={[styles.flex1, styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2, styles.justifyContentCenter, styles.searchPageInputNarrowTouchableWrapper]}>
             <Text
-                style={[styles.fontSizeLabel, {color: theme.textSupporting}]}
+                style={[styles.textLabel, {color: theme.textSupporting}]}
                 numberOfLines={1}
             >
                 {translate('search.searchPlaceholder')}

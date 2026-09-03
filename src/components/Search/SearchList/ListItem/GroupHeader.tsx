@@ -373,7 +373,7 @@ function GroupHeader({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 wrapperStyle={[
-                    isLargeScreenWidth ? styles.mh5 : styles.mh4,
+                    isLargeScreenWidth ? styles.mh5 : styles.mh3,
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth

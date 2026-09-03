@@ -356,8 +356,10 @@ export default {
     cardScarfOverlayWidth: 264,
     cardScarfOverlayHeight: 172,
     cardScarfOverlayZIndex: 2,
-    cardIconWidth: 40,
-    cardIconHeight: 26,
+    // The card illustration renders at 80% of its 40x26 bounding box, centered inside it.
+    cardIconWidth: 32,
+    cardIconHeight: 21,
+    bankIconContainerSize: 40,
     cardIconSmallWidth: 28,
     cardIconSmallHeight: 18,
     cardBorderRadius: 4,
@@ -410,11 +412,11 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -122,
-    minimalTopBarWithFiltersOffset: -166,
+    minimalTopBarOffset: -120,
+    minimalTopBarWithFiltersOffset: -164,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 122,
-    searchListContentWithFiltersMarginTop: 166,
+    searchListContentMarginTop: 120,
+    searchListContentWithFiltersMarginTop: 164,
     searchTopBarZIndex: 9,
 
     searchAutocompleteInputSkeletonHeight: 8,

@@ -18,7 +18,7 @@ function StaticSearchActionsBar() {
     const theme = useTheme();
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr4, styles.mb4]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3, styles.mb4]}>
             <Icon
                 additionalStyles={[styles.touchableButtonImage]}
                 src={expensifyIcons.Filter}

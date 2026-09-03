@@ -246,7 +246,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     ) : null;
 
     const EmptyResultComponent = (
-        <View style={[shouldUseNarrowTableLayout ? styles.ph4 : styles.ph5, styles.pt3, styles.pb5]}>
+        <View style={[shouldUseNarrowTableLayout ? styles.ph3 : styles.ph5, styles.pt3, styles.pb5]}>
             <Text
                 style={[styles.textNormal, styles.colorMuted]}
                 aria-hidden

@@ -123,7 +123,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         <View
             style={[
                 styles.pv2,
-                shouldUseNarrowTableLayout ? styles.mh4 : styles.mh5,
+                shouldUseNarrowTableLayout ? styles.mh3 : styles.mh5,
                 styles.highlightBG,
                 styles.borderBottom,
                 styles.tableTopRadius,

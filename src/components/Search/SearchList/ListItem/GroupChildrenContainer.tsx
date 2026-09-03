@@ -60,7 +60,7 @@ function GroupChildrenContainer({
     return (
         <Animated.View
             style={[
-                isLargeScreenWidth ? styles.mh5 : styles.mh4,
+                isLargeScreenWidth ? styles.mh5 : styles.mh3,
                 {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG},
                 animatedHighlightStyle,
                 isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
