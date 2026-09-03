@@ -6352,6 +6352,105 @@ describe('SearchUIUtils', () => {
                 expect(item?.from?.accountID).toBe(adminAccountID);
             });
 
+            it('should use onyxPersonalDetailsList for from when the actor is absent from the snapshot personalDetailsList', () => {
+                // Reproduces the bug: an expense moved to the self-DM while offline is not yet in the search
+                // snapshot's personalDetailsList, so without the live-Onyx fallback the payer resolves to
+                // emptyPersonalDetails (blank name/avatar). Once the actor is available from live Onyx the gap is filled.
+                const actorAccountID = approverAccountID;
+                const actorDisplayName = 'Actor From Onyx';
+                const data = makeFilterTestData(
+                    {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, managerID: adminAccountID},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: {
+                            ra1: {
+                                ...reportAction1,
+                                actorAccountID,
+                                reportActionID: 'ra1',
+                                reportID: filterTestReportID,
+                                originalMessage: {
+                                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                                    IOUTransactionID: filterTestTxID,
+                                },
+                            },
+                        },
+                        // The snapshot intentionally omits the actor (only admin present).
+                        personalDetailsList: {
+                            [adminAccountID]: {
+                                accountID: adminAccountID,
+                                avatar: 'https://example.com/avatar.png',
+                                displayName: 'Admin',
+                                login: adminEmail,
+                            },
+                        },
+                    },
+                );
+
+                const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                    [actorAccountID]: {
+                        accountID: actorAccountID,
+                        avatar: 'https://example.com/actor-avatar.png',
+                        displayName: actorDisplayName,
+                        login: approverEmail,
+                    },
+                };
+
+                // Without the live fallback, the actor is missing from the snapshot → from is emptyPersonalDetails.
+                const [sectionsWithoutOnyx] = callGetTransactionsSections(data);
+                const itemWithoutOnyx = sectionsWithoutOnyx.find((s) => s.transactionID === filterTestTxID);
+                expect(itemWithoutOnyx?.from?.accountID).not.toBe(actorAccountID);
+
+                // With the live fallback, the actor's real details fill the gap (fixing both name and avatar).
+                const [sectionsWithOnyx] = callGetTransactionsSections(data, {onyxPersonalDetailsList});
+                const itemWithOnyx = sectionsWithOnyx.find((s) => s.transactionID === filterTestTxID);
+                expect(itemWithOnyx?.from?.accountID).toBe(actorAccountID);
+                expect(itemWithOnyx?.from?.displayName).toBe(actorDisplayName);
+            });
+
+            it('should prefer the snapshot personalDetailsList for from over onyxPersonalDetailsList', () => {
+                const actorAccountID = approverAccountID;
+                const snapshotDisplayName = 'Actor From Snapshot';
+                const data = makeFilterTestData(
+                    {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, managerID: adminAccountID},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: {
+                            ra1: {
+                                ...reportAction1,
+                                actorAccountID,
+                                reportActionID: 'ra1',
+                                reportID: filterTestReportID,
+                                originalMessage: {
+                                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                                    IOUTransactionID: filterTestTxID,
+                                },
+                            },
+                        },
+                        personalDetailsList: {
+                            [actorAccountID]: {
+                                accountID: actorAccountID,
+                                avatar: 'https://example.com/snapshot-actor.png',
+                                displayName: snapshotDisplayName,
+                                login: approverEmail,
+                            },
+                        },
+                    },
+                );
+
+                const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                    [actorAccountID]: {
+                        accountID: actorAccountID,
+                        avatar: 'https://example.com/onyx-actor.png',
+                        displayName: 'Actor From Onyx',
+                        login: approverEmail,
+                    },
+                };
+
+                const [sections] = callGetTransactionsSections(data, {onyxPersonalDetailsList});
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.from?.displayName).toBe(snapshotDisplayName);
+            });
+
             it('should set exported to empty string when transaction has no reportID', () => {
                 const noReportTxID = 'no-report-tx';
                 const data = {
