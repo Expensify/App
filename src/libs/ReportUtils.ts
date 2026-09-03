@@ -13526,7 +13526,7 @@ function getExportErrorCount(report: OnyxEntry<Report>): number {
  */
 function isExportInProgress(report: OnyxEntry<Report>, reportMetadata: OnyxEntry<ReportMetadata>): boolean {
     const {exportErrorCountAtRequest} = reportMetadata ?? {};
-    // Checked against null rather than falsiness, because zero is the usual count for a report that never failed.
+    // Checked against null rather than falsy value, because zero is the usual count for a report that never failed.
     if (exportErrorCountAtRequest == null) {
         return false;
     }
