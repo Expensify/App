@@ -28,7 +28,7 @@ describe('actions/VacationDelegate', () => {
         it('sends SetVacationDelegate with the mapped params and clears policyDiff optimistically', () => {
             const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
 
-            setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com', shouldSkipPolicyInviteEmails: true});
+            setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
 
             expect(apiSideEffectSpy).toHaveBeenCalledWith(
                 SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
@@ -36,7 +36,6 @@ describe('actions/VacationDelegate', () => {
                     creator: 'admin@test.com',
                     vacationDelegateEmail: 'delegate@test.com',
                     overridePolicyDiffWarning: false,
-                    skipPolicyInviteEmails: true,
                 },
                 {
                     optimisticData: expect.arrayContaining([

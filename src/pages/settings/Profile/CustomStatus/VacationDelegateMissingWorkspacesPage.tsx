@@ -106,19 +106,19 @@ function VacationDelegateMissingWorkspacesPage() {
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
     };
 
-    const submit = (shouldSkipPolicyInviteEmails: boolean) => {
+    const submit = () => {
         setSubmittedInput({delegate, policyDiff});
-        setVacationDelegate({creator, delegate, currentDelegate: previousDelegate, shouldOverridePolicyDiffWarning: true, shouldSkipPolicyInviteEmails});
+        setVacationDelegate({creator, delegate, currentDelegate: previousDelegate, shouldOverridePolicyDiffWarning: true});
         goBackToStatus();
     };
 
-    const submitOnce = (shouldSkipPolicyInviteEmails: boolean) => {
+    const submitOnce = () => {
         if (isSubmittingRef.current) {
             return;
         }
 
         isSubmittingRef.current = true;
-        submit(shouldSkipPolicyInviteEmails);
+        submit();
     };
 
     const invite = () => {
@@ -151,7 +151,7 @@ function VacationDelegateMissingWorkspacesPage() {
         }
 
         // Workspaces the current user does not administer are untouched here and still need their own admins emailed.
-        submit(false);
+        submit();
     };
 
     // Format SMS delegates as phone numbers rather than raw @expensify.sms logins, and escape the result since this copy is rendered as HTML.
@@ -220,7 +220,7 @@ function VacationDelegateMissingWorkspacesPage() {
                             <Button
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 style={styles.mt3}
-                                onPress={() => submitOnce(true)}
+                                onPress={submitOnce}
                             >
                                 <Button.Text>{translate('common.skip')}</Button.Text>
                             </Button>
@@ -229,7 +229,7 @@ function VacationDelegateMissingWorkspacesPage() {
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
-                            onPress={() => submitOnce(false)}
+                            onPress={submitOnce}
                         >
                             <Button.Text>{translate('common.confirm')}</Button.Text>
                         </Button>

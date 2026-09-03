@@ -17,10 +17,9 @@ type SetVacationDelegateOptions = {
     delegate: string;
     currentDelegate?: string;
     shouldOverridePolicyDiffWarning?: boolean;
-    shouldSkipPolicyInviteEmails?: boolean;
 };
 
-async function setVacationDelegate({creator, delegate, currentDelegate, shouldOverridePolicyDiffWarning = false, shouldSkipPolicyInviteEmails}: SetVacationDelegateOptions) {
+async function setVacationDelegate({creator, delegate, currentDelegate, shouldOverridePolicyDiffWarning = false}: SetVacationDelegateOptions) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -64,7 +63,6 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
         creator,
         vacationDelegateEmail: delegate,
         overridePolicyDiffWarning: shouldOverridePolicyDiffWarning,
-        skipPolicyInviteEmails: shouldSkipPolicyInviteEmails,
     };
 
     // Once the policy diff warning has been overridden there is nothing left to read from the response, so use a persisted write.

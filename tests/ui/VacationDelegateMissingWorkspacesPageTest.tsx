@@ -215,11 +215,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.confirm')}));
         await waitForBatchedUpdatesWithAct();
 
-        expect(apiWriteSpy).toHaveBeenCalledWith(
-            WRITE_COMMANDS.SET_VACATION_DELEGATE,
-            expect.objectContaining({creator: CREATOR_EMAIL, overridePolicyDiffWarning: true, skipPolicyInviteEmails: false}),
-            expect.anything(),
-        );
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.objectContaining({creator: CREATOR_EMAIL, overridePolicyDiffWarning: true}), expect.anything());
         expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.anything(), expect.anything());
     });
 
@@ -247,11 +243,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.skip')}));
         await waitForBatchedUpdatesWithAct();
 
-        expect(apiWriteSpy).toHaveBeenCalledWith(
-            WRITE_COMMANDS.SET_VACATION_DELEGATE,
-            expect.objectContaining({overridePolicyDiffWarning: true, skipPolicyInviteEmails: true}),
-            expect.anything(),
-        );
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.objectContaining({overridePolicyDiffWarning: true}), expect.anything());
         expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.anything(), expect.anything());
     });
 
@@ -332,6 +324,19 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         expect(screen.getByText('Admin Workspace')).toBeOnTheScreen();
         expect(screen.getByRole('button', {name: TestHelper.translateLocal('common.invite')})).toBeOnTheScreen();
         expect(screen.getByRole('button', {name: TestHelper.translateLocal('common.skip')})).toBeOnTheScreen();
+    });
+
+    // Skip only skips the invites the user controls: the owners of the workspaces they don't administer are still emailed, matching Classic.
+    it('still asks the backend to email the non-admin workspaces when Skip is pressed on a mixed diff', async () => {
+        await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID], nonAdminPolicies: [MEMBER_POLICY_ID]});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.skip')}));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.objectContaining({overridePolicyDiffWarning: true}), expect.anything());
+        expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.anything(), expect.anything());
     });
 
     it('finishes rolling back an abandoned flow before exposing the delegate selection page', async () => {
