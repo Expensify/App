@@ -1,7 +1,7 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card, submit expenses to my employer, Submit workspace, customize your expense categories]
 internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
@@ -113,6 +113,15 @@ The **Getting started** section shows a checklist of key setup tasks and appears
 
 The checklist items vary based on the intent selected when setting up your Expensify account.
 
+If you selected **Submit expenses to my employer**, the checklist covers the Submit workspace that was created for you during onboarding, and shows up to two items:
+
+- **Customize your expense categories** — opens the **Categories** page for your workspace. This item only appears while **Categories** is enabled for the workspace, and it is checked off once you add your own category.
+- **Link personal card** — opens **Settings > Wallet**. This item is checked off once you link a personal card.
+
+There is no **Create a workspace** item for this intent, because the Submit workspace already exists. The section is hidden once every item on the checklist is checked off.
+
+To learn more about the workspace these tasks set up, see [how to use a Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace).
+
 ---
 
 ## How the Discover section works on Home
@@ -193,7 +202,13 @@ The **Discover** section only appears until you’ve watched the demo. Once you�
 
 ## Why don’t I see the Getting started section?
 
-The **Getting started** section only appears if you selected the **manage my team**, **track and budget my expenses**, or **Organize my personal spending** intent during onboarding and you are within 60 days of your free trial start date. If any of these conditions are not met, the section won’t be visible.
+The **Getting started** section only appears if you selected the **manage my team**, **track and budget my expenses**, **Organize my personal spending**, or **Submit expenses to my employer** intent during onboarding.
+
+For the paid intents, it appears only while you are within 60 days of your free trial start date.
+
+For **Submit expenses to my employer**, it appears only while you are within 60 days of the date your Submit workspace was created, and only if you own that workspace. Members who were invited to someone else’s Submit workspace won’t see it.
+
+If any of these conditions are not met, the section won’t be visible.
 
 ## Why don’t I see the Your spend section?
 
