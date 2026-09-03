@@ -8,7 +8,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
-import {isTravelCardTransaction} from '@libs/CardUtils';
+import {isPersonalCard, isTravelCardTransaction} from '@libs/CardUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
@@ -2065,18 +2065,40 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
         violation.name === CONST.VIOLATIONS.RTER &&
         (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION ||
             violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531 ||
             violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH)
     );
 }
 
 /**
- * Finds the broken-connection violation that drives the money-request header status and its personal-card
- * suppression. It intentionally excludes the `brokenCardConnection530` subtype (scraper being fixed on
- * Expensify's side): 530 keeps its own dedicated `brokenConnection530Error` header regardless of card type,
- * so it must never be swallowed by the personal-card suppression.
+ * Suppresses the report-level status only when every broken connection belongs to a personal card.
+ * Reports with company-card or retry-later violations must retain a status so their required action is visible.
  */
-function getBrokenConnectionViolation(transactionViolations: TransactionViolation[] | undefined): TransactionViolation | undefined {
-    return transactionViolations?.find((violation) => isBrokenConnectionViolation(violation) && violation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
+function shouldSuppressBrokenConnectionStatus(brokenConnectionViolations: TransactionViolation[], cardList: OnyxEntry<CardList>) {
+    return (
+        brokenConnectionViolations.length > 0 &&
+        brokenConnectionViolations.every((violation) => {
+            if (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return false;
+            }
+
+            const cardID = violation.data?.cardID;
+            const card = cardID ? cardList?.[cardID] : undefined;
+            return !!card && isPersonalCard(card);
+        })
+    );
+}
+
+/** Returns a report transaction that has a broken connection status which must remain visible. */
+function getUnsuppressibleBrokenConnectionTransactionID(
+    transactions: Transaction[],
+    transactionViolations: OnyxCollection<TransactionViolations>,
+    cardList: OnyxEntry<CardList>,
+): string | undefined {
+    return transactions.find((transaction) => {
+        const brokenConnectionViolations = (transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? []).filter(isBrokenConnectionViolation);
+        return brokenConnectionViolations.length > 0 && !shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList);
+    })?.transactionID;
 }
 
 function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
@@ -3762,7 +3784,7 @@ export {
     hasMissingSmartscanFields,
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
-    getBrokenConnectionViolation,
+    getUnsuppressibleBrokenConnectionTransactionID,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
@@ -3779,6 +3801,8 @@ export {
     hasSubmissionBlockingViolationInReport,
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
+    isBrokenConnectionViolation,
+    shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
