@@ -72,10 +72,13 @@ jest.mock('@libs/CardUtils', () => {
     const actual: typeof CardUtils = jest.requireActual('@libs/CardUtils');
     return {
         ...actual,
-        getDisplayableExpensifyCards: jest.fn(() => [
-            {cardID: 1, lastFourPAN: '1234', nameValuePairs: {}},
-            {cardID: 2, lastFourPAN: '5678', nameValuePairs: {}},
-        ]),
+        getDisplayableExpensifyCards: jest.fn(() => ({
+            cards: [
+                {cardID: 1, lastFourPAN: '1234', nameValuePairs: {}},
+                {cardID: 2, lastFourPAN: '5678', nameValuePairs: {}},
+            ],
+            cardIDsByCardID: {1: [1], 2: [2]},
+        })),
         getDisplayableThirdPartyCards: jest.fn(() => []),
         getCardDescription: jest.fn(() => 'Card description'),
     };
