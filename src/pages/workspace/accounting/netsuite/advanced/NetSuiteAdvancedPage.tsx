@@ -71,16 +71,17 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         [payableList, config?.collectionAccount],
     );
     const selectedFxExpenseAccount = useMemo(() => expenseAccounts?.find(({id}) => id === config?.fxExpenseAccount), [expenseAccounts, config?.fxExpenseAccount]);
+    const approvalAccount = config?.approvalAccount;
     const selectedApprovalAccount = useMemo(() => {
         // NetSuite uses a synthesized "default approval account" when nothing is explicitly set.
-        if (!config?.approvalAccount || config.approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
+        if (!approvalAccount || approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
             return {
                 id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
                 name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
             };
         }
-        return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === config?.approvalAccount);
-    }, [config?.approvalAccount, payableList, translate]);
+        return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === approvalAccount);
+    }, [approvalAccount, payableList, translate]);
 
     const renderDefaultMenuItem = (item: MenuItemToRender) => {
         return (
