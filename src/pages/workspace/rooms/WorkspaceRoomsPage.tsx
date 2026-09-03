@@ -109,8 +109,12 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         },
     }));
 
+    // Pass the reportIDs currently shown so the backend can null out any the user can no longer see (e.g. a private room
+    // they were removed from), which would otherwise linger in the list until the cache is cleared.
+    const clientReportIDs = (policyReports ?? []).map((report) => report.reportID);
+
     useFocusEffect(() => {
-        openPolicyRoomsPage(policyID);
+        openPolicyRoomsPage(policyID, clientReportIDs);
     });
 
     const roomsTableHeader =
