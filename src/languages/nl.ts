@@ -6559,6 +6559,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             subtitle: 'Rapportvelden zijn van toepassing op alle uitgaven en kunnen nuttig zijn wanneer je om extra informatie wilt vragen.',
             disableReportFields: 'Rapportvelden uitschakelen',
             disableReportFieldsConfirmation: 'Weet je het zeker? Tekst- en datumvelden worden verwijderd en lijsten worden uitgeschakeld.',
+            cannotDisableImportedReportFields: 'Rapportvelden die zijn geïmporteerd via je boekhoudkoppeling kunnen niet worden uitgeschakeld.',
             importedFromAccountingSoftware: 'De onderstaande rapportvelden worden geïmporteerd uit jouw',
             textType: 'Tekst',
             dateType: 'Datum',

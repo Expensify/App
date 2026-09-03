@@ -6582,6 +6582,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             subtitle: 'Pola raportu mają zastosowanie do wszystkich wydatków i mogą być pomocne, gdy chcesz poprosić o dodatkowe informacje.',
             disableReportFields: 'Wyłącz pola raportu',
             disableReportFieldsConfirmation: 'Na pewno? Pola tekstowe i daty zostaną usunięte, a listy wyłączone.',
+            cannotDisableImportedReportFields: 'Pól raportu zaimportowanych z połączenia księgowego nie można wyłączyć.',
             importedFromAccountingSoftware: 'Pola raportu poniżej są importowane z Twojego',
             textType: 'Tekst',
             dateType: 'Data',

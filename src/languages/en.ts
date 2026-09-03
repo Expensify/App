@@ -6703,6 +6703,7 @@ const translations = {
             subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information.",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
+            cannotDisableImportedReportFields: 'Report fields imported from your accounting connection cannot be disabled.',
             importedFromAccountingSoftware: 'The report fields below are imported from your',
             textType: 'Text',
             dateType: 'Date',
