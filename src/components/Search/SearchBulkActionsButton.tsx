@@ -168,14 +168,22 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         });
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
+    // For expense-report searches `count` is the number of expenses, not reports, so it can't label the Reports tab.
+    // The matching-report total across all pages is server-provided. `selectedTransactions` only holds the loaded
+    // page, so it can't be derived locally. Read it from the snapshot here.
+    const allMatchingReportsCount = currentSearchResults?.search?.reportCount;
+    const relevantAllMatchingCount = isExpenseReportType ? allMatchingReportsCount : allMatchingItemsCount;
     const hasSearchErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0;
     // The server count is the only source for how many items "select all" covers, so keep the button loading until it
     // arrives. Offline or on error it never will, so fall back to the count of the items we do have selected.
-    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !hasSearchErrors;
+    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof relevantAllMatchingCount !== 'number' && !isOffline && !hasSearchErrors;
     // Excluded items only map onto the server count for expenses. For expense reports an excluded transaction doesn't
-    // necessarily drop its whole report from the results, so the server count is used as-is there.
+    // necessarily drop its whole report from the results, so the report count is used as-is there.
     let selectedAllMatchingItemsCount: number;
-    if (typeof allMatchingItemsCount !== 'number') {
+    if (isExpenseReportType) {
+        // Show the matching-report total once it lands. Before then, or while offline, fall back to the loaded-page report count.
+        selectedAllMatchingItemsCount = typeof allMatchingReportsCount === 'number' ? allMatchingReportsCount : selectedItemsCount;
+    } else if (typeof allMatchingItemsCount !== 'number') {
         selectedAllMatchingItemsCount = selectedItemsCount;
     } else {
         selectedAllMatchingItemsCount = isExpenseType ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : allMatchingItemsCount;
