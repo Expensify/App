@@ -40,7 +40,7 @@ const results = await Promise.all(
         const tsconfig = project.endsWith('.json') ? project : `${project}/tsconfig.json`;
 
         // The build info file lets repeat runs skip unchanged projects. It is named apart from the
-        // `tsconfig.tsbuildinfo` that `incremental` defaults to so that running TypeScript 6 by hand in
+        // `tsconfig.tsbuildinfo` that `incremental` defaults to so that running TypeScript 7 by hand in
         // the same worktree can't feed it a build info file written by a different compiler.
         const tsBuildInfoFile = `${tsconfig.replace(/\.json$/, '')}.ts7.tsbuildinfo`;
         const result = await $`${tsc} --noEmit --incremental -p ${tsconfig} --tsBuildInfoFile ${tsBuildInfoFile}`.cwd(projectRoot).quiet().nothrow();
