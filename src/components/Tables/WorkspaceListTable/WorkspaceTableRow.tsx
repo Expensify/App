@@ -130,7 +130,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                             <WorkspaceAvatar
                                 name={item.title}
                                 source={item.icon}
-                                avatarID={item.policyID}
+                                avatarID={item.policyID || ''}
                                 size={CONST.AVATAR_SIZE.DEFAULT}
                                 imageStyles={styles.alignSelfCenter}
                             />
@@ -175,7 +175,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 <WorkspaceAvatar
                                     name={item.title}
                                     source={item.icon}
-                                    avatarID={item.policyID}
+                                    avatarID={item.policyID || ''}
                                     size={CONST.AVATAR_SIZE.SMALL}
                                     imageStyles={styles.alignSelfCenter}
                                 />

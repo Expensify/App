@@ -55,7 +55,7 @@ function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerSt
         );
     }
 
-    const iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID.toString());
+    const iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID?.toString() || '');
 
     return (
         <AvatarContainer
