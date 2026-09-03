@@ -62,10 +62,7 @@ jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => () => {
     return ReactModule.createElement('View', {testID: 'concierge-prompt-box'});
 });
 
-// The "Time sensitive" group is exercised in its own tests; stub it out here so these tests stay focused on "For you"
-// (and so it doesn't pull in useFocusEffect, which needs a NavigationContainer this harness doesn't provide).
 jest.mock('@pages/home/TimeSensitiveSection/useTimeSensitiveItems', () => jest.fn(() => []));
-jest.mock('@pages/home/TimeSensitiveSection/TimeSensitiveGroup', () => () => null);
 
 // ForYouSection calls useIsFocused() to freeze useTodoCounts when unfocused; this test renders it outside a
 // NavigationContainer, so stub the focus hook (useTodoCounts is mocked, so the focus value itself is irrelevant).
@@ -75,6 +72,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNavigation,
         useIsFocused: jest.fn(() => true),
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -90,6 +88,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNav,
         useIsFocused: () => mockIsFocused,
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -452,6 +451,7 @@ describe('ForYouSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('forYouEmptyState')).not.toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -465,7 +465,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
         });
 
         it('renders to-do items for a new user who has todos', async () => {
@@ -499,14 +499,14 @@ describe('ForYouSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             // The section renders to-dos and persists the "has seen a to-do" flag.
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByText('Begin')).toBeOnTheScreen();
 
-            // Clearing the to-dos must not unmount the section; it should stay visible (now empty).
+            // Clearing the to-dos must not unmount the section. It should stay visible (now the empty state).
             setTodoCounts(BASE_TODOS);
             rerender(<ForYouSection {...conciergeMenuProps} />);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -521,7 +521,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('forYouEmptyState')).not.toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -538,8 +538,8 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            // The section wrapper (and its title) remain rendered while the skeleton is shown.
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            // The skeleton is shown while the initial load is in flight.
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
         });
     });
 

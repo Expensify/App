@@ -5,8 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -18,12 +16,9 @@ type EnterSignerInfoProps = {
 
     /** The bank account ID requiring signer info */
     bankAccountID: string;
-
-    /** Last four digits of the bank account number */
-    bankAccountLastFour: string;
 };
 
-function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSignerInfoProps) {
+function EnterSignerInfo({policyID, bankAccountID}: EnterSignerInfoProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
@@ -34,10 +29,7 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
     return (
         <BaseWidgetItem
             icon={icons.Bank}
-            iconBackgroundColor={colors.green100}
-            iconFill={colors.green500}
             title={translate('homePage.timeSensitiveSection.enterSignerInfo.title')}
-            subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
             ctaText={translate('homePage.forYouSection.begin')}
             onCtaPress={handleCtaPress}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}

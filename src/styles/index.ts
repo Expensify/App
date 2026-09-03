@@ -7269,6 +7269,13 @@ const plainStyles = (theme: ThemeColors) =>
                 backgroundColor,
             }) satisfies ViewStyle,
 
+        widgetItemIconContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+        },
+
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',

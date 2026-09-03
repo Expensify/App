@@ -7,8 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PossibleFraudData} from '@src/types/onyx/Card';
@@ -53,10 +51,7 @@ function ReviewCardFraud({possibleFraud}: ReviewCardFraudProps) {
     return (
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine700}
             title={title}
-            subtitle={translate('homePage.timeSensitiveSection.reviewCardFraud.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.reviewCardFraud.cta')}
             onCtaPress={handleReviewPress}
             buttonVariant={CONST.BUTTON_VARIANT.DANGER}

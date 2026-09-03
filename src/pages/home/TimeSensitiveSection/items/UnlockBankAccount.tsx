@@ -9,8 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 import {pressLockedBankAccount} from '@libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -37,10 +35,6 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
 
     const title = policyName ? translate('homePage.timeSensitiveSection.unlockBankAccount.workspaceTitle') : translate('homePage.timeSensitiveSection.unlockBankAccount.personalTitle');
 
-    const subtitle = policyName
-        ? translate('homePage.timeSensitiveSection.unlockBankAccount.workspaceSubtitle', {policyName})
-        : translate('homePage.timeSensitiveSection.unlockBankAccount.personalSubtitle');
-
     const handleCtaPress = () => {
         pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID);
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
@@ -49,10 +43,7 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
     return (
         <BaseWidgetItem
             icon={icons.BankLock}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
             title={title}
-            subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={handleCtaPress}
             buttonVariant={CONST.BUTTON_VARIANT.DANGER}

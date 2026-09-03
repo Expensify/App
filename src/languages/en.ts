@@ -1001,7 +1001,7 @@ const translations = {
         tooltip: 'Get started here!',
     },
     homePage: {
-        forYou: 'For you',
+        forYou: 'To-dos',
         conciergePrompt: {
             goodMorning: ({name}: {name?: string}) => (name ? `Good morning, ${name}.` : 'Good morning.'),
             goodAfternoon: ({name}: {name?: string}) => (name ? `Good afternoon, ${name}.` : 'Good afternoon.'),
@@ -1029,12 +1029,12 @@ const translations = {
             addShippingAddress: {
                 title: 'We need your shipping address',
                 subtitle: 'Provide an address to receive your Expensify Card.',
-                cta: 'Add address',
+                cta: 'Add',
             },
             addVirtualCardPersonalDetails: {
                 title: 'Add your details to view and start using your Expensify Card.',
                 subtitle: 'Expensify Card',
-                cta: 'Add details',
+                cta: 'Add',
             },
             addPaymentCard: {
                 title: 'Add a payment card to keep using Expensify',
@@ -1064,7 +1064,7 @@ const translations = {
             addHomeAddress: {
                 title: 'Add your home address for distance tracking',
                 subtitle: 'Account',
-                cta: 'Add address',
+                cta: 'Add',
             },
             fixFailedBilling: {
                 title: "We couldn't bill your card on file",
