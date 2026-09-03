@@ -133,7 +133,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
     __esModule: true,
-    default: (isScreenFocused: boolean) => mockUseSearchTypeMenuSections(isScreenFocused),
+    default: (queryParams: unknown, isScreenFocused: boolean) => mockUseSearchTypeMenuSections(queryParams, isScreenFocused),
 }));
 
 jest.mock('@pages/settings/useSettingsNavigationMenuData', () => ({
@@ -732,16 +732,12 @@ describe('Workspace Search Router navigation source', () => {
             ReceiptMultiple: mockIcon,
             Gear: mockIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({
-            typeMenuSections: [
-                {
-                    translationPath: 'search.tabs.expenseReports',
-                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
-                },
-            ],
-            activeItemIndex: -1,
-            activeKey: undefined,
-        });
+        mockUseSearchTypeMenuSections.mockReturnValue([
+            {
+                translationPath: 'search.tabs.expenseReports',
+                menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+            },
+        ]);
         mockUseSettingsNavigationMenuData.mockReturnValue({
             accountMenuItemsData: {
                 sectionTranslationKey: 'initialSettingsPage.account',
@@ -936,7 +932,7 @@ describe('Spend Search Router navigation source', () => {
             initialProps: {shouldWatchForApprovals: false},
         });
 
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(false);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(false, undefined);
         expect(result.current).toHaveLength(1);
         expect(result.current.at(0)).toMatchObject({
             text: 'Go to Reports',
@@ -953,7 +949,7 @@ describe('Spend Search Router navigation source', () => {
         expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, iconSize: variables.fontSizeLabel, showTooltip: false});
 
         rerender({shouldWatchForApprovals: true});
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true, undefined);
     });
 
     it('keeps Create rows reachable when top-level and Spend sources are present', () => {
