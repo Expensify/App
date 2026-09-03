@@ -7250,6 +7250,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                     `Zorg ervoor dat deze rekening overeenkomt met je Consolidated Travel Billing-afwikkelingsrekening (eindigend op ${lastFourPAN}), zodat Continuous Reconciliation goed werkt.`,
             },
             syncTravelInvoicingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
