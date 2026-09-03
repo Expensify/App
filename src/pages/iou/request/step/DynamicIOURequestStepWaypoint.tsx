@@ -1,7 +1,7 @@
 import AddressSearch from '@components/AddressSearch';
 import type {PredefinedPlace} from '@components/AddressSearch/types';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';

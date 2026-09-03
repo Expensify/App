@@ -134,6 +134,7 @@ function Button({
 
     return (
         <PressableWithFeedback
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             ref={ref as PressableRef}
             id={id}
             testID={testID}

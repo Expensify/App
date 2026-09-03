@@ -1,6 +1,6 @@
 import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import BookCallButton from '@components/BookCallButton';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';

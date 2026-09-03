@@ -14,7 +14,7 @@ import {View} from 'react-native';
 
 import type {ColumnRole} from './ImportColumn';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FixedFooter from './FixedFooter';
 import ImportColumn from './ImportColumn';
 import OfflineWithFeedback from './OfflineWithFeedback';

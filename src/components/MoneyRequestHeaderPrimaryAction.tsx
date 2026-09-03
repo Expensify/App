@@ -34,7 +34,7 @@ import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import {useWideRHPState} from './WideRHPContextProvider';
 

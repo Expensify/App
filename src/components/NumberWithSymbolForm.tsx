@@ -34,7 +34,7 @@ import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
 import BigNumberPad from './BigNumberPad';
-import Button from './ButtonComposed';
+import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import ScrollView from './ScrollView';
 import TextInput from './TextInput';

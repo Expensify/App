@@ -11,8 +11,8 @@ import ROUTES from '@src/ROUTES';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
-import ButtonDisabledWhenOffline from './ButtonComposed/composed/ButtonDisabledWhenOffline';
+import Button from './Button';
+import ButtonDisabledWhenOffline from './Button/composed/ButtonDisabledWhenOffline';
 import {useMultifactorAuthentication} from './MultifactorAuthentication/Context';
 import TestToolRow from './TestToolRow';
 

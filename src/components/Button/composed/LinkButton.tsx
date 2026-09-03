@@ -1,8 +1,8 @@
-import Button from '@components/ButtonComposed/Button';
-import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
-import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
-import type {ButtonTextProps} from '@components/ButtonComposed/primitives/ButtonText';
-import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
+import Button from '@components/Button/Button';
+import ButtonIcon from '@components/Button/primitives/ButtonIcon';
+import ButtonKeyboardShortcut from '@components/Button/primitives/ButtonKeyboardShortcut';
+import type {ButtonTextProps} from '@components/Button/primitives/ButtonText';
+import ButtonText from '@components/Button/primitives/ButtonText';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';

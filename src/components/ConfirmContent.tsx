@@ -18,7 +18,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './ButtonComposed';
+import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';

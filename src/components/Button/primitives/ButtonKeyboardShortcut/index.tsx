@@ -1,5 +1,5 @@
-import {useButtonContext} from '@components/ButtonComposed/context';
-import type {ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
+import {useButtonContext} from '@components/Button/context';
+import type {ButtonKeyboardShortcutProps} from '@components/Button/types';
 import withNavigationFallback from '@components/withNavigationFallback';
 
 import useActiveElementRole from '@hooks/useActiveElementRole';
