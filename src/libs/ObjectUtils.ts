@@ -42,8 +42,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function isUnknownArray(value: unknown): value is unknown[] {
+    return Array.isArray(value);
+}
+
 function hasKey<T extends Record<string, unknown>>(obj: T, key: PropertyKey): key is keyof T {
     return key in obj;
 }
 
-export {shallowCompare, getObjectValues, filterObject, isRecord, getObjectKeys, hasKey};
+export {shallowCompare, getObjectValues, filterObject, isRecord, isUnknownArray, getObjectKeys, hasKey};

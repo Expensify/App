@@ -1,6 +1,8 @@
 #!/usr/bin/env bun
 // cspell:ignore apos noverify smime
 
+import {isRecord, isUnknownArray} from '@libs/ObjectUtils';
+
 import type {TupleToUnion} from 'type-fest';
 
 import CLI from 'expensify-common/CLI';
@@ -66,14 +68,6 @@ function validateSuffix(value: string | undefined): string | undefined {
         throw new Error(`Bundle identifier suffix must contain only letters, numbers, or hyphens. Received: ${value}`);
     }
     return value;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isUnknownArray(value: unknown): value is unknown[] {
-    return Array.isArray(value);
 }
 
 function parsePlatform(value: string): Platform {

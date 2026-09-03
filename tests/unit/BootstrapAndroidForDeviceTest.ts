@@ -1,5 +1,7 @@
 // cspell:ignore appinvite mobilesdk
 
+import {isUnknownArray} from '@libs/ObjectUtils';
+
 import {
     androidApplicationIDs,
     defaultBundleIdentifier,
@@ -42,10 +44,6 @@ const googleServicesFixture = {
     ],
 };
 /* eslint-enable @typescript-eslint/naming-convention */
-
-function isUnknownArray(value: unknown): value is unknown[] {
-    return Array.isArray(value);
-}
 
 describe('bootstrapAndroidForDevice', () => {
     test('creates the default Android application ID from a GitHub username', () => {

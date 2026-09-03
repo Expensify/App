@@ -1,3 +1,5 @@
+import {isRecord} from '@libs/ObjectUtils';
+
 import type {TupleToUnion} from 'type-fest';
 
 const PLATFORM_NAMES = ['android', 'ios'] as const;
@@ -62,10 +64,6 @@ function sleep(milliseconds: number): Promise<void> {
     });
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function parseBenchmarkLogEvents(output: string): BenchmarkLogEvent[] {
     const events: BenchmarkLogEvent[] = [];
     let offset = 0;
@@ -128,7 +126,6 @@ export {
     benchmarkCollectionSpanNames,
     createCommandHelpers,
     findBenchmarkDuration,
-    isRecord,
     latestBenchmarkEvents,
     parseBenchmarkLogEvents,
     sleep,

@@ -66,7 +66,7 @@ import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from './Navigation/navigationRef';
-import {isRecord} from './ObjectUtils';
+import {isRecord, isUnknownArray} from './ObjectUtils';
 import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {deprecatedGetReportName} from './ReportNameUtils';
@@ -2239,10 +2239,6 @@ function isSearchRootParams(params: unknown): params is SearchRootParams {
         typeof params.q === 'string' &&
         (!('rawQuery' in params) || params.rawQuery === undefined || typeof params.rawQuery === 'string')
     );
-}
-
-function isUnknownArray(value: unknown): value is unknown[] {
-    return Array.isArray(value);
 }
 
 function getParamsState(params: unknown): unknown {

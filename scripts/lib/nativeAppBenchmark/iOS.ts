@@ -1,5 +1,7 @@
 // cspell:ignore BEGINSWITH devicectl
 
+import {isRecord} from '@libs/ObjectUtils';
+
 import {existsSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -7,7 +9,7 @@ import process from 'node:process';
 
 import type {BenchmarkLogEvent, NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions} from './shared';
 
-import {POLL_INTERVAL_MS, RELAUNCH_DELAY_MS, benchmarkCollectionSpanNames, createCommandHelpers, isRecord, latestBenchmarkEvents, parseBenchmarkLogEvents, sleep} from './shared';
+import {POLL_INTERVAL_MS, RELAUNCH_DELAY_MS, benchmarkCollectionSpanNames, createCommandHelpers, latestBenchmarkEvents, parseBenchmarkLogEvents, sleep} from './shared';
 
 const IOS_BENCHMARK_DIRECTORY = 'Library/Caches/ExpensifyBenchmark';
 
