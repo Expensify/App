@@ -5,10 +5,12 @@ import {
     updateMoneyRequestBillable,
     updateMoneyRequestCategory,
     updateMoneyRequestDate,
+    updateMoneyRequestDescription,
     updateMoneyRequestDistance,
     updateMoneyRequestMerchant,
     updateMoneyRequestReimbursable,
     updateMoneyRequestTag,
+    updateMoneyRequestTaxRate,
 } from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {editTransactionMerchantInline} from '@libs/actions/TransactionInlineEdit';
@@ -22,7 +24,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, SearchResults} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, SearchResults, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Routes} from '@src/types/onyx/Transaction';
@@ -100,6 +102,36 @@ jest.mock('@libs/PolicyUtils', () => ({
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+
+/**
+ * A violation only the backend can produce, so the client-side recompute can never put it back once it is dropped.
+ * It is the probe for whether an edit preserved the violations it was given.
+ */
+const backendOnlyViolation: TransactionViolation = {
+    type: CONST.VIOLATION_TYPES.NOTICE,
+    name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT,
+    data: {formattedLimit: '$100'},
+};
+
+/** Seeds a group-policy expense that already carries a backend-only violation, and returns what the edit helpers need. */
+async function seedTransactionWithBackendOnlyViolation(transactionID: string, transactionThreadReportID: string) {
+    const policy: Policy = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+    const transactionThreadReport = {reportID: transactionThreadReportID};
+
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount: 17500, transactionID});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [backendOnlyViolation]);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+
+    return {policy, transactionThreadReport};
+}
+
+/** Reads back the violation names stored for a transaction. */
+async function getStoredViolationNames(transactionID: string) {
+    const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+
+    return violations?.map((violation) => violation.name);
+}
 
 OnyxUpdateManager();
 describe('actions/IOU/UpdateMoneyRequest', () => {
@@ -1003,6 +1035,111 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     },
                 });
             });
+        });
+
+        it('should keep a violation the client cannot recompute when the tag is edited', async () => {
+            // Given an expense on a group policy carrying a violation only the backend can produce
+            const transactionID = '1';
+            const {policy, transactionThreadReport} = await seedTransactionWithBackendOnlyViolation(transactionID, '2');
+
+            // When editing the tag
+            updateMoneyRequestTag({
+                transactionID,
+                transactionThreadReport,
+                parentReport: undefined,
+                iouReportOwnerLogin: undefined,
+                tag: 'A new tag',
+                policy,
+                policyTagList: undefined,
+                reportPolicyTags: undefined,
+                policyRecentlyUsedTags: undefined,
+                policyCategories: undefined,
+                isOffline: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                violations: [backendOnlyViolation],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the violation is still stored, because the optimistic recompute was seeded with it
+            expect(await getStoredViolationNames(transactionID)).toEqual([CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT]);
+        });
+    });
+
+    describe('updateMoneyRequestDescription', () => {
+        it('should keep a violation the client cannot recompute when the description is edited', async () => {
+            // Given an expense on a group policy carrying a violation only the backend can produce
+            const transactionID = '1';
+            const {policy, transactionThreadReport} = await seedTransactionWithBackendOnlyViolation(transactionID, '2');
+
+            // When editing the description
+            updateMoneyRequestDescription({
+                transactionID,
+                transactionThreadReport,
+                parentReport: undefined,
+                iouReportOwnerLogin: undefined,
+                comment: 'A new description',
+                policy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                reportPolicyTags: undefined,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                violations: [backendOnlyViolation],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the violation is still stored, because the optimistic recompute was seeded with it
+            expect(await getStoredViolationNames(transactionID)).toEqual([CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT]);
+        });
+    });
+
+    describe('updateMoneyRequestTaxRate', () => {
+        it('should keep a violation the client cannot recompute when the tax rate is edited', async () => {
+            // Given an expense on a group policy carrying a violation only the backend can produce
+            const transactionID = '1';
+            const {policy, transactionThreadReport} = await seedTransactionWithBackendOnlyViolation(transactionID, '2');
+
+            // When editing the tax rate
+            updateMoneyRequestTaxRate({
+                transactionID,
+                transactionThreadReport,
+                parentReport: undefined,
+                iouReportOwnerLogin: undefined,
+                taxCode: 'id_TAX_EXEMPT',
+                taxAmount: 0,
+                taxValue: '0%',
+                policy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                reportPolicyTags: undefined,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                violations: [backendOnlyViolation],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the backend-only violation survives. taxOutOfPolicy is added on top because the tax code is not one
+            // of the policy's rates, which is the client-side recompute correctly doing its own job.
+            expect(await getStoredViolationNames(transactionID)).toEqual([CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CONST.VIOLATIONS.TAX_OUT_OF_POLICY]);
         });
     });
 
@@ -1952,6 +2089,39 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // Then modifiedMerchant should be set to the track-expense merchant
             const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transactionAfter?.modifiedMerchant).toBe('Track Merchant');
+        });
+
+        it('should keep a violation the client cannot recompute when the merchant is edited', async () => {
+            // Given an expense on a group policy carrying a violation only the backend can produce
+            const transactionID = '1';
+            const {policy, transactionThreadReport} = await seedTransactionWithBackendOnlyViolation(transactionID, '2');
+
+            // When editing the merchant
+            updateMoneyRequestMerchant({
+                transactionID,
+                transactionThreadReport,
+                parentReport: undefined,
+                iouReportOwnerLogin: undefined,
+                value: 'A new merchant',
+                policy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                reportPolicyTags: undefined,
+                isOffline: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                violations: [backendOnlyViolation],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the violation is still stored, because the optimistic recompute was seeded with it
+            expect(await getStoredViolationNames(transactionID)).toEqual([CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT]);
         });
     });
 
