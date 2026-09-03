@@ -2720,7 +2720,7 @@ const translations: TranslationDeepObject<typeof en> = {
         title: ({walletName}: {walletName: string}) => `Kaart toevoegen aan ${walletName}`,
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
-        digitalWallet: 'digitale wallet',
+        digitalWallet: 'digitale portemonnee',
         confirmHeading: 'Bevestig je verzoek',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Wil je je Expensify Kaart (eindigend op ${lastFourDigits}) toevoegen aan je ${walletName}?`,

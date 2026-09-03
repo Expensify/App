@@ -2726,7 +2726,7 @@ const translations: TranslationDeepObject<typeof en> = {
         title: ({walletName}: {walletName: string}) => `Karte zu ${walletName} hinzufügen`,
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
-        digitalWallet: 'Digitale Geldbörse',
+        digitalWallet: 'digitale Brieftasche',
         confirmHeading: 'Bestätigen Sie Ihre Anfrage',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Möchten Sie Ihre Expensify Karte (endet auf ${lastFourDigits}) zu Ihrem ${walletName} hinzufügen?`,
