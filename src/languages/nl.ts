@@ -3757,11 +3757,6 @@ ${amount} voor ${merchant} - ${date}`,
         thisBankAccount: 'Deze bankrekening wordt gebruikt voor zakelijke betalingen in je workspace',
         accountNumber: 'Rekeningnummer',
         routingNumber: 'Routingnummer',
-        internationalBankAccountDetails: 'Internationale bankrekeninggegevens',
-        internationalBankAccountDetailsTitle: 'Wat zijn je internationale rekeninggegevens?',
-        internationalBankAccountDetailsSubtitle: 'Een van je werkruimtes heeft internationale rekeninggegevens nodig om onkostenvergoedingen te verwerken',
-        iban: 'IBAN',
-        swiftBicCode: 'SWIFT/BIC-code',
         chooseAnAccountBelow: 'Kies een account hieronder',
         addBankAccount: 'Bankrekening toevoegen',
         chooseAnAccount: 'Kies een account',
@@ -3811,8 +3806,6 @@ ${amount} voor ${merchant} - ${date}`,
             restrictedBusiness: 'Bevestig dat het bedrijf niet op de lijst met beperkte bedrijven staat',
             routingNumber: 'Voer een geldig routingnummer in',
             accountNumber: 'Voer een geldig rekeningnummer in',
-            iban: 'Voer een geldige IBAN in',
-            swiftCode: 'Voer een geldige SWIFT/BIC-code in',
             routingAndAccountNumberCannotBeSame: 'Routing- en rekeningnummers mogen niet hetzelfde zijn',
             companyType: 'Selecteer een geldig bedrijfstype',
             tooManyAttempts: 'Vanwege een groot aantal inlogpogingen is deze optie voor 24 uur uitgeschakeld. Probeer het later opnieuw of voer de gegevens in plaats daarvan handmatig in.',
@@ -6163,6 +6156,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             finishSetup: 'Configuratie voltooien',
             chooseBankAccount: 'Kies bankrekening',
             chooseExistingBank: 'Kies een bestaande zakelijke bankrekening om je saldo van de Expensify Kaart te betalen, of voeg een nieuwe bankrekening toe',
+            chooseExistingBankForTravelBilling: 'Kies een bestaande zakelijke bankrekening om je geconsolideerde reissaldi te betalen, of voeg een nieuwe bankrekening toe',
             accountEndingIn: 'Rekening eindigend op',
             addNewBankAccount: 'Nieuwe bankrekening toevoegen',
             settlementAccount: 'Verrekeningsrekening',
@@ -6234,7 +6228,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             deleteFailureMessage: 'Er is een fout opgetreden bij het verwijderen van de categorie, probeer het opnieuw',
             categoryName: 'Categorienaam',
             requiresCategory: 'Leden moeten alle uitgaven categoriseren',
-            autoCategorizeNewExpenses: 'Nieuwe uitgaven automatisch categoriseren',
             showCategoryGLCodes: 'Toon GL-codes bij het categoriseren van uitgaven',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle onkosten moeten worden gecategoriseerd om te kunnen exporteren naar ${connectionName}.`,
             subtitle: 'Krijg beter inzicht in waar geld wordt uitgegeven. Gebruik onze standaardcategorieën of voeg je eigen categorieën toe.',
@@ -7260,6 +7253,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                     `Zorg ervoor dat deze rekening overeenkomt met je Consolidated Travel Billing-afwikkelingsrekening (eindigend op ${lastFourPAN}), zodat Continuous Reconciliation goed werkt.`,
             },
             syncTravelInvoicingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -10066,47 +10061,51 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';
+                return 'Kan bon niet automatisch koppelen door een verbroken bankverbinding.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Kan bon niet automatisch koppelen vanwege een tijdelijk bankprobleem. Probeer het later opnieuw.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw geverifieerd moet worden.';
+                        return 'Kan de bon niet automatisch koppelen omdat je bankverbinding opnieuw moet worden geverifieerd.';
                     }
                     return isMarkAsCash
-                        ? `Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw geverifieerd moet worden. Markeer als contant om te negeren, of <a href="${connectionLink}">verbind opnieuw</a> om de bon te koppelen.`
-                        : `Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw geverifieerd moet worden. <a href="${connectionLink}">Verbind opnieuw</a> om de bon te koppelen.`;
+                        ? `Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw moet worden geverifieerd. Markeer als contant om te negeren, of <a href="${connectionLink}">maak opnieuw verbinding</a> om de bon te koppelen.`
+                        : `Kan de bon niet automatisch koppelen omdat je bankverbinding opnieuw moet worden geverifieerd. <a href="${connectionLink}">Verbind opnieuw</a> om de bon te koppelen.`;
                 }
                 return isAdmin
-                    ? `Bankkoppeling moet opnieuw worden geverifieerd. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
-                    : 'Bankkoppeling moet opnieuw worden geverifieerd. Vraag een beheerder om de verbinding opnieuw te maken om de bon te laten overeenkomen.';
+                    ? `Bankverbinding moet opnieuw worden geverifieerd. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
+                    : 'Bankkoppeling moet opnieuw worden geverifieerd. Vraag een beheerder om opnieuw te verbinden zodat het overeenkomt met de bon.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';
+                    return 'Kan bon niet automatisch koppelen door een verbroken bankverbinding.';
                 }
                 return isMarkAsCash
-                    ? `Kan bon niet automatisch koppelen vanwege een verbroken kaartverbinding. Markeer als contant om te negeren, of <a href="${connectionLink}">repareer de kaart</a> om de bon te koppelen.`
-                    : `Kan bon automatisch koppelen aan bon vanwege verbroken kaartverbinding. <a href="${connectionLink}">Herstel de kaart</a> om de bon te koppelen.`;
+                    ? `Kan bon niet automatisch koppelen vanwege een verbroken kaartverbinding. Markeer als contant om te negeren, of <a href="${connectionLink}">herstel de kaart</a> om de bon te koppelen.`
+                    : `Kan bon niet automatisch koppelen vanwege een verbroken kaartverbinding. <a href="${connectionLink}">Herstel de kaart</a> om de bon te koppelen.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Bankkoppeling verbroken. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
-                    : 'Bankkoppeling verbroken. Vraag een beheerder om de verbinding opnieuw te maken om de bon te laten overeenkomen.';
+                    ? `Bankverbinding verbroken. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
+                    : 'Bankkoppeling verbroken. Vraag een admin om opnieuw te verbinden om de bon te koppelen.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Vraag ${member} om het als contant te markeren of wacht 7 dagen en probeer het opnieuw` : 'In afwachting van koppeling met kaarttransactie.';
+                return isAdmin ? `Vraag ${member} om deze als contant te markeren of wacht 7 dagen en probeer het opnieuw` : 'In afwachting van samenvoeging met kaarttransactie.';
             }
             return '';
         },
         brokenConnection530Error: 'Bonnetje in behandeling vanwege verbroken bankverbinding',
+        brokenConnection531Error: 'Kan bon niet automatisch koppelen vanwege een tijdelijk bankprobleem. Probeer het later opnieuw.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Bon in behandeling vanwege een verbroken bankverbinding. Los dit op in <a href="${workspaceCompanyCardRoute}">Bedrijfspassen</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Bon wordt vastgehouden vanwege een verbroken bankkoppeling. Vraag een werkruimtebeheerder om dit op te lossen.',

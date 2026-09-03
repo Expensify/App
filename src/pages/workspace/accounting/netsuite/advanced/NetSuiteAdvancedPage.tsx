@@ -5,7 +5,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
@@ -16,8 +15,6 @@ import {
     updateNetSuiteSyncReimbursedReports,
 } from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
-import {toggleTravelBillingContinuousReconciliation} from '@libs/actions/TravelBilling';
-import {getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,7 +25,6 @@ import {
     getFilteredReimbursableAccountOptions,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
-import {getIsTravelBillingEnabled} from '@libs/TravelBillingUtils';
 
 import type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender} from '@pages/workspace/accounting/netsuite/types';
 import {
@@ -38,14 +34,12 @@ import {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
 } from '@pages/workspace/accounting/netsuite/utils';
-import RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounting/reconciliation/constants';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
@@ -58,23 +52,12 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const autoSync = !!autoSyncConfig?.autoSync?.enabled;
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const {payableList, expenseAccounts} = policy?.connections?.netsuite?.options?.data ?? {};
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
-    const [travelBillingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
-    const [travelBillingContinuousReconciliationPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${workspaceAccountID}`);
-    const [travelBillingContinuousReconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
-    const [travelBillingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
-    const travelBillingReconciliationBankAccount = getConnectionBankAccountsForReconciliation(policy?.connections, CONST.POLICY.CONNECTIONS.NAME.NETSUITE).find(
-        (account) => account.id === travelBillingReconciliationBankAccountID,
-    );
 
     const shouldShowCustomFormIDOptions = useSharedValue(!shouldHideCustomFormIDOptions(config));
     const shouldAnimateAccordionSection = useSharedValue(false);
@@ -98,14 +81,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         }
         return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === config?.approvalAccount);
     }, [config?.approvalAccount, payableList, translate]);
-
-    const navigateToTravelBillingReconciliationAccountSettings = () => {
-        Navigation.navigate(
-            createDynamicRoute(
-                `${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}?connection=${CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE}&reconciliationAccountSettingsType=${RECONCILIATION_ACCOUNT_SETTINGS_TYPE.TRAVEL_BILLING}`,
-            ),
-        );
-    };
 
     const renderDefaultMenuItem = (item: MenuItemToRender) => {
         return (
@@ -186,33 +161,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             type: 'divider',
             key: 'divider2',
             shouldHide: shouldHideReimbursedReportsSection(config),
-        },
-        {
-            type: 'toggle',
-            title: translate('workspace.accounting.syncTravelInvoicingSettlements'),
-            isActive: !!travelBillingContinuousReconciliation,
-            switchAccessibilityLabel: translate('workspace.accounting.syncTravelInvoicingSettlements'),
-            disabled: !autoSync,
-            onToggle: (isEnabled) => {
-                toggleTravelBillingContinuousReconciliation(workspaceAccountID, isEnabled, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, travelBillingContinuousReconciliationConnection);
-                if (isEnabled) {
-                    navigateToTravelBillingReconciliationAccountSettings();
-                }
-            },
-            pendingAction: travelBillingContinuousReconciliationPendingAction,
-            shouldHide: !isTravelBillingEnabled,
-        },
-        {
-            type: 'menuitem',
-            description: translate('workspace.accounting.reconciliationAccount'),
-            onPress: navigateToTravelBillingReconciliationAccountSettings,
-            title: travelBillingReconciliationBankAccount?.name,
-            shouldHide: !isTravelBillingEnabled || !travelBillingContinuousReconciliation,
-        },
-        {
-            type: 'divider',
-            key: 'dividerTravelInvoicing',
-            shouldHide: !isTravelBillingEnabled,
         },
         {
             type: 'toggle',
