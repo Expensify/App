@@ -1,3 +1,4 @@
+import BulkActionBar from '@components/BulkActionBar';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -39,7 +40,7 @@ import type {BulkPaySelectionData, SearchQueryJSON, SelectedTransactions} from '
 
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
-import {useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
+import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 
 type SearchBulkActionsButtonProps = {
     queryJSON: SearchQueryJSON;
@@ -53,6 +54,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
@@ -180,9 +182,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     } else {
         selectedAllMatchingItemsCount = isExpenseType ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : allMatchingItemsCount;
     }
-    const selectionButtonText = translate('workspace.common.selected', {
-        count: areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount,
-    });
+    const selectedBulkActionsCount = areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount;
+    const selectionButtonText = translate('workspace.common.selected', {count: selectedBulkActionsCount});
 
     return (
         <>
@@ -244,26 +245,13 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             />
                         </View>
                     ) : (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            <ButtonWithDropdownMenu
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                onPress={() => null}
-                                shouldAlwaysShowDropdownMenu
-                                customText={selectionButtonText}
-                                isLoading={isAllMatchingItemsCountLoading}
-                                options={headerButtonsOptions}
-                                menuHeaderText={bulkActionsMenuHeaderText}
-                                shouldPopoverUseScrollView={popoverUseScrollView}
-                                onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
-                                isSplitButton={false}
-                                buttonRef={buttonRef}
-                                anchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                }}
-                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DROPDOWN}
-                            />
-                        </View>
+                        <BulkActionBar
+                            selectedCount={selectedBulkActionsCount}
+                            options={headerButtonsOptions}
+                            onClearSelection={() => clearSelectedTransactions(true)}
+                            onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
+                            barRef={buttonRef}
+                        />
                     )
                 }
             </KYCWall>

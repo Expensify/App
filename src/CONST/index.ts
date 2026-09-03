@@ -6421,6 +6421,14 @@ const CONST = {
         DANGER: 'danger',
     },
 
+    BULK_ACTION_BAR: {
+        /** How many of a selection's actions get a button of their own in the bar before the rest move behind "More". */
+        MAX_INLINE_ACTIONS: 3,
+
+        /** How far the bar floats above the bottom of the container it is rendered in. */
+        BOTTOM_OFFSET: 20,
+    },
+
     BUTTON_REMOVE_BORDER_RADIUS: {
         LEFT: 'left',
         RIGHT: 'right',
@@ -8673,6 +8681,10 @@ const CONST = {
     SENTRY_LABEL: {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
+        BULK_ACTION_BAR: {
+            CLEAR_SELECTION: 'BulkActionBar-ClearSelection',
+            MORE: 'BulkActionBar-More',
         },
         ACCOUNT_MANAGER_BOOK_CALL: {
             BUTTON: 'AccountManagerBookCallButton-Button',
