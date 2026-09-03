@@ -35,7 +35,7 @@ jest.mock('@src/CONFIG', () => ({__esModule: true, default: mockConfig}));
 
 Onyx.init({keys: ONYXKEYS});
 
-// Lazy-require so the @src/CONFIG mock factory sees an initialized mockConfig — otherwise the
+// Lazy-require so the @src/CONFIG mock factory sees an initialized mockConfig. Otherwise the
 // hoisted import order would resolve CONFIG.default while mockConfig was still in the TDZ.
 const ApiUtils = require<typeof ApiUtilsModule>('@libs/ApiUtils');
 

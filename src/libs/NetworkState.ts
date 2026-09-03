@@ -342,7 +342,7 @@ function configureAndSubscribe() {
 
     // QA: the Ping URL sits behind Cloudflare Access and NetInfo issues that request itself, so it cannot
     // carry the bearer and would read as a permanent outage. NetInfo's `reachabilityHeaders` is not a way
-    // out — that config is static and the access token rotates on Cloudflare's schedule.
+    // out. That config is static and the access token rotates on Cloudflare's schedule.
     if (!CONFIG.IS_USING_LOCAL_WEB && !isQAServerActive()) {
         NetInfo.configure({
             reachabilityUrl: configuredReachabilityUrl,
@@ -396,7 +396,7 @@ function configureAndSubscribe() {
 }
 
 // Subscribe to NetInfo once getEnvironment() resolves so the first ping uses the correct root, and defer
-// configureAndSubscribe so ApiUtils' ACTIVE_SERVER callback — the source of truth for getApiRoot() — has
+// configureAndSubscribe so ApiUtils' ACTIVE_SERVER callback, the source of truth for getApiRoot(), has
 // updated its cached value first. Sampling it early bakes the wrong reachabilityUrl into NetInfo.
 getEnvironment().then(() => {
     queueMicrotask(configureAndSubscribe);
