@@ -1,8 +1,8 @@
 ---
 title: Attach and edit receipts on expenses
 description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify for audits and accounting.
-keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt]
-internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses. Does not cover SmartScan configuration or receipt forwarding via email.
+keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt, multi-page PDF receipt, page count badge, Page 1 of, view all pages of a receipt]
+internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses, and viewing every page of a multi-page PDF receipt. Does not cover SmartScan configuration or receipt forwarding via email.
 ---
 
 Make sure your receipts are attached correctly to individual expenses for audit and accounting compliance. This guide explains how to attach, verify, and troubleshoot receipts in New Expensify — and when to use report comments for additional documentation.
@@ -63,6 +63,22 @@ You can rotate a receipt to correct its orientation. Rotation is available for u
 2. Click **Rotate**.
 3. Each click rotates the receipt 90° counter-clockwise.
 
+## How to view all pages of a multi-page PDF receipt
+
+The receipt preview on an expense only ever shows the first page of a PDF. If a PDF receipt has more than one page, a page count badge appears in the bottom-left corner of the preview — for example, **Page 1 of 3** on a three-page PDF. Use the badge as a signal that details such as the total, itemization, or tax breakdown may be on a later page.
+
+Zooming the preview magnifies the first page only. To read the other pages, open the receipt:
+
+1. Open the expense.
+2. Click on the receipt preview to open the full receipt.
+3. Scroll down to move through the remaining pages.
+
+<!-- SCREENSHOT:
+Suggestion: The expense detail view with a multi-page PDF receipt, showing the **Page 1 of 3** badge in the bottom-left corner of the receipt preview.
+Location: Immediately after the numbered steps in this section.
+Purpose: Members report that an expense amount looks wrong when the total sits on a later page. Showing where the small badge sits relative to the receipt tells them the badge exists and where to look for it.
+-->
+
 ---
 
 ## How to Add Additional Receipts to an Expense
@@ -117,6 +133,12 @@ Approved and Paid reports are locked for editing. To make changes:
 
 ## Why isn’t my receipt showing on the expense?
 It was likely uploaded in the report comments. Receipts must be attached directly to the expense to appear properly.
+
+## Why does my expense amount not match the receipt I can see?
+If the receipt is a PDF with more than one page, the preview shows only page 1, and the total may be on a later page. Check for a page count badge such as **Page 1 of 3** in the bottom-left corner of the preview, then open the receipt and scroll to review every page before you edit the amount.
+
+## Why don’t I see a page count badge on my PDF receipt?
+The badge only appears when a PDF receipt has two or more pages. It does not appear on single-page PDFs, on image receipts, or on eReceipts. It also does not appear on PDF receipts that were uploaded before this feature was released, because page counts are not added to older receipts.
 
 ## Can I attach one receipt to multiple expenses?
 No. Each expense must have its own receipt. You can upload the same file more than once if needed.
