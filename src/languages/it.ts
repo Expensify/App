@@ -3758,11 +3758,6 @@ ${amount} per ${merchant} - ${date}`,
         thisBankAccount: 'Questo conto bancario sarà utilizzato per i pagamenti aziendali nel tuo spazio di lavoro',
         accountNumber: 'Numero di conto',
         routingNumber: 'Numero di instradamento',
-        internationalBankAccountDetails: 'Dati del conto bancario internazionale',
-        internationalBankAccountDetailsTitle: 'Quali sono i dati del tuo conto internazionale?',
-        internationalBankAccountDetailsSubtitle: 'Uno dei tuoi spazi di lavoro richiede i dati del conto internazionale per elaborare i rimborsi',
-        iban: 'IBAN',
-        swiftBicCode: 'Codice SWIFT/BIC',
         chooseAnAccountBelow: 'Scegli un account qui sotto',
         addBankAccount: 'Aggiungi conto bancario',
         chooseAnAccount: 'Scegli un account',
@@ -3812,8 +3807,6 @@ ${amount} per ${merchant} - ${date}`,
             restrictedBusiness: 'Conferma che l’azienda non sia nell’elenco delle attività soggette a restrizioni',
             routingNumber: 'Inserisci un numero di instradamento valido',
             accountNumber: 'Inserisci un numero di conto valido',
-            iban: 'Inserisci un IBAN valido',
-            swiftCode: 'Inserisci un codice SWIFT/BIC valido',
             routingAndAccountNumberCannotBeSame: 'I numeri di routing e di conto non possono coincidere',
             companyType: 'Seleziona un tipo di azienda valido',
             tooManyAttempts: 'A causa di un numero elevato di tentativi di accesso, questa opzione è stata disabilitata per 24 ore. Riprova più tardi o inserisci invece i dati manualmente.',
@@ -6168,6 +6161,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             finishSetup: 'Completa configurazione',
             chooseBankAccount: 'Scegli il conto bancario',
             chooseExistingBank: 'Scegli un conto bancario aziendale esistente per pagare il saldo della tua Carta Expensify oppure aggiungi un nuovo conto bancario',
+            chooseExistingBankForTravelBilling:
+                'Scegli un conto bancario aziendale esistente per pagare il saldo della fatturazione di viaggio consolidata oppure aggiungi un nuovo conto bancario',
             accountEndingIn: 'Conto che termina con',
             addNewBankAccount: 'Aggiungi un nuovo conto bancario',
             settlementAccount: 'Conto di regolamento',
@@ -6240,7 +6235,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             deleteFailureMessage: 'Si è verificato un errore durante l’eliminazione della categoria, riprova per favore',
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
-            autoCategorizeNewExpenses: 'Categorizza automaticamente le nuove spese',
             showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
@@ -7298,6 +7292,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                     `Assicurati che questo conto corrisponda al conto di regolamento della tua Consolidated Travel Billing (che termina con ${lastFourPAN}) affinché il Riconcilio Continuo funzioni correttamente.`,
             },
             syncTravelInvoicingSettlements: 'Sincronizza i regolamenti di fatturazione viaggio consolidata',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Per sbloccare, imposta un conto per le tue esportazioni.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Per sbloccare, abilita la sincronizzazione automatica.',
         },
         export: {
             notReadyHeading: 'Non pronto per l’esportazione',
@@ -10137,28 +10133,31 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Impossibile abbinare automaticamente la ricevuta a causa di un problema di connessione bancaria.';
+                return 'Impossibile abbinare automaticamente la ricevuta a causa di un problema di connessione con la banca.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Impossibile associare automaticamente la ricevuta a causa di un problema temporaneo della banca. Riprova più tardi.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Impossibile abbinare automaticamente la ricevuta perché la connessione bancaria deve essere ri-autenticata.';
+                        return 'Impossibile abbinare automaticamente la ricevuta perché la connessione bancaria richiede una nuova autenticazione.';
                     }
                     return isMarkAsCash
-                        ? `Impossibile abbinare automaticamente la ricevuta perché la connessione bancaria deve essere ri-autenticata. Contrassegna come contanti per ignorare oppure <a href="${connectionLink}">riconnettiti</a> per abbinare la ricevuta.`
-                        : `Impossibile abbinare automaticamente la ricevuta perché la connessione bancaria deve essere ri-autenticata. <a href="${connectionLink}">Riconnettiti</a> per abbinare la ricevuta.`;
+                        ? `Impossibile abbinare automaticamente la ricevuta perché il collegamento alla banca richiede una nuova autenticazione. Contrassegna come contante per ignorare oppure <a href="${connectionLink}">riconnetti</a> per abbinare la ricevuta.`
+                        : `Impossibile abbinare automaticamente la ricevuta perché la connessione bancaria richiede una nuova autenticazione. <a href="${connectionLink}">Riconnetti</a> per abbinare la ricevuta.`;
                 }
                 return isAdmin
-                    ? `La connessione bancaria deve essere ri-autenticata. <a href="${companyCardPageURL}">Riconnetti per abbinare la ricevuta</a>`
-                    : 'La connessione bancaria deve essere ri-autenticata. Chiedi a un amministratore di riconnetterla per abbinare la ricevuta.';
+                    ? `La connessione bancaria richiede una nuova autenticazione. <a href="${companyCardPageURL}">Riconnetti per abbinare la ricevuta</a>`
+                    : 'La connessione bancaria richiede una nuova autenticazione. Chiedi a un amministratore di riconnetterla per abbinarla alla ricevuta.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Impossibile abbinare automaticamente la ricevuta a causa di un problema di connessione bancaria.';
+                    return 'Impossibile abbinare automaticamente la ricevuta a causa di un problema di connessione con la banca.';
                 }
                 return isMarkAsCash
-                    ? `Impossibile abbinare automaticamente la ricevuta a causa di un problema di connessione della carta. Contrassegna come contanti per ignorare oppure <a href="${connectionLink}">sistema la carta</a> per abbinare la ricevuta.`
-                    : `Impossibile abbinare automaticamente la ricevuta a causa di un problema di connessione con la carta. <a href="${connectionLink}">Correggi la carta</a> per abbinarla alla ricevuta.`;
+                    ? `Impossibile abbinare automaticamente la ricevuta a causa di un problema di connessione della carta. Contrassegna come contanti per ignorare oppure <a href="${connectionLink}">sistema la carta</a> per abbinarla alla ricevuta.`
+                    : `Impossibile abbinare automaticamente la ricevuta a causa di un problema di connessione della carta. <a href="${connectionLink}">Sistema la carta</a> per abbinarla alla ricevuta.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
@@ -10166,11 +10165,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     : 'Connessione bancaria interrotta. Chiedi a un amministratore di riconnetterla per abbinare la ricevuta.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Chiedi a ${member} di contrassegnarla come contante oppure attendi 7 giorni e riprova` : 'In attesa di abbinamento con la transazione della carta.';
+                return isAdmin ? `Chiedi a ${member} di contrassegnarla come contante oppure aspetta 7 giorni e riprova` : 'In attesa di unire con la transazione della carta.';
             }
             return '';
         },
         brokenConnection530Error: 'Ricevuta in sospeso a causa di connessione bancaria interrotta',
+        brokenConnection531Error: 'Impossibile associare automaticamente la ricevuta a causa di un problema temporaneo della banca. Riprova più tardi.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Ricevuta in sospeso a causa di un collegamento bancario interrotto. Risolvi il problema in <a href="${workspaceCompanyCardRoute}">Carte aziendali</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Ricevuta in sospeso a causa di un collegamento bancario interrotto. Chiedi a un amministratore dello spazio di lavoro di risolvere il problema.',

@@ -3880,11 +3880,6 @@ const translations = {
         thisBankAccount: 'This bank account will be used for business payments on your workspace',
         accountNumber: 'Account number',
         routingNumber: 'Routing number',
-        internationalBankAccountDetails: 'International bank account details',
-        internationalBankAccountDetailsTitle: 'What are your international account details?',
-        internationalBankAccountDetailsSubtitle: 'One of your workspaces needs international account details to process reimbursements',
-        iban: 'IBAN',
-        swiftBicCode: 'SWIFT/BIC code',
         chooseAnAccountBelow: 'Choose an account below',
         addBankAccount: 'Add bank account',
         chooseAnAccount: 'Choose an account',
@@ -3934,8 +3929,6 @@ const translations = {
             restrictedBusiness: "Please confirm the business isn't on the list of restricted businesses",
             routingNumber: 'Please enter a valid routing number',
             accountNumber: 'Please enter a valid account number',
-            iban: 'Please enter a valid IBAN',
-            swiftCode: 'Please enter a valid SWIFT/BIC code',
             routingAndAccountNumberCannotBeSame: "Routing and account numbers can't match",
             companyType: 'Please select a valid company type',
             tooManyAttempts: 'Due to a high number of login attempts, this option has been disabled for 24 hours. Please try again later or enter details manually instead.',
@@ -6302,6 +6295,7 @@ const translations = {
             finishSetup: 'Finish setup',
             chooseBankAccount: 'Choose bank account',
             chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
+            chooseExistingBankForTravelBilling: 'Choose an existing business bank account to pay your Consolidated Travel Billing balance, or add a new bank account',
             accountEndingIn: 'Account ending in',
             addNewBankAccount: 'Add a new bank account',
             settlementAccount: 'Settlement account',
@@ -6368,7 +6362,6 @@ const translations = {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
-            autoCategorizeNewExpenses: 'Auto-categorize new expenses',
             showCategoryGLCodes: 'Show GL codes when categorizing expenses',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
@@ -7424,6 +7417,8 @@ const translations = {
             reconciliationAccount: 'Reconciliation account',
             continuousReconciliation: 'Continuous Reconciliation',
             syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'To unlock, set an account for your exports.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'To unlock, enable auto-sync.',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
@@ -10317,6 +10312,9 @@ const translations = {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Can't auto-match receipt due to broken bank connection.";
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return "Can't auto-match receipt due to a temporary bank issue. Please try again later.";
+            }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
@@ -10350,6 +10348,7 @@ const translations = {
             return '';
         },
         brokenConnection530Error: 'Receipt pending due to broken bank connection',
+        brokenConnection531Error: "Can't auto-match receipt due to a temporary bank issue. Please try again later.",
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',

@@ -848,10 +848,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
                             path: ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.route,
                         },
-                        [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
-                            path: ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.route,
-                            exact: true,
-                        },
                         [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: {
                             path: ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.route,
                         },

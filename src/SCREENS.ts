@@ -772,7 +772,6 @@ const SCREENS = {
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: 'Dynamic_Workspace_ExpensifyCard_Settings_Account',
         EXPENSIFY_CARD_SETTINGS_FREQUENCY: 'Workspace_ExpensifyCard_Settings_Frequency',
         INVOICES: 'Workspace_Invoices',
-        INVOICES_VERIFY_ACCOUNT: 'Workspace_Invoices_Verify_Account',
         INVOICES_COMPANY_NAME: 'Workspace_Invoices_Company_Name',
         INVOICES_COMPANY_WEBSITE: 'Workspace_Invoices_Company_Website',
         INVOICE_FIELDS_CREATE: 'Workspace_InvoiceFields_Create',
