@@ -35,14 +35,14 @@ function getInput() {
     return screen.getByTestId(INPUT_TEST_ID);
 }
 
-function renderTextInput(onInputChange: jest.Mock, numericEditingRef?: React.Ref<NumericFieldRef>, value = '12') {
+function renderTextInput(onInputChange: jest.Mock, ref?: React.Ref<NumericFieldRef>, value = '12') {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <NumericField
                 value={value}
                 decimals={2}
                 onInputChange={onInputChange}
-                numericEditingRef={numericEditingRef}
+                ref={ref}
             >
                 <NumericField.TextInput testID={INPUT_TEST_ID} />
             </NumericField>
@@ -115,17 +115,17 @@ describe('NumericField.TextInput native selection guard', () => {
 
     it('arms no guard when updateNumber leaves the caret where it already is', async () => {
         const onInputChange = jest.fn();
-        const numericEditingRef = React.createRef<NumericFieldRef>();
+        const ref = React.createRef<NumericFieldRef>();
 
         // Given a TextInput with value "12" and the caret already at its end
-        renderTextInput(onInputChange, numericEditingRef);
+        renderTextInput(onInputChange, ref);
         await waitForBatchedUpdatesWithAct();
 
         expect(getInput().props.selection).toEqual({start: 2, end: 2});
 
         // When updateNumber is called with the same value "12", so nothing reaches the input
         act(() => {
-            numericEditingRef.current?.updateNumber('12');
+            ref.current?.updateNumber('12');
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -138,15 +138,15 @@ describe('NumericField.TextInput native selection guard', () => {
 
     it('still drops the stale event when updateNumber moves the caret', async () => {
         const onInputChange = jest.fn();
-        const numericEditingRef = React.createRef<NumericFieldRef>();
+        const ref = React.createRef<NumericFieldRef>();
 
-        // Given a TextInput with value "12" and a numericEditingRef
-        renderTextInput(onInputChange, numericEditingRef);
+        // Given a TextInput with value "12" and a ref
+        renderTextInput(onInputChange, ref);
         await waitForBatchedUpdatesWithAct();
 
         // When updateNumber is called with a longer value
         act(() => {
-            numericEditingRef.current?.updateNumber('1234');
+            ref.current?.updateNumber('1234');
         });
         await waitForBatchedUpdatesWithAct();
 

@@ -30,7 +30,7 @@ type RootProps = {
     maxLength?: number;
     errorText?: string;
     onInputChange?: jest.Mock;
-    numericEditingRef?: React.Ref<NumericFieldRef>;
+    ref?: React.Ref<NumericFieldRef>;
 };
 
 function renderTextInput(inputProps: Partial<NumericTextInputProps> = {}, rootProps: RootProps = {}) {
@@ -352,23 +352,23 @@ describe('NumericField.TextInput', () => {
     });
 
     it('exposes the imperative number API without notifying the root on updateNumber', async () => {
-        const numericEditingRef = React.createRef<NumericFieldRef>();
+        const ref = React.createRef<NumericFieldRef>();
         const onInputChange = jest.fn();
 
-        // Given a TextInput with value "10", zero decimal places, and a numericEditingRef
-        renderTextInput({testID: INPUT_TEST_ID}, {value: '10', decimals: 0, numericEditingRef, onInputChange});
+        // Given a TextInput with value "10", zero decimal places, and a ref
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '10', decimals: 0, ref, onInputChange});
         await waitForBatchedUpdatesWithAct();
 
-        expect(numericEditingRef.current?.getNumber()).toBe('10');
+        expect(ref.current?.getNumber()).toBe('10');
 
         // When updateNumber is called imperatively with a value that is invalid for decimals: 0
         act(() => {
-            numericEditingRef.current?.updateNumber('1.5');
+            ref.current?.updateNumber('1.5');
         });
         await waitForBatchedUpdatesWithAct();
 
         // Then the value is stored without validation or notifying onInputChange, matching NumberWithSymbolForm
-        expect(numericEditingRef.current?.getNumber()).toBe('1.5');
+        expect(ref.current?.getNumber()).toBe('1.5');
         expect(onInputChange).not.toHaveBeenCalled();
         expect(screen.getByDisplayValue('1.5')).toBeOnTheScreen();
 
@@ -395,10 +395,10 @@ describe('NumericField.TextInput', () => {
     });
 
     it('collapses the selection onto its end when clearSelection is called', async () => {
-        const numericEditingRef = React.createRef<NumericFieldRef>();
+        const ref = React.createRef<NumericFieldRef>();
 
         // Given a TextInput with a range selection
-        renderTextInput({testID: INPUT_TEST_ID}, {value: '1234', decimals: 2, numericEditingRef});
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '1234', decimals: 2, ref});
         await waitForBatchedUpdatesWithAct();
 
         fireEvent(screen.getByTestId(INPUT_TEST_ID), 'selectionChange', {
@@ -410,7 +410,7 @@ describe('NumericField.TextInput', () => {
 
         // When clearSelection is called imperatively
         act(() => {
-            numericEditingRef.current?.clearSelection();
+            ref.current?.clearSelection();
         });
         await waitForBatchedUpdatesWithAct();
 

@@ -119,7 +119,7 @@ function AmountForm({
                 decimals={decimals}
                 maxLength={amountMaxLength}
                 errorText={errorText}
-                numericEditingRef={numberFormRef}
+                ref={numberFormRef}
             >
                 <NumericField.TextInput
                     prefixCharacter={hideCurrencySymbol ? '' : symbol}

@@ -195,12 +195,12 @@ describe('NumericField', () => {
 
         it('updates the field without notifying the parent when updateNumber is called through the imperative ref', () => {
             // Given an uncontrolled NumericField with an imperative ref
-            const numericEditingRef = React.createRef<NumericFieldRef>();
-            renderNumericField({numericEditingRef});
+            const ref = React.createRef<NumericFieldRef>();
+            renderNumericField({ref});
 
             // When updateNumber is called through the imperative ref
             act(() => {
-                numericEditingRef.current?.updateNumber('99');
+                ref.current?.updateNumber('99');
             });
 
             // Then the context value updates without calling onInputChange

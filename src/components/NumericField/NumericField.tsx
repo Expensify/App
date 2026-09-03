@@ -29,16 +29,16 @@ type NumericFieldProps = {
     errorText?: string;
 
     /** Ref exposing the number editing imperative API. */
-    numericEditingRef?: ForwardedRef<NumericEditingRef>;
+    ref?: ForwardedRef<NumericEditingRef>;
 
     /** Composed primitives that consume NumericField state and actions through context. */
     children: ReactNode;
 };
 
-function NumericField({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, numericEditingRef, children}: NumericFieldProps) {
+function NumericField({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, ref, children}: NumericFieldProps) {
     const controller = useNumericEditingController({value, onInputChange, allowNegative, decimals, maxLength});
 
-    useImperativeHandle(numericEditingRef, () => ({
+    useImperativeHandle(ref, () => ({
         clearSelection: controller.clearSelection,
         getNumber: controller.getNumber,
         updateNumber: controller.updateNumber,
