@@ -76,16 +76,15 @@ describe('useTimeSensitiveAddDepositAccount', () => {
         expect(result.current.shouldShowAddDepositAccount).toBe(false);
     });
 
-    it('does not show when the open account is a legacy one with no type', async () => {
+    it('shows when the only open account has no explicit personal type', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, makePolicy(true));
         await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
             [BANK_ACCOUNT_ID]: makeBankAccount(undefined, CONST.BANK_ACCOUNT.STATE.OPEN),
         });
 
         const {result} = renderHook(() => useTimeSensitiveAddDepositAccount());
-        await waitForBatchedUpdates();
 
-        expect(result.current.shouldShowAddDepositAccount).toBe(false);
+        await waitFor(() => expect(result.current.shouldShowAddDepositAccount).toBe(true));
     });
 
     it('does not show when no policy has reimbursements enabled', async () => {

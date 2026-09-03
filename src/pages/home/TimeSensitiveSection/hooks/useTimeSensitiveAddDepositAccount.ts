@@ -19,7 +19,7 @@ const hasReimbursementPolicySelector = (policies: OnyxCollection<Policy>): boole
 const hasDepositAccountSelector = (bankAccountList: OnyxEntry<BankAccountList>): boolean =>
     Object.values(bankAccountList ?? {}).some((bankAccountJSON) => {
         const bankAccount = new BankAccountModel(bankAccountJSON);
-        return bankAccount.isOpen() && bankAccount.getType() !== CONST.BANK_ACCOUNT.TYPE.BUSINESS;
+        return bankAccount.isOpen() && bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL;
     });
 
 function useTimeSensitiveAddDepositAccount() {
