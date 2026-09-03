@@ -73,6 +73,7 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
             onEndReached={hasMore ? loadMore : undefined}
             onSearchChange={searchTags}
             loading={isInitialLoading}
+            isLoading={isLoading}
             isLoadingMore={isLoading && tagItems.length > 1}
         />
     );

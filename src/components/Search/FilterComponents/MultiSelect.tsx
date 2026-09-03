@@ -62,6 +62,9 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
 
     /** Whether more items are being loaded (shows spinner at bottom of list) */
     isLoadingMore?: boolean;
+
+    /** Whether a search is in progress (suppresses "No results found" while true) */
+    isLoading?: boolean;
 };
 
 function MultiSelect<T extends string>({
@@ -81,6 +84,7 @@ function MultiSelect<T extends string>({
     onEndReached,
     onSearchChange,
     isLoadingMore,
+    isLoading,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -122,7 +126,7 @@ function MultiSelect<T extends string>({
         leftElement: item.leftElement,
     }));
 
-    const headerMessage = isSearchable && listData.length === 0 ? translate('common.noResultsFound') : undefined;
+    const headerMessage = isSearchable && listData.length === 0 && !isLoading ? translate('common.noResultsFound') : undefined;
 
     const updateSelectedItems = (item: ListItem) => {
         if (item.isSelected) {
