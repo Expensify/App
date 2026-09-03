@@ -85,7 +85,7 @@ describe('NumericField', () => {
     });
 
     describe('NumericFieldContext', () => {
-        it('provides default state: empty value and none negative mode', () => {
+        it('provides default state with an empty value and negative input disabled', () => {
             // Given a NumericField with no value or mode props
             renderNumericField();
 

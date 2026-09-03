@@ -112,7 +112,7 @@ describe('NumericField navigation focus selection handling', () => {
         mockUseIsFocused.mockReturnValue(true);
     });
 
-    it('clears the selection when focus is regained', async () => {
+    it('collapses the selection onto the end when focus is regained', async () => {
         // Given an input with a partial text selection
         const {rerender} = renderTextInput({testID: INPUT_TEST_ID}, {value: '1234'});
         await waitForBatchedUpdatesWithAct();

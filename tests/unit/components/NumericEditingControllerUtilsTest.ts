@@ -44,11 +44,11 @@ describe('NumericEditingController utils', () => {
             expect(normalizeNumericInput('.5', {fromLocaleDigit: fromLatinDigit})).toBe('0.5');
         });
 
-        it('adds a leading zero to a negative value when negative values are allowed', () => {
+        it('preserves a negative value that already has an integer part when negative input is allowed', () => {
             expect(normalizeNumericInput('-1.5', {fromLocaleDigit: fromLatinDigit, allowNegative: true})).toBe('-1.5');
         });
 
-        it('documents the leading zero addLeadingZero produces for a negative value without an integer part', () => {
+        it('prepends zero after the minus sign when negative input starts with only the decimal separator', () => {
             // Preserve legacy `addLeadingZero` behavior: `-.5` becomes `-0-.5` and is rejected.
             expect(normalizeNumericInput('-.5', {fromLocaleDigit: fromLatinDigit, allowNegative: true})).toBe('-0-.5');
         });
@@ -80,7 +80,7 @@ describe('NumericEditingController utils', () => {
             jest.clearAllMocks();
         });
 
-        it('detects the dedicated forward-delete key regardless of casing', () => {
+        it('detects the dedicated forward-delete key', () => {
             expect(isForwardDeleteKeyPress(buildKeyPressEvent('Delete'))).toBe(true);
         });
 
