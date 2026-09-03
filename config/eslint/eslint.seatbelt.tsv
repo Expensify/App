@@ -57,7 +57,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	54
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	53
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -1138,6 +1138,7 @@
 "../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/accounting/certinia/import/CertiniaDimensionMappingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/certinia/prerequisites/CertiniaPrerequisitesStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/pages/workspace/accounting/dualentry/export/DualEntryExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/advanced/DynamicSageIntacctAccountingMethodPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/export/DynamicSageIntacctNonReimbursableExpensesDestinationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/export/SageIntacctDatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1202,7 +1203,6 @@
 "../../src/pages/workspace/accounting/qbo/import/QuickbooksTaxesPage.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/workspace/accounting/reconciliation/CardReconciliationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/rillet/export/RilletExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/dualentry/export/DualEntryExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/utils.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/xero/XeroImportPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/xero/XeroImportPage.tsx"	"no-restricted-syntax"	1
