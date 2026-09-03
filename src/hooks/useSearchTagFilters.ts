@@ -126,7 +126,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     };
 
     // Fetch the first page on mount and when the workspace scope changes.
-    // Skips the fetch while offline and refetches on reconnect, matching useLoadSearchCategoryData.
+    // Skips the fetch while offline and re-fetches on reconnect, matching useLoadSearchCategoryData.
     // searchTags is not memoized, so it cannot be in the dependency array — it would fire on every render.
     // searchTags reads latest state via refs, so the closure captured here is safe to call.
     useEffect(() => {
