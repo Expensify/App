@@ -1,4 +1,3 @@
-import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
 import {useButtonContext} from '@components/ButtonComposed/context';
 import type {ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
 import withNavigationFallback from '@components/withNavigationFallback';
@@ -12,6 +11,8 @@ import type {GestureResponderEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useMemo} from 'react';
+
+import validateSubmitShortcut from './validateSubmitShortcut';
 
 const accessibilityRoles: string[] = Object.values(CONST.ROLE);
 
