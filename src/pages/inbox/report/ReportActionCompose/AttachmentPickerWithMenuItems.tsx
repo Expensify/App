@@ -494,7 +494,7 @@ function AttachmentPickerWithMenuItems({
                                             }}
                                             style={({hovered, pressed}) => [
                                                 styles.composerSizeButton,
-                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && !disabled, pressed && !disabled)),
+                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered && !disabled, isPressed: pressed && !disabled})),
                                             ]}
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
@@ -503,7 +503,7 @@ function AttachmentPickerWithMenuItems({
                                         >
                                             {({hovered, pressed}) => (
                                                 <Icon
-                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered && !disabled, pressed && !disabled))}
+                                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered && !disabled, isPressed: pressed && !disabled})})}
                                                     src={icons.Plus}
                                                 />
                                             )}

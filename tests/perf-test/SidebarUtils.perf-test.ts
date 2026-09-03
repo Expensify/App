@@ -112,6 +112,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: 1,
                 reportNameValuePairs: {},
+                guideAccountIDs: [],
                 conciergeReportID: undefined,
             }),
         );
@@ -132,6 +133,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: 1,
                 reportNameValuePairs: {},
+                guideAccountIDs: [],
                 conciergeReportID: undefined,
             }),
         );

@@ -6,11 +6,13 @@ import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRe
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {openTravelDotLink} from '@libs/openTravelDotLink';
 
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 type MockUseCreateReportParams = {
     onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
@@ -36,6 +38,9 @@ const mockCanSendInvoice = jest.fn<boolean, unknown[]>(() => false);
 const mockGetDefaultChatEnabledPolicy = jest.fn((policies: unknown[]) => (policies.length === 1 ? policies.at(0) : undefined));
 const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, currentUserLogin?: string]>();
 const mockShouldShowPolicy = jest.fn<boolean, unknown[]>(() => true);
+const mockHasAcceptedTravelTerms = jest.fn(() => false);
+const mockIsPaidGroupPolicy = jest.fn(() => false);
+const mockIsPermissionsBetaEnabled = jest.fn(() => false);
 const mockIsOnSearchMoneyRequestReportPage = jest.fn(() => false);
 const mockGetCurrencyDecimals = jest.fn();
 let mockIsRestrictedPolicyCreation = false;
@@ -62,6 +67,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
         Location: mockIcon,
         ChatBubble: mockIcon,
         InvoiceGeneric: mockIcon,
+        Suitcase: mockIcon,
         NewWorkspace: mockIcon,
     }),
 }));
@@ -81,6 +87,7 @@ jest.mock('@hooks/useLocalize', () => ({
                 ['onboarding.workspace.createWorkspace', 'Create workspace'],
                 ['report.newReport.createReport', 'Create report'],
                 ['sidebarScreen.fabNewChat', 'Start chat'],
+                ['travel.bookTravel', 'Book travel'],
                 ['workspace.invoices.sendInvoice', 'Send invoice'],
                 ['workspace.new.newWorkspace', 'New workspace'],
             ]);
@@ -151,10 +158,23 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
+jest.mock('@libs/openTravelDotLink', () => ({
+    openTravelDotLink: jest.fn(),
+}));
+
+jest.mock('@libs/Permissions', () => ({
+    __esModule: true,
+    default: {
+        isBetaEnabled: () => mockIsPermissionsBetaEnabled(),
+    },
+}));
+
 jest.mock('@libs/PolicyUtils', () => ({
     canSendInvoice: (...args: unknown[]) => mockCanSendInvoice(...args),
     getDefaultChatEnabledPolicy: (policies: unknown[]) => mockGetDefaultChatEnabledPolicy(policies),
     getGroupPoliciesWhereReportCanBeCreated: (policies: unknown, currentUserLogin?: string) => mockGetGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin),
+    hasAcceptedTravelTerms: () => mockHasAcceptedTravelTerms(),
+    isPaidGroupPolicy: () => mockIsPaidGroupPolicy(),
     shouldShowPolicy: (...args: unknown[]) => mockShouldShowPolicy(...args),
 }));
 
@@ -180,11 +200,13 @@ function setupUseOnyx() {
         [ONYXKEYS.COLLECTION.POLICY, policies],
         [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {}],
         [ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP],
+        [ONYXKEYS.ACCOUNT, {primaryLogin: session.email}],
         [ONYXKEYS.SESSION, session],
         [ONYXKEYS.BETAS, []],
         [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {}],
         [ONYXKEYS.NVP_ACTIVE_POLICY_ID, submitPolicy.id],
         [`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, submitPolicy],
+        [ONYXKEYS.NVP_TRAVEL_SETTINGS, undefined],
         [ONYXKEYS.NVP_INTRO_SELECTED, false],
         [ONYXKEYS.IS_LOADING_APP, false],
     ]);
@@ -201,6 +223,9 @@ describe('useCreateNavigationSuggestions', () => {
         setupUseOnyx();
         mockCanSendInvoice.mockReturnValue(false);
         mockShouldShowPolicy.mockReturnValue(true);
+        mockHasAcceptedTravelTerms.mockReturnValue(false);
+        mockIsPaidGroupPolicy.mockReturnValue(false);
+        mockIsPermissionsBetaEnabled.mockReturnValue(false);
         mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
         mockIsOnSearchMoneyRequestReportPage.mockReturnValue(false);
         mockIsRestrictedPolicyCreation = false;
@@ -290,6 +315,72 @@ describe('useCreateNavigationSuggestions', () => {
 
         expect(result.current.some((item) => item.keyForList === 'create_invoice')).toBe(true);
         expect(result.current.some((item) => item.keyForList === 'create_workspace')).toBe(false);
+    });
+
+    it('uses only the active workspace to control Book travel visibility', () => {
+        const otherTravelPolicy = {id: 'other-travel-policy', type: CONST.POLICY.TYPE.TEAM, isTravelEnabled: true};
+        mockOnyxValues.set(ONYXKEYS.COLLECTION.POLICY, {
+            ...policies,
+            [`${ONYXKEYS.COLLECTION.POLICY}${otherTravelPolicy.id}`]: otherTravelPolicy,
+        });
+
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        expect(result.current.some((item) => item.keyForList === 'create_travel')).toBe(false);
+    });
+
+    it('shows Book travel when Travel is enabled on the active workspace', () => {
+        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        expect(result.current.find((item) => item.keyForList === 'create_travel')).toMatchObject({text: 'Book travel', singleIcon: mockIcon, matchTerms: ['Book travel']});
+    });
+
+    it('opens TravelDot when the active workspace is ready for travel', () => {
+        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        mockIsPaidGroupPolicy.mockReturnValue(true);
+        mockHasAcceptedTravelTerms.mockReturnValue(true);
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        act(() => result.current.find((item) => item.keyForList === 'create_travel')?.action?.());
+
+        expect(openTravelDotLink).toHaveBeenCalledWith(submitPolicy.id);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(submitPolicy.id));
+    });
+
+    it('uses the session email when the primary login is unavailable', () => {
+        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        mockOnyxValues.set(ONYXKEYS.ACCOUNT, {primaryLogin: undefined});
+        mockIsPaidGroupPolicy.mockReturnValue(true);
+        mockHasAcceptedTravelTerms.mockReturnValue(true);
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        act(() => result.current.find((item) => item.keyForList === 'create_travel')?.action?.());
+
+        expect(openTravelDotLink).toHaveBeenCalledWith(submitPolicy.id);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(submitPolicy.id));
+    });
+
+    it.each([
+        ['Travel is blocked', true, session.email, session.email, true, true],
+        ['the primary login is an SMS login', false, '+15555550123', session.email, true, true],
+        ['the active workspace is not paid', false, session.email, session.email, false, true],
+        ['Travel terms are not accepted', false, session.email, session.email, true, false],
+        ['there is no primary contact method', false, '', '', true, true],
+    ])('opens the Travel page when %s', (_condition, isBlocked, primaryLogin, sessionEmail, isPaid, hasAcceptedTerms) => {
+        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        mockOnyxValues.set(ONYXKEYS.ACCOUNT, {primaryLogin});
+        mockOnyxValues.set(ONYXKEYS.SESSION, {...session, email: sessionEmail});
+        mockIsPermissionsBetaEnabled.mockReturnValue(isBlocked);
+        mockIsPaidGroupPolicy.mockReturnValue(isPaid);
+        mockHasAcceptedTravelTerms.mockReturnValue(hasAcceptedTerms);
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        act(() => result.current.find((item) => item.keyForList === 'create_travel')?.action?.());
+
+        expect(openTravelDotLink).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(submitPolicy.id));
     });
 
     it('passes Submit eligibility and exposes permission-gated actions', () => {

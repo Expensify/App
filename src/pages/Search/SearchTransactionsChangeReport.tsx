@@ -69,7 +69,7 @@ function SearchTransactionsChangeReport() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -187,6 +187,7 @@ function SearchTransactionsChangeReport() {
                 selfDMReportActions,
                 delegateAccountID,
                 getCurrencyDecimals,
+                getCurrencySymbol,
             });
             clearSelectedTransactions();
         });
@@ -278,6 +279,7 @@ function SearchTransactionsChangeReport() {
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
+            getCurrencySymbol,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -302,6 +304,7 @@ function SearchTransactionsChangeReport() {
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
+            getCurrencySymbol,
         });
         clearSelectedTransactions();
         Navigation.goBack();

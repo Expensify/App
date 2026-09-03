@@ -82,6 +82,7 @@ import {
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceTaxUpdateMessage,
     hasPendingDEWApprove,
@@ -146,9 +147,11 @@ import {
     getReportTransactions,
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
+    hasExpensifyGuidesEmails,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
     isChatThread,
+    isDefaultRoom,
     isDM,
     isExpenseReport,
     isHiddenForCurrentUser,
@@ -922,6 +925,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
         lastMessageTextFromReport = getMccGroupCategoryMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
+        lastMessageTextFromReport = getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, lastReportAction);
     }
     if (lastReportAction?.actionName && isCategoryModificationAction(lastReportAction.actionName)) {
         lastMessageTextFromReport = getWorkspaceCategoryUpdateMessage(translate, lastReportAction, policy);
@@ -2346,6 +2352,7 @@ function getUserToInviteOption({
         [optimisticAccountID]: {
             accountID: optimisticAccountID,
             login: searchValue,
+            displayName: displayValue,
         },
     };
     const userToInvite = createOption({
@@ -2388,7 +2395,14 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, config: IsValidReportsConfig, draftComment: string | undefined, chatReport: OnyxEntry<Report>): boolean {
+function isValidReport(
+    option: SearchOption<Report>,
+    policy: OnyxEntry<Policy>,
+    config: IsValidReportsConfig,
+    draftComment: string | undefined,
+    chatReport: OnyxEntry<Report>,
+    hasGuidesEmails: boolean,
+): boolean {
     const {
         isDefaultRoomsBetaEnabled = false,
         includeMultipleParticipantReports = false,
@@ -2432,6 +2446,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     if (!shouldBeInOptionList) {
@@ -2827,6 +2842,8 @@ function getValidOptions(
                 },
                 draftComment,
                 chatReport,
+                // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
+                isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
             );
         };
 

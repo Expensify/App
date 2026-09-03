@@ -239,6 +239,7 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
             // Soft-exclude Expensify-team logins (current and former AMs/Guides) from user filter suggestions. Users can still type any email manually because the search bar accepts free text.
@@ -272,7 +273,7 @@ function useAutocompleteSuggestions({
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
-                filterKey: autocompleteKey,
+                filterKey: getUserFriendlyKey(autocompleteKey),
                 text: participant.login === currentUserEmail ? CONST.SEARCH.ME : (participant.text ?? ''),
                 autocompleteID: String(participant.accountID),
                 mapKey: autocompleteKey,
