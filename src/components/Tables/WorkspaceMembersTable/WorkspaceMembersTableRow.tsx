@@ -1,4 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -56,7 +57,14 @@ export default function WorkspaceMembersTableRow({
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
-    const accessibilityLabel = [item.name, item.email, item.approverName, roleLabel].filter(Boolean).join(', ');
+    const accessibilityLabel = [
+        item.name,
+        item.email,
+        shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
+        roleLabel,
+    ]
+        .filter(Boolean)
+        .join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
@@ -103,23 +111,20 @@ export default function WorkspaceMembersTableRow({
 
                     {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
                         <View
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            {!!item.approverName && (
+                            {!!item.approverDisplayName && !!item.approverAccountID && (
                                 <>
-                                    <AccountAvatar
+                                    <UserAvatar
+                                        source={item.approverAvatar}
+                                        accountID={item.approverAccountID}
                                         size={CONST.AVATAR_SIZE.XXX_SMALL}
-                                        containerStyle={styles.mr2}
-                                        accountID={item.approverAccountID ?? CONST.DEFAULT_NUMBER_ID}
-                                        accountEmail={item.approverLogin}
-                                        fallbackDisplayName={item.approverName}
                                     />
                                     <TextWithTooltip
                                         shouldShowTooltip
                                         numberOfLines={1}
-                                        text={item.approverName}
-                                        style={[styles.optionDisplayName, styles.pre, styles.flex1]}
+                                        text={item.approverDisplayName}
                                     />
                                 </>
                             )}

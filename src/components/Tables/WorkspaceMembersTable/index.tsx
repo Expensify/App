@@ -6,6 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
 
@@ -28,9 +29,9 @@ type WorkspaceMemberRowData = TableData & {
     role?: string;
     employeeUserID?: string;
     employeePayrollID?: string;
+    approverAvatar?: AvatarSource;
     approverAccountID?: number;
-    approverLogin?: string;
-    approverName?: string;
+    approverDisplayName?: string;
     name: string;
     email: string;
     shouldShowEmployeeUserID: boolean;
@@ -113,9 +114,9 @@ export default function WorkspaceMembersTable({
                       sortable: true,
                       key: 'approver' as const,
                       // One header for the whole table, so it follows the deepest workflow in the workspace.
-                      label: hasMultiLevelWorkflow ? `${toLocaleOrdinalWithWords(1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver'),
+                      label: hasMultiLevelWorkflow ? `${toLocaleOrdinalWithWords(1)} ${translate('common.approver').toLowerCase()}` : translate('common.approver'),
                       dynamicSizing: {
-                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverName ? [{text: item.approverName, fontSize: variables.fontSizeNormal}] : []),
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName, fontSize: variables.fontSizeNormal}] : []),
                           extraWidth: APPROVER_CELL_AVATAR_WIDTH,
                       },
                   },
@@ -194,8 +195,8 @@ export default function WorkspaceMembersTable({
         }
 
         if (activeSorting.columnKey === 'approver') {
-            const item1ApproverName = item1.approverName;
-            const item2ApproverName = item2.approverName;
+            const item1ApproverName = item1.approverDisplayName;
+            const item2ApproverName = item2.approverDisplayName;
 
             if (!item1ApproverName && !item2ApproverName) {
                 return memberNameComparison;

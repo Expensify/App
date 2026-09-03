@@ -8,11 +8,11 @@ import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {useCallback, useMemo} from 'react';
-
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+
+const policyRulesSelector = (policyID: string | undefined) => (rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID);
 
 type UseApprovalWorkflowsParams = {
     /** Policy to derive the approval workflows from */
@@ -32,22 +32,18 @@ function useApprovalWorkflows({policy, firstApprover, currentUserLogin}: UseAppr
     const policyID = policy?.id;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID), [policyID]);
-    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector(policyID)});
 
-    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const params = {
+        policy,
+        personalDetails: personalDetails ?? {},
+        localeCompare,
+        firstApprover,
+        currentUserLogin,
+        rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID),
+    };
 
-    return useMemo(() => {
-        const params = {
-            policy,
-            personalDetails: personalDetails ?? {},
-            localeCompare,
-            firstApprover,
-            currentUserLogin,
-            rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID),
-        };
-        return isMultipleApproversBetaEnabled ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
-    }, [policy, personalDetails, localeCompare, firstApprover, currentUserLogin, rulesCollection, policyID, isMultipleApproversBetaEnabled]);
+    return isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS) ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
 }
 
 export default useApprovalWorkflows;

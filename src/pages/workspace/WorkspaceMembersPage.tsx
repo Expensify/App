@@ -384,13 +384,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
-            const firstApprover = firstApproverByMemberEmail[login];
-            const approverLogin = firstApprover?.email;
+            const approverEmail = shouldShowApproverColumn ? firstApproverByMemberEmail[login]?.email : undefined;
+            const approverPersonalDetail = personalDetails?.[Number(policyMemberEmailsToAccountIDs[approverEmail ?? ''] ?? CONST.DEFAULT_NUMBER_ID)];
+            const {avatar: approverAvatar, displayName = approverEmail, accountID: approverAccountID} = approverPersonalDetail ?? {};
+            const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
 
             return {
-                approverLogin,
-                approverName: firstApprover?.displayName,
-                approverAccountID: approverLogin ? Number(policyMemberEmailsToAccountIDs[approverLogin] ?? CONST.DEFAULT_NUMBER_ID) : undefined,
+                approverAvatar,
+                approverAccountID,
+                approverDisplayName,
                 keyForList: login,
                 role,
                 login,
@@ -428,8 +430,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         session?.accountID,
         shouldShowCustomField1Column,
         shouldShowCustomField2Column,
+        shouldShowApproverColumn,
         firstApproverByMemberEmail,
         policyMemberEmailsToAccountIDs,
+        personalDetails,
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
         dismissError,
