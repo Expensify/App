@@ -48,10 +48,8 @@ function SearchWithNavigationDeferredMount({isReplacingContent = false, ...props
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                // Absolutely filled so it never shares the parent's column layout with the incoming Search content.
-                // When it is replacing results already on screen it renders invisibly rather than being skipped: the
-                // skeleton would read as a flash between them, but its onLayout still ends the navigate-to-Search
-                // spans, and keeping the mount deferred lets it yield to the press that triggered the swap.
+                // Rendered invisibly rather than skipped when it replaces results already on screen: its onLayout still
+                // ends the navigate-to-Search spans, and the deferred mount still yields to the press.
                 <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
                     <SearchRowSkeleton
                         shouldAnimate

@@ -137,9 +137,8 @@ function SearchPageWide({
                             <View style={styles.flex1}>
                                 {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                 <LayoutAnimationConfig skipEntering>
-                                    {/* Keyed on the resolved query, so this only remounts once the new results arrive — the previous ones
-                                        stay on screen until then, and the new ones fade in. Absolutely filled so it never shares the
-                                        parent's column layout with the layer it replaces. */}
+                                    {/* Keyed on the resolved query, so this only remounts once the new results arrive. Absolutely
+                                        filled so it never shares the parent's column layout with the layer it replaces. */}
                                     <Animated.View
                                         key={contentQueryJSON.hash}
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}

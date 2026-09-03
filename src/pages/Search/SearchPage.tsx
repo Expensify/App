@@ -76,8 +76,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const [isSorting, setIsSorting] = useState(false);
 
-    // Sorting keeps the previous results on screen while the re-sorted ones load. Changing the search cancels that,
-    // and opening one no longer remounts this page, so a flag left set would render the previous query's rows under
+    // Opening a search no longer remounts this page, so a flag left set would render the previous query's rows under
     // the new query. Adjusted during rendering because searchResults below consumes it in this same render.
     const previousQueryHash = usePrevious(currentSearchQueryJSON?.hash);
     if (isSorting && previousQueryHash !== currentSearchQueryJSON?.hash) {
@@ -123,21 +122,15 @@ function SearchPage({route}: SearchPageProps) {
 
     const [lastResolvedSearch, setLastResolvedSearch] = useState<{queryJSON: SearchQueryJSON; searchResults: SearchResults} | undefined>(undefined);
 
-    // Changing a filter builds a query that has never been cached, so keying the results area on the requested
-    // query would mount it with no data and flash a skeleton in the middle of the fade. Key it on the last query
-    // that actually resolved instead: the current results stay on screen until the new ones arrive, then the area
-    // swaps once. Adjusted during rendering for the same reason as lastNonEmptySearchResults above — the values
-    // below are consumed in this render, and the reference check bounds the loop to one extra pass.
-    // isCurrentSearchResolved, not a raw hash comparison: a response folds sort defaults into its own hash, so the
-    // requested and returned hashes legitimately differ and isSearchDataLoaded is what reconciles them.
+    // Keying the results area on the requested query would mount it with no data, since a filter builds a query that
+    // has never been cached. isCurrentSearchResolved, not a hash comparison: a response folds sort defaults into its own hash.
     const isSearchResolvedForCurrentQuery = isCurrentSearchResolved && !!searchResults && !!currentSearchQueryJSON;
     if (isSearchResolvedForCurrentQuery && currentSearchQueryJSON && searchResults && lastResolvedSearch?.searchResults !== searchResults) {
         setLastResolvedSearch({queryJSON: currentSearchQueryJSON, searchResults});
     }
 
-    // A slow query would otherwise leave the previous results up indefinitely with nothing to show a wait is happening
-    // (the wide layout has no loading bar). Keyed by hash rather than reset on resolve so the effect never has to call
-    // setState synchronously; a hash that no longer matches simply stops counting.
+    // A slow query would otherwise hold the previous results up indefinitely, and the wide layout has no loading bar.
+    // Keyed by hash rather than reset on resolve, so the effect below never has to call setState synchronously.
     const [staleHoldTimedOutHash, setStaleHoldTimedOutHash] = useState<number | undefined>(undefined);
     const currentQueryHash = currentSearchQueryJSON?.hash;
 
@@ -150,9 +143,8 @@ function SearchPage({route}: SearchPageProps) {
         return () => clearTimeout(timeoutID);
     }, [isSearchResolvedForCurrentQuery, currentQueryHash]);
 
-    // Cleared once the query resolves, so returning to it later starts a fresh count. Leaving the hash marked would
-    // skip the hold for good — a filter toggled off and back on, or a snapshot evicted, would go straight to the
-    // skeleton. Adjusted during rendering rather than in the effect above, which must not call setState synchronously.
+    // Leaving the hash marked would skip the hold for good, so a filter toggled off and back on would go straight to
+    // the skeleton. Adjusted during rendering rather than in the effect above, which must not call setState synchronously.
     if (isSearchResolvedForCurrentQuery && staleHoldTimedOutHash === currentQueryHash) {
         setStaleHoldTimedOutHash(undefined);
     }
