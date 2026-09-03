@@ -1195,6 +1195,8 @@ const translations = {
             setupRules: 'Set up spend rules',
             customizeSpendCategories: 'Customize spend categories',
             customizeSpendCategoriesSubText: 'Organize and classify expenses',
+            customizeExpenseCategories: 'Customize your expense categories',
+            customizeExpenseCategoriesSubText: 'Add your company’s categories to code your expenses',
             createExpense: 'Create an expense',
             createExpenseSubText: 'Scan, drag and drop, or manually enter an expense using the + button',
             linkPersonalCard: 'Link personal card',
@@ -5116,7 +5118,6 @@ const translations = {
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Use this account when exporting invoices to ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Set how company card purchases export to ${integrationName}.`,
             vendor: 'Vendor',
-            defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Set how out-of-pocket expenses export to ${integrationName}.`,
             exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
@@ -5278,8 +5279,6 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
-            defaultSupplier: 'Default supplier',
-            defaultSupplierDescription: 'Set a default supplier that will apply to all credit card transactions upon export.',
             noSuppliersFound: 'No suppliers found',
             noSuppliersFoundDescription: 'Please add the supplier in Xero and sync the connection again.',
             accountingMethods: {
@@ -7385,11 +7384,14 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
+            // fallbackVendorName is the vendor the integration auto-creates when nothing matches. Only integrations
+            // that actually create one pass it. The rest get the first sentence alone, because telling a Xero admin
+            // their expenses will export as "Credit Card Misc." describes a fallback Xero doesn't have.
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `Expenses that don't auto-match will default to this vendor.`
-                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Choose a default vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',
@@ -7398,6 +7400,8 @@ const translations = {
             reconciliationAccount: 'Reconciliation account',
             continuousReconciliation: 'Continuous Reconciliation',
             syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'To unlock, set an account for your exports.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'To unlock, enable auto-sync.',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
@@ -10285,6 +10289,9 @@ const translations = {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Can't auto-match receipt due to broken bank connection.";
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return "Can't auto-match receipt due to a temporary bank issue. Please try again later.";
+            }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
@@ -10318,6 +10325,7 @@ const translations = {
             return '';
         },
         brokenConnection530Error: 'Receipt pending due to broken bank connection',
+        brokenConnection531Error: "Can't auto-match receipt due to a temporary bank issue. Please try again later.",
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',

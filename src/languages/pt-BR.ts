@@ -1094,6 +1094,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Convide seu contador',
             customizeSpendCategories: 'Personalizar categorias de gastos',
             customizeSpendCategoriesSubText: 'Organize e classifique despesas',
+            customizeExpenseCategories: 'Personalize suas categorias de despesas',
+            customizeExpenseCategoriesSubText: 'Adicione as categorias da sua empresa para codificar suas despesas',
             createExpense: 'Criar uma despesa',
             createExpenseSubText: 'Escaneie, arraste e solte ou insira manualmente uma despesa usando o botão +',
             linkPersonalCard: 'Vincular cartão pessoal',
@@ -4958,7 +4960,6 @@ ${amount} para ${merchant} - ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Use esta conta ao exportar faturas para o ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Defina como as compras com cartão corporativo serão exportadas para o ${integrationName}.`,
             vendor: 'Fornecedor',
-            defaultVendorDescription: 'Defina um fornecedor padrão que será aplicado a todas as transações de cartão de crédito na exportação.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Defina como as despesas reembolsáveis serão exportadas para o ${integrationName}.`,
             exportCheckDescription: 'Vamos criar um cheque detalhado para cada relatório do Expensify e enviá-lo a partir da conta bancária abaixo.',
             exportJournalEntryDescription: 'Vamos criar um lançamento contábil detalhado para cada relatório do Expensify e lançá-lo na conta abaixo.',
@@ -5124,8 +5125,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione a conta no Xero e sincronize a conexão novamente',
-            defaultSupplier: 'Fornecedor padrão',
-            defaultSupplierDescription: 'Defina um fornecedor padrão que será aplicado a todas as transações de cartão de crédito na exportação.',
             noSuppliersFound: 'Nenhum fornecedor encontrado',
             noSuppliersFoundDescription: 'Adicione o fornecedor no Xero e sincronize a conexão novamente.',
             accountingMethods: {
@@ -7234,11 +7233,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             exportCompanyCard: 'Exportar despesas de cartão corporativo como',
             exportDate: 'Data de exportação',
             defaultVendor: 'Fornecedor padrão',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
-                    ? `Despesas que não forem correspondidas automaticamente terão este fornecedor como padrão.`
-                    : `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão. Caso contrário, serão exportadas como Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Escolha um fornecedor padrão do ${connectionName} para despesas que não sejam correspondidas automaticamente.`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
+                    ? `Despesas que não tiverem correspondência automática serão associadas a este fornecedor por padrão.`
+                    : `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão. Caso contrário, serão exportadas como ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Escolha um fornecedor padrão para as despesas que não forem correspondidas automaticamente.`,
             defaultAccount: 'Conta padrão',
             autoSync: 'Sincronização automática',
             autoSyncDescription: 'Sincronize NetSuite e Expensify automaticamente, todos os dias. Exporte relatórios finalizados em tempo real',
@@ -7259,6 +7258,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                     `Tenha certeza de que esta conta corresponde à sua conta de liquidação de Faturamento Consolidado de Viagem (terminando em ${lastFourPAN}) para que a Conciliação Contínua funcione corretamente.`,
             },
             syncTravelInvoicingSettlements: 'Sincronizar liquidações de Faturamento de Viagens Consolidado',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',
@@ -10062,47 +10063,51 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Não é possível conciliar automaticamente o recibo devido a uma conexão bancária com erro.';
+                return 'Não foi possível associar o recibo automaticamente devido a uma conexão bancária com problema.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Não foi possível associar automaticamente o recibo devido a um problema temporário no banco. Tente novamente mais tarde.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada.';
+                        return 'Não foi possível associar o recibo automaticamente porque sua conexão bancária precisa ser reautenticada.';
                     }
                     return isMarkAsCash
-                        ? `Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada. Marque como dinheiro para ignorar ou <a href="${connectionLink}">reconecte</a> para corresponder o recibo.`
-                        : `Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada. <a href="${connectionLink}">Reconecte</a> para corresponder o recibo.`;
+                        ? `Não é possível fazer a correspondência automática do recibo porque a conexão com seu banco precisa ser reautenticada. Marque como dinheiro para ignorar ou <a href="${connectionLink}">reconecte</a> para corresponder o recibo.`
+                        : `Não é possível fazer a correspondência automática do recibo porque a conexão com seu banco precisa ser reautenticada. <a href="${connectionLink}">Reconectar</a> para corresponder o recibo.`;
                 }
                 return isAdmin
-                    ? `A conexão bancária precisa ser reautenticada. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
-                    : 'A conexão bancária precisa ser reautenticada. Peça para um administrador reconectar para corresponder ao recibo.';
+                    ? `A conexão bancária precisa ser autenticada novamente. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
+                    : 'A conexão com o banco precisa de nova autenticação. Peça para um administrador reconectar para corresponder ao recibo.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Não é possível conciliar automaticamente o recibo devido a uma conexão bancária com erro.';
+                    return 'Não foi possível associar o recibo automaticamente devido a uma conexão bancária com problema.';
                 }
                 return isMarkAsCash
-                    ? `Não é possível corresponder automaticamente o recibo devido a uma conexão de cartão com problema. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para corresponder o recibo.`
-                    : `Não é possível corresponder automaticamente o recibo devido a uma conexão quebrada com o cartão. <a href="${connectionLink}">Corrigir o cartão</a> para corresponder o recibo.`;
+                    ? `Não é possível corresponder o recibo automaticamente devido a uma conexão de cartão com problema. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para corresponder o recibo.`
+                    : `Não foi possível conciliar automaticamente o recibo devido a uma conexão quebrada do cartão. <a href="${connectionLink}">Corrija o cartão</a> para conciliar o recibo.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Conexão bancária interrompida. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
-                    : 'Conexão bancária interrompida. Peça para um administrador reconectar para corresponder ao recibo.';
+                    ? `Conexão bancária interrompida. <a href="${companyCardPageURL}">Reconectar para combinar com o recibo</a>`
+                    : 'Conexão bancária interrompida. Peça para um administrador reconectar para coincidir com o recibo.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Peça para ${member} marcar como dinheiro ou aguarde 7 dias e tente novamente` : 'Aguardando associação com a transação do cartão.';
+                return isAdmin ? `Peça para ${member} marcar como dinheiro ou aguarde 7 dias e tente novamente` : 'Aguardando combinação com a transação do cartão.';
             }
             return '';
         },
         brokenConnection530Error: 'Recibo pendente devido à conexão bancária interrompida',
+        brokenConnection531Error: 'Não foi possível associar automaticamente o recibo devido a um problema temporário no banco. Tente novamente mais tarde.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Recibo pendente devido a uma conexão bancária interrompida. Resolva em <a href="${workspaceCompanyCardRoute}">Cartões corporativos</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendente devido à conexão bancária com problemas. Peça a um administrador do workspace para resolver.',
