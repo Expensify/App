@@ -371,7 +371,10 @@ type SpendRuleListItemType = ListItem & {
 };
 
 /** Props for SelectableListItem, which extends the composed ListItem pressable with selection button support. */
-type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'containerStyle'> & {
+type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'containerStyle' | 'children' | 'FooterComponent' | 'shouldDisplayRBR'> & {
+    /** Row content. Hover/focus/tooltip state is provided through ListItemContext instead of a render prop. */
+    children?: ReactNode;
+
     /** Callback to fire when the selection button is pressed */
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
@@ -420,7 +423,10 @@ type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SpendRuleListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Element rendered before the text column. Falls back to `item.leftElement` when omitted. */
+    leftElement?: ReactNode;
+};
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -450,7 +456,7 @@ type TravelDomainListItemProps<TItem extends ListItem> = SelectableListItemProps
     }
 >;
 
-type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+type UserSelectionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 export type {
     SpendRuleListItemType,
