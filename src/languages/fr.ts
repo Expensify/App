@@ -474,7 +474,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copier dans le presse-papiers',
         thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
-        actionRequired: 'Action requise',
         duplicate: 'Dupliquer',
         duplicated: 'Dupliqué',
         duplicateExpense: 'Dépense en double',
@@ -1099,6 +1098,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Inviter votre comptable',
             customizeSpendCategories: 'Personnaliser les catégories de dépenses',
             customizeSpendCategoriesSubText: 'Organiser et classer les dépenses',
+            customizeExpenseCategories: 'Personnalisez vos catégories de dépenses',
+            customizeExpenseCategoriesSubText: 'Ajoutez les catégories de votre entreprise pour coder vos dépenses',
             createExpense: 'Créer une dépense',
             createExpenseSubText: 'Numérisez, faites glisser-déposer ou saisissez manuellement une dépense à l’aide du bouton +',
             linkPersonalCard: 'Lier une carte personnelle',
@@ -3782,11 +3783,6 @@ ${amount} pour ${merchant} - ${date}`,
         thisBankAccount: 'Ce compte bancaire sera utilisé pour les paiements professionnels dans votre espace de travail',
         accountNumber: 'Numéro de compte',
         routingNumber: 'Numéro de routage',
-        internationalBankAccountDetails: 'Coordonnées bancaires internationales',
-        internationalBankAccountDetailsTitle: 'Quelles sont vos coordonnées bancaires internationales ?',
-        internationalBankAccountDetailsSubtitle: "L'un de vos espaces de travail a besoin de coordonnées bancaires internationales pour traiter les remboursements",
-        iban: 'IBAN',
-        swiftBicCode: 'Code SWIFT/BIC',
         chooseAnAccountBelow: 'Choisissez un compte ci-dessous',
         addBankAccount: 'Ajouter un compte bancaire',
         chooseAnAccount: 'Choisissez un compte',
@@ -3837,8 +3833,6 @@ ${amount} pour ${merchant} - ${date}`,
             restrictedBusiness: 'Veuillez confirmer que l’entreprise ne figure pas sur la liste des entreprises restreintes',
             routingNumber: 'Veuillez saisir un numéro d’acheminement valide',
             accountNumber: 'Veuillez saisir un numéro de compte valide',
-            iban: 'Veuillez saisir un IBAN valide',
-            swiftCode: 'Veuillez saisir un code SWIFT/BIC valide',
             routingAndAccountNumberCannotBeSame: 'Le code de routage et le numéro de compte ne peuvent pas être identiques',
             companyType: 'Veuillez sélectionner un type d’entreprise valide',
             tooManyAttempts:
@@ -5005,7 +4999,6 @@ ${amount} pour ${merchant} - ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Utiliser ce compte lors de l’exportation des factures vers ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Définissez comment les achats par carte d’entreprise sont exportés vers ${integrationName}.`,
             vendor: 'Fournisseur',
-            defaultVendorDescription: 'Définissez un fournisseur par défaut qui s’appliquera à toutes les transactions par carte de crédit lors de l’exportation.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Définissez comment les dépenses hors poche sont exportées vers ${integrationName}.`,
             exportCheckDescription: 'Nous créerons un chèque détaillé pour chaque note de frais Expensify et l’enverrons depuis le compte bancaire ci-dessous.',
             exportJournalEntryDescription: 'Nous créerons une écriture comptable détaillée pour chaque note de frais Expensify et la comptabiliserons sur le compte ci-dessous.',
@@ -5174,8 +5167,6 @@ ${amount} pour ${merchant} - ${date}`,
             },
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter le compte dans Xero et synchroniser à nouveau la connexion',
-            defaultSupplier: 'Fournisseur par défaut',
-            defaultSupplierDescription: 'Définissez un fournisseur par défaut qui s’appliquera à toutes les transactions par carte de crédit lors de l’exportation.',
             noSuppliersFound: 'Aucun fournisseur trouvé',
             noSuppliersFoundDescription: 'Veuillez ajouter le fournisseur dans Xero et synchroniser à nouveau la connexion.',
             accountingMethods: {
@@ -6216,6 +6207,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             finishSetup: 'Terminer la configuration',
             chooseBankAccount: 'Choisir un compte bancaire',
             chooseExistingBank: 'Choisissez un compte bancaire professionnel existant pour régler le solde de votre Carte Expensify ou ajoutez un nouveau compte bancaire',
+            chooseExistingBankForTravelBilling:
+                'Choisissez un compte bancaire professionnel existant pour payer votre solde de facturation de voyage consolidée, ou ajoutez un nouveau compte bancaire',
             accountEndingIn: 'Compte se terminant par',
             addNewBankAccount: 'Ajouter un nouveau compte bancaire',
             settlementAccount: 'Compte de règlement',
@@ -6288,7 +6281,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             deleteFailureMessage: "Une erreur s'est produite lors de la suppression de la catégorie, veuillez réessayer",
             categoryName: 'Nom de la catégorie',
             requiresCategory: 'Les membres doivent catégoriser toutes les dépenses',
-            autoCategorizeNewExpenses: 'Catégoriser automatiquement les nouvelles dépenses',
             showCategoryGLCodes: 'Afficher les codes de grand livre lors de la catégorisation des dépenses',
             needCategoryForExportToIntegration: (connectionName: string) => `Toutes les dépenses doivent être catégorisées afin de pouvoir être exportées vers ${connectionName}.`,
             subtitle: 'Obtenez une meilleure vue d’ensemble de l’endroit où l’argent est dépensé. Utilisez nos catégories par défaut ou ajoutez les vôtres.',
@@ -6637,6 +6629,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             subtitle: 'Les champs de note de frais s’appliquent à toutes les dépenses et peuvent être utiles lorsque vous souhaitez demander des informations supplémentaires.',
             disableReportFields: 'Désactiver les champs de note de frais',
             disableReportFieldsConfirmation: 'Êtes-vous sûr(e) ? Les champs de texte et de date seront supprimés, et les listes seront désactivées.',
+            cannotDisableImportedReportFields: 'Les champs de note de frais importés depuis votre connexion comptable ne peuvent pas être désactivés.',
             importedFromAccountingSoftware: 'Les champs de note de frais ci-dessous sont importés depuis votre',
             textType: 'Texte',
             dateType: 'Date',
@@ -7305,11 +7298,11 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             exportCompanyCard: 'Exporter les dépenses de carte d’entreprise en tant que',
             exportDate: 'Date d’exportation',
             defaultVendor: 'Fournisseur par défaut',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
-                    ? `Les dépenses qui ne sont pas automatiquement rapprochées seront, par défaut, associées à ce fournisseur.`
-                    : `Les dépenses qui ne sont pas associées automatiquement seront attribuées par défaut à ce fournisseur. Sinon, elles seront exportées sous Crédit carte diverse.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Choisissez un fournisseur ${connectionName} par défaut pour les dépenses qui ne correspondent pas automatiquement.`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
+                    ? `Les dépenses qui ne correspondent pas automatiquement seront par défaut associées à ce fournisseur.`
+                    : `Les dépenses qui ne se rapprochent pas automatiquement utiliseront par défaut ce fournisseur. Sinon, elles seront exportées sous ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Choisissez un fournisseur par défaut pour les dépenses qui ne correspondent pas automatiquement.`,
             defaultAccount: 'Compte par défaut',
             autoSync: 'Synchronisation automatique',
             autoSyncDescription: 'Synchronisez automatiquement NetSuite et Expensify, chaque jour. Exportez les notes de frais finalisées en temps réel',
@@ -7330,6 +7323,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     `Assurez-vous que ce compte correspond à votre compte de règlement Consolidated Travel Billing (se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`,
             },
             syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyages consolidés',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -8324,6 +8319,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireAboveAmount: 'Exiger un montant supérieur',
                 saveRule: 'Enregistrer la règle',
                 emptyAmountError: 'Saisissez un montant valide avant d’enregistrer',
+                receiptAmountGreaterThanItemizedError: 'Le montant du reçu requis ne peut pas être supérieur au montant du reçu détaillé requis.',
             },
             requireFields: {title: 'Rendre les champs obligatoires pour toutes les dépenses', category: 'Catégorie', tag: 'Tag', save: 'Enregistrer la règle'},
             newRule: {
@@ -10173,40 +10169,44 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Impossible d’apparier automatiquement le reçu en raison d’une connexion bancaire rompue.';
+                return 'Impossible d’associer automatiquement le reçu en raison d’une connexion bancaire rompue.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Impossible d’associer automatiquement le reçu en raison d’un problème bancaire temporaire. Veuillez réessayer ultérieurement.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée.';
+                        return 'Impossible d’associer automatiquement le reçu, car votre connexion bancaire doit être réauthentifiée.';
                     }
                     return isMarkAsCash
-                        ? `Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée. Marquez-le comme paiement en espèces pour l’ignorer, ou <a href="${connectionLink}">reconnectez-vous</a> pour associer le reçu.`
-                        : `Impossible d’apparier automatiquement le reçu car votre connexion bancaire doit être ré-authentifiée. <a href="${connectionLink}">Reconnectez-vous</a> pour associer le reçu.`;
+                        ? `Impossible de faire correspondre automatiquement le reçu, car votre connexion bancaire nécessite une nouvelle authentification. Marquez-le comme espèces pour ignorer, ou <a href="${connectionLink}">reconnectez-vous</a> pour faire correspondre le reçu.`
+                        : `Impossible d’associer automatiquement le reçu, car la connexion à votre banque nécessite une nouvelle authentification. <a href="${connectionLink}">Reconnectez-vous</a> pour associer le reçu.`;
                 }
                 return isAdmin
-                    ? `La connexion bancaire doit être ré-authentifiée. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
-                    : 'La connexion bancaire doit être ré-authentifiée. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
+                    ? `La connexion bancaire nécessite une nouvelle authentification. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
+                    : 'La connexion bancaire doit être réauthentifiée. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Impossible d’apparier automatiquement le reçu en raison d’une connexion bancaire rompue.';
+                    return 'Impossible d’associer automatiquement le reçu en raison d’une connexion bancaire rompue.';
                 }
                 return isMarkAsCash
-                    ? `Impossible d'associer automatiquement le reçu en raison d'une connexion de carte défectueuse. Marquez-le comme paiement en espèces pour l'ignorer, ou <a href="${connectionLink}">corrigez la carte</a> pour associer le reçu.`
-                    : `Impossible d'associer automatiquement le reçu en raison d'une connexion de carte rompue. <a href="${connectionLink}">Réparez la carte</a> pour faire correspondre le reçu.`;
+                    ? `Impossible d’associer automatiquement le reçu en raison d’une connexion carte défectueuse. Marquez-le comme espèce pour ignorer, ou <a href="${connectionLink}">réparez la carte</a> pour faire correspondre le reçu.`
+                    : `Impossible d’associer automatiquement le reçu en raison d’une connexion carte défectueuse. <a href="${connectionLink}">Réparez la carte</a> pour associer le reçu.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Connexion bancaire rompue. <a href="${companyCardPageURL}">Reconnectez-vous pour faire correspondre le reçu</a>`
-                    : 'Connexion bancaire interrompue. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
+                    ? `Connexion bancaire interrompue. <a href="${companyCardPageURL}">Reconnecter pour faire correspondre le reçu</a>`
+                    : 'Connexion bancaire rompue. Demandez à un administrateur de la reconnecter pour faire correspondre le reçu.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Demandez à ${member} de marquer comme paiement en espèces ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
+                return isAdmin ? `Demandez à ${member} de le marquer comme espèces ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
             }
             return '';
         },
         brokenConnection530Error: 'Reçu en attente en raison d’une connexion bancaire rompue',
+        brokenConnection531Error: 'Impossible d’associer automatiquement le reçu en raison d’un problème bancaire temporaire. Veuillez réessayer ultérieurement.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Reçu en attente en raison d’une connexion bancaire rompue. Veuillez résoudre le problème dans les <a href="${workspaceCompanyCardRoute}">Cartes d’entreprise</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Reçu en attente en raison d’une connexion bancaire rompue. Veuillez demander à un administrateur de l’espace de travail de résoudre le problème.',
