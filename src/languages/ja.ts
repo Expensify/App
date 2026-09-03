@@ -473,7 +473,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '想定より時間がかかっています…',
         domains: 'ドメイン',
-        actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '複製済み',
         duplicateExpense: '重複経費',
@@ -3745,11 +3744,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         thisBankAccount: 'この銀行口座は、ワークスペースでのビジネス支払いに使用されます',
         accountNumber: '口座番号',
         routingNumber: 'ルーティング番号',
-        internationalBankAccountDetails: '海外銀行口座情報',
-        internationalBankAccountDetailsTitle: 'あなたの海外口座情報を教えてください',
-        internationalBankAccountDetailsSubtitle: 'あなたのワークスペースの1つが、払い戻しを処理するために海外口座情報を必要としています',
-        iban: 'IBAN',
-        swiftBicCode: 'SWIFT/BICコード',
         chooseAnAccountBelow: '下のアカウントを選択してください',
         addBankAccount: '銀行口座を追加',
         chooseAnAccount: 'アカウントを選択',
@@ -3799,8 +3793,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             restrictedBusiness: 'ビジネスが制限対象の事業一覧に含まれていないことを確認してください',
             routingNumber: '有効なルーティング番号を入力してください',
             accountNumber: '有効な口座番号を入力してください',
-            iban: '有効なIBANを入力してください',
-            swiftCode: '有効なSWIFT/BICコードを入力してください',
             routingAndAccountNumberCannotBeSame: 'ルーティング番号と口座番号を同じにすることはできません',
             companyType: '有効な会社の種類を選択してください',
             tooManyAttempts: 'ログイン試行回数が多すぎるため、このオプションは24時間無効になっています。時間をおいてから再度お試しいただくか、代わりに詳細情報を手動で入力してください。',
@@ -6119,6 +6111,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             finishSetup: 'セットアップを完了',
             chooseBankAccount: '銀行口座を選択',
             chooseExistingBank: '既存のビジネス銀行口座を選んで Expensify カードの残高を支払うか、新しい銀行口座を追加してください',
+            chooseExistingBankForTravelBilling: '既存のビジネス銀行口座を選択して一括旅行請求の残高を支払うか、新しい銀行口座を追加してください',
             accountEndingIn: '末尾が…の口座',
             addNewBankAccount: '新しい銀行口座を追加',
             settlementAccount: '決済口座',
@@ -6189,7 +6182,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             deleteFailureMessage: 'カテゴリの削除中にエラーが発生しました。もう一度お試しください',
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
-            autoCategorizeNewExpenses: '新しい経費を自動分類する',
             showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
@@ -7207,6 +7199,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                     `Continuous Reconciliation が正しく動作するように、この口座が、Consolidated Travel Billing の決済口座（末尾が ${lastFourPAN}）と一致していることをご確認ください。`,
             },
             syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期する',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -8175,6 +8169,7 @@ ${reportName}`,
                 requireAboveAmount: '上記の金額を必須にする',
                 saveRule: 'ルールを保存',
                 emptyAmountError: '保存する前に有効な金額を入力してください',
+                receiptAmountGreaterThanItemizedError: '領収書の必須金額は、明細付き領収書の必須金額を超えることはできません。',
             },
             requireFields: {title: 'すべての経費に必須項目を設定する', category: 'カテゴリ', tag: 'タグ', save: 'ルールを保存'},
             newRule: {
@@ -9989,38 +9984,42 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '銀行連携の不具合により、領収書を自動照合できません。';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return '一時的な銀行側の問題により、レシートを自動照合できません。後でもう一度お試しください。';
+            }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
                         return '銀行連携の再認証が必要なため、領収書を自動照合できません。';
                     }
                     return isMarkAsCash
-                        ? `銀行連携の再認証が必要なため、領収書を自動照合できません。無視するには現金としてマークするか、<a href="${connectionLink}">再接続</a>して領収書と照合してください。`
+                        ? `銀行連携の再認証が必要なため、領収書を自動照合できません。無視するには現金としてマークするか、<a href="${connectionLink}">再接続</a>して領収書を照合してください。`
                         : `銀行連携の再認証が必要なため、領収書を自動照合できません。領収書を照合するには、<a href="${connectionLink}">再接続</a>してください。`;
                 }
                 return isAdmin
-                    ? `銀行連携の再認証が必要です。<a href="${companyCardPageURL}">レシートと照合するために再接続</a>`
-                    : '銀行連携の再認証が必要です。管理者に依頼して再接続し、領収書と照合してください。';
+                    ? `銀行連携の再認証が必要です。<a href="${companyCardPageURL}">領収書と照合するために再接続する</a>`
+                    : '銀行連携の再認証が必要です。管理者に依頼して再接続し、レシートと照合してください。';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '銀行連携の不具合により、領収書を自動照合できません。';
                 }
                 return isMarkAsCash
-                    ? `カード連携の不具合により領収書を自動照合できません。無視するには現金としてマークするか、<a href="${connectionLink}">カードを修正</a>して領収書と照合してください。`
-                    : `カード連携が壊れているため、領収書を自動照合できません。領収書を照合するには、<a href="${connectionLink}">カードの問題を解決</a>してください。`;
+                    ? `カード連携の不具合により、レシートを自動照合できません。無視する場合は現金としてマークするか、レシートを照合するには<a href="${connectionLink}">カード連携を修正</a>してください。`
+                    : `カード連携に問題があるため、領収書を自動照合できません。領収書を照合するには、<a href="${connectionLink}">カードの問題を修正</a>してください。`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `銀行連携が切断されました。<a href="${companyCardPageURL}">レシートと照合するために再接続</a>`
+                    ? `銀行との接続が切れています。<a href="${companyCardPageURL}">再接続して領収書を照合する</a>`
                     : '銀行連携が切断されています。管理者に依頼して再接続し、領収書と照合してください。';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `${member} に現金としてマークするよう依頼するか、7日待ってから再試行してください` : 'カード取引との照合待ちです。';
+                return isAdmin ? `${member} に現金としてマークするよう依頼するか、7日待ってから再試行してください` : 'カード取引との統合待ちです。';
             }
             return '';
         },
         brokenConnection530Error: '銀行連携の不具合により領収書が保留されています',
+        brokenConnection531Error: '一時的な銀行側の問題により、レシートを自動照合できません。後でもう一度お試しください。',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>銀行接続の不具合により領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社カード</a>で解決してください。</muted-text-label>`,
         memberBrokenConnectionError: '銀行連携の不具合により領収書が保留されています。ワークスペース管理者に対応を依頼してください。',
