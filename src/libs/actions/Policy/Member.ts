@@ -24,7 +24,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
 import * as FormActions from '@userActions/FormActions';
-import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
+import {getOnboardingTaskCompletionOnSuccessData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1172,7 +1172,7 @@ function joinAccessiblePolicy(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -1194,22 +1194,23 @@ function joinAccessiblePolicy(
     ];
 
     // Auth auto-completes the join workspace task as part of JoinAccessiblePolicy via a forwarded CompleteTask, but
-    // ticking it here too, the same way completing any other onboarding task does, avoids waiting on that command's
-    // Pusher update to reach the client.
+    // ticking it here too avoids waiting on that command's Pusher update to reach the client. The tick rides the
+    // command's successData so a failed join leaves the task open - see getOnboardingTaskCompletionOnSuccessData.
+    let completedTaskReportActionID: string | undefined;
     if (joinWorkspaceTaskReport && currentUserAccountID) {
-        getFinishOnboardingTaskOnyxData(
+        const joinWorkspaceTaskCompletion = getOnboardingTaskCompletionOnSuccessData(
             joinWorkspaceTaskReport,
             joinWorkspaceTaskParentReport,
             isJoinWorkspaceTaskParentReportArchived ?? false,
             currentUserAccountID,
             joinWorkspaceTaskHasOutstandingChildTask ?? false,
             joinWorkspaceTaskParentReportAction,
-            // delegateEmail: matches the pattern in createPolicyTag, which also passes undefined pending Onyx-value threading
-            undefined,
         );
+        successData.push(...joinWorkspaceTaskCompletion.successData);
+        completedTaskReportActionID = joinWorkspaceTaskCompletion.completedTaskReportActionID;
     }
 
-    API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID, completedTaskReportActionID}, {optimisticData, successData, failureData});
 }
 
 /**
