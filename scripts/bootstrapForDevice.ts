@@ -8,7 +8,7 @@ import type {TupleToUnion} from 'type-fest';
 import CLI from 'expensify-common/CLI';
 import {readdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {homedir} from 'node:os';
-import {dirname, join, resolve} from 'node:path';
+import {join, resolve} from 'node:path';
 import process from 'node:process';
 import {createInterface} from 'node:readline/promises';
 
@@ -448,7 +448,7 @@ function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): void {
     );
 }
 
-async function main(): Promise<void> {
+async function main(rootDirectory: string): Promise<void> {
     // The CLI framework requires kebab-case named argument keys, which the naming-convention rule cannot express.
     /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
@@ -484,8 +484,6 @@ async function main(): Promise<void> {
     const platform = parsePlatform(String(cli.positionalArgs.platform));
     const username = cli.namedArgs['github-username'] ?? (cli.namedArgs['bundle-identifier'] ? undefined : await githubUsername());
     const bundleIdentifier = cli.namedArgs['bundle-identifier'] ?? defaultBundleIdentifier(username ?? '', platform);
-    const scriptPath = process.argv.at(1);
-    const rootDirectory = scriptPath ? resolve(dirname(resolve(scriptPath)), '..') : process.cwd();
     if (platform === 'android') {
         bootstrapAndroidForDevice({rootDirectory, bundleIdentifier, suffix: cli.namedArgs.suffix});
         return;
@@ -499,14 +497,6 @@ async function main(): Promise<void> {
     });
 }
 
-const scriptPath = process.argv.at(1);
-if (scriptPath?.endsWith('bootstrapForDevice.ts')) {
-    main().catch((error: unknown) => {
-        console.error(error instanceof Error ? error.message : error);
-        process.exitCode = 1;
-    });
-}
-
 export {
     androidApplicationIDs,
     bootstrapAndroidForDevice,
@@ -514,6 +504,7 @@ export {
     defaultBundleIdentifier,
     entitlementContents,
     installedDevelopmentTeams,
+    main,
     parseDevelopmentTeamFromProvisioningProfile,
     patchIOSAppDisplayName,
     patchAndroidAppName,
