@@ -4,7 +4,6 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useShouldCollectInternationalDepositDetails from '@hooks/useShouldCollectInternationalDepositDetails';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
@@ -30,7 +29,6 @@ import React, {useContext, useEffect, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
-import InternationalBankAccountDetails from './substeps/InternationalBankAccountDetailsStep';
 import LegalName from './substeps/LegalNameStep';
 import ManualBankAccountDetails from './substeps/ManualBankAccountDetailsStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
@@ -40,10 +38,7 @@ import getSkippedStepsPersonalInfo from './utils/getSkippedStepsPersonalInfo';
 
 const SUB_PAGE_NAMES = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES;
 
-// The international bank account details page sits right after the bank account details page, so the info pages that
-// follow it start at index 2 (see getSkippedStepsPersonalInfo).
 const infoPages = [
-    {pageName: SUB_PAGE_NAMES.INTERNATIONAL_BANK_ACCOUNT_DETAILS, component: InternationalBankAccountDetails},
     {pageName: SUB_PAGE_NAMES.LEGAL_NAME, component: LegalName},
     {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
     {pageName: SUB_PAGE_NAMES.PHONE_NUMBER, component: PhoneNumber},
@@ -71,7 +66,6 @@ function AddPersonalBankAccountPage() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
-    const shouldCollectInternationalDepositDetails = useShouldCollectInternationalDepositDetails(CONST.COUNTRY.US);
     const kycWallRef = useContext(KYCWallContext);
 
     const shouldShowSuccess = fullPersonalBankAccount?.shouldShowSuccess ?? false;
@@ -148,7 +142,7 @@ function AddPersonalBankAccountPage() {
     };
 
     const pages = isManual ? pagesWithManualSetup : pagesWithPlaid;
-    const skipPages = getSkippedStepsPersonalInfo(privatePersonalDetails, shouldCollectInternationalDepositDetails)
+    const skipPages = getSkippedStepsPersonalInfo(privatePersonalDetails)
         .map((index) => pages.at(index)?.pageName)
         .filter((pageName): pageName is NonNullable<typeof pageName> => !!pageName);
 
