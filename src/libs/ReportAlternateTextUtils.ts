@@ -455,7 +455,6 @@ function getLastMessageTextForReport({
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions = deprecatedAllSortedReportActions,
     currentUserAccountID,
-    formatPhoneNumber,
 }: {
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
@@ -479,7 +478,6 @@ function getLastMessageTextForReport({
     sortedActions?: Record<string, ReportAction[]>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -618,7 +616,7 @@ function getLastMessageTextForReport({
             movedToReport,
             policyTags,
             currentUserLogin: currentUserLogin ?? '',
-            formatPhoneNumber,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
         // Strip HTML tags for plain text display in options list
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
@@ -1199,7 +1197,6 @@ function getReportAlternateText({
             lastAction,
             isTrackIntentUser,
             currentUserAccountID,
-            formatPhoneNumber,
         });
     }
 
