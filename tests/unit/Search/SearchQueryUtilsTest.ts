@@ -3634,6 +3634,26 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('"group-by: reports"');
         });
 
+        it('should preserve syntax with a quoted multi-word value as keyword text', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('from:"John Doe"', currentQueryJSON) : '';
+            const updatedResult = getQueryWithUpdatedValues(result);
+            const resultQueryJSON = buildSearchQueryJSON(updatedResult ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.at(0)?.value).toBe('from:"John Doe"');
+            expect(getFilterFromQuery(resultQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toBeUndefined();
+
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedQueryJSON = buildSearchQueryJSON(resubmittedResult ?? '');
+            const resubmittedKeywordFilter = resubmittedQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+            expect(getFilterFromQuery(resubmittedQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toBeUndefined();
+        });
+
         it('should escape input that uses a comparison operator with a filter key', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 

@@ -178,12 +178,14 @@ function sanitizeSearchValue(str: string) {
 
 const syntaxKeyPattern = `-?(?:${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(?:-[^\\s:><=]+)+)`;
 const syntaxOperatorPattern = '\\*?:|[<>]=?|=';
-const syntaxSpanRegex = new RegExp(`(^|\\s)(${syntaxKeyPattern})\\s*(${syntaxOperatorPattern})\\s*([^\\s]+)`, 'gi');
+const syntaxValuePattern = '"(?:\\\\.|[^"\\\\])*"|[^\\s]+';
+const syntaxSpanRegex = new RegExp(`(^|\\s)(${syntaxKeyPattern})\\s*(${syntaxOperatorPattern})\\s*(${syntaxValuePattern})`, 'gi');
 
 function quoteSyntaxSpans(segment: string) {
     return segment.replace(syntaxSpanRegex, (match: string, prefix: string) => {
         const syntaxValue = match.slice(prefix.length).trim();
-        return `${prefix}"${syntaxValue}"`;
+        const sanitizedSyntaxValue = sanitizeSearchValue(syntaxValue);
+        return `${prefix}${sanitizedSyntaxValue.startsWith('"') ? sanitizedSyntaxValue : `"${sanitizedSyntaxValue}"`}`;
     });
 }
 /**
@@ -194,7 +196,7 @@ function quoteSyntaxSpans(segment: string) {
 function escapeKeyword(keywords: string) {
     return (
         keywords
-            .match(/"(?:\\.|[^"\\])*"|(?:\\.|[^"\\])+/g)
+            .match(/"(?:\\.|[^"\\])*"|(?:\\.|[^"\\])+(?:"(?:\\.|[^"\\])*")?/g)
             ?.map((q) => {
                 if (q.startsWith('"')) {
                     return q;
