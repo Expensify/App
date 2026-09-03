@@ -152,13 +152,19 @@ async function resolveDevelopmentTeam(developmentTeam: string | undefined, teams
     return prompt(teams);
 }
 
-function githubUsername(): string {
+async function githubUsername(): Promise<string> {
+    const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
+    if (!token) {
+        throw new Error('Could not determine your GitHub username. Set GH_TOKEN or GITHUB_TOKEN, or pass --github-username/--bundle-identifier.');
+    }
+
     try {
-        return execFileSync('gh', ['api', 'user', '--jq', '.login'], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']})
-            .trim()
-            .toLowerCase();
+        const {default: GithubUtils} = await import('@github/libs/GithubUtils');
+        GithubUtils.initOctokitWithToken(token);
+        const {data: user} = await GithubUtils.octokit.users.getAuthenticated();
+        return user.login.toLowerCase();
     } catch {
-        throw new Error('Could not determine your GitHub username. Authenticate gh or pass --github-username/--bundle-identifier.');
+        throw new Error('Could not determine your GitHub username. Check GH_TOKEN or GITHUB_TOKEN, or pass --github-username/--bundle-identifier.');
     }
 }
 
@@ -471,7 +477,7 @@ async function main(): Promise<void> {
                 required: false,
             },
             'github-username': {
-                description: 'GitHub username used to create the default bundle identifier (defaults to the authenticated gh user)',
+                description: 'GitHub username used to create the default bundle identifier (defaults to the GH_TOKEN or GITHUB_TOKEN user)',
                 required: false,
             },
         },
@@ -479,7 +485,7 @@ async function main(): Promise<void> {
     /* eslint-enable @typescript-eslint/naming-convention */
 
     const platform = parsePlatform(String(cli.positionalArgs.platform));
-    const username = cli.namedArgs['github-username'] ?? (cli.namedArgs['bundle-identifier'] ? undefined : githubUsername());
+    const username = cli.namedArgs['github-username'] ?? (cli.namedArgs['bundle-identifier'] ? undefined : await githubUsername());
     const bundleIdentifier = cli.namedArgs['bundle-identifier'] ?? defaultBundleIdentifier(username ?? '', platform);
     const scriptPath = process.argv.at(1);
     const rootDirectory = scriptPath ? resolve(dirname(resolve(scriptPath)), '..') : process.cwd();
