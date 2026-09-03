@@ -15,7 +15,6 @@ import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import usePrevious from '@hooks/usePrevious';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
-import useSearchSkeletonVisibility from '@hooks/useSearchSkeletonVisibility';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -67,7 +66,6 @@ function SearchPageWide({
     onSearchContentReady,
 }: SearchPageWideProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
-    const shouldRenderLoadingSkeleton = useSearchSkeletonVisibility(shouldShowLoadingSkeleton);
 
     // A layer replacing results already on screen renders its hydrate placeholder invisibly, since a skeleton there
     // reads as a flash between two sets of results.
@@ -147,8 +145,9 @@ function SearchPageWide({
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
-                                        {shouldRenderLoadingSkeleton && <SearchLoadingSkeleton isLoading={shouldShowLoadingSkeleton} />}
-                                        {!shouldShowLoadingSkeleton && (
+                                        {shouldShowLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton />
+                                        ) : (
                                             <SearchWithNavigationDeferredMount
                                                 isReplacingContent={isReplacingPreviousContent}
                                                 queryJSON={contentQueryJSON}

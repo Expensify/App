@@ -22,7 +22,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
-import useSearchSkeletonVisibility from '@hooks/useSearchSkeletonVisibility';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -89,7 +88,6 @@ function SearchPageNarrow({
     isOverlayActive,
 }: SearchPageNarrowProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
-    const shouldRenderLoadingSkeleton = useSearchSkeletonVisibility(shouldShowLoadingSkeleton);
 
     // A layer replacing results already on screen renders its hydrate placeholder invisibly, since a skeleton there
     // reads as a flash between two sets of results.
@@ -359,13 +357,9 @@ function SearchPageNarrow({
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
-                                        {shouldRenderLoadingSkeleton && (
-                                            <SearchLoadingSkeleton
-                                                isLoading={shouldShowLoadingSkeleton}
-                                                containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
-                                            />
-                                        )}
-                                        {!shouldShowLoadingSkeleton && (
+                                        {shouldShowLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                        ) : (
                                             <SearchWithNavigationDeferredMount
                                                 isReplacingContent={isReplacingPreviousContent}
                                                 searchResults={contentSearchResults}
