@@ -523,7 +523,6 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.NON_REIMBURSABLE,
                     CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID,
                     CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID,
-                    CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID,
                     CONST.DUALENTRY_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
                     ...Object.values(cardFeeds ?? {}).map((program) => `${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`),
                 ],

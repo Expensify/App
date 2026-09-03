@@ -1,10 +1,16 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 
+import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 import type {ValueOf} from 'type-fest';
 
@@ -23,10 +29,27 @@ type MockConfirmModalOptions = {
 type MockConfirmModalResult = {action: ValueOf<typeof ModalActions>};
 
 const mockShowConfirmModal = jest.fn<Promise<MockConfirmModalResult>, [MockConfirmModalOptions]>();
+const mockRootState: ReturnType<typeof navigationRef.getRootState> = {
+    key: 'root',
+    index: 0,
+    routeNames: [],
+    routes: [],
+    type: 'stack',
+    stale: false,
+};
 
 jest.mock('@hooks/useConfirmModal', () => () => ({
     showConfirmModal: mockShowConfirmModal,
 }));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    __esModule: true,
+    default: {
+        navigate: jest.fn(),
+    },
+}));
+
+jest.mock('@libs/Navigation/helpers/swapBackgroundTabForRHPTarget');
 
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
@@ -44,8 +67,15 @@ describe('useBlockDistanceRequest', () => {
     beforeEach(async () => {
         mockShowConfirmModal.mockClear();
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CLOSE});
+        jest.mocked(Navigation.navigate).mockClear();
+        jest.mocked(swapBackgroundTabForRHPTarget).mockClear();
+        jest.spyOn(navigationRef, 'getRootState').mockReturnValue(mockRootState);
         await Onyx.clear();
         await waitForBatchedUpdates();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('blocks selecting a workspace with commuter exclusions for manual distance before the workspace changes', async () => {
@@ -219,6 +249,32 @@ describe('useBlockDistanceRequest', () => {
 
         expect(result.current()).toBe(true);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.homeAddressRequired.title'}));
+    });
+
+    it('opens private personal details on top of the profile page when the home address prompt is confirmed', async () => {
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_home_and_office`, {
+            id: 'policy_home_and_office',
+            name: 'Home and office workspace',
+            commuterExclusions: {
+                method: 'homeAndOffice',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() =>
+            useBlockDistanceRequest({
+                policyID: 'policy_home_and_office',
+                isDistanceRequest: true,
+            }),
+        );
+
+        await act(async () => {
+            expect(result.current()).toBe(true);
+            await Promise.resolve();
+        });
+        await waitFor(() => expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1)));
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
     });
 
     it('allows a distance request when the current home address is present', async () => {
