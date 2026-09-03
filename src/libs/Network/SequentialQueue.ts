@@ -908,23 +908,17 @@ function getCurrentRequest(): Promise<void> {
 /**
  * Resolves when the queue is done processing all persisted write requests, deferred writes included.
  * Skipped while offline, where the queue can't run and push()/flush() open the gate for the same reason.
- *
- * Not only READs wait here: the auth-token swaps in `Delegate.connect`/`disconnect`, the account merge in
- * `Session`, and the post-sign-in `openApp` all gate on this too, so a deferred write delays them by up to
- * `SAFETY_TIMEOUT_MS` as well. That wait is intended - swapping the token out from under a pending write is
- * exactly what it prevents - but the `shouldClaimReadGate` opt-out lives on the writer, so a caller adding a
- * `writeWhenReady` is choosing this for them too.
  */
 async function waitForIdle(): Promise<unknown> {
     while (deferredWriteClaims > 0 && !isOfflineNetwork()) {
         Log.info('[SequentialQueue] READ is waiting on a deferred write', false, {claims: deferredWriteClaims});
-        // The waits are deliberately sequential, not parallel. Each one re-checks the claim count and the
+        // The waits are deliberately sequential, each one re-checks the claim count and the
         // network, so going offline releases READs and coming back re-parks them.
         // eslint-disable-next-line no-await-in-loop
         await Promise.race([deferredWritesLanded, whenNetworkStateChanges()]);
     }
 
-    // Read after the wait, not before: the deferred write's push() has re-closed the gate by now.
+    // Read after the wait, the deferred write's push() has re-closed the gate by now.
     return isReadyPromise;
 }
 
@@ -943,8 +937,6 @@ function resetQueue(): void {
     resolveIsReadyPromise = undefined;
     deferredWriteGeneration += 1;
     setDeferredWriteClaims(0);
-    // Drop the listener too, not just the promise, so a suite that parks a READ doesn't leave a subscriber
-    // behind on every reset.
     unsubscribePendingNetworkStateChange?.();
     unsubscribePendingNetworkStateChange = undefined;
     pendingNetworkStateChange = undefined;
