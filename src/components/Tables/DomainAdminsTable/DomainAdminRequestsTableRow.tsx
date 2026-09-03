@@ -34,7 +34,8 @@ export default function DomainAdminRequestsTableRow({item, rowIndex, shouldUseNa
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const accessibilityLabel = [item.name, item.email].filter(Boolean).join(', ');
     const isPendingAddOrDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const areActionsDisabled = isPendingAddOrDelete || !item.email;
+    const isApproveDisabled = isPendingAddOrDelete || !item.email;
+    const isDenyDisabled = isPendingAddOrDelete;
 
     const actionButtons = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
@@ -42,7 +43,8 @@ export default function DomainAdminRequestsTableRow({item, rowIndex, shouldUseNa
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={item.approve}
-                isDisabled={areActionsDisabled}
+                isDisabled={isApproveDisabled}
+                accessibilityLabel={[translate('domain.admins.approve'), item.name].filter(Boolean).join(', ')}
                 sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.REQUEST_APPROVE}
             >
                 <Button.Text>{translate('domain.admins.approve')}</Button.Text>
@@ -50,7 +52,8 @@ export default function DomainAdminRequestsTableRow({item, rowIndex, shouldUseNa
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={item.deny}
-                isDisabled={areActionsDisabled}
+                isDisabled={isDenyDisabled}
+                accessibilityLabel={[translate('domain.admins.deny'), item.name].filter(Boolean).join(', ')}
                 sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.REQUEST_DENY}
             >
                 <Button.Text>{translate('domain.admins.deny')}</Button.Text>
@@ -95,12 +98,14 @@ export default function DomainAdminRequestsTableRow({item, rowIndex, shouldUseNa
                 </View>
             </View>
 
-            <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
-                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
-            >
-                {!shouldUseNarrowTableLayout && actionButtons}
-            </View>
+            {!shouldUseNarrowTableLayout && (
+                <View
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
+                    {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                >
+                    {actionButtons}
+                </View>
+            )}
         </Table.Row>
     );
 }

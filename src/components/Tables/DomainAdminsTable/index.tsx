@@ -58,7 +58,7 @@ type DomainAdminsTableRowData = DomainAdminGroupHeaderRowData | DomainAdminReque
 type DomainAdminsTableProps = {
     domainAccountID: number;
     admins: DomainAdminRowData[];
-    requests?: DomainAdminRequestRowData[];
+    requests: DomainAdminRequestRowData[];
 };
 
 export default function DomainAdminsTable({domainAccountID, admins, requests}: DomainAdminsTableProps) {
@@ -84,7 +84,7 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
     ];
 
     const tableData: DomainAdminsTableRowData[] =
-        requests && requests.length > 0
+        requests.length > 0
             ? [
                   {keyForList: 'group-requests', rowType: 'groupHeader', groupOrder: 0, label: translate('domain.admins.requests')},
                   ...requests,
@@ -120,6 +120,7 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
                 <DomainAdminsTableGroupHeaderRow
                     item={item}
                     rowIndex={index}
+                    shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 />
             );
         }

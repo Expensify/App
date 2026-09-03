@@ -13,16 +13,15 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearStaleDomainFromFailedCreation} from '@libs/actions/Domain';
-import {hasDomainErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
+import {hasDomainErrors} from '@libs/DomainUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isAdminSelector} from '@src/selectors/Domain';
+import {hasPendingAdminRequestsSelector, isAdminSelector} from '@src/selectors/Domain';
 import {accountIDSelector} from '@src/selectors/Session';
-import type {Domain} from '@src/types/onyx';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -31,11 +30,11 @@ import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-function getDomainBrickRoadIndicator(domainErrors: DomainErrors | undefined, domain: Domain, currentUserAccountID: number | undefined) {
+function getDomainBrickRoadIndicator(domainErrors: DomainErrors | undefined, hasPendingAdminRequestsToReview: boolean) {
     if (hasDomainErrors(domainErrors)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
-    if (hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID)) {
+    if (hasPendingAdminRequestsToReview) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 }
@@ -101,7 +100,7 @@ function DomainsListPage() {
                 errors: domainErrors?.errors,
                 pendingAction: domain.pendingAction,
                 disabled: domain.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                brickRoadIndicator: getDomainBrickRoadIndicator(domainErrors, domain, currentUserAccountID),
+                brickRoadIndicator: getDomainBrickRoadIndicator(domainErrors, isDomainAdmin && hasPendingAdminRequestsSelector(domain)),
                 action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
             });
         }
