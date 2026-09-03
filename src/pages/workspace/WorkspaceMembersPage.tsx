@@ -152,7 +152,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const invitedEmails = useMemo(() => Object.keys(invitedEmailsToAccountIDsDraft ?? {}), [invitedEmailsToAccountIDsDraft]);
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const {approvalWorkflows} = useApprovalWorkflows({policy});
+    const {approvalWorkflows} = useApprovalWorkflows({policy, currentUserLogin});
 
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
@@ -385,9 +385,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const memberEmail = formatPhoneNumber(login);
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
             const approverEmail = shouldShowApproverColumn ? firstApproverByMemberEmail[login]?.email : undefined;
-            const approverPersonalDetail = personalDetails?.[Number(policyMemberEmailsToAccountIDs[approverEmail ?? ''] ?? CONST.DEFAULT_NUMBER_ID)];
-            const {avatar: approverAvatar, displayName = approverEmail, accountID: approverAccountID} = approverPersonalDetail ?? {};
-            const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
+            // Same fallback as the member identity above: when the approver's personal details haven't loaded there is
+            // no accountID to join on, so generate one and show the email rather than blanking the cell.
+            const approverAccountID = approverEmail ? Number(policyMemberEmailsToAccountIDs[approverEmail] ?? generateAccountID(approverEmail)) : undefined;
+            const approverPersonalDetail = personalDetails?.[approverAccountID ?? CONST.DEFAULT_NUMBER_ID];
+            const approverAvatar = approverPersonalDetail?.avatar;
+            const approverDisplayName = approverEmail ? formatPhoneNumber(approverPersonalDetail?.displayName ?? approverEmail) : '';
 
             return {
                 approverAvatar,

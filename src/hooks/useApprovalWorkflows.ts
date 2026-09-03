@@ -34,16 +34,14 @@ function useApprovalWorkflows({policy, firstApprover, currentUserLogin}: UseAppr
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector(policyID)});
 
-    const params = {
-        policy,
-        personalDetails: personalDetails ?? {},
-        localeCompare,
-        firstApprover,
-        currentUserLogin,
-        rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID),
-    };
+    const params = {policy, personalDetails: personalDetails ?? {}, localeCompare, firstApprover, currentUserLogin};
 
-    return isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS) ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
+    // Only the rules converter reads `rules`, so the collection is left unwalked on the default path.
+    if (!isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
+        return convertPolicyEmployeesToApprovalWorkflows(params);
+    }
+
+    return convertApprovalWorkflowRulesToWorkflows({...params, rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID)});
 }
 
 export default useApprovalWorkflows;

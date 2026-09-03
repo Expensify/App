@@ -166,8 +166,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberApprovalWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
     const memberFirstApprover = memberApprovalWorkflow?.approvers.at(0);
     const hasApprovalsEnabled = !isSubmitAndClose(policy);
-    const approverLabel =
-        (memberApprovalWorkflow?.approvers.length ?? 0) > 1 ? `${toLocaleOrdinalWithWords(1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+    const approverLabel = (memberApprovalWorkflow?.approvers.length ?? 0) > 1 ? `${toLocaleOrdinalWithWords(1)} ${translate('common.approver').toLowerCase()}` : translate('common.approver');
     // A member at the top of their own chain has no approver, the workspace owner being the common case.
     const approverToDisplay = memberFirstApprover && memberFirstApprover.email !== memberLogin ? memberFirstApprover : undefined;
 
@@ -177,6 +176,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
         if (memberFirstApprover?.email) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover.email, memberLogin));
+            return;
+        }
+
+        // Creating a workflow is plan-gated, the same way adding one from the Workflows tab is.
+        const backTo = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID);
+        if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, backTo)) {
+            return;
+        }
+
+        if (!isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, backTo));
             return;
         }
 
