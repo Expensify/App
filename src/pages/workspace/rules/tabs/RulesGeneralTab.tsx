@@ -22,7 +22,7 @@ type RulesGeneralTabProps = {
     /** Opens the Agents tab through the page's tab handler, so Collect gets the Control upgrade page instead. */
     onOpenAgentsTab: () => void;
     /** The tab selector, rendered inside this tab's scroll like the table tabs render it inside their list. */
-    headerComponent?: React.ReactElement;
+    headerComponent: React.ReactElement;
 };
 
 function RulesGeneralTab({policyID, canWriteRules, isAgentsRulesBannerDismissed, onOpenAgentsTab, headerComponent}: RulesGeneralTabProps) {

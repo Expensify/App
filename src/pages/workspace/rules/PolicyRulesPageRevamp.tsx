@@ -173,8 +173,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const isTableTab =
         activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
     const isAgentsTab = activeTab === RULES_TAB.AGENTS;
+    const isGeneralTab = activeTab === RULES_TAB.GENERAL;
     const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
-    const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;
+    const shouldShowAddRuleButton = isGeneralTab || !shouldShowBulkActions;
 
     const handleBackButtonPress = () => {
         if (isMobileSelectionModeEnabled) {
@@ -393,10 +394,10 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                             styles.mnh0,
                             styles.w100,
                             shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                            (isTableTab || isAgentsTab || activeTab === RULES_TAB.GENERAL) && styles.mw100,
+                            (isTableTab || isAgentsTab || isGeneralTab) && styles.mw100,
                         ]}
                     >
-                        {activeTab === RULES_TAB.GENERAL && (
+                        {isGeneralTab && (
                             <RulesGeneralTab
                                 policyID={policyID}
                                 canWriteRules={canWriteRules}

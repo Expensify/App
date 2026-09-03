@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
@@ -78,7 +79,9 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         isSelected: selectedCategories.includes(category.name),
     }));
 
-    const filterCategory = (item: CategoryListItem, searchInput: string) => (item.text ?? '').toLowerCase().includes(searchInput.toLowerCase());
+    // Tokenized like the main category picker, so the words can be typed in any order and a nested name is still found
+    // by any part of it.
+    const filterCategory = (item: CategoryListItem, searchInput: string) => tokenizedSearch([item], searchInput, (category) => [category.text ?? '']).length > 0;
 
     // Pin the initially selected categories to the top of the FULL sorted list, then let the search filter run over the
     // already-pinned list so pinned rows stay at the top even while searching.
