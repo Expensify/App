@@ -50,6 +50,11 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
             return columnStyles;
         }
 
+        // A hugging column is sized to its content and pinned there, the same way a column with a declared width is.
+        if (sizing.shouldHug) {
+            return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, flexBasis: sizing.contentWidth, minWidth: sizing.contentWidth, width: undefined};
+        }
+
         // The measured width is a share of the free space, not a width of its own: growing from a zero basis in
         // proportion to what the content needs is what makes the columns add up to the row without this knowing what
         // the fixed columns, gaps, and padding spend. `flex` is cleared because the base style sets it on exactly these

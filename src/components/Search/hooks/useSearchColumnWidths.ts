@@ -6,7 +6,12 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {SearchColumnMeasurementContext} from '@libs/getSearchColumnContentToMeasure';
-import getSearchColumnContentToMeasure, {DYNAMICALLY_SIZED_SEARCH_COLUMNS, getSearchColumnExtraWidth, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS} from '@libs/getSearchColumnContentToMeasure';
+import getSearchColumnContentToMeasure, {
+    DYNAMICALLY_SIZED_SEARCH_COLUMNS,
+    getSearchColumnExtraWidth,
+    HUGGED_SEARCH_COLUMNS,
+    SEARCH_COLUMN_HEADER_TRANSLATION_KEYS,
+} from '@libs/getSearchColumnContentToMeasure';
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
 import createWidestTextMeasurer from '@libs/measureTextWidth/widestTextMeasurer';
 import {isTransactionListItemType} from '@libs/SearchUIUtils';
@@ -31,6 +36,9 @@ type SearchColumnSizing = {
      * had to squeeze it.
      */
     contentWidth: number;
+
+    /** Whether the column is sized to its content exactly, rather than sharing the row's spare space with the others. */
+    shouldHug: boolean;
 };
 
 /**
@@ -129,16 +137,30 @@ function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: U
     // Normalized to average 1, so each dynamic column still grows by one unit overall, exactly as `flex: 1` did.
     // Other flexible columns grow by 1, so raw pixel weights here would be hundreds of units against their 1 and
     // would collapse them. Normalizing only changes how these columns split their own share.
-    const averageContentWidth = contentWidths.reduce((total, {contentWidth}) => total + contentWidth, 0) / contentWidths.length;
+    //
+    // Averaged over the columns that share the space, since a hugging column takes no share and would only drag down
+    // the figure the other columns are measured against.
+    const sharingColumns = contentWidths.filter(({column}) => !HUGGED_SEARCH_COLUMNS.has(column));
+    const averageContentWidth = sharingColumns.reduce((total, {contentWidth}) => total + contentWidth, 0) / sharingColumns.length;
 
-    if (averageContentWidth <= 0) {
+    // Written as a positive test so an empty set of sharing columns, which divides to NaN rather than to 0, is caught.
+    if (!(averageContentWidth > 0)) {
         return noColumnSizing;
     }
 
     const columnSizing: Partial<Record<SearchColumnType, SearchColumnSizing>> = {};
 
     for (const {column, contentWidth, headerLabelWidth} of contentWidths) {
+        const shouldHug = HUGGED_SEARCH_COLUMNS.has(column);
+
+        if (shouldHug) {
+            // Sized to its content and left there: it holds a badge, so the spare space belongs to the text columns.
+            columnSizing[column] = {flexWeight: 0, minWidth: contentWidth, contentWidth, shouldHug};
+            continue;
+        }
+
         columnSizing[column] = {
+            shouldHug,
             flexWeight: contentWidth / averageContentWidth,
             // Squeezed no further than a readable width, its own content if that is narrower, and never below the
             // header, which would leave the column unidentifiable. Once these no longer fit, the table scrolls.

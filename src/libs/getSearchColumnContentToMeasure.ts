@@ -18,8 +18,9 @@ import {getCategoryGLCode, getDecodedLeafCategoryName, isCategoryMissing} from '
 import getBase62ReportID from './getBase62ReportID';
 import {getTagGLCode} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
+import {getReportStatusTranslation} from './ReportUtils';
 import {getDecodedTagName} from './TagUtils';
-import {getDescription, getExchangeRate, getMerchantName, getTagForDisplay, getTaxName, isPerDiemRequest, isTimeRequest} from './TransactionUtils';
+import {getDescription, getExchangeRate, getMerchantName, getTagForDisplay, getTaxName, isDeletedTransaction, isPerDiemRequest, isTimeRequest} from './TransactionUtils';
 
 /**
  * The data a column needs to resolve its text that doesn't travel on the transaction itself. Read once at the list
@@ -53,6 +54,9 @@ type SearchColumnContent = {
 /** Width a `UserInfoCell` spends before any text: the avatar plus its trailing padding. */
 const USER_INFO_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spacing2;
 
+/** Width the status badge spends around its label: `condensedBadge`'s horizontal padding plus `defaultBadge`'s border. */
+const STATUS_BADGE_CHROME_WIDTH = 6 * 2 + 1 * 2;
+
 /**
  * The Search columns sized from their content: the free-text ones that share the table's leftover space today, and so
  * the ones that truncate while a short column beside them keeps room it doesn't need.
@@ -61,6 +65,7 @@ const USER_INFO_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spa
  * widths, so measuring them would cost work without changing the layout.
  */
 const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
+    CONST.SEARCH.TABLE_COLUMNS.STATUS,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
@@ -82,8 +87,15 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
 ]);
 
+/**
+ * Columns sized to fit their content exactly rather than sharing the row's spare space. Their content is a fixed-size
+ * element, not free text, so widening it past what it holds only pads the row out.
+ */
+const HUGGED_SEARCH_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.STATUS]);
+
 /** Each dynamically sized column's header label, so a column can be kept wide enough to show its own heading. */
 const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, TranslationPaths>> = {
+    [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'common.status',
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'common.merchant',
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'common.description',
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'common.category',
@@ -111,6 +123,8 @@ function getSearchColumnExtraWidth(column: SearchColumnType): number {
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
         case CONST.SEARCH.TABLE_COLUMNS.TO:
             return USER_INFO_CELL_AVATAR_WIDTH;
+        case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+            return STATUS_BADGE_CHROME_WIDTH;
         default:
             return 0;
     }
@@ -129,6 +143,14 @@ function getSearchColumnContentToMeasure(
     context: SearchColumnMeasurementContext = {},
 ): SearchColumnContent[] {
     switch (column) {
+        case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+            // The status renders in a badge rather than the row's own text style, so it is measured in the badge's font.
+            return [
+                {
+                    text: getReportStatusTranslation({stateNum: item.report?.stateNum, statusNum: item.report?.statusNum, isDeleted: isDeletedTransaction(item), translate}),
+                    font: {fontSize: variables.fontSizeExtraSmall},
+                },
+            ];
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return [{text: getMerchantName(item, translate)}];
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -173,5 +195,5 @@ function getSearchColumnContentToMeasure(
 }
 
 export default getSearchColumnContentToMeasure;
-export {DYNAMICALLY_SIZED_SEARCH_COLUMNS, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS, getSearchColumnExtraWidth};
+export {DYNAMICALLY_SIZED_SEARCH_COLUMNS, HUGGED_SEARCH_COLUMNS, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS, getSearchColumnExtraWidth};
 export type {SearchColumnMeasurementContext};
