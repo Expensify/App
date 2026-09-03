@@ -57,7 +57,7 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
         setSelection(getSelectionAtOffset(0));
     };
 
-    const moveToEnd = (nextText: string) => {
+    const syncToEnd = (nextText: string) => {
         const offset = nextText.length;
 
         if (displayText.length === offset && selection.start === offset && selection.end === offset) {
@@ -137,7 +137,7 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
         selection,
         collapse,
         reset,
-        moveToEnd,
+        syncToEnd,
         syncAfterEdit,
         handleKeyPress,
         rejectEdit,

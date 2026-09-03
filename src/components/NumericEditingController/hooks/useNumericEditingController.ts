@@ -51,7 +51,7 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
 
     const formattedNumber = replaceAllDigits(currentValue, toLocaleDigit);
 
-    const {selection, collapse, reset, moveToEnd, syncAfterEdit, handleKeyPress, rejectEdit, handleNativeSelectionChange} = useNumericSelection({displayText: formattedNumber});
+    const {selection, collapse, reset, syncToEnd, syncAfterEdit, handleKeyPress, rejectEdit, handleNativeSelectionChange} = useNumericSelection({displayText: formattedNumber});
 
     // Reset when the external value is cleared. Ignore other external changes while editing.
     if (previousExternalValue !== externalValue) {
@@ -92,7 +92,7 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
     // Replaces the canonical value without validation or notification and moves the caret to the end.
     const updateNumber = (newNumber: string) => {
         applyValue(newNumber, {notify: false});
-        moveToEnd(newNumber);
+        syncToEnd(newNumber);
     };
 
     const getNumber = () => committedValueRef.current;

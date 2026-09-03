@@ -80,7 +80,7 @@ describe('useNumericSelection', () => {
         const {result} = renderSelection('12');
 
         act(() => {
-            result.current.moveToEnd('1234');
+            result.current.syncToEnd('1234');
         });
 
         expect(result.current.selection).toEqual({start: 4, end: 4});
@@ -252,12 +252,12 @@ describe('useNumericSelection', () => {
         });
     });
 
-    describe('moveToEnd with the caret already at the end', () => {
+    describe('syncToEnd with the caret already at the end', () => {
         it('arms no guard, so the next selection event is applied', () => {
             const {result} = renderSelection('12');
 
             act(() => {
-                result.current.moveToEnd('12');
+                result.current.syncToEnd('12');
             });
             act(() => {
                 result.current.handleNativeSelectionChange(0, 0);
@@ -324,7 +324,7 @@ describe('useNumericSelection', () => {
             const {result} = renderSelection('12');
 
             act(() => {
-                result.current.moveToEnd('12345');
+                result.current.syncToEnd('12345');
             });
             act(() => {
                 result.current.handleNativeSelectionChange(9, 9);
