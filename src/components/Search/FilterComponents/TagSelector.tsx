@@ -74,7 +74,7 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
             onSearchChange={searchTags}
             loading={isInitialLoading}
             isLoading={isLoading}
-            isLoadingMore={isLoading && tagItems.length > 1}
+            isLoadingMore={isLoading}
         />
     );
 }
