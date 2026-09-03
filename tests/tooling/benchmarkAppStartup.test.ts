@@ -1,5 +1,7 @@
 // cspell:ignore appex
 
+import {describe, expect, it, jest} from 'bun:test';
+
 import {benchmarkAlternatingStartups, benchmarkStartups, parseSpanNames, selectBenchmarkSpanNames} from '@scripts/benchmarkAppStartup';
 import {
     assertAndroidAppInstalled,
@@ -14,11 +16,10 @@ import {
     parseIOSRunningAppProcessIdentifier,
 } from '@scripts/lib/nativeAppBenchmark';
 
-import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
+import {file} from 'bun';
+import {mkdtempSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-
-import '../utils/mockBun';
 
 describe('benchmarkAppStartup', () => {
     it('parses structured benchmark logs among platform output', () => {
@@ -137,8 +138,8 @@ describe('benchmarkAppStartup', () => {
             expect(result.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([123]);
             expect(consoleWarn).not.toHaveBeenCalledWith(expect.stringContaining('samples collected'));
             expect(result.resultsOutputPath).toBe(resultsOutputPath);
-            expect(readFileSync(outputPath, 'utf8')).toBe('run,span,duration_ms\n1,ManualAppStartup,456\n1,ManualAppStartupNetworkRequest,123\n');
-            expect(readFileSync(resultsOutputPath, 'utf8')).toBe(
+            expect(await file(outputPath).text()).toBe('run,span,duration_ms\n1,ManualAppStartup,456\n1,ManualAppStartupNetworkRequest,123\n');
+            expect(await file(resultsOutputPath).text()).toBe(
                 'span,runs,average,p50,p75,p90,p95,p99,min,max\nManualAppStartup,1,456.00,456.00,456.00,456.00,456.00,456.00,456.00,456.00\nManualAppStartupNetworkRequest,1,123.00,123.00,123.00,123.00,123.00,123.00,123.00,123.00\n',
             );
             expect(consoleTable).toHaveBeenNthCalledWith(1, [
@@ -231,8 +232,8 @@ describe('benchmarkAppStartup', () => {
             expect(result.metrics.ManualAppStartup?.samples).toEqual([100, 200]);
             expect(result.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([150]);
             expect(result.metrics.NeverObserved?.stats).toBeUndefined();
-            expect(readFileSync(outputPath, 'utf8')).toBe('run,span,duration_ms\n1,ManualAppStartup,100\n1,ManualAppStartupNetworkRequest,150\n2,ManualAppStartup,200\n');
-            expect(readFileSync(result.resultsOutputPath, 'utf8')).toContain('NeverObserved,0,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A');
+            expect(await file(outputPath).text()).toBe('run,span,duration_ms\n1,ManualAppStartup,100\n1,ManualAppStartupNetworkRequest,150\n2,ManualAppStartup,200\n');
+            expect(await file(result.resultsOutputPath).text()).toContain('NeverObserved,0,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A');
         } finally {
             consoleTable.mockRestore();
             consoleWarn.mockRestore();
@@ -304,14 +305,14 @@ describe('benchmarkAppStartup', () => {
             expect(result.binaryB.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([21, 22]);
             expect(result.binaryA.resultsOutputPath).toBe(resultsOutputPathA);
             expect(result.binaryB.resultsOutputPath).toBe(resultsOutputPathB);
-            expect(readFileSync(outputPathA, 'utf8')).toBe(
+            expect(await file(outputPathA).text()).toBe(
                 'run,span,duration_ms\n1,ManualAppStartup,101\n1,ManualAppStartupNetworkRequest,11\n2,ManualAppStartup,102\n2,ManualAppStartupNetworkRequest,12\n',
             );
-            expect(readFileSync(outputPathB, 'utf8')).toBe(
+            expect(await file(outputPathB).text()).toBe(
                 'run,span,duration_ms\n1,ManualAppStartup,201\n1,ManualAppStartupNetworkRequest,21\n2,ManualAppStartup,202\n2,ManualAppStartupNetworkRequest,22\n',
             );
-            expect(readFileSync(resultsOutputPathA, 'utf8')).toContain('ManualAppStartup,2,101.50,101.50,101.75,101.90,101.95,101.99,101.00,102.00');
-            expect(readFileSync(resultsOutputPathB, 'utf8')).toContain('ManualAppStartup,2,201.50,201.50,201.75,201.90,201.95,201.99,201.00,202.00');
+            expect(await file(resultsOutputPathA).text()).toContain('ManualAppStartup,2,101.50,101.50,101.75,101.90,101.95,101.99,101.00,102.00');
+            expect(await file(resultsOutputPathB).text()).toContain('ManualAppStartup,2,201.50,201.50,201.75,201.90,201.95,201.99,201.00,202.00');
             expect(consoleTable).toHaveBeenCalledTimes(3);
         } finally {
             consoleTable.mockRestore();

@@ -1,8 +1,9 @@
 // cspell:ignore serialno
 
+import {file} from 'bun';
+
 import type {NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions} from './shared';
 
-import {fileExists} from '../bunFile';
 import {POLL_INTERVAL_MS, RELAUNCH_DELAY_MS, createCommandHelpers, latestBenchmarkEvents, parseBenchmarkLogEvents, sleep} from './shared';
 
 /** Creates an Android benchmark adapter that controls installation, process state, compilation state, and scoped logcat collection. */
@@ -27,7 +28,7 @@ function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<Nat
                 if (!appPath) {
                     throw new Error('Android artifact installation requires an app path.');
                 }
-                if (!(await fileExists(appPath))) {
+                if (!(await file(appPath).exists())) {
                     throw new Error(`Android app not found at ${appPath}.`);
                 }
                 adb(['install', '-r', '-d', appPath]);

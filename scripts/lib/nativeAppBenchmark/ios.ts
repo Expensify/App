@@ -2,13 +2,13 @@
 
 import {isRecord} from '@libs/ObjectUtils';
 
+import {env, file} from 'bun';
 import {mkdtempSync, rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
 import type {BenchmarkLogEvent, NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions} from './shared';
 
-import environmentString from '../bunEnvironment';
-import {fileExists, readJSONFile, readTextFile} from '../bunFile';
 import {POLL_INTERVAL_MS, RELAUNCH_DELAY_MS, benchmarkCollectionSpanNames, createCommandHelpers, latestBenchmarkEvents, parseBenchmarkLogEvents, sleep} from './shared';
 
 const IOS_BENCHMARK_DIRECTORY = 'Library/Caches/ExpensifyBenchmark';
@@ -26,7 +26,7 @@ type CoreDeviceInstalledAppsResponse = {
 /** Creates an iOS benchmark adapter that manages app state and polls per-span markers through CoreDevice. */
 async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): Promise<NativeAppBenchmarkAdapter> {
     const {run, runAllowFailure} = createCommandHelpers(rootDirectory);
-    const environmentDeviceIdentifier = environmentString('IOS_DEVICE_ID');
+    const environmentDeviceIdentifier = env.IOS_DEVICE_ID;
     const device = await resolveIOSDevice(rootDirectory, deviceIdentifier ?? environmentDeviceIdentifier);
     let runningProcessIdentifier: number | undefined;
     /** Best-effort terminates the process tracked by this adapter and clears the cached identifier. */
@@ -43,7 +43,7 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
         const jsonPath = join(temporaryDirectory, 'launch.json');
         try {
             run('xcrun', ['devicectl', 'device', 'process', 'launch', '--device', device, '--terminate-existing', '--json-output', jsonPath, '--quiet', appID]);
-            const response = await readJSONFile(jsonPath);
+            const response: unknown = await file(jsonPath).json();
             runningProcessIdentifier = parseIOSLaunchProcessIdentifier(response);
         } finally {
             rmSync(temporaryDirectory, {recursive: true, force: true});
@@ -56,7 +56,8 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
         const processesJSONPath = join(temporaryDirectory, 'processes.json');
         try {
             run('xcrun', ['devicectl', 'device', 'info', 'apps', '--device', device, '--bundle-id', appID, '--json-output', appsJSONPath, '--quiet']);
-            const appsResponse = parseIOSInstalledAppsResponse(await readJSONFile(appsJSONPath));
+            const rawAppsResponse: unknown = await file(appsJSONPath).json();
+            const appsResponse = parseIOSInstalledAppsResponse(rawAppsResponse);
             const appURL = parseIOSInstalledAppURL(appsResponse, appID);
             const escapedAppURL = appURL.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
             run('xcrun', [
@@ -72,7 +73,7 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
                 processesJSONPath,
                 '--quiet',
             ]);
-            const processesResponse = await readJSONFile(processesJSONPath);
+            const processesResponse: unknown = await file(processesJSONPath).json();
             return parseIOSRunningAppProcessIdentifier(processesResponse, appURL);
         } finally {
             rmSync(temporaryDirectory, {recursive: true, force: true});
@@ -101,7 +102,8 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
                 appID,
                 '--quiet',
             ]);
-            return copied && (await fileExists(localPath)) ? await readTextFile(localPath) : undefined;
+            const markerFile = file(localPath);
+            return copied && (await markerFile.exists()) ? await markerFile.text() : undefined;
         } finally {
             rmSync(temporaryDirectory, {recursive: true, force: true});
         }
@@ -122,7 +124,7 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
                             : 'iOS artifact installation requires an app path.',
                     );
                 }
-                if (!(await fileExists(appPath))) {
+                if (!(await file(appPath).exists())) {
                     throw new Error(`iOS app not found at ${appPath}.`);
                 }
                 if (mode === 'cold') {
@@ -174,7 +176,7 @@ async function resolveIOSDevice(rootDirectory: string, configuredDevice: string 
     const jsonPath = join(temporaryDirectory, 'devices.json');
     try {
         run('xcrun', ['devicectl', 'list', 'devices', '--json-output', jsonPath]);
-        const response = await readJSONFile(jsonPath);
+        const response: unknown = await file(jsonPath).json();
         if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.devices)) {
             throw new Error('CoreDevice returned an unexpected device-list response.');
         }
@@ -265,7 +267,7 @@ function iOSBenchmarkMarkerPath(spanName: string): string {
 }
 
 function createTemporaryDirectory(prefix: string): string {
-    return mkdtempSync(join(environmentString('TMPDIR') ?? '/tmp', prefix));
+    return mkdtempSync(join(tmpdir(), prefix));
 }
 
 function isCoreDeviceInstalledApp(value: unknown): value is CoreDeviceInstalledApp {

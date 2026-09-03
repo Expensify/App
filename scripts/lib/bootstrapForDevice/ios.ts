@@ -1,10 +1,10 @@
 import type {TupleToUnion} from 'type-fest';
 
+import {file, write} from 'bun';
 import {resolve} from 'node:path';
 
 import type {BootstrapOptions} from './shared';
 
-import {readTextFile, writeTextFile} from '../bunFile';
 import {validateSuffix} from './shared';
 
 const CONFIGURATIONS = ['Debug', 'Release', 'AdHoc'] as const;
@@ -34,18 +34,18 @@ async function bootstrapIOSForDevice(options: BootstrapOptions): Promise<void> {
         throw new Error(`Apple development team must be a 10-character team ID. Received: ${options.developmentTeam}`);
     }
 
-    const project = await readTextFile(projectPath);
+    const project = await file(projectPath).text();
     const patchedProject = patchProject(project, baseIdentifier, suffix, options.developmentTeam);
-    await writeTextFile(projectPath, patchedProject);
+    await write(projectPath, patchedProject);
 
     const infoPlistPath = resolve(iosDirectory, 'Expensify/Expensify-Info.plist');
-    const infoPlist = await readTextFile(infoPlistPath);
-    await writeTextFile(infoPlistPath, patchIOSAppDisplayName(infoPlist, suffix));
+    const infoPlist = await file(infoPlistPath).text();
+    await write(infoPlistPath, patchIOSAppDisplayName(infoPlist, suffix));
 
     const appGroup = `group.${[baseIdentifier, suffix].filter(Boolean).join('.')}`;
     const entitlements = entitlementContents(appGroup);
     for (const entitlementFile of APP_GROUP_ENTITLEMENT_FILES) {
-        await writeTextFile(resolve(iosDirectory, entitlementFile), entitlements);
+        await write(resolve(iosDirectory, entitlementFile), entitlements);
     }
 
     console.log('Configured Mobile-Expensify for automatic iOS signing.');

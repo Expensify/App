@@ -2,6 +2,7 @@
 
 import type {TupleToUnion} from 'type-fest';
 
+import {env} from 'bun';
 import CLI from 'expensify-common/CLI';
 
 import type {AndroidApplicationIDs} from './lib/bootstrapForDevice/android';
@@ -13,7 +14,6 @@ import {bootstrapAndroidForDevice, normalizeAndroidIdentifierSegment} from './li
 import {resolveDevelopmentTeam} from './lib/bootstrapForDevice/developmentTeams';
 import {bootstrapIOSForDevice} from './lib/bootstrapForDevice/ios';
 import {PLATFORMS} from './lib/bootstrapForDevice/shared';
-import environmentString from './lib/bunEnvironment';
 
 type Platform = TupleToUnion<typeof PLATFORMS>;
 
@@ -68,7 +68,7 @@ async function main(rootDirectory: string): Promise<void> {
 
 /** Resolves the lowercase login associated with the configured GitHub token for use in a unique application identifier. */
 async function githubUsername(): Promise<string> {
-    const token = environmentString('GH_TOKEN') ?? environmentString('GITHUB_TOKEN');
+    const token = [env.GH_TOKEN, env.GITHUB_TOKEN].find((value) => !!value);
     if (!token) {
         throw new Error('Could not determine your GitHub username. Set GH_TOKEN or GITHUB_TOKEN, or pass --github-username/--bundle-identifier.');
     }

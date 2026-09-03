@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 
+import {env} from 'bun';
 import CLI from 'expensify-common/CLI';
 import {join, resolve} from 'node:path';
 
@@ -7,7 +8,6 @@ import type {PlatformName, StartupMode} from './lib/nativeAppBenchmark';
 
 import {benchmarkAlternatingStartups, benchmarkAppStartups, benchmarkAppStartupsAlternating, benchmarkStartups, createBenchmarkRecorder} from './lib/benchmarkAppStartup';
 import {exportBenchmarkResults} from './lib/benchmarkStatistics';
-import environmentString from './lib/bunEnvironment';
 import {PLATFORM_NAMES} from './lib/nativeAppBenchmark';
 
 const DEFAULT_RUNS = 20;
@@ -135,7 +135,7 @@ async function main(rootDirectory: string): Promise<void> {
     }
 
     const platform: PlatformName = command;
-    const configuredSpanNames = parseSpanNames(environmentString(BENCHMARK_SPANS_ENVIRONMENT_VARIABLE));
+    const configuredSpanNames = parseSpanNames(env[BENCHMARK_SPANS_ENVIRONMENT_VARIABLE]);
     const spanNames = selectBenchmarkSpanNames(configuredSpanNames, cli.namedArgs.span);
     const waitUntilSpan = cli.namedArgs['wait-until-span'];
     if (waitUntilSpan && !configuredSpanNames.includes(waitUntilSpan)) {
@@ -148,7 +148,7 @@ async function main(rootDirectory: string): Promise<void> {
     const appID = cli.namedArgs['app-id'] ?? defaultAppID;
     const appIDA = cli.namedArgs['app-id-a'];
     const appIDB = cli.namedArgs['app-id-b'];
-    const appPath = cli.namedArgs['app-path'] ?? environmentString('IOS_APP_PATH');
+    const appPath = cli.namedArgs['app-path'] ?? env.IOS_APP_PATH;
     const appPathA = cli.namedArgs['app-path-a'];
     const appPathB = cli.namedArgs['app-path-b'];
     const outputPathA = cli.namedArgs['output-a'];

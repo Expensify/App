@@ -4,11 +4,11 @@ import {isUnknownArray} from '@src/types/utils/ObjectUtils';
 
 import type {TupleToUnion} from 'type-fest';
 
+import {file, write} from 'bun';
 import {resolve} from 'node:path';
 
 import type {AndroidBootstrapOptions} from './shared';
 
-import {readJSONFile, readTextFile, writeTextFile} from '../bunFile';
 import {validateSuffix} from './shared';
 
 const ANDROID_BUILD_TYPES = ['release', 'debug', 'adhoc', 'appTestFork'] as const;
@@ -32,15 +32,15 @@ async function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): Prom
     const applicationIDs = androidApplicationIDs(baseIdentifier, androidSuffix);
 
     const buildGradlePath = resolve(androidDirectory, 'build.gradle');
-    const buildGradle = await readTextFile(buildGradlePath);
-    await writeTextFile(buildGradlePath, patchAndroidBuildGradle(buildGradle, applicationIDs.release));
+    const buildGradle = await file(buildGradlePath).text();
+    await write(buildGradlePath, patchAndroidBuildGradle(buildGradle, applicationIDs.release));
 
     const googleServicesPath = resolve(androidDirectory, 'google-services.json');
-    const googleServices = await readJSONFile(googleServicesPath);
-    await writeTextFile(googleServicesPath, `${JSON.stringify(patchGoogleServicesConfig(googleServices, applicationIDs), null, 2)}\n`);
+    const googleServices: unknown = await file(googleServicesPath).json();
+    await write(googleServicesPath, `${JSON.stringify(patchGoogleServicesConfig(googleServices, applicationIDs), null, 2)}\n`);
 
     const manifestPath = resolve(androidDirectory, 'AndroidManifest.xml');
-    await writeTextFile(manifestPath, patchAndroidManifest(await readTextFile(manifestPath)));
+    await write(manifestPath, patchAndroidManifest(await file(manifestPath).text()));
 
     const shortcutsByBuildType = {
         release: 'res/xml-v25/shortcuts.xml',
@@ -50,7 +50,7 @@ async function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): Prom
     for (const buildType of ['release', 'debug', 'adhoc'] as const) {
         const relativePath = shortcutsByBuildType[buildType];
         const shortcutsPath = resolve(androidDirectory, relativePath);
-        await writeTextFile(shortcutsPath, patchAndroidShortcutPackage(await readTextFile(shortcutsPath), applicationIDs[buildType]));
+        await write(shortcutsPath, patchAndroidShortcutPackage(await file(shortcutsPath).text(), applicationIDs[buildType]));
     }
 
     const suffixLabel = suffix ? ` (${suffix})` : '';
@@ -61,7 +61,7 @@ async function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): Prom
     } as const;
     for (const {path, name} of Object.values(appNamesByBuildType)) {
         const stringsPath = resolve(androidDirectory, path);
-        await writeTextFile(stringsPath, patchAndroidAppName(await readTextFile(stringsPath), name));
+        await write(stringsPath, patchAndroidAppName(await file(stringsPath).text(), name));
     }
 
     console.log('Configured Mobile-Expensify for local Android release builds.');

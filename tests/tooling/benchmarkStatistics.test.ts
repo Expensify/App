@@ -1,10 +1,11 @@
+import {describe, expect, it} from 'bun:test';
+
 import {benchmarkResultsOutputPath, benchmarkStats, exportBenchmarkResults, percentile, readBenchmarkSamples, writeBenchmarkSamples} from '@scripts/lib/benchmarkStatistics';
 
-import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {file, write} from 'bun';
+import {mkdtempSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-
-import '../utils/mockBun';
 
 describe('benchmarkStatistics', () => {
     it('calculates interpolated percentiles and summary statistics without changing the samples', () => {
@@ -80,7 +81,7 @@ describe('benchmarkStatistics', () => {
                     max: '20.00',
                 },
             ]);
-            expect(readFileSync(outputPath, 'utf8')).toBe(
+            expect(await file(outputPath).text()).toBe(
                 'span,runs,average,p50,p75,p90,p95,p99,min,max\nManualAppStartup,2,200.00,200.00,250.00,280.00,290.00,298.00,100.00,300.00\nManualAppStartupNetworkRequest,1,20.00,20.00,20.00,20.00,20.00,20.00,20.00,20.00\n',
             );
         } finally {
@@ -94,7 +95,7 @@ describe('benchmarkStatistics', () => {
         const emptyPath = join(temporaryDirectory, 'empty.csv');
 
         try {
-            writeFileSync(invalidPath, 'span,duration_ms\nManualAppStartup,100\n');
+            await write(invalidPath, 'span,duration_ms\nManualAppStartup,100\n');
             await writeBenchmarkSamples(emptyPath, []);
 
             await expect(readBenchmarkSamples(invalidPath)).rejects.toThrow('Invalid benchmark sample header');

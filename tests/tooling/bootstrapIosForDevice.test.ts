@@ -1,5 +1,7 @@
 // cspell:ignore tisa
 
+import {describe, expect, jest, test} from 'bun:test';
+
 import {
     defaultBundleIdentifier,
     entitlementContents,

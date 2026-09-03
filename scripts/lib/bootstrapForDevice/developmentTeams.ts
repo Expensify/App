@@ -1,11 +1,8 @@
 // cspell:ignore apos noverify smime
 
+import {env, Glob, spawnSync} from 'bun';
 import {join} from 'node:path';
 import {createInterface} from 'node:readline/promises';
-
-import environmentString from '../bunEnvironment';
-import matchingFiles from '../bunGlob';
-import spawnSync from '../bunProcess';
 
 const TEAM_ID_PATTERN = /^[A-Z0-9]{10}$/;
 
@@ -23,7 +20,7 @@ async function resolveDevelopmentTeam(developmentTeam: string | undefined, teams
 
 /** Finds valid signing teams in Xcode's current and legacy provisioning-profile directories and deduplicates them by team ID. */
 function installedDevelopmentTeams(): DevelopmentTeam[] {
-    const homeDirectory = environmentString('HOME');
+    const homeDirectory = env.HOME;
     if (!homeDirectory) {
         throw new Error('Could not locate provisioning profiles because HOME is not set.');
     }
@@ -32,7 +29,7 @@ function installedDevelopmentTeams(): DevelopmentTeam[] {
     for (const directory of profileDirectories) {
         let profileNames: string[];
         try {
-            profileNames = matchingFiles(directory, '*.mobileprovision');
+            profileNames = [...new Glob('*.mobileprovision').scanSync({cwd: directory, onlyFiles: true})];
         } catch {
             continue;
         }

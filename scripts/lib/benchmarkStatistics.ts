@@ -1,6 +1,5 @@
+import {file, write} from 'bun';
 import {extname} from 'node:path';
-
-import {readTextFile, writeTextFile} from './bunFile';
 
 type BenchmarkStats = {
     runs: number;
@@ -127,7 +126,7 @@ function writeBenchmarkResults(outputPath: string, table: readonly BenchmarkResu
 
 /** Reads and validates the exact raw-sample CSV schema produced by the benchmark runner. */
 async function readBenchmarkSamples(inputPath: string): Promise<BenchmarkSample[]> {
-    const [header, ...rows] = (await readTextFile(inputPath)).trim().split(/\r?\n/);
+    const [header, ...rows] = (await file(inputPath).text()).trim().split(/\r?\n/);
     if (header !== BENCHMARK_SAMPLE_HEADER) {
         throw new Error(`Invalid benchmark sample header in ${inputPath}. Expected: ${BENCHMARK_SAMPLE_HEADER}`);
     }
@@ -166,7 +165,7 @@ function percentile(values: readonly number[], fraction: number): number {
 }
 
 async function writeBenchmarkCsv(outputPath: string, csvRows: readonly string[]): Promise<void> {
-    await writeTextFile(outputPath, [...csvRows, ''].join('\n'));
+    await write(outputPath, [...csvRows, ''].join('\n'));
 }
 
 /** Calculates a percentile from sorted samples using linear interpolation between adjacent values. */

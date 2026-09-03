@@ -2,7 +2,7 @@ import {isRecord} from '@libs/ObjectUtils';
 
 import type {TupleToUnion} from 'type-fest';
 
-import spawnSync from '../bunProcess';
+import {spawnSync} from 'bun';
 
 const PLATFORM_NAMES = ['android', 'ios'] as const;
 const RELAUNCH_DELAY_MS = 500;
