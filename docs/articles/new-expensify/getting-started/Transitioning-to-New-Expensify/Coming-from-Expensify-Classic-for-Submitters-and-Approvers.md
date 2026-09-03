@@ -14,7 +14,7 @@ This guide explains where familiar features and workflows now live so you can ge
 If you want to see what's new, what's better, and how to take advantage of it, see [Explore what's changed in New Expensify](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Explore-whats-changed-in-New-Expensify). A few of the most popular improvements include **customizable, savable searches**, **full approver visibility into direct reports' activity in every status**, **expense-level commenting**, and **better Insights reporting**.
 
 If you'd like a guided walkthrough of the New Expensify experience, explore the interactive product tours:
-- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/v9dr1rjqsd9y)
+- [Launch the New Expensify interactive tour for web](https://expensify.storylane.io/share/qlgnexxbsdtp)
 - [Launch the New Expensify interactive tour for mobile](https://expensify.storylane.io/share/qbbob6zvapqo)
 
 You can find additional training resources in [How to Access Expensify Training](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training).
