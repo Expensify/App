@@ -1110,6 +1110,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Zaproś swojego księgowego',
             customizeSpendCategories: 'Dostosuj kategorie wydatków',
             customizeSpendCategoriesSubText: 'Porządkuj i klasyfikuj wydatki',
+            customizeExpenseCategories: 'Dostosuj swoje kategorie wydatków',
+            customizeExpenseCategoriesSubText: 'Dodaj kategorie swojej firmy, aby kodować wydatki',
             createExpense: 'Dodaj wydatek',
             createExpenseSubText: 'Zeskanuj, przeciągnij i upuść lub ręcznie wprowadź wydatek za pomocą przycisku +',
             linkPersonalCard: 'Połącz kartę osobistą',
@@ -4984,7 +4986,6 @@ ${amount} dla ${merchant} - ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Użyj tego konta podczas eksportowania faktur do ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Ustaw, w jaki sposób zakupy kartą firmową są eksportowane do ${integrationName}.`,
             vendor: 'Dostawca',
-            defaultVendorDescription: 'Ustaw domyślnego dostawcę, który zostanie zastosowany do wszystkich transakcji kartą kredytową podczas eksportu.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Ustaw sposób eksportu wydatków z własnej kieszeni do ${integrationName}.`,
             exportCheckDescription: 'Utworzymy wyszczególniony czek dla każdego raportu Expensify i wyślemy go z poniższego konta bankowego.',
             exportJournalEntryDescription: 'Utworzymy szczegółowy zapis księgowy dla każdego raportu Expensify i zaksięgujemy go na koncie poniżej.',
@@ -5148,8 +5149,6 @@ ${amount} dla ${merchant} - ${date}`,
             },
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: 'Dodaj proszę konto w Xero i zsynchronizuj połączenie ponownie',
-            defaultSupplier: 'Domyślny dostawca',
-            defaultSupplierDescription: 'Ustaw domyślnego dostawcę, który zostanie zastosowany do wszystkich transakcji kartą kredytową podczas eksportu.',
             noSuppliersFound: 'Nie znaleziono dostawców',
             noSuppliersFoundDescription: 'Dodaj dostawcę w Xero i zsynchronizuj połączenie ponownie.',
             accountingMethods: {
@@ -7248,11 +7247,11 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             exportCompanyCard: 'Eksportuj wydatki z firmowej karty jako',
             exportDate: 'Data eksportu',
             defaultVendor: 'Domyślny dostawca',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
-                    ? `Wydatki, które nie dopasują się automatycznie, będą domyślnie przypisane do tego dostawcy.`
-                    : `Wydatki, które nie dopasują się automatycznie, zostaną domyślnie przypisane do tego dostawcy. W przeciwnym razie zostaną wyeksportowane jako Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Wybierz domyślnego dostawcę ${connectionName} dla wydatków, które nie zostaną dopasowane automatycznie.`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
+                    ? `Wydatki, które nie zostaną automatycznie dopasowane, zostaną domyślnie przypisane do tego dostawcy.`
+                    : `Wydatki, które nie zostaną dopasowane automatycznie, będą domyślnie przypisane do tego dostawcy. W przeciwnym razie zostaną wyeksportowane jako ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Wybierz domyślnego dostawcę dla wydatków, które nie dopasują się automatycznie.`,
             defaultAccount: 'Domyślne konto',
             autoSync: 'Automatyczna synchronizacja',
             autoSyncDescription: 'Synchronizuj NetSuite i Expensify automatycznie, każdego dnia. Eksportuj sfinalizowany raport w czasie rzeczywistym',
