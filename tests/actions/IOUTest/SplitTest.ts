@@ -2207,6 +2207,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -2440,6 +2441,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
             conciergeChat: undefined,
         });
@@ -3721,6 +3723,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currency: undefined,
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
             betas: [],
         });
@@ -4328,6 +4331,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
 
@@ -4511,6 +4515,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
 
@@ -4698,6 +4703,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
 
@@ -4894,6 +4900,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
 
@@ -5172,6 +5179,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5312,6 +5320,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5454,6 +5463,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5606,6 +5616,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
