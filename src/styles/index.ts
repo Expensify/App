@@ -5401,12 +5401,6 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
-        // The filter bar row is 34px tall, but the default (larger) bulk-action button is 40px.
-        // To keep the bar from growing, we pull the button up/down by half the difference: (40 - 34) / 2 = 3.
-        searchBulkActionsButton: {
-            marginVertical: -3,
-        },
-
         // The layer BulkActionBar floats in. It covers its container so the bar can centre itself over the table, and
         // passes touches through everywhere except the bar itself.
         bulkActionBarLayer: {
@@ -7103,7 +7097,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         }),
 
         // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
-        // so offset its vertical margin to keep the row height identical and prevent the table from shifting (see searchBulkActionsButton).
+        // so offset its vertical margin to keep the row height identical and prevent the table from shifting.
         tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
             marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
         }),

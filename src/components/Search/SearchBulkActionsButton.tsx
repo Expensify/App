@@ -247,6 +247,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     ) : (
                         <BulkActionBar
                             selectedCount={selectedBulkActionsCount}
+                            isSelectedCountLoading={isAllMatchingItemsCountLoading}
                             options={headerButtonsOptions}
                             onClearSelection={() => clearSelectedTransactions(true)}
                             onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}

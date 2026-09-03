@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
@@ -30,7 +31,7 @@ import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popove
  * specially. Split out from `BulkActionBar` because these styles have to resolve from the inverted theme, while the
  * positioning layer around it belongs to the page's own.
  */
-function BulkActionBarContent<TValueType>({selectedCount, options, onClearSelection, onSubItemSelected, barRef}: Omit<BulkActionBarProps<TValueType>, 'style'>) {
+function BulkActionBarContent<TValueType>({selectedCount, isSelectedCountLoading, options, onClearSelection, onSubItemSelected, barRef}: Omit<BulkActionBarProps<TValueType>, 'style'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -59,7 +60,14 @@ function BulkActionBarContent<TValueType>({selectedCount, options, onClearSelect
             ref={barRef}
             style={styles.bulkActionBar}
         >
-            <Text style={[styles.textLabel, styles.textStrong, styles.mr1]}>{translate('workspace.common.selected', {count: selectedCount})}</Text>
+            {isSelectedCountLoading ? (
+                <ActivityIndicator
+                    color={theme.spinner}
+                    style={styles.mr1}
+                />
+            ) : (
+                <Text style={[styles.textLabel, styles.textStrong, styles.mr1]}>{translate('workspace.common.selected', {count: selectedCount})}</Text>
+            )}
             {inlineOptions.map((option) => (
                 <BulkActionBarButton
                     key={option.text}
@@ -132,7 +140,7 @@ function BulkActionBarContent<TValueType>({selectedCount, options, onClearSelect
  * The bar renders under the inverted theme so that it stands out against the table behind it. That also inverts its
  * "More" menu, which reads the theme itself and could not be inverted through style props alone.
  */
-function BulkActionBar<TValueType>({selectedCount, options, onClearSelection, onSubItemSelected, barRef, style}: BulkActionBarProps<TValueType>) {
+function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, options, onClearSelection, onSubItemSelected, barRef, style}: BulkActionBarProps<TValueType>) {
     const styles = useThemeStyles();
     const invertedTheme = useInvertedThemePreference();
 
@@ -147,6 +155,7 @@ function BulkActionBar<TValueType>({selectedCount, options, onClearSelection, on
                 <ThemeStylesProvider>
                     <BulkActionBarContent
                         selectedCount={selectedCount}
+                        isSelectedCountLoading={isSelectedCountLoading}
                         options={options}
                         onClearSelection={onClearSelection}
                         onSubItemSelected={onSubItemSelected}

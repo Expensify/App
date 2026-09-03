@@ -8815,7 +8815,6 @@ const CONST = {
             FILTER_LIMIT: 'Search-FilterLimit',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',
             COLUMNS_BUTTON: 'Search-ColumnsButton',
-            BULK_ACTIONS_DROPDOWN: 'Search-BulkActionsDropdown',
             SELECT_ALL_CHECKBOX: 'Search-SelectAllCheckbox',
             SELECTION_MODE_MENU_ITEM: 'Search-SelectionModeMenuItem',
             FILTER_RESET_BUTTON: 'Search-FilterResetButton',
