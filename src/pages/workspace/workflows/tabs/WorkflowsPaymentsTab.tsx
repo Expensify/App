@@ -27,6 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPolicyErrorField, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement, setWorkspaceReimbursement} from '@libs/actions/Policy/Policy';
 import {getBankAccountConnectionStatus, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -40,7 +41,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -196,6 +197,11 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         });
     };
 
+    const handleFixValidationFailedPress =
+        bankConnectionStatus?.requiresFixHandler && bankAccountID
+            ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(bankAccountID.toString())))
+            : undefined;
+
     const bankAccountMenuItemProps: React.ComponentProps<typeof MenuItem> = {
         title: bankTitle,
         description: getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate),
@@ -273,7 +279,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                 <ConnectionStatusMessage
                                                     message={bankConnectionMessage}
                                                     actionText={bankConnectionActionText}
-                                                    onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
+                                                    onActionPress={canWritePayments && canPerformBankAccountAction ? (handleFixValidationFailedPress ?? handleBankAccountPress) : undefined}
                                                     isActionDisabled={!canInteractWithBankAccountRow}
                                                     statusTone="danger"
                                                     shouldIncludeHorizontalPadding={false}
