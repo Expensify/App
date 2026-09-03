@@ -145,11 +145,11 @@ const parseSeatbeltTsv = (content: string): SeatbeltRow[] => {
     });
     const parsed: SeatbeltRow[] = [];
     for (const row of rows) {
-        if (row.length !== 3) {
-            console.warn(`eslint-report: skipping malformed line (${row.length} columns)`);
+        if (row.cells.length !== 3) {
+            console.warn(`eslint-report: skipping malformed line (${row.cells.length} columns)`);
             continue;
         }
-        const [rawPath, rule, count] = row;
+        const [rawPath, rule, count] = row.cells;
         if (typeof rawPath !== 'string' || typeof rule !== 'string' || typeof count !== 'number' || !Number.isFinite(count) || count < 0) {
             console.warn(`eslint-report: skipping bad row for ${String(rawPath)}`);
             continue;

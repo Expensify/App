@@ -77,7 +77,7 @@ function parseSeatbeltTSV(text: string): {data: Map<string, SeatbeltFileData>; c
     const parsed = TSVUtils.parse(text);
     const data = new Map<string, SeatbeltFileData>();
     for (const [index, row] of parsed.rows.entries()) {
-        const line = asSeatbeltLine(row, index + 1);
+        const line = asSeatbeltLine(row.cells, index + 1);
         let fileState = data.get(line.filename);
         if (!fileState) {
             fileState = {maxErrors: undefined, lines: []};
@@ -85,11 +85,11 @@ function parseSeatbeltTSV(text: string): {data: Map<string, SeatbeltFileData>; c
         }
         fileState.lines.push(line);
     }
-    return {data, comments: parsed.comments};
+    return {data, comments: parsed.leadingComments};
 }
 
 function serializeSeatbeltTSV(data: Map<string, SeatbeltFileData>, comments: string): string {
-    const rows: unknown[][] = [];
+    const rows: Array<{cells: unknown[]; comments: string}> = [];
     for (const [filename, fileState] of data) {
         if (fileState.maxErrors) {
             fileState.lines = [];
@@ -98,10 +98,10 @@ function serializeSeatbeltTSV(data: Map<string, SeatbeltFileData>, comments: str
             }
         }
         for (const line of fileState.lines) {
-            rows.push([line.filename, line.ruleID, line.maxErrors]);
+            rows.push({cells: [line.filename, line.ruleID, line.maxErrors], comments: ''});
         }
     }
-    return TSVUtils.serialize(rows, comments, {sort: true});
+    return TSVUtils.serialize({leadingComments: comments, trailingComments: '', rows}, {sort: true});
 }
 
 function getMaxErrors(data: Map<string, SeatbeltFileData>, relativeFilename: string): Map<string, number> | undefined {
