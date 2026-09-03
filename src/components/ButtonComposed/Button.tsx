@@ -172,9 +172,8 @@ function Button({
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
             onPress={(event) => {
-                if (event?.type === 'click') {
-                    const currentTarget = event?.currentTarget as HTMLElement;
-                    currentTarget?.blur();
+                if (event?.type === 'click' && event.currentTarget instanceof HTMLElement) {
+                    event.currentTarget.blur();
                 }
 
                 if (enableHapticFeedback) {
