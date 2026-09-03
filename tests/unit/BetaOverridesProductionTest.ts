@@ -10,8 +10,10 @@ type PermissionsModule = typeof defaultPermissions;
  * The overrides key survives app resets and is included in exported Onyx state, so it can reach a production build.
  * Permissions resolves the environment once on import, so each case loads it in a fresh module registry. `configEnvironment`
  * is what the build was compiled with and `resolvedEnvironment` is what getEnvironment reports, which differ on TestFlight.
+ *
+ * Returns the module before the resolution lands, which is the only way to observe the value seeded from the config.
  */
-async function loadPermissionsForEnvironment(resolvedEnvironment: string, configEnvironment = resolvedEnvironment) {
+function loadPermissions(resolvedEnvironment: string, configEnvironment = resolvedEnvironment) {
     jest.resetModules();
     jest.doMock('@libs/Environment/getEnvironment', () => ({
         __esModule: true,
@@ -28,6 +30,12 @@ async function loadPermissionsForEnvironment(resolvedEnvironment: string, config
         permissions = require('@libs/Permissions').default;
     });
 
+    return permissions;
+}
+
+async function loadPermissionsAfterEnvironmentResolves(resolvedEnvironment: string, configEnvironment = resolvedEnvironment) {
+    const permissions = loadPermissions(resolvedEnvironment, configEnvironment);
+
     // the environment is resolved through two promises before Permissions stores it
     await waitForBatchedUpdates();
 
@@ -35,9 +43,21 @@ async function loadPermissionsForEnvironment(resolvedEnvironment: string, config
 }
 
 describe('beta overrides in production', () => {
+    it('ignores overrides on a production build before the resolved environment arrives', async () => {
+        // Given a production build whose environment has not resolved yet, so only the compiled config is known
+        const Permissions = loadPermissions(CONST.ENVIRONMENT.PRODUCTION);
+
+        // When a beta is resolved with an override pinned on, without waiting for the resolution
+        // Then the value seeded from the config already blocks it
+        expect(Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, [], undefined, {[CONST.BETAS.DEFAULT_ROOMS]: true})).toBe(false);
+
+        // settle the pending resolution here rather than letting it land during another case
+        await waitForBatchedUpdates();
+    });
+
     it('ignores overrides when the environment is production', async () => {
         // Given a production build
-        const Permissions = await loadPermissionsForEnvironment(CONST.ENVIRONMENT.PRODUCTION);
+        const Permissions = await loadPermissionsAfterEnvironmentResolves(CONST.ENVIRONMENT.PRODUCTION);
 
         // When a beta is resolved with an override pinned against the server betas
         // Then the server betas win
@@ -47,7 +67,7 @@ describe('beta overrides in production', () => {
 
     it('applies overrides when the environment is staging', async () => {
         // Given a staging build
-        const Permissions = await loadPermissionsForEnvironment(CONST.ENVIRONMENT.STAGING);
+        const Permissions = await loadPermissionsAfterEnvironmentResolves(CONST.ENVIRONMENT.STAGING);
 
         // When a beta is resolved with an override pinned against the server betas
         // Then the override wins
@@ -57,7 +77,7 @@ describe('beta overrides in production', () => {
 
     it('applies overrides on a TestFlight build, which is compiled as production but resolves to staging', async () => {
         // Given a build compiled as production that the resolved environment downgrades to staging
-        const Permissions = await loadPermissionsForEnvironment(CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.PRODUCTION);
+        const Permissions = await loadPermissionsAfterEnvironmentResolves(CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.PRODUCTION);
 
         // When a beta is resolved with an override pinned against the server betas
         // Then the override wins, since only the resolved environment counts
