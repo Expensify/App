@@ -48,16 +48,14 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CONSISTENCY-7](rules/consistency-7-localize-copy.md) — Localize all user-visible copy
 - [CONSISTENCY-8](rules/consistency-8-localize-numbers-dates.md) — Localize numbers, amounts, dates and phone numbers
 - [CONSISTENCY-9](rules/consistency-9-file-naming.md) — Name files after what they export
-- [CONSISTENCY-10](rules/consistency-10-jsdoc.md) — Follow the JSDoc style guidelines
+- [CONSISTENCY-10](rules/consistency-10-jsdoc.md) — Follow the JSDoc style guidelines and document props only where there is something to say
 - [CONSISTENCY-11](rules/consistency-11-no-todo-comments.md) — Track future work in an issue, not a TODO comment
 - [CONSISTENCY-12](rules/consistency-12-callback-named-for-action.md) — Name callbacks for what they do, not the event they handle
-- [CONSISTENCY-13](rules/consistency-13-document-props.md) — Document component props and Onyx type properties with a JSDoc block comment
-- [CONSISTENCY-14](rules/consistency-14-new-file-header.md) — Non-trivial new files start with a header description
-- [CONSISTENCY-15](rules/consistency-15-comment-why.md) — Comments explain why the code exists, not what it does
-- [CONSISTENCY-16](rules/consistency-16-plain-comment-style.md) — Write comments as plain, natural sentences
-- [CONSISTENCY-17](rules/consistency-17-no-ai-jargon.md) — No AI-generated jargon in code or comments
-- [CONSISTENCY-18](rules/consistency-18-plural-form.md) — Pluralize with PluralForm, not ternaries on a count
-- [CONSISTENCY-19](rules/consistency-19-prop-comment-add-info.md) — Prop and Onyx property comments must add information
+- [CONSISTENCY-13](rules/consistency-13-new-file-header.md) — Non-trivial new files start with a header description
+- [CONSISTENCY-14](rules/consistency-14-comment-why.md) — Comments explain why the code exists, not what it does
+- [CONSISTENCY-15](rules/consistency-15-plain-comment-style.md) — Write comments as plain, natural sentences
+- [CONSISTENCY-16](rules/consistency-16-no-ai-jargon.md) — No AI-generated jargon in code or comments
+- [CONSISTENCY-17](rules/consistency-17-plural-form.md) — Pluralize with PluralForm, not ternaries on a count
 
 ### Clean React Patterns
 - [CLEAN-REACT-PATTERNS-0](rules/clean-react-0-compiler.md) — React Compiler compliance
