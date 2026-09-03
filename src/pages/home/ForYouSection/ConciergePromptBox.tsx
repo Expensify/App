@@ -45,6 +45,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {NativeMethods, TextInputKeyPressEvent} from 'react-native';
 
+import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useAnimatedRef} from 'react-native-reanimated';
@@ -81,6 +82,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const {calculatePopoverPosition} = usePopoverPosition();
     const [draft] = useOnyx(ONYXKEYS.CONCIERGE_PROMPT_DRAFT);
     const [value, setValue] = useState(draft ?? '');
+    const isScreenFocused = useIsFocused();
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID});
 
@@ -212,6 +214,14 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         event.preventDefault();
         submit();
     };
+
+    useEffect(() => {
+        if (isScreenFocused) {
+            return;
+        }
+
+        hideSuggestionMenu();
+    }, [isScreenFocused, hideSuggestionMenu]);
 
     return (
         <View style={styles.gap6}>
