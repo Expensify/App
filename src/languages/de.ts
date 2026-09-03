@@ -9385,8 +9385,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             paid: 'Bezahlt',
             exported: 'Exportiert',
             posted: 'Gebucht',
-            created: 'Erstellt',
-            createdDate: 'Erstellungsdatum',
             withdrawn: 'Zurückgezogen',
             billable: 'Abrechenbar',
             reimbursable: 'Erstattungsfähig',
