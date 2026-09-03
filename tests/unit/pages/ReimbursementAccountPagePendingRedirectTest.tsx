@@ -12,20 +12,18 @@ import ReimbursementAccountPage from '@pages/ReimbursementAccount/ReimbursementA
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy, ReimbursementAccount} from '@src/types/onyx';
-import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as ReimbursementAccountTestUtils from '../../utils/ReimbursementAccountTestUtils';
+
+import createMock from '../../utils/createMock';
+import {BACK_TO, buildAchData, OTHER_POLICY_ID, PENDING_ACCOUNT, POLICY_ID} from '../../utils/ReimbursementAccountTestUtils';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
-
-const POLICY_ID = 'policy123';
-const OTHER_POLICY_ID = 'policy456';
-const BACK_TO = ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID);
 
 // Mutable so individual tests can simulate the validation step covering this page and the user coming back to it.
 let mockIsFocused = true;
@@ -55,18 +53,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
-    default: {
-        navigate: jest.fn(),
-        goBack: jest.fn(),
-        dismissModal: jest.fn(),
-        closeRHPFlow: jest.fn(),
-        getActiveRoute: jest.fn(() => ''),
-        getActiveRouteWithoutParams: jest.fn(() => ''),
-        isNavigationReady: jest.fn(() => Promise.resolve()),
-        isTopmostRouteModalScreen: jest.fn(() => false),
-        setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback?.()),
-        setParams: jest.fn(),
-    },
+    default: jest.requireActual<typeof ReimbursementAccountTestUtils>('../../utils/ReimbursementAccountTestUtils').createNavigationMock(),
 }));
 
 // Stub the terminal screens so the assertions are about which branch the page picked, not about their internals.
@@ -87,28 +74,6 @@ jest.mock('@components/ReimbursementAccountLoadingIndicator', () => ({
     default: (props: {onBackButtonPress: () => void}) => mockLoadingIndicator(props),
 }));
 
-/**
- * A pending USD account. Only the handful of fields the page branches on are set; the rest of the ACH shape is
- * irrelevant here, hence the assertion.
- */
-const buildAchData = (overrides: Partial<ACHDataReimbursementAccount> = {}) =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    ({
-        policyID: POLICY_ID,
-        state: CONST.BANK_ACCOUNT.STATE.PENDING,
-        currentStep: CONST.BANK_ACCOUNT.STEP.VALIDATION,
-        bankAccountID: 1234,
-        currency: CONST.CURRENCY.USD,
-        country: CONST.COUNTRY.US,
-        ...overrides,
-    }) as ACHDataReimbursementAccount;
-
-const PENDING_ACCOUNT: ReimbursementAccount = {
-    achData: buildAchData(),
-    isLoading: false,
-    shouldShowResetModal: false,
-};
-
 const USD_POLICY: Policy = {
     id: POLICY_ID,
     name: 'Test workspace',
@@ -120,6 +85,10 @@ const USD_POLICY: Policy = {
 
 const EUR_POLICY: Policy = {...USD_POLICY, outputCurrency: CONST.CURRENCY.EUR};
 
+// A policy that has loaded without publishing a currency. `Policy` declares outputCurrency as required, so the mock
+// helper is what lets this fixture describe the partially-loaded shape Onyx can actually hold.
+const NO_CURRENCY_POLICY = createMock<Policy>({...USD_POLICY, outputCurrency: undefined});
+
 type RouteParams = ReimbursementAccountNavigatorParamList[typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT];
 type PageProps = PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
@@ -130,8 +99,7 @@ const buildRoute = (params: RouteParams): PageProps['route'] => ({
 });
 
 // The page does not read the navigation prop; this inert double only satisfies the navigator-provided prop.
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-const navigation = {} as PageProps['navigation'];
+const navigation = createMock<PageProps['navigation']>({});
 
 // The policy reaches the page through the real withPolicy HOC, which reads it from Onyx by the route's policyID.
 const seedOnyx = async (account: ReimbursementAccount, policy: Policy | null = USD_POLICY) => {
@@ -247,6 +215,35 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         });
 
+        // policyCurrency only falls back to achData/the draft while `policy` is falsy, and this page paints the
+        // not-found view rather than the entry point in that state. So these two assert the navigation the fallback
+        // produced, not the render: without the fallback the currency is undefined and no redirect is dispatched.
+        it('redirects on the account currency when the policy has not loaded yet', async () => {
+            // Given a pending USD account whose policy is not in Onyx, so policyCurrency falls back to achData
+            await seedOnyx(PENDING_ACCOUNT, null);
+
+            // When the page is opened for that policy
+            await renderPage();
+
+            // Then the fallback currency still drives the redirect
+            expect(Navigation.navigate).toHaveBeenCalledWith(validationRoute());
+        });
+
+        it('redirects on the draft currency when neither the policy nor the account carries one', async () => {
+            // Given a pending account with no currency of its own, reached mid-setup so only the draft has one
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {currency: CONST.CURRENCY.USD});
+                await waitForBatchedUpdatesWithAct();
+            });
+            await seedOnyx({...PENDING_ACCOUNT, achData: buildAchData({currency: undefined})}, null);
+
+            // When the page is opened for that policy
+            await renderPage();
+
+            // Then the last leg of the currency fallback drives the redirect
+            expect(Navigation.navigate).toHaveBeenCalledWith(validationRoute());
+        });
+
         it('keeps the account data in Onyx when it unmounts because it redirected', async () => {
             // Given a pending account that redirected into the validation step
             await seedOnyx(PENDING_ACCOUNT);
@@ -350,6 +347,30 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             await renderPage({policyID: POLICY_ID});
 
             // Then the USD validation step is not opened
+            expectNoPendingRedirect();
+        });
+
+        it('does not redirect a non-USD account when the policy has not loaded yet', async () => {
+            // Given a pending non-USD account whose policy is not in Onyx, so policyCurrency falls back to achData
+            await seedOnyx({...PENDING_ACCOUNT, achData: buildAchData({currency: CONST.CURRENCY.EUR})}, null);
+
+            // When the page is opened
+            await renderPage();
+
+            // Then the fallback currency keeps the USD validation step closed
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('bank-account/new/us/validation'));
+        });
+
+        it('does not redirect when no currency can be resolved at all', async () => {
+            // Given a pending account carrying no currency, on a policy that has not published one either
+            await seedOnyx({...PENDING_ACCOUNT, achData: buildAchData({currency: undefined})}, NO_CURRENCY_POLICY);
+
+            // When the page is opened
+            await renderPage();
+
+            // Then the redirect stays closed rather than reading an absent currency as USD. This is the one case the
+            // fix does not cover: getBankAccountConnectionStatus does treat absent as USD, so the Workflows row can
+            // still offer Confirm and land the user on the entry point.
             expectNoPendingRedirect();
         });
 

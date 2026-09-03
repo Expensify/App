@@ -12,18 +12,17 @@ import USDVerifiedBankAccountFlowPage from '@pages/ReimbursementAccount/USD/USDV
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
+import type * as ReimbursementAccountTestUtils from '../../utils/ReimbursementAccountTestUtils';
 
-const POLICY_ID = 'policy123';
-const BACK_TO = ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID);
+import createMock from '../../utils/createMock';
+import {BACK_TO, buildAchData, PENDING_ACCOUNT, POLICY_ID} from '../../utils/ReimbursementAccountTestUtils';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -40,17 +39,7 @@ jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
-    default: {
-        navigate: jest.fn(),
-        goBack: jest.fn(),
-        dismissModal: jest.fn(),
-        closeRHPFlow: jest.fn(),
-        getActiveRoute: jest.fn(() => ''),
-        getActiveRouteWithoutParams: jest.fn(() => ''),
-        isNavigationReady: jest.fn(() => Promise.resolve()),
-        isTopmostRouteModalScreen: jest.fn(() => false),
-        setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback?.()),
-    },
+    default: jest.requireActual<typeof ReimbursementAccountTestUtils>('../../utils/ReimbursementAccountTestUtils').createNavigationMock(),
 }));
 
 // Stub the step screens: the test only needs the back callback each one is handed, not its UI.
@@ -84,34 +73,11 @@ jest.mock('@pages/ReimbursementAccount/USD/BeneficialOwnerInfo/BeneficialOwnersS
 jest.mock('@pages/ReimbursementAccount/USD/KYBDocuments', () => ({__esModule: true, default: () => null}));
 jest.mock('@pages/ReimbursementAccount/USD/Country', () => ({__esModule: true, default: () => null}));
 
-/**
- * Only the fields the back handler branches on are set; the rest of the ACH shape is irrelevant here, hence the
- * assertion.
- */
-const buildAchData = (overrides: Partial<ACHDataReimbursementAccount> = {}) =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    ({
-        policyID: POLICY_ID,
-        state: CONST.BANK_ACCOUNT.STATE.PENDING,
-        currentStep: CONST.BANK_ACCOUNT.STEP.VALIDATION,
-        bankAccountID: 1234,
-        currency: CONST.CURRENCY.USD,
-        country: CONST.COUNTRY.US,
-        ...overrides,
-    }) as ACHDataReimbursementAccount;
-
-const PENDING_ACCOUNT: ReimbursementAccount = {
-    achData: buildAchData(),
-    isLoading: false,
-    shouldShowResetModal: false,
-};
-
 type RouteParams = ReimbursementAccountNavigatorParamList[typeof SCREENS.REIMBURSEMENT_ACCOUNT_USD];
 type PageProps = PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_USD>;
 
 // The page does not read the navigation prop; this inert double only satisfies the navigator-provided prop.
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-const navigation = {} as PageProps['navigation'];
+const navigation = createMock<PageProps['navigation']>({});
 
 const renderPage = async (params: RouteParams) => {
     const rendered = render(
