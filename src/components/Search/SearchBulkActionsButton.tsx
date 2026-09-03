@@ -186,7 +186,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         ? translate('search.exportAll.allMatchingItemsSelected')
         : translate('workspace.common.selected', {
               // Reports cannot know the exact all-matching count until the final page is loaded. Until then this is
-              // the selected loaded-report count; it becomes authoritative as soon as the final page is loaded.
+              // the selected loaded-report count. It becomes authoritative as soon as the final page is loaded.
               count: areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount,
           });
 
