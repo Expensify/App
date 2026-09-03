@@ -304,7 +304,7 @@ const config = defineConfig([
 
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'tsconfig.json'),
+                project: path.resolve(projectRoot, 'tsconfig.app.web.json'),
                 projectService: false,
             },
 
@@ -717,9 +717,32 @@ const config = defineConfig([
     },
 
     {
+        files: ['src/**/*.native.ts', 'src/**/*.native.tsx', 'src/**/*.ios.ts', 'src/**/*.ios.tsx', 'src/**/*.android.ts', 'src/**/*.android.tsx', 'src/types/native/**/*.d.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
+                projectService: false,
+            },
+        },
+        rules: {
+            '@typescript-eslint/no-unused-vars': ['error', {vars: 'all', args: 'after-used', argsIgnorePattern: '^_', caughtErrors: 'none', ignoreRestSiblings: true}],
+        },
+    },
+
+    {
         files: ['modules/ExpensifyNitroUtils/src/**/*'],
         rules: {
             '@typescript-eslint/consistent-type-definitions': 'off',
+        },
+    },
+
+    {
+        files: ['modules/background-task/src/**/*', 'modules/hybrid-app/src/**/*'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
+                projectService: false,
+            },
         },
     },
 
@@ -807,6 +830,7 @@ const config = defineConfig([
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
         'modules/ExpensifyNitroUtils/nitrogen/**/*',
+        'modules/ExpensifyNitroUtils/src/**/*',
         'Mobile-Expensify/**/*',
         '**/vendor',
         'modules/group-ib-fp/**/*',
