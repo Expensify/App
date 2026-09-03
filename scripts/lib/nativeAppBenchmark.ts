@@ -128,7 +128,7 @@ function benchmarkCollectionSpanNames(options: CollectBenchmarkEventsOptions): s
     return [...new Set(spanNames)];
 }
 
-function iosBenchmarkMarkerPath(spanName: string): string {
+function iOSBenchmarkMarkerPath(spanName: string): string {
     return `${IOS_BENCHMARK_DIRECTORY}/${encodeURIComponent(spanName)}.log`;
 }
 
@@ -357,7 +357,7 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
                 '--device',
                 device,
                 '--source',
-                iosBenchmarkMarkerPath(spanName),
+                iOSBenchmarkMarkerPath(spanName),
                 '--destination',
                 localPath,
                 '--domain-type',
@@ -441,7 +441,7 @@ export {
     assertAndroidAppInstalled,
     createNativeAppBenchmarkAdapter,
     findBenchmarkDuration,
-    iosBenchmarkMarkerPath,
+    iOSBenchmarkMarkerPath,
     parseIosInstalledAppURL,
     parseBenchmarkLogEvents,
     parseIosLaunchProcessIdentifier,

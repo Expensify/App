@@ -4,7 +4,7 @@ import {benchmarkAlternatingStartups, benchmarkStartups, parseSpanNames, selectB
 import {
     assertAndroidAppInstalled,
     findBenchmarkDuration,
-    iosBenchmarkMarkerPath,
+    iOSBenchmarkMarkerPath,
     latestBenchmarkEvents,
     parseAndroidProcessIdentifier,
     parseIosInstalledAppURL,
@@ -30,7 +30,7 @@ describe('benchmarkAppStartup', () => {
     });
 
     it('creates an app-container-safe marker path for an iOS span', () => {
-        expect(iosBenchmarkMarkerPath('Manual/App Startup')).toBe('Library/Caches/ExpensifyBenchmark/Manual%2FApp%20Startup.log');
+        expect(iOSBenchmarkMarkerPath('Manual/App Startup')).toBe('Library/Caches/ExpensifyBenchmark/Manual%2FApp%20Startup.log');
     });
 
     it('keeps the latest event for each requested span in metric order', () => {
