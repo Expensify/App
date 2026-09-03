@@ -59,7 +59,7 @@ describe('usePreviewMessageAnimation', () => {
         const {result} = renderHook(() => usePreviewMessageAnimation(baseParams));
 
         // The hook resolves the payer/approver name via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: MANAGER_ID, shouldUseShortForm: true, translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: MANAGER_ID, shouldUseShortForm: true, hiddenTranslation: 'common.hidden'}));
         expect(result.current.previewMessageStyle).toBeDefined();
     });
 
@@ -69,6 +69,6 @@ describe('usePreviewMessageAnimation', () => {
         renderHook(() => usePreviewMessageAnimation({...baseParams, hasNonReimbursableTransactions: true, chatReport}));
 
         // The payerSpent branch re-resolves the name from the chat owner, and it must also receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: CHAT_OWNER_ID, shouldUseShortForm: true, translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: CHAT_OWNER_ID, shouldUseShortForm: true, hiddenTranslation: 'common.hidden'}));
     });
 });

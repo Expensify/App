@@ -3023,6 +3023,7 @@ const CONST = {
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
+    HIDDEN_DISPLAY_NAME: 'Hidden',
     CONCIERGE_GREETING_ACTION_ID: 'concierge-greeting',
 
     INTEGRATION_ENTITY_MAP_TYPES: {

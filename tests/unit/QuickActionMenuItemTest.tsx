@@ -109,7 +109,7 @@ describe('QuickActionMenuItem', () => {
         await waitForBatchedUpdates();
 
         // The pay-someone quick action resolves the payee name via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: AVATAR_ACCOUNT_ID, shouldUseShortForm: true, translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: AVATAR_ACCOUNT_ID, shouldUseShortForm: true, hiddenTranslation: 'common.hidden'}));
         expect(mockTranslate).toHaveBeenCalledWith('quickAction.paySomeone', 'SPY_NAME');
     });
 

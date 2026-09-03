@@ -62,6 +62,8 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         }
 
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+        // Resolve the translation once, not per member.
+        const hiddenText = translate('common.hidden');
         return Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
                 const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
@@ -79,7 +81,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, translate});
+                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation: hiddenText});
                 return {
                     text: displayName,
                     alternateText: email,

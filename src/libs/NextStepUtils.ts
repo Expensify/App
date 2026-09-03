@@ -65,7 +65,7 @@ function buildNextStepMessage(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
-    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, translate}) ?? '');
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;

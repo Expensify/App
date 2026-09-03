@@ -58,6 +58,8 @@ function SearchAddApproverPage() {
         const intersectedEmployees = firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, true, false);
         // We get the intersection here as we only want to show members who belong to all workspaces when adding an additional approver
+        // Resolve the translation once, not per member.
+        const hiddenText = translate('common.hidden');
         return Object.values(intersectedEmployees)
             .map((employee): SelectionListApprover | null => {
                 const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
@@ -106,7 +108,7 @@ function SearchAddApproverPage() {
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, formatPhoneNumber, personalDetailsData: personalDetails, translate});
+                const displayName = getDisplayNameForParticipant({accountID, formatPhoneNumber, personalDetailsData: personalDetails, hiddenTranslation: hiddenText});
                 return {
                     text: displayName,
                     alternateText: email,
