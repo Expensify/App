@@ -168,78 +168,38 @@ function Comparison() {
             <Card
                 title="description, interactive, onPress, shouldShowRightIcon, title"
                 legacy={
-                    <>
-                        <Variant label="interactive={true}">
-                            <MenuItemWithTopDescription
-                                description="Name"
-                                title="Standard rate"
-                                interactive
-                                shouldShowRightIcon
-                                onPress={noop}
-                            />
-                        </Variant>
-                        <Variant label="interactive={false} — chevron still rendered">
-                            <MenuItemWithTopDescription
-                                description="Name"
-                                title="Standard rate"
-                                interactive={false}
-                                shouldShowRightIcon
-                                onPress={noop}
-                            />
-                        </Variant>
-                    </>
+                    <MenuItemWithTopDescription
+                        description="Name"
+                        title="Standard rate"
+                        interactive
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
                 }
                 composable={
-                    <>
-                        <Variant label="onPress passed">
-                            <MenuItem.Root onPress={noop}>
-                                <MenuItem.Row>
-                                    <MenuItem.Content>
-                                        <MenuItem.FieldName>Name</MenuItem.FieldName>
-                                        <MenuItem.FieldValue>Standard rate</MenuItem.FieldValue>
-                                    </MenuItem.Content>
-                                    <MenuItem.Trailing>
-                                        <MenuItem.Chevron />
-                                    </MenuItem.Trailing>
-                                </MenuItem.Row>
-                            </MenuItem.Root>
-                        </Variant>
-                        <Variant label="onPress={undefined} — chevron kept explicitly">
-                            <MenuItem.Root>
-                                <MenuItem.Row>
-                                    <MenuItem.Content>
-                                        <MenuItem.FieldName>Name</MenuItem.FieldName>
-                                        <MenuItem.FieldValue>Standard rate</MenuItem.FieldValue>
-                                    </MenuItem.Content>
-                                    <MenuItem.Trailing>
-                                        <MenuItem.Chevron />
-                                    </MenuItem.Trailing>
-                                </MenuItem.Row>
-                            </MenuItem.Root>
-                        </Variant>
-                    </>
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Name</MenuItem.FieldName>
+                                <MenuItem.FieldValue>Standard rate</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 }
                 preset={
-                    <>
-                        <Variant label="onPress passed">
-                            <MenuItemField
-                                name="Name"
-                                onPress={noop}
-                                value="Standard rate"
-                            />
-                        </Variant>
-                        <Variant label="onPress={undefined}">
-                            <MenuItemField
-                                name="Name"
-                                value="Standard rate"
-                            />
-                        </Variant>
-                    </>
+                    <MenuItemField
+                        name="Name"
+                        onPress={noop}
+                        value="Standard rate"
+                    />
                 }
             />
 
             <Card
-                title="description, interactive, title"
+                title="description, non-interactive, title"
                 legacy={
                     <MenuItemWithTopDescription
                         description="Country"
@@ -288,14 +248,6 @@ function Comparison() {
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
-                preset={
-                    <MenuItemField
-                        name="Display"
-                        onPress={noop}
-                        sentryLabel="menuItemComparisonStorySentryLabel"
-                        value="Comfortable"
-                    />
-                }
             />
 
             <Card
@@ -320,14 +272,6 @@ function Comparison() {
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
-                }
-                preset={
-                    <MenuItemField
-                        name="Role"
-                        onPress={noop}
-                        isDisabled
-                        value="Admin"
-                    />
                 }
             />
 
@@ -411,20 +355,22 @@ function Comparison() {
             />
 
             <Card
-                title="description, onPress, title?"
+                title="description, rightLabel, onPress, title?"
                 legacy={
                     <>
-                        <Variant label="title present">
+                        <Variant label="no title">
                             <MenuItemWithTopDescription
-                                description="Destination"
-                                title="Warsaw, Poland"
+                                description="Share somewhere"
+                                rightLabel="Required"
                                 shouldShowRightIcon
                                 onPress={noop}
                             />
                         </Variant>
-                        <Variant label="title={undefined}">
+                        <Variant label="title present">
                             <MenuItemWithTopDescription
-                                description="Destination"
+                                description="Share somewhere"
+                                title="#announce"
+                                rightLabel="Required"
                                 shouldShowRightIcon
                                 onPress={noop}
                             />
@@ -433,24 +379,25 @@ function Comparison() {
                 }
                 composable={
                     <>
-                        <Variant label="title present">
+                        <Variant label="no value">
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.FieldName>Destination</MenuItem.FieldName>
-                                        <MenuItem.FieldValue>Warsaw, Poland</MenuItem.FieldValue>
+                                        <MenuItem.FieldNamePlaceholder>Share somewhere</MenuItem.FieldNamePlaceholder>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
+                                        <MenuItem.RightLabel>Required</MenuItem.RightLabel>
                                         <MenuItem.Chevron />
                                     </MenuItem.Trailing>
                                 </MenuItem.Row>
                             </MenuItem.Root>
                         </Variant>
-                        <Variant label="title={undefined}">
+                        <Variant label="value present">
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.FieldNamePlaceholder>Destination</MenuItem.FieldNamePlaceholder>
+                                        <MenuItem.FieldName>Share somewhere</MenuItem.FieldName>
+                                        <MenuItem.FieldValue>#announce</MenuItem.FieldValue>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />
@@ -462,22 +409,150 @@ function Comparison() {
                 }
                 preset={
                     <>
-                        <Variant label="value child">
+                        <Variant label="no value">
                             <MenuItemField
-                                name="Destination"
+                                name="Share somewhere"
                                 onPress={noop}
-                                value="Warsaw, Poland"
-                            />
+                            >
+                                <MenuItem.RightLabel>Required</MenuItem.RightLabel>
+                            </MenuItemField>
                         </Variant>
-                        <Variant label="no value child">
+                        <Variant label="value present">
                             <MenuItemField
-                                name="Destination"
+                                name="Share somewhere"
                                 onPress={noop}
+                                value="#announce"
                             />
                         </Variant>
                     </>
                 }
             />
+
+            <Card
+                title="title, onPress — value with no field name"
+                legacy={
+                    <MenuItemWithTopDescription
+                        title="Account ending in 1234"
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldValue>Account ending in 1234</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, title — long text truncation"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="A field name long enough to need a second line before it truncates"
+                        title="A value long enough that it has to truncate on a single line"
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>A field name long enough to need a second line before it truncates</MenuItem.FieldName>
+                                <MenuItem.FieldValue>A value long enough that it has to truncate on a single line</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="A field name long enough to need a second line before it truncates"
+                        onPress={noop}
+                        value="A value long enough that it has to truncate on a single line"
+                    />
+                }
+            />
+
+            <CompactMenuContext.Provider value>
+                <Card
+                    title="Compact popover — field row"
+                    legacy={
+                        <>
+                            <Variant label="title present">
+                                <MenuItemWithTopDescription
+                                    description="Sort by"
+                                    title="Date"
+                                    shouldShowRightIcon
+                                    onPress={noop}
+                                />
+                            </Variant>
+                            <Variant label="title={undefined}">
+                                <MenuItemWithTopDescription
+                                    description="Group by"
+                                    shouldShowRightIcon
+                                    onPress={noop}
+                                />
+                            </Variant>
+                        </>
+                    }
+                    composable={
+                        <>
+                            <Variant label="value present">
+                                <MenuItem.Root onPress={noop}>
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.FieldName>Sort by</MenuItem.FieldName>
+                                            <MenuItem.FieldValue>Date</MenuItem.FieldValue>
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItem.Root>
+                            </Variant>
+                            <Variant label="no value">
+                                <MenuItem.Root onPress={noop}>
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.FieldNamePlaceholder>Group by</MenuItem.FieldNamePlaceholder>
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItem.Root>
+                            </Variant>
+                        </>
+                    }
+                    preset={
+                        <>
+                            <Variant label="value present">
+                                <MenuItemField
+                                    name="Sort by"
+                                    onPress={noop}
+                                    value="Date"
+                                />
+                            </Variant>
+                            <Variant label="no value">
+                                <MenuItemField
+                                    name="Group by"
+                                    onPress={noop}
+                                />
+                            </Variant>
+                        </>
+                    }
+                />
+            </CompactMenuContext.Provider>
 
             <SectionHeading title="Phase 2 — avatars" />
 
