@@ -633,6 +633,73 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
+        it('keeps backTo pointing at the chat when a second card is pressed inside the cascade window', async () => {
+            // Regression: the second press read backTo from the active route, which press 1 had already
+            // moved to the report, so the report was pushed with a backTo pointing at itself.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            // The constant getActiveRoute mock in beforeEach hides this bug: let the route follow navigation.
+            // The real getActiveRoute returns a leading slash that the route builders never emit, so model that too.
+            let activeRoute = '';
+            jest.spyOn(Navigation, 'getActiveRoute').mockImplementation(() => activeRoute);
+            navigateSpy.mockImplementation((route) => {
+                activeRoute = `/${String(route)}`;
+            });
+
+            await renderAndPopulateCarousel();
+
+            const {transactionDisplayAmount: firstAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            const {transactionDisplayAmount: secondAmount} = getTransactionDisplayAmountAndMetadataText(mockSecondTransaction);
+
+            // The first amount also appears in the report total, so take the card.
+            const [firstCard] = screen.getAllByText(firstAmount);
+            fireEvent.press(firstCard);
+            await waitForBatchedUpdatesWithAct();
+            // Second press lands before the 180ms cascade timer fires, while the carousel is still mounted.
+            fireEvent.press(screen.getByText(secondAmount));
+            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            // The report is pushed exactly once, with the chat as backTo, and the second expense lands on top of it.
+            const chatBackedReportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''});
+            const reportRoutes = navigateSpy.mock.calls.map(([route]) => String(route)).filter((route) => route.startsWith(`e/${mockIOUReport.reportID}`));
+            expect(reportRoutes).toEqual([chatBackedReportRoute]);
+            expect(navigateSpy).toHaveBeenCalledTimes(2);
+            expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: chatBackedReportRoute}));
+        });
+
+        it('pushes the report once, with the chat as backTo, when "View" is pressed inside the cascade window', async () => {
+            // Regression: "View" read backTo from the live route, which the card press had already moved to the
+            // report, so the report was pushed a second time with a backTo pointing at itself.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            let activeRoute = '';
+            jest.spyOn(Navigation, 'getActiveRoute').mockImplementation(() => activeRoute);
+            navigateSpy.mockImplementation((route) => {
+                activeRoute = `/${String(route)}`;
+            });
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.view')));
+            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            expect(navigateSpy).toHaveBeenCalledTimes(1);
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
         it('opens the report and then the pressed expense on top of it (after a short delay) on narrow layouts', async () => {
             jest.useRealTimers();
             mockResponsiveLayoutOverride = narrowResponsiveLayout;

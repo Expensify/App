@@ -47,6 +47,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MoneyRequestReportPreviewProps} from './types';
 
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
+import resolvePressOrigin from './resolvePressOrigin';
 
 const hasReportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => Object.keys(reportActions ?? {}).length > 0;
 
@@ -178,7 +179,15 @@ function MoneyRequestReportPreview({
             return;
         }
 
+        const routeAtPress = Navigation.getActiveRoute();
         cancelPendingPress();
+
+        // "View" pressed inside the cascade window lands on a report a card press already opened, so there is
+        // nothing left to push; pushing it again would nest the report under itself.
+        const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, isSmallScreenWidth ? `r/${iouReportID}` : `e/${iouReportID}`);
+        if (wasPressedFromReport) {
+            return;
+        }
 
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
             name: 'MoneyRequestReportPreview',
@@ -187,9 +196,9 @@ function MoneyRequestReportPreview({
         // Small screens navigate to full report view since super wide RHP
         // is not available on narrow layouts and would break the navigation logic.
         if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo));
         } else {
-            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
         }
     }, [cancelPendingPress, iouReportID, isSmallScreenWidth]);
     const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {
@@ -244,8 +253,11 @@ function MoneyRequestReportPreview({
         [betas, conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
     );
 
+    // `routeAtPress` is captured when the user pressed, not read live: a second press inside the cascade window
+    // runs after the first press already navigated, so the live route is the report we opened and `backTo` would
+    // point at itself.
     const navigateToExpense = useCallback(
-        (childReportID: string) => {
+        (childReportID: string, routeAtPress: string) => {
             startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${childReportID}`, {
                 name: 'MoneyRequestReportPreview.Transaction',
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -256,8 +268,11 @@ function MoneyRequestReportPreview({
                 .map((pressedTransaction) => pressedTransaction.transactionID);
 
             if (isSmallScreenWidth && iouReportID) {
-                const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute());
-                Navigation.navigate(reportRoute);
+                const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, `r/${iouReportID}`);
+                const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
+                if (!wasPressedFromReport) {
+                    Navigation.navigate(reportRoute);
+                }
                 const seeded = setActiveTransactionIDs(openableTransactionIDs);
                 const release = () => {
                     seeded.then(() => {
@@ -281,14 +296,17 @@ function MoneyRequestReportPreview({
 
             if (isSmallScreenWidth) {
                 setActiveTransactionIDs(openableTransactionIDs);
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
                 return;
             }
 
             if (iouReportID) {
-                const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()});
+                const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, `e/${iouReportID}`);
+                const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo});
                 markReportRHPWidth(iouReportID, 'super-wide');
-                Navigation.navigate(reportRoute);
+                if (!wasPressedFromReport) {
+                    Navigation.navigate(reportRoute);
+                }
                 const seeded = setActiveTransactionIDs(openableTransactionIDs);
                 markReportRHPWidth(childReportID, 'wide');
                 const release = () => {
@@ -316,7 +334,7 @@ function MoneyRequestReportPreview({
 
             setActiveTransactionIDs(openableTransactionIDs).then(() => {
                 markReportRHPWidth(childReportID, 'wide');
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
             });
         },
         [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, transactions],
@@ -327,6 +345,8 @@ function MoneyRequestReportPreview({
             if (contextMenuRef.current?.isContextMenuOpening) {
                 return;
             }
+
+            const routeAtPress = Navigation.getActiveRoute();
 
             pendingExpenseTransactionRef.current = null;
             if (cascadeTimerRef.current) {
@@ -355,12 +375,12 @@ function MoneyRequestReportPreview({
                     }
                     openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 }
-                navigateToExpense(childReportID);
+                navigateToExpense(childReportID, routeAtPress);
                 return;
             }
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
-                pendingExpenseTransactionRef.current = {transaction, originRoute: Navigation.getActiveRoute()};
+                pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
                 openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 return;
             }
@@ -383,7 +403,7 @@ function MoneyRequestReportPreview({
         const childReportID = resolveChildReportID(pendingTransaction);
         if (childReportID) {
             pendingExpenseTransactionRef.current = null;
-            navigateToExpense(childReportID);
+            navigateToExpense(childReportID, pendingPress.originRoute);
             return;
         }
         pendingExpenseTransactionRef.current = null;
