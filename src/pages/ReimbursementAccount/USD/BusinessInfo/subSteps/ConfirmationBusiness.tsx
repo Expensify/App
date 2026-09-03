@@ -108,7 +108,11 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_TYPE);
                 }}
-                value={translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)}
+                value={
+                    values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]
+                        ? translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)
+                        : undefined
+                }
             />
             <MenuItemField
                 name={translate('businessInfoStep.incorporationDate')}
@@ -122,7 +126,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_STATE);
                 }}
-                value={translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`)}
+                value={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] ? translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`) : undefined}
             />
             <MenuItemField
                 name={translate('companyStep.industryClassificationCode')}
