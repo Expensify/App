@@ -107,6 +107,11 @@ jest.mock('@hooks/useConfirmModal', () => ({
     default: () => ({showConfirmModal: mockShowConfirmModal}),
 }));
 
+const mockOpenSearchReportSubmitToPopover = jest.fn();
+jest.mock('@components/ReportSubmitToPopoverAnchor', () => ({
+    useOpenSearchReportSubmitToPopover: () => mockOpenSearchReportSubmitToPopover,
+}));
+
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: () => ({isBetaEnabled: () => false}),
@@ -219,9 +224,11 @@ jest.mock('@hooks/usePaymentContext', () => {
 // ---------------------------------------------------------------------------
 
 const POLICY_ID = 'policy1';
+const SUBMIT_POLICY_ID = 'policySubmit';
 const REPORT_A_ID = 'reportA';
 const REPORT_B_ID = 'reportB';
 const REPORT_C_ID = 'reportC';
+const REPORT_D_ID = 'reportD';
 
 const baseQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense-report status:all',
@@ -236,10 +243,10 @@ const baseQueryJSON: SearchQueryJSON = {
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
 };
 
-function makeSelectedReport(reportID: string): SelectedReports {
+function makeSelectedReport(reportID: string, policyID = POLICY_ID): SelectedReports {
     return {
         reportID,
-        policyID: POLICY_ID,
+        policyID,
         action: CONST.SEARCH.ACTION_TYPES.SUBMIT,
         canPay: false,
         canApprove: false,
@@ -321,6 +328,13 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_A_ID}`, {reportID: REPORT_A_ID, policyID: POLICY_ID, reportName: 'Report A'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_B_ID}`, {reportID: REPORT_B_ID, policyID: POLICY_ID, reportName: 'Report B'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_C_ID}`, {reportID: REPORT_C_ID, policyID: POLICY_ID, reportName: 'Report C'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SUBMIT_POLICY_ID}`, {
+            id: SUBMIT_POLICY_ID,
+            name: 'Submit Policy',
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_D_ID}`, {reportID: REPORT_D_ID, policyID: SUBMIT_POLICY_ID, reportName: 'Report D'});
     });
 
     afterEach(async () => {
@@ -366,19 +380,28 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual(['Report A', 'Report B']);
     });
 
-    it('shows the held block modal and submits nothing when every selected report has only held expenses', async () => {
+    it('lists every selected report, submits nothing and keeps the selection when all of them are blocked', async () => {
         mockSelectedReports = [makeSelectedReport(REPORT_A_ID), makeSelectedReport(REPORT_B_ID)];
-        await mergeTransaction('txHeldA', REPORT_A_ID, {comment: {hold: 'holdReportAction1'}});
-        await mergeTransaction('txHeldB', REPORT_B_ID, {comment: {hold: 'holdReportAction2'}});
+        await mergeTransaction('txHeld', REPORT_A_ID, {comment: {hold: 'holdReportAction1'}});
+        await mergeTransaction('txPending', REPORT_B_ID, {status: CONST.TRANSACTION.STATUS.PENDING});
 
         await triggerBulkSubmit();
 
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(
-            expect.objectContaining({
-                title: 'iou.error.unableToSubmitReport',
-                prompt: 'iou.error.allExpensesOnHoldDescription',
-            }),
-        );
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.error.reportsNotSubmittedTitle'}));
+        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual(['Report A', 'Report B']);
+        expect(mockSubmitMoneyRequestOnSearch).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+    });
+
+    it('shows the list modal instead of the manager picker when the single submit-policy report is blocked', async () => {
+        mockSelectedReports = [makeSelectedReport(REPORT_D_ID, SUBMIT_POLICY_ID)];
+        await mergeTransaction('txHeld', REPORT_D_ID, {comment: {hold: 'holdReportAction1'}});
+
+        await triggerBulkSubmit();
+
+        expect(mockOpenSearchReportSubmitToPopover).not.toHaveBeenCalled();
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.error.reportsNotSubmittedTitle', prompt: 'Report D'}));
         expect(mockSubmitMoneyRequestOnSearch).not.toHaveBeenCalled();
     });
 

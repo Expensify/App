@@ -88,8 +88,6 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -2299,9 +2297,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               .filter((t): t is NonNullable<typeof t> => !!t);
 
                     // hasOnlyPendingCardTransactions and hasOnlyHeldExpenses are per-report predicates, so
-                    // evaluate them per selected report. On the flattened cross-report list they only fire
-                    // when every transaction of every selected report is blocked, which lets a mixed
-                    // selection silently skip the blocked reports.
+                    // evaluate them per selected report.
                     const transactionsByReportID = new Map<string, Transaction[]>();
                     for (const transaction of allSelectedTransactionsList) {
                         if (!transaction.reportID) {
@@ -2316,33 +2312,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     const blockedReportIDs = new Set<string>();
-                    let hasHeldOnlyReport = false;
                     for (const [reportID, reportTransactions] of transactionsByReportID) {
-                        if (hasOnlyPendingCardTransactions(reportTransactions)) {
+                        if (hasOnlyPendingCardTransactions(reportTransactions) || hasOnlyHeldExpenses(reportTransactions)) {
                             blockedReportIDs.add(reportID);
-                        } else if (hasOnlyHeldExpenses(reportTransactions)) {
-                            blockedReportIDs.add(reportID);
-                            hasHeldOnlyReport = true;
                         }
                     }
-
-                    if (blockedReportIDs.size > 0 && blockedReportIDs.size === transactionsByReportID.size) {
-                        // Held expenses are the reason the user can act on (remove the hold), so that
-                        // modal wins when the blocked reports mix both reasons.
-                        if (hasHeldOnlyReport) {
-                            showHeldExpensesBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
-                        } else {
-                            showPendingCardTransactionsBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
-                        }
-                        return;
-                    }
+                    const areAllSelectedReportsBlocked = blockedReportIDs.size > 0 && blockedReportIDs.size === transactionsByReportID.size;
 
                     const selectedReportForSubmit = selectedReports.at(0);
                     const reportIDForSubmit = selectedReportForSubmit?.reportID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).find((id): id is string => !!id);
                     const policyIDForSubmit = selectedReportForSubmit?.policyID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.policyID).find((id): id is string => !!id);
                     const policyForSubmit = policyIDForSubmit ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForSubmit}`] : undefined;
 
-                    if (policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
+                    // Submit-policy selections are limited to a single report, which picks its manager in a popover.
+                    // A blocked report gets the list modal below instead.
+                    if (!areAllSelectedReportsBlocked && policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
                         const snapshotReport = getReportOrDraftReport(
                             reportIDForSubmit,
                             undefined,
@@ -2388,8 +2372,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         }
                     }
 
-                    // Blocked reports are skipped rather than aborting the whole action, so list the ones that were
-                    // left out. The live Onyx report can be an incomplete optimistic record that lacks `reportName`,
+                    // Blocked reports are skipped rather than aborting the whole action, so list the ones that could not
+                    // be submitted. The live Onyx report can be an incomplete optimistic record that lacks `reportName`,
                     // so fall back to the Search snapshot for the name.
                     if (blockedReportIDs.size > 0) {
                         const blockedReportNames: string[] = [];
@@ -2408,6 +2392,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             shouldShowCancelButton: false,
                             shouldEnablePromptScroll: true,
                         });
+
+                        // Nothing was submitted, so there is no report change for the search to pick up.
+                        if (areAllSelectedReportsBlocked) {
+                            return;
+                        }
                     }
 
                     // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
