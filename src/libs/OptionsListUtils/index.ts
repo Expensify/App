@@ -2,7 +2,6 @@ import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
@@ -16,6 +15,7 @@ import MaxHeap from '@libs/MaxHeap';
 import MinHeap from '@libs/MinHeap';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
+import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
@@ -252,7 +252,6 @@ type GetAlternateTextConfig = {
     workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
-    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 let fallbackCollator: Intl.Collator | undefined;
@@ -293,7 +292,6 @@ function getAlternateText(
         workspaceCardList,
         localeCompare,
         formatPhoneNumber,
-        convertToDisplayString,
     }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
@@ -308,14 +306,7 @@ function getAlternateText(
         if (report) {
             const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
             const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
-            const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(
-                report,
-                isReportArchived,
-                visibleReportActionsData,
-                resolvedCurrentUserAccountID,
-                sortedActions,
-                oneTransactionThreadReportID,
-            );
+            const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
             const card = isCardIssuedAction(lastAction) ? getExpensifyCardFromReportAction({reportAction: lastAction, policy, cardList, workspaceCardList}) : undefined;
             return getReportAlternateText({
                 report,
@@ -344,11 +335,11 @@ function getAlternateText(
                 localeCompare: localeCompare ?? fallbackLocaleCompare,
                 formatPhoneNumber: formatPhoneNumber ?? formatPhoneNumberPhoneUtils,
                 dateFnsLocale,
-                convertToDisplayString: convertToDisplayString ?? convertToDisplayStringUtil,
+                convertToDisplayString: convertToDisplayStringUtil,
             });
         }
         if (option.lastMessageText) {
-            return formatReportLastMessageText(option.lastMessageText);
+            return formatReportLastMessageText(Parser.htmlToText(option.lastMessageText));
         }
     }
 
@@ -415,11 +406,6 @@ type CreateOptionParams = {
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
     currentUserLogin?: string;
-    cardList?: OnyxEntry<CardList>;
-    workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
-    localeCompare?: LocaleContextProps['localeCompare'];
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
-    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /** Shared by createOption and shells so filtering uses the final display text. */
@@ -464,11 +450,6 @@ function createOption({
     lastActions,
     currentUserAccountID,
     currentUserLogin,
-    cardList,
-    workspaceCardList,
-    localeCompare,
-    formatPhoneNumber,
-    convertToDisplayString,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const translateFn = translate ?? translateLocal;
@@ -542,14 +523,7 @@ function createOption({
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
-        const {lastAction, movedFromReport, movedToReport} = resolveLastActionContext(
-            report,
-            result.private_isArchived,
-            visibleReportActionsData,
-            currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-            sortedActions,
-            transactionThreadIDs?.[report.reportID],
-        );
+        const {lastAction, movedFromReport, movedToReport} = resolveLastActionContext(report, result.private_isArchived, visibleReportActionsData, transactionThreadIDs?.[report.reportID]);
         result.lastMessageText = getLastMessageTextForReport({
             translate: translateFn,
             dateFnsLocale,
@@ -594,11 +568,6 @@ function createOption({
                           isTrackIntentUser,
                           currentUserAccountID,
                           currentUserLogin,
-                          cardList,
-                          workspaceCardList,
-                          localeCompare,
-                          formatPhoneNumber,
-                          convertToDisplayString,
                       },
                   );
 
@@ -946,9 +915,6 @@ function processReport(
         lastActions,
         currentUserAccountID,
         currentUserLogin,
-        localeCompare,
-        formatPhoneNumber,
-        convertToDisplayString,
     }: {
         currentUserAccountID: number;
         reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
@@ -960,9 +926,6 @@ function processReport(
         transactionThreadIDs?: Record<string, string | undefined>;
         lastActions?: Record<string, ReportAction>;
         currentUserLogin?: string;
-        localeCompare?: LocaleContextProps['localeCompare'];
-        formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
-        convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
     },
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
@@ -1004,9 +967,6 @@ function processReport(
                 lastActions,
                 currentUserAccountID,
                 currentUserLogin,
-                localeCompare,
-                formatPhoneNumber,
-                convertToDisplayString,
             }),
         },
     };
@@ -1384,11 +1344,6 @@ type CreateOptionFromReportParams = {
     lastActions?: Record<string, ReportAction>;
     currentUserAccountID?: number;
     currentUserLogin?: string;
-    cardList?: OnyxEntry<CardList>;
-    workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
-    localeCompare?: LocaleContextProps['localeCompare'];
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
-    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
     conciergeReportID: string | undefined;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     config?: PreviewConfig;
@@ -1408,11 +1363,6 @@ function createOptionFromReport({
     lastActions,
     currentUserAccountID,
     currentUserLogin,
-    cardList,
-    workspaceCardList,
-    localeCompare,
-    formatPhoneNumber,
-    convertToDisplayString,
     conciergeReportID,
     reportAttributesDerived,
     config,
@@ -1441,11 +1391,6 @@ function createOptionFromReport({
             lastActions,
             currentUserAccountID,
             currentUserLogin,
-            cardList,
-            workspaceCardList,
-            localeCompare,
-            formatPhoneNumber,
-            convertToDisplayString,
             isTrackIntentUser,
         }),
     };
@@ -2007,7 +1952,6 @@ function prepareReportOptionsForDisplay(
         workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
         localeCompare?: LocaleContextProps['localeCompare'];
         formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
-        convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
         transactionThreadIDs?: Record<string, string | undefined>;
         lastActions?: Record<string, ReportAction>;
     },
@@ -2038,7 +1982,6 @@ function prepareReportOptionsForDisplay(
         workspaceCardList,
         localeCompare,
         formatPhoneNumber,
-        convertToDisplayString,
         transactionThreadIDs,
         lastActions,
     } = config;
@@ -2055,6 +1998,15 @@ function prepareReportOptionsForDisplay(
         const report = option.item;
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
+        const parentReport = report.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
+        let invoiceReceiverPolicyID: string | undefined;
+        if (report.invoiceReceiver && 'policyID' in report.invoiceReceiver) {
+            invoiceReceiverPolicyID = report.invoiceReceiver.policyID;
+        }
+        if (parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver) {
+            invoiceReceiverPolicyID = parentReport.invoiceReceiver.policyID;
+        }
+        const invoiceReceiverPolicy = invoiceReceiverPolicyID ? policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         /**
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
@@ -2067,6 +2019,7 @@ function prepareReportOptionsForDisplay(
                 isReportArchived: !!option.private_isArchived,
                 personalDetails,
                 policy,
+                invoiceReceiverPolicy,
                 visibleReportActionsData,
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
@@ -2081,7 +2034,6 @@ function prepareReportOptionsForDisplay(
                 workspaceCardList,
                 localeCompare,
                 formatPhoneNumber,
-                convertToDisplayString,
             },
         );
         const isSelected = isReportSelected(option, selectedOptions);
@@ -2195,7 +2147,6 @@ function getValidOptions(
         workspaceCardList,
         localeCompare,
         formatPhoneNumber,
-        convertToDisplayString,
         isTrackIntentUser,
         isOffline,
         ...config
@@ -2347,7 +2298,6 @@ function getValidOptions(
                     workspaceCardList,
                     localeCompare,
                     formatPhoneNumber,
-                    convertToDisplayString,
                     transactionThreadIDs,
                     lastActions,
                 },
@@ -2383,7 +2333,6 @@ function getValidOptions(
                 workspaceCardList,
                 localeCompare,
                 formatPhoneNumber,
-                convertToDisplayString,
                 transactionThreadIDs,
                 lastActions,
             },
@@ -2415,7 +2364,6 @@ function getValidOptions(
                 workspaceCardList,
                 localeCompare,
                 formatPhoneNumber,
-                convertToDisplayString,
                 transactionThreadIDs,
                 lastActions,
             },
@@ -2592,7 +2540,6 @@ type SearchOptionsConfig = {
     workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
-    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
     conciergeReportID: string | undefined;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
@@ -2633,7 +2580,6 @@ function getSearchOptions({
     workspaceCardList,
     localeCompare,
     formatPhoneNumber,
-    convertToDisplayString,
     conciergeReportID,
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
@@ -2681,7 +2627,6 @@ function getSearchOptions({
             workspaceCardList,
             localeCompare,
             formatPhoneNumber,
-            convertToDisplayString,
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
         },

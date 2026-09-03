@@ -169,7 +169,6 @@ import {
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isInviteOrRemovedAction,
-    isReportActionVisibleAsLastAction,
     isLeavePolicyAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -406,8 +405,6 @@ function resolveLastActionContext(
     report: Report,
     isReportArchived: boolean | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue | undefined,
-    currentUserAccountID: number,
-    sortedActions?: Record<string, ReportAction[]>,
     oneTransactionThreadReportID?: string,
 ): {
     lastAction: OnyxEntry<ReportAction>;
@@ -416,12 +413,9 @@ function resolveLastActionContext(
     movedToReport: OnyxEntry<Report>;
 } {
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-    const sortedActionsForReport = sortedActions?.[report.reportID];
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const resolvedOneTransactionThreadReportID = oneTransactionThreadReportID ?? deprecatedCachedOneTransactionThreadReportIDs[report.reportID];
-    const lastAction = sortedActionsForReport
-        ? sortedActionsForReport.find((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, report.reportID, currentUserAccountID))
-        : getLastVisibleActionIncludingTransactionThread(report.reportID, canUserPerformWrite, undefined, visibleReportActionsData, resolvedOneTransactionThreadReportID);
+    const lastAction = getLastVisibleActionIncludingTransactionThread(report.reportID, canUserPerformWrite, undefined, visibleReportActionsData, resolvedOneTransactionThreadReportID);
     let lastActionReport: OnyxEntry<Report>;
     if (isInviteOrRemovedAction(lastAction)) {
         const lastActionOriginalMessage = getOriginalMessage(lastAction);

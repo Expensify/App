@@ -1,7 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 
-import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import type {OptionData} from '@libs/ReportUtils';
@@ -291,7 +290,6 @@ type GetOptionsConfig = {
     workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
-    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
     isTrackIntentUser?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;

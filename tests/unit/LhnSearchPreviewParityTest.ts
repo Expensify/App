@@ -71,7 +71,10 @@ function makeAction(actionName: ReportAction['actionName'], overrides: Partial<R
 type ParityCase = {
     report?: Report;
     lastAction?: ReportAction;
+    mainReportActions?: ReportAction[];
     extraReports?: Report[];
+    extraReportActions?: Record<string, ReportAction[]>;
+    lateReportActions?: Record<string, ReportAction[]>;
     policy?: OnyxEntry<Policy>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     cardList?: OnyxEntry<CardList>;
@@ -79,10 +82,17 @@ type ParityCase = {
     isTrackIntentUser?: boolean;
 };
 
+function toReportActions(actions: ReportAction[]): ReportActions {
+    return Object.fromEntries(actions.map((action) => [action.reportActionID, action]));
+}
+
 async function computeBothSurfaces({
     report = makeReport(),
     lastAction,
+    mainReportActions,
     extraReports = [],
+    extraReportActions = {},
+    lateReportActions = {},
     policy,
     invoiceReceiverPolicy,
     cardList,
@@ -94,14 +104,23 @@ async function computeBothSurfaces({
         reportsById[extra.reportID] = extra;
     }
 
+    const seededMainActions = mainReportActions ?? (lastAction ? [lastAction] : undefined);
+
     await act(async () => {
         await Promise.all(Object.values(reportsById).map((seeded) => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${seeded.reportID}`, seeded)));
-        if (lastAction) {
-            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+        if (seededMainActions) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, toReportActions(seededMainActions));
         }
+        await Promise.all(Object.entries(extraReportActions).map(([reportID, actions]) => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, toReportActions(actions))));
     });
     await waitForBatchedUpdatesWithAct();
+
+    if (Object.keys(lateReportActions).length > 0) {
+        await act(async () => {
+            await Promise.all(Object.entries(lateReportActions).map(([reportID, actions]) => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, toReportActions(actions))));
+        });
+        await waitForBatchedUpdatesWithAct();
+    }
 
     const sortedData = await getOnyxValue(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
     const reportAttributesValue = await getOnyxValue(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -110,8 +129,14 @@ async function computeBothSurfaces({
     const canWrite = canUserPerformWriteAction(report, isReportArchived);
     const oneTransactionThreadReportID = sortedData?.transactionThreadIDs?.[report.reportID];
     const actionsCollection: OnyxCollection<ReportActions> = {
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: lastAction ? {[lastAction.reportActionID]: lastAction} : undefined,
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: seededMainActions ? toReportActions(seededMainActions) : undefined,
     };
+    for (const [reportID, actions] of Object.entries(extraReportActions)) {
+        actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = toReportActions(actions);
+    }
+    for (const [reportID, actions] of Object.entries(lateReportActions)) {
+        actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = {...actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`], ...toReportActions(actions)};
+    }
     const lhnLastAction = getLastVisibleActionIncludingTransactionThread(report.reportID, canWrite, actionsCollection, undefined, oneTransactionThreadReportID);
     let lastActionReport: OnyxEntry<Report>;
     if (isInviteOrRemovedAction(lhnLastAction)) {
@@ -158,6 +183,9 @@ async function computeBothSurfaces({
     }
     const privateIsArchivedMap: PrivateIsArchivedMap = isReportArchived ? {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: true} : {};
     const policiesCollection: OnyxCollection<Policy> = policy ? {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy} : {};
+    if (invoiceReceiverPolicy) {
+        policiesCollection[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicy.id}`] = invoiceReceiverPolicy;
+    }
 
     const optionList = createFilteredOptionList(
         PERSONAL_DETAILS,
@@ -198,7 +226,6 @@ async function computeBothSurfaces({
         cardList,
         localeCompare,
         formatPhoneNumber,
-        convertToDisplayString,
         conciergeReportID: CONCIERGE_REPORT_ID,
         isTrackIntentUser,
         translate: translateLocal,
@@ -591,7 +618,7 @@ describe('LHN vs Search preview parity', () => {
             });
         });
 
-        it('should diverge for empty invoice room where LHN uses invoiceReceiverPolicy for the welcome payer but Search cannot (documented gap)', async () => {
+        it('should match for empty invoice room where the welcome payer comes from invoiceReceiverPolicy', async () => {
             const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
                 report: makeReport({
                     chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
@@ -604,7 +631,52 @@ describe('LHN vs Search preview parity', () => {
             });
             expect(searchOptionFound).toBe(true);
             expect(lhnText).toContain('Biz Co');
-            expect(searchText).not.toBe(lhnText);
+            expect(searchText).toBe(lhnText);
+        });
+
+        it('should match for a one-transaction expense report whose newest action is the IOU create action', async () => {
+            const createdAction = makeAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const iouAction = makeAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                reportActionID: '2',
+                created: '2024-01-02 00:00:00.000',
+                childReportID: '400',
+                originalMessage: {
+                    IOUReportID: '100',
+                    IOUTransactionID: 't1',
+                    amount: 1234,
+                    currency: 'USD',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            });
+            const threadCreatedAction = makeAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {reportActionID: '3', created: '2024-01-02 00:00:01.000'});
+            const threadCommentAction = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                reportActionID: '4',
+                created: '2024-01-03 00:00:00.000',
+                message: [{type: 'COMMENT', html: 'Thread follow-up', text: 'Thread follow-up', isDeletedParentAction: false, deleted: ''}],
+            });
+
+            await expectParity({
+                report: makeReport({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatType: undefined,
+                    reportName: 'Expense Report',
+                    ownerAccountID: 1,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                    lastVisibleActionCreated: '2024-01-02 00:00:00.000',
+                }),
+                mainReportActions: [createdAction, iouAction],
+                extraReports: [
+                    makeReport({
+                        reportID: '400',
+                        chatType: undefined,
+                        reportName: 'Transaction thread',
+                        parentReportID: '100',
+                        parentReportActionID: '2',
+                    }),
+                ],
+                extraReportActions: {'400': [threadCreatedAction]},
+                lateReportActions: {'400': [threadCommentAction]},
+            });
         });
 
         it('should match when SMS domain is stripped from last message', async () => {
