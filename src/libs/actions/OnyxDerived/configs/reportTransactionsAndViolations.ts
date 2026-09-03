@@ -37,7 +37,14 @@ export default createOnyxDerivedValueConfig({
             transactionsToProcess = Array.from(transactionKeys);
         }
 
-        const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
+        // A full compute visits every transaction, so rebuild from scratch instead of merging into the
+        // value restored from disk. After a reload transactionReportIDMapping is empty, so the removal
+        // below never runs and an expense stays listed under a report it has already left.
+        const isFullCompute = !transactionsUpdates && !transactionViolationsUpdates;
+        if (isFullCompute) {
+            transactionReportIDMapping = {};
+        }
+        const reportTransactionsAndViolations = !isFullCompute && currentValue ? {...currentValue} : {};
 
         // Track which reportID entries have been cloned so we only clone once per reportID.
         // This avoids mutating nested objects that are still referenced by the cached value.
