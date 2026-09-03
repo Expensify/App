@@ -20,7 +20,6 @@ import {searchInServer} from '@libs/actions/Report';
 import {clearFooterConversion, search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {isQueryARefinement} from '@libs/SearchQueryRefinement';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -151,9 +150,11 @@ function SearchPage({route}: SearchPageProps) {
 
     const hasStaleHoldTimedOut = staleHoldTimedOutHash !== undefined && staleHoldTimedOutHash === currentQueryHash;
 
-    // Only a filter refinement is worth holding for. A sidebar item or saved search is a different search, so its
-    // results area starts from the skeleton rather than showing rows that belong to the query the user just left.
-    const shouldHoldLastResolvedSearch = !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && !hasStaleHoldTimedOut && isQueryARefinement(currentSearchQueryJSON?.inputQuery);
+    // A sidebar item or saved search asks for a different search, so its results area starts from the skeleton rather
+    // than showing rows from the query the user just left. Sidebar items are the suggested searches, so they resolve a
+    // currentSearchKey; saved searches carry a name. A filter refinement matches neither.
+    const isDifferentSearch = !!currentSearchKey || !!route.params.name;
+    const shouldHoldLastResolvedSearch = !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && !hasStaleHoldTimedOut && !isDifferentSearch;
     const contentQueryJSON = shouldHoldLastResolvedSearch ? lastResolvedSearch.queryJSON : currentSearchQueryJSON;
     const contentSearchResults = shouldHoldLastResolvedSearch ? lastResolvedSearch.searchResults : searchResults;
 
