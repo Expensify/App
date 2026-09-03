@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import Badge from '@components/Badge';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptImage from '@components/ReceiptImage';
@@ -65,6 +66,9 @@ type ConfirmationReceiptThumbnailProps = {
     /** Stable image source captured for non-flashing display (from useReceiptThumbnailSource) */
     effectiveReceiptSource: ReceiptSource;
 
+    /** Page count of the receipt, used to show a "Page 1 of N" badge on multi-page PDFs */
+    receiptPageCount: number;
+
     /** Whether the active transaction is an odometer-driven distance request */
     isOdometerDistanceRequest: boolean;
 
@@ -106,6 +110,7 @@ function ConfirmationReceiptThumbnail({
     receiptThumbnail,
     resolvedReceiptImage,
     effectiveReceiptSource,
+    receiptPageCount,
     isOdometerDistanceRequest,
     isDistanceRequest,
     compactReceiptContainerStyle,
@@ -121,6 +126,7 @@ function ConfirmationReceiptThumbnail({
     const receiptContainerStyle = isCompactMode && compactReceiptContainerStyle ? compactReceiptContainerStyle : styles.expenseViewImageSmall;
     const receiptThumbnailStyle = [styles.h100, styles.flex1];
     const isPDF = isLocalFile && Str.isPDF(receiptFilename);
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && isPDF;
 
     const navigateToReceipt = () => {
         if (!transactionID) {
@@ -156,6 +162,12 @@ function ConfirmationReceiptThumbnail({
                             onPassword={onPDFPassword}
                             onLoadSuccess={onPDFLoadSuccess}
                         />
+                        {shouldShowReceiptPageCount && (
+                            <Badge
+                                text={translate('receipt.pageCount', {pageCount: receiptPageCount})}
+                                badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
+                            />
+                        )}
                     </PressableWithoutFocus>
                 ) : (
                     <PressableWithoutFocus
