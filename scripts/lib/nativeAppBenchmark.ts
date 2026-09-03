@@ -1,7 +1,7 @@
 import type {NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions} from './nativeAppBenchmark/shared';
 
 import {assertAndroidAppInstalled, createAndroidAdapter, parseAndroidProcessIdentifier} from './nativeAppBenchmark/android';
-import {createIOSAdapter, iOSBenchmarkMarkerPath, parseIOSInstalledAppURL, parseIOSLaunchProcessIdentifier, parseIOSRunningAppProcessIdentifier} from './nativeAppBenchmark/iOS';
+import {createIOSAdapter, iOSBenchmarkMarkerPath, parseIOSInstalledAppURL, parseIOSLaunchProcessIdentifier, parseIOSRunningAppProcessIdentifier} from './nativeAppBenchmark/ios';
 import {BENCHMARK_LOG_TAG, PLATFORM_NAMES, findBenchmarkDuration, latestBenchmarkEvents, parseBenchmarkLogEvents} from './nativeAppBenchmark/shared';
 
 function createNativeAppBenchmarkAdapter(options: NativeAppBenchmarkAdapterOptions): NativeAppBenchmarkAdapter {
