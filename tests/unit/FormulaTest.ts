@@ -586,6 +586,13 @@ describe('CustomFormula', () => {
 
             expect(compute('{report:debitedAmount:EUR}', reimbursementContext)).toBe('{report:debitedAmount:EUR}');
         });
+
+        test('should keep the token for an unrecognized display currency modifier', () => {
+            reimbursementContext.report.debitedAmount = 8250;
+            reimbursementContext.report.debitedCurrency = 'USD';
+
+            expect(compute('{report:debitedAmount:UNKNOWN}', reimbursementContext)).toBe('{report:debitedAmount:UNKNOWN}');
+        });
     });
 
     describe('Function Modifiers', () => {
