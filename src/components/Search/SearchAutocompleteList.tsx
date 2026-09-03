@@ -790,7 +790,9 @@ function SearchAutocompleteList({
             }}
             shouldSingleExecuteRowSelect
             ref={setListRef}
-            initialScrollIndex={0}
+            // Index 0 pins the wide layout to the top, where `initiallyFocusedItemKey` resolves to a row below the
+            // "Recent searches" section. The narrow layout focuses no row, so it has no scroll target.
+            initialScrollIndex={shouldUseNarrowLayout ? undefined : 0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? defaultFocusedKey : undefined}
             shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}
