@@ -17,6 +17,8 @@ import {
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
 } from '@userActions/IOU/UpdateMoneyRequest';
+import {createTransactionThreadReport} from '@userActions/Report';
+import type * as ReportActions from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +37,13 @@ jest.mock('@userActions/IOU/UpdateMoneyRequest', () => ({
     updateMoneyRequestAmountAndCurrency: jest.fn(),
     updateMoneyRequestTag: jest.fn(),
 }));
+
+jest.mock('@userActions/Report', () => ({
+    ...jest.requireActual<typeof ReportActions>('@userActions/Report'),
+    createTransactionThreadReport: jest.fn(),
+}));
+
+const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
 
 describe('TransactionInlineEdit', () => {
     describe('getTransactionEditPermissions', () => {
@@ -81,7 +90,6 @@ describe('TransactionInlineEdit', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: '',
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: false,
             areCategoriesEnabled: true,
         };
 
@@ -628,6 +636,7 @@ describe('TransactionInlineEdit', () => {
                 reportPolicyTags: undefined,
                 policyRecentlyUsedCategories: undefined,
                 policyRecentlyUsedTags: undefined,
+                conciergeChat: undefined,
                 isSelfTourViewed: true,
                 hasCompletedGuidedSetupFlow: true,
                 personalDetailsList: undefined,
@@ -635,6 +644,12 @@ describe('TransactionInlineEdit', () => {
                 isTrackIntentUser: false,
                 getCurrencyDecimals: () => 2,
                 getCurrencySymbol: () => '$',
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: snapshotTransaction},
+                transactionViolations: {},
+                betas: [],
+                introSelected: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                currentUserEmail: '',
             };
         }
 
@@ -661,6 +676,48 @@ describe('TransactionInlineEdit', () => {
             editTransactionMerchantInline(buildParams(), '');
 
             expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({value: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT}));
+        });
+
+        describe('transaction thread creation', () => {
+            const CONCIERGE_CHAT: Report = {reportID: 'concierge-inline-edit-1'};
+            const CREATED_THREAD: Report = {reportID: 'inline-edit-thread-1'};
+
+            /** An IOU action with no childReportID, so no transaction thread can be resolved from it. */
+            const iouParentReportAction = {
+                reportActionID: '999',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2026-08-12',
+            } as ReportAction;
+
+            it('creates the missing transaction thread with the conciergeChat threaded through', () => {
+                mockCreateTransactionThreadReport.mockReturnValue(CREATED_THREAD);
+
+                // A parent IOU action but no transaction thread anywhere: the edit must create the thread first.
+                editTransactionMerchantInline({...buildParams(), parentReportAction: iouParentReportAction, conciergeChat: CONCIERGE_CHAT}, 'Cafe');
+
+                // The threaded conciergeChat reaches createTransactionThreadReport instead of the deprecated module-level lookup...
+                expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(
+                    expect.objectContaining({conciergeChat: CONCIERGE_CHAT, iouReportAction: iouParentReportAction, transaction: snapshotTransaction}),
+                );
+                // ...and the created thread is what the edit call receives.
+                expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: CREATED_THREAD}));
+            });
+
+            it('reuses an existing transaction thread without creating a new one', () => {
+                const existingThread: Report = {reportID: 'existing-thread-1'};
+
+                editTransactionMerchantInline({...buildParams(), parentReportAction: iouParentReportAction, transactionThreadReport: existingThread}, 'Cafe');
+
+                expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+                expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: existingThread}));
+            });
+
+            it('does not create a thread when there is no parent report action to anchor it', () => {
+                editTransactionMerchantInline({...buildParams(), conciergeChat: CONCIERGE_CHAT}, 'Cafe');
+
+                expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+                expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: undefined}));
+            });
         });
     });
 });

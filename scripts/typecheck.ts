@@ -4,7 +4,7 @@
  * Type-check the repo with the TypeScript 7 native compiler.
  *
  *   bun scripts/typecheck.ts              -> check every project CI gates on
- *   bun scripts/typecheck.ts evals        -> check just the named project directories
+ *   bun scripts/typecheck.ts tsconfig.bun.json -> check just the named project
  *
  * Every project is checked even after one fails, so a single run reports every error in the repo.
  */
@@ -18,14 +18,14 @@ const projectRoot = `${import.meta.dir}/..`;
 // Invoke that bin by path so a leftover `.bin/tsc` from `@typescript/old` cannot win.
 const tsc = `${projectRoot}/node_modules/typescript/bin/tsc`;
 
-/** Project directories, relative to the repo root, that `npm run typecheck` and CI check. */
-const DEFAULT_PROJECTS = ['.', 'tests/tooling', 'server', 'server/victory-chart-renderer', 'scripts'];
+/** TypeScript projects, relative to the repo root, that `npm run typecheck` and CI check. */
+const DEFAULT_PROJECTS = ['tsconfig.json', 'tsconfig.jest.json', 'tsconfig.bun.json', 'tsconfig.node.json', 'server/victory-chart-renderer/tsconfig.json'];
 
 const cli = new CLI({
     positionalArgs: [
         {
             name: 'projects',
-            description: 'Project directories to type-check, relative to the repo root (default: the five CI-gated projects)',
+            description: 'tsconfig paths to type-check, relative to the repo root',
             variadic: true,
             default: DEFAULT_PROJECTS,
         },
@@ -34,15 +34,27 @@ const cli = new CLI({
 
 const {projects} = cli.positionalArgs;
 
-const failed: string[] = [];
-for (const project of projects) {
-    const tsconfig = `${project}/tsconfig.json`;
-    console.log(`\nType checking ${tsconfig}...`);
+// All projects are checked concurrently.
+const results = await Promise.all(
+    projects.map(async (project) => {
+        const tsconfig = project.endsWith('.json') ? project : `${project}/tsconfig.json`;
 
-    // The build info file lets repeat runs skip unchanged projects. It is named apart from the
-    // `tsconfig.tsbuildinfo` that `incremental` defaults to so that running TypeScript 6 by hand in
-    // the same worktree can't feed it a build info file written by a different compiler.
-    const result = await $`${tsc} --noEmit --incremental -p ${tsconfig} --tsBuildInfoFile ${project}/tsconfig.ts7.tsbuildinfo`.cwd(projectRoot).nothrow();
+        // The build info file lets repeat runs skip unchanged projects. It is named apart from the
+        // `tsconfig.tsbuildinfo` that `incremental` defaults to so that running TypeScript 7 by hand in
+        // the same worktree can't feed it a build info file written by a different compiler.
+        const tsBuildInfoFile = `${tsconfig.replace(/\.json$/, '')}.ts7.tsbuildinfo`;
+        const result = await $`${tsc} --noEmit --incremental -p ${tsconfig} --tsBuildInfoFile ${tsBuildInfoFile}`.cwd(projectRoot).quiet().nothrow();
+        return {tsconfig, result};
+    }),
+);
+
+const failed: string[] = [];
+for (const {tsconfig, result} of results) {
+    console.log(`\nType checking ${tsconfig}...`);
+    const output = `${result.stdout.toString()}${result.stderr.toString()}`.trim();
+    if (output) {
+        console.log(output);
+    }
     if (result.exitCode !== 0) {
         failed.push(tsconfig);
     }
