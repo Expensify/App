@@ -1,24 +1,22 @@
 import Button from '@components/ButtonComposed';
+import RenderHTML from '@components/RenderHTML';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import Navigation from '@libs/Navigation/Navigation';
+import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, getReportActionText} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
-
-import React from 'react';
 
 type HomeAddressRequiredContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED>;
@@ -36,12 +34,13 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress;
 
     return (
-        <ReportActionItemBasicMessage message={getReportActionText(action)}>
+        <ReportActionItemBasicMessage>
+            <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action) || getReportActionText(action)}</muted-text></comment>`} />
             {!isResolved && (
                 <ActionableItemButtons layout="horizontal">
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1))}
+                        onPress={() => openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1)}
                     >
                         <Button.Text>{translate('homePage.timeSensitiveSection.addHomeAddress.cta')}</Button.Text>
                     </Button>
