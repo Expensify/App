@@ -9885,7 +9885,8 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
             const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
-            // A submitted `companyCardRequired` is not actionable by the submitter, so it must not drive the RBR; it is excluded by name because the back end owns its type.
+            // A submitted `companyCardRequired` is not actionable by the submitter, so it must not drive the RBR. It is
+            // excluded by name because the back end owns its type.
             const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.COMPANY_CARD_REQUIRED] : [];
             const excludedNoticeNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 
@@ -9918,7 +9919,7 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
 /**
  * Whether any transaction on the report carries a violation that should drive the LHN RBR, checking all three violation
  * types. Names in `excludedViolationNames` are dropped from every type check, so the exclusion holds regardless of which
- * bucket the back end assigns the violation to; names in `excludedNoticeNames` are dropped from the notice check only.
+ * bucket the back end assigns the violation to. Names in `excludedNoticeNames` are dropped from the notice check only.
  * Apart from the name filtering this is the same decision the three separate `hasViolations` /
  * `hasWarningTypeViolations` / `hasNoticeTypeViolationsForRBRInLHN` calls used to make, folded into a single pass over
  * the report transactions.
