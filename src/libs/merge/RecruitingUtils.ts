@@ -44,7 +44,7 @@ function getConnectedATSProvider(policy: OnyxEntry<Policy>): RecruitingProviderI
 
 /** Returns true when any recruiting (ATS) provider is connected to the policy. */
 function isAnyRecruitingConnected(policy: OnyxEntry<Policy>): boolean {
-    return !!getConnectedATSProvider(policy);
+    return isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS);
 }
 
 /** Formats one Merge ATS filter dimension into a display label, or undefined when nothing is selected for it. */
