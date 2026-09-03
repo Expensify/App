@@ -3654,6 +3654,22 @@ describe('SearchQueryUtils', () => {
             expect(getFilterFromQuery(resubmittedQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toBeUndefined();
         });
 
+        it('should preserve malformed quote and backslash keyword text', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+
+            const unmatchedQuoteResult = currentQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('foo "bar', currentQueryJSON)) : '';
+            const unmatchedQuoteJSON = buildSearchQueryJSON(unmatchedQuoteResult ?? '');
+            const unmatchedQuoteKeywordFilter = unmatchedQuoteJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(unmatchedQuoteKeywordFilter?.filters.map((filter) => filter.value)).toEqual(['foo', '"bar']);
+
+            const trailingBackslashResult = currentQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('back\\', currentQueryJSON)) : '';
+            const trailingBackslashJSON = buildSearchQueryJSON(trailingBackslashResult ?? '');
+            const trailingBackslashKeywordFilter = trailingBackslashJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(trailingBackslashKeywordFilter?.filters.map((filter) => filter.value)).toEqual(['back\\']);
+        });
+
         it('should escape input that uses a comparison operator with a filter key', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 

@@ -188,23 +188,118 @@ function quoteSyntaxSpans(segment: string) {
         return `${prefix}${sanitizedSyntaxValue.startsWith('"') ? sanitizedSyntaxValue : `"${sanitizedSyntaxValue}"`}`;
     });
 }
+
+function isEscaped(str: string, index: number) {
+    let backslashCount = 0;
+    for (let i = index - 1; i >= 0 && str.at(i) === '\\'; i--) {
+        backslashCount++;
+    }
+    return backslashCount % 2 === 1;
+}
+
+function isCompleteQuotedValue(str: string) {
+    return str.startsWith('"') && str.length > 1 && str.endsWith('"') && !isEscaped(str, str.length - 1);
+}
+
+function hasUnescapedQuote(str: string) {
+    return [...str].some((char, index) => char === '"' && !isEscaped(str, index));
+}
+
+function tokenizeKeywordSegments(keywords: string) {
+    const segments: string[] = [];
+    let index = 0;
+
+    while (index < keywords.length) {
+        while (index < keywords.length && /\s/.test(keywords.at(index) ?? '')) {
+            index++;
+        }
+
+        if (index >= keywords.length) {
+            break;
+        }
+
+        const start = index;
+        const startsWithQuote = keywords.at(index) === '"';
+        if (startsWithQuote) {
+            index++;
+        }
+
+        while (index < keywords.length) {
+            const char = keywords.at(index);
+
+            if (!startsWithQuote && /\s/.test(char ?? '')) {
+                break;
+            }
+
+            if (char === '\\') {
+                index += index + 1 < keywords.length ? 2 : 1;
+                continue;
+            }
+
+            if (char === '"') {
+                index++;
+                if (startsWithQuote) {
+                    break;
+                }
+
+                while (index < keywords.length) {
+                    const quotedChar = keywords.at(index);
+                    if (quotedChar === '\\') {
+                        index += index + 1 < keywords.length ? 2 : 1;
+                        continue;
+                    }
+                    index++;
+                    if (quotedChar === '"') {
+                        break;
+                    }
+                }
+                continue;
+            }
+
+            index++;
+        }
+
+        segments.push(keywords.slice(start, index));
+    }
+
+    return segments;
+}
+
+const syntaxWithoutValueRegex = new RegExp(`^${syntaxKeyPattern}\\s*(?:${syntaxOperatorPattern})$`, 'i');
+
+function sanitizeIncompleteQuotedValue(str: string) {
+    const sanitized = sanitizeSearchValue(str);
+    return sanitized.startsWith('"') ? sanitized : `"${sanitized}"`;
+}
+
 /**
  * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
  * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
  * keyword instead of being parsed as the `type` filter. Plain keywords (e.g. `foo`) are left untouched.
  */
 function escapeKeyword(keywords: string) {
-    return (
-        keywords
-            .match(/"(?:\\.|[^"\\])*"|(?:\\.|[^"\\])+(?:"(?:\\.|[^"\\])*")?/g)
-            ?.map((q) => {
-                if (q.startsWith('"')) {
-                    return q;
-                }
-                return quoteSyntaxSpans(q).trim();
-            })
-            .join(' ') ?? ''
-    );
+    const segments = tokenizeKeywordSegments(keywords);
+
+    return segments
+        .map((segment, index) => {
+            const q = syntaxWithoutValueRegex.test(segment) && segments.at(index + 1) ? `${segment} ${segments.at(index + 1)}` : segment;
+            if (index > 0 && syntaxWithoutValueRegex.test(segments.at(index - 1) ?? '')) {
+                return '';
+            }
+
+            if (q.startsWith('"')) {
+                return isCompleteQuotedValue(q) ? q : sanitizeIncompleteQuotedValue(q);
+            }
+
+            const quotedSyntax = quoteSyntaxSpans(q).trim();
+            if (quotedSyntax !== q) {
+                return quotedSyntax;
+            }
+
+            return hasUnescapedQuote(q) ? sanitizeSearchValue(q) : q;
+        })
+        .filter(Boolean)
+        .join(' ');
 }
 
 function getRangeQueryValue(from?: string, to?: string) {
