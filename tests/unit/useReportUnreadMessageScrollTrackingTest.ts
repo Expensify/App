@@ -367,6 +367,86 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
         });
 
+        it('returns isActionBadgeBelowViewport as false initially', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: true,
+                    actionBadgeTargetIndex: -1,
+                }),
+            );
+
+            expect(result.current.isActionBadgeBelowViewport).toBe(false);
+        });
+
+        it('returns isActionBadgeBelowViewport as true when action badge target is below the viewport in inverted list', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: true,
+                    actionBadgeTargetIndex: 1,
+                }),
+            );
+
+            // When viewable items are at indexes 3-5, the target at index 1 is below the viewport (lower index = below in inverted list)
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
+                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}},
+                        {index: 5, key: 'reportActions_5', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+
+            expect(result.current.isActionBadgeBelowViewport).toBe(true);
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+        });
+
+        it('returns isActionBadgeBelowViewport as false when action badge target is visible in viewport', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: true,
+                    actionBadgeTargetIndex: 2,
+                }),
+            );
+
+            // When viewable items include index 2, the target is visible
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: 1, key: 'reportActions_1', isViewable: true, item: {}},
+                        {index: 2, key: 'reportActions_2', isViewable: true, item: {}},
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+
+            expect(result.current.isActionBadgeBelowViewport).toBe(false);
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+        });
+
         it('recalculates action badge visibility when actionBadgeTargetIndex changes', () => {
             const offsetRef = {current: 0};
             let actionBadgeTargetIndex = -1;

@@ -137,6 +137,27 @@ describe('FloatingMessageCounter', () => {
         expect(screen.getByText('Submit')).toBeTruthy();
     });
 
+    it('renders the action badge pill and calls onActionBadgePress when the target is below the viewport (down arrow)', () => {
+        const onActionBadgePressMock = jest.fn();
+        render(
+            <FloatingMessageCounter
+                isActive
+                hasNewMessages
+                onClick={jest.fn()}
+                actionBadge={CONST.REPORT.ACTION_BADGE.APPROVE}
+                actionBadgeBrickRoadStatus={CONST.BRICK_ROAD_INDICATOR_STATUS.INFO}
+                isActionBadgeBelowViewport
+                onActionBadgePress={onActionBadgePressMock}
+            />,
+        );
+
+        expect(screen.getByText('Approve')).toBeTruthy();
+        expect(screen.queryByText('New messages')).toBeNull();
+
+        fireEvent.press(screen.getByText('Approve'));
+        expect(onActionBadgePressMock).toHaveBeenCalledTimes(1);
+    });
+
     it('does not show action badge pill when only actionBadge is provided without actionBadgeBrickRoadStatus', () => {
         render(
             <FloatingMessageCounter

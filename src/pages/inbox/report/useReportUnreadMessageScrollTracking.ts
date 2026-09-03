@@ -52,6 +52,7 @@ export default function useReportUnreadMessageScrollTracking({
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [isActionBadgeAboveViewport, setIsActionBadgeAboveViewport] = useState(false);
+    const [isActionBadgeBelowViewport, setIsActionBadgeBelowViewport] = useState(false);
     const isFocused = useIsFocused();
     const ref = useRef<{
         previousViewableItems: ViewToken[];
@@ -159,15 +160,20 @@ export default function useReportUnreadMessageScrollTracking({
             ref.current.onUnreadActionVisible();
         }
 
-        // Track whether the action badge target is above the viewport (i.e., not visible and at a higher index in the inverted list)
+        // Track whether the action badge target is above or below the viewport (i.e., not visible), so the pill can point
+        // toward it with the correct arrow direction.
         const badgeTargetIndex = ref.current.actionBadgeTargetIndex;
         if (badgeTargetIndex !== -1) {
-            // In an inverted list, higher indexes are "above" (older messages). The target is above the viewport
-            // when its index is greater than the max visible index.
+            // In an inverted list, higher indexes are "above" (older messages) and lower indexes are "below" (newer messages).
+            // The target is above the viewport when its index is greater than the max visible index, and below when its index
+            // is less than the min visible index.
             const isAbove = isInverted ? badgeTargetIndex > maxIndex : badgeTargetIndex < minIndex;
+            const isBelow = isInverted ? badgeTargetIndex < minIndex : badgeTargetIndex > maxIndex;
             setIsActionBadgeAboveViewport(isAbove);
+            setIsActionBadgeBelowViewport(isBelow);
         } else {
             setIsActionBadgeAboveViewport(false);
+            setIsActionBadgeBelowViewport(false);
         }
 
         // FlatList requires a stable onViewableItemsChanged callback for optimal performance.
@@ -195,6 +201,7 @@ export default function useReportUnreadMessageScrollTracking({
         isFloatingMessageCounterVisible,
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
         updatePillVisibility,
