@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+/** Defines the benchmark CLI, validates its arguments, and dispatches startup runs or result aggregation. */
+
 import {env} from 'bun';
 import CLI from 'expensify-common/CLI';
 import {join, resolve} from 'node:path';

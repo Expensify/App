@@ -1,3 +1,5 @@
+/** Reads and writes benchmark artifacts, calculates per-span statistics, and formats result comparisons. */
+
 import {file, write} from 'bun';
 import {extname} from 'node:path';
 

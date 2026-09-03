@@ -1,3 +1,5 @@
+/** Provides benchmark event parsing, polling primitives, and subprocess helpers shared by the native platform adapters. */
+
 import {isRecord} from '@libs/ObjectUtils';
 
 import type {TupleToUnion} from 'type-fest';

@@ -1,3 +1,5 @@
+/** Coordinates native app startup runs and records the collected span samples without owning platform-specific device commands. */
+
 import type {BenchmarkMetricResult, BenchmarkSample} from './benchmarkStatistics';
 import type {BenchmarkLogEvent, NativeAppBenchmarkAdapter, PlatformName, StartupMode} from './nativeAppBenchmark';
 

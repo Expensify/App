@@ -1,5 +1,7 @@
 // cspell:ignore serialno
 
+/** Implements Android benchmark setup, launch, process control, and log collection through adb. */
+
 import {file} from 'bun';
 
 import type {NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions} from './shared';

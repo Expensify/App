@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+/** Runs the device-bootstrap CLI from the repository root and reports uncaught failures as command-line errors. */
+
 import {main} from './bootstrapForDevice';
 
 if (import.meta.main) {

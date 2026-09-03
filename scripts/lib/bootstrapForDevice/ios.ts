@@ -1,3 +1,5 @@
+/** Patches the legacy Xcode project, plist values, and entitlements for local signing under unique app identifiers. */
+
 import type {TupleToUnion} from 'type-fest';
 
 import {file, write} from 'bun';

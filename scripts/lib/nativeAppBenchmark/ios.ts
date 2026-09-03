@@ -1,5 +1,7 @@
 // cspell:ignore BEGINSWITH devicectl
 
+/** Implements iOS benchmark setup, launch, process control, and marker collection through CoreDevice. */
+
 import {isRecord} from '@libs/ObjectUtils';
 
 import {env, file} from 'bun';

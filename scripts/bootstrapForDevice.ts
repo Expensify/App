@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+/** Defines the CLI that prepares the legacy native projects for a uniquely identified local device build. */
+
 import type {TupleToUnion} from 'type-fest';
 
 import {env} from 'bun';

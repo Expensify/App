@@ -1,3 +1,5 @@
+/** Patches the legacy Android project so locally built variants use unique identifiers, Firebase settings, shortcuts, and labels. */
+
 import {isRecord} from '@libs/ObjectUtils';
 
 import {isUnknownArray} from '@src/types/utils/ObjectUtils';

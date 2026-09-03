@@ -1,3 +1,5 @@
+/** Selects the native benchmark adapter for a platform and exposes the parsing helpers used by tooling and tests. */
+
 import type {NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions} from './nativeAppBenchmark/shared';
 
 import {assertAndroidAppInstalled, createAndroidAdapter, parseAndroidProcessIdentifier} from './nativeAppBenchmark/android';

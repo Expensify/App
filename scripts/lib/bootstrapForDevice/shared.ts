@@ -1,3 +1,5 @@
+/** Defines the shared bootstrap options and validates identifier suffixes before platform-specific files are changed. */
+
 const PLATFORMS = ['ios', 'android'] as const;
 
 type BootstrapOptions = {

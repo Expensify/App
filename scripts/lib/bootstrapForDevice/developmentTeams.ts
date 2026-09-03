@@ -1,5 +1,7 @@
 // cspell:ignore apos noverify smime
 
+/** Discovers local Apple development teams from provisioning profiles and prompts for a team when none was provided. */
+
 import {env, Glob, spawnSync} from 'bun';
 import {join} from 'node:path';
 import {createInterface} from 'node:readline/promises';
