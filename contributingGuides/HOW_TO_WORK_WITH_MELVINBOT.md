@@ -12,7 +12,7 @@ For general contributor workflow (proposals, payment, PR standards), see [CONTRI
 |------|----------------------------------|
 | **MelvinBot** | Posts the first proposal on the issue. Implements the accepted solution when asked. Opens a draft PR with MelvinBot as the GitHub author. |
 | **Contributor** | May submit their own proposal if they have a meaningfully different approach. Must not open a PR until a proposal is accepted and they are hired on the job. |
-| **Contributor+ (C+)** | Reviews proposals (Melvin's and any contributor proposals) using the same standards as any other job. Recommends acceptance to the CME. After the CME approves, asks Melvin to implement, then owns the PR as the human author before sending it for final review. |
+| **Contributor+ (C+)** | Reviews proposals (Melvin's and any contributor proposals) using the same standards as any other job. Recommends acceptance to the CME. After the CME approves, asks the assigned contributor to create a PR or Melvin to implement, then owns the PR as the human author before sending it for final review. |
 | **Contributor Manager Engineer (CME)** | Reviews and approves proposals (same as any other App job). After implementation, reviews and merges the PR. |
 
 Only Expensify employees, C+ members, and backend contributors can trigger Melvin with `@MelvinBot` comments on GitHub.
