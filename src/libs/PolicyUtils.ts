@@ -3212,7 +3212,6 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
-    isPolicyCardAdmin,
     isAdminOfCardEnabledPolicy,
     hasEligibleBankAccountShareRecipient,
     isPolicyEmployee,
