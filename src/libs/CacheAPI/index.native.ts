@@ -1,22 +1,18 @@
-// Cache API only works for web, so we will return empty function here
-function init() {}
-function put(_cacheName?: unknown, _key?: unknown, _value?: unknown) {
-    return Promise.resolve();
-}
-function get(_cacheName?: unknown, _key?: unknown) {
-    return Promise.resolve(undefined);
-}
-function remove(_cacheName?: unknown, _key?: unknown) {
-    return Promise.resolve(false);
-}
-function clear(_cacheName?: unknown) {
-    return Promise.resolve();
-}
+import type CacheAPI from './types';
 
-export default {
+// Cache API only works for web, so we will return empty function here
+const init = () => {};
+const put = () => Promise.resolve();
+const get = () => Promise.resolve(undefined);
+const remove = () => Promise.resolve(false);
+const clear = () => Promise.resolve();
+
+const cacheAPI: CacheAPI = {
     init,
     put,
     get,
     remove,
     clear,
 };
+
+export default cacheAPI;

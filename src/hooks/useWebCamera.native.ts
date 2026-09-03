@@ -1,8 +1,19 @@
-const useWebCamera = (_options?: {onUnmount?: () => void}) => ({
+import type {CameraPermissionState, UseWebCamera, WebCameraPlatformTypes} from './useWebCamera.types';
+
+type NativeWebCameraTypes = WebCameraPlatformTypes & {
+    cameraRef: {current: null};
+    viewfinderLayout: undefined;
+    setCameraPermissionStateArgs: [state?: CameraPermissionState];
+    isFlashLightOn: {current: boolean};
+    videoConstraints: undefined;
+    setupCameraPermissionsAndCapabilitiesArgs: [];
+};
+
+const useWebCamera: UseWebCamera<NativeWebCameraTypes> = () => ({
     cameraRef: {current: null},
     viewfinderLayout: undefined,
     cameraPermissionState: undefined as 'prompt' | 'granted' | 'denied' | undefined,
-    setCameraPermissionState: (_state?: 'prompt' | 'granted' | 'denied') => {},
+    setCameraPermissionState: () => {},
     isFlashLightOn: {current: false},
     toggleFlashlight: () => {},
     isTorchAvailable: false,
@@ -10,7 +21,7 @@ const useWebCamera = (_options?: {onUnmount?: () => void}) => ({
     videoConstraints: undefined,
     requestCameraPermission: () => {},
     setupCameraPermissionsAndCapabilities: () => {},
-    capturePhotoWithFlash: (_getScreenshot: () => void) => {},
+    capturePhotoWithFlash: () => {},
 });
 
 export default useWebCamera;

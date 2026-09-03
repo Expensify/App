@@ -18,12 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-type CardAuthenticationModalProps = {
-    /** Title shown in the header of the modal */
-    headerTitle?: string;
-
-    policyID?: string;
-};
+import type CardAuthenticationModalProps from './types';
 
 const SECURE_ORIGIN = new URL(CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL).origin;
 

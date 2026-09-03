@@ -724,9 +724,6 @@ const config = defineConfig([
                 projectService: false,
             },
         },
-        rules: {
-            '@typescript-eslint/no-unused-vars': ['error', {vars: 'all', args: 'after-used', argsIgnorePattern: '^_', caughtErrors: 'none', ignoreRestSiblings: true}],
-        },
     },
 
     {

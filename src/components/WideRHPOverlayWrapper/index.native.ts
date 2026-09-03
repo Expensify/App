@@ -1,9 +1,6 @@
-type WideRHPOverlayWrapperProps = {
-    children: React.ReactNode;
-    shouldWrap?: boolean;
-};
+import type WideRHPOverlayWrapperProps from './types';
 
 // Overlays aren't displayed on native platforms.
-export default function WideRHPOverlayWrapper({children, shouldWrap: _shouldWrap}: WideRHPOverlayWrapperProps) {
+export default function WideRHPOverlayWrapper({children}: WideRHPOverlayWrapperProps) {
     return children;
 }

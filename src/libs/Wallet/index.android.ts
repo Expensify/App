@@ -3,21 +3,23 @@ import Log from '@libs/Log';
 
 import type {Card} from '@src/types/onyx';
 
-import type {AndroidCardData, AndroidWalletData, CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
+import type {AndroidCardData, AndroidWalletData, CardStatus} from '@expensify/react-native-wallet';
 
 import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusBySuffix, getSecureWalletInfo} from '@expensify/react-native-wallet';
 
-function checkIfWalletIsAvailable(): Promise<boolean> {
-    return checkWalletAvailability();
-}
+import type Wallet from './types';
 
-function handleAddCardToWallet(card: Card, cardHolderName: string, _cardDescription?: string, _onFinished?: () => void): Promise<TokenizationStatus> {
+const checkIfWalletIsAvailable: Wallet['checkIfWalletIsAvailable'] = () => {
+    return checkWalletAvailability();
+};
+
+const handleAddCardToWallet: Wallet['handleAddCardToWallet'] = (card, cardHolderName) => {
     return getSecureWalletInfo().then((walletData: AndroidWalletData) =>
         createDigitalGoogleWallet({cardID: card.cardID, cardHolderName, ...walletData}).then((cardData: AndroidCardData) => addCardToGoogleWallet(cardData)),
     );
-}
+};
 
-function isCardInWallet(card: Card): Promise<boolean> {
+const isCardInWallet: Wallet['isCardInWallet'] = (card: Card) => {
     if (!card.lastFourPAN) {
         return Promise.resolve(false);
     }
@@ -30,6 +32,6 @@ function isCardInWallet(card: Card): Promise<boolean> {
             Log.warn(`getCardTokenStatus error: ${error}`);
             return false;
         });
-}
+};
 
 export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable};

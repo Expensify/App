@@ -4,15 +4,17 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
-import type {IOSCardData, TokenizationStatus} from '@expensify/react-native-wallet';
+import type {IOSCardData} from '@expensify/react-native-wallet';
 
 import {addCardToAppleWallet, checkWalletAvailability, getCardStatusByIdentifier, getCardStatusBySuffix} from '@expensify/react-native-wallet';
 
-function checkIfWalletIsAvailable(): Promise<boolean> {
-    return checkWalletAvailability();
-}
+import type Wallet from './types';
 
-function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string, _onFinished?: () => void): Promise<TokenizationStatus> {
+const checkIfWalletIsAvailable: Wallet['checkIfWalletIsAvailable'] = () => {
+    return checkWalletAvailability();
+};
+
+const handleAddCardToWallet: Wallet['handleAddCardToWallet'] = (card, cardHolderName, cardDescription) => {
     const data = {
         network: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
         lastDigits: card.lastFourPAN,
@@ -21,9 +23,9 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescripti
     } as IOSCardData;
 
     return addCardToAppleWallet(data, (nonce, nonceSignature, certificates) => issuerEncryptPayloadCallback(nonce, nonceSignature, certificates, card.cardID));
-}
+};
 
-function isCardInWallet(card: Card): Promise<boolean> {
+const isCardInWallet: Wallet['isCardInWallet'] = (card: Card) => {
     const panReferenceID = card.nameValuePairs?.expensifyCard_panReferenceID;
     if (!panReferenceID) {
         return Promise.resolve(false);
@@ -48,6 +50,6 @@ function isCardInWallet(card: Card): Promise<boolean> {
             });
     }
     return Promise.resolve(false);
-}
+};
 
 export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable};

@@ -1,6 +1,9 @@
+import type {ReactNode} from 'react';
+
 import type {BaseOverlayProps} from './BaseOverlay';
 
-function Overlay(_props: BaseOverlayProps) {
+function Overlay(props: BaseOverlayProps): ReactNode;
+function Overlay() {
     return null;
 }
 

@@ -1,5 +1,10 @@
+import type {ReactNode} from 'react';
+
+import type SearchAdvancedFiltersPopupProps from './types';
+
 // On native platforms, advanced filters is served from SearchAdvancedFiltersPage
-function SearchAdvancedFiltersPopup(_props: {queryJSON?: unknown}) {
+function SearchAdvancedFiltersPopup(props: SearchAdvancedFiltersPopupProps): ReactNode;
+function SearchAdvancedFiltersPopup() {
     return null;
 }
 

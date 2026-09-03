@@ -1,4 +1,9 @@
-function ReceiptPreview(_props: {source?: unknown; hovered?: boolean; isEReceipt?: boolean; transactionItem?: unknown; anchorPosition?: unknown}) {
+import type {ReactNode} from 'react';
+
+import type ReceiptPreviewProps from './types';
+
+function ReceiptPreview(props: ReceiptPreviewProps): ReactNode;
+function ReceiptPreview() {
     return null;
 }
 
