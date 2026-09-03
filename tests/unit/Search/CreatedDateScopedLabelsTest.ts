@@ -3,6 +3,12 @@ import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import {FILTER_VIEW_MAP, getFilterViewLabelKey, getSearchColumnTranslationKey, getTableMinWidth, isCreatedDateType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
+import createStyleUtils from '@src/styles/utils';
+import variables from '@src/styles/variables';
+
+const StyleUtils = createStyleUtils(defaultTheme, styles(defaultTheme));
 
 describe('Created date scoped labels (#98148)', () => {
     const DATE = CONST.SEARCH.TABLE_COLUMNS.DATE;
@@ -65,16 +71,28 @@ describe('Created date scoped labels (#98148)', () => {
     });
 
     describe('getTableMinWidth (horizontal-scroll budget)', () => {
+        // Absolute values (24 is the leading checkbox) so a shift in the untouched-type budget can't pass.
+        const CREATED_DATE_MIN_WIDTH = 24 + 72;
+        const DATE_MIN_WIDTH = 24 + 48;
+
         it('gives the DATE column the wider "Created" budget in expense-report and task search', () => {
-            const expenseWidth = getTableMinWidth([DATE], EXPENSE);
-            expect(getTableMinWidth([DATE], EXPENSE_REPORT)).toBeGreaterThan(expenseWidth);
-            expect(getTableMinWidth([DATE], TASK)).toBeGreaterThan(expenseWidth);
+            expect(getTableMinWidth([DATE], EXPENSE_REPORT)).toBe(CREATED_DATE_MIN_WIDTH);
+            expect(getTableMinWidth([DATE], TASK)).toBe(CREATED_DATE_MIN_WIDTH);
         });
 
-        it('keeps the narrower "Date" budget for invoice and trip', () => {
-            const expenseWidth = getTableMinWidth([DATE], EXPENSE);
-            expect(getTableMinWidth([DATE], INVOICE)).toBe(expenseWidth);
-            expect(getTableMinWidth([DATE], TRIP)).toBe(expenseWidth);
+        it('keeps the narrower "Date" budget for expense, invoice, trip and the opened report (no type)', () => {
+            expect(getTableMinWidth([DATE], EXPENSE)).toBe(DATE_MIN_WIDTH);
+            expect(getTableMinWidth([DATE], INVOICE)).toBe(DATE_MIN_WIDTH);
+            expect(getTableMinWidth([DATE], TRIP)).toBe(DATE_MIN_WIDTH);
+            expect(getTableMinWidth([DATE])).toBe(DATE_MIN_WIDTH);
+        });
+    });
+
+    describe('getReportTableColumnStyles (DATE cell width)', () => {
+        it('widens the DATE cell for the created-date column and keeps the narrow width otherwise', () => {
+            expect(StyleUtils.getReportTableColumnStyles(DATE, {isDateColumnCreated: true})).toEqual(expect.objectContaining({width: variables.w80}));
+            expect(StyleUtils.getReportTableColumnStyles(DATE, {isDateColumnCreated: false})).toEqual(expect.objectContaining({width: variables.w62}));
+            expect(StyleUtils.getReportTableColumnStyles(DATE, {})).toEqual(expect.objectContaining({width: variables.w62}));
         });
     });
 });

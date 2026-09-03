@@ -20,7 +20,6 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     onLongPressRow?: (item: TItem) => void;
     shouldSyncFocus?: boolean;
     columns?: SearchColumnType[];
-    isDateColumnCreated?: boolean;
     isLoading?: boolean;
     isActionLoading?: boolean;
     isLastItem?: boolean;

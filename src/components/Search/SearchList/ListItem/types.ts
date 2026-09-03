@@ -489,7 +489,6 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         /** Whether the item's action is loading */
         isLoading?: boolean;
         columns?: SearchColumnType[];
-        isDateColumnCreated?: boolean;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         /** All policies' tag lists, drilled from the list level so each row can resolve its policy's tags without an Onyx subscription per row */

@@ -73,6 +73,7 @@ type ColumnsSettingsListProps = {
     /** Callback fired with the updated column list when the user saves changes */
     onSave: (columns: SearchCustomColumnIds[]) => void;
 
+    /** The active Search type, used to resolve type-specific column labels (e.g. "Created" vs "Date") */
     type?: SearchDataTypes;
 };
 
