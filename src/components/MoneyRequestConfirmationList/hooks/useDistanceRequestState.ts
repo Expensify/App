@@ -33,6 +33,9 @@ type UseDistanceRequestStateParams = {
     /** Whether the transaction is a distance request */
     isDistanceRequest: boolean;
 
+    /** Whether the expense sits on a workspace chat, which is what makes a workspace's commuter exclusions apply */
+    isPolicyExpenseChat: boolean;
+
     /** Current IOU amount, used to decide whether to seed the calculated amount */
     iouAmount: number;
 
@@ -56,6 +59,7 @@ function useDistanceRequestState({
     policyForMovingExpenses,
     isMovingTransactionFromTrackExpense,
     isDistanceRequest,
+    isPolicyExpenseChat,
     iouAmount,
     iouCurrencyCode,
 }: UseDistanceRequestStateParams) {
@@ -107,7 +111,19 @@ function useDistanceRequestState({
         (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit || prevReimbursableDistance !== reimbursableDistance);
 
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
-    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
+
+    // How much of a trip the home and office method excludes is decided server-side and arrives on the route
+    // response, so a route held without the matching verdict is a distance and an amount that are about to change.
+    // Report those as pending rather than showing the undeducted figures for the moment in between. Requiring a
+    // route and no route error keeps this to the states the verdict can still arrive in.
+    const isCommuterExclusionPreviewPending =
+        isPolicyExpenseChat &&
+        policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
+        hasRoute &&
+        !transaction?.errorFields?.route &&
+        transaction?.commuterExclusionPreview?.policyID !== policy.id;
+
+    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate || isCommuterExclusionPreviewPending) && !isMovingTransactionFromTrackExpense;
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(reimbursableDistanceInMeters, amountUnit, rate ?? 0);
 

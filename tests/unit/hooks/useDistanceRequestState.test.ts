@@ -2,6 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useDistanceRequestState from '@components/MoneyRequestConfirmationList/hooks/useDistanceRequestState';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import createMock from '../../utils/createMock';
@@ -40,11 +41,53 @@ const baseParams: Params = {
     policyForMovingExpenses: undefined,
     isMovingTransactionFromTrackExpense: false,
     isDistanceRequest: true,
+    isPolicyExpenseChat: false,
     iouAmount: 0,
     iouCurrencyCode: 'USD',
 };
 
 describe('useDistanceRequestState', () => {
+    describe('isDistanceRequestWithPendingRoute', () => {
+        const homeAndOfficePolicy = createMock<OnyxTypes.Policy>({
+            id: 'policy1',
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+        });
+
+        it('stays pending while the home and office exclusion has not been decided for this workspace yet', () => {
+            const {result} = renderHook(() => useDistanceRequestState({...baseParams, policy: homeAndOfficePolicy, isPolicyExpenseChat: true}));
+
+            expect(result.current.isDistanceRequestWithPendingRoute).toBe(true);
+        });
+
+        it('stops being pending once the verdict for this workspace arrives', () => {
+            const transaction = createMock<OnyxTypes.Transaction>({
+                transactionID: 'txn1',
+                comment: {customUnit: {routeDistanceMeters: 10}},
+                commuterExclusionPreview: {policyID: 'policy1', hasExclusion: false, isWholeTripExcluded: false, commuteDistanceMeters: 0},
+            });
+            const {result} = renderHook(() => useDistanceRequestState({...baseParams, transaction, policy: homeAndOfficePolicy, isPolicyExpenseChat: true}));
+
+            expect(result.current.isDistanceRequestWithPendingRoute).toBe(false);
+        });
+
+        it('does not wait on a verdict that can no longer arrive because the route errored', () => {
+            const transaction = createMock<OnyxTypes.Transaction>({
+                transactionID: 'txn1',
+                comment: {customUnit: {routeDistanceMeters: 10}},
+                errorFields: {route: {error: 'oops'}},
+            });
+            const {result} = renderHook(() => useDistanceRequestState({...baseParams, transaction, policy: homeAndOfficePolicy, isPolicyExpenseChat: true}));
+
+            expect(result.current.isDistanceRequestWithPendingRoute).toBe(false);
+        });
+
+        it('does not wait on a verdict for a personal expense that a workspace exclusion cannot govern', () => {
+            const {result} = renderHook(() => useDistanceRequestState({...baseParams, policy: homeAndOfficePolicy, isPolicyExpenseChat: false}));
+
+            expect(result.current.isDistanceRequestWithPendingRoute).toBe(false);
+        });
+    });
+
     it('shouldCalculateDistanceAmount is true on initial mount when iouAmount is 0', () => {
         const {result} = renderHook(() => useDistanceRequestState(baseParams));
         expect(result.current.shouldCalculateDistanceAmount).toBe(true);
