@@ -41,8 +41,12 @@ If Expensify emails you a link to start submitting expenses:
 2. Sign in to Expensify if you aren't signed in already.
 3. A Submit workspace is created for you automatically, and you land on the **Expenses** page in the **Spend** tab.
 
-The email link never creates a duplicate workspace. If you already belong to a workspace where you can submit expenses, or you've already used the link, no new workspace is created and nothing else about your account changes. If you haven't finished setting up your Expensify account yet, the link takes you through the normal account setup instead, where you can select **Submit expenses to my employer**.
+The email link doesn't create a duplicate workspace:
 
+- If you already belong to a workspace where you can submit expenses, no new workspace is created and nothing else about your account changes.
+- If you haven't finished setting up your Expensify account yet, the link takes you through the normal account setup instead, where you can select **Submit expenses to my employer**.
+
+Clicking the link again while you still have the workspace doesn't create a second one. If you delete the workspace and then click the link again, a new Submit workspace is created.
 
 ## What happens after you create a Submit workspace
 
@@ -110,7 +114,7 @@ To submit a report as a PDF:
 6. Your approver can access the report to approve in Expensify by clicking the **Approve or Pay** button on the PDF or scanning the QR code on the PDF.
 7. If your report has been paid outside of Expensify, you can change the status from Outstanding to Paid by opening the report, selecting **More** and **Received Payment**.
 
-Your choice is sticky: future reports default to the last method you used, including when you submit from the **Spend** page.
+Your choice is sticky: future reports default to the last method you used, including when you submit from the **Spend** tab.
 
 ---
 
@@ -167,7 +171,7 @@ No. Once a workspace is upgraded to Collect or Control, it can't be downgraded b
 
 ## Why do I have a Submit workspace I didn't create?
 
-If you clicked a link in an email from Expensify inviting you to start submitting expenses, a Submit workspace was created for you so you could start submitting right away. There's no cost to keep it. If you don't want it, [learn how to delete a workspace](/articles/new-expensify/workspaces/Delete-a-Workspace).
+If you clicked a link in an email from Expensify inviting you to start submitting expenses, a Submit workspace was created for you so you could start submitting right away. There's no cost to keep it. If you don't want it, [learn how to delete a workspace](/articles/new-expensify/workspaces/Delete-a-Workspace). After you delete it, don't click the same email link again — that creates a new Submit workspace.
 
 ## Why can't I see other members' expenses in my Submit workspace?
 
