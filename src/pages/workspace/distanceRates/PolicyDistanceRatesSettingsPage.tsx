@@ -315,7 +315,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             </View>
                         </View>
                         {!isPolicyTrackTaxEnabled && (
-                            <View style={[styles.mh5, styles.mb2]}>
+                            <View style={[styles.mh5]}>
                                 <RenderHTML
                                     html={translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
                                     onLinkPress={() => {
