@@ -119,10 +119,13 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             });
     };
 
-    // Fetch the first page on mount; cached results are shown immediately and refreshed in the background
+    // Fetch the first page on mount and when the workspace scope changes.
+    // searchTags is not memoized, so it cannot be in the dependency array — it would fire on every render.
+    // searchTags reads latest state via refs, so the closure captured here is safe to call.
     useEffect(() => {
         searchTags('');
-    }, [searchTags]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyIDs]);
 
     const isInitialLoading = isLoading && !hasCompletedSearch;
 
