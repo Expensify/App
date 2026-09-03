@@ -132,6 +132,7 @@ function iOSBenchmarkMarkerPath(spanName: string): string {
     return `${IOS_BENCHMARK_DIRECTORY}/${encodeURIComponent(spanName)}.log`;
 }
 
+// CoreDevice does not publish a runtime schema for `devicectl --json-output`, so keep parsed responses unknown until each required field is validated.
 function parseIOSLaunchProcessIdentifier(response: unknown): number {
     if (!isRecord(response) || !isRecord(response.result) || !isRecord(response.result.process)) {
         throw new Error('CoreDevice returned an unexpected app-launch response.');
