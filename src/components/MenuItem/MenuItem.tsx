@@ -1117,7 +1117,6 @@ function MenuItem({
                                                                             [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
                                                                             ...(isTitleSelectable ? COPYABLE_TEXT_DATA_SET : {}),
                                                                         }}
-                                                                        selectable={isTitleSelectable}
                                                                         accessibilityRole={titleAccessibilityRole}
                                                                     >
                                                                         {renderTitleContent()}
