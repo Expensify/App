@@ -237,16 +237,17 @@ function patchGoogleServicesConfig(config: unknown, applicationIDs: AndroidAppli
     return {...config, client: clients};
 }
 
+/** Make release-derived builds locally signable under a side-by-side application ID. */
 function patchAndroidBuildGradle(buildGradle: string, baseIdentifier: string): string {
     const applicationIDPattern = /(defaultConfig\s*\{[\s\S]*?applicationId\s+)["'][^"']+["']/;
     if (!applicationIDPattern.test(buildGradle)) {
         throw new Error('Could not find defaultConfig.applicationId in Mobile-Expensify/Android/build.gradle.');
     }
-    let patched = buildGradle.replace(applicationIDPattern, `$1"${baseIdentifier}"`);
-    patched = patched.replaceAll('signingConfig signingConfigs.release', 'signingConfig signingConfigs.debug');
-    patched = patched.replace(/^(\s*)(?!\/\/)(minifyEnabled\s+true)$/m, '$1// $2');
-    patched = patched.replace(/^(\s*)(?!\/\/)(proguardFiles\s+.+)$/m, '$1// $2');
-    return patched;
+
+    const buildWithApplicationID = buildGradle.replace(applicationIDPattern, `$1"${baseIdentifier}"`);
+    const buildWithLocalSigning = buildWithApplicationID.replaceAll('signingConfig signingConfigs.release', 'signingConfig signingConfigs.debug');
+    const buildWithoutMinification = buildWithLocalSigning.replace(/^(\s*)(?!\/\/)(minifyEnabled\s+true)$/m, '$1// $2');
+    return buildWithoutMinification.replace(/^(\s*)(?!\/\/)(proguardFiles\s+.+)$/m, '$1// $2');
 }
 
 function patchAndroidShortcutPackage(shortcuts: string, applicationID: string): string {
