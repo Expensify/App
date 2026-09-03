@@ -11245,7 +11245,7 @@ const translations = {
             restrictDefaultLoginSelection: 'Restrict default login selection',
             restrictDefaultLoginSelectionDescription: 'Prevent members from changing their login email away from their company domain to avoid policy restrictions.',
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'To enable this setting, please first enable a preferred workspace and set up an Expensify card or company card feed on your domain.',
+                'To enable this setting, please first enable a preferred workspace and set up an Expensify Card or a company card feed on your domain.',
             findGroup: 'Find group',
         },
     },
