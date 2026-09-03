@@ -9,6 +9,9 @@ import CONST from '@src/CONST';
 import React, {useEffect, useMemo, useRef} from 'react';
 import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
+/** Progress of the open animation once the container is fully shown. */
+const SHOWN_PROGRESS = 1;
+
 function Container({
     style,
     animationIn,
@@ -35,12 +38,18 @@ function Container({
         onOpenCallbackRef.current = onOpenCallBack;
     }, [onOpenCallBack]);
 
-    // Reading the callback and the timing through refs leaves only the stable shared value as a dependency, so the animation starts exactly once per mount.
-    // A shared value guarding the start would outlive a remount that cancelled the animation, leaving the modal at progress 0 forever.
+    // Reading the callback and the timing through refs leaves only the stable shared value as a dependency, so nothing but an effect remount can run this again.
     useEffect(() => {
+        // A finished animation means the container is already shown, and replaying it would report a second open.
+        // Progress survives an effect remount, so it tells a reveal or a StrictMode remount apart from a cancelled
+        // animation, which is left below its target and does have to start again.
+        if (initProgress.get() === SHOWN_PROGRESS) {
+            return;
+        }
+
         initProgress.set(
             withTiming(
-                1,
+                SHOWN_PROGRESS,
                 {
                     duration: animationInTimingRef.current,
                     easing,
