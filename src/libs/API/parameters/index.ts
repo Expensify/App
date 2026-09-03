@@ -27,6 +27,7 @@ export type {default as ConnectPolicyToMergeParams} from './ConnectPolicyToMerge
 export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';
 export type {default as ConnectPolicyToRilletParams} from './ConnectPolicyToRilletParams';
 export type {default as ConnectPolicyToDualEntryParams} from './ConnectPolicyToDualEntryParams';
+export type {default as ConnectPolicyToBusinessCentralParams} from './ConnectPolicyToBusinessCentralParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
@@ -65,7 +66,23 @@ export type {default as UpdateDualEntryExporterParams} from './UpdateDualEntryEx
 export type {default as UpdateDualEntryExportDateParams} from './UpdateDualEntryExportDateParams';
 export type {default as UpdateDualEntryDefaultVendorParams} from './UpdateDualEntryDefaultVendorParams';
 export type {default as UpdateDualEntryCreditCardAccountParams} from './UpdateDualEntryCreditCardAccountParams';
-export type {default as UpdateDualEntryExpensifyCardAccountParams} from './UpdateDualEntryExpensifyCardAccountParams';
+export type {default as UpdateDualEntryExportToMultipleAccountsParams} from './UpdateDualEntryExportToMultipleAccountsParams';
+export type {default as UpdateDualEntryCardProgramAccountParams} from './UpdateDualEntryCardProgramAccountParams';
+export type {default as UpdateDualEntryAutoSyncParams} from './UpdateDualEntryAutoSyncParams';
+export type {default as UpdateDualEntryAccountingMethodParams} from './UpdateDualEntryAccountingMethodParams';
+export type {default as UpdateDualEntrySyncReimbursedReportsParams} from './UpdateDualEntrySyncReimbursedReportsParams';
+export type {default as UpdateDualEntryBillPaymentAccountParams} from './UpdateDualEntryBillPaymentAccountParams';
+export type {default as UpdateDualEntrySyncExpensifyCardSettlementsParams} from './UpdateDualEntrySyncExpensifyCardSettlementsParams';
+export type {default as UpdateDualEntrySettlementsAccountParams} from './UpdateDualEntrySettlementsAccountParams';
+export type {default as UpdateDualEntrySyncTravelInvoicingSettlementsParams} from './UpdateDualEntrySyncTravelInvoicingSettlementsParams';
+export type {default as UpdateDualEntryTravelInvoicingSettlementsAccountParams} from './UpdateDualEntryTravelInvoicingSettlementsAccountParams';
+export type {default as UpdateDualEntryTravelInvoicingPayableAccountParams} from './UpdateDualEntryTravelInvoicingPayableAccountParams';
+export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
+export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
+export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
+export type {default as UpdateBusinessCentralFieldMappingParams} from './UpdateBusinessCentralFieldMappingParams';
+export type {default as UpdateBusinessCentralSyncTaxRatesParams} from './UpdateBusinessCentralSyncTaxRatesParams';
+export type {default as UpdateBusinessCentralSyncItemsParams} from './UpdateBusinessCentralSyncItemsParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
@@ -298,6 +315,8 @@ export type {default as UpdateGustoFinalApproverParams} from './UpdateGustoFinal
 export type {default as UpdateMergeApprovalModeParams} from './UpdateMergeApprovalModeParams';
 export type {default as UpdateMergeFinalApproverParams} from './UpdateMergeFinalApproverParams';
 export type {default as UpdateMergeGroupsParams} from './UpdateMergeGroupsParams';
+export type {default as UpdateMergeATSFiltersParams} from './UpdateMergeATSFiltersParams';
+export type {default as UpdateMergeATSApproverFieldParams} from './UpdateMergeATSApproverFieldParams';
 export type {default as UpdateZenefitsApprovalModeParams} from './UpdateZenefitsApprovalModeParams';
 export type {default as UpdateZenefitsFinalApproverParams} from './UpdateZenefitsFinalApproverParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
@@ -532,6 +551,7 @@ export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './Chan
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
+export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';
 export type {default as RetractReportParams} from './RetractReportParams';
@@ -555,6 +575,7 @@ export type {default as SendReminderForCorpaySignerInformationParams} from './Se
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
 export type {default as DomainParams} from './DomainParams';
 export type {default as OpenDomainPageParams} from './OpenDomainPageParams';
+export type {default as RequestDomainAdminshipParams} from './RequestDomainAdminshipParams';
 export type {default as GetScimTokenParams} from './GetScimTokenParams';
 export type {default as SetSamlIdentityParams} from './SetSamlIdentityParams';
 export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams';

@@ -42,7 +42,6 @@ describe('UserSelectionListItem', () => {
         render(
             <UserSelectionListItem
                 item={item}
-                keyForList="user-item"
                 isFocused={false}
                 showTooltip={false}
                 onSelectRow={jest.fn()}

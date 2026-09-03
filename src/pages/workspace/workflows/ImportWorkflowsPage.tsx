@@ -2,7 +2,7 @@ import ImportSpreadsheet from '@components/ImportSpreadsheet';
 
 import usePolicy from '@hooks/usePolicy';
 
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';

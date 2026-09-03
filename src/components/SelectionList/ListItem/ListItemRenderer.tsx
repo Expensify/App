@@ -12,7 +12,7 @@ import React from 'react';
 
 import type {ExtendedTargetedEvent, ListItem, SelectableListItemProps} from './types';
 
-type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProps<TItem>, 'onSelectRow' | 'keyForList'> &
+type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProps<TItem>, 'onSelectRow'> &
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
         normalizedIndex?: number;
@@ -89,7 +89,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
                 rightHandSideComponent={rightHandSideComponent}
-                keyForList={item.keyForList}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}

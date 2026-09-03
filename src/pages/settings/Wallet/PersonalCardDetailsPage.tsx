@@ -94,7 +94,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             confirmText: translate('workspace.moreFeatures.companyCards.remove'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -128,7 +128,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;

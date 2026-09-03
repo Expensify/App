@@ -118,7 +118,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                                 <Button.Text>{translate('workspace.people.removeGroupMemberButtonTitle')}</Button.Text>
                             </Button>
                             <ConfirmModal
-                                danger
+                                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                                 title={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 isVisible={isRemoveMemberConfirmModalVisible}
                                 onConfirm={removeUser}
