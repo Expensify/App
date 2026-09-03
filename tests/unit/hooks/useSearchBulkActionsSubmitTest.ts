@@ -181,6 +181,7 @@ const mockClearSelectedTransactions = jest.fn();
 const mockSelectAllMatchingItems = jest.fn();
 let mockSelectedReports: SelectedReports[] = [];
 let mockSelectedTransactions: SelectedTransactions = {};
+let mockCurrentSearchResults: {data: Record<string, {reportName: string}>; search: {type: string}} | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
@@ -189,7 +190,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         areAllMatchingItemsSelected: false,
     }),
     useSearchResultsContext: () => ({
-        currentSearchResults: undefined,
+        currentSearchResults: mockCurrentSearchResults,
     }),
     useSearchQueryContext: () => ({
         currentSearchKey: undefined,
@@ -325,16 +326,24 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
             type: CONST.POLICY.TYPE.TEAM,
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_A_ID}`, {reportID: REPORT_A_ID, policyID: POLICY_ID, reportName: 'Report A'});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_B_ID}`, {reportID: REPORT_B_ID, policyID: POLICY_ID, reportName: 'Report B'});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_C_ID}`, {reportID: REPORT_C_ID, policyID: POLICY_ID, reportName: 'Report C'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SUBMIT_POLICY_ID}`, {
             id: SUBMIT_POLICY_ID,
             name: 'Submit Policy',
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_D_ID}`, {reportID: REPORT_D_ID, policyID: SUBMIT_POLICY_ID, reportName: 'Report D'});
+        // The live report carries a different name so the assertions prove the modal uses the Search snapshot
+        // name that the rows display. Report A's snapshot name is HTML-escaped the way the backend sends it.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_A_ID}`, {reportID: REPORT_A_ID, policyID: POLICY_ID, reportName: 'Live A'});
+        mockCurrentSearchResults = {
+            data: {
+                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_A_ID}`]: {reportName: 'Report A &amp; travel'},
+                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_B_ID}`]: {reportName: 'Report B'},
+                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_C_ID}`]: {reportName: 'Report C'},
+                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_D_ID}`]: {reportName: 'Report D'},
+            },
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
     });
 
     afterEach(async () => {
@@ -357,7 +366,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
             expect.objectContaining({
                 title: 'iou.error.reportsNotSubmittedTitle',
                 subtitle: 'iou.error.reportsNotSubmittedDescription',
-                prompt: 'Report A',
+                prompt: 'Report A & travel',
                 confirmText: 'common.buttonConfirm',
                 shouldShowCancelButton: false,
             }),
@@ -377,7 +386,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         });
         expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(1)).toEqual([expect.objectContaining({reportID: REPORT_C_ID})]);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual(['Report A', 'Report B']);
+        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual(['Report A & travel', 'Report B']);
     });
 
     it('lists every selected report, submits nothing and keeps the selection when all of them are blocked', async () => {
@@ -389,7 +398,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
 
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.error.reportsNotSubmittedTitle'}));
-        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual(['Report A', 'Report B']);
+        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual(['Report A & travel', 'Report B']);
         expect(mockSubmitMoneyRequestOnSearch).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
     });

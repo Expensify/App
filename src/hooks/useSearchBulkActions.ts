@@ -46,6 +46,7 @@ import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
@@ -73,6 +74,7 @@ import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, isGroupEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
+import StringUtils from '@libs/StringUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getDeleteConfirmationPrompt,
@@ -2324,8 +2326,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const policyIDForSubmit = selectedReportForSubmit?.policyID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.policyID).find((id): id is string => !!id);
                     const policyForSubmit = policyIDForSubmit ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForSubmit}`] : undefined;
 
-                    // Submit-policy selections are limited to a single report, which picks its manager in a popover.
-                    // A blocked report gets the list modal below instead.
+                    // The Submit option only appears for a submit-type workspace when exactly one report is selected, and that
+                    // report picks its manager in a popover. Skip the popover when the report is blocked so it falls through to
+                    // the modal below showing that the report could not be submitted.
                     if (!areAllSelectedReportsBlocked && policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
                         const snapshotReport = getReportOrDraftReport(
                             reportIDForSubmit,
@@ -2373,15 +2376,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     // Blocked reports are skipped rather than aborting the whole action, so list the ones that could not
-                    // be submitted. The live Onyx report can be an incomplete optimistic record that lacks `reportName`,
-                    // so fall back to the Search snapshot for the name.
+                    // be submitted. Take the name from the Search snapshot and normalize it the same way the rows do,
+                    // so the modal shows exactly what the user sees in the list.
                     if (blockedReportIDs.size > 0) {
                         const blockedReportNames: string[] = [];
                         for (const reportID of blockedReportIDs) {
-                            const reportName =
-                                allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+                            const reportName = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
                             if (reportName) {
-                                blockedReportNames.push(reportName);
+                                blockedReportNames.push(StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportName)));
                             }
                         }
                         showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
