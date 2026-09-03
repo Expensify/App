@@ -1,5 +1,5 @@
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -29,15 +29,15 @@ Onyx.connectWithoutView({
     },
 });
 
-function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, reportAttributes?: ReportAttributesDerivedValue['reports']) {
-    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, true, reportAttributes);
+function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName?: string) {
+    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, true, derivedReportName);
 }
 
 function showUpdateAvailableNotification() {
     BrowserNotifications.pushUpdateAvailableNotification();
 }
 
-function showModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, currentUserLogin, reportAttributes}: LocalNotificationModifiedExpenseParams) {
+function showModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, currentUserLogin, derivedReportName}: LocalNotificationModifiedExpenseParams) {
     const policyID = report.policyID;
     const policyTags = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined;
     const policy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
@@ -51,7 +51,7 @@ function showModifiedExpenseNotification({report, reportAction, movedFromReport,
         policyTags,
         policy,
         currentUserLogin,
-        reportAttributes,
+        derivedReportName,
     });
 }
 

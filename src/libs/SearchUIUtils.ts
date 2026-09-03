@@ -150,7 +150,7 @@ import {
     isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canDeleteMoneyRequestReport,
@@ -2815,7 +2815,7 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
-                const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
+                const parentReportName = getReportName(parentReport, parentReport?.reportID ? reportAttributesDerivedValue?.[parentReport.reportID]?.reportName : undefined);
                 // The search snapshot does not always carry the report metadata. Pass undefined rather than an empty array in that case,
                 // otherwise getGroupChatName treats it as "nothing is pending delete" and skips its own Onyx fallback.
                 const parentReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport.reportID}`];
@@ -3017,7 +3017,7 @@ function getReportActionsSections(
                     ...reportAction,
                     reportID,
                     from,
-                    reportName: deprecatedGetReportName(report, reportAttributesDerivedValue),
+                    reportName: getReportName(report, report?.reportID ? reportAttributesDerivedValue?.[report.reportID]?.reportName : undefined),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,

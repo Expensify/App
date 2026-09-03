@@ -69,7 +69,7 @@ import navigationRef from './Navigation/navigationRef';
 import {isRecord} from './ObjectUtils';
 import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -1785,7 +1785,8 @@ function getFilterDisplayValue({
         return getBankAccountSearchLabel(bankAccount);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return deprecatedGetReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
+        const filterReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`];
+        return getReportName(filterReport, filterReport?.reportID ? reportAttributes?.[filterReport.reportID]?.reportName : undefined) || filterValue;
     }
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
