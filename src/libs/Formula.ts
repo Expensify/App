@@ -375,8 +375,10 @@ function formatReimbursementAmount(amount: number | undefined, currency: string 
     if (!amount || !currency) {
         return '';
     }
+    // formatAmount can return '' (not just null) for an unrecognized display currency modifier, which must
+    // fall back to the raw definition too so an invalid modifier doesn't look like a resolved empty amount.
     const formattedAmount = formatAmount(amount, currency, format, context.getCurrencyDecimals);
-    return formattedAmount ?? part.definition;
+    return formattedAmount || part.definition;
 }
 
 /**
