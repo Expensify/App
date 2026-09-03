@@ -3360,7 +3360,8 @@ function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transact
     return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
-function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions: ReportAction[], currentUserAccountID: number): boolean {
+function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions: ReportAction[], currentUserAccountID: number, policy?: Policy): boolean {
+    const isReportPolicyAdmin = isPolicyAdmin(policy);
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
     const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === currentUserAccountID : false;
@@ -3371,10 +3372,16 @@ function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactio
         return true;
     }
 
+    const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
+
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
+    }
+
+    if (isDraft) {
+        return (isOwner || isReportPolicyAdmin) && canCardTransactionBeDeleted;
     }
 
     if (isInvoiceReport(report)) {
@@ -10473,7 +10480,8 @@ function reasonForReportToBeInOptionList({
  * for reports or the reports shown in the LHN).
  *
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
- * filter out the majority of reports before filtering out very specific minority of reports.
+ * filter out the majority of reports before filtering out very spimport { is } from '../../.github/actions/javascript/getAndroidRolloutPercentage/getAndroidRolloutPercentage';
+ecific minority of reports.
  */
 function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
     return reasonForReportToBeInOptionList(params) !== null;

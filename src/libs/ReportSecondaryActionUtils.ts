@@ -733,8 +733,8 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions, report);
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportActions?: ReportAction[]): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID);
+function isDeleteAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportActions?: ReportAction[], policy?: Policy): boolean {
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, policy);
 }
 
 function shouldShowEditSplitInDeleteAction(
@@ -1177,7 +1177,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, currentUserAccountID, reportActions ?? [])) {
+    if (isDeleteAction(report, reportTransactions, currentUserAccountID, reportActions ?? [], policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -1303,7 +1303,7 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, reportAction ? [reportAction] : [])) {
+    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, reportAction ? [reportAction] : [], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 
