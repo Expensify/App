@@ -13,103 +13,6 @@ import {POLL_INTERVAL_MS, RELAUNCH_DELAY_MS, benchmarkCollectionSpanNames, creat
 
 const IOS_BENCHMARK_DIRECTORY = 'Library/Caches/ExpensifyBenchmark';
 
-/** Maps a span name to its encoded marker path inside the iOS app data container. */
-function iOSBenchmarkMarkerPath(spanName: string): string {
-    return `${IOS_BENCHMARK_DIRECTORY}/${encodeURIComponent(spanName)}.log`;
-}
-
-// CoreDevice does not publish a runtime schema for `devicectl --json-output`, so keep parsed responses unknown until each required field is validated.
-/** Validates a CoreDevice launch response and returns the launched process identifier. */
-function parseIOSLaunchProcessIdentifier(response: unknown): number {
-    if (!isRecord(response) || !isRecord(response.result) || !isRecord(response.result.process)) {
-        throw new Error('CoreDevice returned an unexpected app-launch response.');
-    }
-    const {processIdentifier} = response.result.process;
-    if (typeof processIdentifier !== 'number' || !Number.isInteger(processIdentifier) || processIdentifier <= 0) {
-        throw new Error('CoreDevice did not return a valid app process identifier.');
-    }
-    return processIdentifier;
-}
-
-/** Finds the installed app's normalized container URL in an untyped CoreDevice response. */
-function parseIOSInstalledAppURL(response: unknown, appID: string): string {
-    if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.apps)) {
-        throw new Error('CoreDevice returned an unexpected installed-app response.');
-    }
-    const apps: unknown[] = response.result.apps;
-    const app: unknown = apps.find((candidate) => isRecord(candidate) && candidate.bundleIdentifier === appID);
-    if (!isRecord(app) || typeof app.url !== 'string') {
-        throw new Error(`Unable to find installed iOS app ${appID}.`);
-    }
-    return app.url.endsWith('/') ? app.url : `${app.url}/`;
-}
-
-/** Finds the app's main process by requiring its executable to be a direct child of the installed app URL. */
-function parseIOSRunningAppProcessIdentifier(response: unknown, appURL: string): number | undefined {
-    if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.runningProcesses)) {
-        throw new Error('CoreDevice returned an unexpected process-list response.');
-    }
-    const runningProcesses: unknown[] = response.result.runningProcesses;
-    const runningProcess: unknown = runningProcesses.find((candidate) => {
-        if (!isRecord(candidate) || typeof candidate.executable !== 'string') {
-            return false;
-        }
-        const relativeExecutablePath = candidate.executable.slice(appURL.length);
-        return candidate.executable.startsWith(appURL) && relativeExecutablePath.length > 0 && !relativeExecutablePath.includes('/');
-    });
-    if (!isRecord(runningProcess)) {
-        return undefined;
-    }
-    const {processIdentifier} = runningProcess;
-    return typeof processIdentifier === 'number' && Number.isInteger(processIdentifier) && processIdentifier > 0 ? processIdentifier : undefined;
-}
-
-/** Uses the configured device or requires exactly one booted physical iOS device when discovering automatically. */
-function resolveIOSDevice(rootDirectory: string, configuredDevice: string | undefined): string {
-    if (configuredDevice) {
-        return configuredDevice;
-    }
-
-    const {run} = createCommandHelpers(rootDirectory);
-    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-ios-devices-'));
-    const jsonPath = join(temporaryDirectory, 'devices.json');
-    try {
-        run('xcrun', ['devicectl', 'list', 'devices', '--json-output', jsonPath]);
-        const response: unknown = JSON.parse(readFileSync(jsonPath, 'utf8'));
-        if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.devices)) {
-            throw new Error('CoreDevice returned an unexpected device-list response.');
-        }
-
-        const devices = response.result.devices.flatMap((device) => {
-            if (!isRecord(device) || !isRecord(device.hardwareProperties) || !isRecord(device.deviceProperties)) {
-                return [];
-            }
-            const {hardwareProperties, deviceProperties} = device;
-            if (
-                hardwareProperties.platform !== 'iOS' ||
-                hardwareProperties.reality !== 'physical' ||
-                deviceProperties.bootState !== 'booted' ||
-                typeof hardwareProperties.udid !== 'string' ||
-                typeof deviceProperties.name !== 'string'
-            ) {
-                return [];
-            }
-            return [{name: deviceProperties.name, udid: hardwareProperties.udid}];
-        });
-        if (devices.length !== 1) {
-            throw new Error(`Expected one booted physical iOS device, found ${devices.length}. Use --device to select one.`);
-        }
-        const device = devices.at(0);
-        if (!device) {
-            throw new Error('Unable to resolve the connected iOS device.');
-        }
-        console.log(`Using iOS device ${device.name} (${device.udid}).`);
-        return device.udid;
-    } finally {
-        rmSync(temporaryDirectory, {recursive: true, force: true});
-    }
-}
-
 /** Creates an iOS benchmark adapter that manages app state and polls per-span markers through CoreDevice. */
 function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): NativeAppBenchmarkAdapter {
     const {run, runAllowFailure} = createCommandHelpers(rootDirectory);
@@ -249,6 +152,103 @@ function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
             return latestBenchmarkEvents([...eventsBySpan.values()], options.spanNames);
         },
     };
+}
+
+/** Uses the configured device or requires exactly one booted physical iOS device when discovering automatically. */
+function resolveIOSDevice(rootDirectory: string, configuredDevice: string | undefined): string {
+    if (configuredDevice) {
+        return configuredDevice;
+    }
+
+    const {run} = createCommandHelpers(rootDirectory);
+    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-ios-devices-'));
+    const jsonPath = join(temporaryDirectory, 'devices.json');
+    try {
+        run('xcrun', ['devicectl', 'list', 'devices', '--json-output', jsonPath]);
+        const response: unknown = JSON.parse(readFileSync(jsonPath, 'utf8'));
+        if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.devices)) {
+            throw new Error('CoreDevice returned an unexpected device-list response.');
+        }
+
+        const devices = response.result.devices.flatMap((device) => {
+            if (!isRecord(device) || !isRecord(device.hardwareProperties) || !isRecord(device.deviceProperties)) {
+                return [];
+            }
+            const {hardwareProperties, deviceProperties} = device;
+            if (
+                hardwareProperties.platform !== 'iOS' ||
+                hardwareProperties.reality !== 'physical' ||
+                deviceProperties.bootState !== 'booted' ||
+                typeof hardwareProperties.udid !== 'string' ||
+                typeof deviceProperties.name !== 'string'
+            ) {
+                return [];
+            }
+            return [{name: deviceProperties.name, udid: hardwareProperties.udid}];
+        });
+        if (devices.length !== 1) {
+            throw new Error(`Expected one booted physical iOS device, found ${devices.length}. Use --device to select one.`);
+        }
+        const device = devices.at(0);
+        if (!device) {
+            throw new Error('Unable to resolve the connected iOS device.');
+        }
+        console.log(`Using iOS device ${device.name} (${device.udid}).`);
+        return device.udid;
+    } finally {
+        rmSync(temporaryDirectory, {recursive: true, force: true});
+    }
+}
+
+// CoreDevice does not publish a runtime schema for `devicectl --json-output`, so keep parsed responses unknown until each required field is validated.
+/** Validates a CoreDevice launch response and returns the launched process identifier. */
+function parseIOSLaunchProcessIdentifier(response: unknown): number {
+    if (!isRecord(response) || !isRecord(response.result) || !isRecord(response.result.process)) {
+        throw new Error('CoreDevice returned an unexpected app-launch response.');
+    }
+    const {processIdentifier} = response.result.process;
+    if (typeof processIdentifier !== 'number' || !Number.isInteger(processIdentifier) || processIdentifier <= 0) {
+        throw new Error('CoreDevice did not return a valid app process identifier.');
+    }
+    return processIdentifier;
+}
+
+/** Finds the installed app's normalized container URL in an untyped CoreDevice response. */
+function parseIOSInstalledAppURL(response: unknown, appID: string): string {
+    if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.apps)) {
+        throw new Error('CoreDevice returned an unexpected installed-app response.');
+    }
+    const apps: unknown[] = response.result.apps;
+    const app: unknown = apps.find((candidate) => isRecord(candidate) && candidate.bundleIdentifier === appID);
+    if (!isRecord(app) || typeof app.url !== 'string') {
+        throw new Error(`Unable to find installed iOS app ${appID}.`);
+    }
+    return app.url.endsWith('/') ? app.url : `${app.url}/`;
+}
+
+/** Finds the app's main process by requiring its executable to be a direct child of the installed app URL. */
+function parseIOSRunningAppProcessIdentifier(response: unknown, appURL: string): number | undefined {
+    if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.runningProcesses)) {
+        throw new Error('CoreDevice returned an unexpected process-list response.');
+    }
+    const runningProcesses: unknown[] = response.result.runningProcesses;
+    const runningProcess: unknown = runningProcesses.find((candidate) => {
+        if (!isRecord(candidate) || typeof candidate.executable !== 'string') {
+            return false;
+        }
+        const relativeExecutablePath = candidate.executable.slice(appURL.length);
+        return candidate.executable.startsWith(appURL) && relativeExecutablePath.length > 0 && !relativeExecutablePath.includes('/');
+    });
+    if (!isRecord(runningProcess)) {
+        return undefined;
+    }
+    const {processIdentifier} = runningProcess;
+    return typeof processIdentifier === 'number' && Number.isInteger(processIdentifier) && processIdentifier > 0 ? processIdentifier : undefined;
+}
+
+/** Maps a span name to its encoded marker path inside the iOS app data container. */
+function iOSBenchmarkMarkerPath(spanName: string): string {
+    return `${IOS_BENCHMARK_DIRECTORY}/${encodeURIComponent(spanName)}.log`;
 }
 
 export {createIOSAdapter, iOSBenchmarkMarkerPath, parseIOSInstalledAppURL, parseIOSLaunchProcessIdentifier, parseIOSRunningAppProcessIdentifier};

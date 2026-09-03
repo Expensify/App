@@ -36,37 +36,6 @@ type NativeAppBenchmarkAdapterOptions = {
     deviceIdentifier?: string;
 };
 
-/** Creates command runners for inherited output, captured output, and expected best-effort failures. */
-function createCommandHelpers(rootDirectory: string) {
-    const run = (command: string, args: string[]): void => {
-        const result = spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit'});
-        if (!result.success) {
-            throw new Error(`${command} exited with status ${result.exitCode}.`);
-        }
-    };
-
-    const capture = (command: string, args: string[]): string => {
-        const result = spawnSync([command, ...args], {cwd: rootDirectory, maxBuffer: 100 * 1024 * 1024});
-        if (!result.success) {
-            const stderr = result.stderr.toString().trim();
-            throw new Error(stderr || `${command} exited with status ${result.exitCode}.`);
-        }
-        return result.stdout.toString();
-    };
-
-    const runAllowFailure = (command: string, args: string[]): boolean => {
-        return spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'ignore', stdout: 'ignore', stderr: 'ignore'}).success;
-    };
-
-    return {capture, run, runAllowFailure};
-}
-
-function sleep(milliseconds: number): Promise<void> {
-    return new Promise((resolvePromise) => {
-        setTimeout(resolvePromise, milliseconds);
-    });
-}
-
 /** Extracts valid benchmark events from mixed device logs and ignores unrelated, malformed, or incomplete tagged output. */
 function parseBenchmarkLogEvents(output: string): BenchmarkLogEvent[] {
     const events: BenchmarkLogEvent[] = [];
@@ -105,11 +74,6 @@ function parseBenchmarkLogEvents(output: string): BenchmarkLogEvent[] {
     return events;
 }
 
-/** Returns the most recent duration for a span when device output contains repeated benchmark events. */
-function findBenchmarkDuration(output: string, spanName: string): number | undefined {
-    return parseBenchmarkLogEvents(output).findLast((event) => event.span === spanName)?.durationMs;
-}
-
 /** Selects the latest event for each requested span while preserving the caller's span order. */
 function latestBenchmarkEvents(events: BenchmarkLogEvent[], spanNames: string[]): BenchmarkLogEvent[] {
     return [...new Set(spanNames)].flatMap((spanName) => {
@@ -123,6 +87,42 @@ function benchmarkCollectionSpanNames(options: CollectBenchmarkEventsOptions): s
     const waitUntilSpanNames = options.waitUntilSpan ? [options.waitUntilSpan] : [];
     const spanNames = [...options.spanNames, ...waitUntilSpanNames];
     return [...new Set(spanNames)];
+}
+
+/** Creates command runners for inherited output, captured output, and expected best-effort failures. */
+function createCommandHelpers(rootDirectory: string) {
+    const run = (command: string, args: string[]): void => {
+        const result = spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit'});
+        if (!result.success) {
+            throw new Error(`${command} exited with status ${result.exitCode}.`);
+        }
+    };
+
+    const capture = (command: string, args: string[]): string => {
+        const result = spawnSync([command, ...args], {cwd: rootDirectory, maxBuffer: 100 * 1024 * 1024});
+        if (!result.success) {
+            const stderr = result.stderr.toString().trim();
+            throw new Error(stderr || `${command} exited with status ${result.exitCode}.`);
+        }
+        return result.stdout.toString();
+    };
+
+    const runAllowFailure = (command: string, args: string[]): boolean => {
+        return spawnSync([command, ...args], {cwd: rootDirectory, stdin: 'ignore', stdout: 'ignore', stderr: 'ignore'}).success;
+    };
+
+    return {capture, run, runAllowFailure};
+}
+
+/** Returns the most recent duration for a span when device output contains repeated benchmark events. */
+function findBenchmarkDuration(output: string, spanName: string): number | undefined {
+    return parseBenchmarkLogEvents(output).findLast((event) => event.span === spanName)?.durationMs;
+}
+
+function sleep(milliseconds: number): Promise<void> {
+    return new Promise((resolvePromise) => {
+        setTimeout(resolvePromise, milliseconds);
+    });
 }
 
 export {

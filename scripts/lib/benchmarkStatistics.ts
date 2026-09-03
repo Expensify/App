@@ -45,32 +45,35 @@ type ExportBenchmarkResultsOptions = {
 const BENCHMARK_SAMPLE_HEADER = 'run,span,duration_ms';
 const BENCHMARK_RESULTS_HEADER = 'span,runs,average,p50,p75,p90,p95,p99,min,max';
 
-/** Calculates a percentile from sorted samples using linear interpolation between adjacent values. */
-function percentileFromSortedValues(sortedValues: readonly number[], fraction: number): number {
-    if (fraction < 0 || fraction > 1) {
-        throw new Error(`Percentile fraction must be between 0 and 1. Received: ${fraction}`);
+/** Combines raw sample files, calculates per-span statistics, and writes the summary CSV. */
+function exportBenchmarkResults(options: ExportBenchmarkResultsOptions): BenchmarkResultTableRow[] {
+    if (options.inputPaths.length === 0) {
+        throw new Error('At least one benchmark sample file is required.');
     }
-    if (sortedValues.length === 0) {
-        throw new Error('Cannot calculate a percentile without benchmark samples.');
+    const samples = options.inputPaths.flatMap(readBenchmarkSamples);
+    if (samples.length === 0) {
+        throw new Error('No benchmark samples were found in the input files.');
     }
-
-    const position = (sortedValues.length - 1) * fraction;
-    const lowerIndex = Math.floor(position);
-    const upperIndex = Math.ceil(position);
-    const remainder = position - lowerIndex;
-    const lowerValue = sortedValues.at(lowerIndex);
-    const upperValue = sortedValues.at(upperIndex);
-    if (lowerValue === undefined || upperValue === undefined) {
-        throw new Error('Cannot calculate a percentile without benchmark samples.');
-    }
-    return lowerValue + remainder * (upperValue - lowerValue);
+    const table = benchmarkResultTable(benchmarkMetrics(samples));
+    writeBenchmarkResults(options.outputPath, table);
+    return table;
 }
 
-/** Sorts a copy of the samples before calculating a percentile for a fraction between zero and one. */
-function percentile(values: readonly number[], fraction: number): number {
-    return percentileFromSortedValues(
-        values.toSorted((left, right) => left - right),
-        fraction,
+/** Groups samples by span while retaining explicitly requested spans that have no samples. */
+function benchmarkMetrics(samples: readonly BenchmarkSample[], spanNames?: readonly string[]): Record<string, BenchmarkMetricResult> {
+    const samplesBySpan = new Map<string, number[]>();
+    for (const sample of samples) {
+        const spanSamples = samplesBySpan.get(sample.span) ?? [];
+        spanSamples.push(sample.durationMs);
+        samplesBySpan.set(sample.span, spanSamples);
+    }
+
+    const metricSpanNames = spanNames ?? [...samplesBySpan.keys()];
+    return Object.fromEntries(
+        metricSpanNames.map((spanName) => {
+            const spanSamples = samplesBySpan.get(spanName) ?? [];
+            return [spanName, {samples: spanSamples, stats: spanSamples.length > 0 ? benchmarkStats(spanSamples) : undefined}];
+        }),
     );
 }
 
@@ -96,24 +99,6 @@ function benchmarkStats(samples: readonly number[]): BenchmarkStats {
     };
 }
 
-/** Groups samples by span while retaining explicitly requested spans that have no samples. */
-function benchmarkMetrics(samples: readonly BenchmarkSample[], spanNames?: readonly string[]): Record<string, BenchmarkMetricResult> {
-    const samplesBySpan = new Map<string, number[]>();
-    for (const sample of samples) {
-        const spanSamples = samplesBySpan.get(sample.span) ?? [];
-        spanSamples.push(sample.durationMs);
-        samplesBySpan.set(sample.span, spanSamples);
-    }
-
-    const metricSpanNames = spanNames ?? [...samplesBySpan.keys()];
-    return Object.fromEntries(
-        metricSpanNames.map((spanName) => {
-            const spanSamples = samplesBySpan.get(spanName) ?? [];
-            return [spanName, {samples: spanSamples, stats: spanSamples.length > 0 ? benchmarkStats(spanSamples) : undefined}];
-        }),
-    );
-}
-
 /** Formats metrics for console and CSV output, representing spans without samples as `N/A`. */
 function benchmarkResultTable(metrics: Readonly<Record<string, BenchmarkMetricResult>>): BenchmarkResultTableRow[] {
     return Object.entries(metrics).map(([span, metric]) => ({
@@ -128,25 +113,6 @@ function benchmarkResultTable(metrics: Readonly<Record<string, BenchmarkMetricRe
         min: metric.stats?.min.toFixed(2) ?? 'N/A',
         max: metric.stats?.max.toFixed(2) ?? 'N/A',
     }));
-}
-
-function benchmarkResultsOutputPath(sampleOutputPath: string): string {
-    const extension = extname(sampleOutputPath);
-    const outputPathWithoutExtension = extension ? sampleOutputPath.slice(0, -extension.length) : sampleOutputPath;
-    return `${outputPathWithoutExtension}-results.csv`;
-}
-
-function benchmarkSamplesCsv(samples: readonly BenchmarkSample[]): string[] {
-    return [BENCHMARK_SAMPLE_HEADER, ...samples.map((sample) => [sample.run, sample.span, sample.durationMs].join(','))];
-}
-
-function benchmarkResultsCsv(table: readonly BenchmarkResultTableRow[]): string[] {
-    return [BENCHMARK_RESULTS_HEADER, ...table.map((row) => [row.span, row.runs, row.average, row.p50, row.p75, row.p90, row.p95, row.p99, row.min, row.max].join(','))];
-}
-
-function writeBenchmarkCsv(outputPath: string, csvRows: readonly string[]): void {
-    mkdirSync(dirname(outputPath), {recursive: true});
-    writeFileSync(outputPath, [...csvRows, ''].join('\n'));
 }
 
 function writeBenchmarkSamples(outputPath: string, samples: readonly BenchmarkSample[]): void {
@@ -175,18 +141,52 @@ function readBenchmarkSamples(inputPath: string): BenchmarkSample[] {
     });
 }
 
-/** Combines raw sample files, calculates per-span statistics, and writes the summary CSV. */
-function exportBenchmarkResults(options: ExportBenchmarkResultsOptions): BenchmarkResultTableRow[] {
-    if (options.inputPaths.length === 0) {
-        throw new Error('At least one benchmark sample file is required.');
+function benchmarkResultsOutputPath(sampleOutputPath: string): string {
+    const extension = extname(sampleOutputPath);
+    const outputPathWithoutExtension = extension ? sampleOutputPath.slice(0, -extension.length) : sampleOutputPath;
+    return `${outputPathWithoutExtension}-results.csv`;
+}
+
+function benchmarkSamplesCsv(samples: readonly BenchmarkSample[]): string[] {
+    return [BENCHMARK_SAMPLE_HEADER, ...samples.map((sample) => [sample.run, sample.span, sample.durationMs].join(','))];
+}
+
+function benchmarkResultsCsv(table: readonly BenchmarkResultTableRow[]): string[] {
+    return [BENCHMARK_RESULTS_HEADER, ...table.map((row) => [row.span, row.runs, row.average, row.p50, row.p75, row.p90, row.p95, row.p99, row.min, row.max].join(','))];
+}
+
+/** Sorts a copy of the samples before calculating a percentile for a fraction between zero and one. */
+function percentile(values: readonly number[], fraction: number): number {
+    return percentileFromSortedValues(
+        values.toSorted((left, right) => left - right),
+        fraction,
+    );
+}
+
+function writeBenchmarkCsv(outputPath: string, csvRows: readonly string[]): void {
+    mkdirSync(dirname(outputPath), {recursive: true});
+    writeFileSync(outputPath, [...csvRows, ''].join('\n'));
+}
+
+/** Calculates a percentile from sorted samples using linear interpolation between adjacent values. */
+function percentileFromSortedValues(sortedValues: readonly number[], fraction: number): number {
+    if (fraction < 0 || fraction > 1) {
+        throw new Error(`Percentile fraction must be between 0 and 1. Received: ${fraction}`);
     }
-    const samples = options.inputPaths.flatMap(readBenchmarkSamples);
-    if (samples.length === 0) {
-        throw new Error('No benchmark samples were found in the input files.');
+    if (sortedValues.length === 0) {
+        throw new Error('Cannot calculate a percentile without benchmark samples.');
     }
-    const table = benchmarkResultTable(benchmarkMetrics(samples));
-    writeBenchmarkResults(options.outputPath, table);
-    return table;
+
+    const position = (sortedValues.length - 1) * fraction;
+    const lowerIndex = Math.floor(position);
+    const upperIndex = Math.ceil(position);
+    const remainder = position - lowerIndex;
+    const lowerValue = sortedValues.at(lowerIndex);
+    const upperValue = sortedValues.at(upperIndex);
+    if (lowerValue === undefined || upperValue === undefined) {
+        throw new Error('Cannot calculate a percentile without benchmark samples.');
+    }
+    return lowerValue + remainder * (upperValue - lowerValue);
 }
 
 export {

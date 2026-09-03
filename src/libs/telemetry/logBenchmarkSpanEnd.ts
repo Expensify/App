@@ -10,22 +10,6 @@ type BenchmarkSpanEnd = {
     timestamp: number;
 };
 
-/** Parses the build-time span allowlist, trimming entries and removing duplicates. */
-function parseBenchmarkSpanNames(value: unknown): string[] {
-    if (typeof value !== 'string') {
-        return [];
-    }
-
-    return [
-        ...new Set(
-            value
-                .split(',')
-                .map((spanName) => spanName.trim())
-                .filter(Boolean),
-        ),
-    ];
-}
-
 /** Creates a logger that serializes completed spans only when their names are present in the benchmark allowlist. */
 function createBenchmarkSpanEndLogger(spanNames: string[], writeLog: (message: string, spanName: string) => void): (spanName: string, durationMs: number) => void {
     const enabledSpanNames = new Set(spanNames);
@@ -50,6 +34,22 @@ const logBenchmarkSpanEnd = createBenchmarkSpanEndLogger([...enabledBenchmarkSpa
 
 function isBenchmarkSpanEnabled(spanName: string): boolean {
     return enabledBenchmarkSpanNames.has(spanName);
+}
+
+/** Parses the build-time span allowlist, trimming entries and removing duplicates. */
+function parseBenchmarkSpanNames(value: unknown): string[] {
+    if (typeof value !== 'string') {
+        return [];
+    }
+
+    return [
+        ...new Set(
+            value
+                .split(',')
+                .map((spanName) => spanName.trim())
+                .filter(Boolean),
+        ),
+    ];
 }
 
 export {BENCHMARK_LOG_TAG, createBenchmarkSpanEndLogger, isBenchmarkSpanEnabled, parseBenchmarkSpanNames};
