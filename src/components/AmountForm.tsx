@@ -123,8 +123,6 @@ function AmountForm({
                 errorText={errorText}
                 ref={ref}
                 numericEditingRef={numberFormRef}
-                onBlur={onBlur}
-                onSubmitEditing={onSubmitEditing}
             >
                 <NumericField.TextInput
                     prefixCharacter={hideCurrencySymbol ? '' : symbol}
@@ -135,6 +133,8 @@ function AmountForm({
                     autoGrowExtraSpace={autoGrowExtraSpace}
                     autoGrowMarginSide={autoGrowMarginSide}
                     onFocus={onFocus}
+                    onBlur={onBlur}
+                    onSubmitEditing={onSubmitEditing}
                     prefixStyle={styles.colorMuted}
                 />
             </NumericField>

@@ -7,7 +7,6 @@ import type {NumericFieldRef} from '@components/NumericField';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -27,7 +26,7 @@ type NumericFieldProps = React.ComponentProps<typeof NumericField>;
 
 function ContextReadout() {
     const {value, allowNegative, errorText} = useNumericFieldState();
-    const {setNumber, handleBlur} = useNumericFieldActions();
+    const {setNumber} = useNumericFieldActions();
 
     return (
         <View>
@@ -51,12 +50,6 @@ function ContextReadout() {
                     setNumber('99');
                 }}
             />
-            <TextInput
-                accessibilityHint="Triggers the blur callback"
-                accessibilityLabel="Trigger blur"
-                testID="ctx-triggerBlur"
-                onBlur={handleBlur}
-            />
         </View>
     );
 }
@@ -67,8 +60,6 @@ function renderWithProviders(children: React.ReactNode) {
 
 describe('NumericField', () => {
     const onInputChange = jest.fn();
-    const onBlur = jest.fn();
-
     const renderNumericField = (props: Partial<NumericFieldProps> = {}, children: React.ReactNode = <ContextReadout />) =>
         renderWithProviders(
             <NumericField
@@ -117,17 +108,6 @@ describe('NumericField', () => {
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('12.50');
             expect(screen.getByTestId('ctx-allowNegative')).toHaveTextContent('true');
             expect(screen.getByTestId('ctx-errorText')).toHaveTextContent('Required');
-        });
-
-        it('forwards blur to the root onBlur through handleBlur', () => {
-            // Given a NumericField with an onBlur callback
-            renderNumericField({onBlur});
-
-            // When the child input blurs
-            fireEvent(screen.getByTestId('ctx-triggerBlur'), 'blur');
-
-            // Then the root onBlur callback is invoked
-            expect(onBlur).toHaveBeenCalledTimes(1);
         });
     });
 

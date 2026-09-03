@@ -29,9 +29,7 @@ type RootProps = {
     decimals?: number;
     maxLength?: number;
     errorText?: string;
-    onBlur?: jest.Mock;
     onInputChange?: jest.Mock;
-    onSubmitEditing?: jest.Mock;
     ref?: React.Ref<BaseTextInputRef>;
     numericEditingRef?: React.Ref<NumericFieldRef>;
 };
@@ -341,7 +339,7 @@ describe('NumericField.TextInput', () => {
         const onBlur = jest.fn();
 
         // Given a TextInput with an error message, onBlur, and a ref
-        renderTextInput({prefixCharacter: '$', label: 'Amount'}, {value: '10', errorText: 'Invalid text number', onBlur, ref: inputRef});
+        renderTextInput({prefixCharacter: '$', label: 'Amount', onBlur}, {value: '10', errorText: 'Invalid text number', ref: inputRef});
         await waitForBatchedUpdatesWithAct();
 
         expect(inputRef.current).toBeTruthy();
@@ -350,7 +348,7 @@ describe('NumericField.TextInput', () => {
         // When the input blurs
         fireEvent(screen.getByDisplayValue('10'), 'blur');
 
-        // Then onBlur is forwarded to the root
+        // Then onBlur is forwarded from the primitive
         expect(onBlur).toHaveBeenCalledTimes(1);
     });
 
@@ -379,13 +377,12 @@ describe('NumericField.TextInput', () => {
         expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 3, end: 3});
     });
 
-    it('forwards onSubmitEditing and onKeyPress to both the primitive props and the root', async () => {
-        const rootOnSubmitEditing = jest.fn();
+    it('forwards onSubmitEditing and onKeyPress from the primitive props', async () => {
         const inputOnSubmitEditing = jest.fn();
         const inputOnKeyPress = jest.fn();
 
-        // Given a TextInput with submit and key-press callbacks on both the primitive and the root
-        renderTextInput({testID: INPUT_TEST_ID, onSubmitEditing: inputOnSubmitEditing, onKeyPress: inputOnKeyPress}, {value: '10', onSubmitEditing: rootOnSubmitEditing});
+        // Given a TextInput with submit and key-press callbacks on the primitive
+        renderTextInput({testID: INPUT_TEST_ID, onSubmitEditing: inputOnSubmitEditing, onKeyPress: inputOnKeyPress}, {value: '10'});
         await waitForBatchedUpdatesWithAct();
 
         // When the user submits and presses a key
@@ -393,9 +390,8 @@ describe('NumericField.TextInput', () => {
         fireEvent(screen.getByTestId(INPUT_TEST_ID), 'keyPress', {nativeEvent: {key: '5'}});
         await waitForBatchedUpdatesWithAct();
 
-        // Then both submit callbacks and the primitive key-press callback are invoked
+        // Then both primitive callbacks are invoked
         expect(inputOnSubmitEditing).toHaveBeenCalledTimes(1);
-        expect(rootOnSubmitEditing).toHaveBeenCalledTimes(1);
         expect(inputOnKeyPress).toHaveBeenCalledTimes(1);
     });
 

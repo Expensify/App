@@ -1,6 +1,6 @@
 import {useNumericEditingController} from '@components/NumericEditingController';
 import type {NumericEditingRef} from '@components/NumericEditingController';
-import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef, ReactNode} from 'react';
 
@@ -29,12 +29,6 @@ type NumericFieldProps = {
     /** Error supplied by FormProvider and rendered by the text input. */
     errorText?: string;
 
-    /** Called when the text input loses focus. */
-    onBlur?: BaseTextInputProps['onBlur'];
-
-    /** Called when the user presses the submit key on the text input. */
-    onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
-
     /** Reference forwarded to the underlying text input. */
     ref?: ForwardedRef<BaseTextInputRef>;
 
@@ -45,7 +39,7 @@ type NumericFieldProps = {
     children: ReactNode;
 };
 
-function NumericField({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, onBlur, onSubmitEditing, ref, numericEditingRef, children}: NumericFieldProps) {
+function NumericField({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, ref, numericEditingRef, children}: NumericFieldProps) {
     const controller = useNumericEditingController({value, onInputChange, allowNegative, decimals, maxLength});
 
     useImperativeHandle(numericEditingRef, () => ({
@@ -66,8 +60,6 @@ function NumericField({value = '', onInputChange, allowNegative = false, decimal
         setNumber: controller.setNumber,
         handleSelectionChange: controller.handleSelectionChange,
         handleKeyPress: controller.handleKeyPress,
-        handleBlur: onBlur,
-        onSubmitEditing,
         inputRef: ref,
     };
 

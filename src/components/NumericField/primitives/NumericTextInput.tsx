@@ -2,13 +2,12 @@ import type {NumericEditingKeyPressEvent} from '@components/NumericEditingContro
 import {useNumericFieldActions, useNumericFieldState} from '@components/NumericField/context';
 import type {NumericTextInputProps} from '@components/NumericField/types';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
 import mergeRefs from '@libs/mergeRefs';
 
 import CONST from '@src/CONST';
 
-import type {BlurEvent, TextInputSelectionChangeEvent} from 'react-native';
+import type {TextInputSelectionChangeEvent} from 'react-native';
 
 /** Text input primitive connected to a NumericField root. */
 function NumericTextInput({
@@ -30,28 +29,18 @@ function NumericTextInput({
     prefixStyle,
     shouldApplyPaddingToContainer,
     shouldUseDefaultLineHeightForPrefix,
-    onSubmitEditing: inputOnSubmitEditing,
+    onSubmitEditing,
     submitBehavior,
     testID,
     touchableInputWrapperStyle,
     style,
 }: NumericTextInputProps) {
     const {errorText, formattedNumber, selection} = useNumericFieldState();
-    const {handleBlur, handleKeyPress, handleSelectionChange, inputRef, onSubmitEditing, setNumber} = useNumericFieldActions();
+    const {handleKeyPress, handleSelectionChange, inputRef, setNumber} = useNumericFieldActions();
 
     const handleInputKeyPress = (event: NumericEditingKeyPressEvent) => {
         handleKeyPress(event);
         onKeyPress?.(event);
-    };
-
-    const handleInputBlur = (event: BlurEvent) => {
-        onBlur?.(event);
-        handleBlur?.(event);
-    };
-
-    const handleSubmitEditing = (event: Parameters<NonNullable<BaseTextInputProps['onSubmitEditing']>>[0]) => {
-        inputOnSubmitEditing?.(event);
-        onSubmitEditing?.(event);
     };
 
     return (
@@ -71,12 +60,12 @@ function NumericTextInput({
             inputStyle={style}
             keyboardType={keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
             label={label}
-            onBlur={handleInputBlur}
+            onBlur={onBlur}
             onChangeText={setNumber}
             onFocus={onFocus}
             onKeyPress={handleInputKeyPress}
             onSelectionChange={(event: TextInputSelectionChangeEvent) => handleSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end)}
-            onSubmitEditing={handleSubmitEditing}
+            onSubmitEditing={onSubmitEditing}
             prefixCharacter={prefixCharacter}
             prefixContainerStyle={prefixContainerStyle}
             prefixStyle={prefixStyle}

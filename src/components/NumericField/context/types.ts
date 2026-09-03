@@ -1,5 +1,5 @@
 import type {NumericEditingKeyPressEvent, NumericEditingSelection} from '@components/NumericEditingController/types';
-import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef} from 'react';
 
@@ -28,10 +28,6 @@ type NumericFieldActionsContextValue = {
 
     /** Tracks forward-delete key presses for caret positioning. */
     handleKeyPress: (event: NumericEditingKeyPressEvent) => void;
-
-    handleBlur?: BaseTextInputProps['onBlur'];
-
-    onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
 
     inputRef?: ForwardedRef<BaseTextInputRef>;
 };
