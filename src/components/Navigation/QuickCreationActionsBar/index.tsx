@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
-import {createHasTravelProvisionedPolicySelector} from '@src/selectors/Policy';
+import {createHasTravelEnabledPolicySelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -78,9 +78,9 @@ function QuickCreationActionsBar() {
 
     const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
-    const [hasTravelProvisionedPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasTravelProvisionedPolicySelector(email)});
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasTravelEnabledPolicySelector(email)});
 
-    const shouldShowBookTravel = !!hasTravelProvisionedPolicy;
+    const shouldShowBookTravel = !!hasTravelEnabledPolicy;
 
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';

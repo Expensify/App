@@ -227,14 +227,15 @@ const createHasAdminPolicyWithXeroConnectionSelector =
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
 
 /**
- * Creates a selector for whether the user belongs to any workspace provisioned for travel, so subscribers only
+ * Creates a selector for whether the user belongs to any workspace with Travel enabled and provisioned, so subscribers only
  * re-render when that answer changes rather than on every policy collection change.
  */
-const createHasTravelProvisionedPolicySelector =
+const createHasTravelEnabledPolicySelector =
     (currentUserLogin: string | undefined) =>
     (policies: OnyxCollection<Policy>): boolean =>
         Object.values(policies ?? {}).some(
-            (policy) => (policy?.isTravelProvisioned || isWorkspaceProvisionedForTravel(policy?.travelSettings)) && isPolicyAccessible(policy, currentUserLogin ?? ''),
+            (policy) =>
+                policy?.isTravelEnabled && (policy.isTravelProvisioned || isWorkspaceProvisionedForTravel(policy.travelSettings)) && isPolicyAccessible(policy, currentUserLogin ?? ''),
         );
 
 /**
@@ -526,7 +527,7 @@ export {
     hasActiveAdminPoliciesSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
-    createHasTravelProvisionedPolicySelector,
+    createHasTravelEnabledPolicySelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
