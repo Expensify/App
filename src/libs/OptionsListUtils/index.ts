@@ -255,12 +255,6 @@ type GetAlternateTextConfig = {
     convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
-/**
- * Fallback for non-React callers that cannot provide the hook-bound localeCompare.
- * Mirrors LocaleContextProvider's collator options against the active locale.
- * The collator is cached at module scope: constructing an Intl.Collator loads locale data,
- * which is far too expensive to repeat per comparison inside a sort.
- */
 let fallbackCollator: Intl.Collator | undefined;
 let fallbackCollatorLocale: Locale | undefined;
 function fallbackLocaleCompare(a: string, b: string): number {
@@ -309,13 +303,9 @@ function getAlternateText(
     const isExpenseThread = isMoneyRequest(report);
     const translateFn = translate ?? translateLocal;
 
-    // The chat preview line must match the LHN row for the same report, so it is computed by the shared
-    // getReportAlternateText pipeline. forcePolicyNamePreview keeps the workspace-name subtitle for policy
-    // chats and admin/announce rooms (existing picker semantics).
     const forcePolicyName = forcePolicyNamePreview && ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom);
     if (showChatPreviewLine && !forcePolicyName) {
         if (report) {
-            // TODO: Make currentUserAccountID required and remove the fallback. Refactor issue: https://github.com/Expensify/App/issues/66408
             const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
             const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
             const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(
@@ -334,15 +324,12 @@ function getAlternateText(
                 movedFromReport,
                 movedToReport,
                 card,
-                // createOption already computed this via the same pipeline; reuse it instead of recomputing per option.
                 lastMessageTextFromReport: option.lastMessageText,
                 personalDetails,
                 policy,
                 invoiceReceiverPolicy,
                 policyTags,
                 isReportArchived,
-                // The Search path has no separate report NVP source here; the archived flag and private_isArchived
-                // both derive from the same NVP, so the option's archived flag is the equivalent input.
                 privateIsArchived: !!isReportArchived,
                 conciergeReportID,
                 reportAttributesDerived,
@@ -360,9 +347,6 @@ function getAlternateText(
                 convertToDisplayString: convertToDisplayString ?? convertToDisplayStringUtil,
             });
         }
-        // The report can be missing from the report cache (e.g. it was cleared during sign-out while a cached
-        // option list is still rendered). The shared pipeline needs the report, so keep the option's own
-        // preview text instead of dropping to the bare type label below.
         if (option.lastMessageText) {
             return formatReportLastMessageText(option.lastMessageText);
         }
@@ -558,13 +542,10 @@ function createOption({
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
-        // Resolve the last action the same way the preview line does, so the message text carries the
-        // action-derived context (e.g. source/destination report names for moved expenses).
         const {lastAction, movedFromReport, movedToReport} = resolveLastActionContext(
             report,
             result.private_isArchived,
             visibleReportActionsData,
-            // TODO: Make currentUserAccountID required and remove the fallback. Refactor issue: https://github.com/Expensify/App/issues/66408
             currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
             sortedActions,
             transactionThreadIDs?.[report.reportID],

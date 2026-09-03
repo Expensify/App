@@ -4604,14 +4604,12 @@ describe('OptionsListUtils', () => {
         });
 
         it('should fall back to the raw report lastMessageText when no last action is available', async () => {
-            // Given a DM with no report actions anywhere, so the shared LHN pipeline has nothing to derive from
             const report = buildDMReport({lastMessageText: '<b>test</b>', lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED});
             await setReport(report);
             const option: OptionData = {reportID: DM_REPORT_ID, keyForList: '', lastMessageText: '<b>test</b>'};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, DM_REPORT_ID));
 
-            // Then it falls back to report.lastMessageText verbatim, matching the LHN row for the same report
             expect(result).toBe('<b>test</b>');
         });
 
@@ -4638,12 +4636,10 @@ describe('OptionsListUtils', () => {
         it('should show the archive reason without an actor prefix when the report is archived', async () => {
             await setReport(buildRoomReport());
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello');
-            // An empty lastMessageText forces the shared pipeline to derive the text, exercising the archive-reason branch
             const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: '', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {isReportArchived: true}));
 
-            // Then the preview matches the LHN row for an archived room: the archive reason, no actor prefix
             expect(result).toBe('This chat room has been archived.');
         });
 
@@ -4654,7 +4650,6 @@ describe('OptionsListUtils', () => {
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {currentUserAccountID: undefined}));
 
-            // Then the missing ID falls back to the default account ID, so the actor still gets a prefix like in the LHN
             expect(result).toBe('Spider-Man: hello');
         });
 

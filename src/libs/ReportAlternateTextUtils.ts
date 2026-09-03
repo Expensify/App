@@ -402,11 +402,6 @@ function getExpenseReportPreviewText(
     return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
 }
 
-/**
- * Resolves the last visible action for a report row plus the report lookups derived from it.
- * Shared by the Search option builders (createOption / getAlternateText) so the message text and the
- * preview line derive from the same, transaction-thread-aware action — matching the LHN.
- */
 function resolveLastActionContext(
     report: Report,
     isReportArchived: boolean | undefined,
@@ -422,7 +417,6 @@ function resolveLastActionContext(
 } {
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     const sortedActionsForReport = sortedActions?.[report.reportID];
-    // TODO: Remove the deprecated-cache fallback once all callers pass the derived value. Refactor issue: https://github.com/Expensify/App/issues/66381
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const resolvedOneTransactionThreadReportID = oneTransactionThreadReportID ?? deprecatedCachedOneTransactionThreadReportIDs[report.reportID];
     const lastAction = sortedActionsForReport
@@ -454,8 +448,6 @@ function getLastActorDisplayNameFromLastVisibleActions(
 ): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, privateIsArchived);
-    // For one-transaction reports the newest visible action may live in the transaction thread, so the
-    // fallback lookup must include it — otherwise the actor comes from the parent report's IOU action.
     const lastReportAction = lastAction ?? getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsData, oneTransactionThreadReportID);
 
     if (lastReportAction) {
@@ -526,9 +518,7 @@ function getLastMessageTextForReport({
     sortedActions?: Record<string, ReportAction[]>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
-    /** Derived one-transaction-thread reportID; when absent, falls back to the deprecated module cache. */
     oneTransactionThreadReportID?: string;
-    /** Derived last (unfiltered) action for the report; when absent, falls back to the deprecated module cache. */
     lastOriginalAction?: OnyxEntry<ReportAction>;
 }): string {
     const reportID = report?.reportID;
@@ -1151,9 +1141,7 @@ type GetReportAlternateTextParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
-    /** Precomputed report metadata; when absent it is fetched here. LHN passes its own copy to avoid a duplicate fetch per row. */
     reportMetadata?: OnyxEntry<ReportMetadata>;
-    /** Precomputed participant details (current user excluded); when absent they are derived lazily for the welcome message. */
     participantPersonalDetailListExcludeCurrentUser?: PersonalDetails[];
     policyTags?: OnyxEntry<PolicyTagLists>;
     isReportArchived: boolean | undefined;
@@ -1162,9 +1150,7 @@ type GetReportAlternateTextParams = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     sortedActions?: Record<string, ReportAction[]>;
-    /** Derived one-transaction-thread reportID for the report; forwarded to getLastMessageTextForReport. */
     oneTransactionThreadReportID?: string;
-    /** Derived last (unfiltered) action for the report; forwarded to getLastMessageTextForReport. */
     lastOriginalAction?: OnyxEntry<ReportAction>;
     currentUserAccountID: number;
     currentUserLogin: string;
@@ -1219,7 +1205,6 @@ function getReportAlternateText({
     const isAllowedToComment = canUserPerformWriteAction(report, isReportArchived);
     const isExpense = isExpenseReport(report);
     const reportMetadata = reportMetadataParam ?? getReportMetadata(report.reportID);
-    // TODO: Resolve here once all callers pass the derived value. Refactor issue: https://github.com/Expensify/App/issues/66381
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const resolvedOneTransactionThreadReportID = oneTransactionThreadReportID ?? deprecatedCachedOneTransactionThreadReportIDs[report.reportID];
     const getParticipantPersonalDetailListExcludeCurrentUser = () => {
@@ -1248,7 +1233,6 @@ function getReportAlternateText({
     }
 
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
-    // An empty precomputed text means "not computed yet", so `||` (not `??`) keeps the recompute fallback meaningful.
     const lastMessageTextFromReport =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastMessageTextFromReportProp ||
@@ -1275,7 +1259,6 @@ function getReportAlternateText({
             lastOriginalAction,
         });
 
-    // Actor prefix from the last visible action; falls back to the report-level actor when the action list yields nothing.
     const getLastActorDisplayNamePrefix = () =>
         (lastMessageTextFromReport.length > 0 &&
             getLastActorDisplayNameFromLastVisibleActions(
@@ -1653,10 +1636,6 @@ function getReportAlternateText({
     return alternateText;
 }
 
-/**
- * Resolves the Expensify Card behind a CARD_ISSUED-type report action.
- * Pure counterpart of useGetExpensifyCardFromReportAction — callers supply the Onyx collections.
- */
 function getExpensifyCardFromReportAction({
     reportAction,
     policy,
@@ -1676,8 +1655,6 @@ function getExpensifyCardFromReportAction({
         return cardList?.[cardID];
     }
 
-    // Issued Expensify Cards live on one of two Onyx keys: regular cards on the 2-segment key,
-    // Travel Billing cards on the `_TRAVEL_US` variant. Check both.
     return (
         workspaceCardList?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`]?.[cardID] ??
         workspaceCardList?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelBillingFeedID(workspaceAccountID)}`]?.[cardID] ??

@@ -73,18 +73,12 @@ type ParityCase = {
     lastAction?: ReportAction;
     extraReports?: Report[];
     policy?: OnyxEntry<Policy>;
-    /** LHN-only input (OptionRowLHNData resolves it per row); Search has no per-row source for it. */
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     cardList?: OnyxEntry<CardList>;
     isReportArchived?: boolean;
     isTrackIntentUser?: boolean;
 };
 
-/**
- * Seeds Onyx with the case state, computes the preview text through both surfaces
- * (LHN: getOptionData with deps assembled like OptionRowLHNData; Search: the real
- * createFilteredOptionList → getSearchOptions pipeline) and returns both strings.
- */
 async function computeBothSurfaces({
     report = makeReport(),
     lastAction,
@@ -113,7 +107,6 @@ async function computeBothSurfaces({
     const reportAttributesValue = await getOnyxValue(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const reportAttributesDerived = reportAttributesValue?.reports;
 
-    // ---- LHN surface: deps assembled the way OptionRowLHNData does ----
     const canWrite = canUserPerformWriteAction(report, isReportArchived);
     const oneTransactionThreadReportID = sortedData?.transactionThreadIDs?.[report.reportID];
     const actionsCollection: OnyxCollection<ReportActions> = {
@@ -159,7 +152,6 @@ async function computeBothSurfaces({
         formatPhoneNumber,
     });
 
-    // ---- Search surface: the real pipeline ----
     const reportsCollection: OnyxCollection<Report> = {};
     for (const [id, seeded] of Object.entries(reportsById)) {
         reportsCollection[`${ONYXKEYS.COLLECTION.REPORT}${id}`] = seeded;
@@ -219,7 +211,6 @@ async function computeBothSurfaces({
 async function expectParity(parityCase: ParityCase) {
     const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces(parityCase);
     expect(searchOptionFound).toBe(true);
-    // Guards the assertion below against vacuous undefined === undefined parity.
     expect(lhnText).toBeTruthy();
     expect(searchText).toBe(lhnText);
 }
@@ -601,9 +592,6 @@ describe('LHN vs Search preview parity', () => {
         });
 
         it('should diverge for empty invoice room where LHN uses invoiceReceiverPolicy for the welcome payer but Search cannot (documented gap)', async () => {
-            // TODO(parity): invoiceReceiverPolicy is not threaded on the Search path (no per-row source),
-            // so the invoice-room welcome message payer name is empty in Search while LHN shows the
-            // receiver policy name. Remove this divergence assertion once a per-row source exists.
             const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
                 report: makeReport({
                     chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
