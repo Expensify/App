@@ -30,11 +30,16 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
         tagItems.push(emptyTagItem);
     }
     const seenTagNames = new Set<string>();
+    const lowerSearchQuery = searchQuery.toLowerCase();
 
-    // Preserve backend order - new items append at end for infinite scroll
+    // Preserve backend order - new items append at end for infinite scroll.
+    // When offline the API is skipped, so cached results are filtered locally by the search query.
     for (const policyTags of Object.values(searchResults ?? {})) {
         for (const tag of Object.values(policyTags ?? {})) {
             if (seenTagNames.has(tag.tagName)) {
+                continue;
+            }
+            if (lowerSearchQuery && !tag.tagName.toLowerCase().includes(lowerSearchQuery)) {
                 continue;
             }
             seenTagNames.add(tag.tagName);
