@@ -21,14 +21,9 @@ function hasMethod<T extends string>(value: unknown, methodName: T): value is Re
     return value != null && typeof (value as Record<string, unknown>)[methodName] === 'function';
 }
 
-function isUnknownArray(value: unknown): value is unknown[] {
-    return Array.isArray(value);
-}
-
 export default {
     typedEntries,
     typedFromEntries,
     typedKeys,
     hasMethod,
 };
-export {isUnknownArray};

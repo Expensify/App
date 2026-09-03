@@ -45,7 +45,6 @@ import type {
 } from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
-import {isUnknownArray} from '@src/types/utils/ObjectUtils';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
@@ -2240,6 +2239,10 @@ function isSearchRootParams(params: unknown): params is SearchRootParams {
         typeof params.q === 'string' &&
         (!('rawQuery' in params) || params.rawQuery === undefined || typeof params.rawQuery === 'string')
     );
+}
+
+function isUnknownArray(value: unknown): value is unknown[] {
+    return Array.isArray(value);
 }
 
 function getParamsState(params: unknown): unknown {

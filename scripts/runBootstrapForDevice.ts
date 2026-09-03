@@ -5,8 +5,8 @@
 import {main} from './bootstrapForDevice';
 
 if (import.meta.main) {
-    main(`${import.meta.dirname}/..`).catch((error: unknown) => {
-        console.error(error instanceof Error ? error.message : error);
+    main(`${import.meta.dirname}/..`).catch((error: Error) => {
+        console.error(error.message);
         process.exitCode = 1;
     });
 }

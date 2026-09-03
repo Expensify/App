@@ -2,8 +2,6 @@
 
 import {describe, expect, test} from 'bun:test';
 
-import {isUnknownArray} from '@src/types/utils/ObjectUtils';
-
 import {
     androidApplicationIDs,
     defaultBundleIdentifier,
@@ -87,9 +85,6 @@ describe('bootstrapAndroidForDevice', () => {
         const identifiers = androidApplicationIDs('com.example.expensify', 'branch');
         const patched = patchGoogleServicesConfig(googleServicesFixture, identifiers);
         const {client: clients} = patched;
-        if (!isUnknownArray(clients)) {
-            throw new Error('Expected patched Google Services clients.');
-        }
         const syntheticRelease = clients.find((client) => JSON.stringify(client).includes(identifiers.release));
 
         expect(clients).toHaveLength(8);

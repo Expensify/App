@@ -1,7 +1,7 @@
 import writeBenchmarkLog from './writeBenchmarkLog';
 
 const BENCHMARK_LOG_TAG = '[EXPENSIFY_BENCHMARK]';
-const configuredSpanNames: unknown = process.env.EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS;
+const configuredSpanNames = String(process.env.EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS ?? '');
 
 type BenchmarkSpanEnd = {
     event: 'span_end';
@@ -37,8 +37,8 @@ function isBenchmarkSpanEnabled(spanName: string): boolean {
 }
 
 /** Parses the build-time span allowlist, trimming entries and removing duplicates. */
-function parseBenchmarkSpanNames(value: unknown): string[] {
-    if (typeof value !== 'string') {
+function parseBenchmarkSpanNames(value = ''): string[] {
+    if (!value) {
         return [];
     }
 

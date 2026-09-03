@@ -2,7 +2,9 @@
 
 /** Implements iOS benchmark setup, launch, process control, and marker collection through CoreDevice. */
 
-import {isRecord} from '@libs/ObjectUtils';
+import {isJSONArray, isJSONObject} from '@src/types/utils/JSONUtils';
+
+import type {JsonValue} from 'type-fest';
 
 import {env, file} from 'bun';
 import {mkdtempSync, rmSync} from 'node:fs';
@@ -25,6 +27,8 @@ type CoreDeviceInstalledAppsResponse = {
     };
 };
 
+// Bun leaves parsed JSON untyped, so direct file reads are narrowed to JsonValue and then validated against the CoreDevice fields used below.
+
 /** Creates an iOS benchmark adapter that manages app state and polls per-span markers through CoreDevice. */
 async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): Promise<NativeAppBenchmarkAdapter> {
     const {run, runAllowFailure} = createCommandHelpers(rootDirectory);
@@ -45,7 +49,8 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
         const jsonPath = join(temporaryDirectory, 'launch.json');
         try {
             run('xcrun', ['devicectl', 'device', 'process', 'launch', '--device', device, '--terminate-existing', '--json-output', jsonPath, '--quiet', appID]);
-            const response: unknown = await file(jsonPath).json();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const response = (await file(jsonPath).json()) as JsonValue;
             runningProcessIdentifier = parseIOSLaunchProcessIdentifier(response);
         } finally {
             rmSync(temporaryDirectory, {recursive: true, force: true});
@@ -58,7 +63,8 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
         const processesJSONPath = join(temporaryDirectory, 'processes.json');
         try {
             run('xcrun', ['devicectl', 'device', 'info', 'apps', '--device', device, '--bundle-id', appID, '--json-output', appsJSONPath, '--quiet']);
-            const rawAppsResponse: unknown = await file(appsJSONPath).json();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const rawAppsResponse = (await file(appsJSONPath).json()) as JsonValue;
             const appsResponse = parseIOSInstalledAppsResponse(rawAppsResponse);
             const appURL = parseIOSInstalledAppURL(appsResponse, appID);
             const escapedAppURL = appURL.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
@@ -75,7 +81,8 @@ async function createIOSAdapter({rootDirectory, deviceIdentifier, appID}: Omit<N
                 processesJSONPath,
                 '--quiet',
             ]);
-            const processesResponse: unknown = await file(processesJSONPath).json();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const processesResponse = (await file(processesJSONPath).json()) as JsonValue;
             return parseIOSRunningAppProcessIdentifier(processesResponse, appURL);
         } finally {
             rmSync(temporaryDirectory, {recursive: true, force: true});
@@ -178,13 +185,14 @@ async function resolveIOSDevice(rootDirectory: string, configuredDevice: string 
     const jsonPath = join(temporaryDirectory, 'devices.json');
     try {
         run('xcrun', ['devicectl', 'list', 'devices', '--json-output', jsonPath]);
-        const response: unknown = await file(jsonPath).json();
-        if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.devices)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const response = (await file(jsonPath).json()) as JsonValue;
+        if (!isJSONObject(response) || !isJSONObject(response.result) || !isJSONArray(response.result.devices)) {
             throw new Error('CoreDevice returned an unexpected device-list response.');
         }
 
         const devices = response.result.devices.flatMap((device) => {
-            if (!isRecord(device) || !isRecord(device.hardwareProperties) || !isRecord(device.deviceProperties)) {
+            if (!isJSONObject(device) || !isJSONObject(device.hardwareProperties) || !isJSONObject(device.deviceProperties)) {
                 return [];
             }
             const {hardwareProperties, deviceProperties} = device;
@@ -213,10 +221,10 @@ async function resolveIOSDevice(rootDirectory: string, configuredDevice: string 
     }
 }
 
-// CoreDevice does not publish a runtime schema for `devicectl --json-output`, so keep parsed responses unknown until each required field is validated.
+// CoreDevice does not publish a runtime schema for `devicectl --json-output`, so validate each required field before returning a domain type.
 /** Validates a CoreDevice launch response and returns the launched process identifier. */
-function parseIOSLaunchProcessIdentifier(response: unknown): number {
-    if (!isRecord(response) || !isRecord(response.result) || !isRecord(response.result.process)) {
+function parseIOSLaunchProcessIdentifier(response: JsonValue): number {
+    if (!isJSONObject(response) || !isJSONObject(response.result) || !isJSONObject(response.result.process)) {
         throw new Error('CoreDevice returned an unexpected app-launch response.');
     }
     const {processIdentifier} = response.result.process;
@@ -227,8 +235,8 @@ function parseIOSLaunchProcessIdentifier(response: unknown): number {
 }
 
 /** Validates the minimal installed-app response shape used by the benchmark adapter. */
-function parseIOSInstalledAppsResponse(response: unknown): CoreDeviceInstalledAppsResponse {
-    if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.apps) || !response.result.apps.every(isCoreDeviceInstalledApp)) {
+function parseIOSInstalledAppsResponse(response: JsonValue): CoreDeviceInstalledAppsResponse {
+    if (!isJSONObject(response) || !isJSONObject(response.result) || !isJSONArray(response.result.apps) || !response.result.apps.every(isCoreDeviceInstalledApp)) {
         throw new Error('CoreDevice returned an unexpected installed-app response.');
     }
     return {result: {apps: response.result.apps}};
@@ -244,19 +252,18 @@ function parseIOSInstalledAppURL(response: CoreDeviceInstalledAppsResponse, appI
 }
 
 /** Finds the app's main process by requiring its executable to be a direct child of the installed app URL. */
-function parseIOSRunningAppProcessIdentifier(response: unknown, appURL: string): number | undefined {
-    if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.runningProcesses)) {
+function parseIOSRunningAppProcessIdentifier(response: JsonValue, appURL: string): number | undefined {
+    if (!isJSONObject(response) || !isJSONObject(response.result) || !isJSONArray(response.result.runningProcesses)) {
         throw new Error('CoreDevice returned an unexpected process-list response.');
     }
-    const runningProcesses: unknown[] = response.result.runningProcesses;
-    const runningProcess: unknown = runningProcesses.find((candidate) => {
-        if (!isRecord(candidate) || typeof candidate.executable !== 'string') {
+    const runningProcess = response.result.runningProcesses.find((candidate) => {
+        if (!isJSONObject(candidate) || typeof candidate.executable !== 'string') {
             return false;
         }
         const relativeExecutablePath = candidate.executable.slice(appURL.length);
         return candidate.executable.startsWith(appURL) && relativeExecutablePath.length > 0 && !relativeExecutablePath.includes('/');
     });
-    if (!isRecord(runningProcess)) {
+    if (!isJSONObject(runningProcess)) {
         return undefined;
     }
     const {processIdentifier} = runningProcess;
@@ -272,8 +279,8 @@ function createTemporaryDirectory(prefix: string): string {
     return mkdtempSync(join(tmpdir(), prefix));
 }
 
-function isCoreDeviceInstalledApp(value: unknown): value is CoreDeviceInstalledApp {
-    return isRecord(value) && typeof value.bundleIdentifier === 'string' && typeof value.url === 'string';
+function isCoreDeviceInstalledApp(value: JsonValue): value is CoreDeviceInstalledApp {
+    return isJSONObject(value) && typeof value.bundleIdentifier === 'string' && typeof value.url === 'string';
 }
 
 export {createIOSAdapter, iOSBenchmarkMarkerPath, parseIOSInstalledAppURL, parseIOSInstalledAppsResponse, parseIOSLaunchProcessIdentifier, parseIOSRunningAppProcessIdentifier};

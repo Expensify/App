@@ -15,7 +15,7 @@ function writeBenchmarkLog(message: string, spanName: string): void {
     const markerPath = `${directoryPath}/${encodeURIComponent(spanName)}.log`;
     RNFS.mkdir(directoryPath)
         .then(() => RNFS.writeFile(markerPath, message, 'utf8'))
-        .catch((error: unknown) => {
+        .catch((error: Error) => {
             // eslint-disable-next-line no-console
             console.warn(`Failed to persist benchmark span ${spanName}.`, error);
         });

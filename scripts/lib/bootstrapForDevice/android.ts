@@ -1,10 +1,8 @@
 /** Patches the legacy Android project so locally built variants use unique identifiers, Firebase settings, shortcuts, and labels. */
 
-import {isRecord} from '@libs/ObjectUtils';
+import {isJSONArray, isJSONObject} from '@src/types/utils/JSONUtils';
 
-import {isUnknownArray} from '@src/types/utils/ObjectUtils';
-
-import type {TupleToUnion} from 'type-fest';
+import type {JsonObject, JsonValue, TupleToUnion} from 'type-fest';
 
 import {file, write} from 'bun';
 import {resolve} from 'node:path';
@@ -24,6 +22,10 @@ const ANDROID_APPLICATION_ID_PATTERN = /^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za
 
 type AndroidBuildType = TupleToUnion<typeof ANDROID_BUILD_TYPES>;
 type AndroidApplicationIDs = Record<AndroidBuildType, string>;
+type GoogleServicesConfig = JsonObject & {client: JsonValue[]};
+type GoogleServicesAndroidClientInfo = JsonObject & Record<'package_name', string>;
+type GoogleServicesClientInfo = JsonObject & Record<'android_client_info', GoogleServicesAndroidClientInfo>;
+type GoogleServicesClient = JsonObject & Record<'client_info', GoogleServicesClientInfo>;
 
 /** Rewrites Android package, Firebase, shortcut, manifest, and label settings for a side-by-side local installation. */
 async function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): Promise<void> {
@@ -38,7 +40,9 @@ async function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): Prom
     await write(buildGradlePath, patchAndroidBuildGradle(buildGradle, applicationIDs.release));
 
     const googleServicesPath = resolve(androidDirectory, 'google-services.json');
-    const googleServices: unknown = await file(googleServicesPath).json();
+    // Bun exposes parsed JSON without a generic return type; successful parsing can only produce a JsonValue.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const googleServices = (await file(googleServicesPath).json()) as JsonValue;
     await write(googleServicesPath, `${JSON.stringify(patchGoogleServicesConfig(googleServices, applicationIDs), null, 2)}\n`);
 
     const manifestPath = resolve(androidDirectory, 'AndroidManifest.xml');
@@ -74,8 +78,8 @@ async function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): Prom
 }
 
 /** Adds Firebase clients for missing local package variants by copying the corresponding registered build-type clients. */
-function patchGoogleServicesConfig(config: unknown, applicationIDs: AndroidApplicationIDs): Record<string, unknown> {
-    if (!isRecord(config) || !isUnknownArray(config.client)) {
+function patchGoogleServicesConfig(config: JsonValue, applicationIDs: AndroidApplicationIDs): GoogleServicesConfig {
+    if (!isGoogleServicesConfig(config)) {
         throw new Error('Mobile-Expensify/Android/google-services.json has an unexpected structure.');
     }
     const clients = [...config.client];
@@ -86,7 +90,7 @@ function patchGoogleServicesConfig(config: unknown, applicationIDs: AndroidAppli
         }
         const registeredApplicationID = REGISTERED_ANDROID_APPLICATION_IDS[buildType];
         const sourceClient = clients.find((client) => googleServicesClientPackage(client) === registeredApplicationID);
-        if (!isRecord(sourceClient)) {
+        if (!sourceClient) {
             throw new Error(`google-services.json does not contain the registered ${buildType} client ${registeredApplicationID}.`);
         }
         clients.push(cloneGoogleServicesClient(sourceClient, applicationID));
@@ -139,23 +143,32 @@ function androidApplicationIDs(baseIdentifier: string, suffix?: string): Android
 }
 
 /** Clones a registered Firebase client for a synthetic package and removes OAuth clients that cannot work with its unregistered package and certificate pair. */
-function cloneGoogleServicesClient(client: Record<string, unknown>, applicationID: string): Record<string, unknown> {
-    const cloned: unknown = structuredClone(client);
-    if (!isRecord(cloned) || !isRecord(cloned.client_info) || !isRecord(cloned.client_info.android_client_info)) {
+function cloneGoogleServicesClient(client: JsonValue, applicationID: string): GoogleServicesClient {
+    if (!isGoogleServicesClient(client)) {
         throw new Error('google-services.json contains an invalid Android client.');
     }
+    const cloned = structuredClone(client);
     cloned.client_info.android_client_info.package_name = applicationID;
     // Android OAuth clients are restricted to the registered package and signing certificate. Retaining them would imply that Google Sign-In works for the synthetic application ID.
     cloned.oauth_client = [];
     return cloned;
 }
 
-function googleServicesClientPackage(client: unknown): string | undefined {
-    if (!isRecord(client) || !isRecord(client.client_info) || !isRecord(client.client_info.android_client_info)) {
-        return undefined;
-    }
-    const packageName = client.client_info.android_client_info.package_name;
-    return typeof packageName === 'string' ? packageName : undefined;
+function googleServicesClientPackage(client: JsonValue): string | undefined {
+    return isGoogleServicesClient(client) ? client.client_info.android_client_info.package_name : undefined;
+}
+
+function isGoogleServicesConfig(value: JsonValue): value is GoogleServicesConfig {
+    return isJSONObject(value) && isJSONArray(value.client);
+}
+
+function isGoogleServicesClient(value: JsonValue): value is GoogleServicesClient {
+    return (
+        isJSONObject(value) &&
+        isJSONObject(value.client_info) &&
+        isJSONObject(value.client_info.android_client_info) &&
+        typeof value.client_info.android_client_info.package_name === 'string'
+    );
 }
 
 /** Converts a GitHub-style name into a valid Java identifier segment, including names that begin with a digit. */

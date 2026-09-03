@@ -1,8 +1,8 @@
 /** Provides benchmark event parsing, polling primitives, and subprocess helpers shared by the native platform adapters. */
 
-import {isRecord} from '@libs/ObjectUtils';
+import {isJSONObject} from '@src/types/utils/JSONUtils';
 
-import type {TupleToUnion} from 'type-fest';
+import type {JsonValue, TupleToUnion} from 'type-fest';
 
 import {spawnSync} from 'bun';
 
@@ -57,9 +57,11 @@ function parseBenchmarkLogEvents(output: string): BenchmarkLogEvent[] {
 
         offset = jsonEnd + 1;
         try {
-            const event: unknown = JSON.parse(output.slice(jsonStart, jsonEnd + 1));
+            // JSON.parse is not generically typed, but a successful parse can only produce a JsonValue.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const event = JSON.parse(output.slice(jsonStart, jsonEnd + 1)) as JsonValue;
             if (
-                isRecord(event) &&
+                isJSONObject(event) &&
                 event.event === 'span_end' &&
                 typeof event.span === 'string' &&
                 typeof event.durationMs === 'number' &&

@@ -2,33 +2,34 @@ import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 
+import type {Span, StartSpanOptions} from '@sentry/core';
+
 import {AppState} from 'react-native';
 
-const mockLogBenchmarkSpanEnd = jest.fn();
+type MockInactiveSpan = {
+    setAttribute: jest.Mock<void, Parameters<Span['setAttribute']>>;
+    setStatus: jest.Mock<void, Parameters<Span['setStatus']>>;
+    end: jest.Mock<void, Parameters<Span['end']>>;
+};
+
+const mockLogBenchmarkSpanEnd = jest.fn<void, [string, number]>();
 const mockIsBenchmarkSpanEnabled = jest.fn<boolean, [string]>(() => false);
-const mockStartInactiveSpan = jest.fn<
-    {
-        setAttribute: jest.Mock;
-        setStatus: jest.Mock;
-        end: jest.Mock;
-    },
-    [unknown]
->(() => ({
-    setAttribute: jest.fn(),
-    setStatus: jest.fn(),
-    end: jest.fn(),
+const mockStartInactiveSpan = jest.fn<MockInactiveSpan, [StartSpanOptions]>(() => ({
+    setAttribute: jest.fn<void, Parameters<Span['setAttribute']>>(),
+    setStatus: jest.fn<void, Parameters<Span['setStatus']>>(),
+    end: jest.fn<void, Parameters<Span['end']>>(),
 }));
 
 jest.mock('@libs/telemetry/logBenchmarkSpanEnd', () => ({
     __esModule: true,
-    default: (...args: unknown[]) => {
-        mockLogBenchmarkSpanEnd(...args);
+    default: (spanName: string, durationMs: number) => {
+        mockLogBenchmarkSpanEnd(spanName, durationMs);
     },
     isBenchmarkSpanEnabled: (spanName: string) => mockIsBenchmarkSpanEnabled(spanName),
 }));
 
 jest.mock('@sentry/react-native', () => ({
-    startInactiveSpan: (options: unknown) => mockStartInactiveSpan(options),
+    startInactiveSpan: (options: StartSpanOptions) => mockStartInactiveSpan(options),
     spanToJSON: () => ({data: {}}),
 }));
 
