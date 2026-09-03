@@ -25,8 +25,8 @@ The app uses `console.warn` for this opt-in output because production bundles re
 Use the device bootstrap script before producing a local release build. With no identifier option, it derives a unique identifier from the authenticated GitHub username. A suffix is useful when the same developer needs separate apps for multiple branches or worktrees:
 
 ```shell
-nr bootstrap-device android --suffix baseline
-nr bootstrap-device ios --suffix baseline
+npm run bootstrap-device -- android --suffix baseline
+npm run bootstrap-device -- ios --suffix baseline
 ```
 
 Pass `--bundle-identifier` to replace the generated base identifier, or `--github-username` to override only the username used by the default. Android converts hyphens in GitHub usernames and suffixes to underscores because Android application ID segments are Java identifiers. The suffix is also included in the launcher display name, for example `Expensify (baseline)` and `Expensify Debug (baseline)`.
@@ -49,31 +49,31 @@ The benchmark runs one unmeasured warm-up followed by 20 measured cold-process l
 Android:
 
 ```shell
-nr benchmark-app-startup android 20 --device emulator-5554
+npm run benchmark-app-startup -- android 20 --device emulator-5554
 ```
 
 iOS physical device:
 
 ```shell
-nr benchmark-app-startup ios 20 --device "Developer's iPhone"
+npm run benchmark-app-startup -- ios 20 --device "Developer's iPhone"
 ```
 
 The positional arguments are the platform and measured run count. By default, each launch collects metrics for 30 seconds. Use a fixed collection window without `--wait-until-span` when measuring multiple spans, since they can finish at different times. Use `--wait-time` to change that window:
 
 ```shell
-nr benchmark-app-startup ios 20 --wait-time 10
+npm run benchmark-app-startup -- ios 20 --wait-time 10
 ```
 
 Use `--wait-until-span` to finish a run early when a particular configured span ends. Spans that finish after that cutoff are not collected. The wait time remains the maximum time allowed for the stop span to end. For example, measure only startup and stop when it ends:
 
 ```shell
-nr benchmark-app-startup ios 20 --span ManualAppStartup --wait-time 30 --wait-until-span ManualAppStartup
+npm run benchmark-app-startup -- ios 20 --span ManualAppStartup --wait-time 30 --wait-until-span ManualAppStartup
 ```
 
 Pass `--span` to restrict the statistics and CSV output to one span. To measure the startup network request within a fixed collection window:
 
 ```shell
-nr benchmark-app-startup ios 20 --span ManualAppStartupNetworkRequest --wait-time 30
+npm run benchmark-app-startup -- ios 20 --span ManualAppStartupNetworkRequest --wait-time 30
 ```
 
 The wait-until span can differ from the measured span as long as both are included in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS`. Choose it only when later spans may be omitted intentionally. `ManualAppStartupNetworkRequest` can finish after `ManualAppStartup`, so stopping at startup does not guarantee a network-request sample.
@@ -83,7 +83,7 @@ Use `--app-id` for a nonstandard Android application ID or iOS bundle identifier
 Runs where a configured metric does not end within the collection window are reported as `not observed` and are omitted from that metric's percentile calculations. The final console and CSV tables show the actual sample count in `runs`. The console also warns for each incomplete metric, for example `12/20 samples collected; 8 missing`, and identifies the binary in comparison mode. Statistics exclude missing samples and may be biased toward faster completions. Use a longer fixed collection window when samples are missing; increasing `--wait-time` while retaining `--wait-until-span` does not delay its early cutoff.
 
 ```shell
-nr benchmark-app-startup ios 20 \
+npm run benchmark-app-startup -- ios 20 \
     --output .benchmarks/startup-samples.csv \
     --results-output .benchmarks/startup-results.csv
 ```
@@ -93,14 +93,14 @@ nr benchmark-app-startup ios 20 \
 Use the `results` command to recalculate and export the statistics table from one or more raw sample CSV files. Samples from all input files are combined by span, the table is printed to the terminal, and `.benchmarks/results.csv` is written by default.
 
 ```shell
-nr benchmark-app-startup results \
+npm run benchmark-app-startup -- results \
     --input-files .benchmarks/startup-samples-a.csv,.benchmarks/startup-samples-b.csv
 ```
 
 Use `--results-output` to choose a different destination:
 
 ```shell
-nr benchmark-app-startup results \
+npm run benchmark-app-startup -- results \
     --input-files .benchmarks/startup-samples.csv \
     --results-output .benchmarks/startup-results.csv
 ```
@@ -110,7 +110,7 @@ nr benchmark-app-startup results \
 Pass `--app-id-a` and `--app-id-b` to enable alternating comparison mode. The two application IDs or bundle identifiers must identify different apps that are already installed on the device. The script warms up each app once, then measures app A followed by app B for every run, keeping the two apps interleaved on the same device without reinstalling either one.
 
 ```shell
-nr benchmark-app-startup android 20 \
+npm run benchmark-app-startup -- android 20 \
     --app-id-a com.example.expensify.baseline \
     --app-id-b com.example.expensify.candidate \
     --device emulator-5554 \
@@ -123,7 +123,7 @@ Use `--output-a` and `--output-b` to choose the per-app sample CSV files. Use `-
 Pass `--cold` together with `--app-path-a` and `--app-path-b` when you want each comparison app reinstalled before every warm-up and measured launch. The paths identify the corresponding Android APKs or signed iOS `.app` bundles. Cold comparison mode also clears app state using the platform-specific cold-start behavior; artifact paths are rejected in process mode.
 
 ```shell
-nr benchmark-app-startup ios 20 --cold \
+npm run benchmark-app-startup -- ios 20 --cold \
     --app-id-a com.example.app.a \
     --app-id-b com.example.app.b \
     --app-path-a /path/to/app-a.app \
@@ -163,13 +163,13 @@ By default, each run terminates and relaunches the existing app process without 
 On Android, true-cold mode clears package data and resets compiled package state with `cmd package compile --reset`:
 
 ```shell
-nr benchmark-app-startup android --cold --device emulator-5554
+npm run benchmark-app-startup -- android --cold --device emulator-5554
 ```
 
 On iOS, clearing app data requires uninstalling and reinstalling the signed app, so `--app-path` is required:
 
 ```shell
-nr benchmark-app-startup ios --cold --device "Developer's iPhone" --app-path /path/to/Expensify.app
+npm run benchmark-app-startup -- ios --cold --device "Developer's iPhone" --app-path /path/to/Expensify.app
 ```
 
 True-cold runs start with no authenticated account or persisted application state. Cold-process runs are usually more suitable for benchmarking authenticated startup flows.
