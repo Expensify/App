@@ -132,7 +132,7 @@ function iOSBenchmarkMarkerPath(spanName: string): string {
     return `${IOS_BENCHMARK_DIRECTORY}/${encodeURIComponent(spanName)}.log`;
 }
 
-function parseIosLaunchProcessIdentifier(response: unknown): number {
+function parseIOSLaunchProcessIdentifier(response: unknown): number {
     if (!isRecord(response) || !isRecord(response.result) || !isRecord(response.result.process)) {
         throw new Error('CoreDevice returned an unexpected app-launch response.');
     }
@@ -312,7 +312,7 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
         try {
             run('xcrun', ['devicectl', 'device', 'process', 'launch', '--device', device, '--terminate-existing', '--json-output', jsonPath, '--quiet', appID]);
             const response: unknown = JSON.parse(readFileSync(jsonPath, 'utf8'));
-            runningProcessIdentifier = parseIosLaunchProcessIdentifier(response);
+            runningProcessIdentifier = parseIOSLaunchProcessIdentifier(response);
         } finally {
             rmSync(temporaryDirectory, {recursive: true, force: true});
         }
@@ -444,7 +444,7 @@ export {
     iOSBenchmarkMarkerPath,
     parseIosInstalledAppURL,
     parseBenchmarkLogEvents,
-    parseIosLaunchProcessIdentifier,
+    parseIOSLaunchProcessIdentifier,
     parseIosRunningAppProcessIdentifier,
     latestBenchmarkEvents,
     parseAndroidProcessIdentifier,

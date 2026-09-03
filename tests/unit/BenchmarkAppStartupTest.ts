@@ -9,7 +9,7 @@ import {
     parseAndroidProcessIdentifier,
     parseIosInstalledAppURL,
     parseBenchmarkLogEvents,
-    parseIosLaunchProcessIdentifier,
+    parseIOSLaunchProcessIdentifier,
     parseIosRunningAppProcessIdentifier,
 } from '@scripts/lib/nativeAppBenchmark';
 
@@ -50,8 +50,8 @@ describe('benchmarkAppStartup', () => {
     });
 
     it('reads the launched iOS process identifier from CoreDevice output', () => {
-        expect(parseIosLaunchProcessIdentifier({result: {process: {processIdentifier: 1234}}})).toBe(1234);
-        expect(() => parseIosLaunchProcessIdentifier({result: {process: {}}})).toThrow('CoreDevice did not return a valid app process identifier.');
+        expect(parseIOSLaunchProcessIdentifier({result: {process: {processIdentifier: 1234}}})).toBe(1234);
+        expect(() => parseIOSLaunchProcessIdentifier({result: {process: {}}})).toThrow('CoreDevice did not return a valid app process identifier.');
     });
 
     it('finds an already-running iOS app process from CoreDevice output', () => {
