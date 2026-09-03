@@ -6,9 +6,9 @@ import colors from '@styles/theme/colors';
 import type {ButtonVariant} from '@styles/utils/types';
 import variables from '@styles/variables';
 
-import type {ButtonProps} from '@src/components/ButtonComposed';
-import Button from '@src/components/ButtonComposed';
-import {useButtonContext} from '@src/components/ButtonComposed/context';
+import type {ButtonProps} from '@src/components/Button';
+import Button from '@src/components/Button';
+import {useButtonContext} from '@src/components/Button/context';
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -41,7 +41,7 @@ function ContextReadout() {
     );
 }
 
-describe('ButtonComposed — Button', () => {
+describe('Button — Button', () => {
     const onPress = jest.fn();
     const onLongPress = jest.fn();
 
@@ -111,7 +111,7 @@ describe('ButtonComposed — Button', () => {
 
     // ── ButtonContext ───────────────────────────────────────────────────────────
     //
-    // ButtonComposed/Button is the sole owner of ButtonContext. These tests verify
+    // Button/Button is the sole owner of ButtonContext. These tests verify
     // that every prop the context exposes reaches children correctly.
 
     describe('ButtonContext', () => {

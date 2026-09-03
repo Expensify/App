@@ -1,8 +1,8 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import LinkButton from '@src/components/ButtonComposed/composed/LinkButton';
-import ButtonIcon from '@src/components/ButtonComposed/primitives/ButtonIcon';
-import ButtonKeyboardShortcut from '@src/components/ButtonComposed/primitives/ButtonKeyboardShortcut';
+import LinkButton from '@src/components/Button/composed/LinkButton';
+import ButtonIcon from '@src/components/Button/primitives/ButtonIcon';
+import ButtonKeyboardShortcut from '@src/components/Button/primitives/ButtonKeyboardShortcut';
 import CONST from '@src/CONST';
 import colors from '@src/styles/theme/colors';
 import variables from '@src/styles/variables';
@@ -24,7 +24,7 @@ const renderLinkButton = (innerStyles?: React.ComponentProps<typeof LinkButton>[
 
 const getButton = () => screen.getByRole(CONST.ROLE.BUTTON, {name: LABEL});
 
-describe('ButtonComposed — LinkButton', () => {
+describe('Button — LinkButton', () => {
     describe('transparent background invariant', () => {
         it('renders with a transparent background by default', () => {
             // Link buttons must not obscure underlying content.
@@ -80,9 +80,9 @@ describe('ButtonComposed — LinkButton', () => {
 
     describe('composable primitives', () => {
         // Smoke check that Object.assign-ed primitives are actually exposed and
-        // point at the underlying ButtonComposed primitives (no link-specific override
+        // point at the underlying Button primitives (no link-specific override
         // beyond Text). If a refactor accidentally drops one of these, this fails fast.
-        it('exposes Icon, DoubleLineText, and KeyboardShortcut from the ButtonComposed primitives', () => {
+        it('exposes Icon, DoubleLineText, and KeyboardShortcut from the Button primitives', () => {
             expect(LinkButton.Icon).toBe(ButtonIcon);
             expect(LinkButton.KeyboardShortcut).toBe(ButtonKeyboardShortcut);
         });

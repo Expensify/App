@@ -65,7 +65,7 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/AddExpenseActi
         return null;
     },
 }));
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     function MockButton() {
         mockView();
         return null;
