@@ -651,6 +651,7 @@
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction?.originalMessage"	2
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	109
 "../../src/libs/ReportActionsUtils.ts"	"rulesdir/no-onyx-connect"	2
+"../../src/libs/ReportAlternateTextUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
