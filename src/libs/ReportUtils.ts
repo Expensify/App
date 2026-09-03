@@ -3452,6 +3452,7 @@ function canDeleteReportAction(
             Object.values(transactions ?? {}).filter((t): t is Transaction => !!t),
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
             currentUserAccountID,
+            policy ?? undefined,
         );
     }
 
@@ -10480,8 +10481,7 @@ function reasonForReportToBeInOptionList({
  * for reports or the reports shown in the LHN).
  *
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
- * filter out the majority of reports before filtering out very spimport { is } from '../../.github/actions/javascript/getAndroidRolloutPercentage/getAndroidRolloutPercentage';
-ecific minority of reports.
+ * filter out the majority of reports before filtering out very specific minority of reports.
  */
 function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
     return reasonForReportToBeInOptionList(params) !== null;
