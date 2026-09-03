@@ -5917,6 +5917,52 @@ describe('actions/Report', () => {
             );
         });
 
+        it('should open an invoice child report in the expense report wide RHP scrolled to the latest message', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT: OnyxTypes.Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.INVOICE};
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            mockGetIsNarrowLayout.mockReturnValueOnce(false);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                appendParam(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: EXISTING_CHILD_REPORT.reportID}), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'),
+            );
+        });
+
+        it('should open an invoice child report in the full report view on narrow layouts, still scrolled to the latest message', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT: OnyxTypes.Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.INVOICE};
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            mockGetIsNarrowLayout.mockReturnValueOnce(true);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                appendParam(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'),
+            );
+        });
+
         it('should work with undefined child report ID (new thread scenario)', async () => {
             const PARENT_REPORT = createRandomReport(1, undefined);
             const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
