@@ -1,5 +1,4 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -86,9 +85,8 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                             <MenuItemField
                                 name={translate('workspace.expensifyCard.settlementAccount')}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path))}
-                            >
-                                {!!bankAccountNumber && <MenuItem.FieldValue>{`${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(bankAccountNumber)}`}</MenuItem.FieldValue>}
-                            </MenuItemField>
+                                value={bankAccountNumber ? `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(bankAccountNumber)}` : undefined}
+                            />
                         </OfflineWithFeedback>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItemWithTopDescription

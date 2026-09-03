@@ -1,4 +1,3 @@
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -52,9 +51,8 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 <MenuItemField
                     name={translate('domain.admins.primaryContact')}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
-                >
-                    {!!technicalContactSettings?.technicalContactEmail && <MenuItem.FieldValue>{technicalContactSettings.technicalContactEmail}</MenuItem.FieldValue>}
-                </MenuItemField>
+                    value={technicalContactSettings?.technicalContactEmail}
+                />
             </OfflineWithFeedback>
             <ToggleSettingOptionRow
                 wrapperStyle={[styles.mv3, styles.ph5]}

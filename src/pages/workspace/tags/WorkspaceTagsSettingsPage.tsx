@@ -1,6 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -94,9 +93,8 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                                         : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyTagLists.at(0)?.orderWeight ?? 0)),
                                 );
                             }}
-                        >
-                            {!!customTagName && <MenuItem.FieldValue>{customTagName}</MenuItem.FieldValue>}
-                        </MenuItemField>
+                            value={customTagName}
+                        />
                     </OfflineWithFeedback>
                 )}
                 {!isRulesRevampEnabled && (

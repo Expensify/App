@@ -225,14 +225,14 @@ function Comparison() {
                             <MenuItemField
                                 name="Name"
                                 onPress={noop}
-                            >
-                                <MenuItem.FieldValue>Standard rate</MenuItem.FieldValue>
-                            </MenuItemField>
+                                value="Standard rate"
+                            />
                         </Variant>
                         <Variant label="onPress={undefined}">
-                            <MenuItemField name="Name">
-                                <MenuItem.FieldValue>Standard rate</MenuItem.FieldValue>
-                            </MenuItemField>
+                            <MenuItemField
+                                name="Name"
+                                value="Standard rate"
+                            />
                         </Variant>
                     </>
                 }
@@ -258,9 +258,10 @@ function Comparison() {
                     </MenuItem.Root>
                 }
                 preset={
-                    <MenuItemField name="Country">
-                        <MenuItem.FieldValue>United States</MenuItem.FieldValue>
-                    </MenuItemField>
+                    <MenuItemField
+                        name="Country"
+                        value="United States"
+                    />
                 }
             />
 
@@ -292,9 +293,8 @@ function Comparison() {
                         name="Display"
                         onPress={noop}
                         sentryLabel="menuItemComparisonStorySentryLabel"
-                    >
-                        <MenuItem.FieldValue>Comfortable</MenuItem.FieldValue>
-                    </MenuItemField>
+                        value="Comfortable"
+                    />
                 }
             />
 
@@ -326,9 +326,8 @@ function Comparison() {
                         name="Role"
                         onPress={noop}
                         isDisabled
-                    >
-                        <MenuItem.FieldValue>Admin</MenuItem.FieldValue>
-                    </MenuItemField>
+                        value="Admin"
+                    />
                 }
             />
 
@@ -365,9 +364,8 @@ function Comparison() {
                         name="Member"
                         onPress={noop}
                         testID="menuItemComparisonStoryPressable"
-                    >
-                        <MenuItem.FieldValue>John Doe</MenuItem.FieldValue>
-                    </MenuItemField>
+                        value="John Doe"
+                    />
                 }
             />
 
@@ -407,9 +405,8 @@ function Comparison() {
                         onPress={noop}
                         isDisabled
                         testID="menuItemComparisonStoryPressableWide"
-                    >
-                        <MenuItem.FieldValue>Chase ••••1234</MenuItem.FieldValue>
-                    </MenuItemField>
+                        value="Chase ••••1234"
+                    />
                 }
             />
 
@@ -469,9 +466,8 @@ function Comparison() {
                             <MenuItemField
                                 name="Destination"
                                 onPress={noop}
-                            >
-                                <MenuItem.FieldValue>Warsaw, Poland</MenuItem.FieldValue>
-                            </MenuItemField>
+                                value="Warsaw, Poland"
+                            />
                         </Variant>
                         <Variant label="no value child">
                             <MenuItemField

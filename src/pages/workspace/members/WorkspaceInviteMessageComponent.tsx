@@ -4,7 +4,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -316,7 +315,10 @@ function WorkspaceInviteMessageComponent({
                     <View style={styles.mb3}>
                         <View style={[styles.mhn5, styles.mb3]}>
                             {isInviteNewMemberStep && (
-                                <MenuItemField name={translate('common.member')}>{!!invitingMemberTitle && <MenuItem.FieldValue>{invitingMemberTitle}</MenuItem.FieldValue>}</MenuItemField>
+                                <MenuItemField
+                                    name={translate('common.member')}
+                                    value={invitingMemberTitle}
+                                />
                             )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
@@ -341,16 +343,14 @@ function WorkspaceInviteMessageComponent({
                                           }
                                         : undefined
                                 }
-                            >
-                                <MenuItem.FieldValue>{translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}</MenuItem.FieldValue>
-                            </MenuItemField>
+                                value={translate(`workspace.common.roleName`, workspaceInviteRoleDraft)}
+                            />
                             {!!shouldShowApproverRow && (
                                 <MenuItemField
                                     name={translate('workflowsPage.approver')}
                                     onPress={navigateToApproverPage}
-                                >
-                                    {!!approverName && <MenuItem.FieldValue>{approverName}</MenuItem.FieldValue>}
-                                </MenuItemField>
+                                    value={approverName}
+                                />
                             )}
                         </View>
                         <View style={[styles.mb3]}>

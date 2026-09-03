@@ -84,9 +84,11 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, trans
                     />
                 </MenuItem.Leading>
                 <MenuItem.Content>
-                    {!!senderWorkspace?.name && <MenuItem.Title>{senderWorkspace.name}</MenuItem.Title>}
                     {senderWorkspace?.name ? (
-                        <MenuItem.Description>{translate('workspace.common.workspace')}</MenuItem.Description>
+                        <>
+                            <MenuItem.Title>{senderWorkspace.name}</MenuItem.Title>
+                            <MenuItem.Description>{translate('workspace.common.workspace')}</MenuItem.Description>
+                        </>
                     ) : (
                         <MenuItem.FieldNamePlaceholder>{translate('workspace.common.workspace')}</MenuItem.FieldNamePlaceholder>
                     )}

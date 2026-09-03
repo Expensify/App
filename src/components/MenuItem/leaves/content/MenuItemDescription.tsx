@@ -2,9 +2,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 
-import type {MenuItemSupportingTextProps} from './types';
+import type {MenuItemSupportingTextProps} from './base/types';
 
-import BaseMenuItemSupportingText from './BaseMenuItemSupportingText';
+import BaseMenuItemSupportingText from './base/BaseMenuItemSupportingText';
 
 /** Supporting text under a `MenuItem.Title` — the bottom line of a `MenuItem.Content` */
 function MenuItemDescription(props: MenuItemSupportingTextProps) {

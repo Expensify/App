@@ -18,7 +18,10 @@ type BaseMenuItemSupportingTextProps = MenuItemSupportingTextProps & {
     style?: StyleProp<TextStyle>;
 };
 
-/** Everything the supporting text leaves have in common — the muted type face and label registration */
+/**
+ * Everything the supporting text leaves of a `MenuItem.Content` have in common — the muted, smaller type
+ * face, word wrapping and label registration. Each leaf layers its own size and line height on top.
+ */
 function BaseMenuItemSupportingText({children, numberOfLines = 2, slot, style}: BaseMenuItemSupportingTextProps) {
     const styles = useThemeStyles();
 

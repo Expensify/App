@@ -1,5 +1,4 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -94,27 +93,23 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                     <MenuItemField
                         name={translate('common.destination')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID)) : undefined}
-                    >
-                        {!!selectedRate?.name && <MenuItem.FieldValue>{selectedRate.name}</MenuItem.FieldValue>}
-                    </MenuItemField>
+                        value={selectedRate?.name}
+                    />
                     <MenuItemField
                         name={translate('common.subrate')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID)) : undefined}
-                    >
-                        {!!selectedSubRate?.name && <MenuItem.FieldValue>{selectedSubRate.name}</MenuItem.FieldValue>}
-                    </MenuItemField>
+                        value={selectedSubRate?.name}
+                    />
                     <MenuItemField
                         name={translate('workspace.perDiem.amount')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.getRoute(policyID, rateID, subRateID)) : undefined}
-                    >
-                        {!!amountValue && <MenuItem.FieldValue>{amountValue}</MenuItem.FieldValue>}
-                    </MenuItemField>
+                        value={amountValue}
+                    />
                     <MenuItemField
                         name={translate('common.currency')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.getRoute(policyID, rateID, subRateID)) : undefined}
-                    >
-                        {!!currencyValue && <MenuItem.FieldValue>{currencyValue}</MenuItem.FieldValue>}
-                    </MenuItemField>
+                        value={currencyValue}
+                    />
                     {canWritePerDiem && (
                         <MenuItemAction
                             icon={icons.Trashcan}

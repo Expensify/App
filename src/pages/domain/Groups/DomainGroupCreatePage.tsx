@@ -2,7 +2,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -209,9 +208,8 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                             name={translate('domain.groups.preferredWorkspace')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
                             isDisabled={!preferredWorkspace}
-                        >
-                            {!!preferredWorkspaceName && <MenuItem.FieldValue>{preferredWorkspaceName}</MenuItem.FieldValue>}
-                        </MenuItemField>
+                            value={preferredWorkspaceName}
+                        />
                     )}
                     <ToggleSettingOptionRow
                         title={translate('domain.groups.expensifyCardPreferredWorkspace')}

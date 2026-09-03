@@ -4,7 +4,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -298,9 +297,8 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                         name={translate('workspace.card.chooseRule')}
                                         onPress={handleChooseSpendRule}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
-                                    >
-                                        {!!existingSpendRuleTitle && <MenuItem.FieldValue>{existingSpendRuleTitle}</MenuItem.FieldValue>}
-                                    </MenuItemField>
+                                        value={existingSpendRuleTitle}
+                                    />
                                 )}
 
                                 {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && (

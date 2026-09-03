@@ -1,5 +1,4 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -203,9 +202,8 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                         <MenuItemField
                             name={translate(`common.name`)}
                             onPress={canWriteTags && !hasDependentTags ? navigateToEditTag : undefined}
-                        >
-                            {!!cleanedTagName && <MenuItem.FieldValue>{cleanedTagName}</MenuItem.FieldValue>}
-                        </MenuItemField>
+                            value={cleanedTagName}
+                        />
                     </OfflineWithFeedback>
                     {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (
                         <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>

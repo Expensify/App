@@ -394,9 +394,8 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         <MenuItemField
                             name={translate('workspace.card.issueNewCard.cardName')}
                             onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path)) : undefined}
-                        >
-                            {!!card?.nameValuePairs?.cardTitle && <MenuItem.FieldValue>{card.nameValuePairs.cardTitle}</MenuItem.FieldValue>}
-                        </MenuItemField>
+                            value={card?.nameValuePairs?.cardTitle}
+                        />
                     </OfflineWithFeedback>
                     <MenuItemWithTopDescription
                         description={translate(isVirtual ? 'cardPage.virtualCardNumber' : 'cardPage.physicalCardNumber')}
@@ -436,9 +435,8 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         <MenuItemField
                             name={translate('workspace.expensifyCard.cardLimit')}
                             onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path)) : undefined}
-                        >
-                            {!!formattedLimit && <MenuItem.FieldValue>{formattedLimit}</MenuItem.FieldValue>}
-                        </MenuItemField>
+                            value={formattedLimit}
+                        />
                     </OfflineWithFeedback>
                     <View style={styles.mt6}>
                         {canEditSpendRules && (

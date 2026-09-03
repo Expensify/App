@@ -1,6 +1,5 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
@@ -193,49 +192,42 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 <MenuItemField
                     name={translate('workspace.card.issueNewCard.cardholder')}
                     onPress={!issueNewCard?.isChangeAssigneeDisabled ? () => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE) : undefined}
-                >
-                    {!!cardholder && <MenuItem.FieldValue>{cardholder}</MenuItem.FieldValue>}
-                </MenuItemField>
+                    value={cardholder}
+                />
                 <MenuItemField
                     name={translate('workspace.card.issueNewCard.cardType')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE)}
-                >
-                    {!!data?.cardType && <MenuItem.FieldValue>{translate(`workspace.card.issueNewCard.${data?.cardType}Card`)}</MenuItem.FieldValue>}
-                </MenuItemField>
+                    value={data?.cardType ? translate(`workspace.card.issueNewCard.${data.cardType}Card`) : undefined}
+                />
                 <MenuItemField
                     name={translate('workspace.card.issueNewCard.limit')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
-                >
-                    {!!limitTitle && <MenuItem.FieldValue>{limitTitle}</MenuItem.FieldValue>}
-                </MenuItemField>
+                    value={limitTitle}
+                />
                 <MenuItemField
                     name={translate('workspace.card.issueNewCard.limitType')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
-                >
-                    {!!translationForLimitType && <MenuItem.FieldValue>{translate(translationForLimitType)}</MenuItem.FieldValue>}
-                </MenuItemField>
+                    value={translationForLimitType ? translate(translationForLimitType) : undefined}
+                />
                 {!!expirationDateTitle && shouldShowExpirationDate && (
                     <MenuItemField
                         name={translate('workspace.card.issueNewCard.expirationDate')}
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
-                    >
-                        <MenuItem.FieldValue>{expirationDateTitle}</MenuItem.FieldValue>
-                    </MenuItemField>
+                        value={expirationDateTitle}
+                    />
                 )}
                 {isSpendRuleApplied && areRulesEnabled && (
                     <MenuItemField
                         name={translate('common.restrictions')}
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
-                    >
-                        {!!cardRuleRestrictionsTitle && <MenuItem.FieldValue>{cardRuleRestrictionsTitle}</MenuItem.FieldValue>}
-                    </MenuItemField>
+                        value={cardRuleRestrictionsTitle}
+                    />
                 )}
                 <MenuItemField
                     name={translate('workspace.card.issueNewCard.cardName')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
-                >
-                    {!!data?.cardTitle && <MenuItem.FieldValue>{data.cardTitle}</MenuItem.FieldValue>}
-                </MenuItemField>
+                    value={data?.cardTitle}
+                />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <FormAlertWithSubmitButton
                         buttonRef={submitButton}

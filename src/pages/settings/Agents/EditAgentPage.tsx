@@ -1,7 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -133,9 +132,8 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     <MenuItemField
                         name={translate('editAgentPage.agentName')}
                         onPress={handleEditNamePress}
-                    >
-                        {!!personalDetails?.displayName && <MenuItem.FieldValue>{personalDetails.displayName}</MenuItem.FieldValue>}
-                    </MenuItemField>
+                        value={personalDetails?.displayName}
+                    />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback
                     errors={agent?.promptErrors}

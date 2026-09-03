@@ -415,18 +415,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             name={translate('workspace.common.customField1')}
                                             onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')) : undefined}
                                             testID="member-customField1-menu-item"
-                                        >
-                                            {!!member?.employeeUserID && <MenuItem.FieldValue>{member.employeeUserID}</MenuItem.FieldValue>}
-                                        </MenuItemField>
+                                            value={member.employeeUserID}
+                                        />
                                     </OfflineWithFeedback>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
                                         <MenuItemField
                                             name={translate('workspace.common.customField2')}
                                             onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')) : undefined}
                                             testID="member-customField2-menu-item"
-                                        >
-                                            {!!member?.employeePayrollID && <MenuItem.FieldValue>{member.employeePayrollID}</MenuItem.FieldValue>}
-                                        </MenuItemField>
+                                            value={member.employeePayrollID}
+                                        />
                                     </OfflineWithFeedback>
                                 </>
                             )}

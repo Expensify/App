@@ -138,9 +138,10 @@ function ScheduleCallConfirmationPage() {
                             Navigation.goBack(ROUTES.SCHEDULE_CALL_BOOK.getRoute(route?.params?.reportID));
                         }}
                     />
-                    <MenuItemField name={translate('scheduledCall.confirmation.meetingLength')}>
-                        <MenuItem.FieldValue>{translate('scheduledCall.confirmation.minutes')}</MenuItem.FieldValue>
-                    </MenuItemField>
+                    <MenuItemField
+                        name={translate('scheduledCall.confirmation.meetingLength')}
+                        value={translate('scheduledCall.confirmation.minutes')}
+                    />
                 </ScrollView>
                 <FixedFooter>
                     <Button

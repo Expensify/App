@@ -17,7 +17,7 @@
  *             <MenuItem.Icon src={icons.Gear} />
  *         </MenuItem.Leading>
  *         <MenuItem.Content>
- *             <MenuItem.FieldValue>{translate('common.settings')}</MenuItem.FieldValue>
+ *             <MenuItem.Title>{translate('common.settings')}</MenuItem.Title>
  *         </MenuItem.Content>
  *         <MenuItem.Trailing>
  *             <MenuItem.Chevron />
@@ -46,12 +46,12 @@ import MenuItemLeading from './layout/MenuItemLeading';
 import MenuItemRoot from './layout/MenuItemRoot';
 import MenuItemRow from './layout/MenuItemRow';
 import MenuItemTrailing from './layout/MenuItemTrailing';
+import MenuItemDescription from './leaves/content/MenuItemDescription';
+import MenuItemFieldName from './leaves/content/MenuItemFieldName';
+import MenuItemFieldNamePlaceholder from './leaves/content/MenuItemFieldNamePlaceholder';
+import MenuItemFieldValue from './leaves/content/MenuItemFieldValue';
+import MenuItemTitle from './leaves/content/MenuItemTitle';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
-import MenuItemDescription from './leaves/text/MenuItemDescription';
-import MenuItemFieldName from './leaves/text/MenuItemFieldName';
-import MenuItemFieldNamePlaceholder from './leaves/text/MenuItemFieldNamePlaceholder';
-import MenuItemFieldValue from './leaves/text/MenuItemFieldValue';
-import MenuItemTitle from './leaves/text/MenuItemTitle';
 import MenuItemChevron from './leaves/trailing/MenuItemChevron';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';

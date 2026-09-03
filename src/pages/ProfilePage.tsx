@@ -330,9 +330,8 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
                                 }}
-                            >
-                                {!!notificationPreference && <MenuItem.FieldValue>{notificationPreference}</MenuItem.FieldValue>}
-                            </MenuItemField>
+                                value={notificationPreference}
+                            />
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
                             <MenuItem

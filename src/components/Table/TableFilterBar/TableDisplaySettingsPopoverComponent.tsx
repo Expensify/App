@@ -1,4 +1,3 @@
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
@@ -73,9 +72,8 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
                 <MenuItemField
                     name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
-                >
-                    <MenuItem.FieldValue>{translate(`search.filters.sortOrder.${pendingSorting.order}`)}</MenuItem.FieldValue>
-                </MenuItemField>
+                    value={translate(`search.filters.sortOrder.${pendingSorting.order}`)}
+                />
                 <View style={styles.dividerLine} />
                 <SelectionList
                     data={options}
@@ -190,9 +188,8 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
                 name={translate('search.display.sortBy')}
                 onPress={openSortBy}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
-            >
-                {!!sortByTitle && <MenuItem.FieldValue>{sortByTitle}</MenuItem.FieldValue>}
-            </MenuItemField>
+                value={sortByTitle}
+            />
         </ScrollView>
     );
 }

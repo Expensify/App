@@ -1,5 +1,4 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -47,9 +46,10 @@ function QuickbooksTravelBillingConfigurationPage({policy}: WithPolicyConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
         >
-            <MenuItemField name={translate('workspace.accounting.exportAs')}>
-                <MenuItem.FieldValue>{translate(`workspace.qbo.accounts.${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`)}</MenuItem.FieldValue>
-            </MenuItemField>
+            <MenuItemField
+                name={translate('workspace.accounting.exportAs')}
+                value={translate(`workspace.qbo.accounts.${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`)}
+            />
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction(payableAccount, qboConfig?.pendingFields)}
                 errorRowStyles={[styles.ph5]}

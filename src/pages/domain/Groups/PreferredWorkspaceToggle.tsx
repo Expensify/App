@@ -1,5 +1,4 @@
 import ConfirmModal from '@components/ConfirmModal';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -125,9 +124,8 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                         name={translate('domain.groups.preferredWorkspace')}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
                         isDisabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
-                    >
-                        {!!preferredWorkspaceName && <MenuItem.FieldValue>{preferredWorkspaceName}</MenuItem.FieldValue>}
-                    </MenuItemField>
+                        value={preferredWorkspaceName}
+                    />
                 </OfflineWithFeedback>
             )}
         </>

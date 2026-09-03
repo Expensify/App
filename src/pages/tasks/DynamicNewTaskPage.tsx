@@ -6,7 +6,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
@@ -251,7 +251,7 @@ function DynamicNewTaskPage() {
                                     </MenuItem.Row>
                                 </MenuItemWithLabel>
                             ) : (
-                                <MenuItemEmptyField
+                                <MenuItemField
                                     name={translate('task.assignee')}
                                     onPress={navigateToAssignee}
                                 />
@@ -288,12 +288,12 @@ function DynamicNewTaskPage() {
                                     </MenuItem.Row>
                                 </MenuItemWithLabel>
                             ) : (
-                                <MenuItemEmptyField
+                                <MenuItemField
                                     name={translate('common.share')}
                                     onPress={navigateToShareDestination}
                                 >
                                     <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
-                                </MenuItemEmptyField>
+                                </MenuItemField>
                             )}
                         </View>
                     </View>

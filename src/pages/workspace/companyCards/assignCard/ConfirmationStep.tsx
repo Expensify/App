@@ -1,6 +1,5 @@
 import Button from '@components/ButtonComposed';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItem from '@components/MenuItem';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -189,7 +188,10 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 >
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.letsDoubleCheck')}</Text>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
-                    <MenuItemField name={translate('workspace.companyCards.card')}>{!!cardNameTitle && <MenuItem.FieldValue>{cardNameTitle}</MenuItem.FieldValue>}</MenuItemField>
+                    <MenuItemField
+                        name={translate('workspace.companyCards.card')}
+                        value={cardNameTitle}
+                    />
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                     </View>
@@ -204,15 +206,13 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     <MenuItemField
                         name={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
-                    >
-                        {!!transactionStartDateTitle && <MenuItem.FieldValue>{transactionStartDateTitle}</MenuItem.FieldValue>}
-                    </MenuItemField>
+                        value={transactionStartDateTitle}
+                    />
                     <MenuItemField
                         name={translate('workspace.companyCards.cardName')}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
-                    >
-                        {!!cardToAssign?.customCardName && <MenuItem.FieldValue>{cardToAssign.customCardName}</MenuItem.FieldValue>}
-                    </MenuItemField>
+                        value={cardToAssign?.customCardName}
+                    />
                     <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                         <OfflineWithFeedback
                             shouldDisplayErrorAbove

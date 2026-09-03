@@ -4,9 +4,9 @@ import variables from '@styles/variables';
 
 import React from 'react';
 
-import type {MenuItemSupportingTextProps} from './types';
+import type {MenuItemSupportingTextProps} from './base/types';
 
-import BaseMenuItemSupportingText from './BaseMenuItemSupportingText';
+import BaseMenuItemSupportingText from './base/BaseMenuItemSupportingText';
 
 /**
  * The name of a form field that has no value yet, standing in for the value it does not have —

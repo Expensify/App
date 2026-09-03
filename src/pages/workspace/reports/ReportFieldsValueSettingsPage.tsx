@@ -1,5 +1,4 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -155,9 +154,8 @@ function ReportFieldsValueSettingsPage({
                     <MenuItemField
                         name={translate('common.value')}
                         onPress={canWriteReportFields && !reportFieldID ? navigateToEditValue : undefined}
-                    >
-                        <MenuItem.FieldValue>{currentValueName ?? oldValueName}</MenuItem.FieldValue>
-                    </MenuItemField>
+                        value={currentValueName ?? oldValueName}
+                    />
                     {canWriteReportFields && !hasAccountingConnections && (
                         <MenuItemAction
                             icon={icons.Trashcan}

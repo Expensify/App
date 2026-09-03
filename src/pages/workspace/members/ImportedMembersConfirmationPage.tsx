@@ -2,7 +2,6 @@ import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar'
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -173,9 +172,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                         <MenuItemField
                             name={translate('common.role')}
                             onPress={canAssignElevatedRoles ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path)) : undefined}
-                        >
-                            <MenuItem.FieldValue>{translate(`workspace.common.roleName`, role)}</MenuItem.FieldValue>
-                        </MenuItemField>
+                            value={translate(`workspace.common.roleName`, role)}
+                        />
                     </View>
                 </View>
             </View>

@@ -3,7 +3,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
@@ -140,7 +139,10 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                 submitFlexEnabled={!showNoPolicyError}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
-                <MenuItemField name={translate('common.currency')}>{!!currency && <MenuItem.FieldValue>{currency}</MenuItem.FieldValue>}</MenuItemField>
+                <MenuItemField
+                    name={translate('common.currency')}
+                    value={currency}
+                />
                 {!!policyID && (
                     <View style={styles.ph5}>
                         <Text style={[styles.mb3, styles.mutedTextLabel]}>

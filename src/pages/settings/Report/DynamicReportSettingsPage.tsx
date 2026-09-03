@@ -1,6 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -82,17 +81,15 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                                 }
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(reportID)));
                             }}
-                        >
-                            {!!notificationPreference && <MenuItem.FieldValue>{notificationPreference}</MenuItem.FieldValue>}
-                        </MenuItemField>
+                            value={notificationPreference}
+                        />
                     )}
                     {shouldShowWriteCapability && shouldAllowWriteCapabilityEditing && (
                         <MenuItemField
                             name={translate('writeCapabilityPage.label')}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
-                        >
-                            {!!writeCapabilityText && <MenuItem.FieldValue>{writeCapabilityText}</MenuItem.FieldValue>}
-                        </MenuItemField>
+                            value={writeCapabilityText}
+                        />
                     )}
                     {shouldShowWriteCapability && !shouldAllowWriteCapabilityEditing && (
                         <View style={[styles.ph5, styles.pv3]}>
@@ -118,9 +115,8 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path));
                                 }}
-                            >
-                                <MenuItem.FieldValue>{translate(`newRoomPage.visibilityOptions.${report.visibility}`)}</MenuItem.FieldValue>
-                            </MenuItemField>
+                                value={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
+                            />
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>
                                 <Text

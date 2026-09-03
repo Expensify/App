@@ -1,4 +1,3 @@
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -46,7 +45,10 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 copyable
                 interactive={false}
             />
-            <MenuItemField name={translate('common.date')}>{!!startDate.date && <MenuItem.FieldValue>{startDate.date}</MenuItem.FieldValue>}</MenuItemField>
+            <MenuItemField
+                name={translate('common.date')}
+                value={startDate.date}
+            />
 
             <MenuItemWithTopDescription
                 description={translate('travel.trainDetails.departs')}
@@ -68,16 +70,18 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
             <View style={[styles.flexRow, styles.flexWrap]}>
                 {!!reservation.coachNumber && (
                     <View style={styles.w50}>
-                        <MenuItemField name={translate('travel.trainDetails.coachNumber')}>
-                            <MenuItem.FieldValue>{reservation.coachNumber}</MenuItem.FieldValue>
-                        </MenuItemField>
+                        <MenuItemField
+                            name={translate('travel.trainDetails.coachNumber')}
+                            value={reservation.coachNumber}
+                        />
                     </View>
                 )}
                 {!!reservation.seatNumber && (
                     <View style={styles.w50}>
-                        <MenuItemField name={translate('travel.trainDetails.seat')}>
-                            <MenuItem.FieldValue>{reservation.seatNumber}</MenuItem.FieldValue>
-                        </MenuItemField>
+                        <MenuItemField
+                            name={translate('travel.trainDetails.seat')}
+                            value={reservation.seatNumber}
+                        />
                     </View>
                 )}
             </View>

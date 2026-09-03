@@ -3,7 +3,6 @@ import FormValueWatcher from '@components/Form/FormValueWatcher';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -243,9 +242,10 @@ function WorkspaceCreateReportFieldsPage({
                             )}
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
-                                <MenuItemField name={translate('common.initialValue')}>
-                                    <MenuItem.FieldValue>{translate('common.currentDate')}</MenuItem.FieldValue>
-                                </MenuItemField>
+                                <MenuItemField
+                                    name={translate('common.initialValue')}
+                                    value={translate('common.currentDate')}
+                                />
                             )}
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && (

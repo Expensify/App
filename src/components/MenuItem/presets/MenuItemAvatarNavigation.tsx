@@ -4,8 +4,8 @@ import MenuItemLeading from '@components/MenuItem/layout/MenuItemLeading';
 import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
-import MenuItemDescription from '@components/MenuItem/leaves/text/MenuItemDescription';
-import MenuItemTitle from '@components/MenuItem/leaves/text/MenuItemTitle';
+import MenuItemDescription from '@components/MenuItem/leaves/content/MenuItemDescription';
+import MenuItemTitle from '@components/MenuItem/leaves/content/MenuItemTitle';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
 
 import type {AvatarSource} from '@libs/UserAvatarUtils';

@@ -13,9 +13,9 @@ import type {StyleProp, TextStyle} from 'react-native';
 
 import React from 'react';
 
-import type {MenuItemTitleTextProps} from './types';
+import type {MenuItemPrimaryTextProps} from './types';
 
-type BaseMenuItemTitleTextProps = MenuItemTitleTextProps & {
+type BaseMenuItemPrimaryTextProps = MenuItemPrimaryTextProps & {
     /** Which line of the row this leaf occupies, so the row announces its text in visual order */
     slot: MenuItemLabelSlot;
 
@@ -23,8 +23,12 @@ type BaseMenuItemTitleTextProps = MenuItemTitleTextProps & {
     style?: StyleProp<TextStyle>;
 };
 
-/** Everything the single-line text leaves have in common — the shared type face, LTR handling and label registration */
-function BaseMenuItemTitleText({children, accessibilityLabel, slot, style}: BaseMenuItemTitleTextProps) {
+/**
+ * Everything the prominent text leaves of a `MenuItem.Content` have in common — the full-contrast type
+ * face, single-line truncation, LTR handling and label registration. Each leaf layers its own weight
+ * on top.
+ */
+function BaseMenuItemPrimaryText({children, accessibilityLabel, slot, style}: BaseMenuItemPrimaryTextProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemConfig();
 
@@ -41,4 +45,4 @@ function BaseMenuItemTitleText({children, accessibilityLabel, slot, style}: Base
     );
 }
 
-export default BaseMenuItemTitleText;
+export default BaseMenuItemPrimaryText;

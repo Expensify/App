@@ -3,7 +3,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
@@ -184,9 +183,8 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
                     onPress={interactive === false ? undefined : onPress}
                     isDisabled={disabled}
                     testID={id}
-                >
-                    {!!title && <MenuItem.FieldValue>{title}</MenuItem.FieldValue>}
-                </MenuItemField>
+                    value={title}
+                />
             ))}
             <FormProvider
                 formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}

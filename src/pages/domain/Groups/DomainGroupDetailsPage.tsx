@@ -1,5 +1,4 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -79,9 +78,8 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         <MenuItemField
                             name={translate('common.name')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_EDIT_NAME.getRoute(domainAccountID, groupID))}
-                        >
-                            {!!group?.name && <MenuItem.FieldValue>{group.name}</MenuItem.FieldValue>}
-                        </MenuItemField>
+                            value={group?.name}
+                        />
                     </OfflineWithFeedback>
                     <DefaultGroupToggle
                         domainAccountID={domainAccountID}

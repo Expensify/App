@@ -1,10 +1,11 @@
 import type {ReactElement} from 'react';
 
 /**
- * Props shared by the single-line text leaves of a `MenuItem.Content` — `MenuItem.Title` and
- * `MenuItem.FieldValue`.
+ * Props shared by the prominent text leaves of a `MenuItem.Content` — `MenuItem.Title` and
+ * `MenuItem.FieldValue`. Prominence is about emphasis, not position: a field row puts its
+ * `MenuItem.FieldValue` on the bottom line.
  */
-type MenuItemTitleTextProps =
+type MenuItemPrimaryTextProps =
     | {
           /** Text to render */
           children: string | number;
@@ -30,4 +31,4 @@ type MenuItemSupportingTextProps = {
     numberOfLines?: number;
 };
 
-export type {MenuItemSupportingTextProps, MenuItemTitleTextProps};
+export type {MenuItemSupportingTextProps, MenuItemPrimaryTextProps};

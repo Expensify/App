@@ -162,9 +162,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     <MenuItemField
                         name={translate('domain.members.domainGroup')}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
-                    >
-                        {!!userSecurityGroup?.securityGroup?.name && <MenuItem.FieldValue>{userSecurityGroup.securityGroup.name}</MenuItem.FieldValue>}
-                    </MenuItemField>
+                        value={userSecurityGroup?.securityGroup?.name}
+                    />
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem
                     vacationDelegate={vacationDelegate}

@@ -1,4 +1,3 @@
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
@@ -113,9 +112,8 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
                 <MenuItemField
                     name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
-                >
-                    {!!sortOrder && <MenuItem.FieldValue>{translate(`search.filters.sortOrder.${sortOrder}`)}</MenuItem.FieldValue>}
-                </MenuItemField>
+                    value={sortOrder ? translate(`search.filters.sortOrder.${sortOrder}`) : undefined}
+                />
                 <View style={styles.dividerLine} />
                 <SelectionList
                     data={options}

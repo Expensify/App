@@ -1,5 +1,4 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -284,9 +283,8 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 <MenuItemField
                                     name={translate('workspace.taxes.taxRate')}
                                     onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
-                                >
-                                    {!!taxRate && <MenuItem.FieldValue>{taxRate}</MenuItem.FieldValue>}
-                                </MenuItemField>
+                                    value={taxRate}
+                                />
                             </View>
                         </OfflineWithFeedback>
                     )}
