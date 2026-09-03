@@ -69,14 +69,10 @@ type BenchmarkRecorder = {
     complete: (label?: string) => BenchmarkResult;
 };
 
-function fail(message: string): never {
-    throw new Error(message);
-}
-
 function parseChoice<T extends string>(value: string, choices: readonly T[], label: string): T {
     const choice = choices.find((candidate) => candidate === value);
     if (!choice) {
-        fail(`${label} must be one of: ${choices.join(', ')}. Received: ${value}`);
+        throw new Error(`${label} must be one of: ${choices.join(', ')}. Received: ${value}`);
     }
     return choice;
 }
@@ -84,7 +80,7 @@ function parseChoice<T extends string>(value: string, choices: readonly T[], lab
 function parsePositiveInteger(value: string, label: string): number {
     const parsed = Number(value);
     if (!Number.isSafeInteger(parsed) || parsed <= 0) {
-        fail(`${label} must be a positive integer. Received: ${value}`);
+        throw new Error(`${label} must be a positive integer. Received: ${value}`);
     }
     return parsed;
 }
@@ -92,7 +88,7 @@ function parsePositiveInteger(value: string, label: string): number {
 function parsePositiveNumber(value: string, label: string): number {
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || parsed <= 0) {
-        fail(`${label} must be a positive number. Received: ${value}`);
+        throw new Error(`${label} must be a positive number. Received: ${value}`);
     }
     return parsed;
 }
@@ -118,11 +114,11 @@ function parseSpanNames(value: string | undefined): string[] {
 
 function selectBenchmarkSpanNames(configuredSpanNames: string[], selectedSpanName?: string): string[] {
     if (selectedSpanName && !configuredSpanNames.includes(selectedSpanName)) {
-        fail(`--span ${selectedSpanName} is not included in ${BENCHMARK_SPANS_ENVIRONMENT_VARIABLE}.`);
+        throw new Error(`--span ${selectedSpanName} is not included in ${BENCHMARK_SPANS_ENVIRONMENT_VARIABLE}.`);
     }
     const spanNames = selectedSpanName ? [selectedSpanName] : configuredSpanNames;
     if (spanNames.length === 0) {
-        fail(`Define at least one span in ${BENCHMARK_SPANS_ENVIRONMENT_VARIABLE} before running the benchmark.`);
+        throw new Error(`Define at least one span in ${BENCHMARK_SPANS_ENVIRONMENT_VARIABLE} before running the benchmark.`);
     }
     return spanNames;
 }
@@ -221,7 +217,7 @@ async function benchmarkAlternatingStartups(
 ): Promise<BenchmarkAlternatingResult> {
     const {binaryA: adapterA, binaryB: adapterB} = adapters;
     if (options.mode === 'cold' && (!options.appPathA || !options.appPathB)) {
-        fail('Cold comparison mode requires app paths for both binaries.');
+        throw new Error('Cold comparison mode requires app paths for both binaries.');
     }
     const resultsOutputPathA = options.resultsOutputPathA ?? benchmarkResultsOutputPath(options.outputPathA);
     const resultsOutputPathB = options.resultsOutputPathB ?? benchmarkResultsOutputPath(options.outputPathB);
@@ -394,7 +390,7 @@ async function main(rootDirectory: string): Promise<void> {
             .filter(Boolean)
             .map((inputPath) => resolve(inputPath));
         if (!inputPaths || inputPaths.length === 0) {
-            fail('Supply at least one raw sample CSV file with --input-files.');
+            throw new Error('Supply at least one raw sample CSV file with --input-files.');
         }
         const outputPath = resolve(resultsOutputPath ?? join(rootDirectory, '.benchmarks', 'results.csv'));
         const table = exportBenchmarkResults({inputPaths, outputPath});
@@ -403,7 +399,7 @@ async function main(rootDirectory: string): Promise<void> {
         return;
     }
     if (inputFiles !== undefined) {
-        fail('--input-files is only supported by the results command.');
+        throw new Error('--input-files is only supported by the results command.');
     }
 
     const platform: PlatformName = command;
@@ -411,7 +407,7 @@ async function main(rootDirectory: string): Promise<void> {
     const spanNames = selectBenchmarkSpanNames(configuredSpanNames, cli.namedArgs.span);
     const waitUntilSpan = cli.namedArgs['wait-until-span'];
     if (waitUntilSpan && !configuredSpanNames.includes(waitUntilSpan)) {
-        fail(`--wait-until-span ${waitUntilSpan} is not included in ${BENCHMARK_SPANS_ENVIRONMENT_VARIABLE}.`);
+        throw new Error(`--wait-until-span ${waitUntilSpan} is not included in ${BENCHMARK_SPANS_ENVIRONMENT_VARIABLE}.`);
     }
     const runs = Number(cli.positionalArgs.runs);
     const waitTimeSeconds = Number(cli.namedArgs['wait-time']);
@@ -440,31 +436,31 @@ async function main(rootDirectory: string): Promise<void> {
         resultsOutputPathB !== undefined;
     if (comparisonRequested) {
         if (!appIDA || !appIDB) {
-            fail('--app-id-a and --app-id-b must be supplied together for alternating comparison mode.');
+            throw new Error('--app-id-a and --app-id-b must be supplied together for alternating comparison mode.');
         }
         if (appIDA === appIDB) {
-            fail('--app-id-a and --app-id-b must identify different installed apps.');
+            throw new Error('--app-id-a and --app-id-b must identify different installed apps.');
         }
         if (cli.namedArgs['app-id'] !== undefined) {
-            fail('--app-id cannot be combined with alternating comparison mode; use --app-id-a and --app-id-b.');
+            throw new Error('--app-id cannot be combined with alternating comparison mode; use --app-id-a and --app-id-b.');
         }
         if ((appPathA === undefined) !== (appPathB === undefined)) {
-            fail('--app-path-a and --app-path-b must be supplied together.');
+            throw new Error('--app-path-a and --app-path-b must be supplied together.');
         }
         if (mode === 'cold' && (appPathA === undefined || appPathB === undefined)) {
-            fail('--app-path-a and --app-path-b are required with --cold comparison mode.');
+            throw new Error('--app-path-a and --app-path-b are required with --cold comparison mode.');
         }
         if (mode !== 'cold' && (appPathA !== undefined || appPathB !== undefined)) {
-            fail('--app-path-a and --app-path-b are only supported with --cold comparison mode.');
+            throw new Error('--app-path-a and --app-path-b are only supported with --cold comparison mode.');
         }
         if (cli.namedArgs['app-path'] !== undefined) {
-            fail('--app-path cannot be combined with alternating comparison mode; use --app-path-a and --app-path-b with --cold.');
+            throw new Error('--app-path cannot be combined with alternating comparison mode; use --app-path-a and --app-path-b with --cold.');
         }
         if (cli.namedArgs.output !== undefined) {
-            fail('--output cannot be combined with alternating comparison mode; use --output-a and --output-b.');
+            throw new Error('--output cannot be combined with alternating comparison mode; use --output-a and --output-b.');
         }
         if (resultsOutputPath !== undefined) {
-            fail('--results-output cannot be combined with alternating comparison mode; use --results-output-a and --results-output-b.');
+            throw new Error('--results-output cannot be combined with alternating comparison mode; use --results-output-a and --results-output-b.');
         }
         await benchmarkAppStartupsAlternating({
             platform,

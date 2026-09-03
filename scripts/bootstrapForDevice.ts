@@ -51,13 +51,9 @@ type BootstrapOptions = {
 };
 type AndroidBootstrapOptions = Omit<BootstrapOptions, 'developmentTeam'>;
 
-function fail(message: string): never {
-    throw new Error(message);
-}
-
 function validateIdentifier(value: string, label: string): string {
     if (!BUNDLE_IDENTIFIER_PATTERN.test(value)) {
-        fail(`${label} must contain dot-separated letters, numbers, or hyphens. Received: ${value}`);
+        throw new Error(`${label} must contain dot-separated letters, numbers, or hyphens. Received: ${value}`);
     }
     return value;
 }
@@ -67,7 +63,7 @@ function validateSuffix(value: string | undefined): string | undefined {
         return undefined;
     }
     if (!/^[A-Za-z0-9-]+$/.test(value)) {
-        fail(`Bundle identifier suffix must contain only letters, numbers, or hyphens. Received: ${value}`);
+        throw new Error(`Bundle identifier suffix must contain only letters, numbers, or hyphens. Received: ${value}`);
     }
     return value;
 }
@@ -83,7 +79,7 @@ function isUnknownArray(value: unknown): value is unknown[] {
 function parsePlatform(value: string): Platform {
     const platform = PLATFORMS.find((candidate) => candidate === value);
     if (!platform) {
-        fail(`Platform must be one of: ${PLATFORMS.join(', ')}. Received: ${value}`);
+        throw new Error(`Platform must be one of: ${PLATFORMS.join(', ')}. Received: ${value}`);
     }
     return platform;
 }
@@ -133,7 +129,7 @@ function installedDevelopmentTeams(): DevelopmentTeam[] {
 
 async function promptForDevelopmentTeam(teams: DevelopmentTeam[]): Promise<string> {
     if (teams.length === 0) {
-        fail('No Apple development teams were found. Add your Apple ID in Xcode > Settings > Accounts and download or create a provisioning profile, or pass --development-team.');
+        throw new Error('No Apple development teams were found. Add your Apple ID in Xcode > Settings > Accounts and download or create a provisioning profile, or pass --development-team.');
     }
 
     console.log('Select an Apple development team:');
@@ -168,14 +164,14 @@ function githubUsername(): string {
             .trim()
             .toLowerCase();
     } catch {
-        fail('Could not determine your GitHub username. Authenticate gh or pass --github-username/--bundle-identifier.');
+        throw new Error('Could not determine your GitHub username. Authenticate gh or pass --github-username/--bundle-identifier.');
     }
 }
 
 function defaultBundleIdentifier(username: string, platform: Platform = 'ios'): string {
     const normalizedUsername = username.trim().toLowerCase();
     if (!/^[a-z0-9-]+$/.test(normalizedUsername)) {
-        fail(`GitHub username cannot be used in a bundle identifier: ${username}`);
+        throw new Error(`GitHub username cannot be used in a bundle identifier: ${username}`);
     }
     return platform === 'ios' ? `com.${normalizedUsername}.expensify.expensifylite` : `com.${normalizeAndroidIdentifierSegment(normalizedUsername)}.expensify`;
 }
@@ -187,7 +183,7 @@ function normalizeAndroidIdentifierSegment(value: string): string {
 
 function validateAndroidApplicationID(value: string): string {
     if (!ANDROID_APPLICATION_ID_PATTERN.test(value)) {
-        fail(`Android application ID must use dot-separated Java identifier segments. Received: ${value}`);
+        throw new Error(`Android application ID must use dot-separated Java identifier segments. Received: ${value}`);
     }
     return value;
 }
@@ -213,7 +209,7 @@ function googleServicesClientPackage(client: unknown): string | undefined {
 function cloneGoogleServicesClient(client: Record<string, unknown>, applicationID: string): Record<string, unknown> {
     const cloned: unknown = structuredClone(client);
     if (!isRecord(cloned) || !isRecord(cloned.client_info) || !isRecord(cloned.client_info.android_client_info)) {
-        fail('google-services.json contains an invalid Android client.');
+        throw new Error('google-services.json contains an invalid Android client.');
     }
     cloned.client_info.android_client_info.package_name = applicationID;
     // Android OAuth clients are restricted to the registered package and signing certificate. Retaining them would imply that Google Sign-In works for the synthetic application ID.
@@ -223,7 +219,7 @@ function cloneGoogleServicesClient(client: Record<string, unknown>, applicationI
 
 function patchGoogleServicesConfig(config: unknown, applicationIDs: AndroidApplicationIDs): Record<string, unknown> {
     if (!isRecord(config) || !isUnknownArray(config.client)) {
-        fail('Mobile-Expensify/Android/google-services.json has an unexpected structure.');
+        throw new Error('Mobile-Expensify/Android/google-services.json has an unexpected structure.');
     }
     const clients = [...config.client];
     for (const buildType of ANDROID_BUILD_TYPES) {
@@ -234,7 +230,7 @@ function patchGoogleServicesConfig(config: unknown, applicationIDs: AndroidAppli
         const registeredApplicationID = REGISTERED_ANDROID_APPLICATION_IDS[buildType];
         const sourceClient = clients.find((client) => googleServicesClientPackage(client) === registeredApplicationID);
         if (!isRecord(sourceClient)) {
-            fail(`google-services.json does not contain the registered ${buildType} client ${registeredApplicationID}.`);
+            throw new Error(`google-services.json does not contain the registered ${buildType} client ${registeredApplicationID}.`);
         }
         clients.push(cloneGoogleServicesClient(sourceClient, applicationID));
     }
@@ -244,7 +240,7 @@ function patchGoogleServicesConfig(config: unknown, applicationIDs: AndroidAppli
 function patchAndroidBuildGradle(buildGradle: string, baseIdentifier: string): string {
     const applicationIDPattern = /(defaultConfig\s*\{[\s\S]*?applicationId\s+)["'][^"']+["']/;
     if (!applicationIDPattern.test(buildGradle)) {
-        fail('Could not find defaultConfig.applicationId in Mobile-Expensify/Android/build.gradle.');
+        throw new Error('Could not find defaultConfig.applicationId in Mobile-Expensify/Android/build.gradle.');
     }
     let patched = buildGradle.replace(applicationIDPattern, `$1"${baseIdentifier}"`);
     patched = patched.replaceAll('signingConfig signingConfigs.release', 'signingConfig signingConfigs.debug');
@@ -265,7 +261,7 @@ function patchAndroidManifest(manifest: string): string {
 function patchAndroidAppName(strings: string, name: string): string {
     const appNamePattern = /<string name="app_name">[^<]+<\/string>/;
     if (!appNamePattern.test(strings)) {
-        fail('Could not find app_name in an Android strings.xml file.');
+        throw new Error('Could not find app_name in an Android strings.xml file.');
     }
     return strings.replace(appNamePattern, `<string name="app_name">${name}</string>`);
 }
@@ -282,7 +278,7 @@ function configurationIDsByTarget(project: string): Map<Target, Map<Configuratio
         const listPattern = new RegExp(`\\/\\* Build configuration list for PBXNativeTarget "${target}" \\*\\/ = \\{[\\s\\S]*?buildConfigurations = \\(\\s*([\\s\\S]*?)\\s*\\);`);
         const list = project.match(listPattern)?.at(1);
         if (!list) {
-            fail(`Could not find build configurations for the ${target} target.`);
+            throw new Error(`Could not find build configurations for the ${target} target.`);
         }
         const configurations = new Map<Configuration, string>();
         for (const configuration of CONFIGURATIONS) {
@@ -292,7 +288,7 @@ function configurationIDsByTarget(project: string): Map<Target, Map<Configuratio
             }
         }
         if (!configurations.has('Debug') || !configurations.has('Release')) {
-            fail(`The ${target} target must have both Debug and Release configurations.`);
+            throw new Error(`The ${target} target must have both Debug and Release configurations.`);
         }
         result.set(target, configurations);
     }
@@ -317,7 +313,7 @@ function patchBuildConfiguration(project: string, identifier: string, bundleIden
     const blockPattern = new RegExp(`(^\\s*${identifier} \\/\\* [^*]+ \\*\\/ = \\{[\\s\\S]*?^\\s*\\};)`, 'm');
     const block = project.match(blockPattern)?.at(1);
     if (!block) {
-        fail(`Could not find build configuration ${identifier}.`);
+        throw new Error(`Could not find build configuration ${identifier}.`);
     }
 
     let patched = block;
@@ -343,7 +339,7 @@ function patchProject(project: string, baseIdentifier: string, suffix: string | 
     for (const target of TARGETS) {
         const configurations = configurationsByTarget.get(target);
         if (!configurations) {
-            fail(`Could not find configurations for ${target}.`);
+            throw new Error(`Could not find configurations for ${target}.`);
         }
         for (const [configuration, identifier] of configurations) {
             const bundleIdentifier = targetBundleIdentifier(baseIdentifier, target, configuration, suffix);
@@ -370,7 +366,7 @@ function entitlementContents(appGroup: string): string {
 function patchIOSAppDisplayName(infoPlist: string, suffix: string | undefined): string {
     const displayNamePattern = /(<key>CFBundleDisplayName<\/key>\s*<string>)[^<]*(<\/string>)/;
     if (!displayNamePattern.test(infoPlist)) {
-        fail('Could not find CFBundleDisplayName in Mobile-Expensify/iOS/Expensify/Expensify-Info.plist.');
+        throw new Error('Could not find CFBundleDisplayName in Mobile-Expensify/iOS/Expensify/Expensify-Info.plist.');
     }
     const suffixLabel = suffix ? ` (${suffix})` : '';
     return infoPlist.replace(displayNamePattern, `$1Expensify${suffixLabel}$2`);
@@ -382,7 +378,7 @@ function bootstrapIOSForDevice(options: BootstrapOptions): void {
     const suffix = validateSuffix(options.suffix);
     const baseIdentifier = validateIdentifier(options.bundleIdentifier, 'Bundle identifier');
     if (!TEAM_ID_PATTERN.test(options.developmentTeam)) {
-        fail(`Apple development team must be a 10-character team ID. Received: ${options.developmentTeam}`);
+        throw new Error(`Apple development team must be a 10-character team ID. Received: ${options.developmentTeam}`);
     }
 
     const project = readFileSync(projectPath, 'utf8');
