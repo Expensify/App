@@ -276,9 +276,7 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_RATE_ID);
     });
 
-    // Neither a per diem nor a time expense has a rate in the destination's mileage rates: a per diem rate ID lives in
-    // the per-diem custom unit, and a time expense keeps its rate under `comment.units` with no rate ID at all. Either
-    // one would otherwise be handed a mileage rate their own custom unit cannot resolve.
+    // A time expense keeps its rate under `comment.units`, so its rate ID is absent rather than foreign.
     it.each([
         ['per diem', CONST.IOU.REQUEST_TYPE.PER_DIEM, 'PER_DIEM_RATE'],
         ['time', CONST.IOU.REQUEST_TYPE.TIME, undefined],
@@ -304,8 +302,8 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         expect(setCustomUnitRateID).not.toHaveBeenCalled();
     });
 
-    // Only the default workspace is guaranteed full customUnits from OpenApp.
-    it('leaves the rate alone when the destination workspace has no rates loaded yet', () => {
+    // Only the default workspace is guaranteed full customUnits from OpenApp; keeping the old rate there strands it.
+    it('falls back to the p2p rate when the destination workspace has no rates loaded yet', () => {
         mockPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`]: {...createRandomPolicy(2), id: DESTINATION_POLICY_ID}};
         mockDraftTransactions = [buildTrackedDistanceDraft(OTHER_WORKSPACE_RATE_ID)];
         const {result} = renderSubmission();
@@ -314,7 +312,8 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
             result.current.addParticipant([DESTINATION_CHAT]);
         });
 
-        expect(setCustomUnitRateID).not.toHaveBeenCalled();
+        expect(setCustomUnitRateID).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(CONST.CUSTOM_UNITS.FAKE_P2P_ID);
     });
 
     it('leaves a rate the destination workspace already owns alone', () => {

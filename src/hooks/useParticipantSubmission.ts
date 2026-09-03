@@ -28,7 +28,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -261,19 +260,17 @@ function useParticipantSubmission({
             setMoneyRequestParticipants(initialTransactionID, val);
         }
 
-        // Keep an explicit p2p rate so the confirmation step can still ask for a workspace rate, and keep whatever we
-        // have while the destination's rates are unloaded, since getCustomUnitRateID falls back to the p2p rate there.
-        // Anything else resolves nowhere on the destination: the draft is a snapshot and can carry no rate at all.
+        // Keep an explicit p2p rate so the confirmation step can still ask for a workspace rate. Anything else
+        // resolves nowhere on the destination: the draft is a snapshot and can carry a foreign or missing rate ID.
         const isMovingToPolicyExpenseChat = isMovingTransactionFromTrackExpense && isPolicyExpenseChat;
         const destinationRates = isMovingToPolicyExpenseChat ? DistanceRequestUtils.getMileageRates(policy) : undefined;
         const shouldKeepTrackExpenseRate = (transaction: OnyxEntry<Transaction>) => {
-            // A tracked per diem carries a per-diem rate ID, which will never be among the destination's mileage
-            // rates, so swapping it for one would leave the expense with a rate its custom unit cannot resolve.
+            // A per diem or time rate is not a mileage rate, so the destination's rates can never resolve it.
             if (!isDistanceRequest(transaction)) {
                 return true;
             }
             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
-            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isEmptyObject(destinationRates) || (!!currentRateID && !!destinationRates?.[currentRateID]);
+            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || (!!currentRateID && !!destinationRates?.[currentRateID]);
         };
 
         if (drafts.length > 0) {
