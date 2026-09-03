@@ -95,7 +95,6 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     };
 
     const searchTags = (query: string) => {
-        const {hasCachedData: currentHasCachedData} = stateRef.current;
         const requestSeq = ++requestSeqRef.current;
 
         // Reset pagination state immediately so loadMore doesn't fire with stale query/cursor
@@ -123,7 +122,8 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     // searchTags is not memoized, so it cannot be in the dependency array — it would fire on every render.
     // searchTags reads latest state via refs, so the closure captured here is safe to call.
     useEffect(() => {
-        searchTags('');
+        // Defer to a microtask so setState calls inside searchTags don't fire synchronously within the effect body
+        Promise.resolve().then(() => searchTags(''));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyIDs]);
 
