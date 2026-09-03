@@ -34,11 +34,15 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
     // Forward-delete removes the next character, so the caret offset stays.
     const forwardDeletePressedRef = useRef(false);
 
+    const collapse = () => {
+        setSelection(collapseSelection);
+    };
+
     // Reset selection when returning to the screen.
     if (previousIsFocused !== isFocused) {
         setPreviousIsFocused(isFocused);
         if (isFocused) {
-            setSelection(collapseSelection);
+            collapse();
         }
     }
 
@@ -46,10 +50,6 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
     const prepareSelectionUpdate = (nextText: string) => {
         willSelectionBeUpdatedManually.current = shouldIgnoreSelectionWhenUpdatedManually;
         pendingDisplayLengthRef.current = nextText.length;
-    };
-
-    const collapse = () => {
-        setSelection(collapseSelection);
     };
 
     // Moves the caret to the start after an external clear.
