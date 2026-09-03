@@ -32,7 +32,7 @@ import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
-import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
+import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -259,13 +259,14 @@ function TransactionGroupListExpandedImpl({
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
+        const carouselOptions = {source: CAROUSEL_SOURCE.search(transactionsQueryJSON?.hash), snapshotHash: transactionsQueryJSON?.hash};
         if (isModifiedMousePress(event)) {
-            setActiveTransactionIDs(siblingTransactionIDs);
+            setActiveTransactionIDs(siblingTransactionIDs, carouselOptions);
             navigateToTransactionThread();
             return;
         }
 
-        setActiveTransactionIDs(siblingTransactionIDs).then(navigateToTransactionThread);
+        setActiveTransactionIDs(siblingTransactionIDs, carouselOptions).then(navigateToTransactionThread);
     };
 
     const onShowMoreButtonPress = () => {

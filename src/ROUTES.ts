@@ -1952,14 +1952,18 @@ const ROUTES = {
     },
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({reportID, reportActionID, backTo, anchorTransactionID}: {reportID: string | undefined; reportActionID?: string; backTo?: string; anchorTransactionID?: string}) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
             }
 
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
+            // Which expense in the prev/next carousel this screen is anchored to. The header falls back to it while
+            // the thread's own parent report action is still loading, so the carousel doesn't wink out of existence
+            // on a cold open (e.g. straight after clearing the cache).
+            const routeWithAnchor = anchorTransactionID ? (`${baseRoute}?anchorTransactionID=${anchorTransactionID}` as const) : baseRoute;
 
-            return getUrlWithBackToParam(baseRoute, backTo);
+            return getUrlWithBackToParam(routeWithAnchor, backTo);
         },
     },
 

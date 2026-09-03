@@ -3,7 +3,7 @@ import type {Beta, IntroSelected, PersonalDetailsList, Report, ReportAction, Tra
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from './actions/Report';
-import {getIOUActionForReportID} from './ReportActionsUtils';
+import {getAllReportActions, getExpenseCreationIOUActionForTransactionID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportOrDraftReport} from './ReportUtils';
 import {isExpenseUnreported} from './TransactionUtils';
 
@@ -34,7 +34,23 @@ type ResolveReportContext = {
     currentUserAccountID: number;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     conciergeChat: OnyxEntry<Report>;
+    isSelfTourViewed?: boolean;
+    hasCompletedGuidedSetupFlow?: boolean;
 };
+
+/**
+ * The action that created an expense, looked up in a report's own actions.
+ *
+ * Deliberately not `getIOUActionForReportID`: paying, approving or rejecting an expense produces further IOU
+ * actions carrying the same `IOUTransactionID`, each with its own thread, and opening one of those shows a system
+ * message instead of the expense.
+ */
+function getExpenseCreationIOUActionForReportID(reportID: string | undefined, transactionID: string | undefined): OnyxEntry<ReportAction> {
+    if (!reportID || !transactionID) {
+        return undefined;
+    }
+    return getExpenseCreationIOUActionForTransactionID(Object.values(getAllReportActions(reportID)), transactionID);
+}
 
 /**
  * Resolves which report to open for a single expense, creating its transaction thread only if necessary.
@@ -50,11 +66,11 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
     // since report "0" does not exist. Prefer the snapshot-resolved thread, but fall back to local report actions
     // so an optimistic (offline) expense — absent from the snapshot — still resolves to its real thread.
     if (isUnreported) {
-        return expense.reportAction?.childReportID ?? getIOUActionForReportID(findSelfDMReportID(), transaction.transactionID)?.childReportID ?? reportID;
+        return expense.reportAction?.childReportID ?? getExpenseCreationIOUActionForReportID(findSelfDMReportID(), transaction.transactionID)?.childReportID ?? reportID;
     }
 
     // Prefer the transaction thread resolved from the Search snapshot. The main reportActions_ collection
-    // may be empty (e.g. right after clearing Onyx) so getIOUActionForReportID can fail and incorrectly
+    // may be empty (e.g. right after clearing Onyx) so the local lookup can fail and incorrectly
     // fall back to the whole parent expense report; the snapshot already carries the correct childReportID.
     if (expense.reportAction?.childReportID) {
         return expense.reportAction.childReportID;
@@ -62,7 +78,7 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
 
     // Prefer the live action from the main collection (it may carry a newer childReportID), fall back to the
     // snapshot action carried on the descriptor so a snapshot-only expense can still resolve/create its thread.
-    const iouAction = getIOUActionForReportID(reportID, transaction.transactionID) ?? expense.reportAction;
+    const iouAction = getExpenseCreationIOUActionForReportID(reportID, transaction.transactionID) ?? expense.reportAction;
     if (!iouAction) {
         return reportID;
     }
@@ -80,6 +96,8 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         iouReportAction: iouAction,
         transaction,
         personalDetails: context.personalDetails,
+        isSelfTourViewed: context.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: context.hasCompletedGuidedSetupFlow,
     });
     return transactionThreadReport?.reportID ?? reportID;
 }
