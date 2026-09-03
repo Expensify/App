@@ -3,7 +3,6 @@ title: Connect to Intuit Enterprise Suite
 description: Connect Intuit Enterprise Suite to your workspace in New Expensify to sync your accounting data automatically.
 keywords: [New Expensify, Intuit Enterprise Suite, IES, connect Intuit Enterprise Suite, Intuit Enterprise Suite integration, QuickBooks Online, accounting sync, Control plan, Workspace Admin]
 internalScope: Audience is Workspace Admins. Covers connecting Intuit Enterprise Suite to a workspace in New Expensify. Does not cover configuring import and export settings after connecting, connecting QuickBooks Online, or QuickBooks Desktop.
-order: 2
 ---
 
 # Connect to Intuit Enterprise Suite
@@ -44,8 +43,6 @@ After the connection is established, the **Connections** section updates to show
 - The connection status and last sync timestamp.
 - The selected Entity.
 - The Import, Export, and Advanced configuration settings.
-
-Learn how to [configure import, export, and advanced settings for Intuit Enterprise Suite](/articles/new-expensify/connections/intuit-enterprise-suite/Configure-Intuit-Enterprise-Suite).
 
 ![Workspace Accounting page showing Intuit Enterprise Suite connected]({{site.url}}/assets/images/Accounting_IES.png){:width="100%"}
 
