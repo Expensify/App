@@ -1087,6 +1087,8 @@ const translations: TranslationDeepObject<typeof en> = {
             setupRules: 'Configurar reglas de gasto',
             customizeSpendCategories: 'Personaliza las categorías de gasto',
             customizeSpendCategoriesSubText: 'Organiza y clasifica gastos',
+            customizeExpenseCategories: 'Personaliza tus categorías de gastos',
+            customizeExpenseCategoriesSubText: 'Añade las categorías de tu empresa para codificar tus gastos',
             createExpense: 'Crear un gasto',
             createExpenseSubText: 'Escanea, arrastra y suelta o introduce manualmente un gasto usando el botón +',
             linkPersonalCard: 'Vincular tarjeta personal',

@@ -1079,6 +1079,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: '会計士を招待',
             customizeSpendCategories: '支出カテゴリをカスタマイズする',
             customizeSpendCategoriesSubText: '経費を整理して分類する',
+            customizeExpenseCategories: '経費カテゴリをカスタマイズ',
+            customizeExpenseCategoriesSubText: '会社のカテゴリを追加して経費を分類しましょう',
             createExpense: '経費を作成',
             createExpenseSubText: 'スキャンするか、ドラッグ＆ドロップするか、または＋ボタンから手入力して経費を追加します',
             linkPersonalCard: '個人カードをリンクする',
