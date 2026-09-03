@@ -122,7 +122,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(./node_modules/.bin/bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE" | jq -r '.version // "source"')
+          RESULT=$(./node_modules/.bin/bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE")
+          VERSION=$(echo "$RESULT" | jq -r '.version // "source"')
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not resolve react-native artifact version from resolve-artifacts.ts output: $RESULT"
+            exit 1
+          fi
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Cache react-native artifacts
