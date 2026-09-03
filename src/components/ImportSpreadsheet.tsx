@@ -1,6 +1,4 @@
-import useCloseImportPage from '@hooks/useCloseImportPage';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -8,7 +6,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
-import {uploadOFXStatement} from '@libs/actions/ImportTransactions';
 import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
@@ -23,7 +20,6 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {accountIDSelector} from '@selectors/Session';
 import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
@@ -51,22 +47,16 @@ type ImportSpreadsheetProps = {
     /** Whether the spreadsheet is importing multi-level tags */
     isImportingMultiLevelTags?: boolean;
 
-    /** Whether the spreadsheet is importing card transactions, which also accepts OFX/QFX bank statements */
-    isImportingTransactions?: boolean;
-
-    /** The card an OFX/QFX statement is uploaded to, when re-uploading to an already imported card */
-    existingCardID?: number;
+    /** Uploads an OFX/QFX bank statement. Passing it is also what makes those files selectable. */
+    onStatementPicked?: (file: FileObject) => Promise<void>;
 };
 
-function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags, isImportingTransactions, existingCardID}: ImportSpreadsheetProps) {
+function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags, onStatementPicked}: ImportSpreadsheetProps) {
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const {setIsClosing} = useCloseImportPage();
-    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const [isReadingFile, setIsReadingFile] = useState(false);
     const [fileTopPosition, setFileTopPosition] = useState(0);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use different copies depending on the screen size
@@ -94,7 +84,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         if (isImportingMultiLevelTags) {
             return CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS;
         }
-        if (isImportingTransactions) {
+        if (onStatementPicked) {
             return [...CONST.ALLOWED_SPREADSHEET_EXTENSIONS, ...CONST.OFX_STATEMENT_EXTENSIONS];
         }
         return CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
@@ -133,16 +123,11 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
 
         setIsReadingFile(true);
 
-        // A statement carries its own columns, so it is parsed by the backend and skips the column mapping step.
-        if (isOFXStatement(file.name ?? '')) {
-            uploadOFXStatement(file, importedSpreadsheet?.importTransactionSettings ?? {}, accountID, existingCardID)
-                .then((importFinalModal) => showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false}))
-                .then((didShowImportFinalModal) => {
-                    if (!didShowImportFinalModal) {
-                        return;
-                    }
-                    setIsClosing(true);
-                    Navigation.dismissModal();
+        // A statement carries its own columns, so the backend parses it and the column mapping step is skipped.
+        if (onStatementPicked && isOFXStatement(file.name ?? '')) {
+            onStatementPicked(file)
+                .catch(() => {
+                    showUploadFileError('spreadsheet.importFailedTitle', 'spreadsheet.importFailedDescription');
                 })
                 .finally(() => {
                     setIsReadingFile(false);
@@ -214,7 +199,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         let text = '';
         if (isImportingMultiLevelTags) {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetMultiLevelTag') : translate('spreadsheet.dragAndDropMultiLevelTag');
-        } else if (isImportingTransactions) {
+        } else if (onStatementPicked) {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetTransactions') : translate('spreadsheet.dragAndDropTransactions');
         } else {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop');
