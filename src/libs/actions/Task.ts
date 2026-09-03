@@ -1804,4 +1804,4 @@ export {
     completeTestDriveTask,
 };
 
-export type {OnboardingTaskCompletionOnyxData, OnboardingTaskCompletionOnSuccessData};
+export type {OnboardingTaskCompletionOnyxData};
