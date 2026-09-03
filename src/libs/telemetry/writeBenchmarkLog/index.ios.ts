@@ -9,7 +9,8 @@ function writeBenchmarkLog(message: string, spanName: string): void {
     // eslint-disable-next-line no-console
     console.warn(message);
 
-    // Android can collect the warning from adb logcat for the launched process. CoreDevice does not expose an equivalent app log stream, so iOS also persists a marker that devicectl can copy from the app container.
+    // Android can collect the warning from adb logcat for the launched process.
+    // CoreDevice does not expose an equivalent app log stream, so iOS also persists a marker that devicectl can copy from the app container.
     const directoryPath = `${RNFS.CachesDirectoryPath}/${BENCHMARK_DIRECTORY_NAME}`;
     const markerPath = `${directoryPath}/${encodeURIComponent(spanName)}.log`;
     RNFS.mkdir(directoryPath)
