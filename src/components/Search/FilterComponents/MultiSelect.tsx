@@ -144,6 +144,7 @@ function MultiSelect<T extends string>({
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
+                    shouldClearInputWhenHidden
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                     footerContent={footer}
                 />

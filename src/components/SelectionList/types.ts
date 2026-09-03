@@ -124,6 +124,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Whether to clear the text input when a row is selected */
     shouldClearInputOnSelect?: boolean;
 
+    /** Whether to clear the text input when an `<Activity>` hides the list, so it is revealed as it was built */
+    shouldClearInputWhenHidden?: boolean;
+
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
 

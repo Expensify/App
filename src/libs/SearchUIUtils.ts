@@ -5872,57 +5872,6 @@ function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey
     return {isNegated: !!negatedValue, value: negatedValue ?? values?.[baseFilterKey]};
 }
 
-/**
- * Everything the content of `baseFilterKey` reads out of the form, tagged with the kind of content it is and with the
- * key narrowed to that kind. `SearchAdvancedFiltersContent` builds its props from this and
- * `hasFilterContentValuesChanged` compares two of them.
- */
-function getFilterContentValues(baseFilterKey: SearchFilter['key'], values: Partial<SearchAdvancedFiltersForm> | undefined) {
-    if (isAmountFilterKey(baseFilterKey)) {
-        return {
-            kind: 'amount',
-            baseFilterKey,
-            value: {
-                [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`],
-                [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`],
-                [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`],
-            },
-        } as const;
-    }
-
-    if (isDateFilterKey(baseFilterKey)) {
-        return {
-            kind: 'date',
-            baseFilterKey,
-            value: {
-                [CONST.SEARCH.DATE_MODIFIERS.ON]: values?.[`${baseFilterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`],
-                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: values?.[`${baseFilterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`],
-                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: values?.[`${baseFilterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
-                [CONST.SEARCH.DATE_MODIFIERS.RANGE]: values?.[`${baseFilterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`],
-            },
-            hasFeed: !!values?.feed,
-        } as const;
-    }
-
-    // The report field content is handed the whole form, so anything in it counts.
-    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
-        return {kind: 'reportField', values} as const;
-    }
-
-    if (isTextFilterKey(baseFilterKey)) {
-        return {kind: 'text', baseFilterKey, negatable: getFilterNegatableValue(baseFilterKey, values)} as const;
-    }
-
-    // A list content also reads the search type and the workspace filter, which decide the options it offers.
-    return {
-        kind: 'list',
-        baseFilterKey,
-        negatable: getFilterNegatableValue(baseFilterKey, values),
-        type: values?.type,
-        policyID: getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values),
-    } as const;
-}
-
 /** Whether the values the content of `baseFilterKey` reads differ between two versions of the form. */
 function hasFilterContentValuesChanged(
     baseFilterKey: SearchFilter['key'],
@@ -5933,7 +5882,34 @@ function hasFilterContentValuesChanged(
         return false;
     }
 
-    return !deepEqual(getFilterContentValues(baseFilterKey, previousValues), getFilterContentValues(baseFilterKey, values));
+    if (isAmountFilterKey(baseFilterKey)) {
+        const modifiers = [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN, CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
+        return modifiers.some((modifier) => previousValues?.[`${baseFilterKey}${modifier}`] !== values?.[`${baseFilterKey}${modifier}`]);
+    }
+
+    if (isDateFilterKey(baseFilterKey)) {
+        const modifiers = [CONST.SEARCH.DATE_MODIFIERS.ON, CONST.SEARCH.DATE_MODIFIERS.AFTER, CONST.SEARCH.DATE_MODIFIERS.BEFORE, CONST.SEARCH.DATE_MODIFIERS.RANGE];
+        return (
+            !!previousValues?.feed !== !!values?.feed || modifiers.some((modifier) => !deepEqual(previousValues?.[`${baseFilterKey}${modifier}`], values?.[`${baseFilterKey}${modifier}`]))
+        );
+    }
+
+    // The report field content is handed the whole form, so anything in it counts.
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
+        return !deepEqual(previousValues, values);
+    }
+
+    if (!deepEqual(getFilterNegatableValue(baseFilterKey, previousValues), getFilterNegatableValue(baseFilterKey, values))) {
+        return true;
+    }
+
+    if (isTextFilterKey(baseFilterKey)) {
+        return false;
+    }
+
+    // A list content also reads the search type and the workspace filter, which decide the options it offers.
+    const policyIDKey = CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID;
+    return previousValues?.type !== values?.type || !deepEqual(getFilterNegatableValue(policyIDKey, previousValues), getFilterNegatableValue(policyIDKey, values));
 }
 
 function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths | undefined, translate: LocalizedTranslate) {
@@ -7094,7 +7070,6 @@ export {
     adjustTimeRangeToDateFilters,
     getDateDisplayValue,
     getDisplayValue,
-    getFilterContentValues,
     getFilterNegatableValue,
     hasFilterContentValuesChanged,
     shouldShowFilter,

@@ -1,4 +1,4 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
@@ -19,6 +19,8 @@ import React, {Activity, useState} from 'react';
 const mockScrollToIndex = jest.fn();
 const mockScrollToOffset = jest.fn();
 const mockGetAbsoluteLastScrollOffset = jest.fn<number, []>(() => 0);
+// Called once per mounted list, so a test can tell a revealed list from a replaced one
+const mockListMount = jest.fn();
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {
@@ -58,6 +60,10 @@ jest.mock('@shopify/flash-list', () => {
             },
             ref,
         ) => {
+            ReactLocal.useState(() => {
+                mockListMount();
+                return null;
+            });
             ReactLocal.useImperativeHandle(ref, () => ({
                 scrollToIndex: mockScrollToIndex,
                 scrollToOffset: mockScrollToOffset,
@@ -137,6 +143,7 @@ describe('BaseSelectionList', () => {
         onSelectRowMock.mockClear();
         mockScrollToIndex.mockClear();
         mockScrollToOffset.mockClear();
+        mockListMount.mockClear();
         mockGetAbsoluteLastScrollOffset.mockReturnValue(0);
         mockIsFocusRestoreInProgress.mockReturnValue(false);
     });
@@ -157,6 +164,7 @@ describe('BaseSelectionList', () => {
                     onSelectRow={onSelectRowMock}
                     shouldSingleExecuteRowSelect
                     shouldShowTextInput={!!setSearchText}
+                    shouldClearInputWhenHidden
                     canSelectMultiple={canSelectMultiple}
                     initiallyFocusedItemKey={focusedKey}
                     isDisabled={isDisabled}
@@ -165,34 +173,66 @@ describe('BaseSelectionList', () => {
         );
     }
 
-    function ActivitySelectionListRenderer({mode}: {mode: 'visible' | 'hidden'}) {
+    function ActivitySelectionListRenderer({mode, searchText, setSearchText}: {mode: 'visible' | 'hidden'; searchText?: string; setSearchText?: (text: string) => void}) {
         return (
             <Activity mode={mode}>
-                <SelectionListRenderer data={mockItems} />
+                <SelectionListRenderer
+                    data={mockItems}
+                    searchText={searchText}
+                    setSearchText={setSearchText}
+                />
             </Activity>
         );
     }
 
-    it('scrolls back to the offset it reports when it is revealed from a hidden Activity', async () => {
+    it('replaces the list it reveals from a hidden Activity only when it was left scrolled', () => {
         jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
-        // The offset is read as the list is revealed and reported as zero afterwards, so a read taken a frame later
-        // would restore the top the list was reset to rather than where it was.
-        mockGetAbsoluteLastScrollOffset.mockReturnValueOnce(1200).mockReturnValue(0);
 
         const {rerender} = render(<ActivitySelectionListRenderer mode="visible" />);
-
-        // A list that was just mounted starts where it starts, so nothing scrolls it. The frame has to pass first,
-        // otherwise this holds whether or not the mount is skipped. Nothing here sets state, so no act is needed.
-        jest.advanceTimersByTime(32);
-        expect(mockScrollToOffset).not.toHaveBeenCalled();
+        expect(mockListMount).toHaveBeenCalledTimes(1);
 
         // Hiding the list unmounts its effects and drops its layout, and revealing it runs them again.
         rerender(<ActivitySelectionListRenderer mode="hidden" />);
         rerender(<ActivitySelectionListRenderer mode="visible" />);
 
-        await waitFor(() => {
-            expect(mockScrollToOffset).toHaveBeenCalledWith({offset: 1200, animated: false});
-        });
+        // A list left at the top is revealed as it was, which is what keeps a revisit cheap.
+        expect(mockListMount).toHaveBeenCalledTimes(1);
+
+        // The offset is read as the list is revealed and reported as zero afterwards, so it is read there.
+        mockGetAbsoluteLastScrollOffset.mockReturnValueOnce(1200).mockReturnValue(0);
+        rerender(<ActivitySelectionListRenderer mode="hidden" />);
+        rerender(<ActivitySelectionListRenderer mode="visible" />);
+
+        // A recycler takes an offset only from a scroll event, so the one left at 1200 is replaced rather than scrolled.
+        expect(mockListMount).toHaveBeenCalledTimes(2);
+        expect(mockScrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('drops what the list was filtered by as it is hidden', () => {
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
+        const setSearchText = jest.fn();
+
+        const {rerender} = render(
+            <ActivitySelectionListRenderer
+                mode="visible"
+                searchText="term"
+                setSearchText={setSearchText}
+            />,
+        );
+        // A list is mounted with whatever it is given, so nothing is cleared until it is hidden.
+        expect(setSearchText).not.toHaveBeenCalled();
+
+        // Cleared here rather than on the way back, so the debounce behind the input elapses while the list is hidden
+        // and the data it is revealed with is the data it is replaced against.
+        rerender(
+            <ActivitySelectionListRenderer
+                mode="hidden"
+                searchText="term"
+                setSearchText={setSearchText}
+            />,
+        );
+
+        expect(setSearchText).toHaveBeenCalledWith('');
     });
 
     it('should not trigger item press if screen is not focused', () => {

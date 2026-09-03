@@ -2140,12 +2140,6 @@ const CONST = {
         /** How long the cursor has to rest on an advanced filter row before its content may derive the contact list */
         SEARCH_FILTER_HOVER_INTENT_DELAY: 30,
 
-        /**
-         * How long after entering an advanced filter row its content may derive the contact list even if the cursor
-         * never came to rest. Measured from entering a row, so only entering one restarts it.
-         */
-        SEARCH_FILTER_HOVER_INTENT_MAX_DELAY: 400,
-
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         USE_DEBOUNCED_STATE_DELAY: 300,

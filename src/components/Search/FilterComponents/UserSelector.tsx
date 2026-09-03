@@ -142,6 +142,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                 <SelectionList
                     data={listData}
                     textInputOptions={textInputOptions}
+                    shouldClearInputWhenHidden
                     canSelectMultiple
                     ListItem={UserSelectionListItem}
                     onSelectRow={selectUser}

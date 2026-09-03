@@ -144,6 +144,7 @@ function SingleSelectImpl({
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                     textInputOptions={textInputOptions}
+                    shouldClearInputWhenHidden
                     style={{
                         contentContainerStyle: [styles.pb0],
                         ...selectionListStyle,

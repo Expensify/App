@@ -156,12 +156,8 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         });
     };
     const restTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-    const rowAllowanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-    const cancelReadyWaits = () => {
-        clearTimeout(restTimeoutRef.current);
-        clearTimeout(rowAllowanceTimeoutRef.current);
-    };
-    // Drops both waits when the popover closes.
+    const cancelReadyWaits = () => clearTimeout(restTimeoutRef.current);
+    // Drops the wait when the popover closes.
     useEffect(() => cancelReadyWaits, []);
 
     /** Restarted by every movement, so it elapses only once the cursor has come to rest. */
@@ -170,16 +166,9 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         restTimeoutRef.current = setTimeout(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
     };
 
-    /** The cap for a cursor that wanders inside one row without resting. */
-    const waitForRowAllowance = () => {
-        clearTimeout(rowAllowanceTimeoutRef.current);
-        rowAllowanceTimeoutRef.current = setTimeout(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_MAX_DELAY);
-    };
-
     const hoverFilter = (filterKey: SearchFilter['key']) => {
         showFilter(filterKey);
         waitForCursorToRest();
-        waitForRowAllowance();
     };
 
     // Where the cursor last counted as moving; a hand shaking within the rest radius does not restart the wait.

@@ -193,30 +193,6 @@ describe('SearchAdvancedFiltersPopup', () => {
         expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
     });
 
-    it('releases a row the cursor never rests on once its per-row allowance elapses', () => {
-        const step = CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY - 10;
-        let elapsed = 0;
-        let corner = 0;
-        // Wandering further than the rest radius, so every step restarts the rest wait and only the allowance ends it.
-        const wander = () => {
-            act(() => {
-                jest.advanceTimersByTime(step);
-            });
-            elapsed += step;
-            corner += 1;
-            movePointer(100 + (corner % 2) * 30, 100);
-        };
-
-        hover(FILTER_KEYS.FROM);
-        while (elapsed < CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_MAX_DELAY - step) {
-            wander();
-        }
-        expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(false);
-
-        wander();
-        expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
-    });
-
     it('releases the row the cursor left from when it leaves the list without settling', () => {
         hover(FILTER_KEYS.FROM);
         leaveList();
