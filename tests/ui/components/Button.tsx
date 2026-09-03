@@ -41,7 +41,7 @@ function ContextReadout() {
     );
 }
 
-describe('Button — Button', () => {
+describe('Button', () => {
     const onPress = jest.fn();
     const onLongPress = jest.fn();
 
