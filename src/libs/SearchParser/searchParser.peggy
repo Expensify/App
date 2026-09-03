@@ -277,6 +277,7 @@ key "key"
       / from
       / attendee
       / payer
+      / paidBy
       / exporter
       / expenseType
       / receiptType
@@ -312,7 +313,7 @@ key "key"
 
 filterKey
   = k:key {
-      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "paidBy" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
     }
     
