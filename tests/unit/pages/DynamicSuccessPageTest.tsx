@@ -63,12 +63,14 @@ const mockedOpenLink = jest.mocked(openLink);
 const mockedGetPlatform = jest.mocked(getPlatform);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 
-// The page only reads `route.params.policyID`; building a full navigation route would add fields nothing here uses.
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-const buildRoute = (policyID?: string) => ({params: {policyID}}) as PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS>['route'];
+// The page only reads `route.params.policyID` and never touches `navigation`; building either out in full would add
+// fields nothing here uses.
+const buildProps = (policyID?: string) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    ({route: {params: {policyID}}, navigation: {}}) as PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS>;
 
 const renderAndPressButton = async (policyID?: string) => {
-    render(<DynamicSuccessPage route={buildRoute(policyID)} />);
+    render(<DynamicSuccessPage {...buildProps(policyID)} />);
     await waitForBatchedUpdates();
     act(() => mockSuccessPageProps.current?.onButtonPress());
     await waitForBatchedUpdates();
