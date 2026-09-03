@@ -9,6 +9,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {useEffect, useRef, useState} from 'react';
 
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
 type UseSearchTagFiltersResult = {
@@ -49,6 +50,7 @@ function logRequestFailure(message: string, error: Error) {
  * Accepts a comma-separated list of policy IDs to scope results to specific workspaces.
  */
 function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
+    const {isOffline} = useNetwork();
     const [searchResults] = useOnyx(ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS);
     const [paginationState] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION);
     const [isLoading, setIsLoading] = useState(false);
@@ -76,7 +78,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
     const loadMore = () => {
         const {hasMore: currentHasMore, nextCursor: currentCursor, searchQuery: currentQuery, isLoading: currentIsLoading} = stateRef.current;
-        if (currentIsLoading || !currentHasMore) {
+        if (currentIsLoading || !currentHasMore || isOffline) {
             return;
         }
         const requestSeq = requestSeqRef.current;
@@ -95,6 +97,9 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     };
 
     const searchTags = (query: string) => {
+        if (isOffline) {
+            return;
+        }
         const requestSeq = ++requestSeqRef.current;
 
         // Reset pagination state immediately so loadMore doesn't fire with stale query/cursor
@@ -119,13 +124,17 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     };
 
     // Fetch the first page on mount and when the workspace scope changes.
+    // Skips the fetch while offline and refetches on reconnect, matching useLoadSearchCategoryData.
     // searchTags is not memoized, so it cannot be in the dependency array — it would fire on every render.
     // searchTags reads latest state via refs, so the closure captured here is safe to call.
     useEffect(() => {
+        if (isOffline) {
+            return;
+        }
         // Defer to a microtask so setState calls inside searchTags don't fire synchronously within the effect body
         Promise.resolve().then(() => searchTags(''));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policyIDs]);
+    }, [policyIDs, isOffline]);
 
     const isInitialLoading = isLoading && !hasCompletedSearch;
 
