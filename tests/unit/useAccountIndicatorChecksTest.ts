@@ -344,6 +344,84 @@ describe('useAccountIndicatorChecks', () => {
 
             expect(result.current.accountStatus).toBeUndefined();
         });
+
+        // A company card follows the same grace period as a personal one: past it we stop leading the user to the error.
+        it('does not surface a company card broken connection on the Account button past the grace period', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.CARD_LIST]: {
+                            card1: {
+                                cardID: 1,
+                                bank: cardFeed.feedName,
+                                fundID: String(cardFeed.policyAccountID),
+                                lastScrapeResult: 403,
+                                lastScrape: '2020-01-01 00:00:00', // Broken well beyond the grace period
+                                errors: {connectionError: 'Your card connection is broken.'},
+                            },
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
+                            id: '1',
+                            policyAccountID: cardFeed.policyAccountID,
+                            role: CONST.POLICY.ROLE.USER,
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).not.toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+        });
+
+        it('still surfaces a company card broken connection on the Account button within the grace period', async () => {
+            const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.CARD_LIST]: {
+                            card1: {
+                                cardID: 1,
+                                bank: cardFeed.feedName,
+                                fundID: String(cardFeed.policyAccountID),
+                                lastScrapeResult: 403,
+                                lastScrape: recentScrape, // Broken only recently, still inside the grace period
+                                errors: {connectionError: 'Your card connection is broken.'},
+                            },
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
+                            id: '1',
+                            policyAccountID: cardFeed.policyAccountID,
+                            role: CONST.POLICY.ROLE.USER,
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+        });
     });
 
     describe('info statuses', () => {
