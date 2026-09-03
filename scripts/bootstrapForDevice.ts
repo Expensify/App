@@ -6,7 +6,6 @@ import {isRecord, isUnknownArray} from '@libs/ObjectUtils';
 import type {TupleToUnion} from 'type-fest';
 
 import CLI from 'expensify-common/CLI';
-import {execFileSync} from 'node:child_process';
 import {readdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {homedir} from 'node:os';
 import {dirname, join, resolve} from 'node:path';
@@ -93,11 +92,8 @@ function parseDevelopmentTeamFromProvisioningProfile(profile: string, now = new 
 }
 
 function decodeProvisioningProfile(path: string): string | undefined {
-    try {
-        return execFileSync('openssl', ['smime', '-verify', '-inform', 'der', '-noverify', '-in', path], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore']});
-    } catch {
-        return undefined;
-    }
+    const result = Bun.spawnSync(['openssl', 'smime', '-verify', '-inform', 'der', '-noverify', '-in', path], {stdin: 'ignore', stderr: 'ignore'});
+    return result.success ? result.stdout.toString() : undefined;
 }
 
 function installedDevelopmentTeams(): DevelopmentTeam[] {
