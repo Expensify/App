@@ -22,7 +22,16 @@ import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPoli
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
-import {getTagArrayFromName, getTaxName, hasSplitExpenseInSelection, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
+import {
+    getAttendeesListDisplayString,
+    getTagArrayFromName,
+    getTaxName,
+    hasSplitExpenseInSelection,
+    isDistanceRequest,
+    isManagedCardTransaction,
+    isPerDiemRequest,
+    isTimeRequest,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,6 +50,7 @@ import {
     areAllTransactionsExpenseCompatible,
     getTransactionEditContext,
     hasCustomUnitMerchantInSelection,
+    isBulkEditAttendeeTrackingEnabled,
     isBulkEditTaxTrackingEnabled,
     withSnapshotReportActions,
     withSnapshotReports,
@@ -48,7 +58,7 @@ import {
 } from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchQueryContext();
@@ -137,8 +147,10 @@ function SearchEditMultiplePage() {
 
     const isTaxTrackingEnabled = isBulkEditTaxTrackingEnabled(selectedTransactionContexts, policy, hasPerDiemOrTimeTransaction);
     const areSelectedTransactionsExpenses = areAllTransactionsExpenseCompatible(selectedTransactionContexts);
+    const isAttendeeTrackingEnabledForSelection = isBulkEditAttendeeTrackingEnabled(selectedTransactionContexts, policy);
     const areCategoriesEnabled = areSelectedTransactionsExpenses && !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     const areTagsEnabled = areSelectedTransactionsExpenses && !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
+    const areAttendeesEnabled = areSelectedTransactionsExpenses && isAttendeeTrackingEnabledForSelection;
 
     useEffect(() => {
         return () => {
@@ -180,6 +192,9 @@ function SearchEditMultiplePage() {
         }
         if (typeof draftTransaction.reimbursable === 'boolean') {
             changes.reimbursable = draftTransaction.reimbursable;
+        }
+        if (draftTransaction.comment?.attendees) {
+            changes.attendees = draftTransaction.comment.attendees;
         }
 
         if (Object.keys(changes).length === 0) {
@@ -323,6 +338,16 @@ function SearchEditMultiplePage() {
                       description: translate('common.reimbursable'),
                       title: getBooleanTitle(draftTransaction?.reimbursable),
                       route: ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP,
+                  },
+              ]
+            : []),
+        ...(areAttendeesEnabled
+            ? [
+                  {
+                      description: translate('iou.attendees'),
+                      title: draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, localeCompare) : '',
+                      route: ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP,
+                      disabled: isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.ATTENDEES),
                   },
               ]
             : []),
