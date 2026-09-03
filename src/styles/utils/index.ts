@@ -1006,7 +1006,7 @@ function getReportWelcomeBackgroundContainerStyle(): ViewStyle {
 /**
  * Returns fontSize style
  */
-function getFontSizeStyle(fontSize: number): TextStyle {
+function getFontSizeStyle(fontSize: number): {fontSize: number} {
     return {
         fontSize,
     };
