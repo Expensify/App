@@ -8,7 +8,7 @@ import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {formatList} from '@libs/Localize';
 import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
 import type {HRConnectionName} from '@libs/merge/HRUtils';
-import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getMergeFinalApproverDisplayName} from '@libs/merge/MergeUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 
 import type {MergeProviderCardDescriptor, MergeProviderConfigRow} from '@pages/workspace/merge/types';
@@ -127,25 +127,6 @@ function getMergeHRGroupsLabel(policy: OnyxEntry<Policy>): string | undefined {
     return formatList(names);
 }
 
-/** Resolves the final approver email to a display name via personal details. Returns "Not set" when no approver is configured. */
-function getFinalApproverDisplayName(
-    finalApprover: string | undefined | null,
-    policyEmployeePersonalDetails: PersonalDetailsByLogin,
-    translate: LocaleContextProps['translate'],
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-): string {
-    if (!finalApprover) {
-        return translate('workspace.merge.notSet');
-    }
-    return temporaryGetDisplayNameOrDefault({
-        passedPersonalDetails: policyEmployeePersonalDetails[finalApprover],
-        defaultValue: finalApprover,
-        shouldFallbackToHidden: false,
-        translate,
-        formatPhoneNumber,
-    });
-}
-
 /** Extracts the connection-specific config object (approval mode, final approver, pending/error fields) from the policy for a given HR provider. */
 function getCardConfig(policy: OnyxEntry<Policy>, connectionName: HRConnectionName): MergeHRConnectionConfig | GustoConnectionConfig | ZenefitsConnectionConfig | undefined {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
@@ -248,7 +229,7 @@ function getHRCards({
                           {
                               field: 'finalApprover',
                               description: translate('workspace.merge.finalApprover'),
-                              title: getFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+                              title: getMergeFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
                               route: provider.finalApproverRoute.getRoute(policyID),
                               pendingAction: config?.pendingFields?.finalApprover,
                               errors: config?.errorFields?.finalApprover,
@@ -290,7 +271,7 @@ function getHRCards({
                       {
                           field: 'finalApprover',
                           description: translate('workspace.merge.finalApprover'),
-                          title: getFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+                          title: getMergeFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
                           route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                           pendingAction: mergeConfig?.pendingFields?.finalApprover,
                           errors: mergeConfig?.errorFields?.finalApprover,

@@ -2,9 +2,8 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import {getMergeSetupLink} from '@libs/actions/connections/merge';
-import {hasMergeAuthenticationError} from '@libs/merge/MergeUtils';
+import {getMergeFinalApproverDisplayName, hasMergeAuthenticationError} from '@libs/merge/MergeUtils';
 import {getConnectedATSProvider, getMergeATSApprovalMode, getMergeATSApproverField, isMergeATSCompleteSetupNeeded} from '@libs/merge/RecruitingUtils';
-import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import type {MergeProviderCardDescriptor, MergeProviderConfigRow} from '@pages/workspace/merge/types';
 
@@ -39,24 +38,6 @@ function getApproverFieldLabel(policy: OnyxEntry<Policy>, translate: LocaleConte
     }
 }
 
-function getFinalApproverDisplayName(
-    finalApprover: string | undefined | null,
-    policyEmployeePersonalDetails: PersonalDetailsByLogin,
-    translate: LocaleContextProps['translate'],
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-): string {
-    if (!finalApprover) {
-        return translate('workspace.merge.notSet');
-    }
-    return temporaryGetDisplayNameOrDefault({
-        passedPersonalDetails: policyEmployeePersonalDetails[finalApprover],
-        defaultValue: finalApprover,
-        shouldFallbackToHidden: false,
-        translate,
-        formatPhoneNumber,
-    });
-}
-
 function getDefaultApproverLabel(
     policy: OnyxEntry<Policy>,
     policyEmployeePersonalDetails: PersonalDetailsByLogin,
@@ -67,7 +48,7 @@ function getDefaultApproverLabel(
     const approvalMode = getMergeATSApprovalMode(policy);
 
     if (approvalMode === CONST.MERGE.APPROVAL_MODE.BASIC || approvalMode === CONST.MERGE.APPROVAL_MODE.ADVANCED) {
-        const approver = getFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber);
+        const approver = getMergeFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber);
 
         if (approvalMode === CONST.MERGE.APPROVAL_MODE.BASIC) {
             return `${translate('workspace.merge.approvalModes.basic')} • ${approver}`;
