@@ -28,7 +28,6 @@ function readOnce<TKey extends OnyxKey>(key: TKey): Promise<OnyxValue<TKey>> {
 export default async function ReplaceShouldUseStagingServerWithActiveServer(): Promise<void> {
     const shouldUseStagingServer = await readOnce(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     if (shouldUseStagingServer === undefined) {
-        Log.info('[Migrate Onyx] Skipped ReplaceShouldUseStagingServerWithActiveServer — no legacy value');
         return;
     }
 
