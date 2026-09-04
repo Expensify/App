@@ -3,15 +3,13 @@ import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
-
-import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
@@ -40,7 +38,7 @@ function ChatListItem<TItem extends ListItem>({
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
     const styles = useThemeStyles();
-    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {isSelected} = useRowSelection(item.keyForList);
     const pressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -73,7 +71,7 @@ function ChatListItem<TItem extends ListItem>({
             onDismissError={onDismissError}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pressableWrapperStyle={[styles.mh5, {backgroundColor: theme.highlightBG, borderRadius: variables.componentBorderRadius}]}
+            pressableWrapperStyle={[styles.mh5, StyleUtils.getSearchRowBackgroundStyle(isSelected), styles.br2]}
             hoverStyle={isSelected && styles.activeComponentBG}
             forwardedFSClass={fsClass}
         >
