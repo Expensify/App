@@ -2734,6 +2734,7 @@ describe('actions/IOU/TrackExpense', () => {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 reportAction: iouReportAction!,
                 iouReport: undefined,
+                iouReportTransactions: [],
                 chatIOUReport: undefined,
                 transactions: {},
                 violations: {},

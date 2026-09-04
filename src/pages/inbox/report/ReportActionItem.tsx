@@ -192,6 +192,8 @@ function ReportActionItem({
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
+    const transactionsOnReportCollection = useReportTransactionsCollection(report?.reportID);
+    const transactionsOnReport = Object.values(transactionsOnReportCollection);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
     const getLinkedTransactionRouteError = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
@@ -263,6 +265,7 @@ function ReportActionItem({
                 reportID,
                 transactionThreadReport,
                 iouReport: report,
+                iouReportTransactions: transactionsOnReport,
                 chatReport,
                 isChatIOUReportArchived: undefined,
                 originalReportID,

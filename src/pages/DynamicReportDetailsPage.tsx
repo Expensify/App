@@ -38,6 +38,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -334,6 +335,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
+    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
 
     const isActionOwner =
@@ -1049,6 +1052,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 transactionID: iouTransactionID,
                 reportAction: requestParentReportAction,
                 iouReport,
+                iouReportTransactions,
                 chatIOUReport,
                 transactions: duplicateTransactions,
                 violations: duplicateTransactionViolations,
@@ -1089,6 +1093,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         moneyRequestReport,
         moneyRequestReportActions,
         iouReport,
+        iouReportTransactions,
         chatIOUReport,
         duplicateTransactions,
         duplicateTransactionViolations,
