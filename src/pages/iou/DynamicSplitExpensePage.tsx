@@ -199,7 +199,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
-    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs(splitExpenses, allTransactions, allReports, report);
+    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs(splitExpenses, allTransactions, allReports, report, currentSearchResults?.data);
 
     useEffect(() => {
         setErrorMessage('');

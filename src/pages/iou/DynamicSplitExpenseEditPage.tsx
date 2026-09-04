@@ -156,7 +156,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const splitExpenseItem = splitExpensesList?.find((item) => item.transactionID === splitExpenseTransactionID);
     const originalSign = (splitExpenseItem?.amount ?? 0) < 0 ? -1 : 1;
 
-    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs(splitExpensesList ?? [], allTransactions, allReports, report);
+    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs(splitExpensesList ?? [], allTransactions, allReports, report, currentSearchResults?.data);
 
     // Card requires exact sum: hide Remove when every other split is frozen.
     const isCardExpense = isManagedCardTransaction(transaction);

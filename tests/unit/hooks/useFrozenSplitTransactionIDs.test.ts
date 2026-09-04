@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -103,5 +104,27 @@ describe('useFrozenSplitTransactionIDs', () => {
         expect(result.current.has('draft')).toBe(false);
         expect(result.current.has('frozen')).toBe(true);
         expect(result.current.size).toBe(1);
+    });
+
+    it('includes a split whose transaction and report exist only in search results data, not in Onyx', () => {
+        const split = makeSplit('tx1');
+        const searchResultsData: SearchResultDataType = {};
+        searchResultsData[`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`] = {...createRandomTransaction(0), transactionID: 'tx1', reportID: 'report1'};
+        searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}report1`] = {reportID: 'report1', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+
+        const {result} = renderHook(() => useFrozenSplitTransactionIDs([split], {}, {}, undefined, searchResultsData));
+
+        expect(result.current.has('tx1')).toBe(true);
+    });
+
+    it('finds the report in search results data when the transaction itself is in Onyx', () => {
+        const split = makeSplit('tx1');
+        const transactions = makeTransactionsCollection([['tx1', 'report1']]);
+        const searchResultsData: SearchResultDataType = {};
+        searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}report1`] = {reportID: 'report1', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+
+        const {result} = renderHook(() => useFrozenSplitTransactionIDs([split], transactions, {}, undefined, searchResultsData));
+
+        expect(result.current.has('tx1')).toBe(true);
     });
 });

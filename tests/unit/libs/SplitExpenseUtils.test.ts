@@ -458,7 +458,7 @@ describe('isSplitExpenseFrozen', () => {
     });
 
     it('returns false when waiting on payee bank account, not otherwise approved/closed', () => {
-        // isSettled's carve-out; stateNum stays SUBMITTED so isReportApproved/isClosedReport don't mask it.
+        // isSettled's exclusion; stateNum stays SUBMITTED so isReportApproved/isClosedReport don't mask it.
         const report = makeReport({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, isWaitingOnBankAccount: true});
         expect(isSplitExpenseFrozen(report)).toBe(false);
     });

@@ -180,9 +180,10 @@ function rescaleSnapshotGroupAmount<T extends OnyxTypes.Transaction>(transaction
  * Whether any of the given splits still lives on a report that hasn't been submitted yet - read live off
  * each split's own report rather than a cached field, so a status change elsewhere is never stale here.
  */
-function hasEditableSplitExpenseLeft(splitExpenses: SplitExpense[], allReportsList: OnyxCollection<OnyxTypes.Report>): boolean {
+function hasEditableSplitExpenseLeft(splitExpenses: SplitExpense[], allReportsList: OnyxCollection<OnyxTypes.Report>, searchReportsData: SearchResultDataType | undefined): boolean {
     return splitExpenses.some((expense) => {
-        const statusNum = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expense.reportID}`]?.statusNum ?? 0;
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expense.reportID}` as const;
+        const statusNum = allReportsList?.[reportKey]?.statusNum ?? searchReportsData?.[reportKey]?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN;
         return statusNum < CONST.REPORT.STATUS_NUM.SUBMITTED;
     });
 }
@@ -305,7 +306,8 @@ function updateSplitTransactions({
     ];
 
     const isCreationOfSplits = allChildTransactions.length === 0;
-    const hasEditableSplitExpensesLeft = hasEditableSplitExpenseLeft(splitExpenses, allReportsList);
+    const currentSnapshotDataForSplits = allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`]?.data;
+    const hasEditableSplitExpensesLeft = hasEditableSplitExpenseLeft(splitExpenses, allReportsList, currentSnapshotDataForSplits);
     const isReverseSplitOperation = splitExpenses.length === 1 && allChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
 
     let splitThreadComments: OnyxTypes.ReportAction[] = [];
@@ -2040,7 +2042,8 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const splitExpenses = params.transactionData?.splitExpenses ?? [];
     const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID);
-    const hasEditableSplitExpensesLeft = hasEditableSplitExpenseLeft(splitExpenses, params.allReportsList);
+    const currentSnapshotDataForSplits = params.allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${params.searchContext?.currentSearchHash}`]?.data;
+    const hasEditableSplitExpensesLeft = hasEditableSplitExpenseLeft(splitExpenses, params.allReportsList, currentSnapshotDataForSplits);
 
     // Unfiltered, so a pure selfDM 2-split still collapses via REVERT_SPLIT_TRANSACTION. The mixed
     // workspace/selfDM case is guarded below via reverseSplitKeepsOriginalInExpenseReport instead.
