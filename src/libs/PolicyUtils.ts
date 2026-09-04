@@ -21,6 +21,7 @@ import type {
     Transaction,
     TravelSettings,
 } from '@src/types/onyx';
+import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ApprovalRule,
@@ -40,6 +41,7 @@ import type {
     Vendor,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+import type Rule from '@src/types/onyx/Rule';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -47,6 +49,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
 
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
@@ -86,6 +89,35 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
+
+/** The report facts an approval workflow rule is matched against. */
+type ApprovalWorkflowContext = {
+    /** Email of the member who submitted the report. */
+    submitterEmail: string;
+
+    /** Email of the approver the report is currently with. Empty when the report has not been approved yet. */
+    currentApproverEmail?: string;
+
+    /** Total of the report, in the backend (cents) amount the rules' `amount` filters are written in. */
+    reportTotal: number;
+};
+
+/** The outcome of matching a report against the policy's approval workflow rules. */
+type ApprovalWorkflowRuleMatch = {
+    /** Email the matched rule forwards the report to. Undefined when the rule finalizes the report instead. */
+    forwardsTo?: string;
+};
+
+let allRules: OnyxCollection<Rule>;
+
+// The approval workflow rules are read by pure routing helpers that aren't attached to any view, so this uses
+// connectWithoutView().
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.RULE,
+    callback: (value) => {
+        allRules = value;
+    },
+});
 
 /**
  * Returns true if the policy has no fieldList or its fieldList is empty.
@@ -1949,7 +1981,120 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
     return firstCategoryApprover || firstTagApprover;
 }
 
-function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined): string {
+/**
+ * True when this node is a single comparison like `from = alice@expensify.com` rather than a boolean node
+ * combining two children. Both shapes are `{operator, left, right}`, so the giveaway is `left`: a comparison
+ * points at a field name, a boolean node points at another node.
+ */
+function isApprovalWorkflowComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): node is ApprovalWorkflowFilterComparison {
+    return typeof node.left === 'string';
+}
+
+/** Match an email-valued comparison (`from`, `to`) against the email the report actually has. */
+function matchesApprovalWorkflowEmailComparison(node: ApprovalWorkflowFilterComparison, email: string | undefined): boolean {
+    const expectedEmails = (Array.isArray(node.right) ? node.right : [node.right]).map((value) => String(value).toLowerCase());
+    const isMatch = !!email && expectedEmails.includes(email.toLowerCase());
+    return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? !isMatch : isMatch;
+}
+
+/** Match an `amount` comparison against the report total. */
+function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterComparison, amount: number): boolean {
+    const expectedAmount = typeof node.right === 'number' ? node.right : Number(node.right);
+    if (Number.isNaN(expectedAmount)) {
+        return false;
+    }
+
+    switch (node.operator) {
+        case CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO:
+            return amount === expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO:
+            return amount !== expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN:
+            return amount > expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO:
+            return amount >= expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN:
+            return amount < expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO:
+            return amount <= expectedAmount;
+        default:
+            return false;
+    }
+}
+
+function evaluateApprovalWorkflowFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, context: ApprovalWorkflowContext): boolean {
+    if (!isApprovalWorkflowComparison(node)) {
+        const left = evaluateApprovalWorkflowFilter(node.left, context);
+        const right = evaluateApprovalWorkflowFilter(node.right, context);
+        return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR ? left || right : left && right;
+    }
+
+    switch (node.left) {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+            return matchesApprovalWorkflowEmailComparison(node, context.submitterEmail);
+
+        // A report with no current approver has not been approved by anybody yet, so a rule gated on who
+        // approved it last cannot apply.
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
+            return !!context.currentApproverEmail && matchesApprovalWorkflowEmailComparison(node, context.currentApproverEmail);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+            return matchesApprovalWorkflowAmountComparison(node, Math.abs(context.reportTotal));
+
+        // An unknown field is a rule this client does not understand, so it must not match.
+        default:
+            return false;
+    }
+}
+
+/**
+ * True when every condition in the rule's filter tree holds for `context`. The Auth backend evaluates the same
+ * tree as a SQL query against the report, so the two must agree on which reports a rule covers.
+ */
+function evaluateApprovalWorkflowRule(rule: ApprovalWorkflowRule, context: ApprovalWorkflowContext): boolean {
+    return evaluateApprovalWorkflowFilter(rule.filters, context);
+}
+
+/**
+ * Ask the policy's approval workflow rules where the report goes next. Reports with no current approver are
+ * matched against `ReportSubmit` rules, reports already sitting with an approver against `ReportApprove` rules.
+ *
+ * Returns undefined when no rule covers this report, so callers fall back to the legacy `employeeList`
+ * submitsTo/forwardsTo chain.
+ */
+function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWorkflowContext): ApprovalWorkflowRuleMatch | undefined {
+    if (!policy?.id || !context.submitterEmail) {
+        return undefined;
+    }
+
+    const trigger = context.currentApproverEmail ? CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE : CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT;
+
+    // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches.
+    const ruleKeys = Object.keys(allRules ?? {}).sort();
+    for (const ruleKey of ruleKeys) {
+        const rule = allRules?.[ruleKey];
+        if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        if (!Object.values(rule.triggers ?? {}).includes(trigger)) {
+            continue;
+        }
+        if (!evaluateApprovalWorkflowRule(rule, context)) {
+            continue;
+        }
+
+        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)?.approver};
+    }
+
+    return undefined;
+}
+
+function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, reportTotal = 0): string {
+    // When the workspace has approval workflow rules, they — not the legacy employeeList — name the first approver.
+    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal});
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
@@ -1965,8 +2110,8 @@ function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | 
     return employee?.submitsTo ?? defaultApprover ?? '';
 }
 
-function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined) {
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin);
+function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, reportTotal = 0) {
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin, reportTotal);
     return managerEmail ? (getAccountIDsByLogins([managerEmail]).at(0) ?? -1) : -1;
 }
 
@@ -1984,7 +2129,7 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         }
     }
 
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin);
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin, expenseReport?.total ?? 0);
 
     // Falls back to the default approver when the manager is unavailable.
     if (shouldFallBackWhenManagerIsNotMember && managerEmail && !policy?.employeeList?.[managerEmail] && !getHRAdvancedModeFinalApprover(policy)) {
@@ -2025,8 +2170,17 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
 /**
  * Returns the email of the account to forward the report to depending on the approver's approval limit.
  * Used for advanced approval mode only.
+ *
+ * `submitterEmail` is needed to consult the workspace's approval workflow rules, which describe each hop in
+ * terms of who submitted the report as well as who is approving it. Without it only the legacy employeeList
+ * forwardsTo/overLimitForwardsTo is considered.
  */
-function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
+function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number, submitterEmail?: string): string {
+    const ruleMatch = submitterEmail ? getForwardsToFromRules(policy, {submitterEmail, currentApproverEmail: employeeEmail, reportTotal}) : undefined;
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
     if (!isControlOnAdvancedApprovalMode(policy)) {
         return '';
     }
@@ -3369,6 +3523,8 @@ export {
     getDefaultChatEnabledPolicy,
     getDefaultChatEnabledPolicySelection,
     getForwardsToAccount,
+    getForwardsToFromRules,
+    evaluateApprovalWorkflowRule,
     getSubmitToAccountID,
     getSubmitReportManagerAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,

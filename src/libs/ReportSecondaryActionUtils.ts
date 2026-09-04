@@ -257,7 +257,11 @@ function isSubmitAction({
     // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
     const isWorkflowApprover =
-        !isReportSubmitter && currentUserAccountID !== undefined && !!ownerLogin && !isSubmitAndClose(policy) && currentUserAccountID === getManagerAccountID(policy, ownerLogin);
+        !isReportSubmitter &&
+        currentUserAccountID !== undefined &&
+        !!ownerLogin &&
+        !isSubmitAndClose(policy) &&
+        currentUserAccountID === getManagerAccountID(policy, ownerLogin, report.total ?? 0);
 
     if (!isReportSubmitter && !isAdmin && !isWorkflowApprover) {
         return false;

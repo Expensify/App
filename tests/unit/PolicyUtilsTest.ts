@@ -14,6 +14,7 @@ import {
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
+    evaluateApprovalWorkflowRule,
     findVendorByID,
     getAccessiblePolicyBankAccount,
     getActivePolicies,
@@ -30,6 +31,8 @@ import {
     getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
     getExpensifyTeamExclusions,
+    getForwardsToAccount,
+    getForwardsToFromRules,
     getManagerAccountID,
     getMatchingVendorByID,
     getMatchingVendors,
@@ -77,16 +80,19 @@ import {
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
-import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {getApprovalChain, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
+import type Rule from '@src/types/onyx/Rule';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -1295,6 +1301,202 @@ describe('PolicyUtils', () => {
             const result = getManagerAccountID(policy, '');
 
             expect(result).toBe(categoryApprover1AccountID);
+        });
+    });
+
+    describe('approval workflow rules', () => {
+        const policyID = 'RULES_POLICY_1';
+        const submitFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employeeEmail]};
+
+        const buildRule = (rule: ApprovalWorkflowRule): Rule => ({...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID});
+
+        const submitRule: ApprovalWorkflowRule = {
+            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+            filters: submitFilter,
+            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+        };
+
+        // After the admin approves, an under-limit report continues to the approver and an over-limit one is
+        // escalated to the category approver instead.
+        const underLimitRule: ApprovalWorkflowRule = {
+            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: submitFilter,
+                right: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: adminEmail},
+                    right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
+                },
+            },
+            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: approverEmail}},
+        };
+        const overLimitRule: ApprovalWorkflowRule = {
+            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: submitFilter,
+                right: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: adminEmail},
+                    right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
+                },
+            },
+            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: categoryApprover1Email}},
+        };
+        const terminalRule: ApprovalWorkflowRule = {
+            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: submitFilter,
+                right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approverEmail},
+            },
+            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}},
+        };
+
+        // A workspace whose employeeList still points somewhere else, so a rule-driven answer is distinguishable
+        // from the legacy fallback.
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            id: policyID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            approver: categoryApprover1Email,
+            employeeList: {
+                [employeeEmail]: {email: employeeEmail, submitsTo: categoryApprover1Email},
+            },
+        };
+
+        beforeEach(async () => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}1` as const, buildRule(submitRule));
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}2` as const, buildRule(underLimitRule));
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}3` as const, buildRule(overLimitRule));
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}4` as const, buildRule(terminalRule));
+            await waitForBatchedUpdatesWithAct();
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        describe('evaluateApprovalWorkflowRule', () => {
+            it('matches the submit rule for a submitter it covers', () => {
+                expect(evaluateApprovalWorkflowRule(submitRule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(true);
+            });
+
+            it('does not match the submit rule for another submitter', () => {
+                expect(evaluateApprovalWorkflowRule(submitRule, {submitterEmail: adminEmail, reportTotal: 0})).toBe(false);
+            });
+
+            it('does not match a rule gated on the current approver when the report has none', () => {
+                expect(evaluateApprovalWorkflowRule(underLimitRule, {submitterEmail: employeeEmail, reportTotal: -5000})).toBe(false);
+            });
+
+            it('splits on the report total, comparing the absolute amount', () => {
+                const context = {submitterEmail: employeeEmail, currentApproverEmail: adminEmail};
+                expect(evaluateApprovalWorkflowRule(underLimitRule, {...context, reportTotal: -5000})).toBe(true);
+                expect(evaluateApprovalWorkflowRule(overLimitRule, {...context, reportTotal: -5000})).toBe(false);
+                expect(evaluateApprovalWorkflowRule(underLimitRule, {...context, reportTotal: -20000})).toBe(false);
+                expect(evaluateApprovalWorkflowRule(overLimitRule, {...context, reportTotal: -20000})).toBe(true);
+            });
+
+            const buildAmountRule = (operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: number): ApprovalWorkflowRule => ({
+                triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                filters: {operator, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right},
+                actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+            });
+
+            it.each([
+                ['eq matches an exact amount', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 5000, -5000, true],
+                ['eq rejects a different amount', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 5000, -6000, false],
+                ['neq rejects an exact amount', CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, 5000, -5000, false],
+                ['neq matches a different amount', CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, 5000, -6000, true],
+                ['gt rejects an equal amount', CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 5000, -5000, false],
+                ['gt matches a strictly greater amount', CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 5000, -5001, true],
+                ['lte matches an equal amount', CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 5000, -5000, true],
+                ['lte rejects a greater amount', CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 5000, -5001, false],
+            ])('%s', (_description, operator, right, reportTotal, expected) => {
+                expect(evaluateApprovalWorkflowRule(buildAmountRule(operator, right), {submitterEmail: employeeEmail, reportTotal})).toBe(expected);
+            });
+
+            it('does not match an amount filter whose right side is not numeric', () => {
+                const rule = buildAmountRule(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, Number('not-a-number'));
+                expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: -5000})).toBe(false);
+            });
+
+            it('does not match an amount filter using an operator this client does not understand', () => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The unrecognized operator is the scenario under test (a future backend operator this client predates).
+                const rule = buildAmountRule('unsupportedOperator' as ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, 5000);
+                expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: -5000})).toBe(false);
+            });
+
+            it('does not match a filter on a field this client does not understand', () => {
+                const rule: ApprovalWorkflowRule = {
+                    triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: 'unsupportedField', right: employeeEmail},
+                    actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                };
+                expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(false);
+            });
+
+            it('matches an OR filter when either side matches', () => {
+                const rule: ApprovalWorkflowRule = {
+                    triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+                        left: submitFilter,
+                        right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [adminEmail]},
+                    },
+                    actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                };
+
+                // Only the left side matches this submitter, but OR only needs one side.
+                expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(true);
+                // Neither side names this submitter.
+                expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: guideEmail, reportTotal: 0})).toBe(false);
+            });
+        });
+
+        describe('getForwardsToFromRules', () => {
+            it('returns the first approver from the submit rule', () => {
+                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, reportTotal: -5000})).toEqual({forwardsTo: adminEmail});
+            });
+
+            it('returns the next approver from the matching approve rule', () => {
+                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: adminEmail, reportTotal: -5000})).toEqual({forwardsTo: approverEmail});
+                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: adminEmail, reportTotal: -20000})).toEqual({
+                    forwardsTo: categoryApprover1Email,
+                });
+            });
+
+            it('matches with no forwardsTo when the rule finalizes the report', () => {
+                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: approverEmail, reportTotal: -5000})).toEqual({forwardsTo: undefined});
+            });
+
+            it('returns undefined when no rule covers the submitter', () => {
+                expect(getForwardsToFromRules(policy, {submitterEmail: guideEmail, reportTotal: -5000})).toBeUndefined();
+            });
+
+            it('ignores rules belonging to another workspace', () => {
+                expect(getForwardsToFromRules({...policy, id: 'OTHER_POLICY'}, {submitterEmail: employeeEmail, reportTotal: -5000})).toBeUndefined();
+            });
+        });
+
+        it('getManagerAccountID prefers the rules over the employee submitsTo', () => {
+            expect(getManagerAccountID(policy, employeeEmail)).toBe(adminAccountID);
+        });
+
+        it('getForwardsToAccount follows the rules for the next hop', () => {
+            expect(getForwardsToAccount(policy, adminEmail, -5000, employeeEmail)).toBe(approverEmail);
+            expect(getForwardsToAccount(policy, adminEmail, -20000, employeeEmail)).toBe(categoryApprover1Email);
+            expect(getForwardsToAccount(policy, approverEmail, -5000, employeeEmail)).toBe('');
+        });
+
+        it('getApprovalChain walks the whole rule chain', () => {
+            const report: Report = {...createRandomReport(0, undefined), policyID, ownerAccountID: employeeAccountID, total: -5000};
+            expect(getApprovalChain(policy, report, employeeEmail)).toEqual([adminEmail, approverEmail]);
         });
     });
 
