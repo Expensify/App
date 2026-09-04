@@ -6,10 +6,6 @@ import {cancelSpan, endSpan, getSpan, startSpan} from './activeSpans';
 
 type SendMessagePhase = ValueOf<typeof CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE>;
 
-/**
- * The send whose phases are open, so callers on hot paths (every text row's layout effect and every derived-value
- * recompute) can rule out a send with one comparison instead of building a span id or scanning the registry.
- */
 let activeSend: {reportActionID: string; parentSpanID: string} | undefined;
 
 function getParentSpanID(reportActionID: string) {
@@ -24,11 +20,6 @@ function isPhaseRunning(reportActionID: string, phase: SendMessagePhase) {
     return !!getSpan(getPhaseSpanID(reportActionID, phase));
 }
 
-/**
- * The `ManualSendMessageVisible` span the open phases belong to, or nothing when no send is in flight. Resolving
- * through the registry drops a stale reference, since `cancelAllSpans` and `cancelSpansByPrefix` end the parent
- * without going through this module.
- */
 function getActiveSendMessageSpan() {
     if (!activeSend) {
         return undefined;
