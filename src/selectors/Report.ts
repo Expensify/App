@@ -1,6 +1,7 @@
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
+    getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
     isArchivedReport,
     isChatRoom,
@@ -326,6 +327,9 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
+const policyExpenseChatSelector = (ownerAccountID: number | undefined, policyID: string | undefined) => (reports: OnyxCollection<Report>) =>
+    getPolicyExpenseChat(ownerAccountID, policyID, reports ?? {});
+
 export {
     getArchiveReason,
     getReportChatType,
@@ -341,6 +345,7 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
+    policyExpenseChatSelector,
 };
 
 export type {StableReport};
