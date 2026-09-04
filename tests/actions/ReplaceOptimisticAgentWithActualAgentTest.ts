@@ -1,10 +1,11 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 
+import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
 import type * as NavigationModule from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import type * as ReplaceOptimisticAgentWithActualAgentModule from '@src/libs/actions/replaceOptimisticAgentWithActualAgent';
-import {replaceOptimisticAgentWithActualAgent, resolveAgentAccountID} from '@src/libs/actions/replaceOptimisticAgentWithActualAgent';
+import {replaceOptimisticAgentWithActualAgent} from '@src/libs/actions/replaceOptimisticAgentWithActualAgent';
 import type * as OnyxKeysModule from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';

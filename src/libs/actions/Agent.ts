@@ -1,3 +1,4 @@
+import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {buildAvatarCropResult} from '@libs/AvatarCropUtils';
@@ -20,8 +21,6 @@ import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
-
-import {resolveAgentAccountID} from './replaceOptimisticAgentWithActualAgent';
 
 function openAgentsPage() {
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [

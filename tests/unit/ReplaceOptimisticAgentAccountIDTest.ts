@@ -1,3 +1,4 @@
+import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
 import replaceOptimisticAgentAccountID from '@libs/Middleware/ReplaceOptimisticAgentAccountID';
 
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -188,6 +189,30 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
         await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: null})), buildUpdateAgentPromptRequest(optimisticAccountID), false);
 
         expect(getAll()).toStrictEqual(requestsBefore);
+    });
+
+    it('exposes the mapping to resolveAgentAccountID as soon as the response passes through the middleware', async () => {
+        // Dedicated IDs: the in-memory mapping registered here lives for the whole test module.
+        const lateEditOptimisticAccountID = 3841956273048125;
+        const lateEditRealAccountID = 8102934756182347;
+
+        await replaceOptimisticAgentAccountID(
+            Promise.resolve(buildMappingResponse({[lateEditOptimisticAccountID]: lateEditRealAccountID})),
+            buildCreateAgentRequest(lateEditOptimisticAccountID),
+            true,
+        );
+
+        // The response's Onyx data has not been flushed (replaceOptimisticAgentWithActualAgent has not run), yet an
+        // agent action fired in this window must already resolve to the real account.
+        expect(resolveAgentAccountID(lateEditOptimisticAccountID)).toBe(lateEditRealAccountID);
+    });
+
+    it('does not register invalid mapping entries with resolveAgentAccountID', async () => {
+        const shortOptimisticAccountID = 123456789;
+
+        await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[shortOptimisticAccountID]: realAccountID})), buildCreateAgentRequest(shortOptimisticAccountID), true);
+
+        expect(resolveAgentAccountID(shortOptimisticAccountID)).toBe(shortOptimisticAccountID);
     });
 
     it('only re-persists the requests that reference the optimistic accountID', async () => {

@@ -1,3 +1,4 @@
+import {registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import type {Middleware} from '@libs/Request';
 
@@ -140,6 +141,13 @@ const replaceOptimisticAgentAccountID: Middleware = (requestResponse) =>
                 }
                 const optimisticAccountID = Number(optimisticAccountIDKey);
                 const realAccountIDString = String(realAccountID);
+
+                // A queued write's response is only flushed to Onyx once the whole sequential queue drains, so
+                // replaceOptimisticAgentWithActualAgent may observe this mapping much later than this middleware
+                // does. Registering it here immediately lets resolveAgentAccountID() translate the accountID of any
+                // agent action fired in that window, which would otherwise be enqueued with the optimistic ID after
+                // the sweep below and reach the server as an unknown account.
+                registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
 
                 // The sequential queue moves the request being processed out of the persisted list before its response
                 // reaches this middleware, so only the requests queued behind it are visited here. Each update() re-persists

@@ -1,3 +1,4 @@
+import {registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
@@ -30,18 +31,11 @@ import Onyx from 'react-native-onyx';
  * the optimistic data and finally clears the consumed entry. The cleanup lives here rather than in createAgent()'s
  * successData so it is guaranteed to run after the redirect.
  *
- * resolveAgentAccountID() is a safety net for callers that captured an optimistic accountID before the redirect.
+ * AgentAccountIDMapping's resolveAgentAccountID() is a safety net for callers that captured an optimistic
+ * accountID before the redirect.
  */
 
 const AGENT_SETTINGS_SCREENS = new Set<string>([SCREENS.SETTINGS.AGENTS.EDIT, SCREENS.SETTINGS.AGENTS.EDIT_NAME, SCREENS.SETTINGS.AGENTS.EDIT_PROMPT, SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]);
-
-// Kept in memory because the Onyx mapping entry is cleared once consumed, so this is the only way a late caller
-// can still translate an optimistic accountID it captured earlier in the session.
-const consumedOptimisticAccountIDs = new Map<number, number>();
-
-function resolveAgentAccountID(accountID: number): number {
-    return consumedOptimisticAccountIDs.get(accountID) ?? accountID;
-}
 
 // Reports are only read inside the mapping callback below; no UI subscribes here, so connectWithoutView() is used.
 // On app start the mapping subscription can deliver its persisted value before this collection has been hydrated,
@@ -117,8 +111,9 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
     }
 
     // Recorded before the waits below so resolveAgentAccountID() already covers actions fired while the cleanup is
-    // still pending.
-    consumedOptimisticAccountIDs.set(optimisticAccountID, realAccountID);
+    // still pending. The middleware also registers the mapping when the response passes through it, but this path is
+    // the only one that runs for a persisted mapping consumed on app start.
+    registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
 
     // The redirect needs a mounted navigation container and the participant repair needs the report collection, and
     // neither is guaranteed when a persisted mapping is consumed during app start. The optimistic data is cleared in
@@ -162,6 +157,6 @@ Onyx.connectWithoutView({
     },
 });
 
-export {replaceOptimisticAgentWithActualAgent, resolveAgentAccountID};
+export {replaceOptimisticAgentWithActualAgent};
 
 export default {};
