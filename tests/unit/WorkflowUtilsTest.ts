@@ -843,6 +843,79 @@ describe('WorkflowUtils', () => {
             const unassignedMember = defaultWorkflow?.members.find((m) => m.email === 'unassigned@example.com');
             expect(unassignedMember).toBeDefined();
         });
+
+        it('Should give the synthesized default workflow an approver when policy.approver is not in the employee list', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '1@example.com',
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '1@example.com',
+                },
+            };
+            // A stale approver that points at an already-removed member, so `calculateApprovers` can't build a chain for it
+            const policy = createMockPolicy(employees, 'removed@example.com');
+
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
+
+            const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
+            expect(defaultWorkflow).toBeDefined();
+            expect(defaultWorkflow?.approvers).toEqual([
+                {
+                    email: 'removed@example.com',
+                    forwardsTo: undefined,
+                    avatar: undefined,
+                    displayName: 'removed@example.com',
+                    isCircularReference: false,
+                },
+            ]);
+            // Every workflow must be convertible back to policy employees, which requires at least one approver
+            for (const workflow of approvalWorkflows) {
+                expect(workflow.approvers.length).toBeGreaterThan(0);
+            }
+        });
+
+        it('Should give the synthesized default workflow an approver when the HR finalApprover is not in the employee list', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '1@example.com',
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '1@example.com',
+                },
+            };
+            const policy = createMock<Policy>({
+                ...createMockPolicy(employees, '1@example.com'),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {
+                            // Basic mode so `getHRFinalApprover` picks this up without the advanced-mode chain handling
+                            approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC,
+                            finalApprover: 'hr@external.com',
+                            integration: 'workday',
+                            groups: [],
+                        },
+                    },
+                },
+            });
+
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
+
+            const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
+            expect(defaultWorkflow).toBeDefined();
+            expect(defaultWorkflow?.approvers.at(0)?.email).toBe('hr@external.com');
+            for (const workflow of approvalWorkflows) {
+                expect(workflow.approvers.length).toBeGreaterThan(0);
+            }
+        });
     });
 
     describe('mergeWorkflowMembersWithAvailableMembers', () => {
@@ -1420,6 +1493,35 @@ describe('WorkflowUtils', () => {
                     approvers: [buildApprover(2, {overLimitForwardsTo: '', approvalLimit: null}), buildApprover(1)],
                 },
             ]);
+        });
+
+        it('Should drop a workflow that has no approvers instead of passing it through', () => {
+            // A workflow with no approvers can't be converted back to policy employees, so it must never be emitted
+            const emptyDefaultWorkflow: ApprovalWorkflow = {
+                members: [],
+                approvers: [],
+                isDefault: true,
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2)],
+                isDefault: false,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[2];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [emptyDefaultWorkflow, approvalWorkflow],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(result).toEqual([{...approvalWorkflow, approvers: [buildApprover(1)]}]);
         });
     });
 
