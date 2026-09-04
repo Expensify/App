@@ -64,6 +64,10 @@ function setupSentry(): void {
             // They carry no stack frames for thirdPartyErrorFilterIntegration to tag; the prefix limits this to the
             // browser SDK's rejection wording, so a real Error carrying the same text still reports.
             /^Non-Error promise rejection captured with value: No data found for key/,
+            // Uncaught IndexedDB rejection from the same Convert script, which inserts into its own database with
+            // `add()` instead of `put()` and fails whenever the key is already there. Onyx never calls `add()`, so a
+            // real Onyx write cannot produce this, and the DOMException carries no frames to tag as third-party.
+            /^ConstraintError: Key already exists in the object store/,
         ],
         denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
