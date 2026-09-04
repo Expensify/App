@@ -458,17 +458,21 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 }
 
 /**
- * Whether the query includes a positive `has:submitted-violation` filter.
+ * Whether the query includes a positive `has:submitted-violation` or `has:approved-violation` filter.
  * Grouped CSV export uses this so Violations is included even when the query has no saved `columns`.
  */
-function queryHasSubmittedViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+function queryHasViolationSnapshotFilter(queryJSON: SearchQueryJSON | undefined): boolean {
     const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
     if (hasFilterGroups.length === 0) {
         return false;
     }
 
     return hasFilterGroups.some((group) =>
-        group.filters.some((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && filter.value.toString() === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION),
+        group.filters.some(
+            (filter) =>
+                filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO &&
+                (filter.value.toString() === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION || filter.value.toString() === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION),
+        ),
     );
 }
 
