@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 
@@ -23,12 +24,22 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
     const currency = bankAccount?.bankCurrency ?? '';
     const country = bankAccount?.bankCountry;
     const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
-    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
+    const [enableGlobalReimbursementsDraft, enableGlobalReimbursementsDraftMetadata] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
+    const isLoadingDraft = isLoadingOnyxValue(enableGlobalReimbursementsDraftMetadata);
     const defaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM] ?? [];
+    const bankStatement = enableGlobalReimbursementsDraft?.[INPUT_IDS.BANK_STATEMENT];
 
     const goBack = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
     };
+
+    useEffect(() => {
+        if (bankStatement?.length || isLoadingDraft) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
+    }, [bankAccountID, bankStatement?.length, isLoadingDraft]);
 
     const onSubmit = () => {
         enableGlobalReimbursementsForUSDBankAccount({
@@ -48,6 +59,7 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
             }),
             achAuthorizationForm: enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM].at(0),
+            bankStatement: bankStatement?.at(0),
             bankAccountID: Number(bankAccountID),
         });
     };

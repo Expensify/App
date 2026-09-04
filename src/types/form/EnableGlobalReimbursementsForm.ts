@@ -15,6 +15,7 @@ const INPUT_IDS = {
     CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
     AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: 'authorizedToBindClientToAgreement',
     ACH_AUTHORIZATION_FORM: 'achAuthorizationForm',
+    BANK_STATEMENT: 'bankStatement',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -32,6 +33,7 @@ type EnableGlobalReimbursementsForm = Form<
         [INPUT_IDS.CONSENT_TO_PRIVACY_NOTICE]: boolean;
         [INPUT_IDS.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]: boolean;
         [INPUT_IDS.ACH_AUTHORIZATION_FORM]: FileObject[];
+        [INPUT_IDS.BANK_STATEMENT]: FileObject[];
     }
 > & {isEnablingGlobalReimbursements?: boolean; isSuccess?: boolean};
 
