@@ -17,6 +17,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import useStoredTransactionViolations from '@hooks/useStoredTransactionViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
@@ -62,6 +63,7 @@ function DynamicIOURequestStepMerchant({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.path);
     const policy = usePolicy(report?.policyID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const storedTransactionViolations = useStoredTransactionViolations(transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
@@ -160,6 +162,7 @@ function DynamicIOURequestStepMerchant({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                violations: storedTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
             });

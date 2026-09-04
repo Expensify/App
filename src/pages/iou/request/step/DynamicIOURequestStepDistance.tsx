@@ -26,6 +26,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import useStoredTransactionViolations from '@hooks/useStoredTransactionViolations';
 import useWaypointItems from '@hooks/useWaypointItems';
 
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
@@ -111,6 +112,7 @@ function DynamicIOURequestStepDistance({
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const storedTransactionViolations = useStoredTransactionViolations(transaction?.transactionID);
     const [originalSplitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const selfDMReport = useSelfDMReport();
     const policy = usePolicy(report?.policyID);
@@ -611,6 +613,7 @@ function DynamicIOURequestStepDistance({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    violations: storedTransactionViolations,
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 });
@@ -626,6 +629,7 @@ function DynamicIOURequestStepDistance({
         suppressDiscardPrompt();
         navigateToNextStep();
     }, [
+        storedTransactionViolations,
         blockDistanceRequestIfNeeded,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
@@ -753,6 +757,7 @@ function DynamicIOURequestStepDistance({
             reportPolicyTags,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            violations: storedTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
         });
@@ -762,6 +767,7 @@ function DynamicIOURequestStepDistance({
         removeBackupTransaction(transaction?.transactionID);
         navigateBackAfterSave();
     }, [
+        storedTransactionViolations,
         blockDistanceRequestIfNeeded,
         transactionBackup,
         getHasSelectedRouteChanged,
