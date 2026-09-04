@@ -16,11 +16,11 @@ type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & {
     /** Name of the field */
     name: string;
 
-    /** Value the field holds. Omit it — or pass an empty string — for a field not filled in yet */
+    /** Value the field holds. Omit it, or pass an empty string, for a field not filled in yet */
     value?: string;
 };
 
-/** Field preset — a field name plus its value; with no `value` the name takes over the row */
+/** Field preset: a field name plus its value. With no `value` the name takes over the row */
 function MenuItemField({name, value, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldProps) {
     return (
         <MenuItemRoot

@@ -6,7 +6,7 @@ import type {MenuItemSupportingTextProps} from './base/types';
 
 import BaseMenuItemSupportingText from './base/BaseMenuItemSupportingText';
 
-/** Supporting text under a `MenuItem.Title` — the bottom line of a `MenuItem.Content` */
+/** Supporting text under a `MenuItem.Title`, the bottom line of a `MenuItem.Content` */
 function MenuItemDescription(props: MenuItemSupportingTextProps) {
     const styles = useThemeStyles();
 
