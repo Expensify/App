@@ -2813,6 +2813,35 @@ describe('SearchUIUtils', () => {
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
+        it('should flag a rejected report for a viewer who is not the report owner', () => {
+            const data = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                    ...report1,
+                    nextStep: {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
+                },
+            } as OnyxTypes.SearchResults['data'];
+
+            const result = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data,
+                    currentAccountID: approverAccountID,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionReportGroupListItemType,
+            )[0];
+
+            expect(result.find((group) => group.reportID === reportID)?.isRejectedReport).toBe(true);
+        });
+
         it('should derive exportedTo from every export action of the report', () => {
             const exportedReportID = 'exported-to-report';
             const exportedTransactionID = 'exported-to-transaction';
@@ -6102,16 +6131,31 @@ describe('SearchUIUtils', () => {
                 expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
             });
 
-            it('should exclude transactions when queryJSON status is an invalid string', () => {
+            it('should include transactions when queryJSON status is an invalid string', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
                 const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['not_a_valid_status'])});
-                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
             });
 
-            it('should exclude transactions when queryJSON status array contains only invalid strings', () => {
+            it('should include transactions when queryJSON status array contains only invalid strings', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
                 const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['invalid1', 'invalid2'])});
-                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should include transactions when queryJSON status is the backend-only all value', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['all'])});
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should filter on the valid status when queryJSON status mixes a valid status with an invalid one', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [outstandingSections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['all', CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING])});
+                expect(outstandingSections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+
+                const [draftsSections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['all', CONST.SEARCH.STATUS.EXPENSE.DRAFTS])});
+                expect(draftsSections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
             });
 
             it('should include transactions when queryJSON status is ALL', () => {
@@ -6483,6 +6527,12 @@ describe('SearchUIUtils', () => {
                     queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.PAID]),
                 });
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should include report when queryJSON status is the backend-only all value', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON(['all'])});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
             });
 
             it('should include report when negated status excludes a different status than the report state', () => {
@@ -12874,7 +12924,7 @@ describe('SearchUIUtils', () => {
         const otherTransactionID = 'tx-violations-2';
 
         const createSubmittedAction = (
-            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED | typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
             violations?: {transactions: Record<string, Array<{name: string}>>},
             reportActionID = 'submit-action-1',
         ): OnyxTypes.ReportAction =>
@@ -12931,6 +12981,17 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.receiptRequired'),
             );
+        });
+
+        test('reads the snapshot recorded when an expense joined an already submitted report', () => {
+            const addExpenseAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.OVER_LIMIT}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([addExpenseAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.overLimit'));
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([addExpenseAction], otherTransactionID, translateLocal)).toBeUndefined();
         });
 
         test('aggregates across multiple submit actions and dedupes by name', () => {

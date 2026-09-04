@@ -1708,6 +1708,14 @@ describe('TransactionUtils', () => {
             expect(showBrokenConnectionViolation).toBe(true);
         });
 
+        it('should return true for a 531 (temporary, retry later) broken connection violation', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
         it('should return true when a re-auth broken connection violation exists and the user is the policy member', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}}];
@@ -2897,30 +2905,6 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
         });
 
-        it('should return false when auto-categorize new expenses is disabled on the policy', () => {
-            const transaction = generateTransaction({
-                category: '',
-                merchant: 'Some Merchant',
-                amount: 100,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            });
-            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
-
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, policy)).toBe(false);
-        });
-
-        it('should return true when auto-categorize new expenses is enabled on the policy', () => {
-            const transaction = generateTransaction({
-                category: '',
-                merchant: 'Some Merchant',
-                amount: 100,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            });
-            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: true};
-
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, policy)).toBe(true);
-        });
-
         it('should return true when within auto-categorization grace period', () => {
             // Set pendingAutoCategorizationTime to 30 seconds ago (within 1 minute grace period)
             const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
@@ -2936,22 +2920,6 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
-        });
-
-        it('should return false during the grace period when auto-categorize new expenses is disabled', () => {
-            const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
-            const pendingAutoCategorizationTime = thirtySecondsAgo.toISOString().replace('T', ' ').replace('Z', '');
-            const transaction = generateTransaction({
-                category: '',
-                merchant: 'Some Merchant',
-                amount: 100,
-                comment: {
-                    pendingAutoCategorizationTime,
-                },
-            });
-            const policy = {...createRandomPolicy(0), autoCategorizeNewExpenses: false};
-
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, policy)).toBe(false);
         });
 
         it('should return false when auto-categorization grace period has passed', () => {
