@@ -7,6 +7,8 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {
+    BankAccount,
+    BankAccountList,
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
@@ -42,7 +44,7 @@ import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ReadonlyDeep, TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
@@ -53,8 +55,8 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
-import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './HRUtils';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
+import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './merge/HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -726,6 +728,75 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     return canPayOnPolicy && currentUserLogin === reimburserEmail;
 }
 
+/**
+ * Whether an admin/payments admin who isn't the designated workspace payer can still pay reports on the policy.
+ * Unlike `isPolicyPayer`/`isPayer`, this must not drive active prompting (badges, GBRs, next steps, pay to-dos) —
+ * those stay payer-only.
+ */
+function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string): boolean {
+    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
+    if (!isGroupPolicy(policy)) {
+        return false;
+    }
+
+    // Mirrors `isPolicyPayer`: reimbursement must be explicitly configured. Checking `arePaymentsEnabled` here would also
+    // match an unset `reimbursementChoice`, surfacing Pay on a policy whose payments aren't configured yet.
+    const isReimbursementConfigured =
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
+    return isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+}
+
+/**
+ * The workspace's connected bank account as it appears in the current user's own `bankAccountList`, or undefined when
+ * the account is not shared with them.
+ *
+ * Membership in `bankAccountList` is the only reliable signal, and it is deliberately not softened for the designated
+ * payer: the backend only enumerates an account for the users it is shared with, and it debits some other account when
+ * asked to pay from one it did not share. Being the payer (or even the workspace owner) does not imply that share.
+ *
+ * Read the account number off the returned account rather than off `policy.achAccount`. The two disagree in practice —
+ * `achAccount.accountNumber` goes stale while `achAccount.bankAccountID` already points at a different account — and
+ * printing the stale number is how the button ends up naming an account other than the one that gets debited.
+ */
+function getAccessiblePolicyBankAccount(policy: OnyxEntry<Policy>, bankAccountList: OnyxEntry<BankAccountList>): BankAccount | undefined {
+    const policyBankAccountID = policy?.achAccount?.bankAccountID;
+
+    if (!policyBankAccountID) {
+        return undefined;
+    }
+
+    return bankAccountList?.[policyBankAccountID];
+}
+
+/**
+ * Whether the user can actually pay from the workspace's connected bank account. This gates every place that would
+ * otherwise default a payment to `policy.achAccount` — paying with, or displaying, an account the user has no access to
+ * is always wrong. See `getAccessiblePolicyBankAccount` for why `bankAccountList` is the authority.
+ */
+function canAccessPolicyBankAccount(policy: OnyxEntry<Policy>, bankAccountList: OnyxEntry<BankAccountList>): boolean {
+    return !!getAccessiblePolicyBankAccount(policy, bankAccountList);
+}
+
+/**
+ * Whether a payment made by `payerAccountID` can be assumed to have been funded by the workspace's connected bank
+ * account.
+ *
+ * Only the designated payer pays out of the workspace account; any other admin pays from an account of their own. Their
+ * payment must never be attributed to the workspace account, because that account is what every *other* viewer would
+ * otherwise fall back to — which is how the same payment ends up showing two different accounts to two people.
+ */
+function wasPaidWithPolicyBankAccount(policy: OnyxEntry<Policy>, payerAccountID: number | undefined): boolean {
+    const reimburserEmail = policy?.reimburser ?? policy?.achAccount?.reimburser;
+
+    // With no designated payer, every admin pays out of the workspace account, so any payer qualifies.
+    if (!reimburserEmail) {
+        return true;
+    }
+
+    return !!payerAccountID && getKnownAccountIDByLogin(reimburserEmail) === payerAccountID;
+}
+
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
     if (policy?.approver === employeeLogin) {
@@ -1113,6 +1184,16 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
     const defaultCategoryNames = new Set<string>(Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
 
     return Object.values(policyCategories).some((category) => category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !defaultCategoryNames.has(category.name));
+}
+
+/**
+ * Checks whether a policy max expense amount (e.g. `maxExpenseAmountNoReceipt`) is actually configured.
+ *
+ * `0` is a valid limit meaning "always required", so a falsy check would wrongly treat an explicit $0.00 as unset.
+ * Only `undefined` and `CONST.DISABLED_MAX_EXPENSE_VALUE` mean the amount is not set.
+ */
+function isMaxExpenseAmountSet(value: number | undefined): value is number {
+    return value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
 /**
@@ -1556,7 +1637,7 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
-function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
+function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
@@ -1795,7 +1876,7 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     return [...new Set([...categoryApprovers, ...tagApprovers])];
 }
 
-function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined) {
+function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: ReadonlyDeep<OnyxEntry<Report>>, ownerLogin: string | undefined) {
     // Pre-build a lookup map of { category: { value → approver }, tag: { value → approver } }
     // from the policy's approval rules so that each transaction's category/tag can be resolved in O(1).
     const rulesMap: Record<'category' | 'tag', Record<string, string>> = {
@@ -1883,7 +1964,7 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | und
  * Returns the email the expense report should submit to per workspace approval config
  * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
  */
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): string {
+function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: ReadonlyDeep<OnyxEntry<Report>>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): string {
     const approvalRules = policy?.rules?.approvalRules;
 
     if (!isSubmitAndClose(policy) && approvalRules?.length) {
@@ -1906,7 +1987,12 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): number {
+function getSubmitToAccountID(
+    policy: OnyxEntry<Policy>,
+    expenseReport: ReadonlyDeep<OnyxEntry<Report>>,
+    ownerLogin: string | undefined,
+    shouldFallBackWhenManagerIsNotMember = false,
+): number {
     const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, shouldFallBackWhenManagerIsNotMember);
     return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
@@ -3154,6 +3240,7 @@ export {
     hasTags,
     hasCustomCategories,
     hasConfiguredRules,
+    isMaxExpenseAmountSet,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
@@ -3201,6 +3288,10 @@ export {
     isPolicyOwner,
     isPolicyMember,
     isPolicyPayer,
+    canAdminPayReport,
+    canAccessPolicyBankAccount,
+    getAccessiblePolicyBankAccount,
+    wasPaidWithPolicyBankAccount,
     getReimburserEmail,
     PAYER_ROLES,
     canRolePay,
