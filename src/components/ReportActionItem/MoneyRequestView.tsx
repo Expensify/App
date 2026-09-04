@@ -1167,8 +1167,7 @@ function MoneyRequestView({
     const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport, parentReportDerivedName);
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
-    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction, moneyRequestReport);
-
+    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(transaction, transactionReport);
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
