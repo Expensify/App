@@ -1,6 +1,6 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {AppState} from 'react-native';
-import {KeyboardEvents} from 'react-native-keyboard-controller';
+import {KeyboardController, KeyboardEvents} from 'react-native-keyboard-controller';
 
 import type UseBlurOnKeyboardHide from './type';
 
@@ -9,8 +9,22 @@ import type UseBlurOnKeyboardHide from './type';
  * so JS never receives onBlur and the input stays focused. Blur it explicitly once the keyboard is gone.
  */
 const useBlurOnKeyboardHide: UseBlurOnKeyboardHide = (ref) => {
+    const wasKeyboardShownForInputRef = useRef(false);
+
     useEffect(() => {
         let shouldSkipNextHide = false;
+
+        const blurBecauseTheKeyboardIsGone = () => {
+            wasKeyboardShownForInputRef.current = false;
+            ref.current?.blur();
+        };
+
+        // Nothing listens while a covered screen is hidden, so a keyboard that went away in that window never reached
+        // the input. Only an input this hook has already seen the keyboard open for is blurred here, which leaves a
+        // first mount alone even when it puts the focus in the input straight away.
+        if (wasKeyboardShownForInputRef.current && !KeyboardController.isVisible() && AppState.currentState === 'active') {
+            blurBecauseTheKeyboardIsGone();
+        }
 
         const appStateSubscription = AppState.addEventListener('change', (state) => {
             if (state === 'active') {
@@ -21,6 +35,7 @@ const useBlurOnKeyboardHide: UseBlurOnKeyboardHide = (ref) => {
 
         const showSubscription = KeyboardEvents.addListener('keyboardDidShow', () => {
             shouldSkipNextHide = false;
+            wasKeyboardShownForInputRef.current = true;
         });
 
         const hideSubscription = KeyboardEvents.addListener('keyboardDidHide', (event) => {
@@ -36,7 +51,7 @@ const useBlurOnKeyboardHide: UseBlurOnKeyboardHide = (ref) => {
             if (shouldSkip) {
                 return;
             }
-            ref.current?.blur();
+            blurBecauseTheKeyboardIsGone();
         });
 
         return () => {
