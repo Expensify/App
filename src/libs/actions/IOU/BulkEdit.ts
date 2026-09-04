@@ -286,7 +286,7 @@ function updateMultipleMoneyRequests({
                 report: iouReport,
                 policy: transactionPolicy,
                 reportNameValuePairs,
-                reportActions: reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`],
+                reportActions: transactionReportActions,
             });
         };
 

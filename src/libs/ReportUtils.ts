@@ -5380,7 +5380,7 @@ function canEditMultipleTransactions(
                 transaction,
                 report,
                 policy,
-                reportActions: reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
+                reportActions: actionsForReport,
             }),
         );
 

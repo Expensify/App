@@ -2,7 +2,7 @@ import {canEditMultipleTransactions} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -264,5 +264,85 @@ describe('canEditMultipleTransactions', () => {
 
         const result = canEditMultipleTransactions([unreportedTransaction, transaction2], reportActions, reports, policies);
         expect(result).toBe(false);
+    });
+
+    it('considers workflow actions that exist only in the search snapshot when checking edit permissions', async () => {
+        const approverAccountID = 99;
+        const approverEmail = 'approver99@example.com';
+        // canEditMoneyRequest resolves the submitter and the approver route from personal details and the policy
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+            [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
+        });
+        await waitForBatchedUpdates();
+
+        // A submitted corporate report whose submitter is the current user and whose manager is the first-level approver
+        const report: Report = {
+            ...createExpenseReport(11),
+            reportID: 'fwd-r1',
+            policyID: 'fwd-p1',
+            ownerAccountID: currentUserAccountID,
+            managerID: approverAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+        // Built literally (not via createRandomPolicy) so the approval routing is deterministic: with no approval mode set,
+        // getSubmitToAccountID resolves the submitter's employeeList submitsTo, which must match the report's manager
+        const policy: Policy = {
+            id: 'fwd-p1',
+            name: 'Forwarded check policy',
+            role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: '',
+            outputCurrency: 'USD',
+            employeeList: {
+                [currentUserEmail]: {
+                    email: currentUserEmail,
+                    role: CONST.POLICY.ROLE.USER,
+                    submitsTo: approverEmail,
+                },
+            },
+        };
+        const transaction1: Transaction = {...createRandomTransaction(11), transactionID: 'fwd-t1', reportID: report.reportID, amount: 1000, managedCard: false};
+        const transaction2: Transaction = {...createRandomTransaction(12), transactionID: 'fwd-t2', reportID: report.reportID, amount: 2000, managedCard: false};
+        const iouAction1 = {
+            ...createRandomReportAction(11),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            reportID: report.reportID,
+            originalMessage: {IOUTransactionID: transaction1.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: transaction1.amount, currency: transaction1.currency},
+        };
+        const iouAction2 = {
+            ...createRandomReportAction(12),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            reportID: report.reportID,
+            originalMessage: {IOUTransactionID: transaction2.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: transaction2.amount, currency: transaction2.currency},
+        };
+        const submittedAction = {...createRandomReportAction(13), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-06-01 10:00:00'};
+        const forwardedAction = {...createRandomReportAction(14), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-06-01 11:00:00'};
+
+        const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report};
+        const policies: OnyxCollection<Policy> = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
+        // The Onyx collection holds only the IOU actions; the workflow history exists solely in the search snapshot
+        const reportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                [iouAction1.reportActionID]: iouAction1,
+                [iouAction2.reportActionID]: iouAction2,
+            },
+        };
+        const snapshotWithoutForward: SearchResults['data'] = {};
+        snapshotWithoutForward[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] = {[submittedAction.reportActionID]: submittedAction};
+        const snapshotWithForward: SearchResults['data'] = {};
+        snapshotWithForward[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] = {
+            [submittedAction.reportActionID]: submittedAction,
+            [forwardedAction.reportActionID]: forwardedAction,
+        };
+
+        // When the snapshot shows no forward since the last submit, the submitter can still bulk edit
+        expect(canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, false, snapshotWithoutForward)).toBe(true);
+
+        // When the snapshot-only actions show the report was forwarded after the last submit, bulk editing must be blocked
+        expect(canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, false, snapshotWithForward)).toBe(false);
     });
 });
