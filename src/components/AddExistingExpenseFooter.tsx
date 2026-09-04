@@ -51,7 +51,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -116,6 +116,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         selfDMReportActions,
                         delegateAccountID,
                         getCurrencyDecimals,
+                        getCurrencySymbol,
                     });
                 }
             },

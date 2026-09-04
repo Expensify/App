@@ -70,7 +70,7 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.X
                                     src={local}
                                     width={iconSize}
                                     height={iconSize}
-                                    additionalStyles={StyleUtils.getAvatarBorderStyle(size, CONST.ICON_TYPE_AVATAR)}
+                                    additionalStyles={StyleUtils.getAvatarBorderStyle(size, CONST.AVATAR_SHAPE.CIRCLE)}
                                 />
                             </View>
                         </PressableWithFeedback>

@@ -1,4 +1,3 @@
-import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -6,12 +5,13 @@ import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
-    getBrokenConnectionViolation,
     hasDuplicateTransactions,
+    isBrokenConnectionViolation,
     hasReceipt,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
     isScanning,
+    shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 
@@ -122,14 +122,13 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
         if (hasDuplicates) {
             return CONST.REPORT.STATUS_BAR_TYPE.DUPLICATES;
         }
-        if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            const brokenConnectionError = getBrokenConnectionViolation(transactionViolations);
-            const cardID = brokenConnectionError?.data?.cardID;
-            const card = cardID ? cardList?.[cardID] : undefined;
+        if (shouldShowBrokenConnectionViolation) {
+            const brokenConnectionViolations = transactionViolations.length
+                ? transactionViolations.filter(isBrokenConnectionViolation)
+                : (visibleTransactions?.flatMap((t) => violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`] ?? []).filter(isBrokenConnectionViolation) ?? []);
 
-            // Only suppress the status bar for a personal card the current user actually holds. A company card the
-            // viewer doesn't own resolves to `undefined` here, and must still surface the broken/re-auth status.
-            if (!!card && isPersonalCard(card) && brokenConnectionError) {
+            // A report must retain a status if any violation needs an actionable or retry-later message.
+            if (shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList)) {
                 return undefined;
             }
             return CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION;

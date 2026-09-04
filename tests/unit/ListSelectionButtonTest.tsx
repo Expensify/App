@@ -1,7 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import ListCheckbox from '@components/SelectionList/components/ListCheckbox';
-import ListRadioButton from '@components/SelectionList/components/ListRadioButton';
+import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 
 import CONST from '@src/CONST';
@@ -34,7 +33,8 @@ describe('ListSelectionButton', () => {
         const onSelectRow = jest.fn();
         // The parent defers its selection update (e.g. in a transition), so item.isSelected does not change on press.
         render(
-            <ListCheckbox
+            <ListSelectionButton
+                role={CONST.ROLE.CHECKBOX}
                 item={buildItem(false)}
                 onSelectRow={onSelectRow}
                 shouldUseOptimisticSelection
@@ -53,7 +53,8 @@ describe('ListSelectionButton', () => {
     it('does not paint optimistically when the opt-in is off (default for every other list)', () => {
         const onSelectRow = jest.fn();
         render(
-            <ListCheckbox
+            <ListSelectionButton
+                role={CONST.ROLE.CHECKBOX}
                 item={buildItem(false)}
                 onSelectRow={onSelectRow}
             />,
@@ -68,7 +69,8 @@ describe('ListSelectionButton', () => {
 
     it('drops the optimistic value once the item prop catches up', () => {
         const {rerender} = render(
-            <ListCheckbox
+            <ListSelectionButton
+                role={CONST.ROLE.CHECKBOX}
                 item={buildItem(false)}
                 onSelectRow={jest.fn()}
                 shouldUseOptimisticSelection
@@ -80,7 +82,8 @@ describe('ListSelectionButton', () => {
 
         // The parent's deferred update lands and confirms the selection.
         rerender(
-            <ListCheckbox
+            <ListSelectionButton
+                role={CONST.ROLE.CHECKBOX}
                 item={buildItem(true)}
                 onSelectRow={jest.fn()}
                 shouldUseOptimisticSelection
@@ -90,7 +93,8 @@ describe('ListSelectionButton', () => {
 
         // A later external update unselects the item - the stale optimistic value must not mask it.
         rerender(
-            <ListCheckbox
+            <ListSelectionButton
+                role={CONST.ROLE.CHECKBOX}
                 item={buildItem(false)}
                 onSelectRow={jest.fn()}
                 shouldUseOptimisticSelection
@@ -101,7 +105,8 @@ describe('ListSelectionButton', () => {
 
     it('toggles the checkmark back on a second press before the parent commits', () => {
         render(
-            <ListCheckbox
+            <ListSelectionButton
+                role={CONST.ROLE.CHECKBOX}
                 item={buildItem(false)}
                 onSelectRow={jest.fn()}
                 shouldUseOptimisticSelection
@@ -118,7 +123,8 @@ describe('ListSelectionButton', () => {
 
     it('drops the optimistic value when the row is recycled to a different item', () => {
         const {rerender} = render(
-            <ListCheckbox
+            <ListSelectionButton
+                role={CONST.ROLE.CHECKBOX}
                 item={buildItem(false, 'user-a')}
                 onSelectRow={jest.fn()}
                 shouldUseOptimisticSelection
@@ -130,7 +136,8 @@ describe('ListSelectionButton', () => {
 
         // FlashList recycles the cell to a new item (same isSelected, new keyForList); the old checkmark must not leak.
         rerender(
-            <ListCheckbox
+            <ListSelectionButton
+                role={CONST.ROLE.CHECKBOX}
                 item={buildItem(false, 'user-b')}
                 onSelectRow={jest.fn()}
                 shouldUseOptimisticSelection
@@ -142,7 +149,8 @@ describe('ListSelectionButton', () => {
     it('keeps a selected radio checked when it is pressed again', () => {
         // A radio only selects, so re-pressing a checked radio must not flip it to unchecked.
         render(
-            <ListRadioButton
+            <ListSelectionButton
+                role={CONST.ROLE.RADIO}
                 item={buildItem(true)}
                 onSelectRow={jest.fn()}
             />,

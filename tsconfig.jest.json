@@ -1,0 +1,6 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./tsconfig.json",
+    "include": ["src", "assets", "tests", "jest", "prompts", "__mocks__", "modules"],
+    "exclude": ["**/node_modules/*", "**/dist/*", "tests/tooling"]
+}

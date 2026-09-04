@@ -98,7 +98,7 @@ function BaseMiniContextMenuItem({
                 sentryLabel={sentryLabel}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete), true),
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed, isComplete: isDelayButtonStateComplete}), true),
                     isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >

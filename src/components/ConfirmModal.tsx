@@ -2,6 +2,8 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ButtonVariant} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -43,11 +45,8 @@ type ConfirmModalProps = {
     /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
     subtitle?: string | ReactNode;
 
-    /** Whether we should use the success button color */
-    success?: boolean;
-
-    /** Is the action destructive */
-    danger?: boolean;
+    /** Button variant */
+    buttonVariant?: ButtonVariant;
 
     /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
@@ -109,6 +108,12 @@ type ConfirmModalProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
+    /** Image width */
+    imageWidth?: number;
+
+    /** Image height */
+    imageHeight?: number;
+
     /** Whether to fit the image to the container */
     shouldFitImageToContainer?: boolean;
 
@@ -152,8 +157,7 @@ function ConfirmModal({
     prompt = '',
     subtitle,
     subtitleStyles,
-    success = true,
-    danger = false,
+    buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
     onCancel = () => {},
     onBackdropPress,
     shouldDisableConfirmButtonWhenOffline = false,
@@ -171,6 +175,8 @@ function ConfirmModal({
     onConfirm,
     image,
     imageStyles,
+    imageWidth,
+    imageHeight,
     shouldFitImageToContainer = false,
     iconWidth,
     iconHeight,
@@ -229,8 +235,7 @@ function ConfirmModal({
                 prompt={prompt}
                 subtitle={subtitle}
                 subtitleStyles={subtitleStyles}
-                success={success}
-                danger={danger}
+                buttonVariant={buttonVariant}
                 isVisible={isVisible}
                 shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
                 shouldShowCancelButton={shouldShowCancelButton}
@@ -250,6 +255,8 @@ function ConfirmModal({
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
                 imageStyles={imageStyles}
+                imageWidth={imageWidth}
+                imageHeight={imageHeight}
                 shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
                 isTitleLoading={isTitleLoading}

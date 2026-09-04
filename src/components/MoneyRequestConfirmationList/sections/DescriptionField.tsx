@@ -20,7 +20,6 @@ import variables from '@styles/variables';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -34,31 +33,13 @@ import {descriptionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type DescriptionFieldProps = {
-    isNewManualExpenseFlowEnabled: boolean;
-    isReadOnly: boolean;
-    didConfirm: boolean;
     isDescriptionRequired: boolean;
-    transactionID: string | undefined;
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-function DescriptionField({
-    isNewManualExpenseFlowEnabled,
-    isReadOnly,
-    didConfirm,
-    isDescriptionRequired,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-    policy,
-}: DescriptionFieldProps) {
-    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm} = useConfirmationFields();
+function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isNewManualExpenseFlowEnabled, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} =
+        useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();

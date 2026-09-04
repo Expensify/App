@@ -11,6 +11,20 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+// exportIDs this tab started during the current page load. This is in-memory only, so it is naturally
+// scoped to this tab and cleared on reload. The manager uses it to decide it may pop the modal open for an
+// export that appears while this tab is open. An export started in another tab is not in this set, so it does
+// not pop open here. After a reload, eligibility is re-seeded from the records already in Onyx instead.
+const locallyInitiatedExportIDs = new Set<string>();
+
+function markExportInitiatedLocally(exportID: string) {
+    locallyInitiatedExportIDs.add(exportID);
+}
+
+function wasExportInitiatedLocally(exportID: string): boolean {
+    return locallyInitiatedExportIDs.has(exportID);
+}
+
 function sendExportFileFromConcierge(exportID: string, exportDownload: OnyxEntry<ExportDownload>) {
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -34,6 +48,7 @@ function sendExportFileFromConcierge(exportID: string, exportDownload: OnyxEntry
 }
 
 function clearExportDownload(exportID: string, exportDownload: OnyxEntry<ExportDownload>) {
+    locallyInitiatedExportIDs.delete(exportID);
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
     const optimisticData: AnyOnyxUpdate[] = [
@@ -67,7 +82,17 @@ function clearStaleExportDownloads() {
             }
             for (const key of Object.keys(exportDownloads)) {
                 const exportDownload = exportDownloads[key];
-                if (!exportDownload || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
+                if (!exportDownload) {
+                    continue;
+                }
+
+                // Never clear a Concierge hand-off: the worker owns the record and deletes it once delivered.
+                if (exportDownload.shouldSendFromConcierge) {
+                    continue;
+                }
+
+                // Keep preparing and ready exports so the manager can re-surface them. Only failed leftovers are cleared here.
+                if (exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY) {
                     continue;
                 }
                 const exportID = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
@@ -97,6 +122,8 @@ function exportReportsToPDF(reportIDs: string[]): string {
         },
     ];
 
+    markExportInitiatedLocally(exportID);
+
     write(WRITE_COMMANDS.EXPORT_REPORTS_TO_PDF, {reportIDs: JSON.stringify(reportIDs), exportID}, {optimisticData, failureData});
 
     return exportID;
@@ -122,6 +149,8 @@ function exportReceiptsToZip({reportIDs, transactionIDs}: {reportIDs?: string[];
         },
     ];
 
+    markExportInitiatedLocally(exportID);
+
     write(
         WRITE_COMMANDS.EXPORT_RECEIPTS_TO_ZIP,
         {
@@ -135,4 +164,4 @@ function exportReceiptsToZip({reportIDs, transactionIDs}: {reportIDs?: string[];
     return exportID;
 }
 
-export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, exportReportsToPDF, exportReceiptsToZip};
+export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, markExportInitiatedLocally, wasExportInitiatedLocally, exportReportsToPDF, exportReceiptsToZip};

@@ -23,6 +23,9 @@ type AccountAvatarProps = {
 
     /** Container styles for the avatar. Replaces the size-derived default container styles when provided */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Login of the account. Seeds a deterministic letter avatar when personal details aren't loaded yet */
+    accountEmail?: string;
 };
 
 /**
@@ -30,9 +33,9 @@ type AccountAvatarProps = {
  * Use whenever exactly one account is rendered. Reach for `AccountAvatars` when several accounts share one slot,
  * or pass `Avatar/UserAvatar` a `source` instead when the avatar is already resolved.
  */
-function AccountAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, fallbackDisplayName, containerStyle}: AccountAvatarProps) {
+function AccountAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, fallbackDisplayName, containerStyle, accountEmail}: AccountAvatarProps) {
     const StyleUtils = useStyleUtils();
-    const [icon] = useAccountIcons([accountID]);
+    const [icon] = useAccountIcons([accountID], undefined, [accountEmail]);
 
     return (
         <SingleAvatar

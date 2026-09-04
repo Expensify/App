@@ -29,7 +29,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {findSelfDMReportID, getReportTransactions} from '@libs/ReportUtils';
+import {findSelfDMReportID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -106,7 +106,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         // mergeTransactionRequest optimistically deletes the report. Capture that here (before the optimistic update runs)
         // so we can replace the now-deleted report screen instead of pushing on top of it — otherwise the stale screen
         // lingers in the stack and briefly flashes the "not found" page when the user taps back. Must be read pre-merge.
-        const willDeleteTargetTransactionReport = getReportTransactions(targetTransaction.reportID).length === 1;
+        const willDeleteTargetTransactionReport = Object.keys(targetReportTransactionsCollection ?? {}).length === 1;
 
         setIsMergingExpenses(true);
 

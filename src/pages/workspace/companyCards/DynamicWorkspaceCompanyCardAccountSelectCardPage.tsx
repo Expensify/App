@@ -90,7 +90,7 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
         }
         const isDefaultSelected = value === defaultCard || value === defaultVendor || value === defaultAccount;
         const exportValue = isDefaultSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
-        setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
+        setCompanyCardExportAccount(policyID, Number(card?.fundID ?? domainOrWorkspaceAccountID), cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
 
         Navigation.goBack(backPath);
     };

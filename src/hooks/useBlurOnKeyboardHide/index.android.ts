@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+import {AppState} from 'react-native';
 import {KeyboardEvents} from 'react-native-keyboard-controller';
 
 import type UseBlurOnKeyboardHide from './type';
@@ -9,15 +10,40 @@ import type UseBlurOnKeyboardHide from './type';
  */
 const useBlurOnKeyboardHide: UseBlurOnKeyboardHide = (ref) => {
     useEffect(() => {
-        const subscription = KeyboardEvents.addListener('keyboardDidHide', (event) => {
+        let shouldSkipNextHide = false;
+
+        const appStateSubscription = AppState.addEventListener('change', (state) => {
+            if (state === 'active') {
+                return;
+            }
+            shouldSkipNextHide = true;
+        });
+
+        const showSubscription = KeyboardEvents.addListener('keyboardDidShow', () => {
+            shouldSkipNextHide = false;
+        });
+
+        const hideSubscription = KeyboardEvents.addListener('keyboardDidHide', (event) => {
             // keyboardDidHide can fire mid-gesture with the keyboard still partly on screen. Only the zero-height
             // event means it is actually gone, so blurring on the earlier ones would break a cancelled swipe.
             if (event.height !== 0) {
                 return;
             }
+
+            // Skipping blur if event was emitted because app was backgrounded.
+            const shouldSkip = shouldSkipNextHide || AppState.currentState !== 'active';
+            shouldSkipNextHide = false;
+            if (shouldSkip) {
+                return;
+            }
             ref.current?.blur();
         });
-        return () => subscription.remove();
+
+        return () => {
+            appStateSubscription.remove();
+            showSubscription.remove();
+            hideSubscription.remove();
+        };
     }, [ref]);
 };
 

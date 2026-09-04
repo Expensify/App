@@ -42,4 +42,13 @@ function buildRecentCardTransactionsQuery(accountID: number, cardID: number): st
     });
 }
 
-export {buildAwaitingApprovalQuery, buildRepaidLast30DaysQuery, buildRecentCardTransactionsQuery};
+function buildCardGroupQuery(accountID: number): string {
+    return buildQueryStringFromFilterFormValues({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        from: [String(accountID)],
+        [FILTER_KEYS.DATE_AFTER]: get30DaysAgoDateString(),
+        groupBy: CONST.SEARCH.GROUP_BY.CARD,
+    });
+}
+
+export {buildAwaitingApprovalQuery, buildRepaidLast30DaysQuery, buildRecentCardTransactionsQuery, buildCardGroupQuery};

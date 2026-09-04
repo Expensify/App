@@ -16,6 +16,7 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchKey: 'expenses'}),
     useSearchResultsContext: () => ({currentSearchResults: mockCurrentSearchResults, shouldUseLiveData: false}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
+    useSearchSelectionContext: () => ({areAllMatchingItemsSelected: false}),
 }));
 
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));

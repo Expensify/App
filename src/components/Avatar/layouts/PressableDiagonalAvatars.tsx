@@ -1,3 +1,4 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 
@@ -13,7 +14,6 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-import Avatar from '..';
 import DiagonalAvatarsFrame from './DiagonalAvatarsFrame';
 import getDiagonalAvatarSizing from './getDiagonalAvatarSizing';
 
@@ -56,13 +56,8 @@ function PressableDiagonalAvatars({size, primaryAvatar, secondaryAvatar, iconCou
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={sentryLabel}
             >
-                <Avatar
-                    type={avatar.type}
-                    source={avatar.source}
-                    name={avatar.name ?? ''}
-                    avatarID={avatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                    fallbackIcon={avatar.fallbackIcon}
-                    fill={avatar.fill}
+                <AvatarFromIcon
+                    icon={avatar}
                     size={avatarSize}
                     imageStyles={styles[singleAvatarStyleKey]}
                     testID={testID}
@@ -76,10 +71,10 @@ function PressableDiagonalAvatars({size, primaryAvatar, secondaryAvatar, iconCou
             size={size}
             iconCount={iconCount}
             containerStyle={StyleUtils.getContainerStyles(size)}
-            primaryContainerStyle={primaryAvatar.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, primaryAvatar.type)}
+            primaryContainerStyle={primaryAvatar.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE)}
             secondaryContainerStyle={[
                 StyleUtils.getBackgroundAndBorderStyle(theme.componentBG),
-                secondaryAvatar.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, secondaryAvatar.type),
+                secondaryAvatar.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE),
             ]}
             primary={renderPressableAvatar(primaryAvatar, 'ReportActionAvatars-MultipleAvatars-MainAvatar')}
             secondary={renderPressableAvatar(secondaryAvatar, 'ReportActionAvatars-MultipleAvatars-SecondaryAvatar')}

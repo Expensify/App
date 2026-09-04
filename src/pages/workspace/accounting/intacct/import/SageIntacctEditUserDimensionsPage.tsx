@@ -141,7 +141,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                                     prompt: translate('workspace.intacct.removeDimensionPrompt'),
                                     confirmText: translate('common.remove'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                     shouldEnableNewFocusManagement: true,
                                 }).then((result) => {
                                     if (result.action !== ModalActions.CONFIRM) {

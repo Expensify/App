@@ -14,8 +14,6 @@ import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {ReceiptErrors} from '@src/types/onyx/Transaction';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ReactElement, ReactNode} from 'react';
 import type {BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
@@ -192,9 +190,6 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Styles for the container view */
     containerStyle?: StyleProp<ViewStyle>;
 
-    /** Styles for the checkbox wrapper view if select multiple option is on */
-    selectMultipleStyle?: StyleProp<ViewStyle>;
-
     /** Styles applied for the error row of the list item */
     errorRowStyles?: StyleProp<ViewStyle>;
 
@@ -234,8 +229,7 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
-} & TRightHandSideComponent<TItem> &
-    WithSentryLabel;
+} & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
 
@@ -270,9 +264,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Prevent the submission of the list item when enter key is pressed */
     shouldPreventEnterKeySubmit?: boolean;
-
-    /** Key used internally by React */
-    keyForList: string;
 
     /**
      * Whether the focus on the element should be synchronized. For example it should be set to false when the text input above list items is currently focused.
@@ -340,12 +331,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         /** Overrides the row's screen-reader name. Defaults to the item's derived label when omitted. */
         accessibilityLabel?: string;
         shouldPreventEnterKeySubmit?: boolean;
-        shouldShowBlueBorderOnFocus?: boolean;
-        keyForList: string;
-        errors?: Errors | ReceiptErrors | null;
         /** Additional style object for the error row */
         errorRowStyles?: StyleProp<ViewStyle>;
-        pendingAction?: PendingAction | null;
         FooterComponent?: ReactElement;
         children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
         shouldSyncFocus?: boolean;
@@ -383,10 +370,8 @@ type SpendRuleListItemType = ListItem & {
     searchTokens: string[];
 };
 
-/**
- * Props for SelectableListItem, which extends BaseListItem with selection button support.
- */
-type SelectableListItemProps<TItem extends ListItem> = BaseListItemProps<TItem> & {
+/** Props for SelectableListItem, which extends the composed ListItem pressable with selection button support. */
+type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'containerStyle'> & {
     /** Callback to fire when the selection button is pressed */
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 

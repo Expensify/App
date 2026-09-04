@@ -124,7 +124,15 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
                 minModalHeight={minModalHeight}
                 buttons={
                     canAddTransactionToReport
-                        ? [{buttonText: translate('iou.addExpense'), buttonAction: () => {}, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions}]
+                        ? [
+                              {
+                                  buttonText: translate('iou.addExpense'),
+                                  buttonAction: () => {},
+                                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                                  isDisabled: false,
+                                  dropDownOptions: addExpenseDropdownOptions,
+                              },
+                          ]
                         : []
                 }
             />

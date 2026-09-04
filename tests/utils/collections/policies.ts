@@ -13,7 +13,6 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         // (e.g. forced Editor role, locked role changes), so tests that exercise it pass the type explicitly.
         type: type ?? rand(Object.values(CONST.POLICY.TYPE).filter((policyType) => policyType !== CONST.POLICY.TYPE.SUBMIT)),
         autoReporting: randBoolean(),
-        isPolicyExpenseChatEnabled: randBoolean(),
         autoReportingFrequency: rand(
             Object.values(CONST.POLICY.AUTO_REPORTING_FREQUENCIES).filter(
                 (frequency): frequency is Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL> =>

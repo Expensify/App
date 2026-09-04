@@ -32,6 +32,9 @@ category = "category"i { return "category"; }
 to = "to"i { return "to"; }
 exporter = "exporter"i { return "exporter"; }
 payer = "payer"i { return "payer"; }
+paidBy
+  = "paidBy"
+  / "paid-by"i { return "paidBy"; }
 taxRate
   = "taxRate"i
   / "tax-rate"i { return "taxRate"; }

@@ -28,11 +28,6 @@ Onyx.connectWithoutView({
     },
 });
 
-/**
- * Centralized reconnection logic.
- * Syncs app data with the server — fetches missed Onyx updates.
- * Queue flushing is handled separately by the offline→online subscriber below.
- */
 function reconnect() {
     if (!currentAccountID) {
         Log.info('[Reconnect] Skipping reconnection — no active session');
@@ -61,13 +56,11 @@ const initReconnect = () => {
         wasOffline = offline;
     });
 
-    // App came to foreground — sync data and flush queue
     AppStateMonitor.addBecameActiveListener(() => {
         Log.info('[Reconnect] App became active');
         if (getIsOffline()) {
             refreshNetworkState();
         }
-        reconnect();
         flush();
     });
 };

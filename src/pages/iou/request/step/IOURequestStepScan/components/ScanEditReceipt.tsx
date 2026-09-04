@@ -8,12 +8,14 @@ import usePolicy from '@hooks/usePolicy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 
 import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -64,6 +66,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
     };
 
     const handleCapture = (file: FileObject, source: string) => {
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         if (isEditing) {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', false, file.type);
             replaceReceipt({

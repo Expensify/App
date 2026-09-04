@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
-import Avatar from '@components/Avatar';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import ComposeProviders from '@components/ComposeProviders';
@@ -92,10 +92,10 @@ function queryHiddenTestId(testID: string) {
     return screen.queryByTestId(testID, hiddenElementOptions);
 }
 
-function renderAvatar(props: React.ComponentProps<typeof Avatar>) {
+function renderAvatarFromIcon(props: React.ComponentProps<typeof AvatarFromIcon>) {
     return render(
         <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
-            <Avatar {...props} />
+            <AvatarFromIcon {...props} />
         </ComposeProviders>,
     );
 }
@@ -236,11 +236,8 @@ describe('Avatar', () => {
 
     describe('workspace avatar', () => {
         it('renders the Image branch for a letter-avatar URL because initials are user-avatar-only', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_WORKSPACE,
-                source: LETTER_AVATAR_URL,
-                name: WORKSPACE_NAME,
-                avatarID: 'policy_123',
+            renderAvatarFromIcon({
+                icon: {type: CONST.ICON_TYPE_WORKSPACE, source: LETTER_AVATAR_URL, name: WORKSPACE_NAME, id: 'policy_123'},
             });
 
             await waitForBatchedUpdates();
@@ -250,11 +247,8 @@ describe('Avatar', () => {
         });
 
         it('renders the Image branch for an uploaded workspace logo URL', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_WORKSPACE,
-                source: UPLOADED_AVATAR_URL,
-                name: WORKSPACE_NAME,
-                avatarID: 'policy_123',
+            renderAvatarFromIcon({
+                icon: {type: CONST.ICON_TYPE_WORKSPACE, source: UPLOADED_AVATAR_URL, name: WORKSPACE_NAME, id: 'policy_123'},
             });
 
             await waitForBatchedUpdates();
@@ -267,10 +261,8 @@ describe('Avatar', () => {
         it('renders the default workspace Icon when no source is provided', async () => {
             const workspaceFallbackTestID = getDefaultWorkspaceAvatarTestID(WORKSPACE_NAME);
 
-            renderAvatar({
-                type: CONST.ICON_TYPE_WORKSPACE,
-                name: WORKSPACE_NAME,
-                avatarID: 'policy_123',
+            renderAvatarFromIcon({
+                icon: {type: CONST.ICON_TYPE_WORKSPACE, source: '', name: WORKSPACE_NAME, id: 'policy_123'},
             });
 
             await waitForBatchedUpdates();
@@ -282,11 +274,8 @@ describe('Avatar', () => {
         it('switches from the Image branch to the default workspace Icon when the uploaded logo fails to load', async () => {
             const workspaceFallbackTestID = getDefaultWorkspaceAvatarTestID(WORKSPACE_NAME);
 
-            renderAvatar({
-                type: CONST.ICON_TYPE_WORKSPACE,
-                source: UPLOADED_AVATAR_URL,
-                name: WORKSPACE_NAME,
-                avatarID: 'policy_123',
+            renderAvatarFromIcon({
+                icon: {type: CONST.ICON_TYPE_WORKSPACE, source: UPLOADED_AVATAR_URL, name: WORKSPACE_NAME, id: 'policy_123'},
             });
 
             await waitForBatchedUpdates();
@@ -304,11 +293,9 @@ describe('Avatar', () => {
     });
 
     describe('UserAvatar and WorkspaceAvatar', () => {
-        it('the back-compat facade renders the user branch the same as UserAvatar', async () => {
-            renderAvatar({
-                type: CONST.ICON_TYPE_AVATAR,
-                source: UPLOADED_AVATAR_URL,
-                avatarID: 1,
+        it('AvatarFromIcon renders the user branch the same as UserAvatar', async () => {
+            renderAvatarFromIcon({
+                icon: {type: CONST.ICON_TYPE_AVATAR, source: UPLOADED_AVATAR_URL, id: 1},
             });
 
             await waitForBatchedUpdates();
@@ -317,7 +304,7 @@ describe('Avatar', () => {
             expect(screen.getByTestId(AVATAR_IMAGE_TEST_ID)).toBeTruthy();
         });
 
-        it('WorkspaceAvatar renders the same as the back-compat default for workspace avatars', async () => {
+        it('WorkspaceAvatar renders the default workspace icon when no source is provided', async () => {
             const workspaceFallbackTestID = getDefaultWorkspaceAvatarTestID(WORKSPACE_NAME);
 
             render(

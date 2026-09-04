@@ -1,7 +1,7 @@
 import useLocalize from '@hooks/useLocalize';
 
 import {updateZenefitsApprovalMode} from '@libs/actions/connections/Zenefits';
-import {isZenefitsConnected} from '@libs/HRUtils';
+import {isZenefitsConnected} from '@libs/merge/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 

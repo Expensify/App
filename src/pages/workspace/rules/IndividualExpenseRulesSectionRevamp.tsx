@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
+import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingEnabled, isCollectPolicy, isMaxExpenseAmountSet, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -80,8 +80,8 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
         const receiptAmount = policy?.maxExpenseAmountNoReceipt;
         const itemizedAmount = policy?.maxExpenseAmountNoItemizedReceipt;
 
-        const isReceiptEnabled = receiptAmount !== undefined && receiptAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && receiptAmount !== 0;
-        const isItemizedEnabled = itemizedAmount !== undefined && itemizedAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && itemizedAmount !== 0;
+        const isReceiptEnabled = isMaxExpenseAmountSet(receiptAmount);
+        const isItemizedEnabled = isMaxExpenseAmountSet(itemizedAmount);
 
         return translate('workspace.rules.generalTab.receiptRequirementsSummary', {
             regularAmount: isReceiptEnabled ? convertToDisplayString(receiptAmount, policyCurrency) : undefined,

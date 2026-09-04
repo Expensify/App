@@ -32,13 +32,15 @@ function ReportRouteParamHandler() {
     const shouldResolveReportID = !route.params.reportID;
     const ignoreDomainRooms = !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const shouldOpenOnAdminRoom = 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom;
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
 
     // Subscribing to the reports collection (instead of relying on the module-scoped copy inside ReportUtils)
     // makes this handler re-run once the reports finish loading, so a route that was created without a reportID
     // recovers instead of staying stuck on the loading skeleton. Resolving inside the selector keeps that cheap:
     // the route only re-renders when the resolved ID changes, and once one is set nothing is computed at all.
     const [lastAccessedReportID, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => (shouldResolveReportID ? findLastAccessedReport(ignoreDomainRooms, shouldOpenOnAdminRoom, undefined, reportNameValuePairs, reports)?.reportID : undefined),
+        selector: (reports) =>
+            shouldResolveReportID ? findLastAccessedReport(ignoreDomainRooms, guideAccountIDs, shouldOpenOnAdminRoom, undefined, reportNameValuePairs, reports)?.reportID : undefined,
     });
 
     useFocusEffect(() => {

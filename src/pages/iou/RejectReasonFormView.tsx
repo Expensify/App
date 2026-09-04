@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
@@ -53,7 +54,7 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                 validate={validate}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
-                isSubmitActionDangerous
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             >
                 <View style={styles.mb6}>
                     <Text>{translate('iou.reject.reasonPageDescription')}</Text>

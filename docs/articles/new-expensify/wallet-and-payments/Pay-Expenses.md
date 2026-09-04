@@ -58,6 +58,19 @@ To send a personal payment, you must first [set up your Wallet](https://help.exp
 4. If you've made a payment before, the most recently used method will be selected by default. Tap the right side of the button to view other options.
 5. If this is your first time paying, you’ll be asked to select a payment method after tapping **Pay**.
 
+## How to cancel a personal payment before the recipient sets up their Wallet
+
+When you pay a personal expense from your Wallet and the recipient has not [set up their Wallet](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Set-up-your-wallet) yet, the payment is held until they do. While it is held, you (the sender) can cancel it and have the funds returned.
+
+1. Open the payment report.
+2. Select **More**.
+3. Select **Cancel payment**.
+4. When asked **Are you sure that you want to cancel this payment?**, confirm to cancel.
+
+The payment is cancelled and the held funds are returned to you. Once the recipient sets up their Wallet and the payment completes, **Cancel payment** is no longer available.
+
+**Note:** Only the sender sees the **Cancel payment** option. The recipient cannot cancel the payment.
+
 ---
 
 # FAQ

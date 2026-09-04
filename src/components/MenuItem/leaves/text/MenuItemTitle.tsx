@@ -8,19 +8,30 @@ import convertToLTR from '@libs/convertToLTR';
 
 import CONST from '@src/CONST';
 
+import type {ReactElement} from 'react';
+
 import React from 'react';
 
-type MenuItemTitleProps = {
-    /** Text to render as the title */
-    children: string | number;
-};
+type MenuItemTitleProps =
+    | {
+          /** Text to render as the title */
+          children: string | number;
+
+          accessibilityLabel?: never;
+      }
+    | {
+          /** Element to render in place of plain text, e.g. a `DisplayNames` with per-name tooltips */
+          children: ReactElement;
+
+          accessibilityLabel: string;
+      };
 
 /** The title block of a `MenuItem.Content`. Bold, single line */
-function MenuItemTitle({children}: MenuItemTitleProps) {
+function MenuItemTitle({children, accessibilityLabel}: MenuItemTitleProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemConfig();
 
-    useMenuItemAccessibilityLabel('title', String(children));
+    useMenuItemAccessibilityLabel('title', accessibilityLabel ?? String(children));
 
     return (
         <Text

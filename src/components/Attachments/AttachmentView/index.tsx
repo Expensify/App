@@ -110,12 +110,13 @@ type AttachmentViewProps = Attachment & {
     rotation?: RotationDegrees;
 };
 
-function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined) {
+function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined, fileType?: string) {
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
 
-    const isFileNameImage = fileName && Str.isImage(fileName);
+    const isFileNameImage = !!fileName && Str.isImage(fileName);
+    const isFileTypeImage = !!fileType?.startsWith('image/') && Str.isImage(`image.${fileType.slice('image/'.length)}`);
 
-    return isSourceImage || isFileNameImage;
+    return isSourceImage || isFileNameImage || isFileTypeImage;
 }
 
 function AttachmentView({
@@ -200,10 +201,10 @@ function AttachmentView({
     }, [file]);
 
     useEffect(() => {
-        const isImageSource = typeof source !== 'function' && !!checkIsFileImage(source, file?.name);
+        const isImageSource = typeof source !== 'function' && checkIsFileImage(source, file?.name, file?.type);
         const isErrorInImage = imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function');
         onAttachmentError?.(source, isErrorInImage && isImageSource);
-    }, [fallbackSource, file?.name, imageError, onAttachmentError, source]);
+    }, [fallbackSource, file?.name, file?.type, imageError, onAttachmentError, source]);
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
@@ -316,7 +317,7 @@ function AttachmentView({
 
     if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !isOdometerDistanceRequest(transaction) && transaction) {
         // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
-        const isImageReceiptSource = checkIsFileImage(source, file?.name);
+        const isImageReceiptSource = checkIsFileImage(source, file?.name, file?.type);
         if (!hasReceiptSource(transaction) || isImageReceiptSource) {
             return <DistanceEReceipt transaction={transaction} />;
         }
@@ -327,10 +328,10 @@ function AttachmentView({
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
 
     // isLocalSource checks if the source is blob as that's the type of the temp image coming from mobile web
-    const isFileImage = checkIsFileImage(source, file?.name);
+    const isFileImage = checkIsFileImage(source, file?.name, file?.type);
     const isLocalSourceImage = typeof source === 'string' && source.startsWith('blob:');
 
-    const isImage = isFileImage ?? isLocalSourceImage;
+    const isImage = isFileImage || (!file?.name && isLocalSourceImage);
 
     if (isImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {

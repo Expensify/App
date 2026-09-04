@@ -512,19 +512,26 @@ type BuildUserIconArgsType = DefaultAvatarsType & {
 
     /** Overrides the icon name, which otherwise comes from the account's login. Pass `''` to leave it blank. */
     name?: string;
+
+    /**
+     * Login of the account being resolved. When personal details aren't loaded yet, it seeds a deterministic
+     * letter-avatar `source` (drawn locally) so the avatar renders instead of the generic gray fallback.
+     */
+    accountEmail?: string;
 };
 
 /**
  * Resolves a single account ID into an avatar {@link Icon} using the personal-details context and the default-avatar set.
  * Shared by `AccountAvatar` and `useReportActionAvatars` so the resolution stays in one place.
  */
-function buildUserIcon({accountID, personalDetails, defaultAvatars, invitedEmail, name}: BuildUserIconArgsType): Icon {
+function buildUserIcon({accountID, personalDetails, defaultAvatars, invitedEmail, name, accountEmail}: BuildUserIconArgsType): Icon {
+    const seededSource = accountEmail ? getDefaultAvatarURL({accountID, accountEmail: addSMSDomainIfPhoneNumber(accountEmail)}) : undefined;
     return {
         id: accountID,
         type: CONST.ICON_TYPE_AVATAR,
-        source: personalDetails?.[accountID]?.avatar ?? defaultAvatars.FallbackAvatar,
-        name: name ?? personalDetails?.[accountID]?.login ?? invitedEmail ?? '',
-        displayName: personalDetails?.[accountID]?.displayName ?? personalDetails?.[accountID]?.login,
+        source: personalDetails?.[accountID]?.avatar ?? seededSource ?? defaultAvatars.FallbackAvatar,
+        name: name ?? personalDetails?.[accountID]?.login ?? invitedEmail ?? accountEmail ?? '',
+        displayName: personalDetails?.[accountID]?.displayName ?? personalDetails?.[accountID]?.login ?? accountEmail,
         fallbackIcon: invitedEmail ? getDefaultAvatar({accountID, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail), defaultAvatars}) : undefined,
     };
 }

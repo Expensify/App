@@ -5,6 +5,7 @@ import {
     computePerDiemExpenseAmount,
     getPerDiemExpenseInformation,
     getPerDiemExpensePolicyID,
+    hasCompletePerDiemCustomUnit,
     removeSubrate,
     submitPerDiemExpense,
     updateSubrate,
@@ -1165,6 +1166,39 @@ describe('PerDiem', () => {
 
             const perDiemTransactions = Object.values(transactions ?? {}).filter((tx) => tx?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM);
             expect(perDiemTransactions.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('hasCompletePerDiemCustomUnit', () => {
+        const completeCustomUnit: TransactionCustomUnit = {
+            customUnitID: 'unit-1',
+            customUnitRateID: 'rate-1',
+            subRates: [{id: 'sub-1', name: 'Meals', quantity: 1, rate: 2500}],
+            attributes: {dates: {start: '2026-04-24', end: '2026-04-24'}},
+        };
+
+        it('is true when every required field is present', () => {
+            expect(hasCompletePerDiemCustomUnit(completeCustomUnit)).toBe(true);
+        });
+
+        it('is false when the custom unit is undefined', () => {
+            expect(hasCompletePerDiemCustomUnit(undefined)).toBe(false);
+        });
+
+        it('is false when the customUnitID is missing', () => {
+            expect(hasCompletePerDiemCustomUnit({...completeCustomUnit, customUnitID: undefined})).toBe(false);
+        });
+
+        it('is false when the customUnitRateID is missing', () => {
+            expect(hasCompletePerDiemCustomUnit({...completeCustomUnit, customUnitRateID: undefined})).toBe(false);
+        });
+
+        it('is false when there are no sub-rates', () => {
+            expect(hasCompletePerDiemCustomUnit({...completeCustomUnit, subRates: []})).toBe(false);
+        });
+
+        it('is false when the attributes are missing', () => {
+            expect(hasCompletePerDiemCustomUnit({...completeCustomUnit, attributes: undefined})).toBe(false);
         });
     });
 });

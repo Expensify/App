@@ -37,6 +37,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [PERF-16](rules/perf-16-guard-double-init.md) — Guard double initialization
 - [PERF-17](rules/perf-17-pass-raw-index-on-demand.md) — Pass raw source, index on demand (no pre-built digest)
 - [PERF-18](rules/perf-18-use-pre-mount-destination.md) — Use usePreMountDestination for RHP pre-mounting
+- [PERF-19](rules/perf-19-scalar-collection-selectors.md) — Collection selectors return only what the consumer uses
 
 ### Consistency
 - [CONSISTENCY-1](rules/consistency-1-no-platform-checks.md) — No platform-specific checks in components

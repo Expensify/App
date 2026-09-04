@@ -2,7 +2,7 @@ import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/Tabl
 import WorkspaceFlagForReviewTable from '@components/Tables/WorkspaceFlagForReviewTable';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -34,7 +35,8 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['SortingMachine']);
+    // Its own illustration, so Flag for review doesn't repeat the sorting machine that Field requirements uses.
+    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateSpyPigeon']);
     const policy = usePolicy(policyID);
     const policyData = usePolicyData(policyID);
     const StyleUtils = useStyleUtils();
@@ -62,15 +64,15 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
     const flagForReviewEmptyState: TableEmptyStateProps = {
         minModalHeight: 0,
         cardContentStyles: styles.ph0,
-        headerMedia: illustrations.SortingMachine,
-        headerContentStyles: styles.sortingMachineRulesEmptyStateIllustration,
+        headerMedia: icons.EmptyStateSpyPigeon,
+        headerContentStyles: styles.spyPigeonRulesEmptyStateIllustration,
         title: translate('workspace.rules.flagForReviewEmptyState.title'),
         subtitle: translate('workspace.rules.flagForReviewEmptyState.subtitle'),
-        subtitleStyles: [styles.textLabel, styles.textSupporting],
+        subtitleStyles: [styles.textSupporting],
         containerStyles: [styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)],
         buttons: [
             {
-                success: true,
+                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                 isDisabled: !canWriteRules,
                 buttonText: translate('workspace.rules.flagForReviewEmptyState.cta'),
                 buttonAction: handleNewFlagForReviewRule,

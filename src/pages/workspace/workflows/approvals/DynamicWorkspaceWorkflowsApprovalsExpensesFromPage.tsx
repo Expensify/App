@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
 import {clearApprovalWorkflow, setApprovalWorkflowMembers} from '@libs/actions/Workflow';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -27,7 +27,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {approverChainFingerprint, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
+import {getApproverChainKey, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -115,16 +115,16 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
     const policyRules = isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID) : {};
 
-    // Build a map of member emails to their existing workflow's first approver. With the beta on this
-    // is derived from the `ONYXKEYS.COLLECTION.RULE` rules; otherwise it falls back to the legacy
-    // employeeList `submitsTo` (non-default workflows only).
+    // Build a map of member emails to their existing workflow's first approver, covering non-default
+    // workflows only.
     const membersInExistingWorkflows = (() => {
+        const defaultApprover = getDefaultApprover(policy);
+
         if (isMultipleApproversBetaEnabled) {
-            return new Map(Object.entries(getRulesSubmitterToFirstApprover(policyRules, policy?.employeeList ?? {})));
+            return new Map(Object.entries(getRulesSubmitterToFirstApprover(policyRules, policy?.employeeList ?? {}, defaultApprover)));
         }
 
         const employees = policy?.employeeList ?? {};
-        const defaultApprover = getDefaultApprover(policy);
         const map = new Map<string, string>();
 
         for (const employee of Object.values(employees)) {
@@ -139,11 +139,11 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         return map;
     })();
 
-    // Beta only: identity (full approver-chain fingerprint) of each submitter's current workflow, plus the
-    // identity of the workflow being edited. Comparing these — instead of just first approvers — lets us warn
-    // before moving a member out of a workflow that merely shares its first approver with this one.
+    // Beta only: a key covering each submitter's full current approver chain, plus the same key for the
+    // workflow being edited. Comparing whole chains rather than just first approvers lets us warn before
+    // moving a member out of a workflow that merely shares its first approver with this one.
     const submitterToWorkflowKey = isMultipleApproversBetaEnabled ? new Map(Object.entries(getRulesSubmitterToWorkflowKey(policyRules, policy?.employeeList ?? {}))) : undefined;
-    const currentWorkflowKey = approverChainFingerprint(approvalWorkflow?.originalApprovers ?? []);
+    const currentWorkflowKey = getApproverChainKey(approvalWorkflow?.originalApprovers ?? []);
 
     const selectedMembers = ((): SelectionListApprover[] => {
         if (!approvalWorkflow?.members) {

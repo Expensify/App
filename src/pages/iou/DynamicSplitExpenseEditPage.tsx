@@ -57,6 +57,8 @@ import {
     isManagedCardTransaction,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    isPerDiemRequest,
+    isTimeRequest,
 } from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -202,8 +204,12 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
-    const isTaxEnabled = (isPolicyExpenseChat || isExpenseUnreported) && isTaxTrackingEnabled(true, effectivePolicy, isDistanceRequest(splitExpenseDraftTransaction), false, false);
-    const shouldShowTaxDisabledAlert = !isTaxEnabled && !!splitExpenseDraftTransaction?.taxCode;
+    const isSplitPerDiemRequest = isPerDiemRequest(transaction);
+    const isSplitTimeRequest = isTimeRequest(transaction);
+    const isTaxEnabled =
+        (isPolicyExpenseChat || isExpenseUnreported) &&
+        isTaxTrackingEnabled(true, effectivePolicy, isDistanceRequest(splitExpenseDraftTransaction), isSplitPerDiemRequest, isSplitTimeRequest);
+    const shouldShowTaxDisabledAlert = !isTaxEnabled && !!splitExpenseDraftTransaction?.taxCode && !isSplitPerDiemRequest && !isSplitTimeRequest;
     const shouldShowTax = isTaxEnabled || shouldShowTaxDisabledAlert;
     const taxRatesDescription = effectivePolicy?.taxRates?.name;
     const taxRateTitle = getTaxName(effectivePolicy, splitExpenseDraftTransaction);

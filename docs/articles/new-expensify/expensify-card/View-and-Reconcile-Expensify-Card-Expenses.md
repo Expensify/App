@@ -70,6 +70,8 @@ Keep the following in mind:
 - Filtering by **Bank account** keeps **Download statement** available. Each settlement is withdrawn from a single bank account, so this filter keeps or removes whole settlements rather than narrowing the transactions inside one. This is useful for isolating an Expensify Card program that settles to its own bank account.
 - With no workspace filter applied, the statement covers the entire settlement across every workspace it spans. If you apply a single workspace filter, the statement is scoped to that workspace's transactions only.
 
+![The Expensify Card reconciliation list with the Withdrawn date-range filter open, several settlement withdrawal rows, and one row expanded to reveal its individual expenses]({{site.url}}/assets/images/Expensify_Card_Withdrawal_Transactions.png){:width="100%"}
+
 ---
 
 # FAQ

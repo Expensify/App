@@ -190,12 +190,13 @@ function getProfilePageBrickRoadIndicator(
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
     vacationDelegate: OnyxEntry<VacationDelegate>,
     email: string | undefined,
+    shouldShowAddHomeAddress = false,
 ): LoginListIndicator {
     const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
     if (hasLoginListError(loginList) || hasPhoneNumberError || !isEmptyObject(vacationDelegate?.errors)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
-    if (hasLoginListInfo(loginList, email)) {
+    if (hasLoginListInfo(loginList, email) || shouldShowAddHomeAddress) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 

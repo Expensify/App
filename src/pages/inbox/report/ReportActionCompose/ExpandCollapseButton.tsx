@@ -69,7 +69,7 @@ function ExpandCollapseButton({
                     }}
                     // Keep focus on the composer when Collapse/Expand button is clicked.
                     onMouseDown={(e) => e.preventDefault()}
-                    style={({hovered, pressed}) => [styles.composerSizeButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
+                    style={({hovered, pressed}) => [styles.composerSizeButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed}))]}
                     disabled={disabled}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={tooltipText}
@@ -77,7 +77,7 @@ function ExpandCollapseButton({
                 >
                     {({hovered, pressed}) => (
                         <Icon
-                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                            fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed})})}
                             src={iconSrc}
                         />
                     )}

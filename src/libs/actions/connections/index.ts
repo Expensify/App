@@ -2,6 +2,7 @@ import * as API from '@libs/API';
 import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksDesktopParams, UpdateManyPolicyConnectionConfigurationsParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {isMergeConnectionName} from '@libs/merge/MergeUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -15,9 +16,15 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import {syncMergeHR} from './MergeHR';
+import {syncMerge} from './merge';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
+
+/** Client-side "initial sync modal shown" flag for each Merge connection, cleared when the connection is removed. */
+const MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS = {
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN,
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN,
+} as const;
 
 function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
     const policyID = policy.id;
@@ -32,6 +39,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             | typeof ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION
             | typeof ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION
             | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN
+            | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN
         >
     > = [
         {
@@ -70,10 +78,10 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
         },
     ];
 
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+    if (isMergeConnectionName(connectionName)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`,
+            key: `${MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS[connectionName]}${policyID}`,
             value: null,
         });
     }
@@ -176,8 +184,8 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
     }
     const policyID = policy.id;
 
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        syncMergeHR(policy);
+    if (isMergeConnectionName(connectionName)) {
+        syncMerge(policy, connectionName);
         return;
     }
 

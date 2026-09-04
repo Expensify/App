@@ -14,6 +14,7 @@ import {
     domainSecurityGroupSettingPendingActionSelector,
     domainSettingsPrimaryContactSelector,
     groupsSelector,
+    hasPendingAdminshipRequestSelector,
     isAdminSelector,
     isSecurityGroupEntry,
     isSecurityGroupPendingDeleteSelector,
@@ -840,6 +841,37 @@ describe('domainSelectors', () => {
         it('Should return false for empty domain object', () => {
             const domain = createDomainFixture({empty: true});
             expect(isAdminSelector(userID1)(domain)).toBe(false);
+        });
+    });
+
+    describe('hasPendingAdminshipRequestSelector', () => {
+        it('Should return false if domain is undefined', () => {
+            expect(hasPendingAdminshipRequestSelector(userID1)(undefined)).toBe(false);
+        });
+
+        it('Should return false if accountID is undefined', () => {
+            const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {[userID1]: 'read'}}});
+            expect(hasPendingAdminshipRequestSelector(undefined)(domain)).toBe(false);
+        });
+
+        it('Should return true when the account has a pending request entry', () => {
+            const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {[userID1]: 'read'}}});
+            expect(hasPendingAdminshipRequestSelector(userID1)(domain)).toBe(true);
+        });
+
+        it('Should return false when the account has no entry in domain_adminRequesters', () => {
+            const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {[userID2]: 'read'}}});
+            expect(hasPendingAdminshipRequestSelector(userID1)(domain)).toBe(false);
+        });
+
+        it('Should return false when the account entry is a null tombstone (declined/accepted)', () => {
+            const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {[userID1]: null}}});
+            expect(hasPendingAdminshipRequestSelector(userID1)(domain)).toBe(false);
+        });
+
+        it('Should return false when domain_adminRequesters is missing entirely', () => {
+            const domain = createDomainFixture();
+            expect(hasPendingAdminshipRequestSelector(userID1)(domain)).toBe(false);
         });
     });
 

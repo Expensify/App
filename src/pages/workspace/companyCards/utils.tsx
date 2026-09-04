@@ -431,6 +431,56 @@ function getExportMenuItem(
             };
         }
 
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY: {
+            const dualentryConfig = policy?.connections?.dualEntry?.config;
+            const dualentryData = policy?.connections?.dualEntry?.data;
+            const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT;
+            const exportReimbursable = dualentryConfig?.export?.reimbursable ?? CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL;
+            const exportNonReimbursable = dualentryConfig?.export?.nonReimbursable ?? CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE;
+            const shouldShowMenuItem =
+                dualentryConfig?.export?.exportToMultipleAccounts &&
+                exportReimbursable === CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL &&
+                exportNonReimbursable === CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE;
+            const creditCardAccountID = dualentryConfig?.export?.creditCardAccountID;
+            const cardProgramsUsingCustomAccounts = dualentryConfig?.export?.cardProgramAccounts;
+            const cardProgramAccountID = (companyCard?.bank ? cardProgramsUsingCustomAccounts?.[companyCard.bank] : undefined) ?? creditCardAccountID;
+            const cardProgramAccount = dualentryData?.accounts?.find((account) => account.id === cardProgramAccountID);
+            const isUsingCustomAccount = companyCard?.nameValuePairs && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT in companyCard.nameValuePairs;
+            const cardAccountID =
+                (companyCard?.nameValuePairs && CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT in companyCard.nameValuePairs
+                    ? companyCard.nameValuePairs[CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT]
+                    : undefined) ?? cardProgramAccount?.id;
+            const cardAccount = dualentryData?.accounts?.find((account) => account.id === cardAccountID);
+            const cardAccountDisplayName = cardAccount ? `${cardAccount.id} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}` : '';
+            const title = `${translate('common.exportsTo')} ${cardAccountDisplayName}`;
+            const description = currentConnectionName
+                ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.dualEntry.cardAccount.label'))
+                : undefined;
+            const filteredUnprocessedData =
+                dualentryData?.accounts
+                    ?.filter(
+                        (accountItem) =>
+                            accountItem.isActive && (accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.CREDIT_CARD || accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.BANK),
+                    )
+                    .map((accountItem) => ({
+                        value: cardProgramAccount?.id === accountItem.id ? '' : accountItem.id,
+                        text: `${cardProgramAccount?.id === accountItem.id ? `${translate('common.default')} - ` : ''}${accountItem.id} ${accountItem.name}`,
+                        keyForList: accountItem.id,
+                        isSelected: cardAccountID === accountItem.id,
+                    })) ?? [];
+            const filteredData = sortDefaultToTop(filteredUnprocessedData, (accountItem) => cardProgramAccount?.id === accountItem.keyForList, styles);
+
+            return {
+                title,
+                description,
+                exportType,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
+                shouldShowMenuItem,
+                data: filteredData,
+            };
+        }
+
         default:
             return undefined;
     }

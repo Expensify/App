@@ -896,7 +896,14 @@ function setIsAuthenticatingWithShortLivedToken(isAuthenticating: boolean) {
  *
  * @param validateCode - 6 digit code required for login
  */
-function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode: string | undefined, login: string | undefined, storedValidateCode: string | undefined) {
+function signIn(
+    validateCode: string,
+    preferredLocale: Locale | undefined,
+    twoFactorAuthCode: string | undefined,
+    login: string | undefined,
+    storedValidateCode: string | undefined,
+    storedAuthToken?: string,
+) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -954,11 +961,17 @@ function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFa
             params.validateCode = validateCode || storedValidateCode;
         }
 
+        // If this is the 2FA step we have a short-lived 2FA authentication authToken from the earlier call, send it
+        // so the backend can complete the login
+        if (twoFactorAuthCode && storedAuthToken) {
+            params.authToken = storedAuthToken;
+        }
+
         API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {optimisticData, successData, failureData});
     });
 }
 
-function signInWithValidateCode(accountID: number, code: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', storedValidateCode?: string) {
+function signInWithValidateCode(accountID: number, code: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', storedValidateCode?: string, storedAuthToken?: string) {
     // If this is called from the 2fa step, use the validateCode stored in Onyx (passed in as `storedValidateCode`)
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? storedValidateCode : code;
@@ -1029,6 +1042,10 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
             preferredLocale: preferredLocale ?? null,
             deviceInfo,
         };
+
+        if (twoFactorAuthCode && storedAuthToken) {
+            params.authToken = storedAuthToken;
+        }
 
         API.write(WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK, params, {optimisticData, successData, failureData});
     });

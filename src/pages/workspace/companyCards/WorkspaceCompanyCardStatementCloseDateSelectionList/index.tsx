@@ -157,7 +157,6 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                                             keyForList: option,
                                         }}
                                         onSelectRow={selectDateAndClearError}
-                                        keyForList={option}
                                     />
                                 ))}
                                 {selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH && (

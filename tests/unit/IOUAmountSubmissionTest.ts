@@ -506,7 +506,6 @@ describe('AmountSubmission', () => {
                 name: 'Test Workspace',
                 owner: 'me@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 autoReporting: false,
             } as Policy;
 

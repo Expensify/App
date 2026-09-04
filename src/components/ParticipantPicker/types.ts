@@ -1,6 +1,9 @@
 import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type ParticipantPickerProps = {
     /** Selected participants */
@@ -24,8 +27,9 @@ type ParticipantPickerProps = {
     /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
     shouldExcludeP2P?: boolean;
 
-    /** Callback fired when participants are updated */
-    onParticipantsAdded: (value: Participant[]) => void;
+    /** Callback fired when participants are updated. selectedPolicy is the chosen workspace's policy, used by the
+     *  confirmation step to reset the rate and category. */
+    onParticipantsAdded: (value: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void;
 
     /** Callback fired when participant selection is completed */
     onFinish?: (value?: string, participants?: Participant[]) => void;

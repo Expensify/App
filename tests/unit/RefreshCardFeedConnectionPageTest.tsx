@@ -275,13 +275,4 @@ describe('Related route getRoute helpers', () => {
         const result = ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute('pol1', 'oauth.chase 99999');
         expect(result).toBe('workspaces/pol1/company-cards/oauth.chase%2099999/refresh-card-feed-connection');
     });
-
-    it('WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT returns route without feed when omitted', () => {
-        expect(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute('pol1')).toBe('workspaces/pol1/company-cards/verify-account');
-    });
-
-    it('WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT returns route with encoded feed when provided', () => {
-        // @ts-expect-error -- deliberately malformed feed input exercises URL encoding.
-        expect(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute('pol1', 'oauth.amex 1001')).toBe('workspaces/pol1/company-cards/verify-account?feed=oauth.amex%201001');
-    });
 });

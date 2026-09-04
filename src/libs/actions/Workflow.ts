@@ -7,11 +7,13 @@ import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
 import {
     applyApprovalWorkflowRulesDiff,
     buildApprovalWorkflowRules,
+    buildApprovalWorkflowRulesForSave,
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
     getApprovalWorkflowRulesForPolicy,
     getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
+    hasRuleBasedDefaultWorkflow,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -25,6 +27,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -364,7 +368,11 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
     const removeDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
     const rulesAfterRemoval = applyApprovalWorkflowRulesDiff(existingRules, removeDiff);
 
-    const newRules = buildApprovalWorkflowRules(approvalWorkflow);
+    const newRules = buildApprovalWorkflowRulesForSave(approvalWorkflow, {
+        existingRules: rulesAfterRemoval,
+        employees: policy.employeeList ?? {},
+        defaultApprover: getDefaultApprover(policy),
+    });
     const createDiff = reconcileApprovalWorkflowRulesForCreate(newRules, memberEmails, {existingRules: rulesAfterRemoval});
 
     const rulesDiff = {...removeDiff, ...createDiff};
@@ -377,6 +385,30 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
     ) {
         completeTask(addExpenseApprovalsTaskReport, false, false, undefined, undefined, undefined, false);
     }
+}
+
+/**
+ * Change the Policy's default first approver. Used to keep `policy.approver` in sync when we change
+ * who the first approver for the default workflow is
+ */
+function updatePolicyDefaultApprover(approvalWorkflow: ApprovalWorkflow, policy: Policy) {
+    if (!approvalWorkflow.isDefault) {
+        return;
+    }
+
+    const previousDefaultApprover = getDefaultApprover(policy);
+    const newDefaultApprover = approvalWorkflow.approvers.at(0)?.email;
+    if (!newDefaultApprover || newDefaultApprover === previousDefaultApprover) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {approver: newDefaultApprover}}];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {approver: previousDefaultApprover}}];
+
+    const parameters: UpdateWorkspaceApprovalParams = {policyID: policy.id, employees: '[]', defaultApprover: newDefaultApprover};
+    write(WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData});
 }
 
 type UpdateApprovalWorkflowRulesParams = {
@@ -407,12 +439,64 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     const rulesAfterMembers = applyApprovalWorkflowRulesDiff(rulesAfterRemoval, memberDiff);
 
     // 3. Reconcile the approver chain with the membership-updated rules.
-    const newRules = buildApprovalWorkflowRules(approvalWorkflow);
+    const newRules = buildApprovalWorkflowRulesForSave(approvalWorkflow, {
+        existingRules: rulesAfterMembers,
+        employees: policy.employeeList ?? {},
+        defaultApprover: getDefaultApprover(policy),
+    });
     const chainDiff = reconcileApprovalWorkflowRulesForEdit(newRules, newMemberEmails, {existingRules: rulesAfterMembers});
 
     const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff};
 
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules});
+    updatePolicyDefaultApprover(approvalWorkflow, policy);
+}
+
+type BuildReturnToDefaultWorkflowDiffParams = {
+    /** The workflow being deleted, whose members are returning to the default workflow. */
+    approvalWorkflow: ApprovalWorkflow;
+
+    /** The policy's default workflow, or undefined when the page couldn't resolve one. */
+    defaultApprovalWorkflow: ApprovalWorkflow | undefined;
+
+    /** The policy's rules with the deleted workflow's rules already taken out. */
+    existingRules: Record<string, ApprovalWorkflowRule>;
+
+    /** The policy's employees, used to check where these members would fall back to without rules. */
+    employees: PolicyEmployeeList;
+
+    /** The policy's default approver. */
+    defaultApprover: string;
+};
+
+/**
+ * List a deleted workflow's members in the default workflow's rules.
+ */
+function buildReturnToDefaultWorkflowDiff({
+    approvalWorkflow,
+    defaultApprovalWorkflow,
+    existingRules,
+    employees,
+    defaultApprover,
+}: BuildReturnToDefaultWorkflowDiffParams): ApprovalWorkflowRulesDiff {
+    const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
+    if (!defaultApprovalWorkflow || memberEmails.length === 0) {
+        return {};
+    }
+
+    const hasRuleBasedDefault = hasRuleBasedDefaultWorkflow(existingRules);
+    const buildDefaultRules = (isDefault: boolean) => buildApprovalWorkflowRules({...defaultApprovalWorkflow, members: approvalWorkflow.members, isDefault});
+
+    const foldDiff = reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(hasRuleBasedDefault), memberEmails, {existingRules});
+    if (Object.keys(foldDiff).every((ruleID) => ruleID in existingRules)) {
+        return foldDiff;
+    }
+
+    if (memberEmails.every((email) => employees[email]?.submitsTo === defaultApprover)) {
+        return {};
+    }
+
+    return hasRuleBasedDefault ? foldDiff : reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(true), memberEmails, {existingRules});
 }
 
 /**
@@ -421,20 +505,28 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
  * Returns false without calling the API when this policy has no rules covering the workflow's members, so the
  * caller can fall back to the `employeeList` path.
  */
-function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>): boolean {
+function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>, defaultApprovalWorkflow?: ApprovalWorkflow): boolean {
     if (!policy) {
         return false;
     }
 
     const existingRules = getApprovalWorkflowRulesForPolicy(rules, policy.id);
     const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
-    const rulesDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
+    const removeDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
 
-    if (isEmptyObject(rulesDiff)) {
+    if (isEmptyObject(removeDiff)) {
         return false;
     }
 
-    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules});
+    const returnToDefaultDiff = buildReturnToDefaultWorkflowDiff({
+        approvalWorkflow,
+        defaultApprovalWorkflow,
+        existingRules: applyApprovalWorkflowRulesDiff(existingRules, removeDiff),
+        employees: policy.employeeList ?? {},
+        defaultApprover: getDefaultApprover(policy),
+    });
+
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff: {...removeDiff, ...returnToDefaultDiff}, previousRules: rules});
     return true;
 }
 

@@ -187,7 +187,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     const emptyStateButtons = !isRestrictedPolicyCreation
         ? [
               {
-                  success: true,
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route))),
                   buttonText: translate('workspace.new.newWorkspace'),
               },

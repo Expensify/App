@@ -120,7 +120,7 @@ function useReportSelectionActions({
     const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const delegateAccountID = useDelegateAccountID();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
     const targetTransactions = transaction ? [transaction] : [];
@@ -227,6 +227,7 @@ function useReportSelectionActions({
                         selfDMReportActions,
                         delegateAccountID,
                         getCurrencyDecimals,
+                        getCurrencySymbol,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -256,6 +257,7 @@ function useReportSelectionActions({
                     selfDMReportActions,
                     delegateAccountID,
                     getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
                 removeTransaction(transaction.transactionID);
             },

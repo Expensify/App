@@ -300,7 +300,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             ),
             confirmText: translate('common.proceed'),
             cancelText: translate('common.cancel'),
-            success: true,
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
         }).then((result) => {
             if (!policy || !duplicateWorkspaceName || !duplicateWorkspacePolicyID || result.action !== ModalActions.CONFIRM) {
                 return;

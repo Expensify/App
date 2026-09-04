@@ -10,6 +10,7 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 
 import Navigation from '@navigation/Navigation';
 
+import TravelBillingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelBillingContinuousReconciliationSection';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -109,6 +110,12 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
                     />
                 </OfflineWithFeedback>
             ))}
+            <TravelBillingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+                isAutoSyncEnabled={!!policy?.connections?.netsuite?.config?.autoSync?.enabled}
+                isPayableAccountSet={!!config?.travelInvoicingPayableAccountID}
+            />
         </ConnectionLayout>
     );
 }

@@ -260,7 +260,6 @@ function useReportActionAvatars({
               name: delegatePersonalDetails.displayName,
               id: delegatePersonalDetails.accountID,
               type: CONST.ICON_TYPE_AVATAR,
-              fill: undefined,
               fallbackIcon,
           }
         : undefined;
@@ -271,7 +270,6 @@ function useReportActionAvatars({
         id: policy?.id,
         name: policy?.name,
         type: CONST.ICON_TYPE_WORKSPACE,
-        fill: undefined,
         fallbackIcon,
     };
 
@@ -280,7 +278,6 @@ function useReportActionAvatars({
         id: accountID,
         name: defaultDisplayName ?? fallbackDisplayName,
         type: CONST.ICON_TYPE_AVATAR,
-        fill: undefined,
         fallbackIcon,
     };
 
@@ -289,7 +286,6 @@ function useReportActionAvatars({
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
         id: 0,
-        fill: undefined,
         fallbackIcon,
     };
 

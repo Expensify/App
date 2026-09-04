@@ -1,4 +1,5 @@
 import ConfirmModal from '@components/ConfirmModal';
+import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,7 +26,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {isActingAsDelegateSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -55,7 +55,7 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
@@ -85,14 +85,14 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         return <FullScreenLoadingIndicator />;
     }
 
-    if (isActingAsDelegate) {
+    if (isDelegateAccessRestricted) {
         return (
             <ScreenWrapper
                 testID="AddNewCardPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
-                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]} />
             </ScreenWrapper>
         );
     }
@@ -152,7 +152,7 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             <ConfirmModal
                 isVisible={isModalVisible}
                 title={translate('workspace.companyCards.addNewCard.exitModal.title')}
-                success
+                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
                 confirmText={translate('workspace.companyCards.addNewCard.exitModal.confirmText')}
                 cancelText={translate('workspace.companyCards.addNewCard.exitModal.cancelText')}
                 prompt={translate('workspace.companyCards.addNewCard.exitModal.prompt')}

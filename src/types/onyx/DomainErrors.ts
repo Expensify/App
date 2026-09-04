@@ -120,6 +120,11 @@ type DomainErrors = {
      * Errors related to the 2FA toggle
      */
     setTwoFactorAuthRequiredError?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to requesting adminship of a domain already claimed by someone else
+     */
+    requestAdminshipError?: OnyxCommon.Errors;
 } & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupErrors>;
 
 export type {DomainMemberErrors, DomainSecurityGroupErrors};

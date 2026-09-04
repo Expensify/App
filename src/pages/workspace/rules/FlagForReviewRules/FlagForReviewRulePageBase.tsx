@@ -218,7 +218,7 @@ function FlagForReviewRulePageBase({
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.flagForReviewRule.subtitle')}</Text>
-                        <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
+                        <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
@@ -254,6 +254,15 @@ function FlagForReviewRulePageBase({
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_AMOUNT}
+                    />
+                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
+                    <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.flagForReviewRule.thenDoTheFollowing')}</Text>
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.rules.flagForReviewRule.flagType')}
+                        title={translate('workspace.rules.flagForReviewRule.flagTypeWarning')}
+                        furtherDetails={translate('workspace.rules.flagForReviewRule.flagTypeWarningDescription')}
+                        interactive={false}
+                        shouldShowRightIcon={false}
                     />
                 </ScrollView>
                 {footer}

@@ -108,7 +108,7 @@ function Banner({
                                 <View style={[styles.mr3]}>
                                     <Icon
                                         src={displayIcon}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
+                                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: shouldHighlight})})}
                                     />
                                 </View>
                             )}

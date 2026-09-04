@@ -311,7 +311,7 @@ function EmptySearchViewContent({
                                       {
                                           buttonText: translate('quickAction.createReport'),
                                           buttonAction: createReport,
-                                          success: true,
+                                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
                                   ]
                                 : []),
@@ -350,7 +350,7 @@ function EmptySearchViewContent({
                                 {
                                     buttonText: translate('iou.createExpense'),
                                     buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
-                                    success: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 },
                             ],
                         };
@@ -387,7 +387,7 @@ function EmptySearchViewContent({
                                       {
                                           buttonText: translate('workspace.invoices.sendInvoice'),
                                           buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
-                                          success: true,
+                                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
                                   ]
                                 : []),

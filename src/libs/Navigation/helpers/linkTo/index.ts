@@ -134,7 +134,25 @@ function shouldChangeToMatchingFullScreen(
     return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastActiveScreen !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
 }
 
-export {isSwitchingTabsWithinTabNavigator, getActiveScreenInRoute, shouldChangeToMatchingFullScreen, isNavigatingToReportActionWithinSameReport};
+/**
+ * Preserves nested split state under `params.state`, where React Navigation expects it.
+ * Omitting it rebuilds the workspace split without its policy-scoped route history.
+ */
+function getMatchingFullScreenRouteParams(
+    matchingFullScreenRoute: NavigationPartialRoute,
+): NavigationPartialRoute['params'] | {screen: string; params: NavigationPartialRoute['params'] | undefined} {
+    const lastRoute = matchingFullScreenRoute.state?.routes?.at(-1);
+    if (!lastRoute) {
+        return matchingFullScreenRoute.params;
+    }
+
+    return {
+        screen: lastRoute.name,
+        params: lastRoute.state ? {...lastRoute.params, state: lastRoute.state} : lastRoute.params,
+    };
+}
+
+export {isSwitchingTabsWithinTabNavigator, getActiveScreenInRoute, getMatchingFullScreenRouteParams, shouldChangeToMatchingFullScreen, isNavigatingToReportActionWithinSameReport};
 
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
@@ -254,10 +272,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
                     navigation.dispatch(additionalAction);
                 } else {
                     // Navigate within the existing TAB_NAVIGATOR (tab switch) rather than pushing a new one.
-                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
                     const additionalAction = CommonActions.navigate(NAVIGATORS.TAB_NAVIGATOR, {
                         screen: matchingFullScreenRoute.name,
-                        params: lastRouteInMatchingFullScreen ? {screen: lastRouteInMatchingFullScreen.name, params: lastRouteInMatchingFullScreen.params} : matchingFullScreenRoute.params,
+                        params: getMatchingFullScreenRouteParams(matchingFullScreenRoute),
                     });
                     navigation.dispatch(additionalAction);
                 }

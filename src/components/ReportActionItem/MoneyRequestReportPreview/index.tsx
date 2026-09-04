@@ -142,7 +142,19 @@ function MoneyRequestReportPreview({
         selector: pendingNewTransactionIDsSelector,
     });
     const isFocused = useIsFocused();
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
+    // Transactions arrive in batches and `useNewTransactions` would diff each batch as newly added expenses.
+    // Withhold the list until every transaction the report claims has arrived.
+    const expectedTransactionCount = iouReport?.transactionCount ?? 0;
+    const isDeliveryComplete = allReportTransactions.length >= expectedTransactionCount;
+    // Adding an expense raises `transactionCount` the moment it happens, before its transaction reaches Onyx.
+    // That would briefly make the check above false again and discard the list we compare against, so once
+    // every expected transaction has arrived we keep comparing from then on.
+    const [hasCompletedDelivery, setHasCompletedDelivery] = useState(false);
+    if (isDeliveryComplete && !hasCompletedDelivery) {
+        setHasCompletedDelivery(true);
+    }
+    const transactionsForDiff = isDeliveryComplete || hasCompletedDelivery ? transactions : undefined;
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isFocused);
     // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
     const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
