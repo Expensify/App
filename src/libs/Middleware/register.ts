@@ -4,6 +4,7 @@ import {
     FailureTracking,
     FraudMonitoring,
     handleDeletedAccount,
+    HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,
     LoadPostDataForOpenOrReconnect,
     LoadTest,
@@ -63,6 +64,10 @@ function registerMiddlewares() {
 
     // LoadPostDataForOpenOrReconnect - Sends the reads that OpenApp/ReconnectApp does not return, once per response that reaches the server.
     addMiddleware(LoadPostDataForOpenOrReconnect);
+
+    // HandleMovedScanFailedExpenses - Retires the optimistic report built for scan-failed expenses moved on payment once the backend answers
+    // with the report it created for them. Must run before SaveResponseInOnyx so its updates are applied with the response.
+    addMiddleware(HandleMovedScanFailedExpenses);
 
     // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
     // (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
