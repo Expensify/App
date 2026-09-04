@@ -57,6 +57,8 @@ import {
     isManagedCardTransaction,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    isPerDiemRequest,
+    isTimeRequest,
 } from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -99,7 +101,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchResults} = useSearchResultsContext();
 
-    const {reportID, originalTransactionID: transactionID, splitExpenseTransactionID = ''} = route.params;
+    const {reportID, originalTransactionID: transactionID, editSplitExpenseTransactionID: splitExpenseTransactionID = ''} = route.params;
     const backTo = useDynamicBackPath(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.path);
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
@@ -202,8 +204,12 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
-    const isTaxEnabled = (isPolicyExpenseChat || isExpenseUnreported) && isTaxTrackingEnabled(true, effectivePolicy, isDistanceRequest(splitExpenseDraftTransaction), false, false);
-    const shouldShowTaxDisabledAlert = !isTaxEnabled && !!splitExpenseDraftTransaction?.taxCode;
+    const isSplitPerDiemRequest = isPerDiemRequest(transaction);
+    const isSplitTimeRequest = isTimeRequest(transaction);
+    const isTaxEnabled =
+        (isPolicyExpenseChat || isExpenseUnreported) &&
+        isTaxTrackingEnabled(true, effectivePolicy, isDistanceRequest(splitExpenseDraftTransaction), isSplitPerDiemRequest, isSplitTimeRequest);
+    const shouldShowTaxDisabledAlert = !isTaxEnabled && !!splitExpenseDraftTransaction?.taxCode && !isSplitPerDiemRequest && !isSplitTimeRequest;
     const shouldShowTax = isTaxEnabled || shouldShowTaxDisabledAlert;
     const taxRatesDescription = effectivePolicy?.taxRates?.name;
     const taxRateTitle = getTaxName(effectivePolicy, splitExpenseDraftTransaction);
