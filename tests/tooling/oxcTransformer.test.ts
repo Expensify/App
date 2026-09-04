@@ -59,6 +59,17 @@ describe('oxcTransformer', () => {
         expect(result.code.indexOf('_getJestObj().mock')).toBeLessThan(result.code.indexOf('exports.x'));
     });
 
+    it('lowers dynamic import() so Jest still owns the module graph', () => {
+        const source = `
+            export function loadLazy() {
+                return import('./LazyScreen');
+            }
+        `;
+        const result = oxcTransformer.process(source, path.resolve('src/libs/loadLazy.ts'), transformOptions);
+        expect(result.code).not.toMatch(/\bimport\s*\(/);
+        expect(result.code).toMatch(/require\(['"]\.\/LazyScreen['"]\)/);
+    });
+
     it('falls back to babel-jest for Flow in node_modules', () => {
         const source = `
             // @flow

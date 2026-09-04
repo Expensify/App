@@ -5,6 +5,7 @@ const esbuild = require('esbuild');
 const {transformSync} = require('oxc-transform-react');
 
 const babelJest = require('babel-jest');
+const OXC_TRANSFORM_REACT_VERSION = require('oxc-transform-react/package.json').version;
 const BaseReactCompilerConfig = require('./reactCompilerConfig');
 
 const babelTransformer = babelJest.createTransformer();
@@ -14,7 +15,14 @@ const TESTS_RE = /[/\\]tests[/\\]/;
 const JEST_SETUP_RE = /[/\\]jest[/\\]/;
 const MOCKS_RE = /[/\\]__mocks__[/\\]/;
 
-const TRANSFORMER_VERSION = '2';
+const TRANSFORMER_SOURCE = fs.readFileSync(__filename);
+const REACT_COMPILER_CONFIG_KEY = JSON.stringify(BaseReactCompilerConfig);
+
+const REACT_COMPILER_OPTIONS = {
+    ...BaseReactCompilerConfig,
+    panicThreshold: 'none',
+    eslintSuppressionRules: [],
+};
 
 function getLang(filename) {
     const ext = path.extname(filename).slice(1);
@@ -31,22 +39,12 @@ function shouldUseOxc(filename) {
     return !NODE_MODULES_RE.test(filename) && !TESTS_RE.test(filename) && !JEST_SETUP_RE.test(filename) && !MOCKS_RE.test(filename);
 }
 
-function shouldRunReactCompiler(filename) {
-    return shouldUseOxc(filename);
-}
-
 function processWithOxc(sourceText, sourcePath) {
     const oxcResult = transformSync(sourcePath, sourceText, {
         lang: getLang(sourcePath),
         sourcemap: true,
         jsx: {runtime: 'automatic', development: true},
-        reactCompiler: shouldRunReactCompiler(sourcePath)
-            ? {
-                  ...BaseReactCompilerConfig,
-                  panicThreshold: 'none',
-                  eslintSuppressionRules: [],
-              }
-            : false,
+        reactCompiler: REACT_COMPILER_OPTIONS,
     });
 
     if (oxcResult.fatal || !oxcResult.code) {
@@ -56,6 +54,7 @@ function processWithOxc(sourceText, sourcePath) {
     const cjs = esbuild.transformSync(oxcResult.code, {
         loader: 'js',
         format: 'cjs',
+        supported: {'dynamic-import': false},
         sourcefile: sourcePath,
         sourcemap: true,
     });
@@ -70,7 +69,16 @@ module.exports = {
             return babelTransformer.getCacheKey(sourceText, sourcePath, transformOptions);
         }
 
-        return crypto.createHash('sha1').update(TRANSFORMER_VERSION).update(sourceText).update('\0', 'utf8').update(sourcePath).update(fs.readFileSync(__filename)).digest('hex');
+        return crypto
+            .createHash('sha1')
+            .update(sourceText)
+            .update('\0', 'utf8')
+            .update(sourcePath)
+            .update(TRANSFORMER_SOURCE)
+            .update(REACT_COMPILER_CONFIG_KEY)
+            .update(esbuild.version)
+            .update(OXC_TRANSFORM_REACT_VERSION)
+            .digest('hex');
     },
     process(sourceText, sourcePath, transformOptions) {
         if (shouldUseOxc(sourcePath)) {
