@@ -296,7 +296,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
-    if (skipInitialSplitNavigatorSidebar && minimalAction.payload && 'params' in minimalAction.payload) {
+    if (skipInitialSplitNavigatorSidebar && minimalAction.payload && 'params' in minimalAction.payload && minimalAction.payload.params) {
         minimalAction.payload.params = addSkipInitialSidebarParam(minimalAction.payload.params);
     }
     if (
