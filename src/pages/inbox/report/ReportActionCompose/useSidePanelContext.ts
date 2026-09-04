@@ -23,6 +23,7 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
     const {currentReportID, currentRHPReportID} = useCurrentReportIDState();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {selectedTransactionIDs, selectedTransactions, selectedReports} = useSearchSelectionContext();
+
     // On native there is no side panel: the source report is threaded onto this Concierge screen's route params
     // (see SidePanelButton/index.native.tsx). Reading it here keeps it scoped to this navigation entry, so a second
     // Concierge screen pushed later (e.g. via search) has its own param and can't collide.
