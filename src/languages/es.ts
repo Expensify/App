@@ -932,7 +932,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: '¡Comienza aquí!',
     },
     homePage: {
-        forYou: 'Para ti',
+        toDos: 'Tareas pendientes',
         timeSensitiveSection: {
             title: 'Requiere atención inmediata',
             ctaFix: 'Corrige',
@@ -950,12 +950,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Espacio de trabajo',
                 subtitle: ({policyName}: {policyName: string}) => policyName,
             },
-            addShippingAddress: {
-                title: 'Necesitamos tu dirección de envío',
-                subtitle: 'Proporciona una dirección para recibir tu Tarjeta Expensify.',
-                cta: 'Añade dirección',
-            },
-            addVirtualCardPersonalDetails: {title: 'Añade tus datos para ver y empezar a usar tu Tarjeta Expensify.', subtitle: 'Tarjeta Expensify', cta: 'Añade detalles'},
+            addShippingAddress: {title: 'Necesitamos tu dirección de envío', subtitle: 'Proporciona una dirección para recibir tu Tarjeta Expensify.', cta: 'añade'},
+            addVirtualCardPersonalDetails: {title: 'Añade tus datos para ver y empezar a usar tu Tarjeta Expensify.', subtitle: 'Tarjeta Expensify', cta: 'añade'},
             addPaymentCard: {
                 title: 'Añade una tarjeta de pago para seguir usando Expensify',
                 subtitle: 'Cuenta > Suscripción',
@@ -978,7 +974,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Cuenta',
                 cta: 'Validar',
             },
-            addHomeAddress: {title: 'Añade tu dirección de casa para el seguimiento de distancia', subtitle: 'Cuenta', cta: 'Añadir dirección'},
+            addHomeAddress: {title: 'Añade tu dirección de casa para el seguimiento de distancia', subtitle: 'Cuenta', cta: 'añade'},
             fixFailedBilling: {
                 title: 'No pudimos cobrar a la tarjeta registrada.',
                 subtitle: 'Suscripción',
@@ -1011,7 +1007,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Tu gasto',
             awaitingApproval: 'Pendiente de aprobación',
             repaidLast30Days: 'Reembolsado últimos 30 días',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `Transacciones recientes • ${lastFour}`,
         },
         discoverSection: {
             title: 'Descubrir',

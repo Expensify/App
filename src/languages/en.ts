@@ -1001,7 +1001,7 @@ const translations = {
         tooltip: 'Get started here!',
     },
     homePage: {
-        forYou: 'To-dos',
+        toDos: 'To-dos',
         conciergePrompt: {
             goodMorning: ({name}: {name?: string}) => (name ? `Good morning, ${name}.` : 'Good morning.'),
             goodAfternoon: ({name}: {name?: string}) => (name ? `Good afternoon, ${name}.` : 'Good afternoon.'),
@@ -1101,7 +1101,6 @@ const translations = {
             title: 'Your spend',
             awaitingApproval: 'Awaiting approval',
             repaidLast30Days: 'Repaid last 30 days',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `See ${count} more`,
         discoverSection: {

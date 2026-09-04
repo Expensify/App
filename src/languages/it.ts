@@ -952,10 +952,10 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: 'Inizia qui!',
     },
     homePage: {
-        forYou: 'Per te',
+        toDos: 'Attività da fare',
         timeSensitiveSection: {
             title: 'Sensibile al tempo',
-            addShippingAddress: {title: 'Ci serve il tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Carta Expensify.', cta: 'Aggiungi indirizzo'},
+            addShippingAddress: {title: 'Ci serve il tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Carta Expensify.', cta: 'Aggiungi'},
             addPaymentCard: {title: 'Aggiungi una carta di pagamento per continuare a usare Expensify', subtitle: 'Account > Abbonamento', cta: 'Aggiungi'},
             addBankAccount: {title: 'Aggiungi un conto bancario per ricevere il rimborso'},
             activateCard: {title: 'Attiva la tua Carta Expensify', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
@@ -981,7 +981,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portafoglio',
             },
             validateAccount: {title: 'Conferma il tuo account', subtitle: 'Account', cta: 'Conferma'},
-            addHomeAddress: {title: 'Aggiungi il tuo indirizzo di casa per il tracciamento delle distanze', subtitle: 'Account', cta: 'Aggiungi indirizzo'},
+            addHomeAddress: {title: 'Aggiungi il tuo indirizzo di casa per il tracciamento delle distanze', subtitle: 'Account', cta: 'Aggiungi'},
             fixFailedBilling: {title: 'Non abbiamo potuto addebitare la carta salvata nel profilo', subtitle: 'Abbonamento'},
             unlockBankAccount: {
                 workspaceTitle: 'Il conto bancario della tua azienda è stato bloccato',
@@ -989,11 +989,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portafoglio',
             },
-            addVirtualCardPersonalDetails: {
-                title: 'Aggiungi i tuoi dati per visualizzare e iniziare a usare la tua Carta Expensify.',
-                subtitle: 'Carta Expensify',
-                cta: 'Aggiungi dettagli',
-            },
+            addVirtualCardPersonalDetails: {title: 'Aggiungi i tuoi dati per visualizzare e iniziare a usare la tua Carta Expensify.', subtitle: 'Carta Expensify', cta: 'Aggiungi'},
             enterSignerInfo: {title: 'Informazioni del firmatario necessarie', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conto bancario ${bankAccountLastFour}`},
         },
         discoverSection: {
@@ -1123,7 +1119,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Le tue spese',
             awaitingApproval: 'In attesa di approvazione',
             repaidLast30Days: 'Rimborsato ultimi 30 giorni',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `Transazioni recenti • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Vedi altri ${count}`,
         recentlyAddedSection: {
