@@ -59,6 +59,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const originalFileOrder = useRef<Map<string, number>>(new Map());
     const pendingAfterHide = useRef<() => void>(() => {});
     const loaderTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    const pendingLoaderHideRef = useRef<{hideLoader: () => void; deadline: number} | undefined>(undefined);
     const validFilesToUploadRef = useRef<FileObject[]>([]);
     const currentValidationState = useRef<ValidationState>({
         isValidatingReceipts: false,
@@ -85,7 +86,29 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         });
     };
 
+    // The hide that completes a validation run is anchored to an absolute deadline rather than to the effect run, so the
+    // cleanup below can cancel its timeout and the effect body can arm a fresh one for whatever is left of the window.
+    const armPendingLoaderHide = (hideLoader: () => void, deadline: number) => {
+        pendingLoaderHideRef.current = {hideLoader, deadline};
+        loaderTimeoutRef.current = setTimeout(
+            () => {
+                loaderTimeoutRef.current = undefined;
+                pendingLoaderHideRef.current = undefined;
+                hideLoader();
+            },
+            Math.max(0, deadline - Date.now()),
+        );
+    };
+
+    // A screen cover runs this cleanup while the hook stays mounted, so the body re-arms everything the cleanup dropped:
+    // the guard the async continuations read, and the pending loader hide that finishes the run. A real unmount never
+    // runs the body again, so the guard stays false and the timeout stays cancelled.
     useEffect(() => {
+        isMountedRef.current = true;
+        const pendingLoaderHide = pendingLoaderHideRef.current;
+        if (pendingLoaderHide) {
+            armPendingLoaderHide(pendingLoaderHide.hideLoader, pendingLoaderHide.deadline);
+        }
         return () => {
             isMountedRef.current = false;
             if (!loaderTimeoutRef.current) {
@@ -417,9 +440,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 return;
             }
 
-            loaderTimeoutRef.current = setTimeout(() => {
-                hideLoaderAndHandleNext();
-            }, MIN_LOADER_VISIBLE_DURATION_MS - elapsedTime);
+            armPendingLoaderHide(hideLoaderAndHandleNext, loaderStartTime + MIN_LOADER_VISIBLE_DURATION_MS);
         };
 
         extendLoaderIfNeeded();
