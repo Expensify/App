@@ -141,7 +141,14 @@ function SearchMergeReports() {
           }, [] as string[])
         : [];
 
-    const isValidForMerge = !!destinationReportID && !!destinationReport && sourceReportIDs.length > 0 && canMergeReports(reportItems, currentUserPersonalDetails.accountID);
+    // Ensure `allReports` and `allReportActions` are fully hydrated before merging reports.
+    const isValidForMerge =
+        !!allReports &&
+        !!allReportActions &&
+        !!destinationReportID &&
+        !!destinationReport &&
+        sourceReportIDs.length > 0 &&
+        canMergeReports(reportItems, currentUserPersonalDetails.accountID);
 
     const mergeSelectedReports = () => {
         if (!destinationReportID || !destinationReport || !isValidForMerge) {
