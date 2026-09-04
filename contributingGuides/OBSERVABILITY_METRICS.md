@@ -152,7 +152,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Start**: Message submitted in composer, only when scrolled to bottom ([`src/pages/inbox/report/ReportActionCompose/useComposerSubmit.ts`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/ReportActionCompose/useComposerSubmit.ts))
 **End**:
 - User sees: Their message appears in chat
-- Technical: Message layout complete (`onLayout` event) in [`src/pages/inbox/report/comment/TextCommentFragment.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/comment/TextCommentFragment.tsx)
+- Technical: Message layout complete (`onLayout` event) in [`src/pages/inbox/report/comment/TextCommentFragment.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/comment/TextCommentFragment.tsx), or in [`AttachmentCommentFragment.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/comment/AttachmentCommentFragment.tsx) when the sent text parses to an attachment-only message (markdown video). Both use `useSendMessageSpanMarks`.
 **Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}` (optimistic report action ID)
 **Attributes**: `report_id`, `message_length`, `canceled_by_skeleton`, `send_message_source`, `report_action_count`, `money_request_preview_count`
 **Cancellation (report-actions skeleton)**: While a report-actions skeleton is on screen, we listen for `ManualSendMessageVisible` spans started for that report and cancel them immediately, tagging `canceled: true` plus `canceled_by_skeleton` with the skeleton that caused it. Its child phase spans (below) are cancelled first.

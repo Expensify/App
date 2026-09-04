@@ -13,8 +13,7 @@ import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmoj
 import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
-import {endSendMessagePhases, markSendMessageCommitted} from '@libs/telemetry/sendMessageSpans';
+import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import variables from '@styles/variables';
 
@@ -26,7 +25,6 @@ import type {StyleProp, TextStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-import {useLayoutEffect} from 'react';
 import {View} from 'react-native';
 
 import RenderCommentHTML from './RenderCommentHTML';
@@ -72,20 +70,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const processedTextArray = splitTextWithEmojis(message);
 
-    useLayoutEffect(() => {
-        if (!reportActionID) {
-            return;
-        }
-        markSendMessageCommitted(reportActionID);
-    }, [reportActionID]);
-
-    const endSendMessageVisibleSpanOnLayout = () => {
-        if (!reportActionID) {
-            return;
-        }
-        endSendMessagePhases(reportActionID);
-        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
-    };
+    const endSendMessageVisibleSpanOnLayout = useSendMessageSpanMarks(reportActionID);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
