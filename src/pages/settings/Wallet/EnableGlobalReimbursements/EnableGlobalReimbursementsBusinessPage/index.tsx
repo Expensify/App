@@ -47,7 +47,7 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
     // pay attempt transitions null -> object and re-triggers the modal. Onyx skips notifications for deeply-equal
     // SETs, so leaving the signal alive would prevent the modal from reopening on a repeat pay. For the WalletPage
     // entry (no signal), country/currency fall back to BANK_ACCOUNT_LIST.
-    const [corpayPayModal] = useOnyx(ONYXKEYS.CORPAY_PAY_MODAL);
+    const [corpayPayModal] = useOnyx(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL);
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
     const [country, setCountry] = useState<Country>('' as Country);
     const [currency, setCurrency] = useState('');

@@ -994,10 +994,10 @@ function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDen
 }
 
 /**
- * Clears the Corpay pay modal signal so the modal does not re-show on reload.
+ * Clears the Corpay pay modal signal for the current session.
  */
 function clearCorpayPayModal() {
-    Onyx.set(ONYXKEYS.CORPAY_PAY_MODAL, null);
+    Onyx.set(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL, null);
 }
 
 export {

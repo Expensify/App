@@ -16,7 +16,7 @@ import {useEffect, useEffectEvent, useRef} from 'react';
 
 function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
-    const [corpayPayModal] = useOnyx(ONYXKEYS.CORPAY_PAY_MODAL);
+    const [corpayPayModal] = useOnyx(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL);
     const {showConfirmModal} = useConfirmModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();

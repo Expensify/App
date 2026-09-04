@@ -17,7 +17,7 @@ import type Middleware from './types';
 const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response<TKey> | void>, request: Request<TKey> | PaginatedRequest<TKey>) =>
     responsePromise.then((response) => {
         const onyxData = response?.onyxData ?? [];
-        const hasCorpayPayModal = onyxData.some((update) => update.key === ONYXKEYS.CORPAY_PAY_MODAL);
+        const hasCorpayPayModal = onyxData.some((update) => update.key === ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL);
 
         if (!hasCorpayPayModal) {
             return response;
