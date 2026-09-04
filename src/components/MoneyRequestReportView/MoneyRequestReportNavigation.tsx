@@ -3,6 +3,7 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +22,7 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useIsFocused} from '@react-navigation/native';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -52,6 +54,13 @@ const selectIsExpenseReportSearch = (lastSearchQuery: OnyxEntry<LastSearchParams
 const selectQueryHash = (lastSearchQuery: OnyxEntry<LastSearchParams>): number | undefined => lastSearchQuery?.queryJSON?.hash;
 
 const searchLoadingSelector = (snapshot: OnyxEntry<SearchResults>): boolean => !!snapshot?.search?.isLoading;
+
+/**
+ * Search sections can yield entries that aren't openable reports. An unreported (self-DM) expense is grouped under
+ * the "0" sentinel rather than a real report, so paging onto it lands the user on an empty report — and it inflates
+ * the "x of y" counter with a report the Reports list never showed them.
+ */
+const isNavigableReportID = (reportID: string | undefined): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
 
 const isSameReportList = (a: Array<string | undefined>, b: Array<string | undefined> | null): boolean => {
     if (a === b) {
@@ -105,7 +114,8 @@ function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestR
     useEffect(() => {
         // Guard by content, not reference: useSearchSections rebuilds allReports via filter/map each
         // render, so an identity check would refire this update every render and loop.
-        onReportsChange((previousReports) => (isSameReportList(allReports, previousReports) ? previousReports : allReports));
+        const navigableReports = allReports.filter(isNavigableReportID);
+        onReportsChange((previousReports) => (isSameReportList(navigableReports, previousReports) ? previousReports : navigableReports));
     }, [allReports, onReportsChange]);
 
     return null;
@@ -113,6 +123,8 @@ function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestR
 
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const isFocused = useIsFocused();
 
     // Lightweight subscriptions only: the current search query and its loading flag. These never mount
     // the heavy useSearchSections subscription set, so the fast context path stays cheap.
@@ -151,7 +163,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     const shouldDisplayNavigationArrows = effectiveAllReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
-        if (!lastSearchQuery?.queryJSON) {
+        if (!isFocused || !lastSearchQuery?.queryJSON) {
             return;
         }
 
@@ -181,7 +193,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             ...lastSearchQuery,
             previousLengthOfResults: effectiveAllReports.length,
         });
-    }, [currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
+    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
@@ -242,7 +254,11 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             {!shouldUseContextReports && <MoneyRequestReportNavigationStandalone onReportsChange={setStandaloneReports} />}
             {shouldDisplayNavigationArrows && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                    {!shouldDisplayNarrowVersion && <Text style={styles.mutedTextLabel}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
+                    {!shouldDisplayNarrowVersion && (
+                        <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.mnw8]}>
+                            {translate('common.currentOfTotal', {current: currentIndex + 1, total: allReportsCount})}
+                        </Text>
+                    )}
                     <PrevNextButtons
                         isPrevButtonDisabled={hidePrevButton}
                         isNextButtonDisabled={hideNextButton}
@@ -268,7 +284,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     // subscription is deferred to the standalone child rendered by the content component, which mounts
     // it only on the slow path (pagination/loading or no context list).
     const {sortedReportIDs} = useSearchResultsContext();
-    const contextReports = useFilterPendingDeleteReports(sortedReportIDs);
+    const contextReports = useFilterPendingDeleteReports(sortedReportIDs).filter(isNavigableReportID);
 
     const isLiveGuardSatisfied = isExpenseReportSearch && snapshotGuard.hasMultiple && snapshotGuard.includesReport;
 
@@ -299,3 +315,4 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
 }
 
 export default MoneyRequestReportNavigation;
+export {isNavigableReportID};

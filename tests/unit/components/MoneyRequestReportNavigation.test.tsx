@@ -1,5 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
+import {isNavigableReportID} from '@components/MoneyRequestReportView/MoneyRequestReportNavigation';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
@@ -64,7 +65,7 @@ const isSameReportList = (a: Array<string | undefined>, b: Array<string | undefi
  */
 function useNavigationSource(reportID: string | undefined) {
     const {sortedReportIDs} = useSearchResultsContext();
-    const contextReports = useFilterPendingDeleteReports(sortedReportIDs);
+    const contextReports = useFilterPendingDeleteReports(sortedReportIDs).filter(isNavigableReportID);
     const {allReports: standaloneReports, isSearchLoading} = mockUseSearchSections();
 
     const allReports = contextReports.length > 0 && !isSearchLoading ? contextReports : standaloneReports;
@@ -78,6 +79,28 @@ function useNavigationSource(reportID: string | undefined) {
 
     return {source: contextReports.length > 0 && !isSearchLoading ? 'fast' : 'full', allReports, effectiveAllReports};
 }
+
+/**
+ * Regression guard for https://github.com/Expensify/App/issues/99627: an unreported (self-DM) expense is grouped
+ * under the "0" sentinel rather than a real report, so it inflated the "x of y" counter with an entry the Reports
+ * list never showed, and paging onto it landed the user on an empty report.
+ */
+describe('isNavigableReportID', () => {
+    it('accepts a real report', () => {
+        expect(isNavigableReportID('12345')).toBe(true);
+    });
+
+    it('rejects the unreported sentinel', () => {
+        expect(isNavigableReportID(CONST.REPORT.UNREPORTED_REPORT_ID)).toBe(false);
+    });
+
+    it.each([
+        ['undefined', undefined],
+        ['an empty string', ''],
+    ])('rejects %s', (_label, reportID) => {
+        expect(isNavigableReportID(reportID)).toBe(false);
+    });
+});
 
 describe('MoneyRequestReportNavigation', () => {
     beforeEach(() => {

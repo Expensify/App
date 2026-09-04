@@ -16,6 +16,15 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 const mockNavigateToTransactionThread = jest.fn();
 jest.mock('@hooks/useNavigateToTransactionThread', () => jest.fn(() => mockNavigateToTransactionThread));
 
+const mockNavigate = jest.fn<void, [string]>();
+jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: (route: string) => mockNavigate(route)}}));
+
+const mockSetActiveTransactionIDs = jest.fn<Promise<void>, [string[], {source?: string} | undefined]>(() => Promise.resolve());
+jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
+    setActiveTransactionIDs: (ids: string[], options?: {source?: string}) => mockSetActiveTransactionIDs(ids, options),
+    CAROUSEL_SOURCE: {homeReviewFlagged: 'home:reviewFlagged'},
+}));
+
 // The hook gates its O(n) scan on useIsFocused(). Mock it with a toggleable flag so tests can exercise the
 // focused (live scan) and blurred (scan skipped, last count retained) paths.
 let mockIsFocused = true;
@@ -175,6 +184,54 @@ describe('useReviewFlaggedExpenses', () => {
                 backTo: ROUTES.HOME,
             }),
         );
+    });
+
+    /**
+     * Regression guard for https://github.com/Expensify/App/issues/99621: the prev/next carousel opens a
+     * one-transaction report directly rather than its (redundant) transaction thread. This entry point has to agree,
+     * or stepping forward and back drops the user on the report when they started on the thread.
+     */
+    it('opens the report and seeds the carousel when the flagged expenses sit in one-transaction reports', async () => {
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r1`, {transactionCount: 1});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r2`, {transactionCount: 1});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.count).toBe(2);
+
+        await act(async () => {
+            result.current.reviewExpenses();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(mockNavigateToTransactionThread).not.toHaveBeenCalled();
+        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(['t1', 't2'], {source: 'home:reviewFlagged'});
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate.mock.calls.at(0)?.at(0)).toContain('r1');
+    });
+
+    it('does not seed a carousel for a lone flagged expense in a one-transaction report', async () => {
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r1`, {transactionCount: 1});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            result.current.reviewExpenses();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
     it('updates the count live while the Home tab stays focused', async () => {

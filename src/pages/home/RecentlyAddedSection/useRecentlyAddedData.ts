@@ -4,7 +4,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getExpenseCreationIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getAmount, getCreated, getCurrency, getMerchantName, getTransactionPendingAction} from '@libs/TransactionUtils';
 
@@ -272,7 +272,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
                     // displayed amount must be negated for them (mirrors the Search transaction list).
                     amount: getAmount(sourceTransaction, isFromExpenseReport, isFromTrackedExpense),
                     currency: getCurrency(sourceTransaction),
-                    reportAction: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID),
+                    reportAction: getExpenseCreationIOUActionForTransactionID(snapshotReportActions, transaction.transactionID),
                     report: reportByReportID.get(transaction.reportID),
                     // Derive from the local copy so an offline edit (which sets `pendingFields`, not `pendingAction`)
                     // still surfaces the pending state, alongside offline creates (ADD) and deletes (DELETE).

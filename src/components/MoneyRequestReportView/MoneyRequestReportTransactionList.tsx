@@ -31,7 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
-import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -586,31 +586,61 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldGroupTransactions]);
 
-    // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
-    // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
-    // Onyx key with a different ordering. Using the raw array reference would cause the effect
-    // to re-fire on every referential change and overwrite those IDs. The joined string ensures
-    // the effect only re-fires when the actual content changes.
+    // Order-sensitive proxy for visualOrderTransactionIDs used as the effect dependency below. It must stay
+    // order-sensitive: changing the report's sorting/grouping (without changing which transactions are present)
+    // reorders the list, and the carousel needs to be re-seeded so its counter and prev/next buttons match the
+    // new visual order.
     const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
+
+    // This report owns the carousel it seeds. Stamping the writes lets the teardown below clear only a carousel
+    // that is still ours, instead of wiping one another screen has taken over in the meantime.
+    const carouselSource = CAROUSEL_SOURCE.report(report?.reportID);
+    const hasSeededCarouselRef = useRef(false);
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
+
         // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
         // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
-        // Overwriting and then clearing it would drop that carousel when the user navigates back. Row presses
-        // still seed the correct siblings lazily via useNavigateToTransactionThread.
+        // Overwriting it would drop that carousel when the user navigates back. Row presses still seed the
+        // correct siblings lazily via useNavigateToTransactionThread.
         if (getActiveTransactionIDs().descriptors) {
             return;
         }
-        setActiveTransactionIDs(visualOrderTransactionIDs);
+
+        // This report can't drive a carousel on its own: the carousel needs at least two transactions to page
+        // between. Writing a 0/1-entry list would clobber a broader carousel the user drilled in from (e.g. the
+        // Spend page's full transaction list) and would also make the header render the empty transaction
+        // carousel instead of the report-level prev/next buttons.
+        if (visualOrderTransactionIDs.length < 2) {
+            return;
+        }
+
+        // Always re-seed from this report's own visual order. An earlier version bailed out whenever the active
+        // list was a superset of this report's transactions, which left a stale broader carousel (e.g. the Spend
+        // page's full expense list, or a list still holding a since-deleted expense) driving this report's
+        // counter and arrows.
+        setActiveTransactionIDs(visualOrderTransactionIDs, {source: carouselSource});
+        hasSeededCarouselRef.current = true;
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is an order-sensitive proxy for the array
+    }, [visualOrderTransactionIDsKey, carouselSource]);
+
+    // Teardown is deliberately separate from the seeding effect above. Folding it in would make React run the
+    // cleanup on every re-seed, and any run that then bailed out at one of the guards would leave the carousel
+    // cleared — which is how the arrows disappeared after an action that changed the report's transactions
+    // (duplicating an expense, for instance).
+    useEffect(() => {
         return () => {
-            clearActiveTransactionIDs();
+            if (!hasSeededCarouselRef.current) {
+                return;
+            }
+            hasSeededCarouselRef.current = false;
+            clearActiveTransactionIDsForSource(carouselSource);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
-    }, [visualOrderTransactionIDsKey]);
+    }, [carouselSource]);
 
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
@@ -667,6 +697,9 @@ function MoneyRequestReportTransactionList({
                 report,
                 transaction: sortedTransactions.find((t) => t.transactionID === activeTransactionID),
                 siblingTransactionIDs: visualOrderTransactionIDs,
+                // Not `carouselSource`: this list unmounts behind the expense it just opened, and its teardown must
+                // not clear the carousel it seeded for that expense.
+                carouselSource: CAROUSEL_SOURCE.reportRow(report?.reportID),
             });
         },
         [navigateToTransactionThread, reportActions, sortedTransactions, report, visualOrderTransactionIDs],

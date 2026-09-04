@@ -31,6 +31,9 @@ type NavigateToTransactionThreadParams = {
     /** Ordered list of sibling transaction IDs used to drive the prev/next carousel in the thread RHP */
     siblingTransactionIDs: string[];
 
+    /** Identity of the screen seeding the carousel, so it can later refresh or release only its own list */
+    carouselSource?: string;
+
     /** Route to return to when navigating back; defaults to the current active route */
     backTo?: string;
 };
@@ -53,14 +56,17 @@ function useNavigateToTransactionThread() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
-    return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, backTo}: NavigateToTransactionThreadParams) => {
+    return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, carouselSource, backTo}: NavigateToTransactionThreadParams) => {
         const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
         const resolvedBackTo = backTo ?? Navigation.getActiveRoute();
         let reportIDToNavigate = iouAction?.childReportID;
 
-        const routeParams: {reportID: string | undefined; reportActionID?: string; backTo?: string} = {
+        const routeParams: {reportID: string | undefined; reportActionID?: string; backTo?: string; anchorTransactionID?: string} = {
             reportID: reportIDToNavigate,
             backTo: resolvedBackTo,
+            // Anchors the thread to this expense so the header can show the carousel before the thread's own
+            // parent report action has loaded.
+            anchorTransactionID: transactionID,
         };
 
         if (!reportIDToNavigate) {
@@ -84,8 +90,10 @@ function useNavigateToTransactionThread() {
         }
 
         // Single transaction report opens in RHP. We seed every sibling transaction ID so the RHP can
-        // display prev/next arrows for navigation between expenses.
-        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
+        // display prev/next arrows for navigation between expenses. The pressed row's own screen takes ownership
+        // of the carousel: an earlier version kept a broader list (e.g. the Spend page's) alive here, which left
+        // the report showing a counter and arrows for expenses that weren't in it.
+        setActiveTransactionIDs(siblingTransactionIDs, {source: carouselSource}).then(() => {
             if (reportIDToNavigate) {
                 markReportRHPWidth(reportIDToNavigate, 'wide');
             }

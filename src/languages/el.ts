@@ -332,6 +332,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automatic: 'Αυτόματο',
         showing: 'Εμφανίζονται',
         of: 'του',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} από ${total}`,
         default: 'Προεπιλογή',
         update: 'Ενημέρωση',
         member: 'Μέλος',

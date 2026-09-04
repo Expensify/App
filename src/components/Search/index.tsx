@@ -25,6 +25,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDs, setActiveTransactionIDs, shouldRefreshActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -62,7 +63,7 @@ import {
     getNavigateToReportsSpans,
 } from '@libs/telemetry/navigateToReportsSpans';
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -575,6 +576,20 @@ function Search({
         }, 0);
     }, [areItemsGrouped, filteredData]);
 
+    const carouselSiblingTransactionIDs = useMemo(
+        () =>
+            (filteredData as SearchListItem[])
+                .filter(
+                    (t): t is TransactionListItemType => !!t && isTransactionListItemType(t) && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedTransaction(t),
+                )
+                .map((t) => t.transactionID),
+        [filteredData],
+    );
+
+    // This search results list owns the carousel it seeds. Drilling into a report hands ownership over to that
+    // report's own list; the refresh effect below then leaves the carousel alone until the user comes back out.
+    const carouselSource = CAROUSEL_SOURCE.search(hash);
+
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -583,6 +598,17 @@ function Search({
 
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
+
+            // When opening an expense from the Spend page (flat transaction list), populate the carousel
+            // with all sibling transactions so prev/next navigation works in the RHP transaction view.
+            if (isTransactionItem) {
+                if (carouselSiblingTransactionIDs.length > 1) {
+                    setActiveTransactionIDs(carouselSiblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
+                } else {
+                    clearActiveTransactionIDs();
+                }
+            }
+
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
@@ -604,7 +630,7 @@ function Search({
                     shouldNavigate: shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
                 });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
-                    openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
+                    openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: item.transactionID}), event);
                 }
                 if (shouldOpenTransactionThread) {
                     return;
@@ -734,7 +760,7 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, transactionItem?.reportAction?.childReportID);
             }
 
-            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo, anchorTransactionID: isTransactionItem ? transactionItem.transactionID : undefined});
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
@@ -752,13 +778,34 @@ function Search({
             email,
             accountID,
             queryJSON,
+            hash,
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
+            carouselSiblingTransactionIDs,
+            carouselSource,
             getCurrencyDecimals,
             conciergeChat,
         ],
     );
+
+    const carouselSiblingsKey = carouselSiblingTransactionIDs.join(',');
+    const [activeCarouselTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+
+    // This list stays mounted behind the RHP, so it keeps the carousel in step with the results (an expense
+    // deleted from the list has to leave the carousel too). It only writes while it still owns the carousel:
+    // once the user drills into a report, that report's list takes ownership and this effect stands down until
+    // that report releases it again — which is why the active IDs are a dependency and not just a guard.
+    useEffect(() => {
+        if (shouldShowLoadingState) {
+            return;
+        }
+        if (!shouldRefreshActiveTransactionIDs(carouselSource, carouselSiblingTransactionIDs)) {
+            return;
+        }
+        setActiveTransactionIDs(carouselSiblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- carouselSiblingsKey is an order-sensitive proxy for the array, which is rebuilt on every search data change
+    }, [carouselSiblingsKey, activeCarouselTransactionIDs, carouselSource, hash, shouldShowLoadingState]);
 
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn

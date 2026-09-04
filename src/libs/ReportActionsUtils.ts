@@ -2705,6 +2705,38 @@ function getIOUActionForTransactionID(reportActions: ReportAction[], transaction
     });
 }
 
+/** IOU action types that reference a transaction without being the action that created the expense. */
+const nonExpenseCreationIOUTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
+    CONST.IOU.REPORT_ACTION_TYPE.PAY,
+    CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+    CONST.IOU.REPORT_ACTION_TYPE.REJECT,
+    CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
+    CONST.IOU.REPORT_ACTION_TYPE.DELETE,
+]);
+
+/**
+ * Get the action that created an expense, for a transactionID, from the given reportActions.
+ *
+ * Several IOU actions carry the same `IOUTransactionID` — paying, approving or rejecting an expense all reference
+ * the transaction they act on — and each has its own thread. Callers that want the expense itself (to open it, or
+ * to page to it in the prev/next carousel) must not match those, or they land the user on, say, the
+ * "marked as paid" system message thread instead of the expense.
+ *
+ * Actions with no `type` are kept: legacy IOU actions predate the field and are expense-creating.
+ */
+function getExpenseCreationIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
+    return reportActions.find((reportAction) => {
+        if (!isMoneyRequestAction(reportAction)) {
+            return false;
+        }
+        const originalMessage = getOriginalMessage(reportAction);
+        if (originalMessage?.IOUTransactionID !== transactionID) {
+            return false;
+        }
+        return !originalMessage.type || !nonExpenseCreationIOUTypes.has(originalMessage.type);
+    });
+}
+
 /**
  * Get the track expense actionable whisper of the corresponding track expense
  */
@@ -4992,6 +5024,7 @@ export {
     getFirstVisibleReportActionID,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
+    getExpenseCreationIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleActionIncludingTransactionThread,
