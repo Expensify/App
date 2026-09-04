@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {translate as translateForLocale} from '@libs/Localize';
@@ -250,6 +250,9 @@ export default createOnyxDerivedValueConfig({
         const isOffline = getIsOffline();
         const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
+        const formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => {
+            return formatPhoneNumber(phoneNumber);
+        };
         // Check if display names changed when personal details are updated
         let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
@@ -637,6 +640,7 @@ export default createOnyxDerivedValueConfig({
                               reportActions,
                               currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                               currentUserLogin: session?.email ?? '',
+                              formatPhoneNumber,
                               translate,
                               dateFnsLocale,
                               allPolicyTags: policyTags,
