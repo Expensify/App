@@ -1,6 +1,6 @@
 import type {LayoutChangeEvent} from 'react-native';
 
-import {useCallback, useState} from 'react';
+import {useState} from 'react';
 import {useWindowDimensions} from 'react-native-keyboard-controller';
 
 type UseOdometerKeyboardVerticalOffsetResult = {
@@ -20,10 +20,10 @@ export default function useOdometerKeyboardVerticalOffset(): UseOdometerKeyboard
     const {height: windowHeight} = useWindowDimensions();
     const [ownY, setOwnY] = useState(0);
     const [ownHeight, setOwnHeight] = useState(0);
-    const onLayout = useCallback((e: LayoutChangeEvent) => {
+    const onLayout = (e: LayoutChangeEvent) => {
         setOwnY(e.nativeEvent.layout.y);
         setOwnHeight(e.nativeEvent.layout.height);
-    }, []);
+    };
 
     return {keyboardVerticalOffset: windowHeight - ownY - ownHeight, onLayout};
 }
