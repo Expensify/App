@@ -1087,6 +1087,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
             customizeSpendCategories: 'Ausgabenkategorien anpassen',
             customizeSpendCategoriesSubText: 'Ausgaben organisieren und klassifizieren',
+            customizeExpenseCategories: 'Passen Sie Ihre Ausgabenkategorien an',
+            customizeExpenseCategoriesSubText: 'Fügen Sie die Kategorien Ihres Unternehmens hinzu, um Ihre Ausgaben zu kodieren',
             createExpense: 'Ausgabe erstellen',
             createExpenseSubText: 'Scannen Sie eine Ausgabe, ziehen Sie sie per Drag &amp; Drop herein oder geben Sie sie manuell über die + Schaltfläche ein',
             linkPersonalCard: 'Persönliche Karte verknüpfen',
@@ -1284,6 +1286,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Beleg hinzufügen',
             phrase2: 'oder ziehe eine hierher und lege sie ab',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Seite 1 von ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -5016,7 +5019,6 @@ ${amount} für ${merchant} – ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Verwenden Sie dieses Konto beim Exportieren von Rechnungen nach ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Legen Sie fest, wie Unternehmenskartenkäufe nach ${integrationName} exportiert werden.`,
             vendor: 'Lieferant',
-            defaultVendorDescription: 'Legen Sie einen Standardanbieter fest, der beim Export auf alle Kreditkartentransaktionen angewendet wird.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Legen Sie fest, wie Auslagen in ${integrationName} exportiert werden.`,
             exportCheckDescription: 'Wir erstellen für jeden Expensify-Bericht einen Einzelpostenscheck und senden ihn von dem unten stehenden Bankkonto.',
             exportJournalEntryDescription: 'Wir erstellen für jeden Expensify-Bericht einen detaillierten Buchungssatz und buchen ihn auf das untenstehende Konto.',
@@ -5185,8 +5187,6 @@ ${amount} für ${merchant} – ${date}`,
             },
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie das Konto in Xero hinzu und synchronisieren Sie die Verbindung erneut',
-            defaultSupplier: 'Standardlieferant',
-            defaultSupplierDescription: 'Legen Sie einen Standardsupplier fest, der beim Export auf alle Kreditkartentransaktionen angewendet wird.',
             noSuppliersFound: 'Keine Lieferanten gefunden',
             noSuppliersFoundDescription: 'Bitte fügen Sie den Lieferanten in Xero hinzu und synchronisieren Sie die Verbindung erneut.',
             accountingMethods: {
@@ -6636,6 +6636,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             subtitle: 'Berichtsfelder gelten für alle Ausgaben und können hilfreich sein, wenn du nach zusätzlichen Informationen fragen möchtest.',
             disableReportFields: 'Berichtsfelder deaktivieren',
             disableReportFieldsConfirmation: 'Bist du sicher? Text- und Datumsfelder werden gelöscht und Listen werden deaktiviert.',
+            cannotDisableImportedReportFields: 'Berichtsfelder, die aus Ihrer Buchhaltungsverbindung importiert wurden, können nicht deaktiviert werden.',
             importedFromAccountingSoftware: 'Die folgenden Berichtsfelder werden importiert aus Ihrem',
             textType: 'Text',
             dateType: 'Datum',
@@ -7303,11 +7304,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             exportCompanyCard: 'Firmenkartenausgaben exportieren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standardanbieter',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
-                    ? `Spesen, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Anbieter zugeordnet.`
-                    : `Ausgaben, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Lieferanten zugeordnet. Andernfalls werden sie als „Credit Card Misc.“ exportiert.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Wählen Sie einen Standard-${connectionName}-Lieferanten für Ausgaben, die nicht automatisch zugeordnet werden.`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
+                    ? `Ausgaben, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Lieferanten zugeordnet.`
+                    : `Ausgaben, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Lieferanten zugeordnet. Andernfalls werden sie als „${fallbackVendorName}.“ exportiert.`,
+            defaultVendorSelectHeader: `Wählen Sie einen Standardanbieter für Ausgaben, die nicht automatisch zugeordnet werden.`,
             defaultAccount: 'Standardkonto',
             autoSync: 'Automatische Synchronisierung',
             autoSyncDescription: 'NetSuite und Expensify automatisch jeden Tag synchronisieren. Finalisierte Berichte in Echtzeit exportieren',
