@@ -233,24 +233,21 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
 
         isTabSwitchPendingRef.current = true;
 
-        // dismissKeyboardAndExecute only actually waits for the keyboard to close on Android; elsewhere it runs the
-        // callback immediately, so iOS/web keep the dismiss()-based wait below instead.
-        if (getPlatform() === CONST.PLATFORM.ANDROID) {
-            await KeyboardUtils.dismissKeyboardAndExecute(callback);
-            isTabSwitchPendingRef.current = false;
-            return;
-        }
-
-        // No `finally`: the React Compiler (Babel) can't lower a `try` with a `finally` clause, so the pending-ref
-        // reset is duplicated into both branches instead.
+        // Shared try/catch so neither branch can leave `isTabSwitchPendingRef` stuck `true` if the jump callback
+        // throws. No `finally`: the React Compiler (Babel) can't lower a `try` with a `finally` clause.
         try {
-            await dismissKeyboardBeforeTabSwitch();
-            callback();
-            isTabSwitchPendingRef.current = false;
+            // dismissKeyboardAndExecute only actually waits for the keyboard to close on Android; elsewhere it
+            // runs the callback immediately, so iOS/web use the dismiss()-based wait instead.
+            if (getPlatform() === CONST.PLATFORM.ANDROID) {
+                await KeyboardUtils.dismissKeyboardAndExecute(callback);
+            } else {
+                await dismissKeyboardBeforeTabSwitch();
+                callback();
+            }
         } catch (error: unknown) {
             Log.warn('[OnyxTabNavigator] Failed to switch tabs after dismissing the keyboard', {error});
-            isTabSwitchPendingRef.current = false;
         }
+        isTabSwitchPendingRef.current = false;
     };
 
     // Records a tab switch that is about to be dispatched, so the `state` listener can re-apply it if it gets bounced back.
