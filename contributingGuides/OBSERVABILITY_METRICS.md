@@ -170,20 +170,22 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.<PHASE>}_${reportActionID}`, parented to the `ManualSendMessageVisible` span with the same `reportActionID`
 **Lifecycle**: [`src/libs/telemetry/sendMessageSpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/sendMessageSpans.ts)
 
-```
-t0 composer submit                      useComposerSubmit.ts
-t1 API.write returns, merge queued      Report/index.ts
-     Onyx applies merge, notifies subscribers, React renders
-     React commit: 1. views created  2. layout effects, innermost first
-t2       sent row's layout effect       useSendMessageSpanMarks.ts
-         then ancestors: list, screen
-                        3. passive effects
-     derived recomputes, and the re-renders they cause
-     platform layout
-t3 onLayout                             TextCommentFragment / AttachmentCommentFragment
-```
+**Sequence**, with the four marks in order:
 
-`t2` is the first instant the row provably exists, since a layout effect cannot run before React created its view. Layout effects run child-before-parent, so the row's fires before the list's and the screen's.
+- `t0` composer submit ([`useComposerSubmit.ts`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/ReportActionCompose/useComposerSubmit.ts))
+- `t1` `API.write` returns and the merge is queued ([`Report/index.ts`](https://github.com/Expensify/App/blob/main/src/libs/actions/Report/index.ts))
+- Onyx applies the merge and notifies subscribers, React renders the new tree
+- React commits, in order:
+  - mutation: DOM / native views created
+  - layout effects, innermost component first. `t2` is the sent row's own ([`useSendMessageSpanMarks.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/useSendMessageSpanMarks.ts)), then its ancestors, the list and the screen
+  - passive effects
+- derived recomputes, and the re-renders their writes cause
+- platform layout
+- `t3` `onLayout` in `TextCommentFragment` or `AttachmentCommentFragment`
+
+`t2` is the first instant the row provably exists, since a layout effect cannot run before React created its view. Layout effects run child-before-parent, so the row's fires before the list's and the screen's, which puts those ancestor effects on the `PostCommit` side.
+
+**Phases**:
 
 - **Submit**, `t0` to `t1`, no span, read as the `Propagate` offset: builds the optimistic action and queues the write. `Onyx.update` batches and defers, so no merge is applied and nothing has rendered. Measured flat at 2 to 13ms on light and heavy accounts, which is why it has no span.
 - **`Propagate`**, `t1` to `t2`: Onyx applying the merge, fan-out to every `reportActions_` and `report_` subscriber, React's render, and the commit up to the row's layout effect. Excludes ancestor layout effects, passive effects, platform layout.
