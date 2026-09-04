@@ -20,18 +20,20 @@ jest.mock('react-native/Libraries/Utilities/PixelRatio', () => ({
 }));
 
 // fontSize/lineHeight of every Product/* text style in the Figma library (Brand Guidelines & Product UI).
+// Sizes track the experimental scale in `variables.ts` that this branch is testing, so they are
+// deliberately smaller than the published Figma values until the scale is signed off.
 const FIGMA_PRODUCT_SCALE: Record<TextVariant, [number, number]> = {
-    finePrint: [9, 12],
-    finePrintStrong: [9, 12],
-    micro: [11, 14],
-    microStrong: [11, 14],
-    label: [13, 16],
-    labelStrong: [13, 16],
-    text: [15, 20],
-    textStrong: [15, 20],
-    mono: [15, 20],
-    monoStrong: [15, 20],
-    pageHeader: [17, 20],
+    finePrint: [10, 12],
+    finePrintStrong: [10, 12],
+    micro: [10, 14],
+    microStrong: [10, 14],
+    label: [12, 16],
+    labelStrong: [12, 16],
+    text: [14, 20],
+    textStrong: [14, 20],
+    mono: [14, 20],
+    monoStrong: [14, 20],
+    pageHeader: [16, 20],
     h2: [19, 24],
     h1: [22, 28],
     introHeadline: [36, 44],
