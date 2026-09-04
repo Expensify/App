@@ -43,7 +43,7 @@ type FilterListProps = FilterItemCallbacks & {
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
 
     /** Called when the cursor leaves the list, so the consumer can settle whatever it was still waiting on for the last row. Web only. */
-    onPointerLeave?: () => void;
+    onPointerLeave?: (event: {clientX: number}) => void;
 };
 
 type FilterItemProps = FilterItemCallbacks & {

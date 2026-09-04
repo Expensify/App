@@ -334,15 +334,7 @@ function BaseSelectionListImpl({
 
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Cleared as the list is hidden rather than as it is revealed, so the debounce behind the input elapses while
-    // nobody is looking and the list is revealed with the data it is replaced against.
-    const revealedListVersion = useRevealedListReset(listRef, () => {
-        if (!shouldClearInputWhenHidden || !textInputOptions?.value) {
-            return;
-        }
-
-        textInputOptions.onChangeText?.('');
-    });
+    const revealedListVersion = useRevealedListReset(listRef, {shouldClearInputWhenHidden, textInputOptions});
 
     useEffect(() => {
         return () => {

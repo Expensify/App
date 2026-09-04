@@ -183,10 +183,19 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         waitForCursorToRest();
     };
 
-    // Nothing is left to wait for once the cursor is gone, so whatever the row it ended on was withholding is released.
-    const stopTrackingPointer = () => {
+    // Nothing is left to wait for once the cursor is gone, so the row it ended on releases what it was withholding,
+    // but only for a cursor heading toward the content. The direction comes from the last tracked position rather than
+    // from the exit point alone, because `SafeTriangle` covers that path with an overlay of its own and the cursor
+    // leaves the list above it as often as through its edge.
+    const stopTrackingPointer = (event: {clientX: number}) => {
         cancelReadyWait();
+        const anchor = restAnchorRef.current;
         restAnchorRef.current = null;
+
+        if (anchor && event.clientX <= anchor.x) {
+            return;
+        }
+
         markShownFilterReady();
     };
 

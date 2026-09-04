@@ -30,7 +30,7 @@ let mockValuesByFilter: Record<string, Partial<SearchAdvancedFiltersForm> | unde
 let mockOnHoverIn: ((filterKey: string) => void) | undefined;
 let mockOnFocus: ((filterKey: string) => void) | undefined;
 let mockOnPointerMove: ((event: {clientX: number; clientY: number}) => void) | undefined;
-let mockOnPointerLeave: (() => void) | undefined;
+let mockOnPointerLeave: ((event: {clientX: number}) => void) | undefined;
 let mockSelectedFilter: string | undefined;
 
 /** The form served by the useOnyx mock. Reassigned by tests to change filter values. */
@@ -43,7 +43,7 @@ jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () =
         onHoverIn: (filterKey: string) => void;
         onFocus: (filterKey: string) => void;
         onPointerMove: (event: {clientX: number; clientY: number}) => void;
-        onPointerLeave: () => void;
+        onPointerLeave: (event: {clientX: number}) => void;
         selectedFilter: string;
     }) => {
         mockOnHoverIn = props.onHoverIn;
@@ -118,10 +118,10 @@ function movePointer(clientX: number, clientY: number) {
     });
 }
 
-/** Takes the cursor off the filter list. */
-function leaveList() {
+/** Takes the cursor off the filter list at a point, which is to the right of the rows unless a test says otherwise. */
+function leaveList(clientX = Number.MAX_SAFE_INTEGER) {
     act(() => {
-        mockOnPointerLeave?.();
+        mockOnPointerLeave?.({clientX});
     });
 }
 
@@ -193,11 +193,20 @@ describe('SearchAdvancedFiltersPopup', () => {
         expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
     });
 
-    it('releases the row the cursor left from when it leaves the list without settling', () => {
+    it('releases the row the cursor left from when it leaves the list toward the content', () => {
         hover(FILTER_KEYS.FROM);
-        leaveList();
+        movePointer(100, 100);
+        leaveList(140);
 
         expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
+    });
+
+    it('keeps the row withheld when the cursor leaves away from the content', () => {
+        hover(FILTER_KEYS.FROM);
+        movePointer(100, 100);
+        leaveList(60);
+
+        expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(false);
     });
 
     it('hands the shown content the live form and a hidden one the values it was last shown with', () => {
