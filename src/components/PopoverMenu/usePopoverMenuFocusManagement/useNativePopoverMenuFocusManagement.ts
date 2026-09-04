@@ -47,10 +47,12 @@ function useNativePopoverMenuFocusManagement(
         close(pendingClose.onModalClose, undefined, pendingClose.shouldCloseAllModals);
     }, [pendingClose]);
 
-    // The suppression outlives a selection, so an effect remount re-acquires the lease its own cleanup released.
+    // The suppression outlives a selection, so an effect remount re-acquires the lease its own cleanup released,
+    // unless the modal finished hiding in between: that selection is over and its lease must stay released.
     useEffect(() => {
-        if (wasBackgroundInputFocusSuppressedAtCleanupRef.current) {
-            wasBackgroundInputFocusSuppressedAtCleanupRef.current = false;
+        const shouldReacquire = wasBackgroundInputFocusSuppressedAtCleanupRef.current && isVisibleRef.current;
+        wasBackgroundInputFocusSuppressedAtCleanupRef.current = false;
+        if (shouldReacquire) {
             releaseBackgroundInputFocusSuppressionRef.current = acquireBackgroundInputFocusSuppression();
         }
 
@@ -85,6 +87,8 @@ function useNativePopoverMenuFocusManagement(
 
         releaseBackgroundInputFocusSuppressionRef.current?.();
         releaseBackgroundInputFocusSuppressionRef.current = null;
+        // A lease released by a cover must not come back for a selection that finished while the screen was covered.
+        wasBackgroundInputFocusSuppressedAtCleanupRef.current = false;
         setRestoreFocusTypeOverride(null);
         setPendingClose(null);
     };

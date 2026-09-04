@@ -21,7 +21,9 @@ function subscribeToAppStateStatus(onStatusChange: () => void) {
 }
 
 function getAppStateStatus(): AppStateStatus {
-    return AppState.currentState;
+    // The runtime value is null until the native module has reported once, whatever the type says.
+    const status: AppStateStatus | null = AppState.currentState;
+    return status ?? 'unknown';
 }
 
 function useAppState({onAppStateChange}: UseAppStateProps = {}): AppStateType {

@@ -1,4 +1,4 @@
-import {fireEvent, screen} from '@testing-library/react-native';
+import {act, fireEvent, screen} from '@testing-library/react-native';
 
 import usePopoverMenuFocusManagement from '@components/PopoverMenu/usePopoverMenuFocusManagement/index.ios';
 import type {FocusManagedMenuItem} from '@components/PopoverMenu/usePopoverMenuFocusManagement/types';
@@ -10,7 +10,7 @@ import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import renderScreenWithCover from '../../utils/ScreenCoverHarness';
 
@@ -38,6 +38,33 @@ function PopoverMenuSelectionProbe({onModalClose}: {onModalClose: () => void}) {
             onPress={() => {
                 prepareForSelection(MENU_ITEM);
                 requestCloseAfterFocusPolicyCommit(onModalClose);
+            }}
+        />
+    );
+}
+
+let hidingProbe: {closeModal: () => void; finishModalHide: () => void} | undefined;
+
+function PopoverMenuHidingProbe() {
+    const [isVisible, setIsVisible] = useState(true);
+    const {handleModalHide, prepareForSelection, requestCloseAfterFocusPolicyCommit} = usePopoverMenuFocusManagement({
+        isVisible,
+        menuItems: [MENU_ITEM],
+        shouldEnableNewFocusManagement: true,
+    });
+
+    useEffect(() => {
+        hidingProbe = {closeModal: () => setIsVisible(false), finishModalHide: handleModalHide};
+    });
+
+    return (
+        <PressableWithoutFeedback
+            testID="popover-menu-item"
+            accessibilityLabel="Menu item"
+            role={CONST.ROLE.BUTTON}
+            onPress={() => {
+                prepareForSelection(MENU_ITEM);
+                requestCloseAfterFocusPolicyCommit(jest.fn());
             }}
         />
     );
@@ -80,5 +107,22 @@ describe('PopoverMenu focus management on iOS', () => {
 
         screenCover.unmount();
         expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
+    });
+
+    it('does not take the lease back on reveal for a selection whose modal hid while covered', async () => {
+        const screenCover = renderScreenWithCover(<PopoverMenuHidingProbe />);
+
+        fireEvent.press(screen.getByTestId('popover-menu-item'));
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(true);
+
+        await screenCover.hide();
+        act(() => hidingProbe?.closeModal());
+        act(() => hidingProbe?.finishModalHide());
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
+
+        await screenCover.reveal();
+
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
+        screenCover.unmount();
     });
 });
