@@ -1,4 +1,4 @@
-import SubmitPlanWelcomeModalGuard, {resetSessionFlag} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
+import SubmitPlanWelcomeModalGuard, {resetSessionFlag, suppressWelcomeModalForSubmitDeeplink} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
 import type {GuardContext} from '@libs/Navigation/guards/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 // eslint-disable-next-line no-restricted-imports -- type-only namespace import used solely to type jest.requireActual for the module mock below
@@ -183,6 +183,14 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         expect(secondResult.type).toBe('ALLOW');
     });
 
+    it('should allow when an intent=submit deeplink is creating the workspace already', async () => {
+        await setUpEligibleUser();
+        suppressWelcomeModalForSubmitDeeplink();
+
+        const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+        expect(result.type).toBe('ALLOW');
+    });
+
     it('should allow when already on the submit plan welcome modal screen', async () => {
         await setUpEligibleUser();
 
@@ -213,6 +221,16 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             await markSessionReady({authToken: 'test-token', accountID: 123});
 
             expect(mockNavigate).toHaveBeenCalledWith(submitPlanWelcomeRoute);
+        });
+
+        it('should not navigate when an intent=submit deeplink is creating the workspace already', async () => {
+            await setUpEligibleUser();
+            suppressWelcomeModalForSubmitDeeplink();
+            mockNavigate.mockClear();
+
+            await markSessionReady({authToken: 'test-token', accountID: 123});
+
+            expect(mockNavigate).not.toHaveBeenCalled();
         });
 
         it('should not navigate when there is no session', async () => {

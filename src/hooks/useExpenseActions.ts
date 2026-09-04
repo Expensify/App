@@ -540,7 +540,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         prompt: getDeleteConfirmationPrompt(translate, transaction),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
 
                     if (result.action !== ModalActions.CONFIRM) {
@@ -602,7 +602,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     prompt: translate('iou.deleteReportConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
-                    danger: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 });
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
