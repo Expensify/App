@@ -205,6 +205,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     highlightedReportID={highlightedReportID}
                     onSearchStringChange={setSearchTerm}
                     onEndReached={loadMoreRooms}
+                    onEndReachedThreshold={0.75}
                     onSortingChange={(sorting) => setRoomSort({columnKey: sorting.columnKey === 'members' ? 'members' : 'name', order: sorting.order})}
                     headerComponent={roomsTableHeader}
                 />
