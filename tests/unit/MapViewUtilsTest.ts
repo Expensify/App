@@ -180,4 +180,43 @@ describe('MapView utils', () => {
             expect(utils.isSingleSegmentRoute([])).toBe(true);
         });
     });
+
+    describe('getMapboxLanguage', () => {
+        it('passes locales that are already valid Mapbox codes through unchanged', () => {
+            expect(utils.getMapboxLanguage('en')).toBe('en');
+            expect(utils.getMapboxLanguage('es')).toBe('es');
+            expect(utils.getMapboxLanguage('fr')).toBe('fr');
+            expect(utils.getMapboxLanguage('de')).toBe('de');
+        });
+
+        it('remaps locales whose value differs from the Mapbox code', () => {
+            expect(utils.getMapboxLanguage('pt-BR')).toBe('pt');
+            expect(utils.getMapboxLanguage('zh-hans')).toBe('zh-Hans');
+        });
+
+        it('returns undefined when there is no locale', () => {
+            expect(utils.getMapboxLanguage(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getMapboxWorldview', () => {
+        it('passes country codes Mapbox defines a worldview for through unchanged', () => {
+            expect(utils.getMapboxWorldview('US')).toBe('US');
+            expect(utils.getMapboxWorldview('CN')).toBe('CN');
+            expect(utils.getMapboxWorldview('IN')).toBe('IN');
+            expect(utils.getMapboxWorldview('JP')).toBe('JP');
+        });
+
+        it('passes countries without a dedicated worldview through so Mapbox falls back to the style default', () => {
+            expect(utils.getMapboxWorldview('DE')).toBe('DE');
+            expect(utils.getMapboxWorldview('AU')).toBe('AU');
+        });
+
+        it('drops anything that is not a country code, which Mapbox would reject', () => {
+            expect(utils.getMapboxWorldview(undefined)).toBeUndefined();
+            expect(utils.getMapboxWorldview('')).toBeUndefined();
+            expect(utils.getMapboxWorldview('USA')).toBeUndefined();
+            expect(utils.getMapboxWorldview('us')).toBeUndefined();
+        });
+    });
 });
