@@ -885,6 +885,7 @@ const SCREENS = {
         TRAVEL_SETTINGS_MONTHLY_LIMIT: 'Workspace_Travel_Settings_Monthly_Limit',
         TRAVEL_EXPORT: 'Workspace_Travel_Invoicing_Export',
         TRAVEL_MISSING_PERSONAL_DETAILS: 'Travel_Missing_Personal_Details',
+        DYNAMIC_WORKSPACE_TRAVEL_BILLING_SELECT_FEED: 'Dynamic_Workspace_TravelBilling_Select_Feed',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',

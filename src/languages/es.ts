@@ -6248,6 +6248,7 @@ ${amount} para ${merchant} - ${date}`,
                         title: 'Facturación consolidada de viajes',
                         subtitle: 'Centraliza todos los gastos de viaje en una factura mensual en lugar de pagar en el momento de la compra.',
                         learnHow: 'Aprende cómo.',
+                        setUpNewFeed: 'Configura un nuevo feed de viajes',
                         subsections: {
                             currentTravelSpendLabel: 'Gasto actual en viajes',
                             currentTravelSpendPaymentQueued: (amount: string) => `El pago de ${amount} está en cola y se procesará pronto.`,
@@ -6268,6 +6269,8 @@ ${amount} para ${merchant} - ${date}`,
                             provisioningError:
                                 'No hemos podido aprovisionar a algunos miembros de tu espacio de trabajo para la Facturación de Viajes Consolidada. Por favor, inténtalo de nuevo más tarde o contacta con Concierge para obtener ayuda.',
                         },
+                        feedSelectorIntro:
+                            'Tu organización ya tiene configurado un feed de facturación de viajes consolidada. Selecciónalo para mantener los gastos de viaje de este espacio de trabajo en la misma factura mensual.',
                     },
                     disableModal: {
                         title: '¿Desactivar la facturación consolidada de viajes?',

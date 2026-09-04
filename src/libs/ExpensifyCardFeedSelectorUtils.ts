@@ -16,6 +16,7 @@ import {
     isPolicyIDInLinkedExpensifyCardPolicyList,
 } from './CardUtils';
 import {getDescriptionForPolicyDomainCard, isPolicyAdmin} from './PolicyUtils';
+import {getIsTravelBillingPayByInvoice, hasTravelBillingSettlementAccount} from './TravelBillingUtils';
 
 type ExpensifyCardFeedEntry = {
     settingsKey: string;
@@ -23,17 +24,29 @@ type ExpensifyCardFeedEntry = {
     settings: ExpensifyCardSettings;
 };
 
-/** A feed qualifies only when its settings NVP has a US or GB program block with a configured settlement bank account. */
-function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefined): boolean {
+/** Which program blocks of the card settings NVP count as a configured feed. Regular card feeds use US/GB; Travel Billing uses TRAVEL_US. */
+type ExpensifyCardFeedProgram = 'US' | 'CURRENT' | 'GB' | 'TRAVEL_US';
+
+const DEFAULT_CARD_FEED_PROGRAMS: ExpensifyCardFeedProgram[] = [CONST.COUNTRY.US, CONST.COUNTRY.GB];
+
+/** A feed qualifies when a program block has a settlement method: a bank account for cards, or a bank account or pay-by-invoice for travel. */
+function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefined, programs: ExpensifyCardFeedProgram[]): boolean {
     if (!settings) {
         return false;
     }
 
-    // We only want to show feeds that have either a US or GB program.
-    // TRAVEL feeds do not show in the UI and are managed on the backend and CURRENT feeds are deprecated and should not be used to determine if a feed is configured or not.
-    for (const programKey of [CONST.COUNTRY.US, CONST.COUNTRY.GB] as const) {
+    for (const programKey of programs) {
         const nested = settings[programKey];
-        if (nested && typeof nested === 'object' && !Array.isArray(nested) && nested.paymentBankAccountID != null) {
+        if (!nested || typeof nested !== 'object' || Array.isArray(nested)) {
+            continue;
+        }
+        if (programKey === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
+            if (hasTravelBillingSettlementAccount(nested) || getIsTravelBillingPayByInvoice(nested)) {
+                return true;
+            }
+            continue;
+        }
+        if (nested.paymentBankAccountID != null) {
             return true;
         }
     }
@@ -59,8 +72,9 @@ function isExpensifyCardFeedVisibleToAdmin(
     fundID: number,
     domains: OnyxCollection<Domain>,
     currentUserAccountID: number,
+    programs: ExpensifyCardFeedProgram[],
 ): boolean {
-    if (!hasConfiguredExpensifyCardFeed(settings)) {
+    if (!hasConfiguredExpensifyCardFeed(settings, programs)) {
         return false;
     }
 
@@ -86,13 +100,14 @@ function getAdminExpensifyCardFeedEntries(
     policies: OnyxCollection<Policy>,
     domains: OnyxCollection<Domain>,
     currentUserAccountID: number,
+    programs: ExpensifyCardFeedProgram[] = DEFAULT_CARD_FEED_PROGRAMS,
 ): ExpensifyCardFeedEntry[] {
     return Object.entries(cardSettingsCollection ?? {}).flatMap(([settingsKey, settings]) => {
         if (!settings) {
             return [];
         }
         const fundID = getFundIdFromSettingsKey(settingsKey);
-        if (!isExpensifyCardFeedVisibleToAdmin(settings, policies, fundID, domains, currentUserAccountID)) {
+        if (!isExpensifyCardFeedVisibleToAdmin(settings, policies, fundID, domains, currentUserAccountID, programs)) {
             return [];
         }
         return [{settingsKey, fundID, settings}];
@@ -146,4 +161,4 @@ function getExpensifyCardFeedDescription(
     return policyOwner ? getDescriptionForPolicyDomainCard(Str.extractEmailDomain(policyOwner), policies) : '';
 }
 
-export {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription, partitionExpensifyCardFeedsForSelector, type ExpensifyCardFeedEntry};
+export {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription, partitionExpensifyCardFeedsForSelector, type ExpensifyCardFeedEntry, type ExpensifyCardFeedProgram};

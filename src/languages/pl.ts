@@ -6363,6 +6363,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                                 'Nie udało nam się skonfigurować części członków twojego miejsca pracy do skonsolidowanego rozliczania podróży. Spróbuj ponownie później albo skontaktuj się z Concierge, żeby uzyskać pomoc.',
                             sendInvoiceNowCta: 'Wyślij fakturę teraz',
                         },
+                        setUpNewFeed: 'Skonfiguruj nowy kanał podróży',
+                        feedSelectorIntro:
+                            'Twoja organizacja ma już skonfigurowany skonsolidowany kanał rozliczeń podróży. Wybierz go, żeby wydatki z podróży w tym miejscu pracy były na tym samym miesięcznym rachunku.',
                     },
                     disableModal: {
                         title: 'Wyłączyć zbiorcze rozliczanie podróży?',

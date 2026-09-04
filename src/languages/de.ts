@@ -6389,6 +6389,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                                 'Wir konnten einige Mitglieder Ihres Arbeitsbereichs nicht für die Konsolidierte Reiseabrechnung einrichten. Bitte versuchen Sie es später erneut oder wenden Sie sich für Unterstützung an Concierge.',
                             sendInvoiceNowCta: 'Rechnung jetzt senden',
                         },
+                        setUpNewFeed: 'Neuen Reise-Feed einrichten',
+                        feedSelectorIntro:
+                            'Ihre Organisation hat bereits einen konsolidierten Travel-Billing-Feed eingerichtet. Wählen Sie ihn aus, um die Reisekosten dieses Arbeitsbereichs auf derselben monatlichen Rechnung zu halten.',
                     },
                     disableModal: {
                         title: 'Konsolidierte Reiseabrechnung deaktivieren?',
