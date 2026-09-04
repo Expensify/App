@@ -243,7 +243,6 @@ function IOURequestEditReportCommon({
                 if (checkIfPerDiemTransactionsCanBeMoved(policyID)) {
                     return true;
                 }
-                // Acknowledgement only — the result is intentionally ignored because there is no cancel action.
                 showConfirmModal({
                     title: translate('iou.moveExpenses'),
                     prompt: translate('iou.moveExpensesError'),

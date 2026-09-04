@@ -291,7 +291,6 @@ function DynamicIOURequestStepUpgrade({
 
     const onUpgrade = () => {
         if (isRestrictedPolicyCreation) {
-            // Acknowledgement only — the result is intentionally ignored because there is no cancel action.
             showConfirmModal({
                 title: translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning'),
                 prompt: translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt'),

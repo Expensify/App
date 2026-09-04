@@ -74,7 +74,6 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                     isActive={isEnabled}
                     disabled={!hasAdminPolicies && !isEnabled}
                     disabledAction={() => {
-                        // Informational only — the result is intentionally ignored because confirm and cancel do the same thing.
                         showConfirmModal({
                             title: translate('workspace.distanceRates.oopsNotSoFast'),
                             prompt: translate('domain.groups.noWorkspacesMessage'),
