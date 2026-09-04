@@ -162,7 +162,7 @@ function isDeletedTransaction(transaction: {reportID?: string}): boolean {
     return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
 }
 
-function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isDistanceRequest(transaction: ReadonlyDeep<OnyxEntry<Transaction>>): boolean {
     const requestType = transaction?.iouRequestType;
     return requestType === CONST.IOU.REQUEST_TYPE.DISTANCE || isDistanceExpenseType(requestType);
 }
@@ -279,7 +279,7 @@ function isMapBasedDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
     return isMapDistanceRequest(transaction) || isGPSDistanceRequest(transaction) || hasWaypoints;
 }
 
-function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'>>): boolean {
+function isScanRequest(transaction: ReadonlyDeep<OnyxEntry<Pick<Transaction, 'iouRequestType'>>>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
 
@@ -404,7 +404,7 @@ function getReceiptTypeTranslationKey(receiptType: ValueOf<typeof CONST.SEARCH.R
     }
 }
 
-function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isPartialTransaction(transaction: ReadonlyDeep<OnyxEntry<Transaction>>): boolean {
     const merchant = getMerchant(transaction);
 
     if (!merchant || isPartialMerchant(merchant)) {
@@ -586,18 +586,18 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
 /**
  * Check if the transaction has an Ereceipt
  */
-function hasEReceipt(transaction: Transaction | undefined | null): boolean {
+function hasEReceipt(transaction: ReadonlyDeep<Transaction> | undefined | null): boolean {
     return !!transaction?.hasEReceipt;
 }
 
-function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boolean {
+function hasReceipt(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>> | undefined): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
 /**
  * Whether the transaction already has its receipt stored server-side.
  */
-function hasUploadedReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boolean {
+function hasUploadedReceipt(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>> | undefined): boolean {
     return !!transaction?.receipt?.receiptID;
 }
 
@@ -650,14 +650,14 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
+function isAmountMissing(transaction: ReadonlyDeep<OnyxEntry<Transaction>>, isFromExpenseReport = true) {
     if (isFromExpenseReport) {
         return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
     }
     return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
 }
 
-function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
+function hasValidModifiedAmount(transaction: ReadonlyDeep<OnyxEntry<Transaction>> | null): boolean {
     if (!transaction) {
         return false;
     }
@@ -1231,7 +1231,13 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
+function getAmount(
+    transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>>,
+    isFromExpenseReport = false,
+    isFromTrackedExpense = false,
+    allowNegative = false,
+    disableOppositeConversion = false,
+): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
         const amount = Number(transaction?.modifiedAmount) ?? 0;
@@ -1398,7 +1404,7 @@ function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalC
 /**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
-function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function isFetchingWaypointsFromServer(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>>): boolean {
     return !!transaction?.pendingFields?.waypoints;
 }
 
@@ -1409,7 +1415,7 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
  * A waypoint edit whose route is still being computed by the server zeroes the amount but leaves the
  * quantity/routes of the pre-edit route in place, so a zero amount means the stored distance is stale.
  */
-function hasLocallyKnownDistance(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function hasLocallyKnownDistance(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>>): boolean {
     const hasDistanceSource = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
     return hasDistanceSource && !!getAmount(transaction);
 }
@@ -1435,7 +1441,7 @@ function hasPendingDistanceReceiptRegeneration(transaction: OnyxInputOrEntry<Tra
 /**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
-function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
+function getMerchant(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
 
@@ -1899,7 +1905,7 @@ function showHeldExpensesBlockModal(
  * The transaction is considered scanning if it is a partial transaction, has a receipt, and the receipt is being scanned.
  * Note that this does not include receipts that are being scanned in the background for auditing / smart scan everything, because there should be no indication to the user that the receipt is being scanned.
  */
-function isScanning(transaction: OnyxEntry<Transaction>): boolean {
+function isScanning(transaction: ReadonlyDeep<OnyxEntry<Transaction>>): boolean {
     // Performance optimization: Check the receipt state first (cheapest check) before doing more expensive checks
     if (!isReceiptBeingScanned(transaction)) {
         return false;
@@ -1913,7 +1919,7 @@ function isScanning(transaction: OnyxEntry<Transaction>): boolean {
     return isPartialTransaction(transaction) && hasReceipt(transaction);
 }
 
-function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function isReceiptBeingScanned(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>>): boolean {
     return transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_READY || transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
 
@@ -2443,7 +2449,7 @@ function isDuplicate(
 /**
  * Check if transaction is on hold
  */
-function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
+function isOnHold(transaction: ReadonlyDeep<OnyxEntry<Transaction>>): boolean {
     if (!transaction) {
         return false;
     }
@@ -3331,7 +3337,7 @@ function isSplitChildTransaction(transaction: OnyxEntry<Transaction> | Transacti
  * hidden and has no dismiss UI of its own. Used to decide whether a split failure error on the original
  * should be cleared alongside the visible child's error.
  */
-function isSplitContainerTransaction(transaction: OnyxEntry<Transaction> | Transaction): boolean {
+function isSplitContainerTransaction(transaction: ReadonlyDeep<OnyxEntry<Transaction>> | Transaction): boolean {
     return transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID;
 }
 

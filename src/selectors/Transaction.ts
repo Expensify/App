@@ -1,9 +1,10 @@
 import type TransactionType from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
 /** Resolves the original (container) transaction ID that a split child points to. */
-const originalTransactionIDSelector = (transaction: OnyxEntry<TransactionType>): string | undefined => transaction?.comment?.originalTransactionID;
+const originalTransactionIDSelector = (transaction: ReadonlyDeep<OnyxEntry<TransactionType>>): string | undefined => transaction?.comment?.originalTransactionID;
 
 const transactionsByReportIDSelector = (transactions: OnyxCollection<TransactionType>): Record<string, TransactionType[]> => {
     const result: Record<string, TransactionType[]> = {};
