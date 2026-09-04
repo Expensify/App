@@ -18,13 +18,20 @@ type FixPolicyConnectionProps = {
     /** The policy ID associated with this connection */
     policyID: string;
 
+    /** The policy name associated with this connection */
+    policyName: string;
+
     /** Human-readable integration name to render (e.g. "QuickBooks Online", "Gusto", "BambooHR"). */
     integrationName: string;
 };
 
-function FixPolicyConnection({connectionName, policyID, integrationName}: FixPolicyConnectionProps) {
+function FixPolicyConnection({connectionName, policyID, policyName, integrationName}: FixPolicyConnectionProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
+
+    const subtitle = policyName
+        ? translate('homePage.timeSensitiveSection.fixPolicyConnection.subtitle', {policyName})
+        : translate('homePage.timeSensitiveSection.fixPolicyConnection.defaultSubtitle');
 
     const isHRConnection = (CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES as readonly PolicyConnectionName[]).includes(connectionName);
     const fixRoute = isHRConnection ? ROUTES.WORKSPACE_HR.getRoute(policyID) : ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID);
@@ -33,6 +40,7 @@ function FixPolicyConnection({connectionName, policyID, integrationName}: FixPol
         <BaseWidgetItem
             icon={icons.Connect}
             title={translate('homePage.timeSensitiveSection.fixPolicyConnection.title', {integrationName})}
+            subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(fixRoute)}
             buttonVariant={CONST.BUTTON_VARIANT.DANGER}

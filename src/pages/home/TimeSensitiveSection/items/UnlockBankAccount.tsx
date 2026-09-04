@@ -35,6 +35,10 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
 
     const title = policyName ? translate('homePage.timeSensitiveSection.unlockBankAccount.workspaceTitle') : translate('homePage.timeSensitiveSection.unlockBankAccount.personalTitle');
 
+    const subtitle = policyName
+        ? translate('homePage.timeSensitiveSection.unlockBankAccount.workspaceSubtitle', {policyName})
+        : translate('homePage.timeSensitiveSection.unlockBankAccount.personalSubtitle');
+
     const handleCtaPress = () => {
         pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID);
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
@@ -44,6 +48,7 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
         <BaseWidgetItem
             icon={icons.BankLock}
             title={title}
+            subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={handleCtaPress}
             buttonVariant={CONST.BUTTON_VARIANT.DANGER}

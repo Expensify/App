@@ -18,6 +18,7 @@ function AddHomeAddress() {
         <BaseWidgetItem
             icon={icons.Home}
             title={translate('homePage.timeSensitiveSection.addHomeAddress.title')}
+            subtitle={translate('homePage.timeSensitiveSection.addHomeAddress.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.addHomeAddress.cta')}
             // Match the destination used by the "Address" row in the profile so this entry point
             // lands on the same private-personal-details screen with the address field focused, and use

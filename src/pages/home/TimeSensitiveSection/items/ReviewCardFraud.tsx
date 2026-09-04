@@ -52,6 +52,7 @@ function ReviewCardFraud({possibleFraud}: ReviewCardFraudProps) {
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
             title={title}
+            subtitle={translate('homePage.timeSensitiveSection.reviewCardFraud.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.reviewCardFraud.cta')}
             onCtaPress={handleReviewPress}
             buttonVariant={CONST.BUTTON_VARIANT.DANGER}

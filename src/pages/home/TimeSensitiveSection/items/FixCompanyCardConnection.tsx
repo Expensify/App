@@ -32,9 +32,12 @@ type FixCompanyCardConnectionProps = {
 
     /** The policy ID associated with this card */
     policyID: string;
+
+    /** The policy name associated with this card */
+    policyName: string;
 };
 
-function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProps) {
+function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardConnectionProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
     const policy = usePolicy(policyID);
@@ -87,11 +90,15 @@ function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProp
 
     const customFeedName = cardFeeds?.settings?.companyCardNicknames?.[card.bank as CompanyCardFeed];
     const feedName = getCustomOrFormattedFeedName(translate, card.bank as CompanyCardFeed, customFeedName, false) ?? '';
+    const subtitle = policyName
+        ? translate('homePage.timeSensitiveSection.fixCompanyCardConnection.subtitle', {policyName})
+        : translate('homePage.timeSensitiveSection.fixCompanyCardConnection.defaultSubtitle');
 
     return (
         <BaseWidgetItem
             icon={icons.Connect}
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
+            subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => {
                 // The Company cards page opens the last selected feed, so select this card's broken feed before going there.

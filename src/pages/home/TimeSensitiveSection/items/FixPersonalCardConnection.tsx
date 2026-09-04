@@ -24,6 +24,7 @@ function FixPersonalCardConnection({card}: FixPersonalCardConnectionProps) {
         <BaseWidgetItem
             icon={icons.Connect}
             title={translate('homePage.timeSensitiveSection.fixPersonalCardConnection.title', {cardName: card?.cardName})}
+            subtitle={translate('homePage.timeSensitiveSection.fixPersonalCardConnection.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))}
             buttonVariant={CONST.BUTTON_VARIANT.DANGER}

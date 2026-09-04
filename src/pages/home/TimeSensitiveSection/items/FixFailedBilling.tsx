@@ -17,6 +17,7 @@ function FixFailedBilling() {
         <BaseWidgetItem
             icon={icons.CreditCard}
             title={translate('homePage.timeSensitiveSection.fixFailedBilling.title')}
+            subtitle={translate('homePage.timeSensitiveSection.fixFailedBilling.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={navigateToSubscriptionPayment}
             buttonVariant={CONST.BUTTON_VARIANT.DANGER}

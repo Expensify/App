@@ -16,9 +16,12 @@ type EnterSignerInfoProps = {
 
     /** The bank account ID requiring signer info */
     bankAccountID: string;
+
+    /** Last four digits of the bank account number */
+    bankAccountLastFour: string;
 };
 
-function EnterSignerInfo({policyID, bankAccountID}: EnterSignerInfoProps) {
+function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSignerInfoProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
@@ -30,6 +33,7 @@ function EnterSignerInfo({policyID, bankAccountID}: EnterSignerInfoProps) {
         <BaseWidgetItem
             icon={icons.Bank}
             title={translate('homePage.timeSensitiveSection.enterSignerInfo.title')}
+            subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
             ctaText={translate('homePage.forYouSection.begin')}
             onCtaPress={handleCtaPress}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}

@@ -24,6 +24,7 @@ function AddBankAccount() {
         <BaseWidgetItem
             icon={icons.Bank}
             title={translate('homePage.timeSensitiveSection.addBankAccount.title')}
+            subtitle={translate('common.wallet')}
             ctaText={translate('common.add')}
             onCtaPress={() => openPersonalBankAccountSetupView({isUserValidated})}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}

@@ -24,6 +24,7 @@ function AddVirtualCardPersonalDetails({card}: AddVirtualCardPersonalDetailsProp
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
             title={translate('homePage.timeSensitiveSection.addVirtualCardPersonalDetails.title')}
+            subtitle={translate('homePage.timeSensitiveSection.addVirtualCardPersonalDetails.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.addVirtualCardPersonalDetails.cta')}
             onCtaPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(card.cardID))))}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}

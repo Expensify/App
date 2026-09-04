@@ -19,6 +19,7 @@ function ValidateAccount() {
         <BaseWidgetItem
             icon={icons.EnvelopeOpenStar}
             title={translate('homePage.timeSensitiveSection.validateAccount.title')}
+            subtitle={translate('homePage.timeSensitiveSection.validateAccount.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.validateAccount.cta')}
             onCtaPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path))}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
