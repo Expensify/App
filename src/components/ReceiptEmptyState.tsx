@@ -169,7 +169,7 @@ function ReceiptEmptyState({
                                             <ReceiptPlaceholderPlusIcon
                                                 circleFill={theme.success}
                                                 plusFill={theme.receiptPlaceholderPlus}
-                                                size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL)}
+                                                size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL) - styles.moneyRequestAttachReceiptThumbnailIcon.borderWidth * 2}
                                             />
                                         </View>
                                     )}
