@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, disable approvals, approvals toggle locked, can't turn off approvals, Smart Limit, Expensify Card limit type]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -24,6 +24,26 @@ To enable approvals on a workspace you manage:
 Enabling **Approvals** will reveal an option to set a default approval workflow for the workspace.
 
 **Note:** If your workspace is connected to an HR integration such as Gusto or TriNet, approval workflows managed through that integration appear on the **Workflows** tab with the integration's indicator. To manage these approval settings, go to the **HR** tab in your workspace settings. [Learn about connecting Gusto to Expensify](/articles/new-expensify/connections/Connect-Gusto-to-Expensify) or [learn about connecting TriNet to Expensify](/articles/new-expensify/connections/TriNet).
+
+---
+
+## How to turn off Approvals when Expensify Cards use a Smart Limit
+
+An Expensify Card with a **Smart Limit** restores the cardholder's available spend as their expenses are approved, so approvals must stay on for those cards to work. While any card in the workspace uses a **Smart Limit**, the **Approvals** toggle is locked on and the **Workflows** page shows this message in place of the usual description:
+
+> Expensify Cards from this workspace currently rely on approval to define their Smart Limits. Please amend the limit types of any Expensify Cards with Smart Limits before disabling approvals.
+
+To unlock the toggle:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your workspace name to access the settings for that workspace.
+3. In the left menu, click **Expensify Card**.
+4. Click each card that uses a **Smart Limit** and change its limit type, or deactivate the card.
+5. In the left menu, click **Workflows**. You can now toggle off **Approvals**.
+
+This lock applies to both Workspace Admins and People Admins, and it applies no matter who issued the cards.
+
+Learn how to [issue and manage Expensify Cards](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-US).
 
 ---
 
@@ -165,6 +185,14 @@ Yes. Reports are not automatically reassigned in these cases:
 - **The current approver is a Category or Tag approver:** reports awaiting a Category or Tag approver are not reassigned. Those approval steps run before, and take precedence over, the workspace approval workflow.
 - ​**The report already moved past the approver you changed:** If it's further along the approval chain, it stays where it is.
 - **​You changed the default workspace approver, but the employee has their own approver set:**​ Employees with a specific approver aren't affected by default-approver changes; only employees using the default are.
+
+## Why can't I toggle off Approvals?
+
+At least one Expensify Card in the workspace uses a **Smart Limit**. Those cards depend on approvals to restore the cardholder's available spend, so **Approvals** stays locked on until you change the limit type on every card that uses a **Smart Limit** or deactivate those cards.
+
+## Why can't I choose Smart Limit when I issue an Expensify Card?
+
+**Approvals** is turned off for the workspace. Turn on **Approvals** on the **Workflows** page first, then issue the card.
 
 ## What happens when a report exceeds the over-limit threshold?
 
