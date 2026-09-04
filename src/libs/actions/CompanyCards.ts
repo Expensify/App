@@ -215,6 +215,10 @@ function clearAddNewCardFlow() {
     });
 }
 
+function clearAddNewCompanyCardErrors() {
+    Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {errors: null});
+}
+
 function addNewCompanyCardsFeed(
     policyID: string | undefined,
     workspaceAccountID: number,
@@ -1487,6 +1491,7 @@ export {
     clearCompanyCardErrorField,
     setAddNewCompanyCardStepAndData,
     clearAddNewCardFlow,
+    clearAddNewCompanyCardErrors,
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
     openPolicyAddCardFeedPage,

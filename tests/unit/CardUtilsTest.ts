@@ -9,6 +9,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
+    checkIfNewFeedConnected,
     doesCardFeedExist,
     feedHasCards,
     filterAllInactiveCards,
@@ -1312,6 +1313,21 @@ describe('CardUtils', () => {
         it('Should return empty object if undefined is passed', () => {
             const companyFeeds = getCompanyFeeds(undefined);
             expect(companyFeeds).toStrictEqual({});
+        });
+    });
+
+    describe('checkIfNewFeedConnected', () => {
+        it('Should retain the Plaid feed after the initial feed update', () => {
+            const plaidFeed = 'plaid.ins_123456#1' as CompanyCardFeedWithDomainID;
+            const cardFeeds = createMock<CombinedCardFeeds>({
+                [plaidFeed]: {
+                    domainID: 1,
+                    feed: 'plaid.ins_123456' as CompanyCardFeed,
+                    pending: false,
+                },
+            });
+
+            expect(checkIfNewFeedConnected(cardFeeds, cardFeeds, 'ins_123456')).toEqual({isNewFeedConnected: plaidFeed, newFeed: plaidFeed});
         });
     });
 
