@@ -471,7 +471,17 @@ function openReportFromDeepLink(
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
         });
 
-        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas, hasReportActions: false, currentUserAccountID: callerAccountID});
+        openReport({
+            reportID,
+            introSelected,
+            // Unauthenticated public-room path: there is no signed-in user, so no Concierge chat exists to thread.
+            conciergeChat: undefined,
+            parentReportActionID: '0',
+            isFromDeepLink: true,
+            betas,
+            hasReportActions: false,
+            currentUserAccountID: callerAccountID,
+        });
 
         // Show the sign-in page if the app is offline
         if (getIsOffline()) {
@@ -603,7 +613,8 @@ function openReportFromDeepLink(
                             const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
                             if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
+                                // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+                                const lastAccessedReportID = findLastAccessedReport(false, undefined, shouldOpenOnAdminRoom(), reportID)?.reportID;
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});

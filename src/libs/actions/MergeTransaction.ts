@@ -328,16 +328,16 @@ function getOnyxTargetTransactionData({
     const shouldBuildOptimisticModifiedExpenseReportAction = false;
 
     if (isUnreportedExpense) {
-        data = getUpdateTrackExpenseParams(
-            targetTransaction.transactionID,
-            targetTransactionThreadReport?.reportID,
-            filteredTransactionChanges,
+        data = getUpdateTrackExpenseParams({
+            transactionID: targetTransaction.transactionID,
+            transaction: targetTransaction,
+            transactionThreadReportID: targetTransactionThreadReport?.reportID,
+            transactionChanges: filteredTransactionChanges,
             policy,
             delegateAccountID,
-            {getCurrencyDecimals, getCurrencySymbol},
-            undefined,
+            currencyContext: {getCurrencyDecimals, getCurrencySymbol},
             shouldBuildOptimisticModifiedExpenseReportAction,
-        );
+        });
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: targetTransaction.transactionID,
@@ -367,7 +367,8 @@ function getOnyxTargetTransactionData({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
         value: {
-            receipt: mergeTransaction.receipt ?? null,
+            // Clear the old count so it does not describe the newly chosen receipt.
+            receipt: mergeTransaction.receipt ? {pageCount: null, ...mergeTransaction.receipt} : null,
         },
     });
 

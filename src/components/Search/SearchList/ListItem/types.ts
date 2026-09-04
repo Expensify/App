@@ -265,6 +265,15 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Final and formatted "first approver" value used for displaying and sorting */
         formattedFirstApprover?: string;
 
+        /** The avatar of the user the report was paid by */
+        paidByAvatar?: AvatarSource;
+
+        /** Account ID of the user the report was paid by (actor on the latest payment report action) */
+        paidByAccountID?: number;
+
+        /** Final and formatted "paid by" value used for displaying and sorting */
+        formattedPaidBy?: string;
+
         /** Whether the status field should be shown in a pending state */
         shouldShowStatusAsPending?: boolean;
 
@@ -418,6 +427,9 @@ type TransactionMonthGroupListItemType = TransactionGroupListItemType & {grouped
         /** Final and formatted "month" value used for displaying */
         formattedMonth: string;
 
+        /** Compact "month" value used where space is tight, e.g. chart axis labels */
+        shortFormattedMonth: string;
+
         /** Key used for sorting */
         sortKey: number;
     };
@@ -451,6 +463,9 @@ type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
         /** Final and formatted "week" value used for displaying */
         formattedWeek: string;
+
+        /** Compact "week" value used where space is tight, e.g. chart axis labels */
+        shortFormattedWeek: string;
     };
 
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
@@ -464,6 +479,9 @@ type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedB
 type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.QUARTER} & SearchQuarterGroup & {
         /** Final and formatted "quarter" value used for displaying */
         formattedQuarter: string;
+
+        /** Compact "quarter" value used where space is tight, e.g. chart axis labels */
+        shortFormattedQuarter: string;
 
         /** Sort key for sorting */
         sortKey: number;

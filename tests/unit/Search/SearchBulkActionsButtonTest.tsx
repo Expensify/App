@@ -19,6 +19,7 @@ let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedTransactions: SelectedTransactions = {};
 let mockSearchData: Record<string, unknown> = {};
 let mockSearchCount: number | undefined;
+let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
 let mockIsOffline = false;
 
@@ -80,7 +81,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         areAllMatchingItemsSelected: true,
     }),
     useSearchResultsContext: () => ({
-        currentSearchResults: {search: {count: mockSearchCount, isLoading: mockSearchIsLoading}},
+        currentSearchResults: {search: {count: mockSearchCount, reportCount: mockSearchReportCount, isLoading: mockSearchIsLoading}},
     }),
 }));
 jest.mock('@libs/ReportUtils', () => {
@@ -129,9 +130,10 @@ describe('SearchBulkActionsButton all-matching label', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockExcludedTransactions = {};
-        mockSelectedTransactions = {tx1: {...makeTransaction(), reportID: undefined}};
+        mockSelectedTransactions = {tx1: makeTransaction()};
         mockSearchData = {};
         mockSearchCount = undefined;
+        mockSearchReportCount = undefined;
         mockSearchIsLoading = false;
         mockIsOffline = false;
     });
@@ -179,21 +181,31 @@ describe('SearchBulkActionsButton all-matching label', () => {
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
     });
 
-    it('retains the expense-report loading behavior while the server count is missing', () => {
+    it('keeps loading for expense reports while the server report count is missing, falling back to the loaded report count', () => {
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:0', isLoading: true});
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
     });
 
-    it('uses the unmodified server count for expense reports', () => {
+    it('labels expense reports with the server report count, not the expense count', () => {
+        // `count` is the expense total; `reportCount` is the matching-report total the Reports tab must show.
         mockSearchCount = 320;
+        mockSearchReportCount = 50;
         mockExcludedTransactions = {tx2: makeTransaction()};
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:320', isLoading: false});
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:50', isLoading: false});
+    });
+
+    it('falls back to the loaded report count for expense reports offline before the report count arrives', () => {
+        mockIsOffline = true;
+
+        render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
+
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
     });
 });
 

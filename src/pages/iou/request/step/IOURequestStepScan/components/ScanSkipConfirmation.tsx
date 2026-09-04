@@ -7,6 +7,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -22,7 +23,7 @@ import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/action
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable, getExistingTransactionID} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -109,6 +110,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         selector: shouldStartLocationPermissionFlowSelector,
     });
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const {isOffline} = useNetwork();
+    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
@@ -133,6 +136,12 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
+    // Whether this expense's sole destination is the current user's self-DM. Forwarded to the cleanup helpers so the
+    // LOOKING_AROUND "route to Spend > Expenses" behaviour is scoped to the self-DM case (matches the confirmation step).
+    // Unlike the quick-action amount/distance paths (which OR in isSelfDM(report) as a fallback), participants are already
+    // populated at component level here via getMoneyRequestParticipantOptions, so isSelfDMSoleDestination alone is sufficient.
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = resolveCurrentTaxCode(policy, (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '');
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -141,7 +150,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
     const preInsertReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
-    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(true, preInsertReportID);
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(true, preInsertReportID, isLookingAroundUser, isSelfDMDestination);
     usePreMountDestination(skipConfirmationPreMountRoute);
 
     // Pre-fetch location if GPS is required and permission is already granted
@@ -178,6 +187,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     }, [transaction?.amount, iouType]);
 
     const cancelShutterSpans = () => {
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
         cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
@@ -254,6 +264,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         backToReport,
                         optimisticChatReportID: chatReportID,
                         linkedTrackedExpenseReportAction,
+                        isLookingAroundUser,
+                        isSelfDMDestination,
                     });
                 },
                 destinationReportID: reportID,
@@ -317,6 +329,9 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
         submitWithDismissFirst({
+            isFromGlobalCreate,
+            isLookingAroundUser,
+            isSelfDMDestination,
             executeWrite: (overrides) => {
                 // Cleanup runs after each write (not once up front) so a stalled GPS lookup can't clear the draft before the expense exists.
                 const runCleanup = () =>
@@ -329,6 +344,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         backToReport,
                         optimisticChatReportID: chatReportID,
                         linkedTrackedExpenseReportAction,
+                        isLookingAroundUser,
+                        isSelfDMDestination,
                     });
 
                 if (locationPermissionGranted) {

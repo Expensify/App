@@ -416,9 +416,9 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                     <MessageEditCancelButton
                         testID={CONST.COMPOSER.TEST_ID.MESSAGE_EDIT_CANCEL_INLINE}
                         onCancel={deleteDraft}
-                        style={[styles.justifyContentEnd, styles.mb1]}
+                        style={styles.messageEditCancelButtonWrapper}
                     />
-                    <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
+                    <View style={StyleUtils.getContainerComposeStyles()}>
                         <Composer
                             multiline
                             ref={(el) => {

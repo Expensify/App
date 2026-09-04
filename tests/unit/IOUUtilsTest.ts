@@ -922,6 +922,10 @@ describe('getExistingTransactionID', () => {
         const policyForResolve: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Resolve Test Policy'), id: 'resolve-policy'};
         const nonArchivedReportNameValuePair: ReportNameValuePairs = {};
 
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
         const makeOutstandingReport = (reportID: string): Report => ({
             ...createRandomReport(Number(reportID), undefined),
             reportID,
@@ -949,49 +953,49 @@ describe('getExistingTransactionID', () => {
                     transaction,
                     transactionReport,
                     routeReport,
-                    policy: policyForResolve,
                     reportNameValuePair: nonArchivedReportNameValuePair,
                 }),
             ).toBeUndefined();
         });
 
-        it('returns the picked report when it is outstanding (user-selected report wins)', () => {
+        it('returns the picked report when canAddTransaction allows it (user-selected report wins)', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
             const routeReport = makeRouteReport('100');
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(true);
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
                     transactionReport,
                     routeReport,
-                    policy: policyForResolve,
                     reportNameValuePair: nonArchivedReportNameValuePair,
                 })?.reportID,
             ).toBe('500');
         });
 
-        it('returns undefined when the picked report is archived', () => {
+        it('returns undefined when canAddTransaction rejects the picked report (e.g. archived)', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
             const routeReport = makeRouteReport('100');
             const reportNameValuePair: ReportNameValuePairs = {private_isArchived: testDate};
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(false);
 
-            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve, reportNameValuePair})).toBeUndefined();
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, reportNameValuePair})).toBeUndefined();
         });
 
-        it('returns undefined when the picked report is non-outstanding and differs from the route (forces a new optimistic IOU)', () => {
+        it('returns undefined when canAddTransaction rejects the picked report and it differs from the route (forces a new optimistic IOU)', () => {
             const transaction = makeTransaction('500');
             const nonOutstandingPick: Report = {
                 ...makeOutstandingReport('500'),
                 policyID: 'someOtherPolicy',
             };
             const routeReport = makeRouteReport('100');
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(false);
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
                     transactionReport: nonOutstandingPick,
                     routeReport,
-                    policy: policyForResolve,
                     reportNameValuePair: nonArchivedReportNameValuePair,
                 }),
             ).toBeUndefined();
@@ -1006,7 +1010,6 @@ describe('getExistingTransactionID', () => {
                     transaction,
                     transactionReport,
                     routeReport,
-                    policy: policyForResolve,
                     reportNameValuePair: nonArchivedReportNameValuePair,
                 })?.reportID,
             ).toBe('100');
@@ -1015,18 +1018,18 @@ describe('getExistingTransactionID', () => {
         it('falls back to the transaction report when no route report exists (the !routeReport branch)', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(true);
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
                     transactionReport,
                     routeReport: undefined,
-                    policy: policyForResolve,
                     reportNameValuePair: nonArchivedReportNameValuePair,
                 })?.reportID,
             ).toBe('500');
         });
 
-        it('returns undefined when the picked report is processing and policy harvesting is disabled', () => {
+        it('returns the picked submitted report when canAddTransaction allows it (harvesting disabled no longer blocks)', () => {
             const transaction = makeTransaction('500');
             const processingPick: Report = {
                 ...makeOutstandingReport('500'),
@@ -1034,16 +1037,16 @@ describe('getExistingTransactionID', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const routeReport = makeRouteReport('100');
-            const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(true);
+
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
                     transactionReport: processingPick,
                     routeReport,
-                    policy: harvestingDisabledPolicy,
                     reportNameValuePair: nonArchivedReportNameValuePair,
-                }),
-            ).toBeUndefined();
+                })?.reportID,
+            ).toBe('500');
         });
     });
 
@@ -1335,5 +1338,24 @@ describe('shouldShowPerDiemTabOption', () => {
 
     it('hides for a track expense when no per diem policy exists', () => {
         expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.TRACK, false, false, false)).toBe(false);
+    });
+});
+
+describe('isLookingAroundSearchRoutingActive', () => {
+    // This is the single source of truth for the LOOKING_AROUND "route the self-DM create to Spend > Expenses" gate,
+    // shared by the confirmation step and every skip-confirmation flow. The critical property is that it is FALSE while
+    // offline (Search can't load its server snapshot offline, so those users fall back to the self-DM landing), which is
+    // the routing flag the PR must keep in sync across all create paths.
+    it('routes to Search when a LOOKING_AROUND user is online', () => {
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(true, false)).toBe(true);
+    });
+
+    it('is suppressed while offline for a LOOKING_AROUND user (falls back to the self-DM landing)', () => {
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(true, true)).toBe(false);
+    });
+
+    it('is inactive for a non-LOOKING_AROUND user, online or offline', () => {
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(false, false)).toBe(false);
+        expect(IOUUtils.isLookingAroundSearchRoutingActive(false, true)).toBe(false);
     });
 });

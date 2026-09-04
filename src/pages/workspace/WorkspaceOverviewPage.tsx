@@ -317,21 +317,21 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         if (isReimburser) {
             showConfirmModal({
-                title: translate('common.leaveWorkspace'),
+                title: policyName ? translate('common.leaveWorkspaceTitle', policyName) : translate('common.leaveWorkspace'),
                 prompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
-                success: true,
+                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             });
             return;
         }
 
         showConfirmModal({
-            title: translate('common.leaveWorkspace'),
+            title: policyName ? translate('common.leaveWorkspaceTitle', policyName) : translate('common.leaveWorkspace'),
             prompt,
             confirmText: translate('common.leave'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;

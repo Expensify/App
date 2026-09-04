@@ -12,7 +12,7 @@ import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -21,7 +21,6 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMappedPolicies from '@hooks/useMappedPolicies';
 import useNetwork from '@hooks/useNetwork';
 import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
@@ -50,6 +49,7 @@ import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
     isSelfDMSoleDestination,
+    isLookingAroundSearchRoutingActive,
     navigateToStartMoneyRequestStep,
     pickReportForPolicy,
     resolveOptimisticChatReportID,
@@ -118,18 +118,6 @@ import useExpenseSubmission from './confirmation/useExpenseSubmission';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
-    policy && {
-        id: policy.id,
-        name: policy.name,
-        type: policy.type,
-        role: policy.role,
-        owner: policy.owner,
-        outputCurrency: policy.outputCurrency,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
-        customUnits: policy.customUnits,
-    };
-
 type IOURequestStepConfirmationIncomingRouteName = typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION | typeof SCREENS.MONEY_REQUEST.CREATE;
 
 type StepConfirmationParams = MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION];
@@ -139,7 +127,7 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
         shouldHideHeader?: boolean;
     };
 
-function IOURequestStepConfirmation({
+function IOURequestStepConfirmationContent({
     report: reportReal,
     reportDraft,
     route,
@@ -190,7 +178,6 @@ function IOURequestStepConfirmation({
     const realPolicyID = selectedWorkspacePolicyID ?? getIOURequestPolicyID(initialTransaction, pickReportForPolicy(reportReal, participantReport));
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
@@ -211,10 +198,9 @@ function IOURequestStepConfirmation({
                 transaction,
                 transactionReport,
                 routeReport: reportWithDraftFallback,
-                policy: policyReal,
                 reportNameValuePair,
             }),
-        [transaction, transactionReport, reportWithDraftFallback, policyReal, reportNameValuePair],
+        [transaction, transactionReport, reportWithDraftFallback, reportNameValuePair],
     );
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 
@@ -267,14 +253,17 @@ function IOURequestStepConfirmation({
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
+        isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
     });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;
@@ -306,7 +295,6 @@ function IOURequestStepConfirmation({
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
-    const [mappedPolicies] = useMappedPolicies(policyMapper);
 
     const participants = useMemo(
         () =>
@@ -391,13 +379,13 @@ function IOURequestStepConfirmation({
     }, [activeTransactionID]);
 
     const handleParticipantsAdded = useCallback(
-        (participantsList: Participant[]) => {
+        (participantsList: Participant[], selectedPolicy?: OnyxEntry<Policy>) => {
             if (!activeTransactionID) {
                 return;
             }
             const selectedParticipant = participantsList.at(0);
             const selectedPolicyID = selectedParticipant?.policyID ?? (selectedParticipant?.reportID ? getReportOrDraftReport(selectedParticipant.reportID)?.policyID : undefined);
-            if (blockManualOrOdometerDistanceRequestIfNeeded(selectedPolicyID)) {
+            if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
                 return;
             }
             // P2P chats don't support negative amounts. When a negative amount was entered before a participant
@@ -452,7 +440,7 @@ function IOURequestStepConfirmation({
                         setMoneyRequestCategory(activeTransactionID, '', undefined, getCurrencyDecimals);
                         setMoneyRequestTag(activeTransactionID, '');
                     } else {
-                        const workspacePolicy = firstParticipant.policyID ? mappedPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
+                        const workspacePolicy = selectedPolicy;
                         if (isDistanceRequest) {
                             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
                             const isCurrentRateFromWorkspace = !!currentRateID && !!DistanceRequestUtils.getMileageRates(workspacePolicy)[currentRateID];
@@ -496,8 +484,7 @@ function IOURequestStepConfirmation({
             lastSelectedDistanceRates,
             transaction,
             personalPolicy?.outputCurrency,
-            blockManualOrOdometerDistanceRequestIfNeeded,
-            mappedPolicies,
+            blockDistanceRequestIfNeeded,
             getCurrencyDecimals,
             policyID,
         ],
@@ -640,6 +627,7 @@ function IOURequestStepConfirmation({
                 iouType,
                 isCreatingTrackExpense,
                 isSelfDMDestination,
+                isLookingAroundUser,
                 isMovingTransactionFromTrackExpense,
             }),
         [
@@ -651,6 +639,7 @@ function IOURequestStepConfirmation({
             iouType,
             isCreatingTrackExpense,
             isSelfDMDestination,
+            isLookingAroundUser,
             isMovingTransactionFromTrackExpense,
         ],
     );
@@ -755,12 +744,16 @@ function IOURequestStepConfirmation({
         }
 
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
-            // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
+            // If the participants weren't automatically added to the transaction, then we should go back to the participants step.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID || reportID, undefined, action), {
-                    compareParams: false,
-                });
+                Navigation.goBack(
+                    createDynamicRoute(
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType, transactionID: initialTransactionID, reportID: transaction?.reportID || reportID}),
+                        ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport),
+                    ),
+                    {compareParams: false},
+                );
                 return;
             }
 
@@ -880,7 +873,7 @@ function IOURequestStepConfirmation({
             prompt: translate('iou.removeExpenseConfirmation'),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;
@@ -892,11 +885,7 @@ function IOURequestStepConfirmation({
 
     const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
-            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
-            testID="IOURequestStepConfirmation"
-        >
+        <>
             <TelemetrySpanManager
                 iouType={iouType}
                 requestType={requestType}
@@ -996,6 +985,7 @@ function IOURequestStepConfirmation({
                             isFromGlobalCreate={isFromGlobalCreate}
                             iouType={iouType}
                             isSelfDMDestination={isSelfDMDestination}
+                            isLookingAroundUser={isLookingAroundUser}
                             requestType={requestType}
                             canDismissFromSearch={canDismissFromSearch}
                             gpsRequired={!!gpsRequired}
@@ -1069,12 +1059,31 @@ function IOURequestStepConfirmation({
                                 // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
                                 // matching standard RHP behavior, not just close the stacked participant picker.
                                 onBackdropPress={() => Navigation.dismissModal()}
-                                shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
+                                shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
                             />
                         )}
                     </View>
                 </View>
             </DragAndDropProvider>
+        </>
+    );
+}
+
+/**
+ * The standalone RHP route. It owns the chrome for this screen - the ScreenWrapper, its focus trap and its
+ * viewport sizing - and renders the same body inside it. IOURequestStartPage composes the body directly instead,
+ * because it already owns a trap whose containers are its header (with the Back button), its tab bar and the
+ * active tab; a second ScreenWrapper there would push another FocusTrapForScreen onto the shared trap stack,
+ * pause that one, and confine Tab to the confirmation form.
+ */
+function IOURequestStepConfirmation(props: IOURequestStepConfirmationProps) {
+    return (
+        <ScreenWrapper
+            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
+            testID="IOURequestStepConfirmation"
+        >
+            <IOURequestStepConfirmationContent {...props} />
         </ScreenWrapper>
     );
 }
@@ -1083,4 +1092,11 @@ const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransact
 
 const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
 
+const IOURequestStepConfirmationContentWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmationContent);
+
+const IOURequestStepConfirmationContentWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationContentWithFullTransactionOrNotFound);
+
 export default IOURequestStepConfirmationWithWritableReportOrNotFound;
+
+/** The body on its own, for a parent that already owns this screen's ScreenWrapper and focus trap. */
+export {IOURequestStepConfirmationContentWithWritableReportOrNotFound};
