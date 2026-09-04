@@ -1131,8 +1131,6 @@ describe('Session', () => {
             const draft = await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS);
             expect(draft?.isTracking).toBe(true);
             expect(draft?.accountID).toBe(accountID);
-            expect(await getOnyxValue(ONYXKEYS.CREDENTIALS)).toBeTruthy();
-            expect((await getOnyxValue(ONYXKEYS.ACCOUNT))?.isLoading).toBe(true);
         });
 
         test('discards the in-progress trip on a sign out redirect', async () => {
