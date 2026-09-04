@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
@@ -2152,7 +2152,7 @@ describe('Table', () => {
             expect(screen.getByTestId('row-2')).toBeTruthy();
         });
 
-        it('should reset a focused page-header table offset when search or filtered results change', () => {
+        it('should reset a focused page-header table offset when search or filtered results change', async () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
             const filterConfig: FilterConfig<'category'> = {
@@ -2213,8 +2213,10 @@ describe('Table', () => {
 
             expect(screen.getByTestId('search-input').props.value).toBe('apple');
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledTimes(1);
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
+            await waitFor(() => {
+                expect(mockFlashListScrollToOffset).toHaveBeenCalledTimes(1);
+                expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
+            });
         });
 
         it('should search by multiple fields when isItemInSearch checks multiple properties', () => {
