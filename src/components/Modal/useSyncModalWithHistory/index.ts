@@ -66,6 +66,9 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
 
         if (isVisible) {
             guardStateRef.current = MODAL_GUARD_STATE.OPEN;
+            // Root history keeps moving while this effect is detached, so the comparison below restarts from the live
+            // entry list. Without it a re-attach reads the pre-detach key and reduces the missing guard into a Back press.
+            prevSnapshotKeyRef.current = getModalGuardSnapshotKey(guardEntry);
             Navigation.isNavigationReady().then(() => {
                 navigationRef.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY,
@@ -97,7 +100,7 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
                 payload: {isVisible: false, modalId},
             });
         });
-    }, [isVisible, shouldHandleNavigationBack, modalId]);
+    }, [isVisible, shouldHandleNavigationBack, modalId, guardEntry]);
 
     // Browser Back/Forward changes the guard entry in root history, so we react via snapshot transitions.
     useEffect(() => {
