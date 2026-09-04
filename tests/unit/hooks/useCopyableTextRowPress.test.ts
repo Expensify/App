@@ -34,7 +34,7 @@ describe('useCopyableTextRowPress', () => {
         if (originalGetClientRectsDescriptor) {
             Object.defineProperty(Range.prototype, 'getClientRects', originalGetClientRectsDescriptor);
         } else {
-            delete Range.prototype.getClientRects;
+            Reflect.deleteProperty(Range.prototype, 'getClientRects');
         }
     });
 
