@@ -5,6 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -66,6 +67,9 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const {isOffline} = useNetwork();
 
+    // Backfill the policy's categories on demand so lazy-loaded accounts don't get stuck showing only the selected category.
+    useLoadPolicyCategories(policyID);
+
     const {translate, localeCompare} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
@@ -109,6 +113,10 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
     const categoriesCount = getEnabledCategoriesCount(categories);
     const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
 
+    // While the on-demand fetch above is in flight (collection not yet in Onyx and we're online), show the list
+    // loading state instead of flashing the selected-only fallback.
+    const isLoadingNewOptions = !isOffline && policyCategories === undefined && policyCategoriesDraft === undefined;
+
     const textInputOptions = {
         value: searchValue,
         label: translate('common.search'),
@@ -127,6 +135,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
             ListItem={SingleSelectListItem}
             shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             textInputOptions={textInputOptions}
+            isLoadingNewOptions={isLoadingNewOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             style={{listItemTitleStyles: styles.w100}}

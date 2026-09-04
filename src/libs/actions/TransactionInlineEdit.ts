@@ -439,14 +439,18 @@ function getTransactionEditPermissions({
             if (!policy?.areCategoriesEnabled && isCategoryMissing(transaction?.category)) {
                 return false;
             }
+            // An absent categories collection only means the lazy-loaded account has not fetched them yet, so treat it
+            // as unknown and keep the cell editable. Otherwise the edit icon stays hidden on an expense with a missing
+            // category, so CategoryPicker never mounts to backfill the list.
+            const areCategoriesEnabledButUnloaded = !!policy?.areCategoriesEnabled && policyCategories === undefined;
             // Matches MoneyRequestView's shouldShowCategory logic
             // For policy expenses, check if there's a category or enabled options
             if (isGroupPolicy(policy)) {
-                return !!(transaction?.category ?? '') || hasEnabledOptions(policyCategories ?? {});
+                return !!(transaction?.category ?? '') || areCategoriesEnabledButUnloaded || hasEnabledOptions(policyCategories ?? {});
             }
             // For unreported expenses, disable inline category editing while workspace selection is required.
             if (isUnreported) {
-                return !shouldSelectPolicyForUnreported && hasEnabledOptions(policyCategories ?? {});
+                return !shouldSelectPolicyForUnreported && (areCategoriesEnabledButUnloaded || hasEnabledOptions(policyCategories ?? {}));
             }
         }
 
@@ -455,7 +459,11 @@ function getTransactionEditPermissions({
             if (isMultiLevelTags(policyTags)) {
                 return false;
             }
-            return !!transaction?.tag || hasEnabledTags(getTagLists(policyTags));
+            // Same reasoning as categories above, so TagPicker can mount and backfill. If the tags turn out to be
+            // multi-level once they arrive, the check above flips this back to false and usePopoverEditState closes
+            // the open popover.
+            const areTagsEnabledButUnloaded = !!policy?.areTagsEnabled && policyTags === undefined;
+            return !!transaction?.tag || areTagsEnabledButUnloaded || hasEnabledTags(getTagLists(policyTags));
         }
 
         return (

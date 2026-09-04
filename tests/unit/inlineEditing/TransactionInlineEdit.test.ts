@@ -313,6 +313,41 @@ describe('TransactionInlineEdit', () => {
 
                 expect(permissions.canEditCategory).toBe(true);
             });
+
+            it('should enable category editing when the category is missing and the policy categories have not loaded yet', () => {
+                // Lazy-loaded accounts have no policyCategories in Onyx on a fresh sign-in. Without this the cell
+                // deadlocks: the edit icon stays hidden, so the picker never mounts and never backfills the list.
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policyCategories: undefined,
+                });
+
+                expect(permissions.canEditCategory).toBe(true);
+            });
+
+            it('should disable category editing when the category is missing and the loaded policy categories are empty', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policyCategories: {},
+                });
+
+                expect(permissions.canEditCategory).toBe(false);
+            });
+
+            it('should disable category editing when categories are not enabled on policy and the policy categories have not loaded yet', () => {
+                const policyWithoutCategories: Policy = {
+                    ...basePolicy,
+                    areCategoriesEnabled: false,
+                };
+
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: policyWithoutCategories,
+                    policyCategories: undefined,
+                });
+
+                expect(permissions.canEditCategory).toBe(false);
+            });
         });
 
         describe('tag permissions', () => {
@@ -359,6 +394,38 @@ describe('TransactionInlineEdit', () => {
 
                 expect(permissions.canEditTag).toBe(true);
             });
+
+            it('should enable tag editing when the tag is missing and the policy tags have not loaded yet', () => {
+                // Same deadlock as categories. With the collection absent the edit icon stays hidden, so TagPicker
+                // never mounts and never backfills the list.
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: {...basePolicy, areTagsEnabled: true},
+                    policyTags: undefined,
+                });
+
+                expect(permissions.canEditTag).toBe(true);
+            });
+
+            it('should disable tag editing when the tag is missing and the loaded policy tags are empty', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: {...basePolicy, areTagsEnabled: true},
+                    policyTags: {},
+                });
+
+                expect(permissions.canEditTag).toBe(false);
+            });
+
+            it('should disable tag editing when tags are not enabled on policy and the policy tags have not loaded yet', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: {...basePolicy, areTagsEnabled: false},
+                    policyTags: undefined,
+                });
+
+                expect(permissions.canEditTag).toBe(false);
+            });
         });
 
         describe('unreported expenses', () => {
@@ -383,12 +450,14 @@ describe('TransactionInlineEdit', () => {
                 } satisfies TransactionEditPermissions);
             });
 
+            // An empty collection rather than an absent one is what "no available options" means here. An absent
+            // collection only tells us the lazy-loaded account hasn't fetched it yet, so the cell stays editable.
             it('should disable category and tag editing without available options', () => {
                 const permissions = getTransactionEditPermissions({
                     ...baseUnreportedParams,
                     transaction: unreportedTransaction,
-                    policyCategories: undefined,
-                    policyTags: undefined,
+                    policyCategories: {},
+                    policyTags: {},
                 });
 
                 expect(permissions).toMatchObject({

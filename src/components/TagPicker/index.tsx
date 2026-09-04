@@ -3,7 +3,9 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -105,7 +107,11 @@ function TagPicker({
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare} = useLocalize();
+    const {isOffline} = useNetwork();
     const [searchValue, setSearchValue] = useState('');
+
+    // Backfill the policy's tags on demand so lazy-loaded accounts don't get stuck showing only the selected tag.
+    useLoadPolicyTags(policyID);
 
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = getTagList(policyTags, tagListIndex);
@@ -176,6 +182,10 @@ function TagPicker({
 
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
+    // While the on-demand fetch above is in flight (collection not yet in Onyx and we're online), show the list
+    // loading state instead of flashing the selected-only fallback.
+    const isLoadingNewOptions = !isOffline && policyTags === undefined;
+
     const textInputOptions = {
         value: searchValue,
         onChangeText: setSearchValue,
@@ -196,6 +206,7 @@ function TagPicker({
             }}
             textInputOptions={textInputOptions}
             shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            isLoadingNewOptions={isLoadingNewOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
