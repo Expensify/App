@@ -420,6 +420,7 @@ type MergeTransactionRequestParams = {
     sourceIOUAction: OnyxEntry<ReportAction>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    sourceIOUActionThreadReport: OnyxEntry<Report>;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -454,6 +455,7 @@ function mergeTransactionRequest({
     sourceIOUAction,
     getCurrencyDecimals,
     getCurrencySymbol,
+    sourceIOUActionThreadReport,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -625,6 +627,7 @@ function mergeTransactionRequest({
                 shouldDeleteTransactionThread,
                 reportAction: sourceIOUAction,
                 currentUserAccountID: currentUserAccountIDParam,
+                transactionThread: sourceIOUActionThreadReport,
                 transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });
             optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
@@ -646,18 +649,19 @@ function mergeTransactionRequest({
         if (!sourceIouAction) {
             Log.warn("Can't find the iouAction for the transaction in the selfDM report.");
         } else {
-            const {optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
-                selfDMReport,
-                sourceTransaction.transactionID,
-                sourceIouAction,
-                false,
-                currentUserAccountIDParam,
-                undefined,
-                undefined,
+            const {optimisticData, successData, failureData} = getDeleteTrackExpenseInformation({
+                chatReport: selfDMReport,
+                transactionID: sourceTransaction.transactionID,
+                reportAction: sourceIouAction,
+                isChatReportArchived: false,
+                currentUserAccountID: currentUserAccountIDParam,
+                shouldDeleteTransactionFromOnyx: undefined,
+                isMovingTransactionFromTrackExpense: undefined,
                 actionableWhisperReportActionID,
-                CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
-                false,
-            );
+                resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+                shouldRemoveIOUTransaction: false,
+                transactionThread: sourceIOUActionThreadReport,
+            });
 
             sourceTransactionOptimisticData.push(...optimisticData);
             sourceTransactionSuccessData.push(...successData);

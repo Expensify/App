@@ -652,18 +652,31 @@ function buildOnyxDataForTrackExpense({
     return onyxData;
 }
 
-function getDeleteTrackExpenseInformation(
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction,
-    isChatReportArchived: boolean | undefined,
-    currentUserAccountID: number,
+function getDeleteTrackExpenseInformation({
+    chatReport,
+    transactionID,
+    reportAction,
+    isChatReportArchived,
+    currentUserAccountID,
     shouldDeleteTransactionFromOnyx = true,
     isMovingTransactionFromTrackExpense = false,
     actionableWhisperReportActionID = '',
     resolution = '',
     shouldRemoveIOUTransaction = true,
-) {
+    transactionThread,
+}: {
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    transactionID: string | undefined;
+    reportAction: OnyxTypes.ReportAction;
+    isChatReportArchived: boolean | undefined;
+    currentUserAccountID: number;
+    shouldDeleteTransactionFromOnyx?: boolean;
+    isMovingTransactionFromTrackExpense?: boolean;
+    actionableWhisperReportActionID?: string;
+    resolution?: string;
+    shouldRemoveIOUTransaction?: boolean;
+    transactionThread?: OnyxEntry<OnyxTypes.Report>;
+}) {
     // STEP 1: Get all collections we're updating
     const transaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -737,6 +750,7 @@ function getDeleteTrackExpenseInformation(
     const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
         transactionThreadID,
         shouldDeleteTransactionThread,
+        transactionThread,
         currentUserAccountID,
     });
     optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
@@ -1240,18 +1254,18 @@ const getConvertTrackedExpenseInformation = (
         optimisticData: deleteOptimisticData,
         successData: deleteSuccessData,
         failureData: deleteFailureData,
-    } = getDeleteTrackExpenseInformation(
-        getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTrackedExpenseReportID}`],
+    } = getDeleteTrackExpenseInformation({
+        chatReport: getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTrackedExpenseReportID}`],
         transactionID,
-        linkedTrackedExpenseReportAction,
-        isLinkedTrackedExpenseReportArchived,
+        reportAction: linkedTrackedExpenseReportAction,
+        isChatReportArchived: isLinkedTrackedExpenseReportArchived,
         currentUserAccountID,
-        false,
-        true,
+        shouldDeleteTransactionFromOnyx: false,
+        isMovingTransactionFromTrackExpense: true,
         actionableWhisperReportActionID,
         resolution,
-        true,
-    );
+        shouldRemoveIOUTransaction: true,
+    });
 
     optimisticData?.push(...deleteOptimisticData);
     successData?.push(...deleteSuccessData);
@@ -3024,18 +3038,18 @@ function deleteTrackExpense({
 
     const whisperAction = getTrackExpenseActionableWhisper(transactionID, chatReportID, chatReportActions);
     const actionableWhisperReportActionID = whisperAction?.reportActionID;
-    const {parameters, optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
+    const {parameters, optimisticData, successData, failureData} = getDeleteTrackExpenseInformation({
         chatReport,
         transactionID,
         reportAction,
         isChatReportArchived,
         currentUserAccountID,
-        undefined,
-        undefined,
+        shouldDeleteTransactionFromOnyx: undefined,
+        isMovingTransactionFromTrackExpense: undefined,
         actionableWhisperReportActionID,
-        CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
-        false,
-    );
+        resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+        shouldRemoveIOUTransaction: false,
+    });
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});

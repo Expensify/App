@@ -1407,18 +1407,18 @@ function updateSplitTransactions({
             optimisticData: deleteExpenseOptimisticData,
             failureData: deleteExpenseFailureData,
             successData: deleteExpenseSuccessData,
-        } = getDeleteTrackExpenseInformation(
-            splitTransactionReport,
-            undeletedTransaction?.transactionID,
-            currentReportAction,
-            undefined,
-            currentUserPersonalDetails.accountID,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
-        );
+        } = getDeleteTrackExpenseInformation({
+            chatReport: splitTransactionReport,
+            transactionID: undeletedTransaction?.transactionID,
+            reportAction: currentReportAction,
+            isChatReportArchived: undefined,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            shouldDeleteTransactionFromOnyx: undefined,
+            isMovingTransactionFromTrackExpense: undefined,
+            actionableWhisperReportActionID: undefined,
+            resolution: undefined,
+            shouldRemoveIOUTransaction: isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
+        });
 
         // getDeleteTrackExpenseInformation only handles deleting the transaction report thread, so we need to update the report preview action here
         if (originalReportPreviewAction) {
