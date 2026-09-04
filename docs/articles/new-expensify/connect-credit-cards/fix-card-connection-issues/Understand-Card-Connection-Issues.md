@@ -1,5 +1,5 @@
 ---
-title: Understand card connection issues
+title: Understand Card Connection Issues
 description: Learn why card connections fail in Expensify and the difference between a connection that needs reauthentication and one that is broken.
 keywords: [card connection issues Expensify, card connection failed, card stopped importing transactions, broken card connection, reauthenticate card connection, reconnect card Expensify, bank connection issue, company card connection issue, personal card connection issue]
 internalScope: Audience is members with personal cards and workspace admins and card admins with company card feeds. Covers why new and existing card connections can fail, the difference between reauthentication and a broken connection, where connection issues appear, and how they affect expenses. Does not cover specific connection errors or step-by-step troubleshooting.
