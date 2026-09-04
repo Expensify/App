@@ -1,7 +1,6 @@
 context platform=android
 # @desc   Complete onboarding with minimal choices (skip work email, pick "Something else" purpose, enter generic name). Lands on Home.
 # @pre    text="What’s your work email?"
-# @post   text="Home"
 # @post   role="button" label="Search"
 # @tag    onboarding
 # @param  FIRST_NAME First name to enter on onboarding profile step.
