@@ -1,33 +1,46 @@
 import type {AppStateStatus} from 'react-native';
 
-import React from 'react';
+import {useEffect, useSyncExternalStore} from 'react';
 import {AppState} from 'react-native';
 
 import type AppStateType from './types';
 import type {UseAppStateProps} from './types';
 
-function useAppState({onAppStateChange}: UseAppStateProps = {}) {
-    const [appState, setAppState] = React.useState<AppStateType>({
-        isForeground: AppState.currentState === 'active',
-        isInactive: AppState.currentState === 'inactive',
-        isBackground: AppState.currentState === 'background',
-    });
+// One object per status, so a re-render that reads the same status hands consumers the same object back.
+const APP_STATE_BY_STATUS: Record<AppStateStatus, AppStateType> = {
+    active: {isForeground: true, isInactive: false, isBackground: false},
+    inactive: {isForeground: false, isInactive: true, isBackground: false},
+    background: {isForeground: false, isInactive: false, isBackground: true},
+    unknown: {isForeground: false, isInactive: false, isBackground: false},
+    extension: {isForeground: false, isInactive: false, isBackground: false},
+};
 
-    React.useEffect(() => {
-        function handleAppStateChange(nextAppState: AppStateStatus) {
-            setAppState({
-                isForeground: nextAppState === 'active',
-                isInactive: nextAppState === 'inactive',
-                isBackground: nextAppState === 'background',
-            });
+function subscribeToAppStateStatus(onStatusChange: () => void) {
+    const subscription = AppState.addEventListener('change', onStatusChange);
+    return () => subscription.remove();
+}
 
-            onAppStateChange?.(nextAppState);
+function getAppStateStatus(): AppStateStatus {
+    // The runtime value is null until the native module has reported once, whatever the type says.
+    const status: AppStateStatus | null = AppState.currentState;
+    return status ?? 'unknown';
+}
+
+function useAppState({onAppStateChange}: UseAppStateProps = {}): AppStateType {
+    // The status is read back from AppState instead of being mirrored into state, so a screen that heard no event
+    // because <Activity> had hidden it still reports the truth as soon as it is revealed.
+    const status = useSyncExternalStore(subscribeToAppStateStatus, getAppStateStatus);
+
+    useEffect(() => {
+        if (!onAppStateChange) {
+            return;
         }
-        const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+        const subscription = AppState.addEventListener('change', onAppStateChange);
         return () => subscription.remove();
     }, [onAppStateChange]);
 
-    return appState;
+    return APP_STATE_BY_STATUS[status];
 }
 
 export default useAppState;

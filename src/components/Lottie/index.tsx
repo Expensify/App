@@ -69,14 +69,19 @@ function Lottie({ref, source, webStyle, shouldLoadAfterInteractions, ...props}: 
         if (!browser || !navigationContainerRef || !navigator) {
             return;
         }
-        const unsubscribeNavigationFocus = navigator.addListener('focus', () => {
+        const resumeOnFocus = () => {
             setHasNavigatedAway(false);
             if (!isReduceMotionEnabled) {
                 animationRef.current?.play();
             }
-        });
+        };
+        // A screen that is covered while it stays mounted re-attaches this listener after the focus event already fired, so the navigator itself says whether to resume.
+        if (hasNavigatedAway && navigator.isFocused()) {
+            resumeOnFocus();
+        }
+        const unsubscribeNavigationFocus = navigator.addListener('focus', resumeOnFocus);
         return unsubscribeNavigationFocus;
-    }, [browser, navigationContainerRef, navigator, isReduceMotionEnabled]);
+    }, [browser, navigationContainerRef, navigator, isReduceMotionEnabled, hasNavigatedAway]);
 
     useEffect(() => {
         if (!browser || !navigationContainerRef || !navigator) {

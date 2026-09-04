@@ -3,6 +3,7 @@ import type Presentation from '@libs/Navigation/PlatformStackNavigation/navigati
 
 import type CommonProperties from '@src/types/utils/CommonProperties';
 
+import type {BottomTabNavigationOptions} from '@react-navigation/bottom-tabs';
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationOptions} from '@react-navigation/stack';
 
@@ -38,4 +39,11 @@ type PlatformStackNavigationOptions = CommonStackNavigationOptions & GeneralPlat
 // Used to represent navigation options specific to the native implementation/platform (`stack` or `native-stack`).
 type PlatformSpecificNavigationOptions = StackNavigationOptions | NativeStackNavigationOptions;
 
-export type {CommonStackNavigationOptions, NonTopScreenBehavior, PlatformStackNavigationOptions, PlatformSpecificNavigationOptions};
+// Options of a bottom-tab screen. A tab is never covered by a screen of its own navigator, so 'freeze' has nothing to
+// freeze there and only 'activity' is offered. The tab navigator ignores the option and bottomTabScreenLayoutWrapper
+// reads it back from the screen's options.
+type BottomTabScreenOptions = BottomTabNavigationOptions & {
+    nonTopScreenBehavior?: Extract<NonTopScreenBehavior, 'none' | 'activity'>;
+};
+
+export type {BottomTabScreenOptions, CommonStackNavigationOptions, NonTopScreenBehavior, PlatformStackNavigationOptions, PlatformSpecificNavigationOptions};

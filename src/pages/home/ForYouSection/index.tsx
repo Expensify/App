@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
@@ -57,7 +58,8 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
     // The onboarding NVP defaults to "completed" before it loads, so only trust it once the value is present.
     const isOnboardingStatusKnown = onboarding !== undefined;
-    const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
+    const [hasSeenForYouTodo = false, hasSeenForYouTodoMetadata] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
+    const isHasSeenForYouTodoLoaded = !isLoadingOnyxValue(hasSeenForYouTodoMetadata);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
     // "Time sensitive" now lives inside this card as a group above the "For you" todos (chat input stays on top).
     const timeSensitiveItems = useTimeSensitiveItems();
@@ -189,11 +191,12 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
 
     // Persist a one-time flag the first time a to-do appears so the section stays visible even when later empty.
     useEffect(() => {
-        if (isInitialLoad || !hasAnyTodos || hasSeenForYouTodo) {
+        // The NVP defaults to false before it loads, so writing it then would repeat a flag the account already has.
+        if (isInitialLoad || !hasAnyTodos || hasSeenForYouTodo || !isHasSeenForYouTodoLoaded) {
             return;
         }
         setHasSeenForYouTodo();
-    }, [isInitialLoad, hasAnyTodos, hasSeenForYouTodo]);
+    }, [isInitialLoad, hasAnyTodos, hasSeenForYouTodo, isHasSeenForYouTodoLoaded]);
 
     const renderContent = () => {
         if (isInitialLoad) {

@@ -111,6 +111,8 @@ function BaseModal({
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
+    const restoreModalVisibilityRef = useRef<() => void>(undefined);
+    const didHideForCoverRef = useRef(false);
     const bottomDockedDismissButtonRef = useRef<View>(null);
     const [fallbackModalID] = useState(() => ComposerFocusManager.getId());
     const coveringModalID = fallbackModalID;
@@ -190,16 +192,30 @@ function BaseModal({
     // The covering entry must not outlive the component, whatever path unmounts it.
     useEffect(() => () => setModalCovering(coveringModalID, false), [coveringModalID]);
 
-    useEffect(
-        () => () => {
+    useEffect(() => {
+        restoreModalVisibilityRef.current = () => {
+            if (!shouldSetModalVisibility) {
+                return;
+            }
+            setModalVisibility(true, type);
+        };
+    }, [shouldSetModalVisibility, type]);
+
+    // A screen cover runs this cleanup on a modal that stays painted; the re-run puts the visibility key back.
+    useEffect(() => {
+        if (didHideForCoverRef.current && isVisibleRef.current) {
+            restoreModalVisibilityRef.current?.();
+        }
+        didHideForCoverRef.current = false;
+
+        return () => {
             if (!shouldCallHideModalOnUnmount.current) {
                 return;
             }
             hideModalCallbackRef.current?.(true);
-        },
-
-        [],
-    );
+            didHideForCoverRef.current = true;
+        };
+    }, []);
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {

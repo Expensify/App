@@ -46,8 +46,17 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
     // Check if the cursor is at the end of the text
     const isCursorAtEnd = props.selection && props.selection.start === props.value?.length;
 
+    const lastScrollToEndKeyRef = useRef<string | undefined>(undefined);
+
     // Automatically scroll to the end if the cursor was at the end after value changes
     useEffect(() => {
+        // An Activity reveal re-runs this effect with the same value and caret, and scrolling again would throw away where the user had scrolled the input.
+        const scrollToEndKey = `${props.value ?? ''}|${isCursorAtEnd}`;
+        if (lastScrollToEndKeyRef.current === scrollToEndKey) {
+            return;
+        }
+        lastScrollToEndKeyRef.current = scrollToEndKey;
+
         if (!inputRef.current || !isCursorAtEnd) {
             return;
         }

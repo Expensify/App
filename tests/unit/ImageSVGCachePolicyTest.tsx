@@ -97,12 +97,14 @@ describe('ImageSVG cache policy', () => {
             expect(props.recyclingKey).toBe(String(MOCK_STATIC_SOURCE));
         });
 
-        it('should clear memory cache on unmount to prevent memory leaks', () => {
+        // Glide already trims the memory cache under pressure, and flushing it per icon emptied it for the whole app,
+        // including while the icon was only covered rather than gone.
+        it('should leave the shared memory cache alone on unmount', () => {
             const {unmount} = render(<ImageSVGAndroid src={MOCK_STATIC_SOURCE} />);
 
-            expect(mockClearMemoryCache).not.toHaveBeenCalled();
             unmount();
-            expect(mockClearMemoryCache).toHaveBeenCalled();
+
+            expect(mockClearMemoryCache).not.toHaveBeenCalled();
         });
 
         it('should render React component sources directly without expo-image Image', () => {

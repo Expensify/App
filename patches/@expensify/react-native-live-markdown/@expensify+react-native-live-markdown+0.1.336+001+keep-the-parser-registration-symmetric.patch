@@ -1,0 +1,70 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx
+index 935b055..2640977 100644
+--- a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx
++++ b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx
+@@ -70,6 +70,50 @@ type FormatSelectionResult = {
+ 
+ type MarkdownTextInput = TextInput & React.Component<MarkdownTextInputProps>;
+ 
++type ParserRegistration = {
++  parser: MarkdownTextInputProps['parser'];
++  parserId: number;
++};
++
++// Keeps the component on a parser id the native registry can resolve, for the whole time it is mounted.
++// The registration is symmetric: the effect body owns every register call and its cleanup owns the matching
++// unregister, so a remount of the effects alone (StrictMode in dev, a hidden `<Activity>` that is revealed)
++// registers a fresh id and hands it to the decorator view instead of leaving the old, erased one behind.
++function useParserId(parser: MarkdownTextInputProps['parser']): number {
++  const registrationRef = React.useRef<ParserRegistration | null>(null);
++  const hasRegisteredInitialParserRef = React.useRef(false);
++
++  // The decorator view must never render an id the registry cannot resolve, and the effect below runs only
++  // after the first paint, so the first registration happens during the first render.
++  if (!hasRegisteredInitialParserRef.current) {
++    hasRegisteredInitialParserRef.current = true;
++    registrationRef.current = {parser, parserId: registerParser(parser)};
++  }
++
++  const [parserId, setParserId] = React.useState(() => registrationRef.current?.parserId ?? 0);
++
++  React.useEffect(() => {
++    const registration = registrationRef.current;
++    // The registration is gone once the cleanup below ran, and stale once the parser changed identity.
++    if (registration === null || registration.parser !== parser) {
++      const nextRegistration = {parser, parserId: registerParser(parser)};
++      registrationRef.current = nextRegistration;
++      setParserId(nextRegistration.parserId);
++    }
++
++    return () => {
++      const currentRegistration = registrationRef.current;
++      if (currentRegistration === null) {
++        return;
++      }
++      registrationRef.current = null;
++      unregisterParser(currentRegistration.parserId);
++    };
++  }, [parser]);
++
++  return parserId;
++}
++
+ function processColorsInMarkdownStyle(input: MarkdownStyle): MarkdownStyle {
+   const output = JSON.parse(JSON.stringify(input));
+ 
+@@ -104,13 +148,7 @@ const MarkdownTextInput = React.forwardRef<MarkdownTextInput, MarkdownTextInputP
+     throw new Error('[react-native-live-markdown] `parser` is not a worklet');
+   }
+ 
+-  const parserId = React.useMemo(() => {
+-    return registerParser(props.parser);
+-  }, [props.parser]);
+-
+-  React.useEffect(() => {
+-    return () => unregisterParser(parserId);
+-  }, [parserId]);
++  const parserId = useParserId(props.parser);
+ 
+   return (
+     <MarkdownTextInputDecoratorViewNativeComponent

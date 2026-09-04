@@ -1,0 +1,52 @@
+diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+index ec3b49e..a7ddd2b 100644
+--- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+@@ -100,8 +100,19 @@ class WebGLRenderer {
+   }
+   dispose() {
+     if (this.surface) {
+-      var _this$canvas;
+-      (_this$canvas = this.canvas) === null || _this$canvas === void 0 || (_this$canvas = _this$canvas.getContext("webgl2")) === null || _this$canvas === void 0 || (_this$canvas = _this$canvas.getExtension("WEBGL_lose_context")) === null || _this$canvas === void 0 || _this$canvas.loseContext();
++      // A lost context is permanent for the element and effect cleanup is not unmount: an
++      // <Activity> hide (or a StrictMode DEV re-run) disposes the renderer but keeps the
++      // <canvas>, and the reveal re-creates a renderer on that same element, which can never get
++      // a usable context again once it was lost. Defer the release one microtask and only lose
++      // the context once React has really detached the element - at cleanup time it is still
++      // connected even during a real unmount (upstream issue #3976, PR #4027). A kept element
++      // also keeps its last frame while the hidden screen stays visible as a static backdrop.
++      const canvas = this.canvas;
++      queueMicrotask(() => {
++        if (canvas && !canvas.isConnected) {
++          canvas.getContext("webgl2")?.getExtension("WEBGL_lose_context")?.loseContext();
++        }
++      });
+       this.surface.ref.delete();
+       this.surface = null;
+     }
+diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+index e1cd87b..4ea9833 100644
+--- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+@@ -93,8 +93,19 @@ class WebGLRenderer {
+   }
+   dispose() {
+     if (this.surface) {
+-      var _this$canvas;
+-      (_this$canvas = this.canvas) === null || _this$canvas === void 0 || (_this$canvas = _this$canvas.getContext("webgl2")) === null || _this$canvas === void 0 || (_this$canvas = _this$canvas.getExtension("WEBGL_lose_context")) === null || _this$canvas === void 0 || _this$canvas.loseContext();
++      // A lost context is permanent for the element and effect cleanup is not unmount: an
++      // <Activity> hide (or a StrictMode DEV re-run) disposes the renderer but keeps the
++      // <canvas>, and the reveal re-creates a renderer on that same element, which can never get
++      // a usable context again once it was lost. Defer the release one microtask and only lose
++      // the context once React has really detached the element - at cleanup time it is still
++      // connected even during a real unmount (upstream issue #3976, PR #4027). A kept element
++      // also keeps its last frame while the hidden screen stays visible as a static backdrop.
++      const canvas = this.canvas;
++      queueMicrotask(() => {
++        if (canvas && !canvas.isConnected) {
++          canvas.getContext("webgl2")?.getExtension("WEBGL_lose_context")?.loseContext();
++        }
++      });
+       this.surface.ref.delete();
+       this.surface = null;
+     }

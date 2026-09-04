@@ -97,3 +97,48 @@
 - Upstream PR/issue: https://github.com/Shopify/react-native-skia/pull/3855 — the same fix, merged upstream on 2026-05-26. Drop this patch once the Skia dependency is bumped to >= 2.6.9.
 - E/App issue: https://github.com/Expensify/App/issues/98331, https://github.com/Expensify/App/issues/95905
 - PR introducing patch: https://github.com/Expensify/App/pull/98437
+
+### [@shopify+react-native-skia+2.4.18+004+defer-webgl-context-loss-to-unmount.patch](@shopify+react-native-skia+2.4.18+004+defer-webgl-context-loss-to-unmount.patch)
+
+- Reason:
+
+    ```
+    Fixes charts staying permanently blank on web whenever React re-runs the
+    layout effects of a mounted <Canvas> on the same DOM node - most importantly
+    a screen wrapped in React <Activity> being hidden and revealed (the
+    ScreenActivityWrapper rollout), and StrictMode's DEV double-invoke.
+
+    Hiding an Activity subtree runs effect cleanups: SkiaPictureView's cleanup
+    calls WebGLRenderer.dispose(), which called WEBGL_lose_context.loseContext()
+    on the <canvas>. Per the WEBGL_lose_context spec that loss is permanent for
+    the element - a later getContext("webgl2") hands back the same lost context
+    and only restoreContext() can revive it. Revealing re-runs the effects and
+    creates a new renderer on the same canvas element, so
+    CanvasKit.MakeWebGLCanvasSurface can never succeed on it again - it throws
+    "Cannot read properties of null (reading 'rangeMin')" (which patch 002 turns
+    into the "unable to display chart" fallback). Losing the context also blanks
+    the canvas while the hidden screen can still be on screen: the app keeps a
+    hidden <Activity> screen visible as a static backdrop (display: contents).
+
+    Fix (mirrors upstream PR #4027): dispose() no longer loses the context
+    synchronously. It defers the release by one microtask and only calls
+    loseContext() when the canvas actually left the document - React runs effect
+    cleanup before detaching the host node, so the element is still connected at
+    cleanup time even during a real unmount, but one microtask later
+    isConnected is false only for a real unmount. An Activity hide keeps the
+    element connected, so the context - and the last presented frame the
+    backdrop shows - survives, and the reveal creates its new surface on the
+    live context exactly like the already-working resize path. A real unmount
+    still releases the context deterministically, which matters because
+    browsers cap a page at ~16 live WebGL contexts.
+
+    A screen unmounted while hidden runs no cleanup at all, so its context is
+    reclaimed only by the browser's LRU force-loss once the cap is hit; a
+    leaked context is never used again, so it is the first eviction victim.
+    Context pressure from hidden screens matches the pre-Activity baseline,
+    where every mounted background screen held a live context anyway.
+    ```
+
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3976 - the same root cause reported against upstream `main`, with two open fixes: https://github.com/Shopify/react-native-skia/pull/4027 (deferred `isConnected`-guarded release, which this patch mirrors) and https://github.com/Shopify/react-native-skia/pull/4002 (drops `loseContext()` entirely; safe upstream only because `deleteContext()` exists there, which 2.4.18 lacks). Revisit when either merges and the Skia dependency is bumped.
+- E/App issue:
+- PR introducing patch:
