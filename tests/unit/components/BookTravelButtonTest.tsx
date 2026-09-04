@@ -5,14 +5,13 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import React from 'react';
@@ -36,6 +35,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         getActiveRouteWithoutParams: jest.fn(() => ''),
         isNavigationReady: jest.fn(() => Promise.resolve()),
         goBack: jest.fn(),
+        runAfterTransition: jest.fn((callback: () => void) => {
+            callback();
+            return {cancel: jest.fn()};
+        }),
+        runAfterUpcomingTransition: jest.fn((callback: () => void) => {
+            callback();
+            return {cancel: jest.fn()};
+        }),
     },
 }));
 
@@ -92,6 +99,11 @@ const travelEnabledPolicy: Policy = {
     },
 };
 
+const unprovisionedPolicy: Policy = {
+    ...provisionedPolicy,
+    travelSettings: undefined,
+};
+
 const workspaceWithoutTravel: Policy = {
     ...createRandomPolicy(456, CONST.POLICY.TYPE.CORPORATE),
     id: DEFAULT_POLICY_ID,
@@ -105,19 +117,20 @@ const workspaceWithoutTravel: Policy = {
     travelSettings: undefined,
 };
 
-const renderBookTravelButton = () =>
+const renderBookTravelButton = (shouldShowVerifyAccountModal = true) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <BookTravelButton
                 text="Book a trip"
                 activePolicyID={POLICY_ID}
+                shouldShowVerifyAccountModal={shouldShowVerifyAccountModal}
             />
         </ComposeProviders>,
     );
 
-const seedOnyx = async (isValidated: boolean) => {
+const seedOnyx = async (isValidated: boolean, policy: Policy = provisionedPolicy) => {
     await act(async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, provisionedPolicy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: isValidated, primaryLogin: USER_LOGIN});
         await Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {hasAcceptedTerms: false});
         await Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {legalFirstName: 'Test', legalLastName: 'User'});
@@ -164,12 +177,72 @@ describe('BookTravelButton', () => {
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then it routes to verify-account instead of the stepper directly, recording the stepper as where to
-            // forward-navigate back to once validated (this avoids a URL blink from double-navigating through the
-            // stepper, which would otherwise immediately redirect to this same verify-account page anyway)
-            expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
-            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(POLICY_ID)));
+            // Then it routes to verify-account instead of the stepper directly
+            expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('verify-account'));
             expect(Navigation.navigate).not.toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(setTravelProvisioningNextStep).not.toHaveBeenCalled();
+
+            // When the account becomes validated
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then the booking resumes and hands off to the enablement stepper
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+        });
+    });
+
+    describe('when the workspace is not provisioned and the self-serve provisioning beta is off (legacy request-access path)', () => {
+        it.each([
+            {shouldShowVerifyAccountModal: true, modalExpectation: 'shows the verify-company modal'},
+            {shouldShowVerifyAccountModal: false, modalExpectation: 'skips the verify-company modal'},
+        ])('requests travel access for a validated admin and $modalExpectation', async ({shouldShowVerifyAccountModal}) => {
+            // Given an unprovisioned workspace and a validated admin
+            await seedOnyx(true, unprovisionedPolicy);
+            renderBookTravelButton(shouldShowVerifyAccountModal);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then travel access is requested, with the confirm modal only when the entry point asks for it
+            expect(requestTravelAccess).toHaveBeenCalled();
+            if (shouldShowVerifyAccountModal) {
+                expect(mockShowConfirmModal).toHaveBeenCalled();
+                expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toContain('verify your account is ready for Expensify Travel');
+            } else {
+                expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            }
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('routes an unvalidated admin to verify their account, then resumes the request and shows the verify-company modal', async () => {
+            // Given an unprovisioned workspace and an admin who has not validated their account
+            await seedOnyx(false, unprovisionedPolicy);
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they are sent to the verify-account screen and nothing is requested yet
+            expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('verify-account'));
+            expect(requestTravelAccess).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+
+            // When the account becomes validated
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then the legacy branch resumes in full: confirm modal shown and travel access requested
+            expect(mockShowConfirmModal).toHaveBeenCalled();
+            expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toContain('verify your account is ready for Expensify Travel');
+            expect(requestTravelAccess).toHaveBeenCalled();
         });
     });
 

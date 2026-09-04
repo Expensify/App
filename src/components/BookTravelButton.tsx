@@ -9,8 +9,9 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
-import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -72,7 +73,6 @@ function BookTravelButton({
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isUserValidated = account?.validated ?? false;
     const primaryLogin = account?.primaryLogin ?? '';
 
     const policy = usePolicy(activePolicyID);
@@ -87,6 +87,27 @@ function BookTravelButton({
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
+
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resumeBooking?: () => void) => resumeBooking?.());
+
+    const completeTravelAccessRequest = () => {
+        if (shouldShowVerifyAccountModal) {
+            showConfirmModal({
+                title: translate('travel.verifyCompany.title'),
+                titleStyles: styles.textHeadlineH1,
+                titleContainerStyles: styles.mb2,
+                prompt: translate('travel.verifyCompany.message'),
+                promptStyles: styles.mb2,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                image: illustrations.RocketDude,
+                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+            });
+        }
+        if (!travelSettings?.lastTravelSignupRequestTime) {
+            requestTravelAccess();
+        }
+    };
 
     const navigateToPublicDomainError = () => {
         const dynamicSuffix = getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR, activePolicyID);
@@ -162,38 +183,18 @@ function BookTravelButton({
         // Legacy request-access path for not-yet-provisioned workspaces when the self-serve provisioning beta is off.
         if (!isPolicyProvisioned && !isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             if (!isUserValidated) {
-                Navigation.navigate(createDynamicRoute(getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT, activePolicyID)));
+                verifyAccountAndResume(completeTravelAccessRequest);
                 return;
             }
-            if (shouldShowVerifyAccountModal) {
-                showConfirmModal({
-                    title: translate('travel.verifyCompany.title'),
-                    titleStyles: styles.textHeadlineH1,
-                    titleContainerStyles: styles.mb2,
-                    prompt: translate('travel.verifyCompany.message'),
-                    promptStyles: styles.mb2,
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                    image: illustrations.RocketDude,
-                    imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
-                });
-            }
-            if (!travelSettings?.lastTravelSignupRequestTime) {
-                requestTravelAccess();
-            }
+            completeTravelAccessRequest();
             return;
         }
 
         // Hand off to the enablement stepper, which computes and collects only the steps this workspace still needs.
         cleanupTravelProvisioningSession();
         const enableTravelRoute = ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
-        // EnableTravel's own entry-mount effect would catch this and redirect regardless (it also has to, to
-        // protect a direct/deep link straight into the stepper), but checking here too avoids a visible URL
-        // blink: without this, the button would navigate to the stepper's URL first, then immediately get
-        // replaced with the verify URL a render later.
         if (!isUserValidated) {
-            setTravelProvisioningNextStep(enableTravelRoute);
-            Navigation.navigate(createDynamicRoute(getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT, activePolicyID)));
+            verifyAccountAndResume(() => Navigation.navigate(enableTravelRoute));
             return;
         }
         Navigation.navigate(enableTravelRoute);
