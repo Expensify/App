@@ -1725,6 +1725,13 @@ function shareBankAccountAndSetPayer(bankAccountID: number, shareeAccountID: num
 }
 
 /**
+ * Get the current user's bank accounts outside of a React context
+ */
+function getBankAccountList() {
+    return bankAccountList;
+}
+
+/**
  * Get bank account from bankAccountID
  */
 function getBankAccountFromID(bankAccountID: number | undefined) {
@@ -1925,6 +1932,7 @@ export {
     clearPersonalBankAccountErrors,
     clearReimbursementAccountSendReminderForCorpaySignerInformation,
     getBankAccountFromID,
+    getBankAccountList,
     openBankAccountSharePage,
     clearShareBankAccountErrors,
     updatePersonalBankAccountInfo,

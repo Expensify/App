@@ -1657,6 +1657,9 @@ const CONST = {
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
+
+                // Hidden action that only carries the violations snapshot of an expense added to a report that was already awaiting its first approval
+                ADD_EXPENSE_ON_SUBMITTED: 'ADDEXPENSEONSUBMITTED',
                 APPROVED: 'APPROVED',
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
@@ -4533,6 +4536,20 @@ const CONST = {
             },
             get ACCOUNTING_CONNECTION_NAMES() {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.DUALENTRY] as const;
+            },
+            // The `origin` the backend stamps on a report field imported by an accounting integration. These values
+            // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
+            get REPORT_FIELD_ORIGIN() {
+                return {
+                    [this.NAME.QBO]: 'qbo',
+                    [this.NAME.QBD]: 'qbd',
+                    [this.NAME.XERO]: 'xero',
+                    [this.NAME.NETSUITE]: 'netsuite',
+                    [this.NAME.SAGE_INTACCT]: 'intacct',
+                    [this.NAME.CERTINIA]: 'financialforce',
+                    [this.NAME.RILLET]: 'rillet',
+                    [this.NAME.DUALENTRY]: 'dualentry',
+                } as const;
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
