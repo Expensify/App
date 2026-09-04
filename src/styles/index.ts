@@ -377,7 +377,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
         customEmojiFont: FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT,
 
-        mentionSuggestionsAvatarContainer: {
+        compactAvatarContainer: {
             width: 24,
             height: 24,
             alignItems: 'center',
@@ -2756,6 +2756,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomRightRadius: variables.componentBorderRadius,
         },
 
+        tableBorder: {
+            borderWidth: 1,
+            borderColor: 'transparent',
+        },
+
         tableRowHeightCompact: {
             minHeight: variables.tableRowHeightCompact,
         },
@@ -3870,7 +3875,7 @@ const staticStyles = (theme: ThemeColors) =>
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
-            paddingRight: 48,
+            paddingRight: 44,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -4028,6 +4033,14 @@ const staticStyles = (theme: ThemeColors) =>
             right: 16,
             flexDirection: 'row',
             gap: 8,
+        },
+
+        // Float above the receipt to avoid zooming with it.
+        receiptPageCountBadge: {
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            marginLeft: 0,
         },
 
         receiptActionButton: {
@@ -5329,7 +5342,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
-        menuItemChevron: {
+        menuItemTrailingIcon: {
             ...pointerEventsAuto,
             ...flex.justifyContentCenter,
             ...flex.alignItemsEnd,
@@ -5340,6 +5353,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.flexRow,
             ...pointerEventsAuto,
             ...spacing.gap3,
+        },
+
+        menuItemLeading: {
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsCenter,
         },
 
         menuItemTrailing: {
@@ -5846,6 +5864,11 @@ const staticStyles = (theme: ThemeColors) =>
         sortingMachineRulesEmptyStateIllustration: {
             width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
+        },
+
+        spyPigeonRulesEmptyStateIllustration: {
+            width: variables.spyPigeonRulesEmptyStateIllustrationWidth,
+            height: variables.spyPigeonRulesEmptyStateIllustrationHeight,
         },
 
         agentsRulesEmptyStateIllustration: {

@@ -196,6 +196,16 @@ const transactionWithReceipt: Transaction = {
     },
 };
 
+const transactionWithMultiPagePDFReceipt: Transaction = {
+    ...transactionWithoutReceipt,
+    receipt: {
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+        source: 'https://example.com/receipt.pdf',
+        filename: 'receipt.pdf',
+        pageCount: 3,
+    },
+};
+
 const transactionWithScanningReceipt: Transaction = {
     ...transactionWithoutReceipt,
     receipt: {
@@ -293,6 +303,103 @@ describe('MoneyRequestReceiptView', () => {
             const firstCall = mockOpenPicker.mock.calls.at(0);
             const onPicked = firstCall?.at(0)?.onPicked;
             expect(onPicked).toBeDefined();
+        });
+    });
+
+    describe('receipt page count badge', () => {
+        it('shows the page count for a multi-page PDF receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeTruthy();
+        });
+
+        it('does not show the page count for a single page PDF receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    receipt: {...transactionWithMultiPagePDFReceipt.receipt, pageCount: 1},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 1}))).toBeNull();
+        });
+
+        // An optimistic merge that swaps a PDF for an image can leave the PDF's count behind, so the
+        // badge has to follow the current file type rather than the leftover count
+        it('does not show the page count when a stale count is left on an image receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    receipt: {...transactionWithMultiPagePDFReceipt.receipt, source: 'https://example.com/photo.jpg', filename: 'photo.jpg'},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+        });
+
+        // An image receipt carries no page count at all, which is also what a PDF uploaded before the
+        // backend started reporting one looks like
+        it('does not show the page count for a receipt without one', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+        });
+
+        // The regenerated receipt makes the old count stale
+        it('does not show the page count while a map distance receipt is regenerating', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    pendingFields: {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
         });
     });
 
