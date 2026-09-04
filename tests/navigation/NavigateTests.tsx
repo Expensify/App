@@ -176,6 +176,7 @@ describe('Navigate', () => {
             const workspaceStateAfterNavigate = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
             expect(workspaceStateAfterNavigate?.routes.at(0)?.name).toBe(SCREENS.WORKSPACES_LIST);
             expect(workspaceStateAfterNavigate?.routes.at(-1)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+            expect(workspaceStateAfterNavigate?.routes.at(-1)?.state?.routes.at(-1)?.params).not.toHaveProperty('shouldSkipInitialSidebar');
 
             act(() => {
                 Navigation.goBack();
