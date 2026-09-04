@@ -7,9 +7,9 @@ on:
     branches-ignore: [staging, production]
     paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, tests/**, '**.md', '**.sh']
 
-# 9.0% of the 300 most recent runs were superseded by another push to the same PR while still
-# running, at a mean of 303s across 2.7 of their 3 jobs. pull_request-only, so github.ref is
-# refs/pull/<n>/merge and the group is a single PR.
+# A push to a PR that is still measuring an earlier push wastes the whole run, and that happens
+# often enough to be worth cancelling. pull_request-only, so github.ref is refs/pull/<n>/merge and
+# the group is a single PR.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -34,8 +34,9 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
 
-      # Skips re-transforming ~7,000 files through Babel, which is 45% of this job. The entry is
-      # written on main by seedJestPerfCache.yml, which is also where the key is explained.
+      # Skips re-transforming the whole source tree through Babel, which is a large fraction of this
+      # job's wall time. The entry is written on main by seedJestPerfCache.yml, which is also where
+      # the key is explained.
       #
       # Restore only, never save, so nothing an untrusted PR runs can end up in an entry a later
       # run executes. No restore-keys either: babel-jest does not hash Babel plugin versions into
@@ -43,20 +44,31 @@ jobs:
       # babel-plugin-react-compiler and move the render counts this workflow gates at
       # COUNT_DEVIATION: 0. Keep this key byte-identical to the other three.
       - name: Restore Jest transform cache
+        id: restoreJestCache
         # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .jest-cache
           key: ${{ format('{0}-{1}-jest-perf-{2}', runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc')) }}
 
+      # A miss costs this job a full cold Babel pass and fails nothing, so this warning is the only
+      # thing that tells a working mechanism apart from one that silently died. `Report Jest cache
+      # size` below cannot:
+      # it reads the directory after the perf run, by which point Jest has written a full transform
+      # set whether the restore hit or not. `cache-hit` is 'true' only on an exact key match, which is
+      # the right test here because there are no restore-keys.
+      - name: Warn on a Jest transform cache miss
+        if: steps.restoreJestCache.outputs.cache-hit != 'true'
+        run: echo "::warning::Jest perf transform cache miss. This job re-transforms the whole source tree. Expected only if this PR edits the lockfile, patches/**, babel.config.js, config/babel/**, jest.config.js or .nvmrc; otherwise seedJestPerfCache.yml has stopped writing the entry."
+
       - name: Run baseline performance tests
         shell: bash
         run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
 
-      # Healthy is ~120MB / ~7,000 files, and this notice is the only signal if that stops being
-      # true. Near zero: seedJestPerfCache.yml is no longer running, so runs go cold again. Roughly
-      # double: the two measure jobs stopped passing Jest identical arguments, which quietly writes
-      # a second full set of entries.
+      # Compare against what the seed job's own notice reports on a recent push to main: this is the
+      # only signal if the mechanism stops working. Near zero means seedJestPerfCache.yml is no
+      # longer running, so runs go cold again. Roughly double means the two measure jobs stopped
+      # passing Jest identical arguments, which quietly writes a second full set of entries.
       - name: Report Jest cache size
         if: always()
         run: |
@@ -84,8 +96,9 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
 
-      # Skips re-transforming ~7,000 files through Babel, which is 45% of this job. The entry is
-      # written on main by seedJestPerfCache.yml, which is also where the key is explained.
+      # Skips re-transforming the whole source tree through Babel, which is a large fraction of this
+      # job's wall time. The entry is written on main by seedJestPerfCache.yml, which is also where
+      # the key is explained.
       #
       # Restore only, never save, so nothing an untrusted PR runs can end up in an entry a later
       # run executes. No restore-keys either: babel-jest does not hash Babel plugin versions into
@@ -93,11 +106,22 @@ jobs:
       # babel-plugin-react-compiler and move the render counts this workflow gates at
       # COUNT_DEVIATION: 0. Keep this key byte-identical to the other three.
       - name: Restore Jest transform cache
+        id: restoreJestCache
         # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .jest-cache
           key: ${{ format('{0}-{1}-jest-perf-{2}', runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc')) }}
+
+      # A miss costs this job a full cold Babel pass and fails nothing, so this warning is the only
+      # thing that tells a working mechanism apart from one that silently died. `Report Jest cache
+      # size` below cannot:
+      # it reads the directory after the perf run, by which point Jest has written a full transform
+      # set whether the restore hit or not. `cache-hit` is 'true' only on an exact key match, which is
+      # the right test here because there are no restore-keys.
+      - name: Warn on a Jest transform cache miss
+        if: steps.restoreJestCache.outputs.cache-hit != 'true'
+        run: echo "::warning::Jest perf transform cache miss. This job re-transforms the whole source tree. Expected only if this PR edits the lockfile, patches/**, babel.config.js, config/babel/**, jest.config.js or .nvmrc; otherwise seedJestPerfCache.yml has stopped writing the entry."
 
       - name: Run branch performance tests
         shell: bash
@@ -106,10 +130,10 @@ jobs:
           COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
         run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare
 
-      # Healthy is ~120MB / ~7,000 files, and this notice is the only signal if that stops being
-      # true. Near zero: seedJestPerfCache.yml is no longer running, so runs go cold again. Roughly
-      # double: the two measure jobs stopped passing Jest identical arguments, which quietly writes
-      # a second full set of entries.
+      # Compare against what the seed job's own notice reports on a recent push to main: this is the
+      # only signal if the mechanism stops working. Near zero means seedJestPerfCache.yml is no
+      # longer running, so runs go cold again. Roughly double means the two measure jobs stopped
+      # passing Jest identical arguments, which quietly writes a second full set of entries.
       - name: Report Jest cache size
         if: always()
         run: |
