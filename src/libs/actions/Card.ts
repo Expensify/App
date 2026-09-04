@@ -3,6 +3,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
+    ApproveDigitalWalletCardAdditionParams,
     CardDeactivateParams,
     CreateExpensifyCardParams,
     DeletePersonalCardParams,
@@ -74,6 +75,25 @@ type CardOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
 type CardListUpdateData = Omit<PartialDeep<Card>, 'errors'> & {
     errors?: Card['errors'] | null;
 };
+
+/**
+ * Shared isLoading updates so both card writes show and hide the same spinner.
+ */
+function buildCardLoadingOnyxData(cardID: number) {
+    const mergeCard = (value: CardListUpdateData): Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {[cardID]: value},
+        },
+    ];
+
+    return {
+        optimisticData: mergeCard({errors: null, isLoading: true}),
+        successData: mergeCard({isLoading: false}),
+        failureData: mergeCard({isLoading: false}),
+    };
+}
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
     const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
@@ -200,53 +220,25 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
  * Activates the physical Expensify card based on the last four digits of the card number
  */
 function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    errors: null,
-                    isLoading: true,
-                },
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    isLoading: false,
-                },
-            },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    isLoading: false,
-                },
-            },
-        },
-    ];
-
     const parameters: ActivatePhysicalExpensifyCardParams = {
         cardLastFourDigits,
         cardID,
     };
 
-    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, buildCardLoadingOnyxData(cardID));
+}
+
+/**
+ * Confirms or denies adding the card to a digital wallet. Confirming needs a magic code. Denying does not.
+ */
+function approveDigitalWalletCardAddition(cardID: number, isApproved: boolean, validateCode?: string) {
+    const parameters: ApproveDigitalWalletCardAdditionParams = {
+        cardID,
+        isApproved,
+        validateCode,
+    };
+
+    API.write(WRITE_COMMANDS.APPROVE_DIGITAL_WALLET_CARD_ADDITION, parameters, buildCardLoadingOnyxData(cardID));
 }
 
 /**
@@ -1560,6 +1552,11 @@ function issueExpensifyCard(
     );
 }
 
+/** Asks if any Expensify Card has a wallet addition waiting to be confirmed. */
+function getExpensifyCardPendingWalletApproval() {
+    API.read(READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL, null);
+}
+
 function openCardDetailsPage(cardID: number) {
     const parameters: OpenCardDetailsPageParams = {
         cardID,
@@ -2018,6 +2015,8 @@ export {
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
+    getExpensifyCardPendingWalletApproval,
+    approveDigitalWalletCardAddition,
     clearCardErrorField,
     clearCardNameValuePairsErrorField,
     setPersonalCardReimbursable,

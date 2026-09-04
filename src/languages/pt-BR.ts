@@ -957,6 +957,14 @@ const translations: TranslationDeepObject<typeof en> = {
             addPaymentCard: {title: 'Adicione um cartão de pagamento para continuar usando o Expensify', subtitle: 'Conta > Assinatura', cta: 'Adicionar'},
             addBankAccount: {title: 'Adicione uma conta bancária para ser reembolsado'},
             activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `A adição do cartão ${walletName} precisa da sua aprovação`,
+                subtitle: 'Cartão Expensify',
+                cta: 'Revisar',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google Wallet',
+                digitalWallet: 'Carteira digital',
+            },
             reviewCardFraud: {
                 title: 'Analisar possível fraude no seu Cartão Expensify',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Analisar ${amount} em possível fraude em ${merchant}`,
@@ -2703,6 +2711,24 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Esta conta precisa de atenção',
             unlock: 'Desbloquear',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `Adicionar cartão à ${walletName}`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google Wallet',
+        digitalWallet: 'carteira digital',
+        confirmHeading: 'Confirme sua solicitação',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
+            `Você quer adicionar seu Cartão Expensify (com final ${lastFourDigits}) à sua ${walletName}?`,
+        deny: 'Negar',
+        confirm: 'Confirmar',
+        verifyTitle: 'Vamos verificar se é você',
+        enterSecurityCode: (contactMethod: string) =>
+            `Digite o código de segurança enviado para ${contactMethod} para confirmar esta solicitação. Ele deve chegar dentro de um ou dois minutos.`,
+        successHeading: 'Sucesso!',
+        successDescription: ({walletName}: {walletName: string}) => `Seu cartão agora está ativo para uso na sua ${walletName}.`,
+        deniedHeading: 'Solicitação negada',
+        deniedDescription: ({walletName}: {walletName: string}) => `Seu cartão não foi adicionado à sua ${walletName}.`,
     },
     cardPage: {
         expensifyCard: 'Cartão Expensify',

@@ -124,6 +124,8 @@ import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustra
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
+import CardDenied from '@assets/images/simple-illustrations/simple-illustration__carddenied.svg';
+import CardIntoWallet from '@assets/images/simple-illustrations/simple-illustration__cardintowallet.svg';
 import CardReaderAlt from '@assets/images/simple-illustrations/simple-illustration__cardreader-alt.svg';
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
@@ -343,6 +345,8 @@ const Illustrations = {
     BuildingCross,
     BankCoin,
     Coins,
+    CardDenied,
+    CardIntoWallet,
     CreditCardsNew,
     FolderOpen,
     HandCard,

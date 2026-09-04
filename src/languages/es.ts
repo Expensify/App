@@ -967,6 +967,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Valida tu tarjeta y empieza a gastar.',
                 cta: 'Activa',
             },
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `La adición de la tarjeta ${walletName} necesita tu aprobación`,
+                subtitle: 'Tarjeta Expensify',
+                cta: 'Revisar',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google Wallet',
+                digitalWallet: 'Billetera digital',
+            },
             reviewCardFraud: {
                 title: 'Revisa un posible fraude en tu tarjeta Expensify',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Revisa ${amount} en posible fraude en ${merchant}`,
@@ -2638,6 +2646,24 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Esta cuenta requiere atención',
             unlock: 'Desbloquear',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `Añadir tarjeta a ${walletName}`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google Wallet',
+        digitalWallet: 'billetera digital',
+        confirmHeading: 'Confirma tu solicitud',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
+            `¿Quieres añadir tu Tarjeta Expensify (terminada en ${lastFourDigits}) a tu ${walletName}?`,
+        deny: 'Denegar',
+        confirm: 'Confirmar',
+        verifyTitle: 'Verifiquemos que eres tú',
+        enterSecurityCode: (contactMethod: string) =>
+            `Por favor, introduce el código de seguridad enviado a ${contactMethod} para confirmar esta solicitud. Debería llegar en uno o dos minutos.`,
+        successHeading: '¡Listo!',
+        successDescription: ({walletName}: {walletName: string}) => `Tu tarjeta ya está activa para usarla en tu ${walletName}.`,
+        deniedHeading: 'Solicitud denegada',
+        deniedDescription: ({walletName}: {walletName: string}) => `Tu tarjeta no se ha añadido a tu ${walletName}.`,
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',

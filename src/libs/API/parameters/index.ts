@@ -4,6 +4,7 @@ export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTags
 export type {default as ImportCSVCompanyCardsParams} from './ImportCSVCompanyCardsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
+export type {default as ApproveDigitalWalletCardAdditionParams} from './ApproveDigitalWalletCardAdditionParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
 export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
 export type {default as VerifySetupIntentParams} from './VerifySetupIntentParams';

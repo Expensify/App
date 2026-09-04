@@ -4884,6 +4884,11 @@ const CONST = {
             INDIVIDUAL: 'individual',
             NONE: 'none',
         },
+        WALLET_PROVIDER: {
+            APPLE_PAY: 'APPLE_PAY',
+            ANDROID_PAY: 'ANDROID_PAY',
+        },
+        APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON: 'approve_digital_wallet',
         VERIFICATION_STATE: {
             LOADING: 'loading',
             VERIFIED: 'verified',

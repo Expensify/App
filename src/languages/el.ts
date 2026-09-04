@@ -1011,6 +1011,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Επικυρώστε την κάρτα σας και ξεκινήστε να ξοδεύετε.',
                 cta: 'Ενεργοποίηση',
             },
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `Η προσθήκη της κάρτας ${walletName} χρειάζεται την έγκρισή σας`,
+                subtitle: 'Κάρτα Expensify',
+                cta: 'Έλεγχος',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google Wallet',
+                digitalWallet: 'Ψηφιακό πορτοφόλι',
+            },
             reviewCardFraud: {
                 title: 'Ελέγξτε πιθανή απάτη στην Κάρτα Expensify',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Ελέγξτε ${amount} για πιθανή απάτη στο ${merchant}`,
@@ -2775,6 +2783,24 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `Προσθήκη κάρτας στο ${walletName}`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google Wallet',
+        digitalWallet: 'ψηφιακό πορτοφόλι',
+        confirmHeading: 'Επιβεβαιώστε το αίτημά σας',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
+            `Θέλετε να προσθέσετε την Κάρτα Expensify (που λήγει σε ${lastFourDigits}) στο ${walletName} σας;`,
+        deny: 'Απόρριψη',
+        confirm: 'Επιβεβαίωση',
+        verifyTitle: 'Ας επιβεβαιώσουμε ότι είστε εσείς',
+        enterSecurityCode: (contactMethod: string) =>
+            `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod} για να επιβεβαιώσετε αυτό το αίτημα. Θα πρέπει να φτάσει μέσα σε ένα ή δύο λεπτά.`,
+        successHeading: 'Επιτυχία!',
+        successDescription: ({walletName}: {walletName: string}) => `Η κάρτα σας είναι πλέον ενεργή για χρήση στο ${walletName} σας.`,
+        deniedHeading: 'Το αίτημα απορρίφθηκε',
+        deniedDescription: ({walletName}: {walletName: string}) => `Η κάρτα σας δεν έχει προστεθεί στο(ν/η) ${walletName} σας.`,
     },
     cardPage: {
         expensifyCard: 'Κάρτα Expensify',
