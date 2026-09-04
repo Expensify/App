@@ -30,7 +30,6 @@ import {
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
-import {getBankAccountFromID} from '@userActions/BankAccounts';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {completeOnboarding, notifyNewAction} from '@userActions/Report';
@@ -279,13 +278,6 @@ function getPayMoneyRequestParams({
         total = unheldReimbursableTotal;
     }
 
-    // Store the masked account actually paid with on the action itself, so every viewer resolves the same account.
-    // The paying admin may not be the workspace payer, so the account can be their own (looked up in `bankAccountList`)
-    // rather than the policy's ACH account; we fall back to the policy account when it is the one being used.
-    const paidWithBankAccount = getBankAccountFromID(bankAccountID);
-    const paidAccountNumber =
-        paidWithBankAccount?.accountData?.accountNumber ?? (bankAccountID === reportPolicy?.achAccount?.bankAccountID ? reportPolicy?.achAccount?.accountNumber : undefined);
-
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: isExpenseReport(iouReport) ? -total : total,
@@ -298,7 +290,6 @@ function getPayMoneyRequestParams({
         isSettlingUp: true,
         payAsBusiness,
         bankAccountID,
-        accountNumber: paidAccountNumber,
         delegateAccountIDParam: delegateAccountID,
         getCurrencyDecimals,
     });
