@@ -1,5 +1,5 @@
-import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
+import type Mention from '@components/MentionSuggestions/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
