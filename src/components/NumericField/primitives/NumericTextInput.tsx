@@ -27,7 +27,7 @@ function NumericTextInput({
     shouldApplyPaddingToContainer,
     shouldUseDefaultLineHeightForPrefix,
     onSubmitEditing,
-    submitBehavior,
+    submitBehavior = 'submit',
     testID,
     touchableInputWrapperStyle,
     style,

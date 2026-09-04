@@ -394,6 +394,23 @@ describe('NumericField.TextInput', () => {
         expect(inputOnKeyPress).toHaveBeenCalledTimes(1);
     });
 
+    it('uses submit behavior by default and preserves an explicit override', async () => {
+        // Given a NumericField.TextInput without an explicit submit behavior
+        const {unmount} = renderTextInput({testID: INPUT_TEST_ID}, {value: '10'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Enter submits without blurring by default
+        expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('submit');
+
+        // When an explicit blur behavior is provided
+        unmount();
+        renderTextInput({testID: INPUT_TEST_ID, submitBehavior: 'blurAndSubmit'}, {value: '10'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the caller's override is preserved
+        expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('blurAndSubmit');
+    });
+
     it('collapses the selection onto its end when clearSelection is called', async () => {
         const ref = React.createRef<NumericFieldRef>();
 
