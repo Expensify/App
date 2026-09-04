@@ -177,6 +177,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {startSendMessagePhase} from '@libs/telemetry/sendMessageSpans';
 import {
     getAmount,
     getCurrency,
@@ -1269,6 +1270,7 @@ function addActions({
         successData,
         failureData,
     });
+    startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 
     if (conciergeThreadReportID && resolvedReportActionID) {
         Onyx.update(conciergeThreadOnyxData).then(() => Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID})));

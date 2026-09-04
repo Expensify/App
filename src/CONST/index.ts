@@ -2310,6 +2310,10 @@ const CONST = {
         SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
+        SPAN_SEND_MESSAGE_PHASE: {
+            PROPAGATE: 'ManualSendMessagePropagate',
+            POST_COMMIT: 'ManualSendMessagePostCommit',
+        },
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
         SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',

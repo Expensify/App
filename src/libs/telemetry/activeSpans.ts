@@ -79,10 +79,18 @@ function cancelAllSpans() {
     }
 }
 
+// Reverse insertion order is children-first. Sentry's isFullFinishedSpan filter drops any descendant that has not ended when the root span does.
 function cancelSpansByPrefix(prefix: string) {
-    for (const [spanID] of activeSpans.entries()) {
-        if (spanID.startsWith(prefix)) {
-            cancelSpan(spanID);
+    const spanIDs = [...activeSpans.keys()].filter((spanID) => spanID.startsWith(prefix));
+    for (const spanID of spanIDs.reverse()) {
+        cancelSpan(spanID);
+    }
+}
+
+function getSpanID(target: Span) {
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (entry.span === target) {
+            return spanID;
         }
     }
 }
@@ -92,15 +100,14 @@ function cancelSpansByPrefix(prefix: string) {
  * only has the raw span). Optionally stamps attributes first. No-op if the span isn't tracked.
  */
 function cancelSpanByInstance(target: Span, attributes?: Record<string, SpanAttributeValue>) {
-    for (const [spanID, entry] of activeSpans.entries()) {
-        if (entry.span === target) {
-            if (attributes) {
-                entry.span.setAttributes(attributes);
-            }
-            cancelSpan(spanID);
-            return;
-        }
+    const spanID = getSpanID(target);
+    if (!spanID) {
+        return;
     }
+    if (attributes) {
+        activeSpans.get(spanID)?.span.setAttributes(attributes);
+    }
+    cancelSpan(spanID);
 }
 
 function getSpan(spanId: string) {
@@ -116,10 +123,24 @@ function getSpanByPrefix(prefix: string) {
     }
 }
 
+function getUniqueSpanByPrefix(prefix: string) {
+    let uniqueSpan: Span | undefined;
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (!spanID.startsWith(prefix)) {
+            continue;
+        }
+        if (uniqueSpan) {
+            return undefined;
+        }
+        uniqueSpan = entry.span;
+    }
+    return uniqueSpan;
+}
+
 function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue | undefined>) {
     const span = getSpan(spanId);
     span?.setAttributes(attributes);
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, getSpanByPrefix, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, getSpanByPrefix, getUniqueSpanByPrefix, getSpanID, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};
