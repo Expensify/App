@@ -1,8 +1,10 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
+import memoize, {equivalentArgsComparator} from '@libs/memoize';
 import {createOptionList, filterPersonalDetailsByLogins} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData, PrivateIsArchivedMap} from '@libs/PersonalDetailOptionsListUtils/types';
 import {isOneOnOneChat, isSelfDM} from '@libs/ReportUtils';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
@@ -103,6 +105,25 @@ const createReportAttributesSelector =
     };
 
 /**
+ * Building an option per personal details entry is the expensive step of this hook and depends only on Onyx values.
+ * Arguments are compared one level deep because the maps are rebuilt each render from those same unchanged values.
+ * A single entry is held, so a consumer narrowing the list with `includeLoginsOnly` evicts the whole-list one.
+ */
+const memoizedCreateOptionList = memoize(createOptionList, {
+    maxSize: 1,
+    equality: equivalentArgsComparator,
+    monitoringName: 'usePersonalDetailOptions.createOptionList',
+});
+
+/** Releases the cached options. */
+function clearPersonalDetailOptionsCache() {
+    memoizedCreateOptionList.cache.clear();
+}
+
+// The cached options describe the signed-in account's contacts.
+registerSessionCleanupCallback(clearPersonalDetailOptionsCache);
+
+/**
  * Hook that provides options list for personal details.
  *
  * Benefits over OptionListContextProvider:
@@ -132,18 +153,24 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
     const [reportAttributes, reportAttributesMetadata] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
     const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: privateIsArchivedSelector});
     const allPersonalDetails = usePersonalDetails();
-    const personalDetails = includeLoginsOnly ? filterPersonalDetailsByLogins(allPersonalDetails, includeLoginsOnly) : allPersonalDetails;
 
     const isLoading = !enabled || isLoadingOnyxValue(reportsMetadata, reportAttributesMetadata, reportNameValuePairsMetadata);
 
-    const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
+    // The whole derivation chain is skipped while loading (or disabled), so a consumer that only holds the Onyx
+    // subscriptions doesn't rebuild these maps on every collection update.
+    const optionsData = (() => {
+        if (isLoading) {
+            return undefined;
+        }
 
-    const optionsData = !isLoading
-        ? createOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, reportAttributes, reportNameValuePairs ?? {}, formatPhoneNumber, translate, {
-              shouldStoreReportErrors,
-              shouldShowBrickRoadIndicator,
-          })
-        : undefined;
+        const personalDetails = includeLoginsOnly ? filterPersonalDetailsByLogins(allPersonalDetails, includeLoginsOnly) : allPersonalDetails;
+        const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
+
+        return memoizedCreateOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, reportAttributes, reportNameValuePairs ?? {}, formatPhoneNumber, translate, {
+            shouldStoreReportErrors,
+            shouldShowBrickRoadIndicator,
+        });
+    })();
 
     return {
         options: optionsData?.options,
@@ -153,3 +180,4 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
 }
 
 export default usePersonalDetailOptions;
+export {clearPersonalDetailOptionsCache};

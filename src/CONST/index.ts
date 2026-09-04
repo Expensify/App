@@ -2190,6 +2190,8 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME: 1000,
         SUGGESTION_DEBOUNCE_TIME: 100,
+        /** How long the cursor has to rest on an advanced filter row before its content may derive the contact list */
+        SEARCH_FILTER_HOVER_INTENT_DELAY: 30,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         USE_DEBOUNCED_STATE_DELAY: 300,
@@ -6983,6 +6985,8 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
+        /** How far the cursor may wander from where it last counted as moving over the advanced filter list and still count as resting */
+        HOVER_INTENT_REST_RADIUS_PX: 8,
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',

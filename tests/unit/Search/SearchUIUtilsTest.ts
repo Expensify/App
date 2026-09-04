@@ -13549,3 +13549,97 @@ describe('getSavedSearchIconName', () => {
         spy.mockRestore();
     });
 });
+
+describe('hasFilterContentValuesChanged', () => {
+    const SYNTAX_FILTER_KEYS = CONST.SEARCH.SYNTAX_FILTER_KEYS;
+    type FilterKey = Parameters<typeof SearchUIUtils.hasFilterContentValuesChanged>[0];
+    type FilterValues = Parameters<typeof SearchUIUtils.hasFilterContentValuesChanged>[1];
+    type ContentValuesCase = {
+        /** The kind of content the filter is given, which decides what it reads. */
+        kind: string;
+
+        /** The filter whose content is being judged. */
+        filterKey: FilterKey;
+
+        /** Two forms differing only in something that content reads. */
+        read: [FilterValues, FilterValues];
+
+        /** Two forms differing only in something it does not, where there is such a thing. */
+        ignored?: [FilterValues, FilterValues];
+    };
+
+    // One case per kind of content, because each is handed a different slice of the form.
+    const contentValuesCases: ContentValuesCase[] = [
+        {
+            kind: 'list',
+            filterKey: SYNTAX_FILTER_KEYS.FROM,
+            read: [{[SYNTAX_FILTER_KEYS.FROM]: ['1']}, {[SYNTAX_FILTER_KEYS.FROM]: ['2']}],
+            ignored: [{[SYNTAX_FILTER_KEYS.FROM]: ['1']}, {[SYNTAX_FILTER_KEYS.FROM]: ['1'], [SYNTAX_FILTER_KEYS.TO]: ['2']}],
+        },
+        {
+            kind: 'list, negated',
+            filterKey: SYNTAX_FILTER_KEYS.FROM,
+            // Built the way the content builds it, so the negated key cannot drift.
+            read: [SearchQueryUtils.getFilterFormValues(SYNTAX_FILTER_KEYS.FROM, ['1'], false), SearchQueryUtils.getFilterFormValues(SYNTAX_FILTER_KEYS.FROM, ['1'], true)],
+        },
+        {
+            kind: 'list, reading the search type it offers options for',
+            filterKey: SYNTAX_FILTER_KEYS.CATEGORY,
+            read: [{type: CONST.SEARCH.DATA_TYPES.EXPENSE}, {type: CONST.SEARCH.DATA_TYPES.INVOICE}],
+        },
+        {
+            kind: 'list, reading the workspace that narrows its options',
+            filterKey: SYNTAX_FILTER_KEYS.CATEGORY,
+            read: [{[SYNTAX_FILTER_KEYS.POLICY_ID]: ['1']}, {[SYNTAX_FILTER_KEYS.POLICY_ID]: ['2']}],
+        },
+        {
+            kind: 'text',
+            filterKey: SYNTAX_FILTER_KEYS.MERCHANT,
+            read: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'b'}],
+            // A text content offers no options, so the search type is nothing to it.
+            ignored: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', type: CONST.SEARCH.DATA_TYPES.INVOICE}],
+        },
+        {
+            kind: 'amount',
+            filterKey: SYNTAX_FILTER_KEYS.AMOUNT,
+            read: [
+                {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10'},
+                {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '20'},
+            ],
+            ignored: [
+                {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10'},
+                {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10', type: CONST.SEARCH.DATA_TYPES.INVOICE},
+            ],
+        },
+        {
+            kind: 'date',
+            filterKey: SYNTAX_FILTER_KEYS.DATE,
+            read: [{[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01'}, {[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-02-01'}],
+            ignored: [
+                {[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01'},
+                {[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01', type: CONST.SEARCH.DATA_TYPES.INVOICE},
+            ],
+        },
+        {
+            // The date content offers card periods only when a feed is picked, so it reads whether one is.
+            kind: 'date, reading whether a feed is picked',
+            filterKey: SYNTAX_FILTER_KEYS.DATE,
+            read: [{}, {[SYNTAX_FILTER_KEYS.FEED]: ['1']}],
+            ignored: [{[SYNTAX_FILTER_KEYS.FEED]: ['1']}, {[SYNTAX_FILTER_KEYS.FEED]: ['2']}],
+        },
+        {
+            // The report field content is handed the whole form, so nothing in it is outside what it reads.
+            kind: 'report field',
+            filterKey: SYNTAX_FILTER_KEYS.REPORT_FIELD,
+            read: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'b'}],
+        },
+    ];
+
+    it.each(contentValuesCases)('$kind: reports a change to what it reads and none to what it does not', ({filterKey, read, ignored}) => {
+        expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, read.at(0), read.at(1))).toBe(true);
+
+        if (ignored) {
+            expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, ignored.at(0), ignored.at(1))).toBe(false);
+        }
+    });
+});

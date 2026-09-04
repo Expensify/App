@@ -21,6 +21,7 @@ import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
 import SelectionListEmptyState from './components/SelectionListEmptyState';
 import TextInput from './components/TextInput';
+import useRevealedListReset from './hooks/useRevealedListReset';
 import useSearchFocusSync from './hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
 import useSelectionListKeyboardFocus from './hooks/useSelectionListKeyboardFocus';
@@ -97,6 +98,7 @@ function BaseSelectionListImpl({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput: shouldShowTextInputProp,
     shouldClearInputOnSelect = false,
+    shouldClearInputWhenHidden = false,
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle = false,
     selectionButtonPosition,
@@ -333,6 +335,8 @@ function BaseSelectionListImpl({
 
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    const revealedListVersion = useRevealedListReset(listRef, {shouldClearInputWhenHidden, textInputOptions});
+
     useEffect(() => {
         return () => {
             if (keyboardListenerRef.current) {
@@ -503,6 +507,7 @@ function BaseSelectionListImpl({
                 <>
                     {!shouldHeaderBeInsideList && header}
                     <FlashList
+                        key={revealedListVersion}
                         role={getListboxRole(canSelectMultiple)}
                         data={data}
                         renderItem={renderItem}

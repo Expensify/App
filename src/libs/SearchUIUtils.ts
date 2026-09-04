@@ -99,6 +99,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
 import {addDays, format, parse, subDays} from 'date-fns';
+import {deepEqual} from 'fast-equals';
 
 import type {TransactionPreviewData} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
@@ -6118,6 +6119,46 @@ function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey
     return {isNegated: !!negatedValue, value: negatedValue ?? values?.[baseFilterKey]};
 }
 
+/** Whether the values the content of `baseFilterKey` reads differ between two versions of the form. */
+function hasFilterContentValuesChanged(
+    baseFilterKey: SearchFilter['key'],
+    previousValues: Partial<SearchAdvancedFiltersForm> | undefined,
+    values: Partial<SearchAdvancedFiltersForm> | undefined,
+): boolean {
+    if (previousValues === values) {
+        return false;
+    }
+
+    if (isAmountFilterKey(baseFilterKey)) {
+        const modifiers = [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN, CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
+        return modifiers.some((modifier) => previousValues?.[`${baseFilterKey}${modifier}`] !== values?.[`${baseFilterKey}${modifier}`]);
+    }
+
+    if (isDateFilterKey(baseFilterKey)) {
+        const modifiers = [CONST.SEARCH.DATE_MODIFIERS.ON, CONST.SEARCH.DATE_MODIFIERS.AFTER, CONST.SEARCH.DATE_MODIFIERS.BEFORE, CONST.SEARCH.DATE_MODIFIERS.RANGE];
+        return (
+            !!previousValues?.feed !== !!values?.feed || modifiers.some((modifier) => !deepEqual(previousValues?.[`${baseFilterKey}${modifier}`], values?.[`${baseFilterKey}${modifier}`]))
+        );
+    }
+
+    // The report field content is handed the whole form, so anything in it counts.
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
+        return !deepEqual(previousValues, values);
+    }
+
+    if (!deepEqual(getFilterNegatableValue(baseFilterKey, previousValues), getFilterNegatableValue(baseFilterKey, values))) {
+        return true;
+    }
+
+    if (isTextFilterKey(baseFilterKey)) {
+        return false;
+    }
+
+    // A list content also reads the search type and the workspace filter, which decide the options it offers.
+    const policyIDKey = CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID;
+    return previousValues?.type !== values?.type || !deepEqual(getFilterNegatableValue(policyIDKey, previousValues), getFilterNegatableValue(policyIDKey, values));
+}
+
 function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths | undefined, translate: LocalizedTranslate) {
     if (!labelKey) {
         return undefined;
@@ -7292,6 +7333,7 @@ export {
     getDateDisplayValue,
     getDisplayValue,
     getFilterNegatableValue,
+    hasFilterContentValuesChanged,
     shouldShowFilter,
     mapFiltersFormToLabelValueList,
     isTextFilterKey,
