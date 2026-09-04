@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
@@ -114,11 +115,14 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         startWithLoading(() => {
+            // Pop just this screen rather than the whole RHP stack, so entry points that pushed the editor on top of
+            // another screen (e.g. a member's profile) return there instead of being torn down with it.
+            // The write is deferred until the close animation ends to avoid re-rendering the animating-out panel.
             if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
-                Navigation.dismissModal({
-                    afterTransition: () => {
-                        updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: rulesCollection});
-                    },
+                Navigation.goBack();
+                TransitionTracker.runAfterTransitions({
+                    callback: () => updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: rulesCollection}),
+                    waitForUpcomingTransition: true,
                 });
                 return;
             }
@@ -126,10 +130,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             // We need to remove members and approvers that are no longer in the updated workflow
             const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
             const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
-            Navigation.dismissModal({
-                afterTransition: () => {
-                    updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
-                },
+            Navigation.goBack();
+            TransitionTracker.runAfterTransitions({
+                callback: () => updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy),
+                waitForUpcomingTransition: true,
             });
         });
     };
@@ -142,8 +146,9 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         // Mark as deleting to prevent the useEffect from clearing the workflow and causing a blink
         isDeleting.current = true;
         const useRulesBackend = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
-        Navigation.dismissModal({
-            afterTransition: () => {
+        Navigation.goBack();
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
                 // Remove the approval workflow using the initial data as it could be already edited
                 const didRemoveRules = useRulesBackend && removeApprovalWorkflowRules(initialApprovalWorkflow, policy, rulesCollection, defaultApprovalWorkflow);
                 if (didRemoveRules) {
@@ -152,6 +157,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
                 removeApprovalWorkflow(initialApprovalWorkflow, policy);
             },
+            waitForUpcomingTransition: true,
         });
     };
 
