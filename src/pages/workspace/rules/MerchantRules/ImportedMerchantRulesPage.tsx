@@ -16,6 +16,8 @@ import type {ImportedMerchantRule} from '@libs/actions/Policy/Rules';
 import {importMerchantRulesSpreadsheet} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
+import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -33,13 +35,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ImportedSpreadsheet, Policy, PolicyCategories} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyCategories, Rule} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {CodingRule} from '@src/types/onyx/Policy';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
@@ -59,16 +60,16 @@ const ACTION_COLUMNS: string[] = [
  * spreadsheet rows that would recreate a rule the policy already has (e.g. the same spreadsheet
  * imported twice) as well as duplicate rows within the same spreadsheet.
  */
-function getRuleContentKey(rule: Pick<CodingRule, 'filters' | 'merchant' | 'category' | 'tag' | 'comment' | 'reimbursable' | 'billable'>): string {
+function getRuleContentKey(formValues: Partial<MerchantRuleFormValues>): string {
     return JSON.stringify([
-        rule.filters.operator,
-        rule.filters.right.toLowerCase(),
-        rule.merchant ?? '',
-        rule.category ?? '',
-        rule.tag ?? '',
-        rule.comment ?? '',
-        rule.reimbursable ?? null,
-        rule.billable ?? null,
+        formValues.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+        formValues.merchantToMatch?.toLowerCase() ?? '',
+        formValues.merchant ?? '',
+        formValues.category ?? '',
+        formValues.tag ?? '',
+        formValues.comment ?? '',
+        formValues.reimbursable ?? null,
+        formValues.billable ?? null,
     ]);
 }
 
@@ -147,6 +148,7 @@ function parseSpreadsheetRules(
     containsHeader: boolean,
     policy: OnyxEntry<Policy>,
     policyCategories: OnyxEntry<PolicyCategories>,
+    existingRules: OnyxCollection<Rule>,
 ): ParsedSpreadsheetRules {
     const columns = Object.values(spreadsheet?.columns ?? {});
     const merchantIsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS);
@@ -168,9 +170,13 @@ function parseSpreadsheetRules(
     };
 
     // Seed the duplicate check with the policy's current rules so re-importing a spreadsheet doesn't recreate them
+    // Rules the editor can't represent are skipped here: their content key can't be computed, so they can't be
+    // matched against a spreadsheet row anyway.
     const seenRuleKeys = new Set(
-        Object.values(policy?.rules?.codingRules ?? {})
-            .filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && rule.filters?.right)
+        getPolicyExpenseDefaultRules(existingRules, policy?.id)
+            .filter(({rule}) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map(({rule}) => getMerchantRuleFormValues(rule))
+            .filter((formValues) => !!formValues)
             .map(getRuleContentKey),
     );
     let skippedDuplicateCount = 0;
@@ -206,10 +212,21 @@ function parseSpreadsheetRules(
             continue;
         }
 
+        const formValues: Partial<MerchantRuleFormValues> = {
+            merchantToMatch,
+            matchType: merchantIsValue ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            ...(updatedMerchant && {merchant: updatedMerchant}),
+            ...(category && {category}),
+            ...(tag && {tag}),
+            ...(comment && {comment}),
+            ...(reimbursable !== undefined && {reimbursable}),
+            ...(billable !== undefined && {billable}),
+        };
+
         const rule: ImportedMerchantRule = {
             filters: {
                 left: 'merchant',
-                operator: merchantIsValue ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+                operator: formValues.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
                 right: merchantToMatch,
             },
             ...(updatedMerchant && {merchant: updatedMerchant}),
@@ -221,7 +238,7 @@ function parseSpreadsheetRules(
             created: new Date().toISOString(),
         };
 
-        const ruleKey = getRuleContentKey(rule);
+        const ruleKey = getRuleContentKey(formValues);
         if (seenRuleKeys.has(ruleKey)) {
             skippedDuplicateCount++;
             continue;
@@ -254,6 +271,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
@@ -325,7 +343,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 
     // Parse once and reuse the result for both the offline button-enablement check and the import itself, so the
     // button can never be enabled offline for an import that actually needs the (non-retryable) API call
-    const parsedRules = useMemo(() => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories), [spreadsheet, containsHeader, policy, policyCategories]);
+    const parsedRules = useMemo(() => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories, rules), [spreadsheet, containsHeader, policy, policyCategories, rules]);
 
     // When categories are enabled but not yet cached (e.g. after a cache clear, before the on-focus fetch), the
     // category lookup is empty so every category is wrongly flagged invalid. Invalid-category counts are only

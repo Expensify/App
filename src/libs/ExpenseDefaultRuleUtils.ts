@@ -15,6 +15,7 @@ import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFil
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {rand64} from './NumberUtils';
 import Parser from './Parser';
 
 /** The form shape the merchant rule editor round-trips a rule through. */
@@ -55,8 +56,8 @@ type RuleWithID = {
     /** The rule's ID, i.e. the `rules_` key suffix */
     ruleID: string;
 
-    /** The rule itself */
-    rule: Rule;
+    /** The rule itself, narrowed to the expense default shape by `getPolicyExpenseDefaultRules` */
+    rule: Rule & ExpenseDefaultRule;
 };
 
 const {FIELD, TRIGGER, ACTION} = CONST.RULES.EXPENSE_DEFAULT;
@@ -382,6 +383,46 @@ function getExpenseDefaultRuleSummaryFields(rule: Rule | ExpenseDefaultRule | un
     return summaryFields;
 }
 
+/**
+ * Builds copies of a policy's expense default rules for another policy, as `ruleID -> rule`.
+ *
+ * Rules live in their own collection and carry the ID of the policy they belong to, so copying a workspace
+ * can't reuse the source's rules: each copy is a new rule, with a new ID, scoped to the target policy.
+ */
+function buildCopiedExpenseDefaultRules(rules: OnyxCollection<Rule> | undefined, sourcePolicyID: string | undefined, targetPolicyID: string): Record<string, Rule> {
+    const copiedRules: Record<string, Rule> = {};
+    const created = new Date().toISOString();
+
+    for (const {rule} of getPolicyExpenseDefaultRules(rules, sourcePolicyID)) {
+        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+
+        copiedRules[rand64()] = {
+            triggers: rule.triggers,
+            filters: rule.filters,
+            actions: rule.actions,
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: targetPolicyID,
+            priority: rule.priority ?? CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
+            created,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+    }
+
+    return copiedRules;
+}
+
+/** How many expense default rules the policy has, ignoring ones being deleted. Used by the copy/duplicate feature lists. */
+function getExpenseDefaultRuleCount(rules: OnyxCollection<Rule> | undefined, policyID: string | undefined): number {
+    return getPolicyExpenseDefaultRules(rules, policyID).filter(({rule}) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+}
+
+/** Whether any of the policy's expense default rules failed to save. */
+function hasExpenseDefaultRuleErrors(rules: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
+    return getPolicyExpenseDefaultRules(rules, policyID).some(({rule}) => Object.keys(rule.errors ?? {}).length > 0);
+}
+
 /** Whether the merchant rule editor can safely open this rule. See `getMerchantRuleFormValues`. */
 function isEditableMerchantRule(rule: Rule | ExpenseDefaultRule | undefined): boolean {
     return !!getMerchantRuleFormValues(rule);
@@ -389,11 +430,14 @@ function isEditableMerchantRule(rule: Rule | ExpenseDefaultRule | undefined): bo
 
 export type {MerchantRuleFormValues, RuleWithID};
 export {
+    buildCopiedExpenseDefaultRules,
     buildMerchantRule,
+    getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
     getMerchantRuleFormValues,
     getPolicyExpenseDefaultRules,
     getRuleFilterLeaves,
+    hasExpenseDefaultRuleErrors,
     isEditableMerchantRule,
     isExpenseDefaultRule,
     isExpenseDefaultTaxValue,

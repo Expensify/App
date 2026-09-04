@@ -68,6 +68,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const intent = useOnboardingIntent();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
@@ -344,7 +345,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
             subText: translate('homePage.gettingStartedSection.setupRulesSubText'),
-            isComplete: hasConfiguredRules(policy, policyCategories),
+            isComplete: hasConfiguredRules(policy, policyCategories, rules),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
         });
     }
