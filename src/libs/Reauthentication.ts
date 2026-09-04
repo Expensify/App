@@ -228,7 +228,7 @@ function reauthenticate(command = ''): Promise<boolean> {
 
             hasQueuedSAMLReauthRedirect = true;
             Log.info(`[Reauthenticate] Redirecting to Sign In because SAML is required`);
-            redirectToSignIn(CONST.SIGN_OUT_REASON.SAML_REQUIRED);
+            redirectToSignIn(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
             return false;
         }
 

@@ -230,7 +230,7 @@ describe('Session', () => {
             // is not torn down and re-mounted (and SAML re-initiated) once per concurrent 407
             expect(results).toEqual([false, false, false]);
             expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
-            expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.SAML_REQUIRED);
+            expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
 
             redirectToSignInSpy.mockRestore();
         });
@@ -1125,7 +1125,7 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {...gpsTrip, accountID});
             await waitForBatchedUpdates();
 
-            await SignInRedirect.default(CONST.SIGN_OUT_REASON.SAML_REQUIRED);
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS);
