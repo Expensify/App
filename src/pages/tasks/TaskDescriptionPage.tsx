@@ -13,6 +13,7 @@ import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -48,6 +49,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const {translate} = useLocalize();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const accountIDToName = useAccountIDToNameMap();
+    const reportIDToName = useReportIDToNameMap();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
@@ -63,7 +65,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-        if (values.description !== Parser.htmlToMarkdown(report?.description ?? '', {accountIDToName}) && !isEmptyObject(report)) {
+        if (values.description !== Parser.htmlToMarkdown(report?.description ?? '', {accountIDToName, reportIDToName}) && !isEmptyObject(report)) {
             // Set the description of the report in the store and then call EditTask API
             // to update the description of the report on the server
             editTask(report, {description: values.description}, delegateEmail);
@@ -129,7 +131,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                             name={INPUT_IDS.DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
-                            defaultValue={Parser.htmlToMarkdown(report?.description ?? '', {accountIDToName})}
+                            defaultValue={Parser.htmlToMarkdown(report?.description ?? '', {accountIDToName, reportIDToName})}
                             ref={(element: AnimatedTextInputRef | null) => {
                                 if (!element) {
                                     return;
