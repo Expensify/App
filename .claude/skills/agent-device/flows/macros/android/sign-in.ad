@@ -6,5 +6,6 @@ context platform=android
 # @tag    auth
 # @param  EMAIL Login email. Use randomized alias format `agent-device-testing+<9digits>@gmail.com` to avoid account flagging.
 
-fill "id=\"username\" || label=\"Phone or email\" editable=true" "${EMAIL}"
+press "id=\"username\" || role=\"edittext\" label=\"Phone or email\" editable=true || label=\"Phone or email\" editable=true"
+fill "id=\"username\" || role=\"edittext\" label=\"Phone or email\" editable=true || label=\"Phone or email\" editable=true" "${EMAIL}"
 press "role=\"button\" label=\"Continue\" || label=\"Continue\""
