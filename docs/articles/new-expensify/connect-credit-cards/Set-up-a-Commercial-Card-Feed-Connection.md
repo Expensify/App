@@ -1,8 +1,8 @@
 ---
 title: Set up a Commercial Card Feed Connection
 description: Learn how to set up a Visa, Mastercard or Amex commercial card feed in Expensify
-keywords: [New Expensify, commercial feed, Mastercard feed, Visa feed, Amex feed, company cards, corporate cards, CDF, VCF, GL1025, control account]
-internalScope: Audience is Workspace Admins. Covers setting up a commercial card feed for Visa, Mastercard, or American Express. Does not cover assigning cards, managing cards, or troubleshooting feeds.
+keywords: [New Expensify, commercial feed, Mastercard feed, Visa feed, Amex feed, company cards, corporate cards, CDF, VCF, GL1025, control account, copilot add card feed, copilot company cards]
+internalScope: Audience is Workspace Admins and their Copilots. Covers setting up a commercial card feed for Visa, Mastercard, or American Express. Does not cover assigning cards, managing cards, or troubleshooting feeds.
 ---
 
 # Set up a Commercial Card Feed Connection
@@ -18,6 +18,10 @@ If you're not eligible for a commercial card feed, you can [set up a direct comp
 ## Who can set up a commercial card feed connection
 
 Any Workspace Admin can set up a commercial card feed connection. 
+
+A Copilot with **Full Access** can also set up a commercial card feed connection on behalf of a Workspace Admin. A Copilot with **Limited Access** can't, and sees a no-access message when they select **Add cards**.
+
+[Learn how to act as a Copilot](/articles/new-expensify/settings/Act-as-a-Copilot).
 
  - On the **Collect** plan, you can add one company card feed. 
  - On the **Control** plan, you can add unlimited company card feeds. 
