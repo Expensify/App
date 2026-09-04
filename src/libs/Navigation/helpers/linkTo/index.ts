@@ -28,6 +28,10 @@ const defaultLinkToOptions: LinkToOptions = {
     skipInitialSplitNavigatorSidebar: false,
 };
 
+/**
+ * The split router reads `shouldSkipInitialSidebar` from the innermost screen params. The `getMinimalAction`
+ * function reduces the action to a variable depth, so walk to the deepest `params` before tagging the leaf.
+ */
 function addSkipInitialSidebarParam(params: unknown): Record<string, unknown> {
     const navigationParams = params && typeof params === 'object' ? params : {};
     if ('params' in navigationParams && navigationParams.params && typeof navigationParams.params === 'object') {
