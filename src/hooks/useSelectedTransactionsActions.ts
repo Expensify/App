@@ -459,9 +459,11 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
 
+            // The report's full action history from the collection subscription above — the paginated `reportActions`
+            // slice for display can miss workflow actions (e.g. submit/forward) outside the loaded chain.
             const canMoveExpense = canEditFieldOfMoneyRequest({
                 reportAction: iouReportAction,
-                reportActions,
+                reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 outstandingReportsByPolicyID,
                 transaction,

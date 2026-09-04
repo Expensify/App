@@ -103,7 +103,7 @@ function SearchEditMultiplePage() {
     const hasSplitTransaction = hasSplitExpenseInSelection(selectedTransactionContexts.map(({transaction}) => transaction));
 
     const isFieldDisabledForAnyTransaction = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) =>
-        selectedTransactionContexts.some(({transaction, report, reportAction, transactionPolicy}) => {
+        selectedTransactionContexts.some(({transaction, report, reportAction, reportActions, transactionPolicy}) => {
             // Unreported expenses have no report actions yet but are always editable
             if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return false;
@@ -115,7 +115,7 @@ function SearchEditMultiplePage() {
                 report,
                 policy: transactionPolicy,
                 reportNameValuePairs,
-                reportActions: mergedReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
+                reportActions,
             });
         });
 
