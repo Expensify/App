@@ -10,6 +10,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import {getAccountingIntegrationDisplayName, getQuickbooksOnlineIntegrationName, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -52,23 +53,6 @@ import {
     shouldShowInvoiceItemMenuItem,
 } from './netsuite/utils';
 import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
-
-const INTUIT_ENTERPRISE_SUITE_SCOPE = 'app-foundations.custom-dimensions.read';
-
-function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
-    return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(INTUIT_ENTERPRISE_SUITE_SCOPE);
-}
-
-function getQuickbooksOnlineIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
-    return translate(isIntuitEnterpriseSuiteConnection(policy) ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo');
-}
-
-function getAccountingIntegrationDisplayName(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, translate: LocaleContextProps['translate']): string {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
-        return getQuickbooksOnlineIntegrationName(policy, translate);
-    }
-    return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
-}
 
 function getCurrentAccountingIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
     const currentConnectionName = getCurrentConnectionName(policy);
@@ -178,12 +162,13 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
                     CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR,
                     CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT,
+                    // Both non-reimbursable export destinations now expose an always-visible Default vendor row, so surface the matching vendor key here regardless of `autoCreateVendor` (which is an Advanced setting and is subscribed under subscribedAdvancedSettings below).
                     ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
-                        ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]
-                        : []),
-                    ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL &&
-                    policy?.connections?.quickbooksOnline?.config?.autoCreateVendor
                         ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]
+                        : []),
+                    ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD ||
+                    qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD
+                        ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR]
                         : []),
                 ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.QBO)),
@@ -530,7 +515,7 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.SYNC_TAX_RATES,
                     ...(policy?.connections?.dualEntry?.data?.classifications?.map((classification) => `${CONST.DUALENTRY_CONFIG.FIELD_MAPPING_PREFIX}${classification.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.DUALENTRY_CONFIG.EXPORTER,
                     CONST.DUALENTRY_CONFIG.EXPORT_DATE,
@@ -551,7 +536,7 @@ function getAccountingIntegrationData(
                     cardList ?? {},
                     CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT,
                 ),
-                onAdvancedPagePress: () => null,
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.DUALENTRY_CONFIG.ACCOUNTING_METHOD,
                     CONST.DUALENTRY_CONFIG.AUTO_SYNC,
@@ -561,6 +546,7 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
                     CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
                     CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.dualEntry.alias,

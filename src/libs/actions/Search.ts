@@ -9,6 +9,7 @@ import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQuery
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 
+import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {makeRequestWithSideEffects, read, waitForWrites, write} from '@libs/API';
 import type {
     ExportSearchItemsToCSVParams,
@@ -35,8 +36,8 @@ import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
-import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
+    canAccessPolicyBankAccount,
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     getValidConnectedIntegration,
@@ -51,7 +52,6 @@ import {
     buildOptimisticIOUReportAction,
     buildOptimisticSubmittedReportAction,
     generateReportID,
-    getApprovalChain,
     getParsedComment,
     getReportOrDraftReport,
     getReportTransactions,
@@ -107,6 +107,8 @@ import Onyx from 'react-native-onyx';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 
+import {getBankAccountList} from './BankAccounts';
+import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
@@ -451,14 +453,16 @@ function handleActionButtonPress({
             const connectedIntegration = getValidConnectedIntegration(exportPolicy);
 
             if (!connectedIntegration) {
+                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID: item?.policyID});
                 return;
             }
 
             if (!item?.reportID) {
+                Log.info('[SearchExport] Dropping export to accounting: item has no reportID');
                 return;
             }
 
-            exportToIntegrationOnSearch(hash, [item.reportID], connectedIntegration, currentSearchKey);
+            exportToIntegrationOnSearch(hash, [item.reportID], connectedIntegration, exportPolicy, currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.UNDELETE:
@@ -634,9 +638,13 @@ function getPayActionCallback({
         return;
     }
 
+    const paymentPolicy = policy ?? snapshotPolicy;
+
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
-        if (!hasVBBA) {
+        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
+        // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
+        // them pick it instead of silently paying with (and reporting) the workspace one.
+        if (!canAccessPolicyBankAccount(paymentPolicy, getBankAccountList())) {
             goToItem();
             return;
         }
@@ -658,14 +666,14 @@ function getPayActionCallback({
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
-        policy: snapshotPolicy ?? policy,
+        policy: paymentPolicy,
         chatReportPolicy: chatReportPolicyForPayment,
         betas,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
+        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,
@@ -749,7 +757,6 @@ function getOnyxLoadingData(
     hash: number,
     queryJSON?: Readonly<SearchQueryJSON>,
     offset?: number,
-    isOffline?: boolean,
     isSearchAPI = false,
     shouldCalculateTotals?: boolean,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
@@ -758,7 +765,7 @@ function getOnyxLoadingData(
     // `search.state` tracks the lifecycle of a real search request (identified by its queryJSON): it starts as
     // `loading` optimistically and is resolved to `loaded` by finallyData. handlePreventSearchAPI
     // reuses this helper as a UI-only loading toggle with no query, so it must stay out of
-    // the state machine — otherwise it would strand `state: loading` with no terminal write to clear it.
+    // the state machine. Otherwise it would strand `state: loading` with no terminal write to clear it.
     const isSearchRequest = isSearchAPI && !!queryJSON;
     const type = queryJSON?.type;
 
@@ -771,7 +778,7 @@ function getOnyxLoadingData(
                     ...(isSearchAPI && {isLoading: true}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
                     ...(offset !== undefined ? {offset} : {}),
-                    ...(shouldClearTotals ? {count: null, total: null, currency: null} : {}),
+                    ...(shouldClearTotals ? {count: null, reportCount: null, total: null, currency: null} : {}),
                 },
             },
         },
@@ -809,12 +816,13 @@ function getOnyxLoadingData(
         },
     ];
 
+    // Deliberately leaves `data` in place: `errors` already records the failure and the Search view early-returns on it.
+    // Deleting the results too cost every consumer its last known data, and the snapshot is the only copy that survives a reload.
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                ...(isOffline ? {} : {data: null}),
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
@@ -971,11 +979,34 @@ function deleteSavedSearch(hash: number) {
     write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchPage(params?: OpenSearchPageParams) {
-    read(READ_COMMANDS.OPEN_SEARCH_PAGE, {
+/**
+ * @param hashWithStaleError Snapshot hash whose stored failure should be dropped as the page opens. A failed request
+ * leaves the snapshot errored and terminal, which reads as resolved, so nothing requests the query again.
+ */
+function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: number) {
+    const apiParams = {
         includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
         includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
-    });
+    };
+
+    if (hashWithStaleError === undefined) {
+        read(READ_COMMANDS.OPEN_SEARCH_PAGE, apiParams);
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithStaleError}`,
+            value: {
+                errors: null,
+                // `state` marks the snapshot resolved on its own, so all three have to go or it still reads as loaded.
+                search: {state: null, responseJsonCode: null},
+            },
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_PAGE, apiParams, {optimisticData});
 }
 
 function openSearchCardFiltersPage() {
@@ -1040,12 +1071,16 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
 
 type InFlightSearchRequest = {
     shouldCalculateTotals: boolean;
-    pendingTotalsRequest?: () => Promise<string | number | undefined> | undefined;
+    shouldSaveRecentSearch: boolean;
+    pendingShouldCalculateTotals?: boolean;
+    pendingShouldSaveRecentSearch?: boolean;
+    pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
 };
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
-// and Search-internal effects fire for the same query. A totals request is not equivalent to the
-// non-totals request already in flight, so preserve one such request to run immediately afterward.
+// and Search-internal effects fire for the same query. A request that calculates totals or declares
+// save-recent-search intent is not equivalent to an in-flight request without it, so preserve one such
+// request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 
 let shouldPreventSearchAPI = false;
@@ -1053,7 +1088,7 @@ function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
         return {};
     }
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash, undefined, undefined, false, true);
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash, undefined, undefined, true);
     return {
         enableSearchAPIPrevention: () => {
             shouldPreventSearchAPI = true;
@@ -1098,19 +1133,24 @@ function search({
     offset,
     shouldCalculateTotals = false,
     prevReportsLength,
-    isOffline = false,
     isLoading,
     shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
+    shouldSaveRecentSearch = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
     prevReportsLength?: number;
-    isOffline?: boolean;
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
+    /**
+     * Tells the backend this query was submitted by the user, so it may be saved to the recent searches NVP.
+     * Only the Search page call site should pass true. Programmatic searches (home sections, post-action
+     * refreshes) must not evict the user's real recent searches.
+     */
+    shouldSaveRecentSearch?: boolean;
     /**
      * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Safe because search
      * responses only write snapshot keys, so they can't overwrite a pending write's optimistic data. Used by the
@@ -1127,26 +1167,37 @@ function search({
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
-        if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals) {
-            inFlightRequest.pendingTotalsRequest = () =>
+        // Not just EXPENSE: any type can now need totals (e.g. EXPENSE_REPORT's reportCount). Gating this
+        // to one type let a totals request for another type collide with an in-flight request and get
+        // silently dropped, so the total never arrived and the bulk-actions button spun forever.
+        const needsTotalsUpgrade = shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
+        // A user-submitted query colliding with an unflagged in-flight request (e.g. a programmatic refresh
+        // of the same query) must still reach the backend flagged, or it never enters recent searches.
+        const needsSaveRecentSearchUpgrade = shouldSaveRecentSearch && !inFlightRequest.shouldSaveRecentSearch;
+        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade) {
+            // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
+            // upgrade for the other. Only a single pending re-fire is kept.
+            inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
+            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? inFlightRequest.shouldSaveRecentSearch) || shouldSaveRecentSearch;
+            inFlightRequest.pendingUpgradeRequest = () =>
                 search({
                     queryJSON,
                     searchKey,
                     offset,
-                    shouldCalculateTotals: true,
+                    shouldCalculateTotals: inFlightRequest.pendingShouldCalculateTotals,
                     prevReportsLength,
-                    isOffline,
                     isLoading: false,
                     shouldUpdateLastSearchParams,
                     skipWaitForWrites,
+                    shouldSaveRecentSearch: inFlightRequest.pendingShouldSaveRecentSearch,
                 });
         }
         return;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals};
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals);
     const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
@@ -1154,6 +1205,7 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
+        ...(shouldSaveRecentSearch && {shouldSaveRecentSearch: true}),
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
@@ -1225,7 +1277,7 @@ function search({
             })
             .finally(() => {
                 inFlightSearchRequests.delete(dedupeKey);
-                return inFlightRequestState.pendingTotalsRequest?.();
+                return inFlightRequestState.pendingUpgradeRequest?.();
             });
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
@@ -1453,15 +1505,17 @@ function submitMoneyRequestOnSearch(
     }
 
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport, submitterLogin).at(0));
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin);
-    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID) : submitReportManagerAccountID;
+
+    // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
+    // accountID from the approval chain, which would point the server at someone other than the chosen approver.
+    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail) : submitReportManagerAccountID;
 
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID: resolvedManagerAccountID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        ...(resolvedManagerAccountID !== undefined ? {managerAccountID: resolvedManagerAccountID} : {}),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
     };
 
@@ -1474,7 +1528,7 @@ function submitMoneyRequestOnSearch(
     });
 }
 
-function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connectionName: ConnectionName, currentSearchKey?: SearchKey) {
+function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connectionName: ConnectionName, policy: OnyxEntry<Policy>, currentSearchKey?: SearchKey) {
     if (!reportIDs.length) {
         return;
     }
@@ -1501,7 +1555,7 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
 
     for (const reportID of reportIDs) {
-        const optimisticAction = buildOptimisticExportIntegrationAction(connectionName);
+        const optimisticAction = buildOptimisticExportIntegrationAction(connectionName, false, getExportLabelForConnection(connectionName, policy));
         const successAction: OptimisticExportIntegrationAction = {
             ...optimisticAction,
             pendingAction: null,
@@ -1845,6 +1899,8 @@ function queueExportSearchItemsToCSV({
         exportID,
     }) as QueueExportSearchItemsToCSVParams;
 
+    markExportInitiatedLocally(exportID);
+
     write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {
         optimisticData,
         failureData,
@@ -1895,6 +1951,10 @@ function queueExportSearchWithTemplate(
         exportName,
         ...(shouldTrackExportProgress ? {exportID} : {}),
     }) as QueueExportSearchWithTemplateParams;
+
+    if (shouldTrackExportProgress) {
+        markExportInitiatedLocally(exportID);
+    }
 
     write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
 

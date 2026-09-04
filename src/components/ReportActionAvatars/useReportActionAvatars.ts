@@ -32,6 +32,7 @@ import {buildUserIcon} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
+import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
@@ -82,6 +83,10 @@ function useReportActionAvatars({
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;
+
+    const [chatReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(chatReport?.reportID)}`, {
+        selector: pendingDeleteMemberAccountIDsSelector,
+    });
 
     const derivedActionReportID = iouReport?.parentReportActionID ? (chatReport?.reportID ?? iouReport?.chatReportID) : reportChatReport?.reportID;
     const derivedActionID = iouReport?.parentReportActionID ?? (!iouReport ? chatReport?.parentReportActionID : undefined);
@@ -242,6 +247,9 @@ function useReportActionAvatars({
             accountID,
             policy,
             invoiceReceiverPolicy,
+            false,
+            // Only a chat report can be a group chat, the other reports passed here (IOU/invoice) never need it.
+            onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
         );
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
@@ -252,7 +260,6 @@ function useReportActionAvatars({
               name: delegatePersonalDetails.displayName,
               id: delegatePersonalDetails.accountID,
               type: CONST.ICON_TYPE_AVATAR,
-              fill: undefined,
               fallbackIcon,
           }
         : undefined;
@@ -263,7 +270,6 @@ function useReportActionAvatars({
         id: policy?.id,
         name: policy?.name,
         type: CONST.ICON_TYPE_WORKSPACE,
-        fill: undefined,
         fallbackIcon,
     };
 
@@ -272,7 +278,6 @@ function useReportActionAvatars({
         id: accountID,
         name: defaultDisplayName ?? fallbackDisplayName,
         type: CONST.ICON_TYPE_AVATAR,
-        fill: undefined,
         fallbackIcon,
     };
 
@@ -281,7 +286,6 @@ function useReportActionAvatars({
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
         id: 0,
-        fill: undefined,
         fallbackIcon,
     };
 

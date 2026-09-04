@@ -1,6 +1,7 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +25,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 // Empty string persisted to defaultVendor when the admin wants to disable the fallback
 // supplier altogether — gives them a way out when a previously chosen Xero contact was deleted
@@ -124,6 +126,15 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
         [currentContactID, policyID, isFeatureAvailable, goBack],
     );
 
+    const listHeaderContent = useMemo(
+        () => (
+            <View style={[styles.pb2, styles.ph5]}>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.defaultVendorSelectHeader')}</Text>
+            </View>
+        ),
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+    );
+
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
@@ -145,7 +156,8 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={!isFeatureAvailable}
             displayName="DynamicXeroNonReimbursableDefaultContactSelectPage"
-            title="workspace.xero.defaultSupplier"
+            title="workspace.accounting.defaultVendor"
+            headerContent={listHeaderContent}
             data={data}
             onSelectRow={selectSupplier}
             shouldSingleExecuteRowSelect

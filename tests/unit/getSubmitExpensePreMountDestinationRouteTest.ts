@@ -54,6 +54,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
                 isMovingTransactionFromTrackExpense: false,
             }),
         ).toBeUndefined();
@@ -70,6 +71,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
                 isMovingTransactionFromTrackExpense: false,
             }),
         ).toBeUndefined();
@@ -85,6 +87,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
             isMovingTransactionFromTrackExpense: false,
         });
 
@@ -101,6 +104,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
             isMovingTransactionFromTrackExpense: false,
         });
 
@@ -124,6 +128,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
                 isMovingTransactionFromTrackExpense: true,
             }),
         ).toBeUndefined();
@@ -144,6 +149,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
             isMovingTransactionFromTrackExpense: false,
         });
 
@@ -166,6 +172,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
             isMovingTransactionFromTrackExpense: true,
         });
 
@@ -182,6 +189,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.TRACK,
             isCreatingTrackExpense: true,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
             isMovingTransactionFromTrackExpense: false,
         });
 
@@ -198,10 +206,30 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.CREATE,
             isCreatingTrackExpense: false,
             isSelfDMDestination: true,
+            isLookingAroundUser: false,
             isMovingTransactionFromTrackExpense: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
+    });
+
+    it('does NOT pre-insert the self-DM report for a LOOKING_AROUND user (they are routed to Search after submit)', () => {
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: {reportID: '123'},
+            isFromGlobalCreate: true,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.CREATE,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: true,
+            isLookingAroundUser: true,
+            isMovingTransactionFromTrackExpense: false,
+        });
+
+        expect(route).toBeUndefined();
     });
 
     it('returns the report route for a report-bound global create (PAY)', () => {
@@ -214,6 +242,26 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.PAY,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
+        });
+
+        expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
+    });
+
+    it('still pre-inserts the report for a LOOKING_AROUND user when the destination is a real report, not the self-DM (PAY)', () => {
+        // A LOOKING_AROUND user who later has a workspace and submits to a real report/friend must keep the report
+        // pre-insert - the LOOKING_AROUND gate is scoped to isSelfDMDestination, so it does not fire here.
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: {reportID: '123'},
+            isFromGlobalCreate: true,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.PAY,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: false,
+            isLookingAroundUser: true,
             isMovingTransactionFromTrackExpense: false,
         });
 
@@ -233,6 +281,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
                 isMovingTransactionFromTrackExpense: false,
             }),
         ).toBeUndefined();
@@ -252,6 +301,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
                 isMovingTransactionFromTrackExpense: false,
             }),
         ).toBeUndefined();
@@ -274,6 +324,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
             isMovingTransactionFromTrackExpense: false,
         });
 
@@ -294,6 +345,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
                 isMovingTransactionFromTrackExpense: false,
             }),
         ).toBeUndefined();
@@ -314,6 +366,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
             isMovingTransactionFromTrackExpense: false,
         });
 
@@ -339,6 +392,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
             isMovingTransactionFromTrackExpense: false,
         });
 

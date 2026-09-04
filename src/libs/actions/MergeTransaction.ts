@@ -18,7 +18,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticIOUReportAction,
@@ -328,16 +328,16 @@ function getOnyxTargetTransactionData({
     const shouldBuildOptimisticModifiedExpenseReportAction = false;
 
     if (isUnreportedExpense) {
-        data = getUpdateTrackExpenseParams(
-            targetTransaction.transactionID,
-            targetTransactionThreadReport?.reportID,
-            filteredTransactionChanges,
+        data = getUpdateTrackExpenseParams({
+            transactionID: targetTransaction.transactionID,
+            transaction: targetTransaction,
+            transactionThreadReportID: targetTransactionThreadReport?.reportID,
+            transactionChanges: filteredTransactionChanges,
             policy,
             delegateAccountID,
-            {getCurrencyDecimals, getCurrencySymbol},
-            undefined,
+            currencyContext: {getCurrencyDecimals, getCurrencySymbol},
             shouldBuildOptimisticModifiedExpenseReportAction,
-        );
+        });
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: targetTransaction.transactionID,
@@ -367,7 +367,8 @@ function getOnyxTargetTransactionData({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
         value: {
-            receipt: mergeTransaction.receipt ?? null,
+            // Clear the old count so it does not describe the newly chosen receipt.
+            receipt: mergeTransaction.receipt ? {pageCount: null, ...mergeTransaction.receipt} : null,
         },
     });
 
@@ -482,7 +483,7 @@ function mergeTransactionRequest({
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
         tag: mergeTransaction.tag,
-        taxCode: mergeTransaction.taxCode,
+        taxCode: resolveCurrentTaxCode(policy, mergeTransaction.taxCode),
         taxPolicyID: mergeTransaction.taxPolicyID,
         receiptID: mergeTransaction.receipt?.receiptID,
         reportID: mergeTransaction.reportID,

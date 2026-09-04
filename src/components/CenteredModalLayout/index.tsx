@@ -5,9 +5,6 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 
 import CONST from '@src/CONST';
 
@@ -35,7 +32,7 @@ type CenteredModalLayoutProps = {
 
     /**
      * Whether the content wrapper should apply the bottom safe-area inset. Disable it when the children
-     * already handle the inset themselves (e.g. FeatureTrainingContent with `shouldUseScrollView`, whose
+     * already handle the inset themselves (e.g. FeatureTraining with `shouldUseScrollView`, whose
      * ScrollView content padding includes it), otherwise the inset is applied twice and renders as an
      * empty band under the content on devices with a bottom inset.
      */
@@ -44,14 +41,14 @@ type CenteredModalLayoutProps = {
 
 function CenteredModalLayout({children, width, height, onBackdropPress, contentStyle, addBottomSafeAreaPadding = true}: CenteredModalLayoutProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+    const shouldDockToBottom = !onboardingIsMediumOrLargerScreenWidth;
+
     const safeAreaHorizontalPadding = useSafeAreaHorizontalPadding();
     const safeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode,
-        style: [shouldUseNarrowLayout && styles.pt2, !isInLandscapeMode && styles.pb5, safeAreaHorizontalPadding, contentStyle],
+        addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode && shouldDockToBottom,
+        style: [shouldDockToBottom && styles.pt2, !isInLandscapeMode && styles.pb5, safeAreaHorizontalPadding, contentStyle],
     });
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onBackdropPress, {shouldBubble: false});
@@ -61,10 +58,10 @@ function CenteredModalLayout({children, width, height, onBackdropPress, contentS
             <CenteredModalLayoutOverlay onBackdropPress={onBackdropPress} />
             <View
                 pointerEvents="box-none"
-                style={[styles.flex1, styles.alignItemsCenter, styles.getCenteredModalOuterView(shouldUseNarrowLayout)]}
+                style={[styles.flex1, styles.alignItemsCenter, styles.getCenteredModalOuterView(shouldDockToBottom)]}
             >
                 <FocusTrapForScreen>
-                    <View style={styles.getCenteredModalInnerView(shouldUseNarrowLayout, width, height)}>
+                    <View style={styles.getCenteredModalInnerView(shouldDockToBottom, width, height)}>
                         <View style={safeAreaStyle}>{children}</View>
                     </View>
                 </FocusTrapForScreen>

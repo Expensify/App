@@ -31,6 +31,9 @@ import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 let shouldFailAllRequests: boolean;
+const reportsWithProcessedOfflineComments = new Map<string, string>();
+const OFFLINE_COMMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
+
 // Use connectWithoutView since this is for network data and don't affect to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -69,6 +72,70 @@ function setIsReadyPromisePending() {
         };
     });
     isReadyPromisePending = true;
+}
+
+// A deferred write (API.writeWhenReady) isn't on the queue yet, so nothing else holds the gate for it.
+let deferredWriteClaims = 0;
+let deferredWritesLanded: Promise<void> = Promise.resolve();
+let resolveDeferredWritesLanded: (() => void) | undefined;
+// Bumped by resetQueue() so claims it wiped can't decrement a later one's count.
+let deferredWriteGeneration = 0;
+let pendingNetworkStateChange: Promise<void> | undefined;
+let unsubscribePendingNetworkStateChange: (() => void) | undefined;
+
+/** One shared wake-up for every READ parked on the gate, rather than a subscription per caller. */
+function whenNetworkStateChanges(): Promise<void> {
+    pendingNetworkStateChange ??= new Promise<void>((resolve) => {
+        const unsubscribe = subscribeToNetworkState(() => {
+            unsubscribe();
+            unsubscribePendingNetworkStateChange = undefined;
+            pendingNetworkStateChange = undefined;
+            resolve();
+        });
+        unsubscribePendingNetworkStateChange = unsubscribe;
+    });
+
+    return pendingNetworkStateChange;
+}
+
+/**
+ * Sole writer of the count, so deferredWritesLanded is pending exactly while claims are outstanding -
+ * resolving it early would spin waitForIdle().
+ */
+function setDeferredWriteClaims(count: number) {
+    if (count > 0 && deferredWriteClaims === 0) {
+        deferredWritesLanded = new Promise<void>((resolve) => {
+            resolveDeferredWritesLanded = resolve;
+        });
+    }
+
+    deferredWriteClaims = Math.max(0, count);
+
+    if (deferredWriteClaims === 0) {
+        resolveDeferredWritesLanded?.();
+        resolveDeferredWritesLanded = undefined;
+        deferredWritesLanded = Promise.resolve();
+    }
+}
+
+/**
+ * Holds the read gate for a write that hasn't been pushed yet. Returns a callback to run once the write
+ * has reached the queue - or definitely won't - after which the queue's own gate takes over.
+ */
+function claimReadGateForDeferredWrite(): () => void {
+    const generation = deferredWriteGeneration;
+    setDeferredWriteClaims(deferredWriteClaims + 1);
+    Log.info('[SequentialQueue] Deferred write claimed the read gate', false, {claims: deferredWriteClaims});
+
+    let hasSettled = false;
+    return () => {
+        if (hasSettled || generation !== deferredWriteGeneration) {
+            return;
+        }
+        hasSettled = true;
+        setDeferredWriteClaims(deferredWriteClaims - 1);
+        Log.info('[SequentialQueue] Deferred write released the read gate', false, {claims: deferredWriteClaims});
+    };
 }
 
 let isSequentialQueueRunning = false;
@@ -297,6 +364,33 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
+    // Messages sent offline get their real time from the server on replay, which is newer than the time the
+    // queued read carries. That leaves the report unread, so move the read up to our own message's time.
+    // Out of scope: a read queued before the comment (it stays ahead in the queue), a message from someone
+    // else in the same window, and losing the change below if the app is killed before the request is sent.
+    if (requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION && requestToProcess.initiatedOffline) {
+        const reportID = requestToProcess.data?.reportID;
+
+        // Marking a message unread must always win, so skip everything while one is queued for this report.
+        const hasPendingSameReportMarkAsUnread =
+            typeof reportID === 'string' && getAllPersistedRequests().some((request) => request.command === WRITE_COMMANDS.MARK_AS_UNREAD && request.data?.reportID === reportID);
+        if (typeof reportID === 'string' && !hasPendingSameReportMarkAsUnread && reportsWithProcessedOfflineComments.has(reportID)) {
+            const recordedTime = reportsWithProcessedOfflineComments.get(reportID);
+            const currentLastReadTime = typeof requestToProcess.data?.lastReadTime === 'string' ? requestToProcess.data.lastReadTime : '';
+            if (recordedTime && recordedTime > currentLastReadTime) {
+                requestToProcess.data = {
+                    ...requestToProcess.data,
+                    lastReadTime: recordedTime,
+                };
+
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data -- fixing this queue's own request value, not general report state
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastReadTime: recordedTime});
+            }
+
+            // Keep the entry: a retried request comes back with the old time and needs fixing again.
+        }
+    }
+
     Log.info('[SequentialQueue] Starting to process request', false, {
         command: requestToProcess.command,
         isRollback: requestToProcess.isRollback ?? false,
@@ -306,6 +400,41 @@ function process(): Promise<void> {
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
+            // Remember the server time of messages sent offline, for the read above.
+            if (requestToProcess.initiatedOffline && OFFLINE_COMMENT_COMMANDS.has(requestToProcess.command)) {
+                const reportID = requestToProcess.data?.reportID;
+                const reportActionID = requestToProcess.data?.reportActionID;
+                if (typeof reportID === 'string' && typeof reportActionID === 'string') {
+                    let serverTimestamp = '';
+
+                    // Match our own reportActionID, not the report's lastVisibleActionCreated, which can be
+                    // someone else's newer action. No match means we record nothing.
+                    for (const update of response?.onyxData ?? []) {
+                        if (update.key !== `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`) {
+                            continue;
+                        }
+                        const value: unknown = update.value;
+                        if (!value || typeof value !== 'object') {
+                            continue;
+                        }
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the value is a map of report actions, and the action we read is checked below
+                        const actionValue: unknown = (value as Record<string, unknown>)[reportActionID];
+                        if (!actionValue || typeof actionValue !== 'object' || !('created' in actionValue)) {
+                            continue;
+                        }
+                        const created = actionValue.created;
+                        if (typeof created === 'string' && created > serverTimestamp) {
+                            serverTimestamp = created;
+                        }
+                    }
+
+                    const currentMax = reportsWithProcessedOfflineComments.get(reportID) ?? '';
+                    if (serverTimestamp && serverTimestamp > currentMax) {
+                        reportsWithProcessedOfflineComments.set(reportID, serverTimestamp);
+                    }
+                }
+            }
+
             Log.info('[SequentialQueue] Request processed successfully', false, {
                 command: requestToProcess.command,
                 shouldPauseQueue: response?.shouldPauseQueue ?? false,
@@ -532,6 +661,11 @@ function flush(shouldResetPromise = true) {
                 });
 
                 isSequentialQueueRunning = false;
+
+                if (!hasRemainingRequests) {
+                    reportsWithProcessedOfflineComments.clear();
+                }
+
                 // Use isOfflineNetwork() — not isQueuePaused — to decide whether to resolve isReadyPromise.
                 // isQueuePaused is true for both offline pauses AND shouldPauseQueue (data gap sync).
                 // For shouldPauseQueue, WRITEs are still pending so READs must wait (don't resolve).
@@ -772,9 +906,19 @@ function getCurrentRequest(): Promise<void> {
 }
 
 /**
- * Returns a promise that resolves when the sequential queue is done processing all persisted write requests.
+ * Resolves when the queue is done processing all persisted write requests, deferred writes included.
+ * Skipped while offline, where the queue can't run and push()/flush() open the gate for the same reason.
  */
-function waitForIdle(): Promise<unknown> {
+async function waitForIdle(): Promise<unknown> {
+    while (deferredWriteClaims > 0 && !isOfflineNetwork()) {
+        Log.info('[SequentialQueue] READ is waiting on a deferred write', false, {claims: deferredWriteClaims});
+        // The waits are deliberately sequential, each one re-checks the claim count and the
+        // network, so going offline releases READs and coming back re-parks them.
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.race([deferredWritesLanded, whenNetworkStateChanges()]);
+    }
+
+    // Read after the wait, the deferred write's push() has re-closed the gate by now.
     return isReadyPromise;
 }
 
@@ -791,9 +935,15 @@ function resetQueue(): void {
     isReadyPromise = Promise.resolve();
     isReadyPromisePending = false;
     resolveIsReadyPromise = undefined;
+    deferredWriteGeneration += 1;
+    setDeferredWriteClaims(0);
+    unsubscribePendingNetworkStateChange?.();
+    unsubscribePendingNetworkStateChange = undefined;
+    pendingNetworkStateChange = undefined;
 }
 
 export {
+    claimReadGateForDeferredWrite,
     flush,
     getCurrentRequest,
     isPaused,

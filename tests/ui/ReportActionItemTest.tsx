@@ -64,6 +64,7 @@ jest.mock('@libs/actions/Link', () => {
             const attrPath = Url.getPathFromURL(href);
             return (Url.hasSameExpensifyOrigin(href, CONSTreal.NEW_EXPENSIFY_URL) ||
                 Url.hasSameExpensifyOrigin(href, CONSTreal.STAGING_NEW_EXPENSIFY_URL) ||
+                Url.hasSameExpensifyOrigin(href, CONSTreal.QA_NEW_EXPENSIFY_URL) ||
                 href.startsWith(CONSTreal.DEV_NEW_EXPENSIFY_URL)) &&
                 !CONSTreal.PATHS_TO_TREAT_AS_EXTERNAL.find((p) => attrPath.startsWith(p))
                 ? attrPath
@@ -424,7 +425,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -476,7 +476,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             } as const;
 
@@ -523,7 +522,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -571,7 +569,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -1628,6 +1625,50 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/QuickBooks Online/)).toBeOnTheScreen();
+        });
+
+        it('INTEGRATION_SYNC_FAILED action keeps the stored IES label after switching to QBO', async () => {
+            const policyID = 'iesPolicy';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    connections: {
+                        quickbooksOnline: {
+                            config: {
+                                credentials: {
+                                    scope: 'com.intuit.quickbooks.accounting',
+                                },
+                            },
+                        },
+                    },
+                });
+            });
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED, {
+                label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
+                errorMessage: 'Token expired',
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Intuit Enterprise Suite/)).toBeOnTheScreen();
+            expect(screen.queryByText(/QuickBooks Online/)).not.toBeOnTheScreen();
         });
 
         it('COMPANY_CARD_CONNECTION_BROKEN action', async () => {

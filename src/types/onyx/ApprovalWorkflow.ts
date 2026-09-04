@@ -121,7 +121,7 @@ type ApprovalWorkflow = OnyxValueWithOfflineFeedback<{
     approvers: Approver[];
 
     /**
-     * Is this the default workflow for the policy (first approver of this workflow is the same as the policy's default approver)
+     * Is this the default workflow for the policy
      */
     isDefault: boolean;
 }>;
@@ -161,6 +161,11 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      * List of original approvers in the workflow
      */
     originalApprovers: Approver[];
+
+    /**
+     * Email of the member whose workflow this edit session belongs to.
+     */
+    memberEmail?: string;
 
     /**
      * Whether the user is in the initial creation flow

@@ -2,7 +2,6 @@ import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar'
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {ReportPreviewDataContext} from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
 import Text from '@components/Text';
@@ -46,7 +45,7 @@ import {cardByIdSelector} from '@src/selectors/Card';
 import {getStableReportSelector} from '@src/selectors/Report';
 
 import truncate from 'lodash/truncate';
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -135,11 +134,6 @@ function TransactionPreviewContent({
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
-    // Raw useContext (not the useReportPreviewData slice hook, which throws when absent): a missing provider means this is a
-    // standalone preview with no report header to carry the status, so the preview has to report a cancelled payment itself.
-    const isInsideReportPreview = !!useContext(ReportPreviewDataContext);
-    const shouldShowCanceledStatus = !isInsideReportPreview;
-
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy, reportActions);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
@@ -169,13 +163,12 @@ function TransactionPreviewContent({
                 dateFnsLocale,
                 ...transactionPreviewCommonArguments,
                 shouldShowRBR,
-                shouldShowCanceledStatus,
                 violationMessage,
                 reportActions,
                 originalTransaction,
                 convertToDisplayString,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, shouldShowCanceledStatus, violationMessage, reportActions, originalTransaction, convertToDisplayString, dateFnsLocale],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction, convertToDisplayString, dateFnsLocale],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
@@ -199,8 +192,10 @@ function TransactionPreviewContent({
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
     const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
 
-    // While scanning there is no merchant or amount, so the type label stacks above the status instead of using the usual rows.
+    // While scanning the status takes the merchant slot and the amount and type are left out, so the card matches the Spend row.
     const shouldUseScanningLayout = isTransactionScanning && !isDeleted;
+    const primaryText = shouldUseScanningLayout ? displayAmount : merchantOrDescription;
+    const shouldShowPrimaryText = shouldUseScanningLayout || shouldShowMerchantOrDescription;
 
     const previewSupportingText = [previewText.previewDateText, shouldShowCategory && category ? {text: getDecodedLeafCategoryName(category)} : undefined, ...previewText.previewStatusText]
         .filter((item): item is TranslationPathOrText => !!item)
@@ -323,59 +318,44 @@ function TransactionPreviewContent({
                                     />
                                 )}
                                 <View style={[styles.flexColumn, styles.gap1]}>
-                                    {shouldUseScanningLayout ? (
-                                        <>
-                                            <Text
-                                                numberOfLines={1}
-                                                style={[styles.textLabelSupporting, styles.pre, styles.lh16]}
-                                            >
-                                                {displayTypeText}
-                                            </Text>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                            {shouldShowPrimaryText && (
+                                                <Text
+                                                    fontSize={variables.fontSizeNormal}
+                                                    style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {primaryText}
+                                                </Text>
+                                            )}
+                                        </View>
+                                        {!shouldUseScanningLayout && (
                                             <Text
                                                 fontSize={variables.fontSizeNormal}
+                                                style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
                                                 numberOfLines={1}
                                             >
                                                 {displayAmount}
                                             </Text>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                                    {shouldShowMerchantOrDescription && (
-                                                        <Text
-                                                            fontSize={variables.fontSizeNormal}
-                                                            style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
-                                                            numberOfLines={1}
-                                                        >
-                                                            {merchantOrDescription}
-                                                        </Text>
-                                                    )}
-                                                </View>
-                                                <Text
-                                                    fontSize={variables.fontSizeNormal}
-                                                    style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {displayAmount}
-                                                </Text>
-                                            </View>
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                                <Text
-                                                    numberOfLines={1}
-                                                    style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.pre, styles.flexShrink1, styles.lh16]}
-                                                >
-                                                    {previewSupportingText}
-                                                </Text>
-                                                <Text
-                                                    numberOfLines={1}
-                                                    style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.pre, styles.flexShrink0, styles.lh16]}
-                                                >
-                                                    {displayTypeText}
-                                                </Text>
-                                            </View>
-                                        </>
-                                    )}
+                                        )}
+                                    </View>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.pre, styles.flexShrink1, styles.lh16]}
+                                        >
+                                            {previewSupportingText}
+                                        </Text>
+                                        {!shouldUseScanningLayout && (
+                                            <Text
+                                                numberOfLines={1}
+                                                style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.pre, styles.flexShrink0, styles.lh16]}
+                                            >
+                                                {displayTypeText}
+                                            </Text>
+                                        )}
+                                    </View>
                                     {/* Split avatars sit bottom left, on the same row as "Your split", instead of trailing the merchant. */}
                                     {isBillSplit && (
                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
