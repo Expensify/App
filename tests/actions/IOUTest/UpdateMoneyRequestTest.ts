@@ -2802,6 +2802,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: fakeTransaction},
                     transactionViolations: {},
                     betas: undefined,
+                    isASAPSubmitBetaEnabled: false,
                     introSelected: undefined,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     currentUserEmail: RORY_EMAIL,

@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
@@ -18,6 +19,7 @@ import type {SearchReportActionsParamList} from '@navigation/types';
 
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -39,7 +41,8 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
@@ -70,7 +73,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 allReports,
                 currentUserAccountID,
                 currentUserLogin ?? '',
-                betas,
+                isASAPSubmitBetaEnabled,
                 delegateAccountID,
                 getCurrencyDecimals,
             );
@@ -92,7 +95,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             allReports,
             currentUserAccountID,
             currentUserLogin,
-            betas,
+            isASAPSubmitBetaEnabled,
             delegateAccountID,
             getCurrencyDecimals,
             route.name,

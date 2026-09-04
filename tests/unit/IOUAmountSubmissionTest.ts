@@ -212,7 +212,7 @@ describe('AmountSubmission', () => {
                 duplicateTransactionViolations: {},
                 reportAttributesDerivedValue: undefined,
                 betas: [],
-                betaConfiguration: undefined,
+                isASAPSubmitBetaEnabled: false,
                 quickAction: undefined,
                 onboarding: undefined,
                 introSelected: undefined,

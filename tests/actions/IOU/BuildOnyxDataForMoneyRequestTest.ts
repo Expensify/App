@@ -500,7 +500,6 @@ describe('buildOnyxDataForMoneyRequest', () => {
                 created: '2024-01-01',
                 merchant: 'Test Merchant',
             },
-            betas: [],
             isASAPSubmitBetaEnabled: false,
             currentUserAccountIDParam: CURRENT_USER_ACCOUNT_ID,
             currentUserEmailParam: CURRENT_USER_EMAIL,

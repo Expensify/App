@@ -705,7 +705,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -732,7 +732,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const restorationEntries = result.failureData.filter(
@@ -764,7 +764,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
@@ -797,7 +797,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {

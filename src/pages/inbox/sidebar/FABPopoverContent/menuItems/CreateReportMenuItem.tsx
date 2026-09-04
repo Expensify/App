@@ -42,7 +42,6 @@ function CreateReportMenuItem() {
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -72,7 +71,6 @@ function CreateReportMenuItem() {
             hasViolations,
             isASAPSubmitBetaEnabled,
             defaultChatEnabledPolicy,
-            allBetas,
             isTrackIntentUser,
             getCurrencyDecimals,
             false,

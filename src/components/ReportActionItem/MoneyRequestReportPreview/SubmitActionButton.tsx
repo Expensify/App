@@ -75,7 +75,6 @@ function SubmitActionButtonContent() {
     } = useReportPreviewActionButtonData(iouReportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
 
@@ -129,7 +128,6 @@ function SubmitActionButtonContent() {
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 onSubmitted: startSubmittingAnimation,

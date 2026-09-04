@@ -33,14 +33,15 @@ const mockUseCreateReport = jest.fn<{createReport: typeof mockCreateReport; isVi
     isVisible: mockCreateReportIsVisible,
 }));
 const mockUseOnyx = jest.fn<unknown[], [key: string, options?: MockOnyxOptions]>();
-const mockIsBetaEnabled = jest.fn(() => true);
+// Enabling preventSpotnanaTravel blocks travel, so keep it off by default and let the cases that need it opt in
+const isBetaEnabledByDefault = (beta: string) => beta !== CONST.BETAS.PREVENT_SPOTNANA_TRAVEL;
+const mockIsBetaEnabled = jest.fn(isBetaEnabledByDefault);
 const mockCanSendInvoice = jest.fn<boolean, unknown[]>(() => false);
 const mockGetDefaultChatEnabledPolicy = jest.fn((policies: unknown[]) => (policies.length === 1 ? policies.at(0) : undefined));
 const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, currentUserLogin?: string]>();
 const mockShouldShowPolicy = jest.fn<boolean, unknown[]>(() => true);
 const mockHasAcceptedTravelTerms = jest.fn(() => false);
 const mockIsPaidGroupPolicy = jest.fn(() => false);
-const mockIsPermissionsBetaEnabled = jest.fn(() => false);
 const mockIsOnSearchMoneyRequestReportPage = jest.fn(() => false);
 const mockGetCurrencyDecimals = jest.fn();
 let mockIsRestrictedPolicyCreation = false;
@@ -162,13 +163,6 @@ jest.mock('@libs/openTravelDotLink', () => ({
     openTravelDotLink: jest.fn(),
 }));
 
-jest.mock('@libs/Permissions', () => ({
-    __esModule: true,
-    default: {
-        isBetaEnabled: () => mockIsPermissionsBetaEnabled(),
-    },
-}));
-
 jest.mock('@libs/PolicyUtils', () => ({
     canSendInvoice: (...args: unknown[]) => mockCanSendInvoice(...args),
     getDefaultChatEnabledPolicy: (policies: unknown[]) => mockGetDefaultChatEnabledPolicy(policies),
@@ -225,7 +219,7 @@ describe('useCreateNavigationSuggestions', () => {
         mockShouldShowPolicy.mockReturnValue(true);
         mockHasAcceptedTravelTerms.mockReturnValue(false);
         mockIsPaidGroupPolicy.mockReturnValue(false);
-        mockIsPermissionsBetaEnabled.mockReturnValue(false);
+        mockIsBetaEnabled.mockImplementation(isBetaEnabledByDefault);
         mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
         mockIsOnSearchMoneyRequestReportPage.mockReturnValue(false);
         mockIsRestrictedPolicyCreation = false;
@@ -372,7 +366,7 @@ describe('useCreateNavigationSuggestions', () => {
         mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
         mockOnyxValues.set(ONYXKEYS.ACCOUNT, {primaryLogin});
         mockOnyxValues.set(ONYXKEYS.SESSION, {...session, email: sessionEmail});
-        mockIsPermissionsBetaEnabled.mockReturnValue(isBlocked);
+        mockIsBetaEnabled.mockImplementation((beta: string) => (beta === CONST.BETAS.PREVENT_SPOTNANA_TRAVEL ? isBlocked : true));
         mockIsPaidGroupPolicy.mockReturnValue(isPaid);
         mockHasAcceptedTravelTerms.mockReturnValue(hasAcceptedTerms);
         const {result} = renderHook(() => useCreateNavigationSuggestions());
@@ -429,7 +423,7 @@ describe('useCreateNavigationSuggestions', () => {
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
         act(() => onCreateReport?.(true));
 
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, [], false, mockGetCurrencyDecimals, false, true);
+        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, false, true);
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});

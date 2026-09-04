@@ -223,10 +223,9 @@ function AttachmentPickerWithMenuItems({
                 () =>
                     createNewReport(
                         currentUserPersonalDetails,
-                        isASAPSubmitBetaEnabled,
                         hasViolations,
+                        isASAPSubmitBetaEnabled,
                         policy,
-                        betas,
                         isTrackIntentUser,
                         getCurrencyDecimals,
                         true,
@@ -240,7 +239,7 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, true, false);
+            createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, isTrackIntentUser, getCurrencyDecimals, true, false);
         }
     };
 

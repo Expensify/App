@@ -1,8 +1,21 @@
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 import type BetaConfiguration from '@src/types/onyx/BetaConfiguration';
+import type BetaOverrides from '@src/types/onyx/BetaOverrides';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {isProduction} from './Environment/Environment';
+
+// Start from the synchronous config so overrides never apply in production, then refine with the resolved
+// environment, which downgrades TestFlight builds to staging
+let isProductionEnvironment = CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION;
+isProduction()
+    .then((value) => {
+        isProductionEnvironment = value;
+    })
+    .catch(() => {});
 
 // eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
@@ -16,7 +29,14 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>): boolean {
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>, betaOverrides?: OnyxEntry<BetaOverrides>): boolean {
+    if (!isProductionEnvironment) {
+        const override = betaOverrides?.[beta];
+        if (override !== undefined) {
+            return override;
+        }
+    }
+
     const hasAllBetasEnabled = canUseAllBetas(betas);
     const isFeatureEnabled = !!betas?.includes(beta);
 

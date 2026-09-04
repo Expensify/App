@@ -112,7 +112,6 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
     const [policyForMovingExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`);
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const [transactions] = useOptimisticDraftTransactions(transaction);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isCreateReportRestricted = useCreateReportRestrictionCheck(session);
@@ -178,7 +177,6 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForNewReport,
-            betas,
             isTrackIntentUser,
             getCurrencyDecimals,
             false,

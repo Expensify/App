@@ -24,7 +24,6 @@ function useCreateNewReport() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -39,14 +38,13 @@ function useCreateNewReport() {
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 policy,
-                betas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
         },
-        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals],
+        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals],
     );
 }
 
