@@ -23,7 +23,7 @@ type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps & {
     onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
     /** Prevent the default ContextMenu on web */
-    preventDefaultContextMenu?: boolean;
+    preventDefaultContextMenu?: boolean | ((event: MouseEvent) => boolean);
 
     /** Use Text instead of Pressable to create inline layout.
      * It has few limitations in comparison to Pressable.

@@ -112,6 +112,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
                 text={localValue}
                 numberOfLines={1}
                 style={shouldUseNarrowLayout ? [styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1] : [styles.lineHeightXLarge]}
+                isCopyable
             />
         </EditableCell>
     );

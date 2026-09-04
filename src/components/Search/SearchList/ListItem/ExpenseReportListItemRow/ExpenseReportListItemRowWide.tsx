@@ -17,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import variables from '@styles/variables';
 
@@ -143,7 +144,11 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
+            <View
+                style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS), styles.userSelectText]}
+                // Preserve the visible report status when row-aware clipboard cleanup removes decorative content.
+                dataSet={COPYABLE_TEXT_DATA_SET}
+            >
                 <StatusCell
                     stateNum={item.stateNum}
                     statusNum={item.statusNum}

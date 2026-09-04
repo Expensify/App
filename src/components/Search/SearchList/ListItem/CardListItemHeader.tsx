@@ -111,6 +111,7 @@ function CardListItemHeaderImpl({
                         text={cardItem.formattedCardName ?? ''}
                         numberOfLines={2}
                         style={[styles.preWrap]}
+                        isCopyable
                     />
                 </View>
             </View>
@@ -124,6 +125,7 @@ function CardListItemHeaderImpl({
                     text={cardItem.formattedFeedName ?? ''}
                     numberOfLines={2}
                     style={[styles.lineHeightLarge, styles.preWrap]}
+                    isCopyable
                 />
             </View>
         ),
@@ -174,11 +176,13 @@ function CardListItemHeaderImpl({
                                 <TextWithTooltip
                                     text={formattedDisplayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    isCopyable
                                 />
                                 <TextWithTooltip
                                     text={cardItem.formattedCardName ?? ''}
                                     numberOfLines={2}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.preWrap]}
+                                    isCopyable
                                 />
                             </View>
                         </View>

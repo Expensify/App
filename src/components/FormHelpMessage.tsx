@@ -8,7 +8,7 @@ import Parser from '@libs/Parser';
 
 import CONST from '@src/CONST';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import isEmpty from 'lodash/isEmpty';
 import React, {useContext, useMemo} from 'react';
@@ -31,6 +31,9 @@ type FormHelpMessageProps = {
 
     /** Container style props */
     style?: StyleProp<ViewStyle>;
+
+    /** Message text style props */
+    messageStyle?: StyleProp<TextStyle>;
 
     /** Whether to show dot indicator */
     shouldShowRedDotIndicator?: boolean;
@@ -55,6 +58,7 @@ function FormHelpMessage({
     children,
     isError = true,
     style,
+    messageStyle,
     shouldShowRedDotIndicator = true,
     shouldRenderMessageAsHTML = false,
     isInfo = false,
@@ -142,7 +146,7 @@ function FormHelpMessage({
                         <RenderHTML html={HTMLMessage} />
                     ) : (
                         <Text
-                            style={[isError ? styles.formError : styles.formHelp, styles.mb0]}
+                            style={[isError ? styles.formError : styles.formHelp, styles.mb0, messageStyle]}
                             nativeID={nativeID}
                             role={visibleMessageRole}
                             accessibilityRole={!isWeb && shouldAnnounceError ? CONST.ROLE.ALERT : undefined}

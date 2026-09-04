@@ -14,6 +14,9 @@ type ReportSearchHeaderProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
+
+    /** Whether the displayed report title should be directly selectable/copyable */
+    isTitleCopyable?: boolean;
 };
 
 export default ReportSearchHeaderProps;

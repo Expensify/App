@@ -95,6 +95,9 @@ type AvatarWithDisplayNameProps = {
     /** The style of the custom display name text */
     customDisplayNameStyle?: TextStyle;
 
+    /** Whether the displayed report title should be directly selectable/copyable */
+    isDisplayNameCopyable?: boolean;
+
     /** The style of the parent navigation subtitle text */
     parentNavigationSubtitleTextStyles?: StyleProp<TextStyle>;
 
@@ -102,18 +105,33 @@ type AvatarWithDisplayNameProps = {
     parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
 };
 
-function getCustomDisplayName(
-    shouldUseCustomSearchTitleName: boolean,
-    report: OnyxEntry<Report>,
-    title: string,
-    displayNamesWithTooltips: DisplayNameWithTooltips,
-    transactions: TransactionListItemType[],
-    shouldUseFullTitle: boolean,
-    customSearchDisplayStyle: TextStyle[],
-    regularStyle: TextStyle[],
-    isAnonymous: boolean,
-    isMoneyRequestOrReport: boolean,
-): React.ReactNode {
+type CustomDisplayNameOptions = {
+    shouldUseCustomSearchTitleName: boolean;
+    report: OnyxEntry<Report>;
+    title: string;
+    displayNamesWithTooltips: DisplayNameWithTooltips;
+    transactions: TransactionListItemType[];
+    shouldUseFullTitle: boolean;
+    customSearchDisplayStyle: TextStyle[];
+    regularStyle: TextStyle[];
+    isAnonymous: boolean;
+    isMoneyRequestOrReport: boolean;
+    isCopyable: boolean;
+};
+
+function getCustomDisplayName({
+    shouldUseCustomSearchTitleName,
+    report,
+    title,
+    displayNamesWithTooltips,
+    transactions,
+    shouldUseFullTitle,
+    customSearchDisplayStyle,
+    regularStyle,
+    isAnonymous,
+    isMoneyRequestOrReport,
+    isCopyable,
+}: CustomDisplayNameOptions): React.ReactNode {
     const reportName = report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME;
     const isIOUOrInvoice = report?.type === CONST.REPORT.TYPE.IOU || report?.type === CONST.REPORT.TYPE.INVOICE;
     const hasTransactions = transactions.length > 0;
@@ -174,6 +192,7 @@ function getCustomDisplayName(
             numberOfLines={numberOfLines}
             textStyles={textStyles}
             shouldUseFullTitle={shouldUseFullTitleProp}
+            isCopyable={isCopyable}
         />
     );
 }
@@ -190,6 +209,7 @@ function AvatarWithDisplayName({
     avatarBorderColor: avatarBorderColorProp,
     shouldDisplayStatus = false,
     customDisplayNameStyle = {},
+    isDisplayNameCopyable = false,
     parentNavigationSubtitleTextStyles,
     parentNavigationStatusContainerStyles = {},
 }: AvatarWithDisplayNameProps) {
@@ -282,18 +302,19 @@ function AvatarWithDisplayName({
     };
 
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
-    const displayNameContent = getCustomDisplayName(
+    const displayNameContent = getCustomDisplayName({
         shouldUseCustomSearchTitleName,
         report,
         title,
         displayNamesWithTooltips,
         transactions,
         shouldUseFullTitle,
-        [styles.headerText, styles.pre, customDisplayNameStyle],
-        [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
+        customSearchDisplayStyle: [styles.headerText, styles.pre, customDisplayNameStyle],
+        regularStyle: [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
         isAnonymous,
         isMoneyRequestOrReport,
-    );
+        isCopyable: isDisplayNameCopyable,
+    });
 
     const multipleAvatars = (
         <ReportAvatar

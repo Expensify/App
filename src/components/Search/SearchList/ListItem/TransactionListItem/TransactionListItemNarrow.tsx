@@ -8,12 +8,14 @@ import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 
 import CONST from '@src/CONST';
 
@@ -52,12 +54,18 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
     const {isSelected} = useRowSelection(item.keyForList, transactionItem.selectionGroupKey);
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
         if (isDeletedTransaction) {
             if (canSelectMultiple) {
@@ -124,14 +132,20 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
-                onLongPress={() => onLongPressRow?.(item)}
+                onLongPress={() => {
+                    if (shouldSuppressCopyableTextRowLongPress()) {
+                        return;
+                    }
+                    onLongPressRow?.(item);
+                }}
                 onPress={handleOnPress}
                 disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
+                shouldAllowTextSelection
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
@@ -139,12 +153,26 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     shouldShowFocusBackground && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
-                onFocus={onFocus}
+                onFocus={(event) => {
+                    if (shouldSuppressCopyableTextRowFocus()) {
+                        return;
+                    }
+                    onFocus?.(event);
+                }}
+                onMouseDown={(event) => {
+                    const isCopyableTarget = markMouseDownOnCopyableText(event?.target);
+                    if (isCopyableTarget) {
+                        return;
+                    }
+                    event.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                }}
                 wrapperStyle={[
                     styles.mh5,
                     styles.flex1,
                     animatedHighlightStyle,
-                    styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,
                     !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),

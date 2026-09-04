@@ -11,6 +11,181 @@ import type GetCurrentSelection from './types';
 
 const markdownElements = new Set(['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's', 'mention-user']);
 const tagAttribute = 'data-testid';
+const hiddenElementAttribute = `data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}`;
+const hiddenElementSelector = `[${hiddenElementAttribute}=true]`;
+const COPYABLE_TEXT_SELECTOR = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
+const COPYABLE_TEXT_DATA_SET = {[CONST.COPYABLE_TEXT_ELEMENT]: true} as const;
+const COPYABLE_ROW_SELECTOR = `[data-${CONST.COPYABLE_ROW_ELEMENT}=true]`;
+const COPYABLE_ROW_DATA_SET = {[CONST.COPYABLE_ROW_ELEMENT]: true} as const;
+
+function getCopyableElementText(element: globalThis.Element, selection: Selection): string {
+    const elementRange = document.createRange();
+    elementRange.selectNodeContents(element);
+    const selectedText: string[] = [];
+
+    for (let i = 0; i < selection.rangeCount; i++) {
+        const intersectionRange = selection.getRangeAt(i).cloneRange();
+        if (!intersectionRange.intersectsNode(element)) {
+            continue;
+        }
+
+        if (intersectionRange.compareBoundaryPoints(globalThis.Range.START_TO_START, elementRange) < 0) {
+            intersectionRange.setStart(elementRange.startContainer, elementRange.startOffset);
+        }
+        if (intersectionRange.compareBoundaryPoints(globalThis.Range.END_TO_END, elementRange) > 0) {
+            intersectionRange.setEnd(elementRange.endContainer, elementRange.endOffset);
+        }
+        selectedText.push(intersectionRange.toString());
+    }
+
+    return selectedText
+        .join(' ')
+        .trim()
+        .replaceAll(/[\t\n\r ]+/g, ' ');
+}
+
+function replaceElementContentWithLines(element: globalThis.Element, lines: string[]) {
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+
+    for (const [index, line] of lines.entries()) {
+        if (index > 0) {
+            element.appendChild(document.createElement('br'));
+        }
+        element.appendChild(document.createTextNode(line));
+    }
+}
+
+function getSelectedTextForTextNode(textNode: globalThis.Text, range: Range): string {
+    const textNodeRange = document.createRange();
+    textNodeRange.selectNodeContents(textNode);
+
+    const intersectionRange = range.cloneRange();
+    if (intersectionRange.compareBoundaryPoints(globalThis.Range.START_TO_START, textNodeRange) < 0) {
+        intersectionRange.setStart(textNodeRange.startContainer, textNodeRange.startOffset);
+    }
+    if (intersectionRange.compareBoundaryPoints(globalThis.Range.END_TO_END, textNodeRange) > 0) {
+        intersectionRange.setEnd(textNodeRange.endContainer, textNodeRange.endOffset);
+    }
+
+    return intersectionRange.toString();
+}
+
+function getElementFromNode(node: globalThis.Node): globalThis.Element | null {
+    if (node instanceof globalThis.Element) {
+        return node;
+    }
+
+    return node.parentElement;
+}
+
+function getSelectedRowsForRange(range: Range): globalThis.Element[] {
+    const rootElement = getElementFromNode(range.commonAncestorContainer);
+    if (!rootElement) {
+        return [];
+    }
+
+    // Use the live selection range so partially selected first/last grouped rows are still included.
+    return [rootElement.closest(COPYABLE_ROW_SELECTOR), ...Array.from(rootElement.querySelectorAll(COPYABLE_ROW_SELECTOR))].filter(
+        (row): row is globalThis.Element => !!row && range.intersectsNode(row),
+    );
+}
+
+function isTopLevelCopyableElementForRow(copyableElement: globalThis.Element, row: globalThis.Element): boolean {
+    if (!copyableElement.matches(COPYABLE_TEXT_SELECTOR) || copyableElement.closest(COPYABLE_ROW_SELECTOR) !== row) {
+        return false;
+    }
+
+    const copyableAncestor = copyableElement.parentElement?.closest(COPYABLE_TEXT_SELECTOR);
+    return !copyableAncestor || copyableAncestor.closest(COPYABLE_ROW_SELECTOR) !== row;
+}
+
+function getCopyableElementsForSelectedRow(row: globalThis.Element, range: Range): globalThis.Element[] {
+    return [row, ...Array.from(row.querySelectorAll(COPYABLE_TEXT_SELECTOR))].filter(
+        (copyableElement) => isTopLevelCopyableElementForRow(copyableElement, row) && range.intersectsNode(copyableElement),
+    );
+}
+
+function selectionContainsTextOutsideCopyableRows(selection: Selection): boolean {
+    if (typeof document === 'undefined' || typeof NodeFilter === 'undefined') {
+        return false;
+    }
+
+    for (let i = 0; i < selection.rangeCount; i++) {
+        const range = selection.getRangeAt(i);
+        const rootElement = getElementFromNode(range.commonAncestorContainer);
+        if (!rootElement) {
+            continue;
+        }
+
+        const walker = document.createTreeWalker(rootElement, NodeFilter.SHOW_TEXT);
+        let textNode = walker.nextNode();
+
+        while (textNode) {
+            if (textNode instanceof globalThis.Text && range.intersectsNode(textNode) && getSelectedTextForTextNode(textNode, range).trim()) {
+                const textElement = getElementFromNode(textNode);
+                if (!textElement?.closest(COPYABLE_ROW_SELECTOR) && !textElement?.closest(hiddenElementSelector)) {
+                    return true;
+                }
+            }
+
+            textNode = walker.nextNode();
+        }
+    }
+
+    return false;
+}
+
+function getHTMLOfSelectedCopyableRows(selection: Selection): string {
+    const selectedRows: globalThis.Element[] = [];
+    const selectedCopyableElementsByRow = new Map<globalThis.Element, Set<globalThis.Element>>();
+
+    // Build an ordered row -> cells map so multi-row copied output follows the visual table order.
+    for (let i = 0; i < selection.rangeCount; i++) {
+        const range = selection.getRangeAt(i);
+        for (const row of getSelectedRowsForRange(range)) {
+            const copyableElements = getCopyableElementsForSelectedRow(row, range);
+            if (copyableElements.length === 0) {
+                continue;
+            }
+
+            if (!selectedCopyableElementsByRow.has(row)) {
+                selectedRows.push(row);
+                selectedCopyableElementsByRow.set(row, new Set());
+            }
+
+            const selectedCopyableElements = selectedCopyableElementsByRow.get(row);
+            for (const copyableElement of copyableElements) {
+                selectedCopyableElements?.add(copyableElement);
+            }
+        }
+    }
+
+    const selectedCopyableElementCount = Array.from(selectedCopyableElementsByRow.values()).reduce((count, copyableElements) => count + copyableElements.size, 0);
+    if (selectedCopyableElementCount <= 1) {
+        // Single-cell selections should preserve the browser's exact selected text instead of forcing full-cell output.
+        return '';
+    }
+
+    const lines = selectedRows
+        .map((row) =>
+            [row, ...Array.from(row.querySelectorAll(COPYABLE_TEXT_SELECTOR))]
+                .filter((copyableElement) => selectedCopyableElementsByRow.get(row)?.has(copyableElement))
+                .map((copyableElement) => getCopyableElementText(copyableElement, selection))
+                .filter((text) => !!text)
+                .join(' '),
+        )
+        .filter((line) => !!line);
+
+    if (lines.length === 0) {
+        return '';
+    }
+
+    const div = document.createElement('div');
+    replaceElementContentWithLines(div, lines);
+    return div.innerHTML;
+}
 
 /**
  * Reads html of selection. If browser doesn't support Selection API, returns empty string.
@@ -28,6 +203,12 @@ const getHTMLOfSelection = (): string => {
 
     if (selection.rangeCount <= 0) {
         return window.getSelection()?.toString() ?? '';
+    }
+
+    const selectedCopyableRowsHTML = getHTMLOfSelectedCopyableRows(selection);
+    if (selectedCopyableRowsHTML && !selectionContainsTextOutsideCopyableRows(selection)) {
+        // Explicitly marked rows need normalized row text before generic selection cleanup.
+        return selectedCopyableRowsHTML;
     }
 
     const div = document.createElement('div');
@@ -89,12 +270,11 @@ const getHTMLOfSelection = (): string => {
         }
     }
 
-    // Find and remove the div housing the UnreadActionIndicator because we don't want
-    // the 'New/Nuevo' text inside it being copied.
-    const divsToRemove = div.querySelectorAll(`[data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}=true]`);
+    // Find and remove content that is intentionally hidden from copied selections.
+    const hiddenElements = div.querySelectorAll(hiddenElementSelector);
 
-    if (divsToRemove && divsToRemove.length > 0) {
-        for (const element of divsToRemove) {
+    if (hiddenElements && hiddenElements.length > 0) {
+        for (const element of hiddenElements) {
             element.remove();
         }
     }
@@ -166,6 +346,8 @@ const getCurrentSelection: GetCurrentSelection = () => {
     const newHtml = render(domRepresentation).replaceAll('<br>\n', '<br>');
     return newHtml || '';
 };
+
+export {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET};
 
 export default {
     getCurrentSelection,

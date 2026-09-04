@@ -6,6 +6,7 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
@@ -17,6 +18,7 @@ import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -113,6 +115,14 @@ type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransac
     shouldSkipDeferRBR?: boolean;
 };
 
+function getPressEventTarget(target: unknown): EventTarget | null {
+    if (typeof EventTarget === 'undefined' || !(target instanceof EventTarget)) {
+        return null;
+    }
+
+    return target;
+}
+
 function MoneyRequestReportTransactionItemBody({
     transaction,
     violations,
@@ -159,10 +169,10 @@ function MoneyRequestReportTransactionItemBody({
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
 
-    // On narrow layouts `inlineEdit` is undefined (the parent skips the hook). The fallback ref
-    // keeps the press handler shape identical without ever being mutated on narrow.
-    const fallbackEditingOnMouseDownRef = useRef(false);
-    const wasEditingOnMouseDownRef = inlineEdit?.wasEditingOnMouseDownRef ?? fallbackEditingOnMouseDownRef;
+    // Keep this ref local so React Compiler can prove the after-render event mutations are safe.
+    const wasEditingOnMouseDownRef = useRef(false);
+    const wasPressInOnCopyableTextRef = useRef(false);
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
 
     useEffect(() => {
         if (!wasRecentlyEditingCell) {
@@ -173,13 +183,65 @@ function MoneyRequestReportTransactionItemBody({
 
     const handleMouseDown = (e?: React.MouseEvent) => {
         wasEditingOnMouseDownRef.current = isEditingCell;
+        const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
 
-        if (!isEditingCell) {
+        if (!isEditingCell && !isCopyableTarget) {
             e?.preventDefault();
         }
     };
 
     const handleHoverIn = () => setShouldDisableHoverStyle(false);
+
+    const handlePress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = () => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
+        // Prevent row press from firing while a cell is being inline-edited (e.g. pressing Space would otherwise open the expense)
+        // See https://github.com/Expensify/App/issues/88646 for more details
+        if (isEditingCell) {
+            return;
+        }
+        // If a cell was being edited when the user tapped the row, suppress navigation
+        // so the second tap doesn't immediately open the transaction detail.
+        if (wasEditingOnMouseDownRef.current) {
+            wasEditingOnMouseDownRef.current = false;
+            return;
+        }
+        handleOnPress(transaction.transactionID);
+    };
+
+    const handlePressIn: React.ComponentProps<typeof PressableWithFeedback>['onPressIn'] = (event) => {
+        wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
+        wasPressInOnCopyableTextRef.current = false;
+        // Selection only needs to be blocked for touch interactions; desktop mouse selection is handled by onMouseDown.
+        if (!canUseTouchScreen()) {
+            return;
+        }
+
+        // Let copyable values use native long-press/drag selection instead of applying the global selection blocker.
+        const isCopyableTarget = markMouseDownOnCopyableText(getPressEventTarget(event?.target));
+        wasPressInOnCopyableTextRef.current = isCopyableTarget;
+        if (isCopyableTarget) {
+            return;
+        }
+
+        // Preserve the existing row behavior for non-copyable touch targets.
+        ControlSelection.block();
+    };
+
+    const handlePressableLongPress = () => {
+        // Let touch-web long presses on copyable values complete native text selection without opening row actions.
+        if (wasPressInOnCopyableTextRef.current) {
+            return;
+        }
+        handleLongPress(transaction.transactionID);
+    };
+
+    const handlePressOut = () => {
+        wasPressInOnCopyableTextRef.current = false;
+        ControlSelection.unblock();
+    };
 
     return (
         <OfflineWithFeedback
@@ -188,42 +250,23 @@ function MoneyRequestReportTransactionItemBody({
         >
             <PressableWithFeedback
                 key={transaction.transactionID}
-                onPress={() => {
-                    // Prevent row press from firing while a cell is being inline-edited (e.g. pressing Space would otherwise open the expense)
-                    // See https://github.com/Expensify/App/issues/88646 for more details
-                    if (isEditingCell) {
-                        return;
-                    }
-                    // If a cell was being edited when the user tapped the row, suppress navigation
-                    // so the second tap doesn't immediately open the transaction detail.
-                    if (wasEditingOnMouseDownRef.current) {
-                        wasEditingOnMouseDownRef.current = false;
-                        return;
-                    }
-                    handleOnPress(transaction.transactionID);
-                }}
+                onPress={handlePress}
                 accessibilityLabel={translate('iou.viewDetails')}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_TRANSACTION_ITEM}
                 role={getButtonRole(true)}
                 isNested
+                shouldAllowTextSelection
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
                 hoverStyle={[!isPendingDelete && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                dataSet={COPYABLE_ROW_DATA_SET}
                 onMouseDown={handleMouseDown}
                 onHoverIn={handleHoverIn}
-                onPressIn={() => {
-                    wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
-                    if (canUseTouchScreen()) {
-                        ControlSelection.block();
-                    }
-                }}
-                onPressOut={() => ControlSelection.unblock()}
-                onLongPress={() => {
-                    handleLongPress(transaction.transactionID);
-                }}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                onLongPress={handlePressableLongPress}
                 disabled={isTransactionPendingDelete(transaction)}
-                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
+                wrapperStyle={[animatedHighlightStyle, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
             >
                 {({hovered}) => (
                     <TransactionItemRow

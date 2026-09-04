@@ -3,6 +3,7 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
@@ -23,9 +24,20 @@ type DisplayNamesWithoutTooltipProps = ForwardedFSClassProps & {
 
     /** Overrides the text read by screen readers. */
     accessibilityLabel?: string;
+
+    /** Whether this display name should be directly selectable/copyable inside pressable rows */
+    isCopyable?: boolean;
 };
 
-function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = '', renderAdditionalText, forwardedFSClass, accessibilityLabel}: DisplayNamesWithoutTooltipProps) {
+function DisplayNamesWithoutTooltip({
+    textStyles = [],
+    numberOfLines = 1,
+    fullTitle = '',
+    renderAdditionalText,
+    forwardedFSClass,
+    accessibilityLabel,
+    isCopyable = false,
+}: DisplayNamesWithoutTooltipProps) {
     const styles = useThemeStyles();
     return (
         <Text
@@ -33,6 +45,8 @@ function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTit
             style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
             numberOfLines={numberOfLines}
             fsClass={forwardedFSClass}
+            selectable={isCopyable}
+            dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
         >
             {fullTitle}
             {renderAdditionalText?.()}
