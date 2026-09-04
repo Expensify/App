@@ -31,7 +31,7 @@ const mockSplitBillAction = jest.fn();
 const mockSplitBillAndOpenReportAction = jest.fn();
 const mockResolveOptimisticSplitChatReportID = jest.fn();
 const mockDismissModalAndOpenReportInInboxTab = jest.fn();
-const mockReserveDeferredWriteChannel = jest.fn();
+const mockMarkPendingSearchWrite = jest.fn();
 const mockIsSearchTopmostFullScreenRoute = jest.fn();
 
 jest.mock('@userActions/IOU/TrackExpense', () => ({
@@ -64,9 +64,9 @@ jest.mock('@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab', () => 
     default: (...args: unknown[]) => mockDismissModalAndOpenReportInInboxTab(...args),
 }));
 
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    ...jest.requireActual('@libs/deferredLayoutWrite'),
-    reserveDeferredWriteChannel: (...args: unknown[]) => mockReserveDeferredWriteChannel(...args),
+jest.mock('@libs/pendingSearchWrite', () => ({
+    ...jest.requireActual('@libs/pendingSearchWrite'),
+    markPendingSearchWrite: (...args: unknown[]) => mockMarkPendingSearchWrite(...args),
 }));
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => ({
@@ -671,7 +671,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('existing-group-chat', undefined, false);
         });
 
-        it('reserves the SEARCH channel before splitBill when the split lands back on Search (the action hardcodes shouldDeferForSearch:false)', async () => {
+        it('raises the pending Search signal before splitBill when the split lands back on Search', async () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
 
             const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
@@ -682,11 +682,11 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockReserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(mockMarkPendingSearchWrite).toHaveBeenCalledTimes(1);
             expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
         });
 
-        it('reserves the SEARCH channel before splitBillAndOpenReport when the split lands back on Search', async () => {
+        it('raises the pending Search signal before splitBillAndOpenReport when the split lands back on Search', async () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
 
             const {result} = renderHook(() => useExpenseSubmission(buildSplitParams({isFromGlobalCreate: true})));
@@ -697,11 +697,11 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockReserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(mockMarkPendingSearchWrite).toHaveBeenCalledTimes(1);
             expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledTimes(1);
         });
 
-        it('does not reserve the SEARCH channel when the split is not landing on Search', async () => {
+        it('does not raise the pending Search signal when the split is not landing on Search', async () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
 
             const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
@@ -712,12 +712,12 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
+            expect(mockMarkPendingSearchWrite).not.toHaveBeenCalled();
             expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
         });
 
-        it('does not reserve the SEARCH channel (or run the split) when there is no login to submit with, even on Search', async () => {
-            // The shared reservation runs before the branch's login+transaction check, so it must reuse that guard or it leaks a SEARCH channel no write ever flushes.
+        it('does not raise the pending Search signal (or run the split) when there is no login to submit with, even on Search', async () => {
+            // The shared signal-raise runs before the branch's login+transaction check, so it must reuse that guard or it leaks a pending signal no write ever flushes.
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             const splitTransaction = buildTransaction();
 
@@ -738,7 +738,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
+            expect(mockMarkPendingSearchWrite).not.toHaveBeenCalled();
             expect(mockSplitBillAction).not.toHaveBeenCalled();
         });
     });

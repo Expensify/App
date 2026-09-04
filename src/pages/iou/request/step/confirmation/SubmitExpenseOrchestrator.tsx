@@ -3,16 +3,19 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import useOnyx from '@hooks/useOnyx';
 import type {AfterTransition} from '@hooks/usePreMountDestination';
 
+import {armTransitionBarrier} from '@libs/API';
+import type {WriteReadyBarrier} from '@libs/API';
 import DateUtils from '@libs/DateUtils';
-import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
+import markPendingWriteForSearchPage from '@libs/Navigation/helpers/markPendingWriteForSearchPage';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {markPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {markPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
@@ -41,8 +44,12 @@ type SubmitExpenseOrchestratorRenderProps = {
 };
 
 type SubmitExpenseOrchestratorProps = {
-    /** Calls the appropriate IOU action (requestMoney, trackExpense, etc.) to create the transaction. */
-    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean) => void;
+    /**
+     * Calls the appropriate IOU action (requestMoney, trackExpense, etc.) to create the transaction.
+     * `writeBarrier`, when given, is what the resulting API write waits on before applying its
+     * optimistic data - so the re-render wave lands after the dismiss animation instead of during it.
+     */
+    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean, writeBarrier?: WriteReadyBarrier) => void;
 
     /** Report that the expense will land on (undefined when destination is unknown, e.g. global create to Search). */
     destinationReportID: string | undefined;
@@ -225,7 +232,7 @@ function SubmitExpenseOrchestrator({
     const handleSearchPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        markPendingSearchWrite();
         revealPreMountDestination(() => {
             // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
             // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
@@ -238,10 +245,13 @@ function SubmitExpenseOrchestrator({
     const handleReportPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+        // Armed before the reveal, so the barrier attaches to the transition that reveal starts.
+        const writeBarrier = armTransitionBarrier().barrier;
+        const clearPendingWrite = markPendingSubmitWriteForReport(destinationReportID);
 
         const afterTransition = () => {
-            createTransaction(locationPermissionGranted, false);
+            createTransaction(locationPermissionGranted, false, writeBarrier);
+            clearPendingWrite();
             setIsConfirming(false);
         };
 
@@ -254,10 +264,33 @@ function SubmitExpenseOrchestrator({
     const handleDismissModalFastPath = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
-        reserveDeferredWriteChannel(shouldPreserveSearchWithPlaceholder ? CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH : CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+
+        let writeBarrier: WriteReadyBarrier | undefined;
+        let clearPendingWrite = () => {};
+
+        if (shouldPreserveSearchWithPlaceholder) {
+            // Search-destined submissions release on Search's own content layout, not on this dismiss
+            // transition, so they take Search's barrier instead of an armed transition one. The signal
+            // has to go up here, before the write exists, because Search's placeholder reads it on mount.
+            markPendingSearchWrite();
+        } else {
+            // Armed here, not inside the dismiss callbacks below: the barrier has to attach while this
+            // dismiss transition is starting, otherwise it would wait out an unrelated later one.
+            writeBarrier = armTransitionBarrier().barrier;
+            clearPendingWrite = markPendingSubmitWriteForReport(destinationReportID);
+        }
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false);
+            createTransaction(locationPermissionGranted, false, writeBarrier);
+            // The barrier has already released by now, so the write goes out on the next microtask -
+            // the same point the write session used to drop this signal.
+            //
+            // This holds for the strategies that run us from TransitionTracker rather than from a
+            // dismiss callback (dismissNarrowWithReport) only because TransitionTracker flushes its
+            // pending callbacks in registration order, and the barrier above was armed before the
+            // strategy registered. Arming later than the dismiss call would clear this signal before
+            // the write is even issued, which shows up as an empty-state flash on the destination.
+            clearPendingWrite();
             setIsConfirming(false);
         };
 
@@ -288,7 +321,7 @@ function SubmitExpenseOrchestrator({
         // LOOKING_AROUND self-DM flow to make the navigation to Search actually happen. Other callers keep forceReplace.
         const shouldSkipForceReplace = isFromGlobalCreateForNavigation && isLookingAroundUser && isSelfDMDestination;
         setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        markPendingSearchWrite();
 
         const runAfterDismiss = () => {
             createTransaction(locationPermissionGranted, false);
@@ -363,7 +396,7 @@ function SubmitExpenseOrchestrator({
 
     const handleDefaultSubmit = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-        reserveSearchChannelIfGlobalCreate(isFromGlobalCreateForNavigation);
+        markPendingWriteForSearchPage(isFromGlobalCreateForNavigation);
         requestAnimationFrame(() => {
             createTransaction(locationPermissionGranted);
             requestAnimationFrame(() => {
@@ -373,28 +406,25 @@ function SubmitExpenseOrchestrator({
     };
 
     // The createTransaction call runs inside runAfterDismiss (after the transition completes).
-    // When the destination report is empty we reserve a DISMISS_MODAL deferred-write channel
-    // so that MoneyRequestReportActionsList can show a loading skeleton instead of the
-    // "no expenses" empty state while the dismiss animation plays.
+    // When the destination report is empty we raise the pending-write signal so that
+    // MoneyRequestReportActionsList shows a loading skeleton instead of the "no expenses"
+    // empty state while the dismiss animation plays.
+    //
+    // Deliberately no write barrier here: this handler's write already executes immediately
+    // (it used to reserve a channel purely for the skeleton, then flush it before createTransaction),
+    // so gating it on a transition would newly delay a write that does not wait today.
     const handleReportInRHPDismiss = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_IN_RHP_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const rootState = navigationRef.getRootState();
 
         const report = destinationReportID ? getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport) : undefined;
         const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
-        if (isDestinationEmpty) {
-            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
-        }
+        const clearPendingWrite = isDestinationEmpty ? markPendingSubmitWriteForReport(destinationReportID) : () => {};
 
         const runAfterDismiss = () => {
-            // Flush signals readiness on the reserved channel. Since no real write was
-            // registered, the channel transitions to flushRequested. When createTransaction
-            // below calls deferOrExecuteWrite, it sees the flushed channel and executes
-            // the write immediately instead of deferring.
-            if (isDestinationEmpty) {
-                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            }
             createTransaction(locationPermissionGranted, false);
+            // Cleared after the write, matching where the flushed session used to drop it.
+            clearPendingWrite();
             setIsConfirming(false);
         };
 
@@ -409,9 +439,9 @@ function SubmitExpenseOrchestrator({
         }
 
         Log.warn('[SubmitExpenseOrchestrator] handleReportInRHPDismiss reached without destinationReportID - falling back to default submit');
-        if (isDestinationEmpty) {
-            cancelDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-        }
+        // Nothing dismisses here, so runAfterDismiss never runs - drop the signal explicitly rather
+        // than leaving it to the safety timeout.
+        clearPendingWrite();
         handleDefaultSubmit(locationPermissionGranted);
     };
 

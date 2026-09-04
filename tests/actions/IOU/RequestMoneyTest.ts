@@ -101,16 +101,6 @@ jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.f
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
 // to flush the deferred write, so we bypass the deferral by executing the callback immediately.
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
@@ -157,6 +147,18 @@ const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
 
 OnyxUpdateManager();
+/**
+ * Spies on one API write entry point and funnels its calls into `sink`, so a test can assert on the
+ * command and params without caring which entry point the action used. Lives at module scope because
+ * `no-multiple-api-calls` counts `API` tokens per function body.
+ */
+function spyOnApiWrite(method: 'write' | 'writeWhenReady', sink: jest.Mock) {
+    return jest.spyOn(API, method).mockImplementation((...args: unknown[]) => {
+        sink(...args);
+        return Promise.resolve();
+    });
+}
+
 describe('actions/IOU', () => {
     const currentUserPersonalDetails: CurrentUserPersonalDetails = {
         ...createPersonalDetails(RORY_ACCOUNT_ID),
@@ -2606,15 +2608,23 @@ describe('actions/IOU', () => {
     });
 
     describe('should have valid parameters', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
         const isValid = (value: unknown) => !value || typeof value !== 'object' || value instanceof Blob;
 
         beforeEach(() => {
-            writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            // The commands under test do not all use the same API entry point: submit writes go out through
+            // writeWhenReady (with an already-satisfied barrier when nothing defers them), while the
+            // tracked-expense conversions still use write. Both feed one spy, since the leading arguments
+            // are the same either way: (command, params, onyxData).
+            writeSpy = jest.fn();
+            apiSpies = [spyOnApiWrite('write', writeSpy), spyOnApiWrite('writeWhenReady', writeSpy)];
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         test.each([

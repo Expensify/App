@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
+import {hasPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
 
 import {clearCreateChatError} from '@userActions/Report';
@@ -82,13 +82,13 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             }
         >
             <View style={[styles.pRelative]}>
-                {/* hasDeferredWriteForReport is non-reactive (reads a module-level Map, not tracked by React).
-                   This is intentional: we only suppress the animation on the initial render while a
-                   DISMISS_MODAL write targeting THIS report is pending. The animation re-appears on the
+                {/* hasPendingSubmitWriteForReport is non-reactive (reads module-level state, not tracked by
+                   React). This is intentional: we only suppress the animation on the initial render while a
+                   submit write targeting THIS report is pending. The animation re-appears on the
                    next organic re-render (e.g. Onyx updates after the API write resolves). The check is
                    scoped to `report.reportID` so an unrelated submit flow's dismiss doesn't suppress the
                    animation here. */}
-                {!hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID) && <AnimatedEmptyStateBackground />}
+                {!hasPendingSubmitWriteForReport(report?.reportID) && <AnimatedEmptyStateBackground />}
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}

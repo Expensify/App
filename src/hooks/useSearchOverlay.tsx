@@ -2,8 +2,8 @@ import {useSession} from '@components/OnyxListItemProvider';
 import SearchStaticList from '@components/Search/SearchStaticList';
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getValidGroupBy, isTransactionSearchType} from '@libs/SearchUIUtils';
 
@@ -69,7 +69,7 @@ function useSearchOverlay({
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
-    const [isSearchReady, setIsSearchReady] = useState(() => !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !Navigation.getIsFullscreenPreInsertedUnderRHP());
+    const [isSearchReady, setIsSearchReady] = useState(() => !hasPendingSearchWrite() && !Navigation.getIsFullscreenPreInsertedUnderRHP());
 
     const onSearchContentReady = () => {
         setIsSearchReady(true);
@@ -79,7 +79,7 @@ function useSearchOverlay({
     // (e.g. a subsequent submit flow while Search stays mounted).
     useFocusEffect(
         useCallback(() => {
-            const hasPending = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            const hasPending = hasPendingSearchWrite();
             const hasPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
             if (!hasPending && !hasPreInserted) {
                 return;
