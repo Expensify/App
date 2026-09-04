@@ -139,6 +139,52 @@ describe('Navigate', () => {
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
         });
 
+        it('returns to the Workspaces list after directly opening a Workspace subpage without its sidebar', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 4,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {
+                                            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                            state: {
+                                                index: 0,
+                                                routes: [{name: SCREENS.WORKSPACES_LIST}],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {skipInitialSplitNavigatorSidebar: true});
+            });
+
+            const workspaceStateAfterNavigate = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            expect(workspaceStateAfterNavigate?.routes.at(0)?.name).toBe(SCREENS.WORKSPACES_LIST);
+            expect(workspaceStateAfterNavigate?.routes.at(-1)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+
+            act(() => {
+                Navigation.goBack();
+            });
+
+            const workspaceStateAfterGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            expect(workspaceStateAfterGoBack?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACES_LIST);
+        });
+
         it('to the page from the different split navigator', () => {
             // Given the initialized navigation on the narrow layout with the settings split navigator
             render(

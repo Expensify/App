@@ -25,7 +25,16 @@ import getMinimalAction from './getMinimalAction';
 
 const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,
+    skipInitialSplitNavigatorSidebar: false,
 };
+
+function addSkipInitialSidebarParam(params: unknown): Record<string, unknown> {
+    const navigationParams = params && typeof params === 'object' ? params : {};
+    if ('params' in navigationParams && navigationParams.params && typeof navigationParams.params === 'object') {
+        return {...navigationParams, params: addSkipInitialSidebarParam(navigationParams.params)};
+    }
+    return {...navigationParams, shouldSkipInitialSidebar: true};
+}
 
 /**
  * Leaf screen names that represent the root/landing view of each tab.
@@ -160,7 +169,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     // We know that the options are always defined because we have default options.
-    const {forceReplace} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
+    const {forceReplace, skipInitialSplitNavigatorSidebar} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
 
     const normalizedPath = normalizePath(path) as Route;
     const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;
@@ -283,6 +292,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
+    if (skipInitialSplitNavigatorSidebar && minimalAction.payload && 'params' in minimalAction.payload) {
+        minimalAction.payload.params = addSkipInitialSidebarParam(minimalAction.payload.params);
+    }
     if (
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         action.payload.name === NAVIGATORS.TAB_NAVIGATOR &&
