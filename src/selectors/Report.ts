@@ -102,6 +102,32 @@ function groupChatAvatarReportSelector(report: OnyxEntry<Report>): GroupChatAvat
     return {reportID: report.reportID, avatarUrl: report.avatarUrl, reportName: report.reportName, participants: report.participants};
 }
 
+/** The report fields `ExpenseReportAvatar` renders from: the owner for the primary avatar plus the workspace-icon fallbacks. */
+type ExpenseReportAvatarReport = Pick<Report, 'ownerAccountID' | 'policyID' | 'policyAvatar' | 'policyName' | 'oldPolicyName' | 'chatReportID' | 'parentReportID'>;
+
+function expenseReportAvatarSelector(report: OnyxEntry<Report>): ExpenseReportAvatarReport | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {
+        ownerAccountID: report.ownerAccountID,
+        policyID: report.policyID,
+        policyAvatar: report.policyAvatar,
+        policyName: report.policyName,
+        oldPolicyName: report.oldPolicyName,
+        chatReportID: report.chatReportID,
+        parentReportID: report.parentReportID,
+    };
+}
+
+/** Policy fallbacks a child report's workspace icon reads off its parent chat. */
+function reportPolicyFieldsSelector(report: OnyxEntry<Report>): Pick<Report, 'policyID' | 'policyName' | 'oldPolicyName' | 'policyAvatar'> | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {policyID: report.policyID, policyName: report.policyName, oldPolicyName: report.oldPolicyName, policyAvatar: report.policyAvatar};
+}
+
 const policyIDsWithEmptyReportsSelector =
     (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>, hasDismissedEmptyReportsConfirmation: boolean) => (reports: OnyxCollection<Report>) => {
         if (hasDismissedEmptyReportsConfirmation || !accountID) {
@@ -327,6 +353,7 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
 }
 
 export {
+    expenseReportAvatarSelector,
     getArchiveReason,
     getReportChatType,
     groupChatAvatarReportSelector,
@@ -337,6 +364,7 @@ export {
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
     reportAvatarKindSelector,
+    reportPolicyFieldsSelector,
     createMoveExpenseReportNVPSelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,

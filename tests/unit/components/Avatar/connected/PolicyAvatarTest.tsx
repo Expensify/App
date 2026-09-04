@@ -137,7 +137,7 @@ describe('PolicyAvatar (connected)', () => {
             <PolicyAvatar
                 policyID={POLICY_ID}
                 accountID={ACCOUNT_ID}
-                subscriptAvatarBorderColor={BORDER_COLOR}
+                backdropColor={BORDER_COLOR}
             />,
         );
 
@@ -145,7 +145,7 @@ describe('PolicyAvatar (connected)', () => {
         expect(screen.queryByTestId('MockedSingleAvatar')).not.toBeOnTheScreen();
         expect(mockCapturedSubscriptAvatarProps.primaryAvatar).toEqual(expect.objectContaining({id: POLICY_ID, type: CONST.ICON_TYPE_WORKSPACE}));
         expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(expect.objectContaining({id: ACCOUNT_ID, type: CONST.ICON_TYPE_AVATAR, name: LOGIN}));
-        expect(mockCapturedSubscriptAvatarProps.subscriptAvatarBorderColor).toBe(BORDER_COLOR);
+        expect(mockCapturedSubscriptAvatarProps.backdropColor).toBe(BORDER_COLOR);
     });
 
     it('should downgrade to a single avatar while the account icon is still nameless', async () => {

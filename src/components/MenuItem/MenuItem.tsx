@@ -937,19 +937,9 @@ function MenuItem({
                                                             />
                                                         ) : (
                                                             <ReportAvatar
-                                                                subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(
-                                                                    isHovered,
-                                                                    pressed,
-                                                                    theme.hoverComponentBG,
-                                                                    theme.buttonHoveredBG,
-                                                                )}
+                                                                backdropColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
                                                                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                                                                 size={avatarSize}
-                                                                secondaryAvatarContainerStyle={[
-                                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                                    pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
-                                                                    isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
-                                                                ]}
                                                                 reportID={iconReportID}
                                                             />
                                                         ))}
@@ -1172,7 +1162,7 @@ function MenuItem({
                                                             />
                                                         ) : (
                                                             <ReportAvatar
-                                                                subscriptAvatarBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
+                                                                backdropColor={isHovered ? theme.activeComponentBG : theme.componentBG}
                                                                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr2]}
                                                                 reportID={rightIconReportID}
                                                                 size={CONST.AVATAR_SIZE.SMALL}

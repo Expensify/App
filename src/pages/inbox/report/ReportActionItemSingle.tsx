@@ -9,7 +9,6 @@ import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -85,7 +84,6 @@ function ReportActionItemSingle({
     const {latestDecision, hasBeenFlagged} = getModerationFlagState(action);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, dateFnsLocale} = useLocalize();
     const isOnSearch = useIsOnSearch();
 
@@ -170,13 +168,9 @@ function ReportActionItemSingle({
                 <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
                     <ReportActionAvatars
                         singleAvatarContainerStyle={[styles.actionAvatar]}
-                        subscriptAvatarBorderColor={getBackgroundColor()}
+                        backdropColor={getBackgroundColor()}
                         noRightMarginOnSubscriptContainer
                         isInReportAction
-                        secondaryAvatarContainerStyle={[
-                            StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
-                            isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
-                        ]}
                         reportID={iouReportID}
                         chatReportID={source.iouReport?.chatReportID ?? reportID}
                         action={action}

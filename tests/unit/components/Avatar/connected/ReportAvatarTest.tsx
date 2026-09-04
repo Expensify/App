@@ -28,6 +28,8 @@ jest.mock('@components/ReportActionAvatars', () => {
 
 let mockCapturedGroupChatAvatarProps: Record<string, unknown> = {};
 
+let mockCapturedExpenseReportAvatarProps: Record<string, unknown> = {};
+
 let mockCapturedAccountAvatarProps: Record<string, unknown> = {};
 
 jest.mock('@components/Avatar/connected/AccountAvatar', () => {
@@ -36,6 +38,15 @@ jest.mock('@components/Avatar/connected/AccountAvatar', () => {
     return (props: Record<string, unknown>) => {
         mockCapturedAccountAvatarProps = props;
         return <View testID="MockedAccountAvatar" />;
+    };
+});
+
+jest.mock('@components/Avatar/connected/ExpenseReportAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedExpenseReportAvatarProps = props;
+        return <View testID="MockedExpenseReportAvatar" />;
     };
 });
 
@@ -57,6 +68,7 @@ describe('ReportAvatar (connected)', () => {
         jest.clearAllMocks();
         mockCapturedFallbackProps = {};
         mockCapturedGroupChatAvatarProps = {};
+        mockCapturedExpenseReportAvatarProps = {};
         mockCapturedAccountAvatarProps = {};
     });
 
@@ -66,7 +78,6 @@ describe('ReportAvatar (connected)', () => {
     });
 
     it.each([
-        ['an expense report', {type: CONST.REPORT.TYPE.EXPENSE}],
         ['an IOU report', {type: CONST.REPORT.TYPE.IOU}],
         ['a task report', {type: CONST.REPORT.TYPE.TASK}],
         ['an invoice report', {type: CONST.REPORT.TYPE.INVOICE}],
@@ -82,6 +93,57 @@ describe('ReportAvatar (connected)', () => {
 
         expect(screen.getByTestId('MockedReportActionAvatars')).toBeOnTheScreen();
         expect(mockCapturedFallbackProps.reportID).toBe(REPORT_ID);
+    });
+
+    it('should render ExpenseReportAvatar for an expense report', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE});
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                backdropColor="#ff0000"
+                noRightMarginOnSubscriptContainer
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        expect(screen.getByTestId('MockedExpenseReportAvatar')).toBeOnTheScreen();
+        expect(mockCapturedExpenseReportAvatarProps).toMatchObject({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            backdropColor: '#ff0000',
+            // The dispatcher translates `noRightMarginOnSubscriptContainer` into this container style
+            containerStyle: {marginRight: 0},
+            fallbackDisplayName: FALLBACK_NAME,
+        });
+    });
+
+    it('should route an expense report to the wrapper without stacking props even inside a horizontal stack', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE});
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                horizontalStacking={{maxRows: 2}}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+            />,
+        );
+
+        expect(screen.getByTestId('MockedExpenseReportAvatar')).toBeOnTheScreen();
+        expect(mockCapturedExpenseReportAvatarProps).not.toHaveProperty('horizontalStacking');
+        expect(mockCapturedExpenseReportAvatarProps).not.toHaveProperty('sort');
+    });
+
+    it('should pass no container style for an expense report without noRightMarginOnSubscriptContainer', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE});
+        await waitForBatchedUpdatesWithAct();
+
+        render(<ReportAvatar reportID={REPORT_ID} />);
+
+        expect(mockCapturedExpenseReportAvatarProps.containerStyle).toBeUndefined();
     });
 
     it('should render GroupChatAvatar for a group chat', async () => {
@@ -128,7 +190,6 @@ describe('ReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
 
         const singleAvatarContainerStyle = [{marginRight: 12}];
-        const secondaryAvatarContainerStyle = [{borderColor: '#00ff00'}];
         const horizontalStacking = {maxRows: 2, maxAvatarsPerRow: 4, overlapDivider: 4};
 
         render(
@@ -136,8 +197,7 @@ describe('ReportAvatar (connected)', () => {
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
                 singleAvatarContainerStyle={singleAvatarContainerStyle}
-                secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
-                subscriptAvatarBorderColor="#ff0000"
+                backdropColor="#ff0000"
                 noRightMarginOnSubscriptContainer
                 horizontalStacking={horizontalStacking}
                 sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
@@ -149,8 +209,7 @@ describe('ReportAvatar (connected)', () => {
             reportID: REPORT_ID,
             size: CONST.AVATAR_SIZE.SMALL,
             singleAvatarContainerStyle,
-            secondaryAvatarContainerStyle,
-            subscriptAvatarBorderColor: '#ff0000',
+            backdropColor: '#ff0000',
             noRightMarginOnSubscriptContainer: true,
             horizontalStacking,
             sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE,
