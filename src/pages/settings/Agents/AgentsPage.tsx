@@ -1,6 +1,7 @@
 import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -186,7 +187,7 @@ function AgentsPage() {
             prompt: translate('agentsPage.deleteAgentsMessage', {count: selectedAgentKeys.length}),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
 
@@ -261,23 +262,25 @@ function AgentsPage() {
             shouldMobileOfflineIndicatorStickToBottom={false}
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
-                onBackButtonPress={() => {
-                    if (isMobileSelectionModeEnabled) {
-                        clearSelectedAgents();
-                        turnOffMobileSelectionMode();
-                        return;
-                    }
-                    Navigation.goBack();
-                }}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader={!selectionModeHeader}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
-            >
-                {!shouldDisplayButtonsInSeparateLine && headerButtons}
-            </HeaderWithBackButton>
+            <CollapsibleHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    onBackButtonPress={() => {
+                        if (isMobileSelectionModeEnabled) {
+                            clearSelectedAgents();
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
+                >
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
+                </HeaderWithBackButton>
+            </CollapsibleHeaderOnKeyboard>
             <AgentsTable
                 ref={tableRef}
                 agents={agents}

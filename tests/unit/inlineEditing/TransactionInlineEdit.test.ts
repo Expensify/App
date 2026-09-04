@@ -17,9 +17,16 @@ import {
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
 } from '@userActions/IOU/UpdateMoneyRequest';
+import {createTransactionThreadReport} from '@userActions/Report';
+import type * as ReportActions from '@userActions/Report';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // The delegate boundary is the assertion point: editTransaction*Inline only builds params and calls through.
 jest.mock('@userActions/IOU/UpdateMoneyRequest', () => ({
@@ -30,6 +37,13 @@ jest.mock('@userActions/IOU/UpdateMoneyRequest', () => ({
     updateMoneyRequestAmountAndCurrency: jest.fn(),
     updateMoneyRequestTag: jest.fn(),
 }));
+
+jest.mock('@userActions/Report', () => ({
+    ...jest.requireActual<typeof ReportActions>('@userActions/Report'),
+    createTransactionThreadReport: jest.fn(),
+}));
+
+const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
 
 describe('TransactionInlineEdit', () => {
     describe('getTransactionEditPermissions', () => {
@@ -76,7 +90,6 @@ describe('TransactionInlineEdit', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: '',
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: false,
             areCategoriesEnabled: true,
         };
 
@@ -85,6 +98,7 @@ describe('TransactionInlineEdit', () => {
             parentReportAction: baseParentReportAction,
             parentReport: baseParentReport,
             policy: basePolicy,
+            parentReportActions: undefined,
         };
 
         const policyCategories: PolicyCategories = {
@@ -476,6 +490,114 @@ describe('TransactionInlineEdit', () => {
                 expect(permissions).toEqual(allFalsePermissions);
             });
         });
+
+        describe('parentReportActions', () => {
+            const submitterAccountID = 7;
+            const submitterEmail = 'inline-edit-submitter@test.com';
+            const approverAccountID = 8;
+            const approverEmail = 'inline-edit-approver@test.com';
+            const forwardedPolicyID = 'inline-edit-forwarded-policy';
+            const forwardedReportID = 'inline-edit-forwarded-report';
+            const forwardedTransactionID = 'inline-edit-forwarded-transaction';
+
+            // A corporate policy where the submitter reports to the approver, so once the report is forwarded past the approver the submitter can no longer edit
+            const corporatePolicy: Policy = {
+                ...basePolicy,
+                id: forwardedPolicyID,
+                role: CONST.POLICY.ROLE.USER,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: approverEmail,
+                    },
+                },
+            };
+            const submittedReport: Report = {
+                reportID: forwardedReportID,
+                policyID: forwardedPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: approverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const reportedTransaction: Transaction = {
+                ...baseTransaction,
+                transactionID: forwardedTransactionID,
+                reportID: forwardedReportID,
+            };
+            const iouAction: ReportAction = {
+                ...baseParentReportAction,
+                reportActionID: '900',
+                reportID: forwardedReportID,
+                // An empty message array reads as a deleted action, which would fail canEditMoneyRequest before the forwarded check
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.TEXT, text: ''}],
+                actorAccountID: submitterAccountID,
+                originalMessage: {
+                    IOUTransactionID: forwardedTransactionID,
+                    amount: 1000,
+                    currency: 'USD',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const submittedAction: ReportAction = {
+                reportActionID: '901',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2026-05-01 10:00:00',
+                message: [],
+                originalMessage: {amount: 1000, currency: 'USD'},
+            };
+            const forwardedAction: ReportAction = {
+                reportActionID: '902',
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '2026-05-01 11:00:00',
+                message: [],
+                originalMessage: {amount: 1000, currency: 'USD'},
+            };
+            const forwardedCheckParams: TransactionEditPermissionsParams = {
+                ...baseParams,
+                transaction: reportedTransaction,
+                parentReport: submittedReport,
+                parentReportAction: iouAction,
+                policy: corporatePolicy,
+            };
+
+            beforeAll(async () => {
+                // canEditMoneyRequest resolves the submitter and the approver route from the session, personal details and policy
+                Onyx.init({keys: ONYXKEYS});
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: submitterEmail, accountID: submitterAccountID},
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                        [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
+                    },
+                });
+                await waitForBatchedUpdates();
+            });
+
+            it('should keep the transaction editable when the passed parentReportActions show no forward since the last submit', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...forwardedCheckParams,
+                    parentReportActions: {[submittedAction.reportActionID]: submittedAction},
+                });
+
+                expect(permissions.canEditDescription).toBe(true);
+            });
+
+            it('should disable all editing when the passed parentReportActions show the report was forwarded after the last submit', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...forwardedCheckParams,
+                    parentReportActions: {
+                        [submittedAction.reportActionID]: submittedAction,
+                        [forwardedAction.reportActionID]: forwardedAction,
+                    },
+                });
+
+                expect(permissions).toEqual(allFalsePermissions);
+            });
+        });
     });
 
     describe('editTransaction*Inline', () => {
@@ -514,6 +636,7 @@ describe('TransactionInlineEdit', () => {
                 reportPolicyTags: undefined,
                 policyRecentlyUsedCategories: undefined,
                 policyRecentlyUsedTags: undefined,
+                conciergeChat: undefined,
                 isSelfTourViewed: true,
                 hasCompletedGuidedSetupFlow: true,
                 personalDetailsList: undefined,
@@ -521,6 +644,12 @@ describe('TransactionInlineEdit', () => {
                 isTrackIntentUser: false,
                 getCurrencyDecimals: () => 2,
                 getCurrencySymbol: () => '$',
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: snapshotTransaction},
+                transactionViolations: {},
+                betas: [],
+                introSelected: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                currentUserEmail: '',
             };
         }
 
@@ -547,6 +676,48 @@ describe('TransactionInlineEdit', () => {
             editTransactionMerchantInline(buildParams(), '');
 
             expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({value: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT}));
+        });
+
+        describe('transaction thread creation', () => {
+            const CONCIERGE_CHAT: Report = {reportID: 'concierge-inline-edit-1'};
+            const CREATED_THREAD: Report = {reportID: 'inline-edit-thread-1'};
+
+            /** An IOU action with no childReportID, so no transaction thread can be resolved from it. */
+            const iouParentReportAction = {
+                reportActionID: '999',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2026-08-12',
+            } as ReportAction;
+
+            it('creates the missing transaction thread with the conciergeChat threaded through', () => {
+                mockCreateTransactionThreadReport.mockReturnValue(CREATED_THREAD);
+
+                // A parent IOU action but no transaction thread anywhere: the edit must create the thread first.
+                editTransactionMerchantInline({...buildParams(), parentReportAction: iouParentReportAction, conciergeChat: CONCIERGE_CHAT}, 'Cafe');
+
+                // The threaded conciergeChat reaches createTransactionThreadReport instead of the deprecated module-level lookup...
+                expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(
+                    expect.objectContaining({conciergeChat: CONCIERGE_CHAT, iouReportAction: iouParentReportAction, transaction: snapshotTransaction}),
+                );
+                // ...and the created thread is what the edit call receives.
+                expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: CREATED_THREAD}));
+            });
+
+            it('reuses an existing transaction thread without creating a new one', () => {
+                const existingThread: Report = {reportID: 'existing-thread-1'};
+
+                editTransactionMerchantInline({...buildParams(), parentReportAction: iouParentReportAction, transactionThreadReport: existingThread}, 'Cafe');
+
+                expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+                expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: existingThread}));
+            });
+
+            it('does not create a thread when there is no parent report action to anchor it', () => {
+                editTransactionMerchantInline({...buildParams(), conciergeChat: CONCIERGE_CHAT}, 'Cafe');
+
+                expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+                expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: undefined}));
+            });
         });
     });
 });
