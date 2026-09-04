@@ -2208,7 +2208,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const introSelected: IntroSelected = {
                 choice: CONST.ONBOARDING_CHOICES.SUBMIT,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
             completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined);
 
@@ -2217,7 +2217,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                     paymentSelected: CONST.PAYMENT_SELECTED.BBA,
                     wasInvited: true,
-                    companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                    companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                     introSelected,
                     isSelfTourViewed: false,
                 }),
@@ -2299,7 +2299,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const introSelected: IntroSelected = {
                 choice: CONST.ONBOARDING_CHOICES.SUBMIT,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
             completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, true, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined);
 
