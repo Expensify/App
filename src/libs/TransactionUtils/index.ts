@@ -283,6 +283,24 @@ function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
 
+/**
+ * Whether the user filled in any of the amount / merchant / date fields the Scan confirmation reveals behind
+ * "Show more". Entering any one of them turns the scan into a manual expense with a receipt attached, so all three
+ * become required.
+ */
+function hasManuallyEnteredScanFields(transaction: OnyxEntry<Transaction>): boolean {
+    return isScanRequest(transaction) && (!!transaction?.isAmountSet || !!transaction?.isMerchantSet || !!transaction?.isCreatedSet);
+}
+
+/**
+ * Whether the user filled in every one of those fields. Only then is the receipt submitted as `open`, so SmartScan
+ * never overwrites what the user typed. A partially filled scan is still scanned — that way it can never be created
+ * with neither an amount of its own nor one read from the receipt.
+ */
+function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<Transaction>): boolean {
+    return isScanRequest(transaction) && !!transaction?.isAmountSet && !!transaction?.isMerchantSet && !!transaction?.isCreatedSet;
+}
+
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
         return true;
@@ -3745,6 +3763,8 @@ export {
     getTagArrayFromName,
     getTagForDisplay,
     getTransactionViolations,
+    hasAllManuallyEnteredScanFields,
+    hasManuallyEnteredScanFields,
     hasReceipt,
     hasUploadedReceipt,
     hasEReceipt,

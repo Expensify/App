@@ -14,6 +14,7 @@ import {
     getCalculatedTaxAmount,
     getTag,
     getTaxAmount,
+    hasManuallyEnteredScanFields,
     hasTaxRateWithMatchingValue,
     isCreatedMissing,
     isMerchantMissing,
@@ -118,6 +119,9 @@ type UseConfirmationValidationParams = {
     /** Whether the new manual expense flow is enabled */
     isNewManualExpenseFlowEnabled: boolean;
 
+    /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
+    canEnterScanFieldsManually: boolean;
+
     /** Whether the confirmation fields are read-only (date is not inline-editable) */
     isReadOnly: boolean;
 
@@ -171,12 +175,18 @@ function useConfirmationValidation({
     isTimeRequest,
     routeError,
     isNewManualExpenseFlowEnabled,
+    canEnterScanFieldsManually,
     isReadOnly,
     shouldShowDate,
     isTaxAmountEmpty,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
+    // The Scan confirmation reveals the amount / merchant / date fields behind "Show more" in the new manual expense
+    // flow. Filling in any one of them makes all three required, and subjects the amount to the same validation as a
+    // manually entered one.
+    const hasEnteredScanFields = canEnterScanFieldsManually && hasManuallyEnteredScanFields(transaction);
+    const shouldValidateEnteredAmount = isNewManualExpenseFlowEnabled && (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || hasEnteredScanFields);
     const validate = (paymentType?: PaymentMethodType): ValidationResult | null => {
         if (!!routeError || !transactionID) {
             return null;
@@ -193,15 +203,20 @@ function useConfirmationValidation({
         if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        // isAmountSet only applies to manual expenses — scan, per diem, distance, and time set amount programmatically.
-        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet) {
+        // A scan the user started filling in requires all three of amount, merchant and date. They all report
+        // `common.error.fieldRequired`, which each of the three fields renders inline when it is the empty one, so
+        // every field the user still has to fill in lights up at once.
+        if (hasEnteredScanFields && (!transaction?.isAmountSet || !transaction?.isCreatedSet || isMerchantEmpty)) {
+            return {errorKey: 'common.error.fieldRequired'};
+        }
+        // isAmountSet only applies to manually entered amounts — per diem, distance, and time set the amount
+        // programmatically, and so does a scan the user hasn't filled in themselves.
+        if (shouldValidateEnteredAmount && !transaction?.isAmountSet) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         if (
-            isNewManualExpenseFlowEnabled &&
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL &&
+            shouldValidateEnteredAmount &&
             transaction?.isAmountSet &&
-            !isScanRequestUtil(transaction) &&
             !isTimeRequest &&
             !isDistanceRequest &&
             !isEditingSplitBill &&

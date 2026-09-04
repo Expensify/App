@@ -950,7 +950,9 @@ function clearMoneyRequestMerchant(transactionID: string, isDraft = true) {
 }
 
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean, shouldStopSmartscan = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
+    // Mark that the user has explicitly picked the date. A draft is seeded with today's date, so this is the only way
+    // the Scan flow can tell a user-picked date apart from the default one.
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created, isCreatedSet: !!created});
     setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 

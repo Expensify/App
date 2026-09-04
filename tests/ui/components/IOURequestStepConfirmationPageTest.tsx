@@ -404,6 +404,92 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await waitFor(() => expect(startSplitBill).toHaveBeenCalledTimes(1));
     });
 
+    describe('Scan flow — manually entered amount / merchant / date', () => {
+        const SCAN_TRANSACTION: Transaction = {
+            ...DEFAULT_SPLIT_TRANSACTION,
+            isAmountSet: undefined,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
+        };
+
+        async function renderScanConfirmation() {
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, SCAN_TRANSACTION);
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error only setParams is used by the participant selection handler.
+                                    navigation={{setParams: jest.fn()}}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await screen.findByText(translateLocal('common.showMore')));
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it('reveals the amount, merchant and date fields behind "Show more", all empty', async () => {
+            await renderScanConfirmation();
+
+            expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('');
+            expect(screen.getByLabelText(translateLocal('common.merchant'))).toHaveDisplayValue('');
+            expect(screen.getByLabelText(translateLocal('common.date'))).toHaveDisplayValue('');
+        });
+
+        it('requires all three fields once one of them is entered', async () => {
+            await renderScanConfirmation();
+
+            fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Starbucks');
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+            expect(screen.getAllByText(translateLocal('common.error.fieldRequired')).length).toBeGreaterThan(1);
+        });
+
+        it('submits the entered amount, merchant and date instead of waiting for SmartScan', async () => {
+            await renderScanConfirmation();
+
+            fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Starbucks');
+            fireEvent.changeText(screen.getByLabelText(translateLocal('iou.amount')), '12.34');
+            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {created: '2025-01-15', isCreatedSet: true});
+            });
+
+            fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].transactionParams).toEqual(
+                expect.objectContaining({amount: 1234, merchant: 'Starbucks', created: '2025-01-15'}),
+            );
+        });
+    });
+
     it('should create a split expense for each scanned receipt', async () => {
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 

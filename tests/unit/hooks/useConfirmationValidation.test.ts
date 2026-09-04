@@ -102,6 +102,7 @@ const baseParams = {
     isTimeRequest: false,
     routeError: undefined,
     isNewManualExpenseFlowEnabled: false,
+    canEnterScanFieldsManually: false,
     isReadOnly: false,
     shouldShowDate: true,
     isTaxAmountEmpty: false,
@@ -956,6 +957,70 @@ describe('useConfirmationValidation', () => {
 
         it('does not block when the new manual expense flow beta is disabled', () => {
             const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({isNewManualExpenseFlowEnabled: false, isTaxAmountEmpty: true})));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+    });
+
+    describe('manually entered scan fields (amount / merchant / date)', () => {
+        function createScanValidationParams(transactionOverrides: Partial<OnyxTypes.Transaction> = {}, overrides: ValidationParamsOverrides = {}): UseConfirmationValidationParams {
+            return {
+                ...baseParams,
+                isNewManualExpenseFlowEnabled: true,
+                canEnterScanFieldsManually: true,
+                iouAmount: 0,
+                iouMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                isMerchantEmpty: true,
+                ...overrides,
+                transaction: createTransactionBase({
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    participants: [P2P_PARTICIPANT],
+                    ...transactionOverrides,
+                }),
+            };
+        }
+
+        it('does not require anything while the user leaves the scan fields untouched', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams()));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it.each([
+            ['merchant', {isMerchantSet: true, merchant: 'Starbucks'}, {iouMerchant: 'Starbucks', isMerchantEmpty: false}],
+            ['amount', {isAmountSet: true, amount: 1000}, {iouAmount: 1000}],
+            ['date', {isCreatedSet: true, created: '2025-01-15'}, {}],
+        ])('requires the remaining fields once the %s is entered', (_field, transactionOverrides, overrides) => {
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(transactionOverrides, overrides)));
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('passes once all three fields are entered', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createScanValidationParams(
+                        {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
+                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('validates the entered amount the same way a manually entered one is validated', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createScanValidationParams(
+                        {isAmountSet: true, amount: 0, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
+                        {iouAmount: 0, iouMerchant: 'Starbucks', isMerchantEmpty: false},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('requires nothing on surfaces that do not expose the scan fields (splits, test receipts)', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams({isAmountSet: true, amount: 1000}, {canEnterScanFieldsManually: false, iouAmount: 1000})));
             expect(result.current.validate()).toEqual({errorKey: null});
         });
     });

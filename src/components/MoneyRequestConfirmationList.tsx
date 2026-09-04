@@ -142,6 +142,12 @@ type MoneyRequestConfirmationListProps = {
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
 
+    /**
+     * Whether the Scan flow lets the user fill in the amount / merchant / date themselves instead of waiting for
+     * SmartScan (new manual expense flow). Filling in any one of them makes all three required.
+     */
+    canEnterScanFieldsManually?: boolean;
+
     /** A flag for verifying that the current report is a sub-report of a expense chat */
     isPolicyExpenseChat?: boolean;
 
@@ -194,6 +200,7 @@ function MoneyRequestConfirmationList({
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
+    canEnterScanFieldsManually = false,
     isEditingSplitBill,
     isReceiptEditable,
     selectedParticipants: selectedParticipantsProp,
@@ -372,6 +379,7 @@ function MoneyRequestConfirmationList({
         isTypeSplit,
         shouldShowReadOnlySplits,
         isNewManualExpenseFlowEnabled,
+        canEnterScanFieldsManually,
         isDistanceRequest,
     });
 
@@ -497,6 +505,7 @@ function MoneyRequestConfirmationList({
         isTimeRequest,
         routeError,
         isNewManualExpenseFlowEnabled,
+        canEnterScanFieldsManually,
         isReadOnly,
         shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
         isTaxAmountEmpty,
@@ -562,6 +571,7 @@ function MoneyRequestConfirmationList({
             didConfirm={!!didConfirm}
             isEditingSplitBill={isEditingSplitBill}
             isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
+            canEnterScanFieldsManually={canEnterScanFieldsManually}
             isPolicyExpenseChat={isPolicyExpenseChat}
             isDistanceRequest={isDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
