@@ -1291,7 +1291,7 @@ function getCurrentUserDisplayNameOrEmail(): string | undefined {
     return currentUserPersonalDetails?.displayName ?? deprecatedCurrentUserEmail;
 }
 
-function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
+function getChatType(report: ReadonlyDeep<OnyxInputOrEntry<Report> | Participant>): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
 }
 
@@ -1675,7 +1675,7 @@ function isCurrentUserSubmitter(report: ReadonlyDeep<OnyxEntry<Report>>, current
 /**
  * Whether the provided report is an Admin room
  */
-function isAdminRoom(report: OnyxEntry<Report>): boolean {
+function isAdminRoom(report: ReadonlyDeep<OnyxEntry<Report>>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
 }
 
@@ -1689,7 +1689,7 @@ function isAdminsOnlyPostingRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a Announce room
  */
-function isAnnounceRoom(report: OnyxEntry<Report>): boolean {
+function isAnnounceRoom(report: ReadonlyDeep<OnyxEntry<Report>>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
 }
 
@@ -1717,11 +1717,11 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a Policy Expense chat.
  */
-function isPolicyExpenseChat(option: OnyxInputOrEntry<Report> | OptionData | Participant): boolean {
+function isPolicyExpenseChat(option: ReadonlyDeep<OnyxInputOrEntry<Report> | OptionData | Participant>): boolean {
     return getChatType(option) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || !!(option && typeof option === 'object' && 'isPolicyExpenseChat' in option && option.isPolicyExpenseChat);
 }
 
-function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
+function isInvoiceRoom(report: ReadonlyDeep<OnyxEntry<Report>>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
 }
 
@@ -1815,7 +1815,7 @@ function isChatRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a public room
  */
-function isPublicRoom(report: OnyxEntry<Report>): boolean {
+function isPublicRoom(report: ReadonlyDeep<OnyxEntry<Report>>): boolean {
     return report?.visibility === CONST.REPORT.VISIBILITY.PUBLIC || report?.visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
 }
 
@@ -1866,7 +1866,7 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if report has a parent
  */
-function isThread(report: OnyxInputOrEntry<Report>): report is Thread {
+function isThread<TReport extends ReadonlyDeep<OnyxInputOrEntry<Report>>>(report: TReport): report is TReport & ReadonlyDeep<Thread> {
     return !!(report?.parentReportID && report?.parentReportActionID);
 }
 
@@ -1900,11 +1900,11 @@ function isDM(report: OnyxEntry<Report>): boolean {
     return isChatReport(report) && !getChatType(report) && !isThread(report);
 }
 
-function isSelfDM(report: OnyxInputOrEntry<Report>): boolean {
+function isSelfDM(report: ReadonlyDeep<OnyxInputOrEntry<Report>>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SELF_DM;
 }
 
-function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
+function isGroupChat(report: ReadonlyDeep<OnyxEntry<Report> | Partial<Report>>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.GROUP;
 }
 
@@ -1936,7 +1936,7 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM;
 }
 
-function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+function getDefaultNotificationPreferenceForReport(report: ReadonlyDeep<OnyxEntry<Report>>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
     if (isAnnounceRoom(report)) {
         return CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
@@ -1959,7 +1959,7 @@ function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): V
  * Get the notification preference given a report. This should ALWAYS default to 'hidden'. Do not change this!
  */
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserAccountID?: number): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+function getReportNotificationPreference(report: ReadonlyDeep<OnyxEntry<Report>>, currentUserAccountID?: number): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
     const accountID = currentUserAccountID ?? deprecatedCurrentUserAccountID;
     const participant = accountID ? report?.participants?.[accountID] : undefined;
 
@@ -1971,7 +1971,7 @@ function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserA
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
-function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID: string | undefined): boolean {
+function isConciergeChatReport(report: ReadonlyDeep<OnyxInputOrEntry<Report>>, conciergeReportID: string | undefined): boolean {
     return !!report && !!conciergeReportID && report.reportID === conciergeReportID;
 }
 
@@ -2504,8 +2504,8 @@ function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
  * We will remove the 'hidden' field entirely once the backend changes for https://github.com/Expensify/Expensify/issues/450891 are done.
  */
 function isHiddenForCurrentUser(notificationPreference: string | null | undefined): boolean;
-function isHiddenForCurrentUser(report: OnyxEntry<Report>): boolean;
-function isHiddenForCurrentUser(reportOrPreference: OnyxEntry<Report> | string | null | undefined): boolean {
+function isHiddenForCurrentUser(report: ReadonlyDeep<OnyxEntry<Report>>): boolean;
+function isHiddenForCurrentUser(reportOrPreference: ReadonlyDeep<OnyxEntry<Report>> | string | null | undefined): boolean {
     if (typeof reportOrPreference === 'object' && reportOrPreference !== null) {
         const notificationPreference = getReportNotificationPreference(reportOrPreference);
         return isHiddenForCurrentUser(notificationPreference);
@@ -2648,7 +2648,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report>, isReportArchived = false): boolean {
+function isArchivedNonExpenseReport(report: ReadonlyDeep<OnyxInputOrEntry<Report>>, isReportArchived = false): boolean {
     return isReportArchived && !(isExpenseReport(report) || isExpenseRequest(report));
 }
 
@@ -2725,7 +2725,7 @@ function isAuditor(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the user can write in the provided report
  */
-function canWriteInReport(report: OnyxEntry<Report>): boolean {
+function canWriteInReport(report: ReadonlyDeep<OnyxEntry<Report>>): boolean {
     if (Array.isArray(report?.permissions) && report?.permissions.length > 0 && !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR)) {
         return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) || report?.permissions?.includes(CONST.REPORT.PERMISSIONS.COMMENT);
     }
@@ -2736,7 +2736,7 @@ function canWriteInReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the current user is allowed to comment on the given report.
  */
-function isAllowedToComment(report: OnyxEntry<Report>): boolean {
+function isAllowedToComment(report: ReadonlyDeep<OnyxEntry<Report>>): boolean {
     if (!canWriteInReport(report)) {
         return false;
     }
@@ -2784,7 +2784,7 @@ function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
  * An Expense Request is a thread where the parent report is an Expense Report and
  * the parentReportAction is a transaction.
  */
-function isExpenseRequest(report: OnyxInputOrEntry<Report>): report is Thread {
+function isExpenseRequest<TReport extends ReadonlyDeep<OnyxInputOrEntry<Report>>>(report: TReport): report is TReport & ReadonlyDeep<Thread> {
     if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = getReport(report?.parentReportID, deprecatedAllReports);
@@ -11021,7 +11021,7 @@ function isValidReportIDFromPath(reportIDFromPath: string | undefined): boolean 
 /**
  * Return the errors we have when creating a chat, a workspace room, or a new empty report
  */
-function getCreationReportErrors(report: OnyxEntry<Report>): Errors | null | undefined {
+function getCreationReportErrors(report: ReadonlyDeep<OnyxEntry<Report>>): Errors | null | undefined {
     // We are either adding a workspace room, creating a chat, or we're creating a report, it isn't possible for all of these to have errors for the same report at the same time, so
     // simply looking up the first truthy value will get the relevant property if it's set.
     return report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat ?? report?.errorFields?.createReport;
@@ -11030,7 +11030,7 @@ function getCreationReportErrors(report: OnyxEntry<Report>): Errors | null | und
 /**
  * Return true if the expense report is marked for deletion.
  */
-function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | string): boolean {
+function isMoneyRequestReportPendingDeletion(reportOrID: ReadonlyDeep<OnyxEntry<Report>> | string): boolean {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     if (!isMoneyRequestReport(report)) {
         return false;
@@ -11096,7 +11096,7 @@ function navigateToLinkedReportAction(
  * not on its way out, it did not fail to be created, and the person looking is signed in. Permission to write is left
  * out on purpose, so this also covers read-only actions such as opening an attachment.
  */
-function canUserInteractWithReport(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
+function canUserInteractWithReport(report: ReadonlyDeep<OnyxEntry<Report>>, isReportArchived: boolean | undefined) {
     const reportErrors = getCreationReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further interaction.
@@ -11107,7 +11107,7 @@ function canUserInteractWithReport(report: OnyxEntry<Report>, isReportArchived: 
     return !isArchivedNonExpenseReport(report, isReportArchived) && isEmptyObject(reportErrors) && report && !deprecatedIsAnonymousUser;
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
+function canUserPerformWriteAction(report: ReadonlyDeep<OnyxEntry<Report>>, isReportArchived: boolean | undefined) {
     return canUserInteractWithReport(report, isReportArchived) && isAllowedToComment(report) && canWriteInReport(report);
 }
 
