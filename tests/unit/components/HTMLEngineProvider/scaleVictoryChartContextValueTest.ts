@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/naming-convention -- test-only: chart context mocks are narrowed from minimal literals, and per-line font maps are keyed by numeric line index */
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/naming-convention, rulesdir/no-raw-typography -- test-only: chart context mocks are narrowed from minimal literals, per-line font maps are keyed by numeric line index, and the font sizes are parsed chart pixel attributes, not UI typography */
 import type {VictoryChartContextValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import scaleVictoryChartContextValue from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scaleVictoryChartContextValue';
 

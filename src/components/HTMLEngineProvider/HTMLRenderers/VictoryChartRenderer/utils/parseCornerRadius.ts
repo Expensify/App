@@ -1,10 +1,9 @@
-import scalePixels from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scalePixels';
-
 import type {RoundedCorners} from 'victory-native';
 
 import lodashIsObject from 'lodash/isObject';
 
 import parseAttribute from './parseAttribute';
+import scalePixels from './scalePixels';
 
 /**
  * Translate VictoryChart's `cornerRadius` attribute into victory-native's `roundedCorners` shape.

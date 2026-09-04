@@ -139,11 +139,12 @@ function useClickZoomPan({scrollableRef, containerSize, zoomFactor}: UseClickZoo
                 return;
             }
 
-            if (isDragging && isMouseDown && scrollableRef.current) {
+            const scrollableContainer = scrollableRef.current;
+            if (isDragging && isMouseDown && scrollableContainer) {
                 const moveX = initialX - event.x;
                 const moveY = initialY - event.y;
-                scrollableRef.current.scrollLeft = initialScrollLeft + moveX;
-                scrollableRef.current.scrollTop = initialScrollTop + moveY;
+                scrollableContainer.scrollLeft = initialScrollLeft + moveX;
+                scrollableContainer.scrollTop = initialScrollTop + moveY;
             }
 
             setIsDragging(isMouseDown);
@@ -152,11 +153,12 @@ function useClickZoomPan({scrollableRef, containerSize, zoomFactor}: UseClickZoo
     );
 
     useEffect(() => {
-        if (!isZoomed || !zoomDelta || !scrollableRef.current) {
+        const scrollableContainer = scrollableRef.current;
+        if (!isZoomed || !zoomDelta || !scrollableContainer) {
             return;
         }
-        scrollableRef.current.scrollLeft = zoomDelta.offsetX;
-        scrollableRef.current.scrollTop = zoomDelta.offsetY;
+        scrollableContainer.scrollLeft = zoomDelta.offsetX;
+        scrollableContainer.scrollTop = zoomDelta.offsetY;
     }, [zoomDelta, isZoomed, scrollableRef]);
 
     useEffect(() => {
