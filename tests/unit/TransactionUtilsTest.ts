@@ -888,6 +888,116 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.modifiedMerchant).not.toContain('20');
         });
 
+        it('converts commuter exclusion data when the distance rate unit is changed', () => {
+            // Given a policy with a 3 mile fixed distance commuter exclusion and a kilometer rate
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            // getMileageRates keys its result by the rates map key, so it must match customUnitRateID
+                            ID1: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 10,
+                            },
+                            ID2: {
+                                customUnitRateID: '2',
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 30,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        },
+                    },
+                },
+            };
+
+            // And a 10 km route stored as a rounded mile quantity
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'ID1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 6.21,
+                        routeDistanceMeters: 10000,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 3.21,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const updateRate = (transactionToUpdate: Transaction, policy: Policy | undefined, policies?: OnyxCollection<Policy>) =>
+                TransactionUtils.getUpdatedTransaction({
+                    transaction: transactionToUpdate,
+                    isFromExpenseReport: false,
+                    policy,
+                    policies,
+                    transactionChanges: {customUnitRateID: 'ID2'},
+                    personalPolicyOutputCurrency: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                });
+
+            // When the rate is changed
+            const updatedTransaction = updateRate(transaction, fakePolicy);
+
+            // Then the original distance and commuter exclusion are converted to kilometers
+            expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(10);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(4.83);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(5.17);
+
+            // And the amount and merchant use the converted reimbursable distance at the kilometer rate
+            expect(updatedTransaction.modifiedAmount).toBe(155);
+            expect(updatedTransaction.modifiedMerchant).toBe('5.17 km @ €0.30 / km');
+
+            const manuallyOverriddenTransaction = {
+                ...transaction,
+                comment: {customUnit: {...transaction.comment?.customUnit, quantity: 8}},
+            };
+            const updatedManuallyOverriddenTransaction = updateRate(manuallyOverriddenTransaction, fakePolicy);
+
+            expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.quantity).toBe(12.87);
+            expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(8.04);
+            expect(updatedManuallyOverriddenTransaction.modifiedAmount).toBe(241);
+            expect(updatedManuallyOverriddenTransaction.modifiedMerchant).toBe('8.04 km @ €0.30 / km');
+
+            const transactionWithoutAppliedCommuterExclusion = {
+                ...transaction,
+                comment: {
+                    customUnit: {
+                        ...transaction.comment?.customUnit,
+                        commuterExclusion: undefined,
+                        reimbursableDistance: undefined,
+                        commuterExclusionMethod: undefined,
+                    },
+                },
+            };
+            expect(updateRate(transactionWithoutAppliedCommuterExclusion, fakePolicy).comment?.customUnit?.quantity).toBe(9.99);
+
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy};
+            expect(updateRate(transaction, undefined, policies).comment?.customUnit?.quantity).toBe(10);
+            expect(updateRate(manuallyOverriddenTransaction, undefined, policies).comment?.customUnit?.quantity).toBe(12.87);
+
+            const legacyTransaction = {
+                ...transaction,
+                comment: {customUnit: {...transaction.comment?.customUnit, routeDistanceMeters: undefined, quantity: 10}},
+            };
+            expect(updateRate(legacyTransaction, fakePolicy).comment?.customUnit?.quantity).toBe(16.09);
+        });
+
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
             // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the mileage currency comes from the
             // resolved personal-policy currency that getUpdatedTransaction forwards to getRate. getRateForP2P only
