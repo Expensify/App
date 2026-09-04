@@ -97,9 +97,10 @@ describe('useMoneyReportHeaderStatusBar - duplicate transactions', () => {
     it('passes the report transactions through to hasDuplicateTransactions', () => {
         renderHook(() => useMoneyReportHeaderStatusBar(REPORT_ID, CHAT_REPORT_ID));
 
-        const passedTransactions = jest.mocked(TransactionUtils.hasDuplicateTransactions).mock.calls.at(0)?.at(6) as Transaction[] | undefined;
-        expect(passedTransactions).toHaveLength(2);
-        expect(passedTransactions?.map((transaction) => transaction.transactionID)).toEqual(expect.arrayContaining(['transaction1', 'transaction2']));
+        expect(jest.mocked(TransactionUtils.hasDuplicateTransactions)).toHaveBeenCalledWith('test@example.com', 1, mockMoneyRequestReport, undefined, undefined, undefined, [
+            mockTransaction1,
+            mockTransaction2,
+        ]);
     });
 
     it('shows the duplicates status bar when hasDuplicateTransactions reports duplicates on an unsettled report', () => {
