@@ -11,16 +11,18 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
-import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import {openPolicyWorkflowsPage, setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -30,7 +32,6 @@ import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
-    isControlPolicy,
     isSubmitPolicy,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
@@ -83,6 +84,7 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name;
 
     const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
@@ -116,8 +118,22 @@ function WorkspaceInviteMessageComponent({
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
 
-    const isControl = isControlPolicy(policy);
-    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+    // Under the `MULTIPLE_APPROVERS` beta the approval workflows live in the `RULE` collection, which is only
+    // fetched by the Workflows page. Reaching the invite flow through Members would otherwise derive the Approver
+    // row from a collection that was never loaded, hiding the row and inviting without the chosen approver.
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    useEffect(() => {
+        if (!isMultipleApproversBetaEnabled || !policyID) {
+            return;
+        }
+        openPolicyWorkflowsPage(policyID);
+    }, [isMultipleApproversBetaEnabled, policyID]);
+
+    // Derive whether a custom approval workflow exists instead of trusting `policy.approvalMode`: that flag is
+    // written optimistically by several paths and drifts from the real workflow structure, so it can say ADVANCED
+    // for a freshly upgraded workspace with no custom workflow, and stay BASIC for one that has several.
+    const {isAdvanceApproval} = useApprovalWorkflows(policy, policyID);
+    const shouldShowApproverRow = isAdvanceApproval && !!policy?.areWorkflowsEnabled;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
