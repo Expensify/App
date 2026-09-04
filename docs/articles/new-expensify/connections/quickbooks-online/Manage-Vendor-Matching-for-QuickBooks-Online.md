@@ -47,7 +47,7 @@ When company card expenses are exported, Expensify assigns vendors in the follow
 
 1. The vendor selected on the expense.
 2. The **Default vendor** configured in workspace settings.
-3. **Credit Card Misc** or **Debit Card Misc**., if neither of the above is available.
+3. **Credit Card Misc** or **Debit Card Misc**, if neither of the above is available.
 
 ## How inactive QuickBooks Online vendors affect expenses
 
