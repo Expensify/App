@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {getEmailDomain} from '@libs/LoginUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -112,7 +113,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     introSelected,
                     isSelfTourViewed,
                     conciergeChat,
-                    companyDomain: workEmail.split('@').at(1) ?? '',
+                    companyDomain: getEmailDomain(workEmail),
                     workEmail,
                 });
 

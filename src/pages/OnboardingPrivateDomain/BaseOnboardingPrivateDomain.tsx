@@ -10,10 +10,10 @@ import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
-import {dismissOnboardingModalBeforeExit} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -62,10 +62,6 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const onboardingIntent = useOnboardingIntent();
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
 
-    // Opened from a Concierge task on top of whichever report the user was reading, so return there when done rather
-    // than to a fixed destination. goBack() is unreliable from a task link and falls through to Home.
-    const [originReportID] = useState(() => Navigation.getTopmostReportId());
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {
         taskReport: validateEmailTaskReport,
         taskParentReport: validateEmailTaskParentReport,
@@ -74,10 +70,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         parentReportAction: validateEmailTaskParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const returnToOriginReport = useCallback(() => {
-        dismissOnboardingModalBeforeExit();
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID));
-    }, [originReportID, conciergeReportID]);
+    const returnToOriginReport = useReturnToOriginReport();
 
     const sendValidateCode = useCallback(() => {
         if (!email) {

@@ -325,7 +325,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitFor(() => {
             expect(mockCompleteOnboarding).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                    engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
                 }),
             );
         });
