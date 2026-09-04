@@ -29,6 +29,7 @@ import {
 } from '@libs/actions/TravelBilling';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -56,6 +57,7 @@ import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -161,8 +163,10 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const toggleErrors = cardSettings?.errors;
     const togglePendingAction = isTogglePendingAction ? cardSettings?.pendingAction : undefined;
 
-    // Only show errors/pending under the settlement account if it's a settlement account action
-    const settlementAccountErrors = isSettlementAccountPendingAction ? cardSettings?.errorFields?.paymentBankAccountID : undefined;
+    // Only show errors/pending under the settlement account if it's a settlement account action.
+    // Only the highest-keyed error is shown, so the backend's specific message takes precedence over the client fallback.
+    const latestSettlementAccountError = getLatestErrorField(cardSettings, 'paymentBankAccountID');
+    const settlementAccountErrors = isSettlementAccountPendingAction && !isEmptyObject(latestSettlementAccountError) ? latestSettlementAccountError : undefined;
     const settlementAccountPendingAction = isSettlementAccountPendingAction ? cardSettings?.pendingFields?.paymentBankAccountID : undefined;
 
     // Only show error indicator if we have settlement account errors
