@@ -29,11 +29,6 @@ type UserIsLeavingRoomEvent = Record<string, boolean> & {
     userLogin?: string;
 };
 
-type PingPongEvent = Record<string, string | number> & {
-    pingID: string;
-    pingTimestamp: number;
-};
-
 type ConciergeReasoningEvent = {
     reasoning: string;
     agentZeroRequestID: string;
@@ -73,7 +68,6 @@ type ConciergeDraftEventsEvent = {
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
-    [TYPE.PONG]: PingPongEvent;
     [TYPE.CONCIERGE_REASONING]: ConciergeReasoningEvent;
     [TYPE.CONCIERGE_DRAFT_EVENTS]: ConciergeDraftEventsEvent;
     [TYPE.CONCIERGE_DRAFT_STARTED]: ConciergeDraftEvent;
@@ -135,7 +129,6 @@ export type {
     Args,
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
-    PingPongEvent,
     ConciergeDraftEvent,
     ConciergeDraftEventsEvent,
     EventData,
