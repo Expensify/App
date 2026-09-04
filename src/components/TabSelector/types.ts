@@ -1,3 +1,5 @@
+import type {EducationalTooltipProps} from '@components/Tooltip/types';
+
 import type {ThemeColors} from '@styles/theme/types';
 
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -66,6 +68,13 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
      * (a wired secondary interaction suppresses the native `contextmenu` event).
      */
     shouldEnableLongPress?: boolean;
+
+    /**
+     * Props for an educational tooltip anchored to this tab's badge. EducationalTooltip has to wrap the badge to
+     * measure it, so the config is passed down here rather than applied around the whole tab row. Requires
+     * `badgeText`, since the tooltip is rendered alongside the badge.
+     */
+    badgeEducationalTooltipProps?: Omit<EducationalTooltipProps, 'children'>;
 };
 
 type TabSelectorBaseProps<K extends string = string> = {
@@ -154,6 +163,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Optional ref forwarded to the tab's pressable element. */
     tabRef?: Ref<View | HTMLDivElement>;
+
+    /** Props for an educational tooltip wrapped around this tab's badge. */
+    badgeEducationalTooltipProps?: Omit<EducationalTooltipProps, 'children'>;
 };
 
 type AnimationConfigBase = {
