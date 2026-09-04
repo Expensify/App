@@ -108,53 +108,6 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
     return approvers;
 }
 
-type DefaultWorkflowApproversParams = {
-    /** Policy employees used to walk the approver chain */
-    employees: PolicyEmployeeList;
-
-    /** Email of the policy's default approver */
-    defaultApprover: string;
-
-    /** Email of the policy owner, used as a last-resort approver */
-    ownerEmail: string | undefined;
-
-    /** Personal details keyed by email, for avatar/displayName */
-    personalDetailsByEmail: PersonalDetailsList;
-};
-
-/**
- * Build the approvers for the synthesized default workflow.
- *
- * `calculateApprovers` returns an empty list when `defaultApprover` isn't in `employees` (a stale
- * `policy.approver`, an HR final approver who isn't a workspace member, or a login mismatch). A workflow with
- * zero approvers can't be converted back to policy employees — `convertApprovalWorkflowToPolicyEmployees`
- * throws on it — so fall back to a single approver built from the default approver, then the policy owner.
- *
- * Returns an empty list only when there is no usable email at all, in which case the caller must not create
- * the default workflow.
- */
-function calculateDefaultWorkflowApprovers({employees, defaultApprover, ownerEmail, personalDetailsByEmail}: DefaultWorkflowApproversParams): Approver[] {
-    const approvers = calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail});
-    if (approvers.length > 0) {
-        return approvers;
-    }
-
-    const fallbackEmail = defaultApprover || ownerEmail;
-    if (!fallbackEmail) {
-        return [];
-    }
-
-    return [
-        {
-            email: fallbackEmail,
-            forwardsTo: undefined,
-            avatar: personalDetailsByEmail[fallbackEmail]?.avatar,
-            displayName: personalDetailsByEmail[fallbackEmail]?.displayName ?? fallbackEmail,
-            isCircularReference: false,
-        },
-    ];
-}
-
 /** Build a Member from a policy employee using personal details for avatar/displayName */
 function buildMemberFromEmployee(employee: PolicyEmployee, personalDetailsByEmail: PersonalDetailsList, email: string): Member {
     return {
@@ -331,14 +284,11 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     // Add a default workflow if one doesn't exist (no employees submit to the default approver)
     const firstWorkflow = sortedApprovalWorkflows.at(0);
     if (firstWorkflow && !firstWorkflow.isDefault) {
-        const defaultApprovers = calculateDefaultWorkflowApprovers({employees, defaultApprover, ownerEmail: policy?.owner, personalDetailsByEmail});
-        if (defaultApprovers.length > 0) {
-            sortedApprovalWorkflows.unshift({
-                members: [],
-                approvers: defaultApprovers,
-                isDefault: true,
-            });
-        }
+        sortedApprovalWorkflows.unshift({
+            members: [],
+            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail}),
+            isDefault: true,
+        });
     }
 
     // availableMembers built in loop above: all employees with email, excluding pending delete.
@@ -1760,14 +1710,11 @@ function convertApprovalWorkflowRulesToWorkflows({
 
     const firstWorkflow = sortedApprovalWorkflows.at(0);
     if (firstWorkflow && !firstWorkflow.isDefault) {
-        const defaultApprovers = calculateDefaultWorkflowApprovers({employees, defaultApprover, ownerEmail: policy?.owner, personalDetailsByEmail});
-        if (defaultApprovers.length > 0) {
-            sortedApprovalWorkflows.unshift({
-                members: [],
-                approvers: defaultApprovers,
-                isDefault: true,
-            });
-        }
+        sortedApprovalWorkflows.unshift({
+            members: [],
+            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail}),
+            isDefault: true,
+        });
     }
 
     availableMembers.sort((a, b) => localeCompare(a.displayName ?? a.email, b.displayName ?? b.email));
