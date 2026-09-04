@@ -18,7 +18,7 @@ import StringUtils from '@libs/StringUtils';
 import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
 
-import {searchInServer} from '@userActions/Report';
+import {searchInServer, searchUserInServer} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,6 +46,11 @@ type SuggestionValues = {
  * Check if this piece of string looks like a mention
  */
 const isMentionCode = (str: string): boolean => CONST.REGEX.HAS_AT_MOST_TWO_AT_SIGNS.test(str);
+
+/** Treat a trailing dot as punctuation so short mentions like "@a." still match "@a". */
+function normalizeMentionPrefix(prefix: string, prefixType: string): string {
+    return prefixType === '@' && prefix.length > 1 && prefix.endsWith('.') ? prefix.slice(0, -1) : prefix;
+}
 
 const defaultSuggestionsValues: SuggestionValues = {
     suggestedMentions: [],
@@ -128,19 +133,31 @@ function SuggestionMention({
 
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
+    const serverSearchPrefix = normalizeMentionPrefix(suggestionValues.mentionPrefix, suggestionValues.prefixType);
+    const foundSuggestionsCountForServerSearch = suggestionValues.prefixType === '#' ? suggestionValues.suggestedMentions.length : 0;
 
     /**
-     * Search for reports suggestions in server.
+     * Search for mention suggestions in server.
      *
      * The function is debounced to not perform requests on every keystroke.
      */
     const debouncedSearchInServer = useDebounce(
-        useCallback(() => {
-            const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
-            if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5 && isGroupPolicyReport) {
-                searchInServer(suggestionValues.mentionPrefix, policyID);
-            }
-        }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, suggestionValues.mentionPrefix, policyID, isGroupPolicyReport]),
+        useCallback(
+            (prefixType: string, searchPrefix: string, foundSuggestionsCount: number) => {
+                if (prefixType === '@') {
+                    const isHereMention = `@${searchPrefix}`.toLowerCase() === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
+                    if (!isHereMention) {
+                        searchUserInServer(searchPrefix);
+                    }
+                    return;
+                }
+
+                if (prefixType === '#' && foundSuggestionsCount < CONST.AUTO_COMPLETE_SUGGESTER.MIN_ROOM_SUGGESTIONS_BEFORE_SERVER_SEARCH && isGroupPolicyReport) {
+                    searchInServer(searchPrefix, policyID);
+                }
+            },
+            [policyID, isGroupPolicyReport],
+        ),
         CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
     );
 
@@ -491,7 +508,7 @@ function SuggestionMention({
 
             let atSignIndex: number | undefined;
             let suggestionWord = '';
-            let prefix: string;
+            let prefix = '';
             let prefixType = '';
 
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
@@ -507,13 +524,9 @@ function SuggestionMention({
 
                 prefix = suggestionWord.substring(1);
                 prefixType = suggestionWord.substring(0, 1);
-            } else {
-                prefix = lastWord.substring(1);
             }
 
-            // Treat a trailing dot as punctuation so short mentions like "@a." still match "@a".
-            const hasTrailingDot = prefixType === '@' && prefix.length > 1 && prefix.endsWith('.');
-            const normalizedPrefix = hasTrailingDot ? prefix.slice(0, -1) : prefix;
+            const normalizedPrefix = normalizeMentionPrefix(prefix, prefixType);
             // Keep the raw prefix for highlight so dots are preserved in the UI.
             const mentionPrefix = prefix;
 
@@ -539,9 +552,10 @@ function SuggestionMention({
                 nextState.shouldShowSuggestionMenu = true;
             }
 
-            // Early return if there is no update
             const currentState = suggestionValuesRef.current;
-            if (currentState.suggestedMentions.length === 0 && nextState.suggestedMentions?.length === 0) {
+            const hasNoSuggestions = currentState.suggestedMentions.length === 0 && nextState.suggestedMentions?.length === 0;
+            const hasSameMentionContext = currentState.atSignIndex === atSignIndex && currentState.mentionPrefix === mentionPrefix && currentState.prefixType === prefixType;
+            if (hasNoSuggestions && hasSameMentionContext) {
                 return;
             }
 
@@ -569,8 +583,8 @@ function SuggestionMention({
     }, [value, selection.start, selection.end, debouncedCalculateMentionSuggestion]);
 
     useEffect(() => {
-        debouncedSearchInServer();
-    }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value, debouncedSearchInServer]);
+        debouncedSearchInServer(suggestionValues.prefixType, serverSearchPrefix, foundSuggestionsCountForServerSearch);
+    }, [suggestionValues.prefixType, serverSearchPrefix, foundSuggestionsCountForServerSearch, policyID, value, debouncedSearchInServer]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {

@@ -5197,6 +5197,17 @@ describe('actions/Report', () => {
             const lowerCaseRequest = PersistedRequests.getAll().at(1);
             expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
         });
+
+        it('tracks user searches separately from report searches', () => {
+            const onyxSetSpy = jest.spyOn(Onyx, 'set');
+
+            Report.searchInServer('report');
+            Report.searchUserInServer('user');
+
+            expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, true);
+            expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS, true);
+            onyxSetSpy.mockRestore();
+        });
     });
 
     describe('openReport with introSelected', () => {

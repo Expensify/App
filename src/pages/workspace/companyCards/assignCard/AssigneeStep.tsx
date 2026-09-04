@@ -79,7 +79,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         };
     });
     const [shouldShowError, setShouldShowError] = useState(false);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
 
     const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
@@ -320,7 +320,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     initiallyFocusedItemKey={selectedAssignee?.keyForList}
                     shouldScrollToFocusedIndexOnMount={false}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                    isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
+                    isLoadingNewOptions={canInviteMembers && !!isSearchingForUsers}
                     disableMaintainingScrollPosition
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
