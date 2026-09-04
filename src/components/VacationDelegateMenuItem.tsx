@@ -13,7 +13,7 @@ import React from 'react';
 
 import UserAvatar from './Avatar/UserAvatar';
 import MenuItem from './MenuItem';
-import MenuItemEmptyField from './MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from './MenuItem/presets/MenuItemField';
 import MenuItemWithLabel from './MenuItem/presets/MenuItemWithLabel';
 import OfflineWithFeedback from './OfflineWithFeedback';
 
@@ -81,8 +81,8 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                     </MenuItem.Row>
                 </MenuItemWithLabel>
             ) : (
-                <MenuItemEmptyField
-                    description={translate('common.vacationDelegate')}
+                <MenuItemField
+                    name={translate('common.vacationDelegate')}
                     onPress={onPress}
                 />
             )}

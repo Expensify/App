@@ -1,3 +1,4 @@
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
@@ -44,10 +45,9 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 copyable
                 interactive={false}
             />
-            <MenuItemWithTopDescription
-                description={translate('common.date')}
-                title={startDate.date}
-                interactive={false}
+            <MenuItemField
+                name={translate('common.date')}
+                value={startDate.date}
             />
 
             <MenuItemWithTopDescription
@@ -70,19 +70,17 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
             <View style={[styles.flexRow, styles.flexWrap]}>
                 {!!reservation.coachNumber && (
                     <View style={styles.w50}>
-                        <MenuItemWithTopDescription
-                            description={translate('travel.trainDetails.coachNumber')}
-                            title={reservation.coachNumber}
-                            interactive={false}
+                        <MenuItemField
+                            name={translate('travel.trainDetails.coachNumber')}
+                            value={reservation.coachNumber}
                         />
                     </View>
                 )}
                 {!!reservation.seatNumber && (
                     <View style={styles.w50}>
-                        <MenuItemWithTopDescription
-                            description={translate('travel.trainDetails.seat')}
-                            title={reservation.seatNumber}
-                            interactive={false}
+                        <MenuItemField
+                            name={translate('travel.trainDetails.seat')}
+                            value={reservation.seatNumber}
                         />
                     </View>
                 )}

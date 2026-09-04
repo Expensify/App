@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -91,6 +92,8 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     if (!currentPolicyTag) {
         return <NotFoundPage />;
     }
+
+    const cleanedTagName = getCleanedTagName(currentPolicyTag.name);
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
         if (shouldPreventDisableOrDelete) {
@@ -196,12 +199,10 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
-                        <MenuItemWithTopDescription
-                            title={getCleanedTagName(currentPolicyTag.name)}
-                            description={translate(`common.name`)}
-                            onPress={navigateToEditTag}
-                            interactive={canWriteTags && !hasDependentTags}
-                            shouldShowRightIcon={canWriteTags && !hasDependentTags}
+                        <MenuItemField
+                            name={translate(`common.name`)}
+                            onPress={canWriteTags && !hasDependentTags ? navigateToEditTag : undefined}
+                            value={cleanedTagName}
                         />
                     </OfflineWithFeedback>
                     {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (
