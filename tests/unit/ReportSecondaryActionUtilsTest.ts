@@ -2326,6 +2326,7 @@ describe('getSecondaryAction', () => {
 
     it('includes CANCEL_PAYMENT option for bank payment in BILLING state', async () => {
         const report = createMock<Report>({
+            canCancelReimbursement: true,
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2376,7 +2377,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
-    it('includes CANCEL_PAYMENT option for bank payment in APPROVED + REIMBURSED state', async () => {
+    it('does not include CANCEL_PAYMENT option for bank payment in APPROVED + REIMBURSED state', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -2425,10 +2426,10 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
-    it('includes CANCEL_PAYMENT option for auto-reimbursed payment', async () => {
+    it('does not include CANCEL_PAYMENT option for an auto-reimbursed payment', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -2477,7 +2478,387 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
         });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('does not include CANCEL_PAYMENT option for bank payment when the cancellable status is not loaded', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: '2026-01-01 12:00:00.000',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('includes CANCEL_PAYMENT option for report waiting on the payer bank account', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: true,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // Tomorrow's date, so the 23:45 UTC cutoff has not passed
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            },
+            created: `${tomorrow.toISOString().slice(0, 10)} 12:00:00.000`,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [
+                createMock<Transaction>({
+                    transactionID: TRANSACTION_ID,
+                }),
+            ],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('includes CANCEL_PAYMENT option for bank payment the backend reports as cancellable', async () => {
+        const report = createMock<Report>({
+            canCancelReimbursement: true,
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // Tomorrow in the DB datetime format (UTC, no timezone suffix), so the cutoff is always still ahead
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: `${tomorrow.toISOString().slice(0, 10)} 12:00:00.000`,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [
+                createMock<Transaction>({
+                    transactionID: TRANSACTION_ID,
+                }),
+            ],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('does not include CANCEL_PAYMENT option for a bank payment after the NACHA cutoff even when the backend reported it as cancellable', async () => {
+        const report = createMock<Report>({
+            canCancelReimbursement: true,
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // Two days ago in the DB datetime format (UTC, no timezone suffix), so the batch has left
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: `${twoDaysAgo.toISOString().slice(0, 10)} 20:00:00.000`,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [
+                createMock<Transaction>({
+                    transactionID: TRANSACTION_ID,
+                }),
+            ],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('does not include CANCEL_PAYMENT option for bank payment the backend reports as not cancellable', async () => {
+        const report = createMock<Report>({
+            canCancelReimbursement: false,
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: '2026-01-01 12:00:00.000',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [
+                createMock<Transaction>({
+                    transactionID: TRANSACTION_ID,
+                }),
+            ],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('does not include CANCEL_PAYMENT option when the cancellable status is stale after a cancellation', async () => {
+        const report = createMock<Report>({
+            canCancelReimbursement: true,
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: '2026-01-01 12:00:00.000',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('does not include CANCEL_PAYMENT option for a bank payment that has not reached the BILLING state', async () => {
+        const report = createMock<Report>({
+            canCancelReimbursement: true,
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: '2026-01-01 12:00:00.000',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('does not include CANCEL_PAYMENT option for a queued payment after the NACHA cutoff has passed', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: true,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // Two days ago in the DB datetime format (UTC, no timezone suffix), so the cutoff has passed
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: `${twoDaysAgo.toISOString().slice(0, 10)} 20:00:00.000`,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
     it('includes CANCEL_PAYMENT option for the sender of a P2P wallet payment waiting on the receiver wallet', async () => {
