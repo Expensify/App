@@ -165,7 +165,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, undefined);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
@@ -236,7 +236,7 @@ describe('SidebarUtils', () => {
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, undefined);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
@@ -266,7 +266,9 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
+            // A connected accounting integration keeps the export error (export errors only apply to connected policies)
+            const {connections} = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, connections);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
@@ -284,6 +286,39 @@ describe('SidebarUtils', () => {
                 }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+        });
+
+        it('drops the export error when the passed connections have no connected integration', () => {
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                errorFields: {
+                    export: {
+                        error: 'Some error occurred',
+                    },
+                },
+            };
+
+            // When there is no connected accounting integration, the export error is not a real RBR reason
+            const reportErrors = getAllReportErrors(MOCK_REPORT, {}, {}, CURRENT_USER_ACCOUNT_ID, undefined);
+
+            expect(Object.keys(reportErrors)).toHaveLength(0);
+        });
+
+        it('keeps the export error when the passed connections have a connected integration', () => {
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                errorFields: {
+                    export: {
+                        error: 'Some error occurred',
+                    },
+                },
+            };
+            const {connections} = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
+
+            // With a connected accounting integration, the export error is a real error and is preserved
+            const reportErrors = getAllReportErrors(MOCK_REPORT, {}, {}, CURRENT_USER_ACCOUNT_ID, connections);
+
+            expect(Object.keys(reportErrors)).toHaveLength(1);
         });
 
         it('returns correct report action when report has report action errors', () => {
@@ -310,7 +345,7 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, undefined);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reportAction} =
@@ -546,7 +581,7 @@ describe('SidebarUtils', () => {
 
             // When: Checking for RBR on the chat report
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
-            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
+            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, undefined);
 
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
