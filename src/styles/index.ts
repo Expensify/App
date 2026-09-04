@@ -5409,10 +5409,43 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
-        // The filter bar row is 34px tall, but the default (larger) bulk-action button is 40px.
-        // To keep the bar from growing, we pull the button up/down by half the difference: (40 - 34) / 2 = 3.
-        searchBulkActionsButton: {
-            marginVertical: -3,
+        // The layer BulkActionBar floats in. It covers its container so the bar can center itself over the table, and
+        // passes touches through everywhere except the bar itself.
+        bulkActionBarLayer: {
+            position: 'absolute',
+            bottom: CONST.BULK_ACTION_BAR.BOTTOM_OFFSET,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+        },
+
+        // Resolved under the inverted theme BulkActionBar renders its contents in, so `appBG` here is the opposite of
+        // the page's background. Everything inside the bar is colored by that same theme rather than styled specially.
+        bulkActionBar: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            paddingVertical: 14,
+            paddingLeft: 20,
+            paddingRight: 12,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.appBG,
+            boxShadow: theme.shadow,
+        },
+
+        // Reserves the space the bar floats over at the end of the list it covers, so the last rows can still be
+        // scrolled clear of it. Applied to the list's content rather than its container: content grows below the
+        // viewport, so the rows on screen stay where they are when a selection shows or hides the bar.
+        bulkActionBarListSpacing: {
+            paddingBottom: CONST.BULK_ACTION_BAR.HEIGHT + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
+        },
+
+        // Matches the height of the bar's buttons: as the tallest item in the row it would otherwise set the bar's height.
+        bulkActionBarCloseButton: {
+            height: variables.componentSizeSmall,
+            width: variables.componentSizeSmall,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         filtersBar: {
@@ -7080,7 +7113,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         }),
 
         // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
-        // so offset its vertical margin to keep the row height identical and prevent the table from shifting (see searchBulkActionsButton).
+        // so offset its vertical margin to keep the row height identical and prevent the table from shifting.
         tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
             marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
         }),

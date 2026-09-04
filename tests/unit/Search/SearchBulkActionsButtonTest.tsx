@@ -9,21 +9,21 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-type MockButtonProps = {
-    customText: string;
-    isLoading: boolean;
+type MockBulkActionBarProps = {
+    selectedCount: number;
+    isSelectedCountLoading: boolean;
 };
 
-const mockButtonWithDropdownMenu = jest.fn<null, [MockButtonProps]>(() => null);
+const mockBulkActionBar = jest.fn<null, [MockBulkActionBarProps]>(() => null);
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSearchCount: number | undefined;
 let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
 let mockIsOffline = false;
 
-jest.mock('@components/ButtonWithDropdownMenu', () => ({
+jest.mock('@components/BulkActionBar', () => ({
     __esModule: true,
-    default: (props: MockButtonProps) => mockButtonWithDropdownMenu(props),
+    default: (props: MockBulkActionBarProps) => mockBulkActionBar(props),
 }));
 jest.mock('@components/DecisionModal', () => () => null);
 jest.mock('@components/HoldOrRejectEducationalModal', () => () => null);
@@ -78,6 +78,9 @@ jest.mock('@components/Search/SearchContext', () => ({
         selectedReports: [],
         areAllMatchingItemsSelected: true,
     }),
+    useSearchSelectionActions: () => ({
+        clearSelectedTransactions: jest.fn(),
+    }),
     useSearchResultsContext: () => ({
         currentSearchResults: {search: {count: mockSearchCount, reportCount: mockSearchReportCount, isLoading: mockSearchIsLoading}},
     }),
@@ -116,12 +119,12 @@ function makeTransaction(): SelectedTransactions[string] {
     };
 }
 
-function getButtonProps(): {customText: string; isLoading: boolean} {
-    const props = mockButtonWithDropdownMenu.mock.calls.at(-1)?.at(0);
+function getBarProps(): {selectedCount: number; isSelectedCountLoading: boolean} {
+    const props = mockBulkActionBar.mock.calls.at(-1)?.at(0);
     if (!props) {
-        throw new Error('ButtonWithDropdownMenu was not rendered');
+        throw new Error('BulkActionBar was not rendered');
     }
-    return {customText: props.customText, isLoading: props.isLoading};
+    return {selectedCount: props.selectedCount, isSelectedCountLoading: props.isSelectedCountLoading};
 }
 
 describe('SearchBulkActionsButton all-matching label', () => {
@@ -139,7 +142,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: true});
     });
 
     it('shows the server count when it arrives and there are no exclusions', () => {
@@ -147,7 +150,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:172', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 172, isSelectedCountLoading: false});
     });
 
     it('shows the exact count after an item is excluded', () => {
@@ -156,7 +159,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:171', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 171, isSelectedCountLoading: false});
     });
 
     it('keeps loading when an exclusion exists before the count arrives', () => {
@@ -165,7 +168,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: true});
     });
 
     it('shows the loaded selected count when an expense is excluded offline before the server count is available', () => {
@@ -174,7 +177,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: false});
     });
 
     it('keeps loading for expense reports while the server report count is missing, falling back to the loaded report count', () => {
@@ -182,7 +185,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: true});
     });
 
     it('labels expense reports with the server report count, not the expense count', () => {
@@ -193,7 +196,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:50', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 50, isSelectedCountLoading: false});
     });
 
     it('falls back to the loaded report count for expense reports offline before the report count arrives', () => {
@@ -201,6 +204,6 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: false});
     });
 });

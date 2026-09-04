@@ -3,6 +3,7 @@ import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchS
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import SearchBulkActionsBarWide from '@components/Search/SearchBulkActionsBarWide';
 import {useSearchQueryContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
@@ -137,6 +138,8 @@ function SearchPageWide({
                                     />
                                 )}
                                 {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
+                                {/* Floats over the bottom of the list, which already ends above SearchSelectionFooter. */}
+                                <SearchBulkActionsBarWide queryJSON={queryJSON} />
                             </View>
                             <SearchSelectionFooter searchResults={searchResults} />
                         </>
