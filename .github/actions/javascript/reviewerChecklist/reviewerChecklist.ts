@@ -20,11 +20,23 @@ const ENGINEERING_TEAM_SLUG = 'engineering';
 const DECISIVE_REVIEW_STATES = new Set(['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED']);
 const REVIEWER_CHECKLIST_WORKFLOW = 'reviewerChecklist.yml';
 
-type WorkflowRun = RestEndpointMethodTypes['actions']['listWorkflowRuns']['response']['data']['workflow_runs'][number];
+type WorkflowRunsResponse = RestEndpointMethodTypes['actions']['listWorkflowRuns']['response'];
 
 async function hasSuccessfulChecklistRun(): Promise<boolean> {
-    const pullRequest = github.context.payload.pull_request as {head?: {sha?: string}} | undefined;
-    const headSHA = pullRequest?.head?.sha;
+    const pullRequestPayload: unknown = github.context.payload.pull_request;
+    if (
+        typeof pullRequestPayload !== 'object' ||
+        pullRequestPayload === null ||
+        !('head' in pullRequestPayload) ||
+        typeof pullRequestPayload.head !== 'object' ||
+        pullRequestPayload.head === null ||
+        !('sha' in pullRequestPayload.head) ||
+        typeof pullRequestPayload.head.sha !== 'string'
+    ) {
+        return false;
+    }
+
+    const headSHA = pullRequestPayload.head.sha;
     const currentRunID = Number(process.env.GITHUB_RUN_ID);
     if (!headSHA || !Number.isInteger(currentRunID)) {
         return false;
@@ -41,10 +53,10 @@ async function hasSuccessfulChecklistRun(): Promise<boolean> {
         status: 'success',
         // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
-    })) as {data: {workflow_runs: WorkflowRun[]}};
+    })) as WorkflowRunsResponse;
 
     return workflowRuns.data.workflow_runs.some(
-        (workflowRun) => workflowRun.id !== currentRunID && (workflowRun.pull_requests?.some((pullRequest) => pullRequest.number === issue) ?? false),
+        (workflowRun) => workflowRun.id !== currentRunID && (workflowRun.pull_requests?.some((workflowRunPullRequest) => workflowRunPullRequest.number === issue) ?? false),
     );
 }
 
@@ -79,7 +91,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
         .then(() => GitHubUtils.getAllComments(issue))
         .then((comments) => {
             console.log(`Pulled ${comments.length} comments, now adding them to the list...`);
-            combinedComments.push(...(comments.filter(Boolean) as string[]));
+            combinedComments.push(...comments.filter((comment): comment is string => typeof comment === 'string' && comment.length > 0));
         })
         .then(() => {
             console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);

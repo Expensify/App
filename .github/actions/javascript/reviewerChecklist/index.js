@@ -26050,8 +26050,11 @@ var ENGINEERING_TEAM_SLUG = "engineering";
 var DECISIVE_REVIEW_STATES = /* @__PURE__ */ new Set(["APPROVED", "CHANGES_REQUESTED", "DISMISSED"]);
 var REVIEWER_CHECKLIST_WORKFLOW = "reviewerChecklist.yml";
 async function hasSuccessfulChecklistRun() {
-  const pullRequest = context2.payload.pull_request;
-  const headSHA = pullRequest?.head?.sha;
+  const pullRequestPayload = context2.payload.pull_request;
+  if (typeof pullRequestPayload !== "object" || pullRequestPayload === null || !("head" in pullRequestPayload) || typeof pullRequestPayload.head !== "object" || pullRequestPayload.head === null || !("sha" in pullRequestPayload.head) || typeof pullRequestPayload.head.sha !== "string") {
+    return false;
+  }
+  const headSHA = pullRequestPayload.head.sha;
   const currentRunID = Number(process.env.GITHUB_RUN_ID);
   if (!headSHA || !Number.isInteger(currentRunID)) {
     return false;
@@ -26069,7 +26072,7 @@ async function hasSuccessfulChecklistRun() {
     per_page: 100
   });
   return workflowRuns.data.workflow_runs.some(
-    (workflowRun) => workflowRun.id !== currentRunID && (workflowRun.pull_requests?.some((pullRequest2) => pullRequest2.number === issue2) ?? false)
+    (workflowRun) => workflowRun.id !== currentRunID && (workflowRun.pull_requests?.some((workflowRunPullRequest) => workflowRunPullRequest.number === issue2) ?? false)
   );
 }
 function getNumberOfItemsFromReviewerChecklist() {
@@ -26097,7 +26100,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     combinedComments.push(...reviewComments);
   }).then(() => GithubUtils_default.getAllComments(issue2)).then((comments) => {
     console.log(`Pulled ${comments.length} comments, now adding them to the list...`);
-    combinedComments.push(...comments.filter(Boolean));
+    combinedComments.push(...comments.filter((comment) => typeof comment === "string" && comment.length > 0));
   }).then(() => {
     console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
     const minCompletedItems = numberOfChecklistItems - 2;
