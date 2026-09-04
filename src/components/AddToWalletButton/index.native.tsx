@@ -53,7 +53,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                     Log.info('Card added to wallet');
                     getPaymentMethods();
                     if (isIOS) {
-                        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_ADDED_TO_WALLET.getRoute(card.id));
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(card.cardID));
                     }
                 } else {
                     setIsLoading(false);
