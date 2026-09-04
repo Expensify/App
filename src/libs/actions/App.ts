@@ -832,6 +832,20 @@ function savePolicyDraftByNewWorkspace({
     });
 }
 
+type SetUpPoliciesAndNavigateParams = {
+    session: OnyxEntry<OnyxTypes.Session>;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    currency: string;
+    activePolicy: OnyxEntry<OnyxTypes.Policy>;
+    isSelfTourViewed: boolean | undefined;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    hasActiveAdminPolicies: boolean;
+    hasOwnedPaidPolicy: boolean;
+    lastWorkspaceNumber: number | undefined;
+    translate: LocalizedTranslate;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+};
+
 /**
  * This action runs when the Navigator is ready and the current route changes
  *
@@ -847,19 +861,19 @@ function savePolicyDraftByNewWorkspace({
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
  */
-function setUpPoliciesAndNavigate(
-    session: OnyxEntry<OnyxTypes.Session>,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    currency: string,
-    activePolicy: OnyxEntry<OnyxTypes.Policy>,
-    isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    hasActiveAdminPolicies: boolean,
-    hasOwnedPaidPolicy: boolean,
-    lastWorkspaceNumber: number | undefined,
-    translate: LocalizedTranslate,
-    conciergeChat: OnyxEntry<OnyxTypes.Report>,
-) {
+function setUpPoliciesAndNavigate({
+    session,
+    introSelected,
+    currency,
+    activePolicy,
+    isSelfTourViewed,
+    betas,
+    hasActiveAdminPolicies,
+    hasOwnedPaidPolicy,
+    lastWorkspaceNumber,
+    translate,
+    conciergeChat,
+}: SetUpPoliciesAndNavigateParams) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
         return;

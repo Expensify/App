@@ -191,19 +191,19 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(
+        App.setUpPoliciesAndNavigate({
             session,
             introSelected,
-            currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             activePolicy,
-            guidedSetupAndTourStatus?.isSelfTourViewed,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             lastWorkspaceNumber,
             translate,
             conciergeChat,
-        );
+        });
 
         Download.clearDownloads();
         clearStaleExportDownloads();
