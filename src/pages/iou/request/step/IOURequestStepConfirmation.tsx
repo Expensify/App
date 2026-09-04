@@ -125,6 +125,8 @@ type StepConfirmationParams = MoneyRequestNavigatorParamList[typeof SCREENS.MONE
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> &
     WithFullTransactionOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> & {
         shouldHideHeader?: boolean;
+        onAmountChange?: (digits: string) => void;
+        onNegativeChange?: (isNegative: boolean) => void;
     };
 
 function IOURequestStepConfirmationContent({
@@ -135,6 +137,8 @@ function IOURequestStepConfirmationContent({
     isLoadingTransaction,
     shouldHideHeader = false,
     navigation,
+    onAmountChange,
+    onNegativeChange,
 }: IOURequestStepConfirmationProps) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const params = route.params;
@@ -1040,6 +1044,8 @@ function IOURequestStepConfirmationContent({
                                     isReceiptEditable
                                     isTimeRequest={isTimeRequest}
                                     shouldHideToSection={shouldHideToSection}
+                                    onAmountChange={onAmountChange}
+                                    onNegativeChange={onNegativeChange}
                                 />
                             )}
                         </SubmitExpenseOrchestrator>

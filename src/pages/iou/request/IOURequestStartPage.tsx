@@ -8,6 +8,7 @@ import TabSelector from '@components/TabSelector/TabSelector';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -223,6 +224,18 @@ function IOURequestStartPage({
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = isNewManualExpenseFlowEnabled && (shouldUseTab || iouType === CONST.IOU.TYPE.PAY);
 
+    const [initialIsNegative, setInitialIsNegative] = useState(false);
+    const [isAmountNegative, setIsAmountNegative] = useState(false);
+    const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
+
+    const hasSignChanged = isAmountNegative !== initialIsNegative;
+    const hasAmountChanged = typedAmount !== undefined && typedAmount !== '';
+    const isEmbeddedDirty = shouldEmbedConfirmation && (hasSignChanged || hasAmountChanged);
+
+    useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => isEmbeddedDirty,
+    });
+
     // The embedded confirmation renders its body without a ScreenWrapper of its own, so that this page's focus trap
     // stays the sole owner of the header + tab bar + content Tab cycle. Its viewport sizing has to move here with it:
     // shouldEnableMaxHeight gates the keyboard-open height clamp and `marginTop: viewportOffsetTop`, and together with
@@ -267,6 +280,8 @@ function IOURequestStartPage({
                 route={route}
                 navigation={navigation}
                 shouldHideHeader
+                onAmountChange={setTypedAmount}
+                onNegativeChange={setIsAmountNegative}
             />
         );
     }
@@ -303,7 +318,12 @@ function IOURequestStartPage({
                             <OnyxTabNavigator
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
-                                onTabSelected={resetIOUTypeIfChanged}
+                                onTabSelected={(newIOUType) => {
+                                    setIsAmountNegative(false);
+                                    setInitialIsNegative(false);
+                                    setTypedAmount(undefined);
+                                    resetIOUTypeIfChanged(newIOUType);
+                                }}
                                 onTabSelect={onTabSelectFocusHandler}
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
