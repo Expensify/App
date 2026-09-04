@@ -1,7 +1,7 @@
 ---
 title: Navigating New Expensify
 description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, mark all as read, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
 internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
@@ -83,6 +83,17 @@ Suggestion: Inbox with the All, Unread, and To-dos tabs visible at the top, with
 Location: After the "How to filter your Inbox using tabs" section
 Purpose: Show users where the filter tabs appear and what the count badge looks like
 -->
+
+---
+
+## How to mark all chats as read from the Unread tab
+
+You can clear your entire unread backlog at once directly from the **Unread** tab:
+
+- **Web:** Right-click the **Unread** tab.
+- **Mobile:** Long-press the **Unread** tab.
+
+Then select **Mark all as read**. When the confirmation prompt asks *Are you sure you want to mark all chats as read?*, confirm to mark every unread chat as read. The **Unread** count badge clears once the chats are marked as read.
 
 ---
 
