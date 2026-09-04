@@ -20,8 +20,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
 
-const allowTextSelectionStyle = {userSelect: 'auto', WebkitUserSelect: 'auto'} as const;
-
 function GenericPressable({
     children,
     onPress,
@@ -218,7 +216,7 @@ function GenericPressable({
                 (state.hovered || isHovered) && StyleUtils.parseStyleFromFunction(hoverStyle, state),
                 state.pressed && StyleUtils.parseStyleFromFunction(pressStyle, state),
                 isDisabled && [StyleUtils.parseStyleFromFunction(disabledStyle, state), styles.noSelect],
-                shouldAllowTextSelection ? allowTextSelectionStyle : isRoleButton && styles.userSelectNone,
+                shouldAllowTextSelection ? styles.userSelectAuto : isRoleButton && styles.userSelectNone,
             ]}
             // accessibility props
             accessibilityState={{
