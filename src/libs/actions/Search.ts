@@ -59,7 +59,6 @@ import {
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
-    isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
@@ -503,12 +502,12 @@ function getLastPolicyPaymentMethod(
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
 
-function getReportType(report: OnyxInputOrEntry<Report>) {
+function getReportType(report: OnyxInputOrEntry<Report> | SelectedReports) {
     if (isIOUReportUtil(report?.reportID)) {
         return CONST.REPORT.TYPE.IOU;
     }
 
-    if (isInvoiceReport(report)) {
+    if (report?.type === CONST.REPORT.TYPE.INVOICE) {
         return CONST.REPORT.TYPE.INVOICE;
     }
 
@@ -2105,12 +2104,15 @@ function getPayOption(
     const shouldShowBulkPayOption =
         selectedReports.length > 0
             ? selectedReports.every(
-                  (report) => report.canPay && report.type === firstReport?.type && shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
+                  (report) =>
+                      report.canPay &&
+                      getReportType(report) === getReportType(firstReport) &&
+                      shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
                   (transactionIDKey) =>
                       selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                      selectedTransactions[transactionIDKey].report?.type === firstTransaction?.report?.type,
+                      getReportType(selectedTransactions[transactionIDKey].report) === getReportType(firstTransaction?.report),
               );
 
     return {
