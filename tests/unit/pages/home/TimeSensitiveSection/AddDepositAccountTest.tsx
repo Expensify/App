@@ -4,6 +4,7 @@ import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import {openPersonalBankAccountSetupView} from '@src/libs/actions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useTimeSensitiveAddBankAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount';
+import useTimeSensitiveAddDepositAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddDepositAccount';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
 import TimeSensitiveGroup from '@src/pages/home/TimeSensitiveSection/TimeSensitiveGroup';
 import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
@@ -33,9 +34,15 @@ jest.mock('@hooks/useLazyAsset', () => ({
     })),
 }));
 
+jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddDepositAccount', () =>
+    jest.fn(() => ({
+        shouldShowAddDepositAccount: true,
+    })),
+);
+
 jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount', () =>
     jest.fn(() => ({
-        shouldShowAddBankAccount: true,
+        shouldShowAddBankAccount: false,
     })),
 );
 
@@ -69,7 +76,6 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: '
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
 
-// Renders the "Time sensitive" group the way the Home "For you" card now does (hook + presentational group).
 function TimeSensitiveSection() {
     return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
 }
@@ -81,7 +87,8 @@ const renderTimeSensitiveSection = () =>
         </OnyxListItemProvider>,
     );
 
-describe('TimeSensitiveSection - AddBankAccount', () => {
+describe('TimeSensitiveSection - AddDepositAccount', () => {
+    const mockedUseTimeSensitiveAddDepositAccount = jest.mocked(useTimeSensitiveAddDepositAccount);
     const mockedUseTimeSensitiveAddBankAccount = jest.mocked(useTimeSensitiveAddBankAccount);
     const mockedUseTimeSensitiveAddPaymentCard = jest.mocked(useTimeSensitiveAddPaymentCard);
 
@@ -91,8 +98,11 @@ describe('TimeSensitiveSection - AddBankAccount', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockedUseTimeSensitiveAddDepositAccount.mockReturnValue({
+            shouldShowAddDepositAccount: true,
+        });
         mockedUseTimeSensitiveAddBankAccount.mockReturnValue({
-            shouldShowAddBankAccount: true,
+            shouldShowAddBankAccount: false,
         });
         mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
             shouldShowAddPaymentCard: false,
@@ -105,15 +115,14 @@ describe('TimeSensitiveSection - AddBankAccount', () => {
         await Onyx.clear();
     });
 
-    it('renders when it is the only time-sensitive item and starts setup', async () => {
+    it('renders the task and opens the deposit account setup flow', async () => {
         await Onyx.set(ONYXKEYS.ACCOUNT, {validated: true});
         await waitForBatchedUpdates();
 
         renderTimeSensitiveSection();
-        fireEvent.press(screen.getByText('common.add'));
+        fireEvent.press(screen.getByText('homePage.timeSensitiveSection.ctaFix'));
 
-        expect(screen.getByText('homePage.timeSensitiveSection.title')).toBeTruthy();
-        expect(screen.getByText('homePage.timeSensitiveSection.addBankAccount.title')).toBeTruthy();
+        expect(screen.getByText('homePage.timeSensitiveSection.addDepositAccount.title')).toBeTruthy();
         expect(openPersonalBankAccountSetupView).toHaveBeenCalledWith({isUserValidated: true});
     });
 
@@ -122,8 +131,21 @@ describe('TimeSensitiveSection - AddBankAccount', () => {
         await waitForBatchedUpdates();
 
         renderTimeSensitiveSection();
-        fireEvent.press(screen.getByText('common.add'));
+        fireEvent.press(screen.getByText('homePage.timeSensitiveSection.ctaFix'));
 
         expect(openPersonalBankAccountSetupView).toHaveBeenCalledWith({isUserValidated: false});
+    });
+
+    it('yields to the queued-payment task so the same flow is not offered twice', async () => {
+        mockedUseTimeSensitiveAddBankAccount.mockReturnValue({
+            shouldShowAddBankAccount: true,
+        });
+        await Onyx.set(ONYXKEYS.ACCOUNT, {validated: true});
+        await waitForBatchedUpdates();
+
+        renderTimeSensitiveSection();
+
+        expect(screen.getByText('homePage.timeSensitiveSection.addBankAccount.title')).toBeTruthy();
+        expect(screen.queryByText('homePage.timeSensitiveSection.addDepositAccount.title')).toBeNull();
     });
 });
