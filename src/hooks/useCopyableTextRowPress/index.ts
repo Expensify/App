@@ -12,6 +12,13 @@ type HandleCopyableTextRowPressOptions = {
     shouldCheck?: boolean;
 };
 
+type PressStartOnCopyableTextCache = {
+    clientX: number | undefined;
+    clientY: number | undefined;
+    result: boolean;
+    target: EventTarget | null;
+};
+
 function getCopyableTextElement(target: EventTarget | Node | null | undefined): HTMLElement | null {
     if (typeof HTMLElement === 'undefined') {
         return null;
@@ -141,6 +148,30 @@ function useCopyableTextRowPress() {
     const wasMouseDownOnCopyableTextRef = useRef(false);
     const wasTouchStartOnCopyableTextRef = useRef(false);
     const shouldSuppressNextPressRef = useRef(false);
+    const pressStartOnCopyableTextCacheRef = useRef<PressStartOnCopyableTextCache | null>(null);
+
+    const getCachedIsPressStartOnCopyableText = (event: unknown, shouldCheck = true): boolean => {
+        if (!shouldCheck) {
+            return false;
+        }
+
+        const position = getPressStartPosition(event);
+        const target = getPressStartTarget(event);
+        const cachedPressStart = pressStartOnCopyableTextCacheRef.current;
+
+        if (cachedPressStart && cachedPressStart.target === target && cachedPressStart.clientX === position?.clientX && cachedPressStart.clientY === position?.clientY) {
+            return cachedPressStart.result;
+        }
+
+        const result = isPressStartOnCopyableText(event);
+        pressStartOnCopyableTextCacheRef.current = {
+            clientX: position?.clientX,
+            clientY: position?.clientY,
+            result,
+            target,
+        };
+        return result;
+    };
 
     const markMouseDownOnCopyableText = (target: EventTarget | null | undefined, shouldCheck = true, {shouldSuppressNextPress = false}: MarkCopyableTextMouseDownOptions = {}): boolean => {
         const isCopyableTarget = shouldCheck && isCopyableTextTarget(target);
@@ -163,6 +194,7 @@ function useCopyableTextRowPress() {
         wasMouseDownOnCopyableTextRef.current = false;
         wasTouchStartOnCopyableTextRef.current = false;
         shouldSuppressNextPressRef.current = false;
+        pressStartOnCopyableTextCacheRef.current = null;
         return shouldSuppressPress;
     };
 
@@ -185,6 +217,7 @@ function useCopyableTextRowPress() {
 
     return {
         handleCopyableTextRowPress,
+        isPressStartOnCopyableText: getCachedIsPressStartOnCopyableText,
         markMouseDownOnCopyableText,
         markTouchStartOnCopyableText,
         shouldSuppressCopyableTextRowFocus,

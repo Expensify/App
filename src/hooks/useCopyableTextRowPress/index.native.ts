@@ -19,6 +19,7 @@ function useCopyableTextRowPress() {
 
     return {
         handleCopyableTextRowPress,
+        isPressStartOnCopyableText,
         markMouseDownOnCopyableText,
         markTouchStartOnCopyableText,
         shouldSuppressCopyableTextRowFocus,
