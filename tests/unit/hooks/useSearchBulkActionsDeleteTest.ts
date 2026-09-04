@@ -6,6 +6,8 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
+import {deleteAppReport} from '@libs/actions/Report';
+import type * as SearchActions from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +46,8 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    getReportFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportFromSearchSnapshot,
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
@@ -462,5 +466,74 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
 
         // No deleteMoneyRequest call — no action was found.
         expect(deleteMoneyRequest).not.toHaveBeenCalled();
+    });
+
+    it('passes the report and reportActions from the search snapshot to deleteAppReport when the report is not in Onyx', async () => {
+        const REPORT_ID = 'report-1';
+        const REPORT_ACTION_ID = 'report-action-1';
+
+        // Given: a whole-report row selected for bulk delete, where the report and its
+        // report actions exist in the search snapshot but not in the Onyx.
+        const snapshotAction = createMock<ReportAction>({
+            reportActionID: REPORT_ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            actorAccountID: CURRENT_USER_ACCOUNT_ID,
+            created: '2026-01-01 10:00:00',
+            person: [],
+            shouldShow: true,
+        });
+        const searchResults = createMock<SearchResults>({
+            search: {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                offset: 0,
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                count: 1,
+                total: 100,
+                currency: 'USD',
+            },
+            data: {},
+        });
+        const searchData: SearchResultDataType = searchResults.data;
+        searchData[`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`] = {
+            reportID: REPORT_ID,
+            reportName: 'Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        searchData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`] = {[REPORT_ACTION_ID]: snapshotAction};
+        mockCurrentSearchResults = searchResults;
+        mockSelectedTransactions = {
+            [REPORT_ID]: makeSelectedTransaction({reportID: REPORT_ID}),
+        };
+        mockShouldShowDeleteOption = true;
+        mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
+
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBeDefined();
+        });
+
+        // When: the user confirms bulk delete.
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)?.onSelected?.();
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+
+        // Then: deleteAppReport still receives the report and reportActions resolved
+        // from the snapshot (snapshot-first fallback), instead of undefined.
+        await waitFor(() => {
+            expect(deleteAppReport).toHaveBeenCalledTimes(1);
+            expect(deleteAppReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: expect.objectContaining({reportID: REPORT_ID}),
+                    reportActions: expect.objectContaining({
+                        [REPORT_ACTION_ID]: expect.objectContaining({reportActionID: REPORT_ACTION_ID}),
+                    }),
+                }),
+            );
+        });
     });
 });

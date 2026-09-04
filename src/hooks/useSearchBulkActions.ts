@@ -24,6 +24,7 @@ import {
     getPayMoneyOnSearchInvoiceParams,
     getPayOption,
     getPolicyFromSearchSnapshot,
+    getReportActionsFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportType,
     getChatReportWithFallback,
@@ -1216,15 +1217,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
         const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
+        const searchData = searchResults?.data;
         if (isExpenseReportType) {
             for (const reportID of selectedReportIDs) {
-                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                const report = getReportFromSearchSnapshot(reportID, searchData, allReports);
+                const reportActions = getReportActionsFromSearchSnapshot(reportID, searchData, allReportActions);
+                const parentReportActions = getReportActionsFromSearchSnapshot(report?.parentReportID, searchData, allReportActions);
                 deleteAppReport({
                     report,
-                    reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
-                    parentReportAction: report?.parentReportActionID
-                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
-                        : undefined,
+                    reportActions,
+                    parentReportAction: report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined,
                     selfDMReport,
                     currentUserEmailParam: email ?? '',
                     currentUserAccountIDParam: accountID,
@@ -1268,13 +1270,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             // Whole-report deletions keep their existing path.
             for (const reportID of wholeReportIDs) {
-                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                const report = getReportFromSearchSnapshot(reportID, searchData, allReports);
+                const reportActions = getReportActionsFromSearchSnapshot(reportID, searchData, allReportActions);
+                const parentReportActions = getReportActionsFromSearchSnapshot(report?.parentReportID, searchData, allReportActions);
                 deleteAppReport({
                     report,
-                    reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
-                    parentReportAction: report?.parentReportActionID
-                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
-                        : undefined,
+                    reportActions,
+                    parentReportAction: report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined,
                     selfDMReport,
                     currentUserEmailParam: email ?? '',
                     currentUserAccountIDParam: accountID,
@@ -1282,6 +1284,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     allTransactionViolations: transactionsViolations,
                     bankAccountList,
                     delegateAccountID,
+                    hash,
                 });
             }
         }
@@ -1300,6 +1303,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         bankAccountList,
         clearSelectedTransactions,
         allReports,
+        searchResults?.data,
         selfDMReport,
         email,
         isExpenseReportType,
@@ -1650,7 +1654,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (!iouReport?.chatReportID) {
                     return false;
                 }
-                const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
+                const chatReport = getReportFromSearchSnapshot(iouReport.chatReportID, currentSearchResults?.data, allReports);
                 return isDM(chatReport);
             })
         );
