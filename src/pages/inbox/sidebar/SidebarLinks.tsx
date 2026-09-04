@@ -64,13 +64,8 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
             const reportActionID = Navigation.getTopmostReportActionId();
             const actionTargetReportActionID = option.actionTargetReportActionID;
 
-            // On narrow layout the sidebar is only visible on the Inbox screen, where no report is displayed.
-            // getTopmostReportId can still point at a report left in the reports split stack
-            // (e.g. after opening a report, jumping to a Settings RHP, then returning to Inbox), which would
-            // wrongly treat the tap as re-opening the active report and block it. When the sidebar is focused,
-            // a tap must always navigate.
-            // Otherwise, block navigation until the first conversation is displayed. On wide layouts, only block
-            // navigation when the selected report is already open.
+            // When the sidebar is focused on narrow screens, force navigation to bypass stale report IDs.
+            // Otherwise, only block navigation if the report is already open or initial data is still loading.
             const shouldBlockReportNavigation = shouldUseNarrowLayout
                 ? Navigation.getActiveRoute() !== `/${ROUTES.INBOX}`
                 : option.reportID === Navigation.getTopmostReportId() && !reportActionID && !actionTargetReportActionID;
