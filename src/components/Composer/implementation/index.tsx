@@ -244,7 +244,11 @@ function Composer({
             isReportFlatListScrolling.current = scrolling;
         });
 
-        return () => scrollingListener.remove();
+        return () => {
+            scrollingListener.remove();
+            // The flag has no writer left once the listener is gone, so an Activity hide must not leave it stuck on.
+            isReportFlatListScrolling.current = false;
+        };
     }, []);
 
     useEffect(() => {
