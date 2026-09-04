@@ -75,6 +75,18 @@ const resolve: ReceiptStorage['resolve'] = (source) => {
     return durableName ? toLocalUri(durableName) : source;
 };
 
-const receiptStorage: ReceiptStorage = {adopt, toLocalUri, resolve};
+const isInDurableFolder: ReceiptStorage['isInDurableFolder'] = (storedPath) => {
+    if (typeof storedPath !== 'string') {
+        return false;
+    }
+    try {
+        return toDurableName(storedPath) !== undefined;
+    } catch {
+        // getReceiptsUploadFolderPath reaches the native filesystem module, which is not always available.
+        return false;
+    }
+};
+
+const receiptStorage: ReceiptStorage = {adopt, toLocalUri, resolve, isInDurableFolder};
 
 export default receiptStorage;

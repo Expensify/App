@@ -5,6 +5,7 @@ const receiptStorage: ReceiptStorage = {
     adopt: (uriOrPath) => Promise.resolve(uriOrPath),
     toLocalUri: (durableName) => durableName,
     resolve: (source) => (typeof source === 'string' ? source : undefined),
+    isInDurableFolder: () => false,
 };
 
 export default receiptStorage;

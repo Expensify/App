@@ -1,10 +1,10 @@
 import {getAll as getAllPersistedRequests, getOngoingRequest} from '@libs/actions/PersistedRequests';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import getPlatform from '@libs/getPlatform';
-import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 
 import CONST from '@src/CONST';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
@@ -36,6 +36,10 @@ type QueuedReceipt = {
     receiptTraceId?: string;
     receiptEnqueuedAt?: number;
     source?: ReceiptSource;
+    localSource?: ReceiptSource;
+
+    /** REPLACE_RECEIPT queues the raw File object, which keeps its local path here rather than on `source`. */
+    uri?: string;
 };
 
 /** Inputs for the enqueued milestone, taken when the receipt request reaches the write queue. */
@@ -67,7 +71,8 @@ const RECEIPT_BEARING_COMMANDS = new Set<string>([
 /** When each receipt was enqueued, keyed by transaction id, so a snapshot can report how long it has waited. */
 const enqueuedAtByTransactionID = new Map<string, number>();
 
-const clearReportedAtByTransactionID = new Map<string, number>();
+/** Receipts already reported by a teardown snapshot, keyed by trace id, so two redirects racing do not double-report. */
+const clearReportedAtByReceipt = new Map<string, number>();
 
 const CLEAR_DEDUPE_MS = 60 * 1000;
 
@@ -238,16 +243,8 @@ function logReceiptAdoptFailed({error, captureSource}: {error: unknown; captureS
     });
 }
 
-function getIsSourceInDurableFolder(source: ReceiptSource | undefined): boolean {
-    if (typeof source !== 'string') {
-        return false;
-    }
-    try {
-        const folderName = getReceiptsUploadFolderPath().split('/').pop();
-        return !!folderName && source.includes(`/${folderName}/`);
-    } catch {
-        return false;
-    }
+function getQueuedReceiptPath(receipt: QueuedReceipt): ReceiptSource | undefined {
+    return receipt.localSource ?? receipt.source ?? receipt.uri;
 }
 
 type PendingReceiptRow = {
@@ -268,8 +265,8 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
     const now = Date.now();
     const isClear = trigger === 'signOut';
     const pendingTransactionIDs = new Set<string>();
+    const reportedKeys = new Set<string>();
     const rows: PendingReceiptRow[] = [];
-    let pendingReceiptCount = 0;
 
     // Include the ongoing request. Once processNextRequest moves a receipt into the ongoing slot it is the one
     // actively uploading, but it no longer shows up in getAll. Without this we would skip it here and then drop it
@@ -289,18 +286,19 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
         if (!data.receipt) {
             continue;
         }
-        pendingReceiptCount++;
         const transactionID = data.transactionID;
         if (transactionID) {
             pendingTransactionIDs.add(transactionID);
         }
 
-        if (isClear && transactionID) {
-            const reportedAt = clearReportedAtByTransactionID.get(transactionID);
+        const dedupeKey = data.receipt.receiptTraceId ?? transactionID;
+        if (isClear && dedupeKey) {
+            const reportedAt = clearReportedAtByReceipt.get(dedupeKey);
             if (reportedAt !== undefined && now - reportedAt < CLEAR_DEDUPE_MS) {
                 continue;
             }
-            clearReportedAtByTransactionID.set(transactionID, now);
+            clearReportedAtByReceipt.set(dedupeKey, now);
+            reportedKeys.add(dedupeKey);
         }
 
         const enqueuedAt = data.receipt.receiptEnqueuedAt ?? (transactionID ? enqueuedAtByTransactionID.get(transactionID) : undefined);
@@ -310,7 +308,7 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
             transactionID,
             command: request.command,
             msSinceEnqueued: enqueuedAt !== undefined ? now - enqueuedAt : undefined,
-            isSourceInDurableFolder: getIsSourceInDurableFolder(data.receipt.source),
+            isSourceInDurableFolder: ReceiptStorage.isInDurableFolder(getQueuedReceiptPath(data.receipt)),
         });
     }
 
@@ -321,7 +319,7 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
             trigger,
             reason,
             snapshotID,
-            pendingReceiptCount,
+            pendingReceiptCount: rows.length,
             receiptTraceId: row.receiptTraceId,
             transactionID: row.transactionID,
             command: row.command,
@@ -340,11 +338,11 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
         enqueuedAtByTransactionID.delete(transactionID);
     }
 
-    for (const [transactionID, reportedAt] of clearReportedAtByTransactionID) {
-        if (pendingTransactionIDs.has(transactionID) && now - reportedAt < CLEAR_DEDUPE_MS) {
+    for (const [key, reportedAt] of clearReportedAtByReceipt) {
+        if (reportedKeys.has(key) && now - reportedAt < CLEAR_DEDUPE_MS) {
             continue;
         }
-        clearReportedAtByTransactionID.delete(transactionID);
+        clearReportedAtByReceipt.delete(key);
     }
 }
 
