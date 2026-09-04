@@ -4502,6 +4502,7 @@ const CONST = {
                 INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
             },
             INTUIT_ENTERPRISE_SUITE_SCOPE: 'app-foundations.custom-dimensions.read',
+            REFRESH_AFTER_SETUP_WINDOW_MS: 15 * 60 * 1000,
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',

@@ -6,6 +6,7 @@ import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import {close} from '@libs/actions/Modal';
+import {markPolicyConnectionsAsStale} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {openLink} from '@userActions/Link';
@@ -55,6 +56,9 @@ jest.mock('@libs/actions/connections/Xero', () => ({
 jest.mock('@libs/actions/Modal', () => ({
     close: jest.fn(),
 }));
+jest.mock('@libs/actions/PolicyConnections', () => ({
+    markPolicyConnectionsAsStale: jest.fn(),
+}));
 jest.mock('@userActions/Link', () => ({
     openLink: jest.fn(),
 }));
@@ -70,6 +74,7 @@ const mockedUseTwoFactorAuthRoute = jest.mocked(useTwoFactorAuthRoute);
 const mockedGetXeroSetupLink = jest.mocked(getXeroSetupLink);
 const mockedOpenLink = jest.mocked(openLink);
 const mockedClose = jest.mocked(close);
+const mockedMarkPolicyConnectionsAsStale = jest.mocked(markPolicyConnectionsAsStale);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 const mockedGetTwoFactorAuthRoute = jest.fn(() => TWO_FACTOR_AUTH_ROUTE);
 
@@ -101,6 +106,14 @@ describe('ConnectToXeroFlow (web)', () => {
 
             expect(mockedNavigate).not.toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_XERO_SETUP.getRoute(POLICY_ID));
         });
+
+        // The connection is created in the OldDot tab, so this client's lazily-fetched policy.connections copy
+        // can't see it. Marking it stale is what gets it re-read when the user comes back.
+        it('marks the policy connections as stale before handing off', () => {
+            render(<ConnectToXeroFlow policyID={POLICY_ID} />);
+
+            expect(mockedMarkPolicyConnectionsAsStale).toHaveBeenCalledWith(POLICY_ID);
+        });
     });
 
     describe('when 2FA is not enabled', () => {
@@ -116,6 +129,7 @@ describe('ConnectToXeroFlow (web)', () => {
 
             expect(screen.getByTestId('require-2fa-modal')).toBeOnTheScreen();
             expect(mockedOpenLink).not.toHaveBeenCalled();
+            expect(mockedMarkPolicyConnectionsAsStale).not.toHaveBeenCalled();
         });
 
         it('closes the modal and navigates to the 2FA route when submitted', () => {

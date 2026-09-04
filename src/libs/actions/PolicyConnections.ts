@@ -2,6 +2,7 @@ import * as API from '@libs/API';
 import type {OpenPolicyAccountingPageParams, OpenPolicyHRPageParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as Policy from '@src/types/onyx/Policy';
 
@@ -41,6 +42,14 @@ function openPolicyAccountingPage(policyID: string) {
     });
 }
 
+function markPolicyConnectionsAsStale(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CONNECTIONS_REFRESH_DEADLINE}${policyID}`, Date.now() + CONST.POLICY.CONNECTIONS.REFRESH_AFTER_SETUP_WINDOW_MS);
+}
+
+function clearPolicyConnectionsStaleMarker(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CONNECTIONS_REFRESH_DEADLINE}${policyID}`, null);
+}
+
 function openPolicyHRPage(policyID: string) {
     const hasConnectionsDataBeenFetchedKey = `${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}` as const;
 
@@ -78,4 +87,4 @@ function updateConnectionConfig<TConnectionName extends ConnectionNameExceptNetS
     updateManyPolicyConnectionConfigs(policyID, connectionName, configUpdate, configCurrentData);
 }
 
-export {openPolicyAccountingPage, openPolicyHRPage, updateConnectionConfig};
+export {openPolicyAccountingPage, openPolicyHRPage, updateConnectionConfig, markPolicyConnectionsAsStale, clearPolicyConnectionsStaleMarker};
