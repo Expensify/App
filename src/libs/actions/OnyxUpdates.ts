@@ -24,6 +24,8 @@ let lastUpdateIDAppliedToClient: number | undefined = 0;
 // applied so queued WRITE responses don't look like gaps; reset if the flush fails so recovery can kick in.
 let lastUpdateIDPendingFlush = 0;
 
+let lastUpdateIDPendingApply = 0;
+
 function getEffectiveLastUpdateID(): number {
     return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
 }
@@ -42,6 +44,7 @@ Onyx.connectWithoutView({
         // too — a stale value from the previous session would mask real gaps after signing back in.
         if (val === undefined) {
             lastUpdateIDPendingFlush = 0;
+            lastUpdateIDPendingApply = 0;
         }
     },
 });
@@ -206,9 +209,16 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
                 if (lastUpdateIDPendingFlush && lastUpdateIDPendingFlush <= Number(lastUpdateID)) {
                     lastUpdateIDPendingFlush = 0;
                 }
+                if (lastUpdateIDPendingApply && lastUpdateIDPendingApply <= Number(lastUpdateID)) {
+                    lastUpdateIDPendingApply = 0;
+                }
                 return result;
             })
             .catch((error) => {
+                // Cleared for any failed apply, not just Pusher: the marker is a flat max, so keeping it after an
+                // unrelated lower-ID failure would mask that gap. Errs toward a redundant refetch.
+                lastUpdateIDPendingApply = 0;
+
                 if (shouldAdvanceLastUpdateID) {
                     Log.alert('[OnyxUpdateManagerError] Applying the updates failed, not advancing lastUpdateID so the client can recover on the next reconnect', {
                         type,
@@ -241,6 +251,10 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
         return advanceLastUpdateIDAfterApply(applyPromise);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
+        if (shouldAdvanceLastUpdateID) {
+            lastUpdateIDPendingApply = Math.max(lastUpdateIDPendingApply, Number(lastUpdateID));
+        }
+
         return advanceLastUpdateIDAfterApply(applyPusherOnyxUpdates(updates, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
@@ -268,6 +282,7 @@ function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFr
 type DoesClientNeedToBeUpdatedParams = {
     clientLastUpdateID?: number;
     previousUpdateID?: number;
+    updateType?: AnyOnyxUpdatesFromServer['type'];
 };
 
 /**
@@ -275,16 +290,19 @@ type DoesClientNeedToBeUpdatedParams = {
  * and return if an update is needed
  * @param previousUpdateID The previousUpdateID contained in the response object
  * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
+ * @param updateType the transport the update being checked arrived on
  */
-function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesClientNeedToBeUpdatedParams): boolean {
+function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID, updateType}: DoesClientNeedToBeUpdatedParams): boolean {
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
     if (!previousUpdateID) {
         return false;
     }
 
-    // Updates staged for the deferred WRITE flush count as applied here, otherwise the responses of queued
-    // WRITE requests would look like gaps until the flush runs and needlessly pause the queue to refetch.
-    const lastUpdateIDFromClient = Math.max(clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
+    const lastUpdateIDFromClient = Math.max(
+        clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0,
+        lastUpdateIDPendingFlush,
+        updateType === CONST.ONYX_UPDATE_TYPES.PUSHER ? lastUpdateIDPendingApply : 0,
+    );
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {
