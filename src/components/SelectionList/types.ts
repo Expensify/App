@@ -23,7 +23,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     initiallyFocusedItemKey?: string;
 
     /** Called when a row is pressed */
-    onSelectRow: (item: TItem) => void;
+    onSelectRow: (item: TItem) => void | Promise<void>;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;

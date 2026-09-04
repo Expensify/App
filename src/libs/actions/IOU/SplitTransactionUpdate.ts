@@ -73,6 +73,7 @@ import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -125,6 +126,15 @@ type UpdateSplitTransactionsParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
+
+/**
+ * Whether an Onyx update value is a list of violations. `Array.isArray` cannot be used directly here:
+ * it is typed `(value: any) => value is any[]`, so on a value whose array arm is readonly it narrows to
+ * `any[]`, which typechecks silently and only surfaces as an ESLint unsafe-access error at the use site.
+ */
+function isTransactionViolationsList<TValue>(value: TValue): value is TValue & ReadonlyDeep<OnyxTypes.TransactionViolation[]> {
+    return Array.isArray(value);
+}
 
 /**
  * Picks the transaction in `snapshotData` whose conversion can be reused for `transaction`: candidates are
@@ -1024,7 +1034,8 @@ function updateSplitTransactions({
         ) => {
             const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransactionID}` as typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS;
             const latestViolationUpdate = onyxUpdates?.findLast((update) => update.key === transactionViolationsKey) as OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>;
-            const baseViolations = latestViolationUpdate && 'value' in latestViolationUpdate && Array.isArray(latestViolationUpdate.value) ? latestViolationUpdate.value : fallbackViolations;
+            const baseViolations =
+                latestViolationUpdate && 'value' in latestViolationUpdate && isTransactionViolationsList(latestViolationUpdate.value) ? latestViolationUpdate.value : fallbackViolations;
             const nextViolations = [
                 ...baseViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD),
                 {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},

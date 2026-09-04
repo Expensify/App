@@ -45,7 +45,7 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     onFixTheErrorsLinkPressed?: () => void;
 
     /** Submit function */
-    onSubmit: () => void;
+    onSubmit: () => void | Promise<void>;
 
     /** Should the button be enabled when offline */
     enabledWhenOffline?: boolean;
