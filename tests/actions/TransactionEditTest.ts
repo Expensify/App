@@ -76,7 +76,9 @@ describe('actions/TransactionEdit', () => {
 
                 const backups = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}`);
 
-                expect(backups).toBeUndefined();
+                // Post-init, a known-but-empty collection resolves to the frozen `{}` (the legacy
+                // `undefined`-for-empty-collection shim was removed in Onyx).
+                expect(backups).toEqual({});
             });
         });
 
@@ -136,7 +138,9 @@ describe('actions/TransactionEdit', () => {
 
                 const transactions = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}`);
 
-                expect(transactions).toBeUndefined();
+                // Post-init, a known-but-empty collection resolves to the frozen `{}` (the legacy
+                // `undefined`-for-empty-collection shim was removed in Onyx).
+                expect(transactions).toEqual({});
             });
         });
 

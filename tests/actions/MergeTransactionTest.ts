@@ -1482,9 +1482,10 @@ describe('getTransactionsForMerging', () => {
         });
         await waitForBatchedUpdates();
 
-        // Then no merge transaction entry is written for the empty key
+        // Then no merge transaction entry is written for the empty key. The empty transactionID resolves
+        // to the collection root key, and reading an empty collection returns an empty object.
         const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
-        expect(mergeTransaction).toBeUndefined();
+        expect(mergeTransaction).toEqual({});
     });
 });
 
