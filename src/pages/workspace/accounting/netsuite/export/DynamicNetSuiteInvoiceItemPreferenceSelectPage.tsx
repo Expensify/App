@@ -26,7 +26,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -46,40 +46,51 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
 
     const selectedValue = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).find((value) => value === config?.invoiceItemPreference) ?? CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE;
 
+    const [draftPreference, setDraftPreference] = useState<ValueOf<typeof CONST.NETSUITE_INVOICE_ITEM_PREFERENCE>>();
+    const currentPreference = draftPreference ?? selectedValue;
+
     const options: MenuListItem[] = useMemo(
         () =>
             Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
                 value: postingPreference,
                 text: translate(`workspace.netsuite.invoiceItem.values.${postingPreference}.label`),
                 keyForList: postingPreference,
-                isSelected: selectedValue === postingPreference,
+                isSelected: currentPreference === postingPreference,
             })),
-        [selectedValue, translate],
+        [currentPreference, translate],
     );
 
     const goBack = useCallback(() => {
         Navigation.goBack(backPath);
     }, [backPath]);
 
-    const selectInvoicePreference = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.invoiceItemPreference && policyID) {
-                updateNetSuiteInvoiceItemPreference(policyID, row.value, config?.invoiceItemPreference);
-            }
-            if (row.value === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
-                goBack();
-            }
-        },
-        [config?.invoiceItemPreference, policyID, goBack],
+    const savePreference = useCallback(() => {
+        if (currentPreference !== config?.invoiceItemPreference && policyID) {
+            updateNetSuiteInvoiceItemPreference(policyID, currentPreference, config?.invoiceItemPreference);
+        }
+        // Selecting CREATE completes the flow, so we return to the previous screen. SELECT reveals the invoice-item sub-menu, so we stay.
+        if (currentPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
+            goBack();
+        }
+    }, [currentPreference, config?.invoiceItemPreference, policyID, goBack]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: savePreference,
+            isDisabled: currentPreference === selectedValue,
+        }),
+        [savePreference, translate, currentPreference, selectedValue],
     );
 
-    // Update focused index when selectedValue changes (after an error reverts the selection)
+    // Update focused index when the current preference changes (after an error reverts the selection)
     useEffect(() => {
         const selectedIndex = options.findIndex((option) => option.isSelected);
         if (selectedIndex !== -1 && selectionListRef.current) {
             selectionListRef.current?.updateFocusedIndex(selectedIndex);
         }
-    }, [selectedValue, options]);
+    }, [currentPreference, options]);
 
     return (
         <ConnectionLayout
@@ -106,13 +117,15 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                     ref={selectionListRef}
                     data={options}
                     onSelectRow={(selection: SelectorType) => {
-                        selectInvoicePreference(selection as MenuListItem);
+                        setDraftPreference((selection as MenuListItem).value);
                     }}
                     ListItem={SingleSelectListItem}
+                    confirmButtonOptions={confirmButtonOptions}
                     showScrollIndicator
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={options.find((mode) => mode.isSelected)?.keyForList}
                     style={{containerStyle: [styles.pb0]}}
+                    addBottomSafeAreaPadding
                 />
             </OfflineWithFeedback>
             {config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT && (
