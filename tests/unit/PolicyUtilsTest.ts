@@ -1301,7 +1301,7 @@ describe('PolicyUtils', () => {
     });
 
     describe('approval workflow rules', () => {
-        const policyID = 'RULESPOLICY1';
+        const policyID = 'RULES_POLICY_1';
         const submitFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employeeEmail]};
 
         const buildRule = (rule: ApprovalWorkflowRule): Rule => ({...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID});
@@ -1420,7 +1420,7 @@ describe('PolicyUtils', () => {
             });
 
             it('ignores rules belonging to another workspace', () => {
-                expect(getForwardsToFromRules({...policy, id: 'OTHERPOLICY'}, {submitterEmail: employeeEmail, reportTotal: -5000})).toBeUndefined();
+                expect(getForwardsToFromRules({...policy, id: 'OTHER_POLICY'}, {submitterEmail: employeeEmail, reportTotal: -5000})).toBeUndefined();
             });
         });
 
