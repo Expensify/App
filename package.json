@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.4.72-0",
+  "version": "9.4.72-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -333,7 +333,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-expo": "57.0.2",
     "jest-transformer-svg": "^2.0.1",
-    "knip": "^6.14.0",
+    "knip": "^6.34.0",
     "lefthook": "2.1.9",
     "link": "^2.1.1",
     "memfs": "^4.6.0",
