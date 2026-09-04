@@ -81,7 +81,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
+import type {ReadonlyDeep, SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 import {findFocusedRoute} from '@react-navigation/native';
@@ -1488,7 +1488,7 @@ function isReportIDApproved(reportID: string | undefined) {
 /**
  * Checks if a report is an Expense report.
  */
-function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
+function isExpenseReport(reportOrID: ReadonlyDeep<OnyxInputOrEntry<Report>> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
@@ -1580,7 +1580,7 @@ function isReportManuallyReimbursed(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the supplied report is an expense report in Open state and status.
  */
-function isOpenExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
+function isOpenExpenseReport(report: ReadonlyDeep<OnyxInputOrEntry<Report>>): boolean {
     return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
@@ -1632,7 +1632,7 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | string | undefined, re
  * Whether the current user is the submitter of the report
  */
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function isCurrentUserSubmitter(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
+function isCurrentUserSubmitter(report: ReadonlyDeep<OnyxEntry<Report>>, currentUserAccountID?: number): boolean {
     return !!report && report.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
 }
 
@@ -2026,7 +2026,7 @@ function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
 /**
  * Returns true if report is still being processed
  */
-function isProcessingReport(report: OnyxEntry<Report>): boolean {
+function isProcessingReport(report: ReadonlyDeep<OnyxEntry<Report>>): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
 }
 
@@ -2070,7 +2070,7 @@ function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, report
     return reportActionsArray.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
 }
 
-function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>): boolean {
+function isAwaitingFirstLevelApproval(report: ReadonlyDeep<OnyxEntry<Report>>, rules: OnyxCollection<Rule>): boolean {
     if (!report) {
         return false;
     }
@@ -2622,7 +2622,7 @@ function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report>, isReportAr
  * Whether the provided report is an archived report
  */
 
-function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
+function isArchivedReport(reportNameValuePairs?: ReadonlyDeep<OnyxInputOrEntry<ReportNameValuePairs>>): boolean {
     return !!reportNameValuePairs?.private_isArchived;
 }
 
@@ -2807,7 +2807,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
-function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
+function isMoneyRequestReport(reportOrID: ReadonlyDeep<OnyxInputOrEntry<Report>> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? deprecatedAllReports) ?? null) : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
 }
@@ -3023,7 +3023,7 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false): boolean {
+function canAddOrDeleteTransactions(moneyRequestReport: ReadonlyDeep<OnyxEntry<Report>>, rules: OnyxCollection<Rule>, isReportArchived = false): boolean {
     if (!(isMoneyRequestReport(moneyRequestReport) || isInvoiceReport(moneyRequestReport)) || isReportArchived) {
         return false;
     }
@@ -3052,7 +3052,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
  * Returns false if:
  * - if current user is not the submitter of an expense report
  */
-function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false, isMovingTransaction = false): boolean {
+function canAddTransaction(moneyRequestReport: ReadonlyDeep<OnyxEntry<Report>>, rules: OnyxCollection<Rule>, isReportArchived = false, isMovingTransaction = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
@@ -5348,7 +5348,7 @@ function canEditFieldOfMoneyRequest({
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
     isDeleteAction?: boolean;
     isChatReportArchived?: boolean;
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
+    outstandingReportsByPolicyID?: ReadonlyDeep<OutstandingReportsByPolicyIDDerivedValue>;
     transaction: OnyxEntry<Transaction>;
     report?: OnyxInputOrEntry<Report>;
     policy?: OnyxEntry<Policy>;
@@ -12108,16 +12108,16 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, curr
 /**
  * Check if a report is forwarded or not
  */
-function isForwardedReport(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>): boolean {
+function isForwardedReport(report: ReadonlyDeep<OnyxEntry<Report>>, rules: OnyxCollection<Rule>): boolean {
     return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules);
 }
 
 function isReportOutstanding(
-    iouReport: OnyxInputOrEntry<Report>,
+    iouReport: ReadonlyDeep<OnyxInputOrEntry<Report>>,
     policyID: string | undefined,
     rules: OnyxCollection<Rule>,
     // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    reportNameValuePair?: OnyxInputOrEntry<ReportNameValuePairs>,
+    reportNameValuePair?: ReadonlyDeep<OnyxInputOrEntry<ReportNameValuePairs>>,
     allowSubmitted = true,
 ): boolean {
     if (

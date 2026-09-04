@@ -4,11 +4,13 @@ import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 
+import type {ReadonlyDeep} from 'type-fest';
+
 import getSelectedRouteKey from './getSelectedRouteKey';
 
 // Get the distance in meters from the transaction.
 // This function is placed in a separate file to avoid circular dependencies.
-function getDistanceInMeters(transaction: OnyxInputOrEntry<Transaction>, unit: Unit | undefined) {
+function getDistanceInMeters(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>>, unit: Unit | undefined) {
     // If the request is completed, transaction.routes is cleared and comment.customUnit.quantity holds the new distance in the selected unit.
     // We need to convert it from the selected distance unit to meters.
     // This check takes priority because after a manual distance edit, routes.route0.distance may still
