@@ -175,13 +175,14 @@ function buildMerchantRuleFilters(formValues: Partial<MerchantRuleFormValues>): 
 
 /** Builds the `Set` actions for a merchant rule, keyed by a stringified index in a fixed field order. */
 function buildMerchantRuleActions(formValues: Partial<MerchantRuleFormValues>, policy: Policy | undefined): ExpenseDefaultActions {
+    const comment = emptyToUndefined(formValues.comment);
     const valuesByField: Partial<Record<ExpenseDefaultActionField, ExpenseDefaultAction['value'] | undefined>> = {
         [FIELD.MERCHANT]: emptyToUndefined(formValues.merchant),
         [FIELD.CATEGORY]: emptyToUndefined(formValues.category),
         [FIELD.TAG]: emptyToUndefined(formValues.tag),
         [FIELD.TAX]: buildTaxActionValue(formValues.tax, policy),
         [FIELD.VENDOR_ID]: emptyToUndefined(formValues.vendorID),
-        [FIELD.COMMENT]: formValues.comment ? Parser.replace(formValues.comment) : undefined,
+        [FIELD.COMMENT]: comment ? Parser.replace(comment) : undefined,
         [FIELD.REIMBURSABLE]: formValues.reimbursable,
         [FIELD.BILLABLE]: formValues.billable,
     };

@@ -121,6 +121,10 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(buildMerchantRule({merchantToMatch: 'Starbucks'}, policy)).toBeUndefined();
         });
 
+        it('treats a whitespace-only description as nothing to set', () => {
+            expect(buildMerchantRule({merchantToMatch: 'Starbucks', comment: '   '}, policy)).toBeUndefined();
+        });
+
         it('still records the tax external ID when the rate is missing from the policy', () => {
             const rule = buildMerchantRule({merchantToMatch: 'Starbucks', tax: 'id_UNKNOWN'}, policy);
 

@@ -2,7 +2,7 @@ import type CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-import type {RuleFilter, RuleFilterComparison} from './RuleFilters';
+import type {RuleFilterNode} from './RuleFilters';
 
 /**
  * A transaction lifecycle event that can fire an expense-default rule (currently only `CreateTransaction`).
@@ -76,7 +76,7 @@ type ExpenseDefaultRule = {
     triggers: ExpenseDefaultTriggers;
 
     /** Conditions that must match the transaction for the rule to fire. */
-    filters: RuleFilter | RuleFilterComparison;
+    filters: RuleFilterNode;
 
     /** What gets applied to matching expenses. */
     actions: ExpenseDefaultActions;
