@@ -100,6 +100,9 @@ jest.mock('@libs/EmojiTrie', () => ({
 
 // Override IDs so we control Onyx keys and can use evictableKeys for REPORT_ACTIONS
 const TEST_PARENT_REPORT_ID = 'testParentReportID';
+const TEST_CHAT_REPORT_ID = 'testChatReportID';
+const TEST_OWNER_ACCOUNT_ID = 1;
+const TEST_OTHER_ACCOUNT_ID = 2;
 const TEST_REPORT_ID = 'testReportID';
 const TEST_ACTION_ID = 'testActionID';
 const TEST_TRANSACTION_ID = 'testTransactionID';
@@ -193,6 +196,16 @@ const transactionWithReceipt: Transaction = {
     },
 };
 
+const transactionWithMultiPagePDFReceipt: Transaction = {
+    ...transactionWithoutReceipt,
+    receipt: {
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+        source: 'https://example.com/receipt.pdf',
+        filename: 'receipt.pdf',
+        pageCount: 3,
+    },
+};
+
 const transactionWithScanningReceipt: Transaction = {
     ...transactionWithoutReceipt,
     receipt: {
@@ -220,6 +233,20 @@ const transactionWithOdometerDistanceReceipt: Transaction = {
     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
 };
 
+// The expense's own report, whose parent is the conversation the expense was created in.
+const testMoneyRequestReport: Report = {
+    ...testReport,
+    reportID: TEST_PARENT_REPORT_ID,
+    parentReportID: TEST_CHAT_REPORT_ID,
+    chatReportID: TEST_CHAT_REPORT_ID,
+};
+
+const testChatReport: Report = {
+    ...testReport,
+    reportID: TEST_CHAT_REPORT_ID,
+    type: CONST.REPORT.TYPE.CHAT,
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
@@ -241,6 +268,11 @@ describe('MoneyRequestReceiptView', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithoutReceipt);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {id: TEST_POLICY_ID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, testChatReport);
+            // Signed in as the person who raised the expense unless a test says otherwise. Who the viewer is decides
+            // the add button, so with no session nobody qualifies and every expense would look uneditable.
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_OWNER_ACCOUNT_ID, email: 'owner@test.com'});
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -271,6 +303,82 @@ describe('MoneyRequestReceiptView', () => {
             const firstCall = mockOpenPicker.mock.calls.at(0);
             const onPicked = firstCall?.at(0)?.onPicked;
             expect(onPicked).toBeDefined();
+        });
+    });
+
+    describe('receipt page count badge', () => {
+        it('shows the page count for a multi-page PDF receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeTruthy();
+        });
+
+        it('does not show the page count for a single page PDF receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    receipt: {...transactionWithMultiPagePDFReceipt.receipt, pageCount: 1},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 1}))).toBeNull();
+        });
+
+        // An optimistic merge that swaps a PDF for an image can leave the PDF's count behind, so the
+        // badge has to follow the current file type rather than the leftover count
+        it('does not show the page count when a stale count is left on an image receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    receipt: {...transactionWithMultiPagePDFReceipt.receipt, source: 'https://example.com/photo.jpg', filename: 'photo.jpg'},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+        });
+
+        // An image receipt carries no page count at all, which is also what a PDF uploaded before the
+        // backend started reporting one looks like
+        it('does not show the page count for a receipt without one', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
         });
     });
 
@@ -333,6 +441,101 @@ describe('MoneyRequestReceiptView', () => {
                         report={testReport}
                         readonly
                     />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides the add button but keeps the expand button for someone who may not edit the expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // Invited to look at an expense somebody else raised, as in the reported flow.
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_OTHER_ACCOUNT_ID, email: 'invited@test.com'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+        });
+
+        it('shows action buttons to the person who raised the expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+        });
+
+        it('hides both buttons when the expense is on its way out', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // Deleting the expense marks the action that created it, which puts the whole report beyond reach.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_PARENT_REPORT_ID}`, {
+                    [TEST_ACTION_ID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides both buttons for an anonymous viewer', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('hides both buttons on an archived report', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                // An IOU thread, because archiving leaves an expense report's receipts reachable on purpose.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, {type: CONST.REPORT.TYPE.IOU});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${TEST_REPORT_ID}`, {private_isArchived: '2025-02-14 08:12:19'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={{...testReport, type: CONST.REPORT.TYPE.CHAT}} />
                 </Wrapper>,
             );
             await waitForBatchedUpdatesWithAct();
