@@ -624,6 +624,9 @@ function getReportOption({
         policyTags: reportPolicyTags,
         visibleReportActionsData: {},
         conciergeReportID,
+        // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
+        // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
+        sortedActions: undefined,
         currentUserAccountID,
     });
 
@@ -703,6 +706,9 @@ function getReportDisplayOption({
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
+        // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
+        // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
+        sortedActions: undefined,
         currentUserAccountID,
     });
 
