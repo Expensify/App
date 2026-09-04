@@ -1278,6 +1278,32 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        test('round trips the positive approved-violation has filter through the filter form', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const filterFormValues = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(filterFormValues.has).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+            expect(buildQueryStringFromFilterFormValues(filterFormValues)).toContain(`has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+        });
+
+        test('round trips the negated approved-violation has filter through the filter form', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const filterFormValues = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(filterFormValues.hasNot).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+            expect(buildQueryStringFromFilterFormValues(filterFormValues)).toContain(`-has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+        });
+
         test('paid status filter parses valid values and drops invalid ones', () => {
             const policyCategories = {};
             const policyTags = {};
@@ -3836,39 +3862,51 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('queryHasSubmittedViolationFilter', () => {
+    describe('queryHasViolationSnapshotFilter', () => {
         test('returns true for a positive has:submitted-violation filter', () => {
             const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
 
-            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(true);
+            expect(queryHasViolationSnapshotFilter(queryJSON)).toBe(true);
         });
 
         test('returns false when the has filter is negated', () => {
             const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
 
-            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+            expect(queryHasViolationSnapshotFilter(queryJSON)).toBe(false);
         });
 
         test('returns false when submitted-violation is negated alongside other positive has filters', () => {
             const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
 
-            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+            expect(queryHasViolationSnapshotFilter(queryJSON)).toBe(false);
         });
 
         test('returns true when submitted-violation is positive alongside other has filters', () => {
             const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
 
-            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(true);
+            expect(queryHasViolationSnapshotFilter(queryJSON)).toBe(true);
         });
 
-        test('returns false when the query has no submitted-violation filter', () => {
+        test('returns false when the query has no violation snapshot filter', () => {
             const queryJSON = buildSearchQueryJSON('type:expense groupBy:from');
 
-            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+            expect(queryHasViolationSnapshotFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns true for a positive has:approved-violation filter', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            expect(queryHasViolationSnapshotFilter(queryJSON)).toBe(true);
+        });
+
+        test('returns false when the approved-violation filter is negated', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            expect(queryHasViolationSnapshotFilter(queryJSON)).toBe(false);
         });
 
         test('returns false for an undefined queryJSON', () => {
-            expect(queryHasSubmittedViolationFilter(undefined)).toBe(false);
+            expect(queryHasViolationSnapshotFilter(undefined)).toBe(false);
         });
     });
 
