@@ -125,8 +125,9 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             });
     };
 
-    // Fetch the first page on mount and when the workspace scope changes.
+    // Fetch the first page on mount, when the workspace scope changes, and on reconnect.
     // Skips the fetch while offline and re-fetches on reconnect, matching useLoadSearchCategoryData.
+    // Reconnect uses the active search query so results stay in sync with the search input.
     // searchTags is not memoized, so it cannot be in the dependency array — it would fire on every render.
     // searchTags reads latest state via refs, so the closure captured here is safe to call.
     useEffect(() => {
@@ -134,7 +135,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             return;
         }
         // Defer to a microtask so setState calls inside searchTags don't fire synchronously within the effect body
-        Promise.resolve().then(() => searchTags(''));
+        Promise.resolve().then(() => searchTags(stateRef.current.searchQuery));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyIDs, isOffline]);
 
