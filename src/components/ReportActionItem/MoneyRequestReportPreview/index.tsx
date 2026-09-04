@@ -373,7 +373,7 @@ function MoneyRequestReportPreview({
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                    openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 }
                 navigateToExpense(childReportID, routeAtPress);
                 return;
@@ -381,13 +381,25 @@ function MoneyRequestReportPreview({
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-                openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 return;
             }
 
             openReportFromPreview();
         },
-        [betas, currentUserAccountID, hasIOUReportActions, introSelected, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
+        [
+            betas,
+            conciergeChat,
+            currentUserAccountID,
+            hasIOUReportActions,
+            introSelected,
+            iouReportID,
+            isOffline,
+            navigateToExpense,
+            openReportFromPreview,
+            resolveChildReportID,
+            transactions.length,
+        ],
     );
 
     useEffect(() => {
