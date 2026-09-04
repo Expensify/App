@@ -68,7 +68,7 @@ jest.mock('@hooks/useLocalize', () =>
         formatPhoneNumber: (value: string) => value,
     })),
 );
-jest.mock('@hooks/useDefaultFundID', () => jest.fn(() => undefined));
+jest.mock('@hooks/useDefaultCardFeed', () => jest.fn(() => ({fundID: undefined, programKey: 'US'})));
 jest.mock('@hooks/useCurrencyForExpensifyCard', () => jest.fn(() => 'USD'));
 jest.mock('@hooks/useOnyx', () => {
     const onyxKeys = jest.requireActual<typeof OnyxKeysModule>('@src/ONYXKEYS').default;

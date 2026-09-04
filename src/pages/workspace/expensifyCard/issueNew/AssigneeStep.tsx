@@ -5,7 +5,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -96,8 +96,8 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         shouldInitialize: didScreenTransitionEnd,
     });
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const defaultFundID = useDefaultFundID(policyID);
-    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
+    const {fundID: defaultFundID, programKey: selectedProgramKey} = useDefaultCardFeed(policyID);
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID, programKey: selectedProgramKey});
     const isEditing = issueNewCard?.isEditing;
 
     // Freeze the assignee that was selected when this step opened so the pre-selected member stays pinned to the top for the whole open/focus cycle, even as the live selection changes.

@@ -1,6 +1,6 @@
 import SpendRulesCurrencyBase from '@components/SpendRules/configuration/SpendRulesCurrencyBase';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useOnyx from '@hooks/useOnyx';
 
 import {updateDraftSpendRule} from '@libs/actions/User';
@@ -18,7 +18,7 @@ type SpendRuleCurrenciesPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 
 export default function SpendRuleCurrenciesPage({route}: SpendRuleCurrenciesPageProps) {
     const policyID = route.params.policyID;
-    const domainAccountID = useDefaultFundID(policyID);
+    const {fundID: domainAccountID} = useDefaultCardFeed(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 

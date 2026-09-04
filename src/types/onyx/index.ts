@@ -38,7 +38,6 @@ import type {
     CompanyCardFeed,
     CompanyCardFeedWithDomainID,
     DomainSettings,
-    FundID,
     WorkspaceCardFeedsStatus,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
@@ -259,7 +258,6 @@ export type {
     ExpensifyCardLoadingState,
     FrequentlyUsedEmoji,
     Fund,
-    FundID,
     FundList,
     GovernmentMileageRate,
     GpsDraftDetails,

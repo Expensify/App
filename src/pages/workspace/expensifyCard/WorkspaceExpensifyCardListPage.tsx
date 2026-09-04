@@ -14,7 +14,7 @@ import Text from '@components/Text';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -31,7 +31,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getCardsByCardholderName, getCardSettings, isCurrencySupportedForECards} from '@libs/CardUtils';
+import type {CardProgramKey} from '@libs/CardUtils';
+import {getCardsByCardholderName, getCardSettings, getConfiguredExpensifyCardProgramKeys, isCurrencySupportedForECards} from '@libs/CardUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -65,9 +66,12 @@ type WorkspaceExpensifyCardListPageProps = {
 
     /** Fund ID */
     fundID: number;
+
+    /** The selected program (US/GB) within the fund, used to resolve currency when a fund's settings hold more than one program */
+    programKey: CardProgramKey;
 };
 
-function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
+function WorkspaceExpensifyCardListPage({route, cardsList, fundID, programKey}: WorkspaceExpensifyCardListPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Export', 'Gear', 'Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -75,14 +79,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const settings = getCardSettings(cardSettings);
+    const settings = getCardSettings(cardSettings, programKey);
+    const feedSupportingText = getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList);
     const {allFeeds: allAdminExpensifyCardFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const shouldShowSelector = allAdminExpensifyCardFeeds.length >= 1;
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -108,8 +113,12 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         />
     );
 
-    const settlementCurrency = useCurrencyForExpensifyCard({policyID, fundID});
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID, fundID, programKey});
     const shouldShowEuUkDisclaimer = isCurrencySupportedForECards(settlementCurrency);
+
+    // A fund that holds more than one program shows a currency suffix so each program's feed is distinguishable, matching the feed selector rows.
+    const hasMultiplePrograms = getConfiguredExpensifyCardProgramKeys(cardSettings).length > 1;
+    const feedSelectorSupportingText = hasMultiplePrograms ? `${feedSupportingText} (${settlementCurrency})` : feedSupportingText;
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
         return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
@@ -310,7 +319,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
                     CardFeedIcon={cardFeedIcon}
                     feedName={translate('workspace.common.expensifyCard')}
-                    supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList)}
+                    supportingText={feedSelectorSupportingText}
                 />
                 {isBankAccountVerified && (canWriteExpensifyCard || secondaryActions.length > 0 || !isCardListEmpty) && getHeaderButtons()}
             </View>

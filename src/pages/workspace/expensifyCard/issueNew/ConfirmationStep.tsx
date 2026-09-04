@@ -5,7 +5,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getIssuedCardFeedCountry, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
@@ -51,7 +51,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID, programKey: selectedProgramKey} = useDefaultCardFeed(policyID);
     const {isBetaEnabled} = usePermissions();
     const {cardRules} = useExpensifyCardRules(policyID);
 
@@ -110,12 +110,13 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
             // Attempt to issue directly without validateCode when user has extended access
             // If this fails, the effect above will redirect to the validateCode page
-            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', assigneeTimeZone, data);
+            const feedCountry = getIssuedCardFeedCountry(isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK), selectedProgramKey);
+            issueExpensifyCard(defaultFundID, policyID, feedCountry, '', assigneeTimeZone, data);
         } else {
             // Navigate to validateCode page
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
         }
-    }, [policyID, data, account, defaultFundID, isBetaEnabled, assigneeTimeZone]);
+    }, [policyID, data, account, defaultFundID, isBetaEnabled, selectedProgramKey, assigneeTimeZone]);
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 

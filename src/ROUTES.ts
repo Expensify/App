@@ -3544,12 +3544,12 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/settings` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL: {
-        route: 'workspaces/:policyID/expensify-card/:fundID/work-email',
-        getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email` as const,
+        route: 'workspaces/:policyID/expensify-card/:fundID/work-email/:feedCountry',
+        getRoute: (policyID: string, fundID: number, feedCountry: string) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email/${feedCountry}` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL: {
-        route: 'workspaces/:policyID/expensify-card/:fundID/verify-work-email',
-        getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/verify-work-email` as const,
+        route: 'workspaces/:policyID/expensify-card/:fundID/verify-work-email/:feedCountry',
+        getRoute: (policyID: string, fundID: number, feedCountry: string) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/verify-work-email/${feedCountry}` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'workspaces/:policyID/expensify-card/settings/frequency',

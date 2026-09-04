@@ -19,7 +19,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -33,7 +33,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCompanyCardErrorField} from '@libs/actions/CompanyCards';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getAllCardsForWorkspace, getCardFeedTextColor, getCardHintText, getCardFeedWithDomainID, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
+import {
+    getAllCardsForWorkspace,
+    getCardFeedTextColor,
+    getCardFeedWithDomainID,
+    getCardHintText,
+    getProgramKeyForCard,
+    getTranslationKeyForLimitType,
+    isCardFrozen,
+    maskCard,
+} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -95,7 +104,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const isQuickSettingsFlow = route.name === SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS;
     const backPath = isQuickSettingsFlow ? quickSettingsBackPath : workspaceBackPath;
     const {convertToDisplayString} = useCurrencyListActions();
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -146,6 +155,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const currency = useCurrencyForExpensifyCard({
         policyID,
         fundID: defaultFundID,
+        programKey: getProgramKeyForCard(card),
     });
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
