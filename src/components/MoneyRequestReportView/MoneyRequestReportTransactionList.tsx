@@ -42,7 +42,6 @@ import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportL
 import {
     canAddTransaction,
     getActionErrorsByTransaction,
-    getAddExpenseDropdownOptions,
     getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
@@ -64,6 +63,8 @@ import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperW
 import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
+
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';

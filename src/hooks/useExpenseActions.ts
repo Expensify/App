@@ -21,7 +21,6 @@ import {
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
-    getAddExpenseDropdownOptions,
     getPolicyExpenseChat,
     isDM,
     isSelfDM,
@@ -43,6 +42,7 @@ import {
 
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import CONST from '@src/CONST';

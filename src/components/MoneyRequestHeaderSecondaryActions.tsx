@@ -49,7 +49,6 @@ import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils'
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
-    createDraftTransactionAndNavigateToParticipantSelector,
     generateReportID,
     getPolicyExpenseChat,
     isCurrentUserSubmitter,
@@ -72,6 +71,7 @@ import {
 
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import CONST from '@src/CONST';
