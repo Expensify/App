@@ -453,6 +453,12 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
     );
 }
 
+/**
+ * `getViolationsOnyxData` always replaces the whole violations list, so its result is only ever the `SET` arm of
+ * `OnyxUpdate`. Saying that in the type lets callers read `value` as the violations array directly.
+ */
+type TransactionViolationsSetUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>, {onyxMethod: typeof Onyx.METHOD.SET}>;
+
 const ViolationsUtils = {
     /**
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
@@ -486,7 +492,7 @@ const ViolationsUtils = {
         shouldRemoveRejectedExpenseViolation?: boolean;
         distanceOriginalPolicy?: OnyxEntry<Policy>;
         ownerLogin: string | undefined;
-    }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
+    }): TransactionViolationsSetUpdate {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
         const isPartialTransaction = TransactionUtils.isPartialTransaction(updatedTransaction);

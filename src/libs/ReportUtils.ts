@@ -2440,9 +2440,7 @@ function pushTransactionViolationsOnyxData(
             });
 
             // Keep the pre-toggle taxOutOfPolicy state when the update isn't about tax tracking.
-            // Narrow on `onyxMethod` rather than `Array.isArray`: the latter cannot pick the array arm out of a
-            // readonly union, so it degrades the value to `any` without `tsc` saying anything.
-            const recomputedViolations = optimisticViolations.onyxMethod === Onyx.METHOD.SET ? optimisticViolations.value : undefined;
+            const recomputedViolations = optimisticViolations.value;
             if (!isTaxTrackingUpdate && recomputedViolations) {
                 const preservedTaxViolations = (existingViolations ?? []).filter((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
                 optimisticViolations.value = [...recomputedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.TAX_OUT_OF_POLICY), ...preservedTaxViolations];
