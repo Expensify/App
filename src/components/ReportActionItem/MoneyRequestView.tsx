@@ -1025,7 +1025,7 @@ function MoneyRequestView({
                     errorText={getErrorForField('waypoints')}
                     errorTextStyle={styles.userSelectNone}
                     copyValue={distanceCopyValue}
-                    copyable={!!distanceCopyValue}
+                    copyable={!canEditDistance && !!distanceCopyValue}
                     isTitleSelectable={!!distanceCopyValue}
                 />
             </OfflineWithFeedback>
@@ -1085,7 +1085,7 @@ function MoneyRequestView({
                     errorText={getErrorForField('customUnitRateID')}
                     errorTextStyle={styles.userSelectNone}
                     copyValue={distanceRateCopyValue}
-                    copyable={!!distanceRateCopyValue}
+                    copyable={!canEditDistanceRate && !!distanceRateCopyValue}
                     isTitleSelectable={!!distanceRateCopyValue}
                 />
             </OfflineWithFeedback>
@@ -1167,7 +1167,7 @@ function MoneyRequestView({
                     shouldShowBasicTitle
                     shouldShowDescriptionOnTop
                     copyValue={tagCopyValue}
-                    copyable={!!tagCopyValue}
+                    copyable={!canEdit && !!tagCopyValue}
                     isTitleSelectable={!!tagCopyValue}
                 />
             </OfflineWithFeedback>
@@ -1274,7 +1274,7 @@ function MoneyRequestView({
                         errorText={getErrorForField('amount')}
                         errorTextStyle={styles.userSelectNone}
                         copyValue={amountCopyValue}
-                        copyable={!!amountCopyValue}
+                        copyable={!canEditAmount && !!amountCopyValue}
                         isTitleSelectable={!!amountCopyValue}
                     />
                 </OfflineWithFeedback>
@@ -1301,7 +1301,7 @@ function MoneyRequestView({
                             errorTextStyle={styles.userSelectNone}
                             numberOfLinesTitle={0}
                             copyValue={descriptionCopyValue}
-                            copyable={!!descriptionCopyValue}
+                            copyable={!canEdit && !!descriptionCopyValue}
                             isTitleSelectable={!!descriptionCopyValue}
                         />
                     </OfflineWithFeedback>
@@ -1331,7 +1331,7 @@ function MoneyRequestView({
                             errorTextStyle={styles.userSelectNone}
                             numberOfLinesTitle={0}
                             copyValue={merchantCopyValue}
-                            copyable={!!merchantCopyValue}
+                            copyable={!canEditMerchant && !!merchantCopyValue}
                             isTitleSelectable={!!merchantCopyValue}
                         />
                     </OfflineWithFeedback>
@@ -1356,7 +1356,7 @@ function MoneyRequestView({
                         errorText={getErrorForField('date')}
                         errorTextStyle={styles.userSelectNone}
                         copyValue={dateCopyValue}
-                        copyable={!!dateCopyValue}
+                        copyable={!canEditDate && !!dateCopyValue}
                         isTitleSelectable={!!dateCopyValue}
                     />
                 </OfflineWithFeedback>
@@ -1426,7 +1426,7 @@ function MoneyRequestView({
                             errorText={getErrorForField('category')}
                             errorTextStyle={styles.userSelectNone}
                             copyValue={categoryCopyValue}
-                            copyable={!!categoryCopyValue}
+                            copyable={!canEdit && !!categoryCopyValue}
                             isTitleSelectable={!!categoryCopyValue}
                         />
                     </OfflineWithFeedback>
@@ -1459,7 +1459,7 @@ function MoneyRequestView({
                             errorText={getErrorForField('vendor')}
                             errorTextStyle={styles.userSelectNone}
                             copyValue={vendorCopyValue}
-                            copyable={!!vendorCopyValue}
+                            copyable={!canEdit && !!vendorCopyValue}
                             isTitleSelectable={!!vendorCopyValue}
                         />
                     </OfflineWithFeedback>
@@ -1506,7 +1506,7 @@ function MoneyRequestView({
                             errorText={getErrorForField('tax')}
                             errorTextStyle={styles.userSelectNone}
                             copyValue={taxRateCopyValue}
-                            copyable={!!taxRateCopyValue}
+                            copyable={!canEditTaxFields && !!taxRateCopyValue}
                             isTitleSelectable={!!taxRateCopyValue}
                         />
                     </OfflineWithFeedback>
@@ -1534,7 +1534,7 @@ function MoneyRequestView({
                                 );
                             }}
                             copyValue={taxAmountCopyValue}
-                            copyable={!!taxAmountCopyValue}
+                            copyable={!canEditTaxFields && !!taxAmountCopyValue}
                             isTitleSelectable={!!taxAmountCopyValue}
                         />
                     </OfflineWithFeedback>
@@ -1578,7 +1578,7 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             copyValue={attendeesCopyValue}
-                            copyable={!!attendeesCopyValue}
+                            copyable={!canEdit && !!attendeesCopyValue}
                             isTitleSelectable={!!attendeesCopyValue}
                         />
                     </OfflineWithFeedback>
@@ -1678,7 +1678,7 @@ function MoneyRequestView({
                             interactive={canEditReport}
                             shouldRenderAsHTML
                             copyValue={reportCopyValue}
-                            copyable={!!reportCopyValue}
+                            copyable={!canEditReport && !!reportCopyValue}
                             isTitleSelectable={!!reportCopyValue}
                         />
                     </OfflineWithFeedback>
