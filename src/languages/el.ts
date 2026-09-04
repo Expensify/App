@@ -1155,6 +1155,8 @@ const translations: TranslationDeepObject<typeof en> = {
             configureApprovalsSubText: 'Ορισμός εγκρίσεων αναφορών',
             customizeSpendCategories: 'Προσαρμόστε τις κατηγορίες δαπανών',
             customizeSpendCategoriesSubText: 'Οργανώστε και ταξινομήστε τα έξοδα',
+            customizeExpenseCategories: 'Προσαρμόστε τις κατηγορίες εξόδων σας',
+            customizeExpenseCategoriesSubText: 'Προσθέστε τις κατηγορίες της εταιρείας σας για να κωδικοποιήσετε τα έξοδά σας',
             createExpense: 'Δημιουργία δαπάνης',
             createExpenseSubText: 'Σαρώστε, σύρετε και αποθέστε ή καταχωρίστε χειροκίνητα μία δαπάνη χρησιμοποιώντας το κουμπί +',
             linkPersonalCard: 'Συνδέστε προσωπική κάρτα',
@@ -1325,6 +1327,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Προσθήκη απόδειξης',
             phrase2: 'ή σύρετε και αποθέστε ένα εδώ',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Σελίδα 1 από ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Σαρώστε απόδειξη',
@@ -5066,7 +5069,6 @@ ${amount} για ${merchant} - ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Χρησιμοποιήστε αυτόν τον λογαριασμό κατά την εξαγωγή τιμολογίων στο ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Ορίστε πώς οι αγορές εταιρικών καρτών θα εξαχθούν στο ${integrationName}.`,
             vendor: 'Προμηθευτής',
-            defaultVendorDescription: 'Ορίστε έναν προεπιλεγμένο προμηθευτή που θα εφαρμόζεται σε όλες τις συναλλαγές πιστωτικής κάρτας κατά την εξαγωγή.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Ορίστε πώς θα εξαχθούν οι εκτός τσέπης δαπάνες στο ${integrationName}.`,
             exportCheckDescription: 'Θα δημιουργήσουμε μια αναλυτική επιταγή για κάθε αναφορά Expensify και θα τη στείλουμε από τον παρακάτω τραπεζικό λογαριασμό.',
             exportJournalEntryDescription: 'Θα δημιουργούμε μια αναλυτική λογιστική εγγραφή για κάθε αναφορά Expensify και θα την καταχωρούμε στον παρακάτω λογαριασμό.',
@@ -5249,8 +5251,6 @@ ${amount} για ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν εξοφληθούν',
                 },
             },
-            defaultSupplier: 'Προεπιλεγμένος προμηθευτής',
-            defaultSupplierDescription: 'Ορίστε έναν προεπιλεγμένο προμηθευτή που θα εφαρμόζεται σε όλες τις συναλλαγές πιστωτικής κάρτας κατά την εξαγωγή.',
             noSuppliersFound: 'Δεν βρέθηκαν προμηθευτές',
             noSuppliersFoundDescription: 'Παρακαλούμε προσθέστε τον προμηθευτή στο Xero και συγχρονίστε ξανά τη σύνδεση.',
         },
@@ -6740,6 +6740,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             subtitle: 'Τα πεδία αναφοράς εφαρμόζονται σε όλες τις δαπάνες και μπορεί να είναι χρήσιμα όταν θέλετε να ζητήσετε επιπλέον πληροφορίες.',
             disableReportFields: 'Απενεργοποίηση πεδίων αναφοράς',
             disableReportFieldsConfirmation: 'Είστε βέβαιοι; Τα πεδία κειμένου και ημερομηνίας θα διαγραφούν και οι λίστες θα απενεργοποιηθούν.',
+            cannotDisableImportedReportFields: 'Τα πεδία αναφοράς που έχουν εισαχθεί από τη λογιστική σας σύνδεση δεν μπορούν να απενεργοποιηθούν.',
             importedFromAccountingSoftware: 'Τα παρακάτω πεδία αναφοράς εισάγονται από την/τον',
             textType: 'Κείμενο',
             dateType: 'Ημερομηνία',
@@ -7435,11 +7436,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Βεβαιωθείτε ότι αυτός ο λογαριασμός ταιριάζει με τον λογαριασμό διακανονισμού για τη συγκεντρωτική χρέωση ταξιδιών (καταλήγει σε ${lastFourPAN}) ώστε η συνεχής συμφωνία να λειτουργεί σωστά.`,
             },
-            defaultVendorHelperText: (isSet) =>
-                isSet
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `Οι δαπάνες που δεν αντιστοιχίζονται αυτόματα θα αντιστοιχίζονται από προεπιλογή σε αυτόν τον προμηθευτή.`
-                    : `Τα έξοδα που δεν αντιστοιχίζονται αυτόματα θα αντιστοιχίζονται από προεπιλογή σε αυτόν τον προμηθευτή. Διαφορετικά, θα εξαχθούν ως Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName) => `Επιλέξτε έναν προεπιλεγμένο προμηθευτή ${connectionName} για δαπάνες που δεν αντιστοιχίζονται αυτόματα.`,
+                    : `Οι δαπάνες που δεν αντιστοιχίζονται αυτόματα θα αντιστοιχίζονται σε αυτόν τον προμηθευτή από προεπιλογή. Διαφορετικά, θα εξαχθούν ως ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Επιλέξτε έναν προεπιλεγμένο προμηθευτή για δαπάνες που δεν αντιστοιχίζονται αυτόματα.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
         },

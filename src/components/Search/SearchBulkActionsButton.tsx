@@ -168,25 +168,30 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         });
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
+    // For expense-report searches `count` is the number of expenses, not reports, so it can't label the Reports tab.
+    // The matching-report total across all pages is server-provided. `selectedTransactions` only holds the loaded
+    // page, so it can't be derived locally. Read it from the snapshot here.
+    const allMatchingReportsCount = currentSearchResults?.search?.reportCount;
+    const relevantAllMatchingCount = isExpenseReportType ? allMatchingReportsCount : allMatchingItemsCount;
     const hasSearchErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0;
     // The server count is the only source for how many items "select all" covers, so keep the button loading until it
     // arrives. Offline or on error it never will, so fall back to the count of the items we do have selected.
-    // Reports use report rows rather than the server's transaction count, so their exact count is client-derived once
-    // the final page is loaded and does not wait on this metadata.
-    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && !isExpenseReportType && typeof allMatchingItemsCount !== 'number' && !isOffline && !hasSearchErrors;
+    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof relevantAllMatchingCount !== 'number' && !isOffline && !hasSearchErrors;
     let selectedAllMatchingItemsCount: number;
-    if (isExpenseReportType || typeof allMatchingItemsCount !== 'number') {
+    if (isExpenseReportType) {
+        // Show the matching-report total minus excluded reports once it lands. Before then, or while offline, fall back
+        // to the loaded-page selected report count.
+        selectedAllMatchingItemsCount = typeof allMatchingReportsCount === 'number' ? Math.max(allMatchingReportsCount - excludedItemsCount, 0) : selectedItemsCount;
+    } else if (typeof allMatchingItemsCount !== 'number') {
         selectedAllMatchingItemsCount = selectedItemsCount;
     } else {
         selectedAllMatchingItemsCount = isExpenseType ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : allMatchingItemsCount;
     }
     const hasExclusions = Object.keys(excludedTransactions).length > 0;
-    const shouldShowAllMatchingItemsSelected = (isExpenseType || isExpenseReportType) && areAllMatchingItemsSelected && !hasExclusions;
+    const shouldShowAllMatchingItemsSelected = isExpenseType && areAllMatchingItemsSelected && !hasExclusions;
     const selectionButtonText = shouldShowAllMatchingItemsSelected
         ? translate('search.exportAll.allMatchingItemsSelected')
         : translate('workspace.common.selected', {
-              // Reports cannot know the exact all-matching count until the final page is loaded. Until then this is
-              // the selected loaded-report count. It becomes authoritative as soon as the final page is loaded.
               count: areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount,
           });
 
