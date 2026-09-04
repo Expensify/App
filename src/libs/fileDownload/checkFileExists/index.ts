@@ -3,15 +3,21 @@ import {logReceiptStatFailed} from '@libs/telemetry/ReceiptObservability';
 
 import RNFS from 'react-native-fs';
 
+/** Why a stat failed, so a deleted file is distinguishable from one that is there but unreadable. */
 type FileCheckError = {
+    /** The raw stat error text. Carries the file path, so it stays out of Sentry. */
     message: string;
 
+    /** The errno, e.g. ENOENT for missing or EPERM for a locked device. */
     code?: string;
 };
 
+/** Outcome of a file check: whether the file is there, and if not, why the stat failed. */
 type FileCheckResult = {
+    /** True only when the path resolves to a file. A directory or a failed stat both read as false. */
     exists: boolean;
 
+    /** Absent when the file exists, or when no path was given to check. */
     error?: FileCheckError;
 };
 

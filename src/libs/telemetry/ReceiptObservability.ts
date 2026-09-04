@@ -27,10 +27,18 @@ function getPickerCaptureSource(): ReceiptCaptureSource {
     return getPlatform() === CONST.PLATFORM.WEB ? 'file' : 'gallery';
 }
 
+/** The receipt as it sits on a persisted request, which is all a snapshot can read once the queue is waiting. */
 type QueuedReceipt = {
+    /** Joins this receipt back to its capture, submit and enqueue log lines. */
     receiptTraceId?: string;
+
+    /** When the upload reached the write queue. Persisted with the request, so it survives an app restart. */
     receiptEnqueuedAt?: number;
+
+    /** Where the file was stored. A remote URL once the server has it. */
     source?: ReceiptSource;
+
+    /** The path on the device that created it, kept so a remote source does not trigger a reload. */
     localSource?: ReceiptSource;
 
     /** REPLACE_RECEIPT queues the raw File object, which keeps its local path here rather than on `source`. */
@@ -242,11 +250,21 @@ function getQueuedReceiptPath(receipt: QueuedReceipt): ReceiptSource | undefined
     return receipt.localSource ?? receipt.source ?? receipt.uri;
 }
 
+/** One pending receipt, as it will be reported on a snapshot line. */
 type PendingReceiptRow = {
+    /** Joins the row back to the capture log. A row without one cannot be correlated. */
     receiptTraceId: string | undefined;
+
+    /** Absent for commands that do not carry a transaction id. */
     transactionID: string | undefined;
+
+    /** The write command holding the receipt, e.g. RequestMoney or ReplaceReceipt. */
     command: string;
+
+    /** How long the receipt has waited in the queue. Undefined when the enqueue time was never recorded. */
     msSinceEnqueued: number | undefined;
+
+    /** Whether the stored path points into the receipts folder. A path check, not proof the file is still there. */
     isSourceInDurableFolder: boolean;
 };
 
