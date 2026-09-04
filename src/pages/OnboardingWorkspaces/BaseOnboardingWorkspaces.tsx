@@ -17,11 +17,12 @@ import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getEmailDomain} from '@libs/LoginUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import {dismissOnboardingModalBeforeExit} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -91,13 +92,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
-    // This screen can be opened from a Concierge task on top of whichever report the user was reading, so remember it
-    // and return there rather than to a fixed destination. goBack() is unreliable here and falls through to Home.
-    const [originReportID] = useState(() => Navigation.getTopmostReportId());
-    const returnToOriginReport = () => {
-        dismissOnboardingModalBeforeExit();
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID));
-    };
+    const returnToOriginReport = useReturnToOriginReport();
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
@@ -217,7 +212,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 introSelected,
                 isSelfTourViewed,
                 conciergeChat,
-                companyDomain: session?.email?.split('@').at(1) ?? '',
+                companyDomain: session?.email ? getEmailDomain(session.email) : '',
                 workEmail: session?.email ?? '',
             });
             setOnboardingAdminsChatReportID();

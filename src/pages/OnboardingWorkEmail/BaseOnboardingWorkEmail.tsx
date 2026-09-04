@@ -20,12 +20,12 @@ import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import {dismissOnboardingModalBeforeExit} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {AddWorkEmail} from '@userActions/Session';
@@ -77,12 +77,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
     const isAddWorkEmailTaskCompleted = addWorkEmailTaskReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-
-    // This screen can be opened from the Concierge chat or from the task thread, and it is pushed over whichever one
-    // the user was reading. Capture that report on mount so closing returns them exactly where they started rather
-    // than to a fixed destination.
-    const [originReportID] = useState(() => Navigation.getTopmostReportId());
+    const returnToOriginReport = useReturnToOriginReport();
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -117,14 +112,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         // Opened from a Concierge task after onboarding is done: this screen is a standalone destination, not a step
         // in the guided flow, so go straight to the workspace list once validated instead of resuming onboarding.
         if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
-            // This screen was reached from a task link rather than pushed on top of the chat, so there is no reliable
-            // entry to go back to - goBack() falls through to Home. Navigate back explicitly, using the same
-            // dismiss-then-navigate pair that navigateAfterOnboarding uses when onboarding finishes.
-            const returnToOriginReport = () => {
-                dismissOnboardingModalBeforeExit();
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID));
-            };
-
             // The task is done, so this screen has nothing left to offer. This also closes the screen right after a
             // successful submission, since that optimistically completes the task.
             if (isAddWorkEmailTaskCompleted) {
@@ -192,8 +179,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         isJoiningCompanyWorkspace,
         isAddWorkEmailTaskCompleted,
         hasSubmittedWorkEmail,
-        conciergeReportID,
-        originReportID,
+        returnToOriginReport,
         onboardingValues?.isMergeAccountStepCompleted,
         onboardingValues?.isMergeAccountStepSkipped,
     ]);
@@ -346,8 +332,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                     // Reached from a task link, so skipping returns to wherever it was opened from
                                     // rather than continuing onboarding. goBack() falls through to Home here.
                                     if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
-                                        dismissOnboardingModalBeforeExit();
-                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID));
+                                        returnToOriginReport();
                                         return;
                                     }
 
