@@ -13122,6 +13122,42 @@ describe('SearchUIUtils', () => {
 
             expect(result).toBe(translateLocal('common.read'));
         });
+
+        test('includes the exact match type in a Merchant filter label', () => {
+            const result = SearchUIUtils.getDisplayValue(
+                FILTER_KEYS.MERCHANT,
+                {
+                    [FILTER_KEYS.MERCHANT]: 'I',
+                    [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                },
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+            );
+
+            expect(result).toBe(`${translateLocal('search.filters.merchant.exactMatch')} "I"`);
+        });
+
+        test('includes the contains match type in a Merchant filter label', () => {
+            const result = SearchUIUtils.getDisplayValue(
+                FILTER_KEYS.MERCHANT,
+                {
+                    [FILTER_KEYS.MERCHANT]: 'I',
+                    [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+                },
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+            );
+
+            expect(result).toBe(`${translateLocal('search.filters.merchant.contains')} "I"`);
+        });
+
+        test('defaults a Merchant filter label without an operator to contains', () => {
+            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, {[FILTER_KEYS.MERCHANT]: 'I'}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(`${translateLocal('search.filters.merchant.contains')} "I"`);
+        });
     });
 
     describe('filterValidHasValues', () => {

@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import MerchantMatchTypeSelector from '@components/Search/FilterComponents/MerchantMatchTypeSelector';
 import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import type {MerchantMatchType} from '@src/types/form/SearchAdvancedFiltersForm';
 
 import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -26,22 +28,52 @@ type TextInputFilterContentProps = {
     size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
-    onChange: (value: string | undefined, isNegated: boolean) => void;
+    merchantOperator?: MerchantMatchType;
+    onChange: (value: string | undefined, isNegated: boolean, merchantOperator?: MerchantMatchType) => void;
 };
 
 function isTextInput(element: BaseTextInputRef | RNTextInput | null): element is RNTextInput {
     return !!element && 'isFocused' in element;
 }
 
-function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, onChange}: TextInputFilterContentProps) {
+function TextInputFilterContent({
+    baseFilterKey,
+    value: initialValue,
+    isNegated: initialIsNegated,
+    autoFocus,
+    size,
+    style,
+    merchantOperator: initialMerchantOperator,
+    onChange,
+}: TextInputFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
     const [isNegated, setIsNegated] = useState(initialIsNegated);
-
+    const shouldShowMerchantMatchType = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT && !isNegated;
+    const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(initialMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
     const {inputCallbackRef} = useAutoFocusInput();
     const error = useTextFilterValidation(baseFilterKey, value);
+
+    const filterInput = (
+        <TextInput
+            ref={(ref) => {
+                if (!autoFocus || !isTextInput(ref)) {
+                    return;
+                }
+                inputCallbackRef(ref);
+            }}
+            placeholder={label}
+            value={value}
+            errorText={error}
+            hasError={!!error}
+            onChangeText={setValue}
+            accessibilityLabel={label}
+            role={CONST.ROLE.PRESENTATION}
+            containerStyles={shouldShowMerchantMatchType ? [styles.ph5, styles.mb5] : [styles.ph5]}
+        />
+    );
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
@@ -49,23 +81,17 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
                 baseFilterKey={baseFilterKey}
                 isNegated={isNegated}
                 onNegationChange={setIsNegated}
+                style={shouldShowMerchantMatchType ? styles.flex1 : undefined}
             >
-                <TextInput
-                    ref={(ref) => {
-                        if (!autoFocus || !isTextInput(ref)) {
-                            return;
-                        }
-                        inputCallbackRef(ref);
-                    }}
-                    placeholder={label}
-                    value={value}
-                    errorText={error}
-                    hasError={!!error}
-                    onChangeText={setValue}
-                    accessibilityLabel={label}
-                    role={CONST.ROLE.PRESENTATION}
-                    containerStyles={[styles.ph5]}
-                />
+                <View style={shouldShowMerchantMatchType ? styles.flex1 : undefined}>
+                    {filterInput}
+                    {shouldShowMerchantMatchType && (
+                        <MerchantMatchTypeSelector
+                            value={merchantOperator}
+                            onChange={setMerchantOperator}
+                        />
+                    )}
+                </View>
             </NegatableFilter>
             <Button
                 style={[styles.ph5, styles.pb5]}
@@ -75,7 +101,7 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
                     if (error) {
                         return;
                     }
-                    onChange(value, isNegated);
+                    onChange(value, isNegated, shouldShowMerchantMatchType ? merchantOperator : undefined);
                 }}
             >
                 <Button.KeyboardShortcut />

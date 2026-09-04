@@ -59,7 +59,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.MERCHANT]: {
         titleIconName: 'Basket',
         getLabel: (item: GroupedItem) => (item as TransactionMerchantGroupListItemType).formattedMerchant ?? '',
-        getFilterQuery: (item: GroupedItem) => `merchant:"${(item as TransactionMerchantGroupListItemType).merchant}"`,
+        getFilterQuery: (item: GroupedItem) => `merchant="${(item as TransactionMerchantGroupListItemType).merchant}"`,
     },
     [CONST.SEARCH.GROUP_BY.TAG]: {
         titleIconName: 'Tag',

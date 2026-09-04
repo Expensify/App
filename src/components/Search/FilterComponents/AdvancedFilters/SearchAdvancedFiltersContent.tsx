@@ -6,6 +6,7 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
 import React from 'react';
 
@@ -14,7 +15,7 @@ import type {DateFilterContentProps} from './DateFilterContent';
 import type {ReportFieldFilterContentProps} from './ReportFieldFilterContent';
 import type {TextInputFilterContentProps} from './TextInputFilterContent';
 
-type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'onChange'>;
+type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'merchantOperator' | 'onChange'>;
 type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'baseFilterKey' | 'value' | 'onChange'>;
 type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'baseFilterKey' | 'value' | 'hasFeed' | 'onChange'>;
 type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
@@ -96,13 +97,21 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
     if (isTextFilterKey(baseFilterKey)) {
         const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
         const TextFilter = components.Text;
+        const isMerchantFilter = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+        const merchantOperator = values?.[FILTER_KEYS.MERCHANT_OPERATOR] ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
         return (
             <TextFilter
-                key={baseFilterKey}
+                key={isMerchantFilter ? `${baseFilterKey}-${merchantOperator}` : baseFilterKey}
                 baseFilterKey={baseFilterKey}
                 value={value}
                 isNegated={isNegated}
-                onChange={(newValue, negated) => onChange(getFilterFormValues(baseFilterKey, newValue, negated))}
+                merchantOperator={isMerchantFilter ? merchantOperator : undefined}
+                onChange={(newValue, negated, newMerchantOperator) =>
+                    onChange({
+                        ...getFilterFormValues(baseFilterKey, newValue, negated),
+                        ...(isMerchantFilter ? {[FILTER_KEYS.MERCHANT_OPERATOR]: newMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO} : {}),
+                    })
+                }
             />
         );
     }
