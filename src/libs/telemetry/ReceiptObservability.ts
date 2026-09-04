@@ -13,7 +13,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import RECEIPT_LOG_PREFIX from './receiptLogPrefix';
 
-/** Points in the app lifecycle where we snapshot the receipts that are still pending.*/
+/** Points in the app lifecycle where we snapshot the receipts that are still pending. */
 type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 
 /** How a receipt entered the app. */
