@@ -8,6 +8,7 @@ import {
     hasCompletePerDiemCustomUnit,
     removeSubrate,
     submitPerDiemExpense,
+    submitPerDiemExpenseForSelfDM,
     updateSubrate,
 } from '@libs/actions/IOU/PerDiem';
 import type RequestMoneyParticipantParams from '@libs/actions/IOU/types/RequestMoneyParticipantParams';
@@ -1166,6 +1167,57 @@ describe('PerDiem', () => {
 
             const perDiemTransactions = Object.values(transactions ?? {}).filter((tx) => tx?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM);
             expect(perDiemTransactions.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('submitPerDiemExpenseForSelfDM', () => {
+        const selfDMCustomUnit: TransactionCustomUnit = {
+            customUnitID: 'unit-1',
+            customUnitRateID: 'rate-1',
+            subRates: [{id: 'sub-1', name: 'Meals', quantity: 1, rate: 2500}],
+            attributes: {dates: {start: '2026-04-24', end: '2026-04-24'}},
+        };
+
+        const submitToSelfDM = (isFromGlobalCreate: boolean) =>
+            submitPerDiemExpenseForSelfDM({
+                dateFnsLocale: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                selfDMReport: undefined,
+                policy: {...createRandomPolicy(1)},
+                transactionParams: {
+                    created: DateUtils.getDBTime(),
+                    currency: CONST.CURRENCY.USD,
+                    customUnit: selfDMCustomUnit,
+                    isFromGlobalCreate,
+                },
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                quickAction: undefined,
+                optimisticChatReportID: 'self-dm-1',
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+
+        it('should signal the expense added growl when submitted from global create', async () => {
+            // Given a per diem expense headed for the self-DM, started from the global create flow
+            // When it is submitted
+            submitToSelfDM(true);
+            await waitForBatchedUpdates();
+
+            // Then the new transaction is queued for the "Expense added" growl
+            const signal = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            expect(Object.values(signal ?? {})).toEqual([CONST.SEARCH.DATA_TYPES.EXPENSE]);
+        });
+
+        it('should not signal the growl when submitted from within a report', async () => {
+            // Given a per diem expense headed for the self-DM, started from within a report
+            // When it is submitted
+            submitToSelfDM(false);
+            await waitForBatchedUpdates();
+
+            // Then nothing is queued for the growl
+            const signal = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            expect(signal).toBeUndefined();
         });
     });
 

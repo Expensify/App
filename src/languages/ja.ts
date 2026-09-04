@@ -1286,6 +1286,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : '距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。このワークスペースでは、その住所を通勤控除に使用します。',
             cta: '自宅住所を追加',
         },
+        expenseAdded: '経費を追加しました',
+        invoiceSent: '請求書を送信しました',
         amount: '金額',
         percent: 'パーセント',
         date: '日付',

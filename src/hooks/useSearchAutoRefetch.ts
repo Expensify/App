@@ -1,9 +1,7 @@
-import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {SelectionListHandle} from '@components/SelectionList/types';
 
 import {search} from '@libs/actions/Search';
-import {mergeTransactionIdsHighlightOnSearchRoute} from '@libs/actions/Transaction';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
@@ -16,29 +14,44 @@ import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef} from 'react';
 
 import useNetwork from './useNetwork';
-import useOnyx from './useOnyx';
-import usePrevious from './usePrevious';
 
-type UseSearchHighlightAndScroll = {
+type UseSearchAutoRefetch = {
+    /** Current Search snapshot */
     searchResults: OnyxEntry<SearchResults>;
+
+    /** Current transactions collection */
     transactions: OnyxCollection<Transaction>;
+
+    /** Previous transactions collection, compared against `transactions` to detect newly-added ones */
     previousTransactions: OnyxCollection<Transaction>;
+
+    /** Current report actions collection */
     reportActions: OnyxCollection<ReportActions>;
+
+    /** Previous report actions collection, compared against `reportActions` to detect new entries */
     previousReportActions: OnyxCollection<ReportActions>;
+
+    /** Parsed search query the refetch is issued for */
     queryJSON: SearchQueryJSON;
+
+    /** Key identifying the current search */
     searchKey: SearchKey | undefined;
+
+    /** Pagination offset for the refetch request */
     offset: number;
+
+    /** Whether the refetch should recalculate result totals */
     shouldCalculateTotals: boolean;
-    shouldUseLiveData: boolean;
 };
 
 /**
- * Hook used to trigger a search when a new transaction or report action is added and handle highlighting and scrolling.
+ * Triggers a search when a transaction or report action is added so the snapshot reflects it.
+ * Returns the newly-added transactions, which the grouped views use to refetch each expanded group's child snapshot.
  */
-function useSearchHighlightAndScroll({
+function useSearchAutoRefetch({
     searchResults,
     transactions,
     previousTransactions,
@@ -48,25 +61,13 @@ function useSearchHighlightAndScroll({
     searchKey,
     offset,
     shouldCalculateTotals,
-    shouldUseLiveData,
-}: UseSearchHighlightAndScroll) {
+}: UseSearchAutoRefetch) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
-    // Ref to track if the search was triggered by this hook
-    const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
-    const hasNewItemsRef = useRef(false);
-    const previousSearchResults = usePrevious(searchResults?.data);
-    const [newSearchResultKeys, setNewSearchResultKeys] = useState<Set<string> | null>(null);
-    const highlightedIDs = useRef<Set<string>>(new Set());
-    const initializedRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
-    const transactionIDsToHighlightSelector = useCallback((allTransactionIDs: OnyxEntry<Record<string, Record<string, boolean>>>) => allTransactionIDs?.[queryJSON.type], [queryJSON.type]);
-    const [transactionIDsToHighlight] = useOnyx(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {
-        selector: transactionIDsToHighlightSelector,
-    });
     const searchResultsData = searchResults?.data;
 
     const prevTransactionsIDs = Object.keys(previousTransactions ?? {});
@@ -153,13 +154,6 @@ function useSearchHighlightAndScroll({
                     return;
                 }
             }
-            // We only want to highlight new items if the addition of transactions or report actions triggered the search.
-            // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
-            // We don't want to highlight these old items, even if they appear new in the current search results.
-            hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionIDsLocal.length;
-
-            // Set the flag indicating the search is triggered by the hook
-            triggeredByHookRef.current = true;
 
             // Trigger the search
             TransitionTracker.runAfterTransitions({
@@ -195,155 +189,23 @@ function useSearchHighlightAndScroll({
         }
 
         searchTriggeredRef.current = false;
-    }, [searchResults?.search?.isLoading, shouldUseLiveData, searchResultsData]);
+    }, [searchResults?.search?.isLoading, searchResultsData]);
 
-    // Initialize the set with existing IDs only once
-    useEffect(() => {
-        if (initializedRef.current || !searchResultsData) {
-            return;
-        }
+    return {newTransactions};
+}
 
-        const initialIDs = isChat ? extractReportActionIDsFromSearchResults(searchResultsData) : extractTransactionIDsFromSearchResults(searchResultsData);
-        highlightedIDs.current = new Set(initialIDs);
-        initializedRef.current = true;
-    }, [searchResultsData, isChat]);
+function getTransactionIDFromEntry(entry: unknown) {
+    if (typeof entry !== 'object' || entry === null || !('transactionID' in entry) || typeof entry.transactionID !== 'string') {
+        return undefined;
+    }
+    return entry.transactionID;
+}
 
-    // Detect new items (transactions or report actions)
-    useEffect(() => {
-        if (!previousSearchResults || !searchResults?.data) {
-            return;
-        }
-        if (isChat) {
-            const previousReportActionIDs = extractReportActionIDsFromSearchResults(previousSearchResults);
-            const currentReportActionIDs = extractReportActionIDsFromSearchResults(searchResults.data);
-
-            // Find new report action IDs that are not in the previousReportActionIDs and not already highlighted
-            const newReportActionIDs = currentReportActionIDs.filter((id) => !previousReportActionIDs.includes(id) && !highlightedIDs.current.has(id));
-
-            if (!triggeredByHookRef.current || newReportActionIDs.length === 0 || !hasNewItemsRef.current) {
-                return;
-            }
-
-            const newKeys = new Set<string>();
-            for (const id of newReportActionIDs) {
-                const newReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${id}`;
-                highlightedIDs.current.add(newReportActionKey);
-                newKeys.add(newReportActionKey);
-            }
-            setNewSearchResultKeys(newKeys);
-        } else {
-            const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
-            const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
-            const manualHighlightTransactionIDs = new Set(Object.keys(transactionIDsToHighlight ?? {}).filter((id) => !!transactionIDsToHighlight?.[id]));
-
-            // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
-            const newTransactionIDs = currentTransactionIDs.filter((id) => {
-                if (manualHighlightTransactionIDs.has(id)) {
-                    return true;
-                }
-                if (!triggeredByHookRef.current || !hasNewItemsRef.current) {
-                    return false;
-                }
-                return !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id);
-            });
-
-            if (newTransactionIDs.length === 0) {
-                return;
-            }
-
-            const newKeys = new Set<string>();
-            const consumedManualIDs: string[] = [];
-            for (const id of newTransactionIDs) {
-                const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
-                highlightedIDs.current.add(newTransactionKey);
-                newKeys.add(newTransactionKey);
-                if (manualHighlightTransactionIDs.has(id)) {
-                    consumedManualIDs.push(id);
-                }
-            }
-            setNewSearchResultKeys(newKeys);
-
-            // Clear consumed manual highlight flags so subsequent detect runs don't re-highlight the same IDs.
-            if (consumedManualIDs.length > 0) {
-                mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(consumedManualIDs.map((id) => [id, false])));
-            }
-        }
-    }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight, queryJSON.type]);
-
-    // Remove transactionIDsToHighlight when the user leaves the current search type
-    useEffect(
-        () => () => {
-            mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, null);
-        },
-        [queryJSON.type],
-    );
-
-    // Reset newSearchResultKey after it's been used
-    useEffect(() => {
-        if (newSearchResultKeys === null) {
-            return;
-        }
-
-        const timer = setTimeout(() => {
-            setNewSearchResultKeys(null);
-        }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
-
-        return () => clearTimeout(timer);
-    }, [newSearchResultKeys]);
-
-    /**
-     * Callback to handle scrolling to the new search result.
-     */
-    const handleSelectionListScroll = (data: SearchListItem[], ref: SelectionListHandle<SearchListItem> | null) => {
-        // Early return if there's no ref, new transaction wasn't brought in by this hook
-        // or there's no new search result key
-        const newSearchResultKey = newSearchResultKeys?.values().next().value;
-        if (!ref || !triggeredByHookRef.current || !newSearchResultKey) {
-            return;
-        }
-
-        // Extract the transaction/report action ID from the newSearchResultKey
-        const newID = newSearchResultKey.replace(isChat ? ONYXKEYS.COLLECTION.REPORT_ACTIONS : ONYXKEYS.COLLECTION.TRANSACTION, '');
-
-        // Find the index of the new transaction/report action in the data array
-        const indexOfNewItem = data.findIndex((item) => {
-            if (isChat) {
-                if ('reportActionID' in item && item.reportActionID === newID) {
-                    return true;
-                }
-            } else {
-                // Handle TransactionListItemType
-                if ('transactionID' in item && item.transactionID === newID) {
-                    return true;
-                }
-
-                // Handle TransactionGroupListItemType with transactions array
-                if ('transactions' in item && Array.isArray(item.transactions)) {
-                    return item.transactions.some((transaction) => transaction?.transactionID === newID);
-                }
-            }
-
-            return false;
-        });
-
-        // Early return if the new item is not found in the data array
-        if (indexOfNewItem < 0) {
-            return;
-        }
-
-        // Reset the trigger even when the item is already first so a later render cannot scroll or highlight it again.
-        triggeredByHookRef.current = false;
-        if (indexOfNewItem === 0) {
-            return;
-        }
-
-        // Perform the scrolling action
-        ref.scrollToIndex(indexOfNewItem);
-    };
-
-    const hasQueuedHighlights = newSearchResultKeys !== null && newSearchResultKeys.size > 0;
-
-    return {newSearchResultKeys, handleSelectionListScroll, newTransactions, hasQueuedHighlights};
+function hasNestedTransactions(entry: unknown): entry is {transactions: Array<Partial<TransactionListItemType>>} {
+    if (typeof entry !== 'object' || entry === null || !('transactions' in entry)) {
+        return false;
+    }
+    return Array.isArray(entry.transactions);
 }
 
 /**
@@ -354,18 +216,21 @@ function extractTransactionIDsFromSearchResults(searchResultsData: Partial<Searc
 
     for (const item of Object.values(searchResultsData)) {
         // Check for transactionID directly on the item (TransactionListItemType)
-        if ((item as TransactionListItemType)?.transactionID) {
-            transactionIDs.push((item as TransactionListItemType).transactionID);
+        const transactionID = getTransactionIDFromEntry(item);
+        if (transactionID) {
+            transactionIDs.push(transactionID);
         }
 
         // Check for transactions array within the item (TransactionGroupListItemType)
-        if (Array.isArray((item as TransactionGroupListItemType)?.transactions)) {
-            for (const transaction of (item as TransactionGroupListItemType).transactions) {
-                if (!transaction?.transactionID) {
-                    continue;
-                }
-                transactionIDs.push(transaction.transactionID);
+        if (!hasNestedTransactions(item)) {
+            continue;
+        }
+        for (const transaction of item.transactions) {
+            const nestedTransactionID = getTransactionIDFromEntry(transaction);
+            if (!nestedTransactionID) {
+                continue;
             }
+            transactionIDs.push(nestedTransactionID);
         }
     }
 
@@ -424,5 +289,5 @@ function hasChangedTransactionInSearchResults(
     return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
 }
 
-export default useSearchHighlightAndScroll;
-export type {UseSearchHighlightAndScroll};
+export default useSearchAutoRefetch;
+export type {UseSearchAutoRefetch};
