@@ -1,11 +1,13 @@
-import {getActionFromState} from '@react-navigation/core';
-import {findFocusedRoute} from '@react-navigation/native';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {getActionFromState} from '@react-navigation/core';
+import {findFocusedRoute} from '@react-navigation/native';
 
 /**
  * The 3DS card-authentication screen is a dynamic route layered on the current base path. It never receives an
@@ -43,12 +45,11 @@ function findDeepestPayload(action: unknown): {name: unknown; params: unknown} {
     return {name, params};
 }
 
-// `createDynamicRoute` is exactly how production builds these paths: it appends the dynamic suffix to the current
-// base route and returns a real `Route`, so no `as Route` cast is needed here.
-const ownerChangePath = createDynamicRoute(
-    DYNAMIC_ROUTES.CARD_AUTHENTICATION.path,
-    ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(POLICY_ID, ACCOUNT_ID, CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD),
+const ownerChangeBasePath = createDynamicRoute(
+    DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(POLICY_ID, ACCOUNT_ID, CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD),
+    ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(POLICY_ID, ACCOUNT_ID),
 );
+const ownerChangePath = createDynamicRoute(DYNAMIC_ROUTES.CARD_AUTHENTICATION.path, ownerChangeBasePath);
 const subscriptionPath = createDynamicRoute(DYNAMIC_ROUTES.CARD_AUTHENTICATION.path, ROUTES.SETTINGS_SUBSCRIPTION.getRoute());
 
 describe('card-authentication dynamic route policyID inheritance', () => {

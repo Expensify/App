@@ -1,12 +1,15 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import LoadingIndicator from '@components/LoadingIndicator';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 const SECURE_ORIGIN = new URL(CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL).origin;
 

@@ -1,23 +1,28 @@
-import React from 'react';
-import {View} from 'react-native';
 import CardAuthenticationView from '@components/CardAuthenticationView';
 import CenteredModalLayoutOverlay from '@components/CenteredModalLayoutOverlay';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+
 import {verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DynamicCardAuthenticationPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.DYNAMIC_CARD_AUTHENTICATION>;
 
