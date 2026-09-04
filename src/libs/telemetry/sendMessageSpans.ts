@@ -1,3 +1,5 @@
+// Lifecycle for the Propagate and PostCommit child spans of ManualSendMessageVisible. Keyed by reportActionID, and every function no-ops unless the parent span is active.
+
 import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
@@ -33,7 +35,7 @@ function endSendMessagePhase(reportActionID: string | undefined, phase: SendMess
     endSpan(getPhaseSpanID(reportActionID, phase));
 }
 
-// Call from a layout effect. React runs those inside the commit, before layout; a passive effect has no such guarantee.
+// Call from a layout effect. React runs those inside the commit, before layout. A passive effect has no such guarantee.
 function markSendMessageCommitted(reportActionID: string | undefined) {
     if (!reportActionID || !isPhaseRunning(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE)) {
         return;

@@ -1,3 +1,5 @@
+// Phase-span marks for a sent comment row. A layout effect ends Propagate and starts PostCommit. The returned handler goes on onLayout and ends the remaining phase and the parent span.
+
 import CONST from '@src/CONST';
 
 import {useLayoutEffect} from 'react';
