@@ -450,7 +450,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -479,7 +479,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         // The settlement is backend-marked exportable (makeSettlementGroup defaults canExportStatement), so the action shows.
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, mockSelectedTransactions, mockCurrentSearchResults?.data)).toBeDefined();
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -496,7 +496,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             [groupKey]: makeSettlementGroup({count: 2}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -529,7 +529,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             [groupKey]: makeSettlementGroup(),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -567,7 +567,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             .mockReturnValueOnce(Promise.resolve({statementKey: 'statement-key-456'}));
 
         mockSelectedTransactions = {firstTxn: makeSelectedTransaction({groupKey: firstGroupKey, reportID: undefined})};
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
@@ -612,7 +612,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             [secondGroupKey]: makeSettlementGroup({entryID: 456, total: 200, accountNumber: '5678', debitPosted: '2026-05-30', feedCountry: 'US', fundID: 2}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -638,7 +638,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             [groupKey]: makeSettlementGroup({total: 100, policyID: undefined}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: unscopedExpensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: unscopedExpensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -664,7 +664,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         // Select-all-matching only loads the visible rows, so the statement would be incomplete.
         mockAreAllMatchingItemsSelected = true;
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
@@ -685,7 +685,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             [secondGroupKey]: makeSettlementGroup({entryID: 456, count: 2, total: 2000, accountNumber: '5678', debitPosted: '2026-05-30'}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -731,7 +731,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             [groupKey]: makeSettlementGroup({count: 2}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
