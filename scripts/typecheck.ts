@@ -19,7 +19,14 @@ const projectRoot = `${import.meta.dir}/..`;
 const tsc = `${projectRoot}/node_modules/typescript/bin/tsc`;
 
 /** TypeScript projects, relative to the repo root, that `npm run typecheck` and CI check. */
-const DEFAULT_PROJECTS = ['tsconfig.json', 'tsconfig.jest.json', 'tsconfig.bun.json', 'tsconfig.node.json', 'server/victory-chart-renderer/tsconfig.json'];
+const DEFAULT_PROJECTS = [
+    'tsconfig.app.web.json',
+    'tsconfig.app.native.json',
+    'tsconfig.jest.json',
+    'tsconfig.bun.json',
+    'tsconfig.node.json',
+    'server/victory-chart-renderer/tsconfig.json',
+];
 
 const cli = new CLI({
     positionalArgs: [

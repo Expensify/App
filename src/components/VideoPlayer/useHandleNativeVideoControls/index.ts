@@ -9,7 +9,7 @@ import type UseHandleNativeVideoControl from './types';
  */
 const useHandleNativeVideoControls: UseHandleNativeVideoControl = ({videoViewRef, isLocalFile, isOffline}) => {
     useEffect(() => {
-        const videoElement = videoViewRef?.current?.nativeRef.current as HTMLVideoElement;
+        const videoElement = videoViewRef?.current?.nativeRef?.current as HTMLVideoElement | undefined;
         if (!videoElement) {
             return;
         }

@@ -16,7 +16,8 @@ function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Tooltip
         // eslint-disable-next-line @typescript-eslint/dot-notation
         const tooltipNode = (tooltipRef.current?.['_childNode'] as Node | undefined) ?? null;
 
-        if (isOpen && popoverAnchor && tooltipNode && ((popoverAnchor instanceof Node && tooltipNode.contains(popoverAnchor)) || tooltipNode === popoverAnchor)) {
+        const isNode = typeof Node !== 'undefined' && popoverAnchor && typeof (popoverAnchor as {nodeType?: number}).nodeType === 'number';
+        if (isOpen && popoverAnchor && tooltipNode && ((isNode && tooltipNode.contains(popoverAnchor as Node)) || tooltipNode === popoverAnchor)) {
             return true;
         }
 

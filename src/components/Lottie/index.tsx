@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
@@ -21,13 +21,13 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type Props = {
-    ref?: ForwardedRef<LottieView | null>;
+    ref?: ForwardedRef<ComponentRef<typeof LottieView> | null>;
     source: DotLottieAnimation;
     shouldLoadAfterInteractions?: boolean;
 } & Omit<LottieViewProps, 'source'>;
 
 function Lottie({ref, source, webStyle, shouldLoadAfterInteractions, ...props}: Props) {
-    const animationRef = useRef<LottieView | null>(null);
+    const animationRef = useRef<ComponentRef<typeof LottieView> | null>(null);
     const appState = useAppState();
     const {splashScreenState} = useSplashScreenState();
     const styles = useThemeStyles();

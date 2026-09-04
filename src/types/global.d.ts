@@ -27,11 +27,6 @@ declare module '*.lottie' {
     export default value;
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-interface Window {
-    setSupportToken: (token: string, email: string, accountID: number) => void;
-}
-
 // Allows to add generic type in require
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface NodeRequire {

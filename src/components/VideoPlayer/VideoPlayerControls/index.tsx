@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 import type {VideoPlayer, VideoView} from 'expo-video';
+import type {ComponentRef} from 'react';
 import type {RefObject} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
@@ -39,7 +40,7 @@ type VideoPlayerControlsProps = {
     videoPlayerRef: RefObject<VideoPlayer | null>;
 
     /** Ref for video view component. */
-    videoViewRef: RefObject<VideoView | null>;
+    videoViewRef: RefObject<(ComponentRef<typeof VideoView> & {enterFullscreen?: () => void}) | null>;
 
     /** Is video playing. */
     isPlaying: boolean;
@@ -121,7 +122,7 @@ function VideoPlayerControls({
 
     const enterFullScreenMode = useCallback(() => {
         updateCurrentURLAndReportID(url, report, reportID);
-        videoViewRef.current?.enterFullscreen();
+        videoViewRef.current?.enterFullscreen?.();
     }, [report, reportID, updateCurrentURLAndReportID, url, videoViewRef]);
 
     const seekPosition = useCallback(

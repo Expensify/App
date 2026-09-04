@@ -26,8 +26,7 @@ Two things about the wiring are load-bearing and easy to break:
   explicit paths too, so running the evals on purpose means overriding it with a pattern that matches
   nothing.
 
-`evals/` has its own `tsconfig.json` rather than joining the root project, because `@types/bun`'s
-globals conflict with the app's. It isn't in the set of projects `npm run typecheck` gates on, so typecheck it with `npm run typecheck -- evals`.
+`evals/` is type-checked as part of the Bun project (`tsconfig.bun.json`) and is included in `npm run typecheck`.
 
 ## ProposalPolice
 

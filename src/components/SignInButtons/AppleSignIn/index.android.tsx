@@ -15,7 +15,7 @@ import type {AndroidConfig} from '@invertase/react-native-apple-authentication';
 import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
 import React from 'react';
 
-import type {AppleSignInProps} from '.';
+import type AppleSignInProps from './types';
 
 /**
  * Apple Sign In Configuration for Android.

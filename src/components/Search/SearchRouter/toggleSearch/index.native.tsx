@@ -2,12 +2,14 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
 
-function openSearch() {
-    return Navigation.navigate(ROUTES.SEARCH_ROUTER);
-}
+import type {CloseSearch, OpenSearch} from './types';
 
-function closeSearch(_setIsSearchRouterDisplayed: React.Dispatch<React.SetStateAction<boolean>>, afterTransition?: () => void) {
+const openSearch: OpenSearch = () => {
+    return Navigation.navigate(ROUTES.SEARCH_ROUTER);
+};
+
+const closeSearch: CloseSearch = (setSearchState, afterTransition) => {
     return Navigation.dismissModal({afterTransition});
-}
+};
 
 export {openSearch, closeSearch};

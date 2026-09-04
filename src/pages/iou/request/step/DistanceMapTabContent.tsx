@@ -97,7 +97,7 @@ function DistanceMapTabContent({
                     data={waypointItems}
                     keyExtractor={extractKey}
                     onDragEnd={updateWaypoints}
-                    ref={scrollViewRef}
+                    ref={scrollViewRef as never}
                     renderItem={renderItem}
                     ListFooterComponent={
                         !isInLandscapeMode ? (

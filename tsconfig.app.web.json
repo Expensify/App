@@ -1,0 +1,27 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        // "react-native" here loads `@types/react-native@0.72` (a hanging
+        // transitive package), which is what the previous mega-program used
+        // and is required for several third-party type gaps. RN's own types
+        // still come in via imports of `react-native`.
+        "types": ["react-native", "react-native-web"],
+        "lib": ["DOM", "ESNext"],
+        "moduleSuffixes": [".web", ""]
+    },
+    "include": ["src", "assets", "prompts", ".storybook/**/*", "types/env.d.ts"],
+    "exclude": [
+        "**/node_modules/*",
+        "**/dist/*",
+        "src/types/native/**",
+        "src/types/modules/jest.d.ts",
+        "src/**/__mocks__/**",
+        "src/**/*.native.ts",
+        "src/**/*.native.tsx",
+        "src/**/*.ios.ts",
+        "src/**/*.ios.tsx",
+        "src/**/*.android.ts",
+        "src/**/*.android.tsx",
+        "modules/ExpensifyNitroUtils/**"
+    ]
+}

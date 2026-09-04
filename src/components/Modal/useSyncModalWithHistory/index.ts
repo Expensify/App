@@ -7,23 +7,10 @@ import CONST from '@src/CONST';
 import {useEffect, useEffectEvent, useId, useRef, useSyncExternalStore} from 'react';
 
 import type {ModalGuardState} from './modalGuardState';
+import type {UseSyncModalWithHistoryParams} from './types';
 
 import {EMPTY_MODAL_GUARD_SNAPSHOT_KEY, getModalGuardSnapshotKey, parseModalGuardSnapshotKey} from './modalGuardSnapshot';
 import reduceModalGuardState, {getModalGuardEventFromSnapshotChange, MODAL_GUARD_EFFECT, MODAL_GUARD_STATE} from './modalGuardState';
-
-type UseSyncModalWithHistoryParams = {
-    /** Whether the modal is currently visible */
-    isVisible: boolean;
-
-    /** Whether this modal participates in browser-history back handling */
-    shouldHandleNavigationBack?: boolean;
-
-    /** Called when a browser Back press removes this modal's history entry */
-    onClose?: () => void;
-
-    /** Called when browser Forward navigation restores this modal's history entry while the modal is closed */
-    onOpen?: () => void;
-};
 
 /**
  * Web: represents a `shouldHandleNavigationBack` modal's back-guard as a uniquely-tagged history entry in the

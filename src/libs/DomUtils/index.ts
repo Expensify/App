@@ -1,4 +1,5 @@
 import type GetActiveElement from './types';
+import type {DomUtils} from './types';
 
 const getActiveElement: GetActiveElement = () => document.activeElement;
 
@@ -59,9 +60,11 @@ const getAutofilledInputStyle = (inputTextColor: string, cssSelector = '') => `
     }
 `;
 
-export default {
+const domUtils: DomUtils = {
     addCSS,
     getAutofilledInputStyle,
     getActiveElement,
     requestAnimationFrame: window.requestAnimationFrame.bind(window),
 };
+
+export default domUtils;

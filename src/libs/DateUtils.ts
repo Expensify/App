@@ -1288,7 +1288,7 @@ function getNextNthOfMonth(nth: number) {
     const day = now.getDate();
 
     // If today is before the nth day, return the nth of this month.
-    if (day < nth) {
+    if (day <= nth) {
         return new Date(year, month, nth);
     }
 

@@ -30,14 +30,11 @@ import {isSupportalSessionSelector} from '@selectors/Session';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type SupportalSwitcherButtonProps from './types';
+
 const ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-};
-
-type SupportalSwitcherButtonProps = {
-    /** Whether the pointer is currently over the navigation sidebar */
-    isSidebarHovered: boolean;
 };
 
 function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProps) {

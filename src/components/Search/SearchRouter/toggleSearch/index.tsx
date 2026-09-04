@@ -1,10 +1,11 @@
-function openSearch(setSearchState: React.Dispatch<React.SetStateAction<boolean>>) {
-    return setSearchState(true);
-}
+import type {CloseSearch, OpenSearch} from './types';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- afterTransition is used on native only
-function closeSearch(setSearchState: React.Dispatch<React.SetStateAction<boolean>>, afterTransition?: () => void) {
+const openSearch: OpenSearch = (setSearchState) => {
+    return setSearchState(true);
+};
+
+const closeSearch: CloseSearch = (setSearchState) => {
     return setSearchState(false);
-}
+};
 
 export {openSearch, closeSearch};

@@ -1,8 +1,8 @@
-// No-op on native — hover states don't exist on mobile
-function resetButtonHoverState() {}
+import type {IsElementHovered, ResetButtonHoverState} from './types';
 
-function isElementHovered(): boolean {
-    return false;
-}
+// No-op on native — hover states don't exist on mobile
+const resetButtonHoverState: ResetButtonHoverState = () => {};
+
+const isElementHovered: IsElementHovered = () => false;
 
 export {resetButtonHoverState, isElementHovered};

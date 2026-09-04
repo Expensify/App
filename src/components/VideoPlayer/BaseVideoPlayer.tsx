@@ -19,7 +19,7 @@ import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilitie
 import CONST from '@src/CONST';
 
 import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer} from 'expo-video';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 
 import {useEvent, useEventListener} from 'expo';
 import {useVideoPlayer, VideoView} from 'expo-video';
@@ -143,7 +143,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         videoPlayerRef.current.replaceAsync('');
     }, [isLoading, isVideoOffline, isOffline]);
 
-    const videoViewRef = useRef<VideoView | null>(null);
+    const videoViewRef = useRef<(ComponentRef<typeof VideoView> & {nativeRef?: {current?: HTMLVideoElement | null}; enterFullscreen?: () => void}) | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
@@ -502,7 +502,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         }
         if (currentVideoPlayerRef.current) {
             videoPlayerRef.current = currentVideoPlayerRef.current;
-            videoViewRef.current = currentVideoViewRef.current;
+            videoViewRef.current = currentVideoViewRef.current as typeof videoViewRef.current;
         }
         if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
             if (newParentRef.hasChildNodes()) {
@@ -613,7 +613,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                     >
                                         <VideoView
                                             fullscreenOptions={{enable: true}}
-                                            player={videoPlayerRef.current}
+                                            player={videoPlayerRef.current as never}
                                             style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}]}
                                             nativeControls={isFullScreen}
                                             playsInline

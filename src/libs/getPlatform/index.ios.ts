@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 
-import type Platform from './types';
+import type {GetPlatform} from './types';
 
-export default function getPlatform(): Platform {
-    return CONST.PLATFORM.IOS;
-}
+const getPlatform: GetPlatform = () => CONST.PLATFORM.IOS;
+
+export default getPlatform;

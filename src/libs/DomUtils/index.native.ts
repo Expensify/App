@@ -1,10 +1,11 @@
 import type GetActiveElement from './types';
+import type {DomUtils} from './types';
 
 const getActiveElement: GetActiveElement = () => null;
 
 const addCSS = () => {};
 
-const getAutofilledInputStyle = () => null;
+const getAutofilledInputStyle = () => '';
 
 const requestAnimationFrame = (callback: () => void) => {
     if (!callback) {
@@ -14,9 +15,11 @@ const requestAnimationFrame = (callback: () => void) => {
     callback();
 };
 
-export default {
+const domUtils: DomUtils = {
     addCSS,
     getAutofilledInputStyle,
     getActiveElement,
     requestAnimationFrame,
 };
+
+export default domUtils;

@@ -3,4 +3,7 @@ type WindowDimensions = {
     windowHeight: number;
 };
 
+type UseWindowDimensions = (shouldUseCachedViewportHeight?: boolean) => WindowDimensions;
+
 export default WindowDimensions;
+export type {UseWindowDimensions};

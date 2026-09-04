@@ -4,6 +4,8 @@ import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
+import type CacheAPI from './types';
+
 type CacheNameType = ValueOf<typeof CONST.CACHE_API_KEYS>;
 
 function init() {
@@ -47,10 +49,12 @@ function clear(cacheName?: CacheNameType) {
     return Promise.all(deletePromises);
 }
 
-export default {
+const cacheAPI: CacheAPI = {
     init,
     put,
     get,
     remove,
     clear,
 };
+
+export default cacheAPI;

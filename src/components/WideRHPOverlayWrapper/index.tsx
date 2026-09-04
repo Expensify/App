@@ -15,6 +15,8 @@ import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 
+import type WideRHPOverlayWrapperProps from './types';
+
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForWideRHP, superWideRHPRouteKeys, wideRHPRouteKeys} =
         useWideRHPState();
@@ -70,11 +72,6 @@ function SecondaryOverlay() {
 
     return null;
 }
-
-type WideRHPOverlayWrapperProps = {
-    children: React.ReactNode;
-    shouldWrap?: boolean;
-};
 
 // This overlay is used to cover the space under the narrower RHP screen when more than one RHP width is displayed on the screen.
 export default function WideRHPOverlayWrapper({children, shouldWrap = true}: WideRHPOverlayWrapperProps) {

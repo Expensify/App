@@ -5,10 +5,12 @@ import CONST from '@src/CONST';
 
 import {useCallback, useEffect} from 'react';
 
+import type UseTackInputFocus from './types';
+
 /**
  * Detects input or text area focus on browsers, to avoid scrolling on virtual viewports
  */
-export default function useTackInputFocus(enable = false): boolean {
+export default function useTackInputFocus(enable: Parameters<UseTackInputFocus>[0] = false): ReturnType<UseTackInputFocus> {
     const [, isInputFocusDebounced, setIsInputFocus] = useDebouncedState(false);
     const {shouldHideSidePanel} = useSidePanelState();
 

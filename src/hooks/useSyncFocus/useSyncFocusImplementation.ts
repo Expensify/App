@@ -1,9 +1,10 @@
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
-import type {RefObject} from 'react';
 import type {View} from 'react-native';
 
 import {useContext, useLayoutEffect} from 'react';
+
+import type UseSyncFocus from './types';
 
 // This mutable ref holds the currently focused item's ref.
 // It enables external actions like calling .focus() from outside this hook,
@@ -16,7 +17,7 @@ let focusedItemRef: View | HTMLElement | null;
  * When the user navigates through the app using the arrows and then the tab button, the focus on the element and the native focus of the browser differs.
  * To maintain consistency when an element is focused in the app, the focus() method is additionally called on the focused element to eliminate the difference between native browser focus and application focus.
  */
-const useSyncFocusImplementation = (ref: RefObject<View | HTMLElement | null>, isFocused: boolean, shouldSyncFocus = true) => {
+const useSyncFocusImplementation: UseSyncFocus = (ref, isFocused, shouldSyncFocus = true) => {
     // this hook can be used outside ScreenWrapperStatusContext (eg. in Popovers). So we to check if the context is present.
     // If we are outside context we don't have to look at transition status
     const contextValue = useContext(ScreenWrapperStatusContext);

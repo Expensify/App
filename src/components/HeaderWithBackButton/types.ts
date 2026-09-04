@@ -1,7 +1,7 @@
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
-import type {Action} from '@hooks/useSingleExecution';
+import type Action from '@hooks/useSingleExecution/types';
 
 import type CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';

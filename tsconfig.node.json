@@ -4,6 +4,6 @@
         "types": ["node"],
         "lib": ["ESNext"]
     },
-    "include": [".github/**/*", "web/proxy.ts", "config/**/*", "config/**/*.d.mts"],
+    "include": [".github/**/*", "web/proxy.ts", "config/**/*", "config/**/*.d.mts", "types/env.d.ts"],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js"]
 }

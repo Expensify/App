@@ -103,7 +103,7 @@ function useMarkdownStyle(hasMessageOnlyEmojis: boolean, excludeStyles: Array<ke
 
         if (excludeStyles.length) {
             for (const key of excludeStyles) {
-                const style: Record<string, unknown> = styling[key];
+                const style: Record<string, unknown> | undefined = styling[key as keyof typeof styling] as Record<string, unknown> | undefined;
                 if (style) {
                     for (const styleKey of Object.keys(style)) {
                         style[styleKey] = nonStylingDefaultValues[styleKey] ?? style[styleKey];

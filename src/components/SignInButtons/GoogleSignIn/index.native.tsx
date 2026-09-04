@@ -15,7 +15,7 @@ import type Locale from '@src/types/onyx/Locale';
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import React from 'react';
 
-import type {GoogleSignInProps} from '.';
+import type GoogleSignInProps from './GoogleSignInProps';
 import type GoogleError from './types';
 
 /**

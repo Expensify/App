@@ -718,6 +718,12 @@ const config = defineConfig([
 
     {
         files: ['modules/ExpensifyNitroUtils/src/**/*'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'modules/ExpensifyNitroUtils/tsconfig.json'),
+                projectService: false,
+            },
+        },
         rules: {
             '@typescript-eslint/consistent-type-definitions': 'off',
         },
@@ -729,6 +735,16 @@ const config = defineConfig([
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.jest.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        files: ['types/env.d.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.app.web.json'),
                 projectService: false,
             },
         },
