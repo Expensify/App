@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 
 import {updateSelectedFeed} from '@userActions/Card';
-import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCompanyCardErrors, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 
 import CONST from '@src/CONST';
@@ -105,6 +105,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
+        clearAddNewCompanyCardErrors();
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
