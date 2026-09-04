@@ -54,7 +54,7 @@ type ReportActionAvatarsProps = {
     policy?: OnyxEntry<Policy>;
 
     /** Single avatar container styles */
-    singleAvatarContainerStyle?: ViewStyle[];
+    singleAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Account IDs to display avatars for, it overrides the reportID and action props */
     accountIDs?: number[];
