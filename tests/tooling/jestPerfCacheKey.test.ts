@@ -9,8 +9,9 @@ import fs from 'fs';
  *
  * 1. Every copy of the cache key is byte-identical. A restore keyed differently from the save is a
  *    silent permanent miss - nothing fails, the perf jobs just go cold again.
- * 2. The seed workflow's `paths` filter is a superset of what the key hashes. If the key can rotate
- *    on a push that schedules no writer, the cache goes stale forever with no failing check.
+ * 2. A push-triggered workflow calls the seed. It carries no paths filter and no schedule, so
+ *    probing every push to main is both how the entry stays warm and how it recovers from an
+ *    eviction. Orphan the call and the cache goes stale forever with no failing check.
  * 3. No `restore-keys` anywhere. A prefix fallback would reuse transform output built by a
  *    different babel-plugin-react-compiler, because babel-jest does not hash plugin versions into
  *    an entry's name, and this workflow gates render counts at COUNT_DEVIATION: 0.
@@ -18,11 +19,12 @@ import fs from 'fs';
 
 const PERF_WORKFLOW = '.github/workflows/reassurePerformanceTests.yml';
 const SEED_WORKFLOW = '.github/workflows/seedJestPerfCache.yml';
+const STICKY_WORKFLOW = '.github/workflows/seedStickyDisks.yml';
 
 type Step = {name?: string; uses?: string; with?: Record<string, unknown>};
 // eslint-disable-next-line @typescript-eslint/naming-convention -- these mirror the workflow YAML keys verbatim
-type Job = {'runs-on'?: string; steps?: Step[]};
-type Workflow = {on?: Record<string, {paths?: string[]}>; jobs: Record<string, Job>};
+type Job = {'runs-on'?: string; uses?: string; steps?: Step[]};
+type Workflow = {on?: Record<string, {paths?: string[]; branches?: string[]} | null>; jobs: Record<string, Job>};
 
 function readWorkflow(path: string): Workflow {
     // Bun.YAML rather than js-yaml: this suite already runs under Bun, and js-yaml is only present
@@ -40,6 +42,7 @@ function cacheSteps(workflow: Workflow): Step[] {
 
 const perfWorkflow = readWorkflow(PERF_WORKFLOW);
 const seedWorkflow = readWorkflow(SEED_WORKFLOW);
+const stickyWorkflow = readWorkflow(STICKY_WORKFLOW);
 const allCacheSteps = [...cacheSteps(perfWorkflow), ...cacheSteps(seedWorkflow)];
 
 describe('Jest perf transform cache', () => {
@@ -56,18 +59,13 @@ describe('Jest perf transform cache', () => {
         }
     });
 
-    it('filters the seed workflow on a superset of what the key hashes', () => {
-        const key = String(allCacheSteps.at(0)?.with?.key);
-        const hashed: string[] = [...key.matchAll(/'([^']+)'/g)].map((match) => String(match.at(1))).filter((entry) => !entry.includes('{0}'));
-        expect(hashed.length).toBeGreaterThan(0);
-
-        const filtered = seedWorkflow.on?.push?.paths ?? [];
-        // setupNode derives normalized-package-lock.json from package-lock.json, so the filter
-        // watches the source file the generated one is built from.
-        const covered = hashed.map((entry) => (entry === 'normalized-package-lock.json' ? 'package-lock.json' : entry));
-        for (const entry of covered) {
-            expect(filtered).toContain(entry);
-        }
+    it('is reachable from a push to main, so an evicted entry is rebuilt on the next merge', () => {
+        // The seed carries no paths filter and no schedule. Probing on every push to main is what
+        // keeps the entry warm and what rebuilds it after an eviction, and that holds only while a
+        // push-triggered workflow still calls it. Renaming or dropping the call fails silently.
+        expect(seedWorkflow.on).toHaveProperty('workflow_call');
+        expect(stickyWorkflow.on?.push?.branches).toContain('main');
+        expect(Object.values(stickyWorkflow.jobs).map((job) => job.uses)).toContain(`./${SEED_WORKFLOW}`);
     });
 
     it('restores only in the perf workflow, so a fork PR can never write the shared entry', () => {

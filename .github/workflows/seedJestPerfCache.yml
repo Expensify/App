@@ -9,27 +9,20 @@ name: Seed Jest perf cache
 # alone. Writing from main is also what makes it safe, since a fork PR cannot reach this scope.
 # test.yml gets its entry for the same path the same way, via preDeploy.yml on push to main.
 #
-# Triggers: push to main on Babel's own inputs, so the cache is warm within minutes of the merge
-# that rotates the key; a daily cron to recover from an evicted or missing entry; and
-# workflow_dispatch to re-seed by hand. The cron cannot refresh a live entry and need not - a file
-# changed on main costs one miss, not a cold run, because entries stay content-addressed.
+# Called by seedStickyDisks.yml, which already runs on every push to main. There is no paths
+# filter and no schedule: this probes on all ~41 pushes a day against ~1.7 real key rotations, and
+# a run that finds the entry present skips the 220s populate and exits in ~40s. That is ~0.54
+# runner-hours a day against the ~19 the cache saves, and it buys back the daily cron - an evicted
+# or missing entry is rebuilt on the next merge to main instead of up to 24 hours later.
 #
-# The paths filter is deliberately a superset of what the key hashes, so the key can never rotate
-# on a push that schedules no writer. That means 5.2 runs a day against 1.7 real rotations, but a
-# run that finds the entry present skips the 220s populate and exits in ~40s: ~0.22 runner-hours a
-# day, against the ~19 the cache saves.
+# workflow_dispatch re-seeds by hand. Concurrency is deliberately the caller's: a called workflow
+# runs inside the caller's run, so seedStickyDisks.yml's group gates this job too. Its
+# cancel-in-progress is false, so a populate in flight always finishes; only a queued run can be
+# superseded, and its replacement recomputes the same content-addressed key.
 
 on:
-  push:
-    branches: [main]
-    paths: ['package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc']
-  schedule:
-    - cron: '0 3 * * *'
+  workflow_call:
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
 
 jobs:
   seedJestPerfCache:
