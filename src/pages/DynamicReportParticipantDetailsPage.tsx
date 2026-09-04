@@ -1,14 +1,15 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -51,8 +52,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
     const StyleUtils = useStyleUtils();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
-    const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const accountID = Number(route.params.accountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_DETAILS.path);
@@ -63,10 +63,21 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
-    const removeUser = () => {
-        setIsRemoveMemberConfirmModalVisible(false);
-        removeFromGroupChat(report, [accountID]);
-        Navigation.goBack(backPath);
+    const askForConfirmationToRemove = () => {
+        showConfirmModal({
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            title: translate('workspace.people.removeGroupMemberButtonTitle'),
+            prompt: translate('workspace.people.removeMemberPrompt', displayName),
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            removeFromGroupChat(report, [accountID]);
+            Navigation.goBack(backPath);
+        });
     };
 
     const navigateToProfile = () => {
@@ -105,29 +116,17 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                         </Text>
                     )}
                     {isCurrentUserAdmin && (
-                        <>
-                            <Button
-                                onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
-                                isDisabled={isSelectedMemberCurrentUser}
-                                style={styles.mv5}
-                            >
-                                <Button.Icon
-                                    src={icons.RemoveMembers}
-                                    style={StyleUtils.getTransformScaleStyle(0.8)}
-                                />
-                                <Button.Text>{translate('workspace.people.removeGroupMemberButtonTitle')}</Button.Text>
-                            </Button>
-                            <ConfirmModal
-                                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
-                                title={translate('workspace.people.removeGroupMemberButtonTitle')}
-                                isVisible={isRemoveMemberConfirmModalVisible}
-                                onConfirm={removeUser}
-                                onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                                prompt={translate('workspace.people.removeMemberPrompt', displayName)}
-                                confirmText={translate('common.remove')}
-                                cancelText={translate('common.cancel')}
+                        <Button
+                            onPress={askForConfirmationToRemove}
+                            isDisabled={isSelectedMemberCurrentUser}
+                            style={styles.mv5}
+                        >
+                            <Button.Icon
+                                src={icons.RemoveMembers}
+                                style={StyleUtils.getTransformScaleStyle(0.8)}
                             />
-                        </>
+                            <Button.Text>{translate('workspace.people.removeGroupMemberButtonTitle')}</Button.Text>
+                        </Button>
                     )}
                 </View>
                 <View style={styles.w100}>
