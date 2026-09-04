@@ -381,7 +381,7 @@ describe('MoneyRequestReceiptView', () => {
             expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
         });
 
-        // A distance edit makes the server redraw the map receipt, so the old count is stale until the new receipt arrives
+        // The regenerated receipt makes the old count stale
         it('does not show the page count while a map distance receipt is regenerating', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {

@@ -1719,8 +1719,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         pendingFields.merchant = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     }
 
-    // Only map-drawn distance receipts are regenerated server-side. Odometer and manual receipts are user-uploaded, so
-    // their page count has to survive a distance edit or the badge would disappear for good.
+    // Odometer and manual receipts are uploaded, not regenerated, so their page count has to survive the edit.
     const shouldClearReceiptPageCount = shouldFlagMerchantPending && !isManualDistanceRequest(transaction) && !isOdometerDistanceRequest(transaction);
     const clearedPendingFields = getClearedPendingFields(transactionChanges);
     // `getClearedPendingFields` only clears `merchant` for distance edits, so when we artificially
@@ -1953,7 +1952,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             ...updatedTransaction,
-            // Clear the stale page count until the BE-regenerated receipt arrives.
+            // Clear the stale page count until the regenerated receipt arrives.
             ...(shouldClearReceiptPageCount && updatedTransaction?.receipt ? {receipt: {...updatedTransaction.receipt, pageCount: null}} : {}),
             pendingFields,
             errorFields: null,
@@ -2394,8 +2393,7 @@ function getUpdateTrackExpenseParams(
         dataToIncludeInParams.distance = transactionChanges.distance;
     }
 
-    // Same clear as `getUpdateMoneyRequestParams`: a distance-shaped edit makes the server regenerate the map receipt,
-    // so the old page count is stale until the new receipt arrives.
+    // Same page count clear as `getUpdateMoneyRequestParams`.
     const shouldClearReceiptPageCount =
         ('waypoints' in transactionChanges || 'distance' in transactionChanges || 'customUnitRateID' in transactionChanges || 'selectedRouteKey' in transactionChanges) &&
         !isManualDistanceRequest(transaction) &&
