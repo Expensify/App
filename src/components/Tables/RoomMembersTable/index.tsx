@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -31,7 +31,11 @@ type RoomMemberRowData = TableData & {
 };
 
 type RoomMembersTableProps = {
+    /** Imperative handle for controlling table search state */
     ref?: React.Ref<TableHandle<RoomMemberRowData, RoomMembersTableColumnKey, string>>;
+
+    /** Page-level content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
 
     /** The rows to render in the table */
     members: RoomMemberRowData[];
@@ -49,7 +53,7 @@ type RoomMembersTableProps = {
     onSearchStringChange?: (searchString: string) => void;
 };
 
-export default function RoomMembersTable({ref, members, selectionEnabled, selectedKeys, onRowSelectionChange, onSearchStringChange}: RoomMembersTableProps) {
+export default function RoomMembersTable({ref, headerComponent, members, selectionEnabled, selectedKeys, onRowSelectionChange, onSearchStringChange}: RoomMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
 
     const columns: Array<TableColumn<RoomMembersTableColumnKey>> = [
@@ -80,6 +84,8 @@ export default function RoomMembersTable({ref, members, selectionEnabled, select
         />
     );
 
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('selectionList.findMember')} />);
+
     return (
         <Table
             ref={ref}
@@ -97,7 +103,7 @@ export default function RoomMembersTable({ref, members, selectionEnabled, select
             onRowSelectionChange={onRowSelectionChange}
             onSearchStringChange={onSearchStringChange}
         >
-            <Table.FilterBar label={translate('selectionList.findMember')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

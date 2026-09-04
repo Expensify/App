@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTable';
 import WorkspaceTagsTableRow from '@components/Tables/WorkspaceTagsTable/WorkspaceTagsTableRow';
 
@@ -19,14 +19,26 @@ import React from 'react';
 type WorkspaceViewTagColumnKey = 'name' | 'enabled' | 'actions';
 
 type WorkspaceViewTagsTableProps = {
+    /** Tag rows to render */
     tags: WorkspaceTagTableRowData[];
+
+    /** Whether this tag list has dependent tag levels */
     hasDependentTags: boolean;
+
+    /** Whether multi-selection is enabled */
     selectionEnabled: boolean;
+
+    /** The selected row keys */
     selectedKeys: string[];
+
+    /** Page-level content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
+
+    /** Callback when the selected rows change */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceViewTagsTableProps) {
+export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectionEnabled, selectedKeys, headerComponent, onRowSelectionChange}: WorkspaceViewTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
@@ -115,6 +127,8 @@ export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectio
         return null;
     }
 
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.tags.findTag')} />);
+
     return (
         <Table
             data={tags}
@@ -132,7 +146,7 @@ export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectio
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.tags.findTag')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
