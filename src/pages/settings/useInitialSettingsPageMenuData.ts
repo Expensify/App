@@ -185,7 +185,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const signOut = async (shouldForceSignout = false) => {
         // Forced sign-out (expired session, SAML re-auth) must be non-interactive: it must not touch the gallery flow, which can trigger OS permission prompts and delay the redirect.
         if (shouldForceSignout) {
-            return signOutAndRedirectToSignIn();
+            return signOutAndRedirectToSignIn(undefined, undefined, true, undefined, session);
         }
 
         // `getSaveablePendingReceiptRequests` is platform-split (web returns `[]`) and image-filtered so we do not promise a save the native gallery API can not deliver.

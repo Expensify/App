@@ -1,9 +1,11 @@
 import useEnvironment from '@hooks/useEnvironment';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openLink as openLinkUtil} from '@userActions/Link';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
@@ -43,12 +45,13 @@ type TextLinkProps = (LinkProps | PressProps) &
 function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), suppressDefaultStyle = false, ref, ...rest}: TextLinkProps) {
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const openLink = (event: GestureResponderEvent | KeyboardEvent) => {
         if (onPress) {
             onPress(event);
         } else {
-            openLinkUtil(href, environmentURL);
+            openLinkUtil(href, environmentURL, false, session);
         }
     };
 

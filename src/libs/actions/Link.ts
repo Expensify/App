@@ -30,7 +30,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import type {Beta, IntroSelected, Report} from '@src/types/onyx';
+import type {Beta, IntroSelected, Report, Session} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -389,7 +389,7 @@ function getReportLinkRoute(
     return searchReportRoute;
 }
 
-function openLink(href: string, environmentURL: string, isAttachment = false) {
+function openLink(href: string, environmentURL: string, isAttachment: boolean | undefined, session: OnyxEntry<Session>) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
@@ -417,7 +417,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
 
     if (reportLinkRoute) {
         if (internalNewExpensifyPath && hasSameOrigin && isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
-            signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn(undefined, undefined, undefined, undefined, session);
             return;
         }
         if (focusedSearchReportActionRoute && reportLinkRouteParams?.reportActionID) {
@@ -435,7 +435,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalNewExpensifyPath && hasSameOrigin) {
         if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
-            signOutAndRedirectToSignIn();
+            signOutAndRedirectToSignIn(undefined, undefined, undefined, undefined, session);
             return;
         }
         if (shouldCloseRHP) {

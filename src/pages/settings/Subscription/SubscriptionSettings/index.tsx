@@ -63,6 +63,7 @@ function SubscriptionSettings() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
     const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
@@ -220,7 +221,7 @@ function SubscriptionSettings() {
                 openAdminsRoom();
             }
         } else if (href.endsWith(CONST.PRICING)) {
-            openLink(CONST.PRICING, environmentURL);
+            openLink(CONST.PRICING, environmentURL, false, session);
         }
     };
 

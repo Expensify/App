@@ -8,6 +8,7 @@ import UploadFile from '@components/UploadFile';
 
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
@@ -17,6 +18,7 @@ import {clearErrorFields, clearErrors, setDraftValues, setErrorFields} from '@us
 import {openLink} from '@userActions/Link';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -61,6 +63,7 @@ function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackB
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const formRef = useRef<FormRef | null>(null);
 
@@ -135,7 +138,7 @@ function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackB
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, styles.mb15]}
                     onPress={() => {
-                        openLink(CONST.DOCUSIGN_POWERFORM_LINK[country as 'CA' | 'AU' | 'US'], environmentURL);
+                        openLink(CONST.DOCUSIGN_POWERFORM_LINK[country as 'CA' | 'AU' | 'US'], environmentURL, false, session);
                     }}
                 >
                     <Button.Text>{translate('docusignStep.takeMeTo')}</Button.Text>
