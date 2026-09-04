@@ -3859,8 +3859,15 @@ const translations = {
         vacationDelegateError: 'There was an error updating your vacation delegate.',
         asVacationDelegate: (nameOrEmail: string) => `as ${nameOrEmail}'s vacation delegate`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `to ${submittedToName} as vacation delegate for ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `You're assigning ${nameOrEmail} as your vacation delegate. They're not on all your workspaces yet. If you choose to continue, an email will be sent to all your workspace admins to add them.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (email: string) =>
+                `<strong>${email}</strong> is not a member of these workspaces. Admins of the workspaces you don't manage will be asked to add them.`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> is not a member of these workspaces. Do you want to invite them now?`,
+            notAMemberMixed: (email: string) =>
+                `<strong>${email}</strong> isn't a member of these workspaces. Admins of the workspaces you don't manage will be asked to add them. Do you want to invite them to the ones you are an admin of now?`,
+            youAreAMemberOf: 'You are a member of these workspaces:',
+            youAreAnAdminOf: 'You are an admin of these workspaces:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Step ${step}`;

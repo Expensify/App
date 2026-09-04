@@ -3754,8 +3754,15 @@ ${amount} für ${merchant} – ${date}`,
         vacationDelegateError: 'Beim Aktualisieren Ihrer Vertretung im Urlaub ist ein Fehler aufgetreten.',
         asVacationDelegate: (nameOrEmail: string) => `als Urlaubsvertretung von ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `an ${submittedToName} als Urlaubsvertretung für ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Sie weisen ${nameOrEmail} als Ihre Urlaubsvertretung zu. Diese Person ist noch nicht in all Ihren Arbeitsbereichen. Wenn Sie fortfahren, wird eine E-Mail an alle Admins Ihrer Arbeitsbereiche gesendet, damit sie hinzugefügt wird.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (email: string) =>
+                `<strong>${email}</strong> ist kein Mitglied dieser Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen.`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> ist kein Mitglied dieser Arbeitsbereiche. Möchten Sie die Person jetzt einladen?`,
+            notAMemberMixed: (email: string) =>
+                `<strong>${email}</strong> ist kein Mitglied dieser Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen. Möchten Sie die Person jetzt zu den Arbeitsbereichen einladen, in denen Sie Admin sind?`,
+            youAreAMemberOf: 'Sie sind Mitglied dieser Arbeitsbereiche:',
+            youAreAnAdminOf: 'Sie sind Admin dieser Arbeitsbereiche:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Schritt ${step}`;

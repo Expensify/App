@@ -657,6 +657,7 @@ const WRITE_COMMANDS = {
     ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT: 'EnableGlobalReimbursementsForUSDBankAccount',
     REOPEN_REPORT: 'ReopenReport',
     TRAVEL_SIGNUP_REQUEST: 'RequestTravelAccess',
+    SET_VACATION_DELEGATE: 'SetVacationDelegate',
     DELETE_VACATION_DELEGATE: 'DeleteVacationDelegate',
     IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
     ADD_PERSONAL_PLAID_CARD: 'AddPersonalPlaidCard',
@@ -1133,6 +1134,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS]: Parameters.SetPolicyRequireMapOrGPSParams;
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
+    [WRITE_COMMANDS.SET_VACATION_DELEGATE]: Parameters.SetVacationDelegateParams;
     [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: Parameters.DeleteVacationDelegateParams | null;
     [WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT]: Parameters.EnableGlobalReimbursementsForUSDBankAccountParams;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;

@@ -1491,9 +1491,7 @@ function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountI
         domainAccountID,
     };
 
-    // We don't use the side effect here but `SetVacationDelegate` command is declared as side effect command
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
 function deleteDomainVacationDelegate(domainAccountID: number, domainMemberAccountID: number, vacationer: string, vacationDelegate: BaseVacationDelegate) {

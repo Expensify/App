@@ -1,5 +1,4 @@
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -14,22 +13,22 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import React, {useRef} from 'react';
 
 function VacationDelegatePage() {
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
+    const navigation = useNavigation();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-    const vacationDelegateRef = useRef(vacationDelegate);
-    useEffect(() => {
-        vacationDelegateRef.current = vacationDelegate;
-    }, [vacationDelegate]);
 
-    const showErrorModal = async (message?: string) => {
+    const isSelectingRef = useRef(false);
+
+    const showErrorModal = async (delegateToRestore?: string, message?: string) => {
         await showConfirmModal({
             title: translate('statusPage.addVacationDelegate'),
             prompt: message ?? translate('statusPage.vacationDelegateError'),
@@ -37,59 +36,47 @@ function VacationDelegatePage() {
             shouldShowCancelButton: false,
         });
 
-        clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
+        clearVacationDelegateError(delegateToRestore);
     };
 
-    const showWarningModal = useCallback(
-        async (delegateLogin: string, delegateDisplayName: string | undefined) => {
-            const result = await showConfirmModal({
-                title: translate('common.headsUp'),
-                prompt: translate('statusPage.vacationDelegateWarning', Str.removeSMSDomain(delegateDisplayName ?? delegateLogin)),
-                confirmText: translate('common.confirm'),
-                cancelText: translate('common.cancel'),
-                shouldShowCancelButton: true,
+    const onSelectRow = (option: Participant) => {
+        if (isSelectingRef.current) {
+            return;
+        }
+
+        if (option?.login === vacationDelegate?.delegate) {
+            deleteVacationDelegate(vacationDelegate);
+            Navigation.goBack(ROUTES.SETTINGS_STATUS);
+            return;
+        }
+
+        isSelectingRef.current = true;
+        const hasUnconfirmedChange = !!vacationDelegate?.pendingAction || !isEmptyObject(vacationDelegate?.errors) || !!vacationDelegate?.policyDiff;
+        const currentDelegate = hasUnconfirmedChange ? vacationDelegate?.previousDelegate : vacationDelegate?.delegate;
+        setVacationDelegate({creator: currentUserLogin, delegate: option?.login ?? '', currentDelegate})
+            .then((response) => {
+                if (!navigation.isFocused()) {
+                    return;
+                }
+
+                if (response?.data?.policyDiff) {
+                    Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES);
+                    return;
+                }
+
+                // The request writes no error of its own, so this modal is the only feedback for a failure. Dismissing it restores the previous delegate.
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    showErrorModal(currentDelegate, response?.jsonCode === CONST.JSON_CODE.EXP_ERROR ? response.message : undefined);
+                    return;
+                }
+
+                Navigation.goBack(ROUTES.SETTINGS_STATUS);
+            })
+            .catch(() => showErrorModal(currentDelegate))
+            .finally(() => {
+                isSelectingRef.current = false;
             });
-
-            if (result.action === ModalActions.CONFIRM) {
-                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegateRef.current?.previousDelegate);
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
-                return;
-            }
-
-            clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
-        },
-        [showConfirmModal, translate, currentUserLogin],
-    );
-
-    const onSelectRow = useCallback(
-        (option: Participant) => {
-            if (option?.login === vacationDelegate?.delegate) {
-                deleteVacationDelegate(vacationDelegate);
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
-                return;
-            }
-
-            setVacationDelegate(currentUserLogin, option?.login ?? '', false, vacationDelegate?.delegate).then((response) => {
-                if (!response?.jsonCode) {
-                    Navigation.goBack(ROUTES.SETTINGS_STATUS);
-                    return;
-                }
-
-                if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
-                    showErrorModal(response.message);
-                    return;
-                }
-
-                if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    showWarningModal(option?.login ?? '', option.text);
-                    return;
-                }
-
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
-            });
-        },
-        [currentUserLogin, vacationDelegate, showWarningModal, showErrorModal],
-    );
+    };
 
     return (
         <ScreenWrapper

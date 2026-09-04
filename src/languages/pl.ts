@@ -3765,8 +3765,15 @@ ${amount} dla ${merchant} - ${date}`,
         vacationDelegateError: 'Wystąpił błąd podczas aktualizowania Twojego zastępcy urlopowego.',
         asVacationDelegate: (nameOrEmail: string) => `jako osoba zastępująca ${nameOrEmail} podczas urlopu`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `do ${submittedToName} jako zastępca urlopowy dla ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Przydzielasz ${nameOrEmail} jako osobę zastępującą Cię podczas urlopu. Nie jest ona jeszcze we wszystkich Twoich przestrzeniach roboczych. Jeśli zdecydujesz się kontynuować, do wszystkich administratorów Twoich przestrzeni roboczych zostanie wysłany e-mail z prośbą o dodanie jej.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (email: string) =>
+                `<strong>${email}</strong> nie jest członkiem tych przestrzeni roboczych. Administratorzy przestrzeni roboczych, którymi nie zarządzasz, zostaną poproszeni o dodanie tej osoby.`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> nie jest członkiem tych przestrzeni roboczych. Czy chcesz zaprosić tę osobę teraz?`,
+            notAMemberMixed: (email: string) =>
+                `<strong>${email}</strong> nie jest członkiem tych przestrzeni roboczych. Administratorzy przestrzeni roboczych, którymi nie zarządzasz, zostaną poproszeni o dodanie tej osoby. Czy chcesz zaprosić tę osobę do przestrzeni, w których jesteś administratorem?`,
+            youAreAMemberOf: 'Jesteś członkiem tych przestrzeni roboczych:',
+            youAreAnAdminOf: 'Jesteś administratorem tych przestrzeni roboczych:',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Krok ${step}`;

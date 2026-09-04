@@ -3701,8 +3701,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         vacationDelegateError: '休暇の代理人を更新中にエラーが発生しました。',
         asVacationDelegate: (nameOrEmail: string) => `${nameOrEmail} さんの休暇代理として`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `${vacationDelegateName} の休暇代理人として ${submittedToName} に`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `${nameOrEmail} さんをあなたの休暇代理人に指定しようとしています。この人は、まだすべてのワークスペースに参加していません。続行すると、すべてのワークスペース管理者に、この人を追加するようメールが送信されます。`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (email: string) =>
+                `<strong>${email}</strong>はこれらのワークスペースのメンバーではありません。あなたが管理していないワークスペースの管理者に追加を依頼します。`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong>はこれらのワークスペースのメンバーではありません。今すぐ招待しますか？`,
+            notAMemberMixed: (email: string) =>
+                `<strong>${email}</strong>はこれらのワークスペースのメンバーではありません。あなたが管理していないワークスペースの管理者に追加を依頼します。あなたが管理者になっているワークスペースには今すぐ招待しますか？`,
+            youAreAMemberOf: 'あなたはこれらのワークスペースのメンバーです：',
+            youAreAnAdminOf: 'あなたはこれらのワークスペースの管理者です：',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `ステップ ${step}`;

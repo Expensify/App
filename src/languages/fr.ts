@@ -3762,8 +3762,15 @@ ${amount} pour ${merchant} - ${date}`,
         vacationDelegateError: 'Une erreur s’est produite lors de la mise à jour de votre remplaçant de congés.',
         asVacationDelegate: (nameOrEmail: string) => `en tant que délégué de vacances de ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `à ${submittedToName} en tant que délégué de congés pour ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail: string) =>
-            `Vous assignez ${nameOrEmail} comme remplaçant pendant vos congés. Cette personne n’est pas encore présente dans tous vos espaces de travail. Si vous choisissez de continuer, un e-mail sera envoyé aux administrateurs de tous vos espaces de travail pour l’ajouter.`,
+        vacationDelegate: {
+            notAMemberAdminsWillBeAsked: (email: string) =>
+                `<strong>${email}</strong> n'est pas membre de ces espaces de travail. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter.`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> n'est pas membre de ces espaces de travail. Voulez-vous l'inviter maintenant ?`,
+            notAMemberMixed: (email: string) =>
+                `<strong>${email}</strong> n'est pas membre de ces espaces de travail. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter. Voulez-vous l'inviter dès maintenant à ceux dont vous êtes administrateur ?`,
+            youAreAMemberOf: 'Vous êtes membre de ces espaces de travail :',
+            youAreAnAdminOf: 'Vous êtes administrateur de ces espaces de travail :',
+        },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Étape ${step}`;
