@@ -20,7 +20,7 @@ import {StyleSheet, View} from 'react-native';
 
 import type {ButtonProps} from './types';
 
-import {ButtonContext} from './context';
+import {ButtonActionsContext, ButtonStateContext} from './context';
 
 function Button({
     children,
@@ -90,15 +90,6 @@ function Button({
 
     // Entry point for the Enter shortcut: same press logic as a pointer press, without the mouse-only blur and haptic feedback.
     const handleEnterPress = () => runPress();
-
-    const contextValue = {
-        isHovered,
-        variant,
-        size,
-        onPress: handleEnterPress,
-        isDisabled,
-        isLoading,
-    };
 
     const buttonVariantStyles = useMemo(() => {
         const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
@@ -214,21 +205,23 @@ function Button({
             }}
         >
             {blendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
-            <ButtonContext.Provider value={contextValue}>
-                <View
-                    style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                        contentContainerStyle,
-                        styles.mw100,
-                        size !== CONST.BUTTON_SIZE.SMALL && styles.gap1,
-                        isLoading && styles.opacity0,
-                    ]}
-                >
-                    {children}
-                </View>
-            </ButtonContext.Provider>
+            <ButtonStateContext.Provider value={{isHovered, variant, size, isDisabled, isLoading}}>
+                <ButtonActionsContext.Provider value={{onPress: handleEnterPress}}>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentCenter,
+                            contentContainerStyle,
+                            styles.mw100,
+                            size !== CONST.BUTTON_SIZE.SMALL && styles.gap1,
+                            isLoading && styles.opacity0,
+                        ]}
+                    >
+                        {children}
+                    </View>
+                </ButtonActionsContext.Provider>
+            </ButtonStateContext.Provider>
             {isLoading && (
                 <ActivityIndicator
                     color={loadingIndicatorColor}
