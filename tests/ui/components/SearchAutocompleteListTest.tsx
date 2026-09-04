@@ -194,10 +194,11 @@ describe('SearchAutocompleteList', () => {
         const mockUseFilteredOptions = jest.mocked(useFilteredOptions);
         const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
 
-        // Before the report loads, the DM is just a personal detail keyed by accountID.
+        // Given a locally available DM represented by its participant accountID
         const dmAsPersonalDetail: OptionData = {reportID: '', keyForList: '123', accountID: 123, text: 'Alice', alternateText: '', lastMessageText: ''};
         mockCombineOrdering.mockReturnValue({recentReports: [dmAsPersonalDetail], personalDetails: []});
 
+        // When the search results are first rendered
         const {rerender, toJSON} = render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
@@ -212,18 +213,15 @@ describe('SearchAutocompleteList', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // The DM shows up under "Recent chats" and its position is now frozen.
+        // Then the DM is shown in the "Recent chats" section
         const treeAfterFreeze = JSON.stringify(toJSON());
         expect(treeAfterFreeze).toContain('Recent chats');
         expect(treeAfterFreeze).toContain('Alice');
         expect(treeAfterFreeze.indexOf('Recent chats')).toBeLessThan(treeAfterFreeze.indexOf('Alice'));
 
-        // Now the search results come back. The DM's report loads, so its keyForList flips to the reportID
-        // (accountID stays the same). We hand back a new options reference so the list recomputes without
-        // touching the query, otherwise the frozen ranks would be rebuilt.
+        // When the server response hydrates the DM report and adds server-only reports
         const dmAsReport: OptionData = {reportID: '456', keyForList: '456', accountID: 123, isDM: true, text: 'Alice', alternateText: '', lastMessageText: ''};
-        // Alice also has a task report. It carries her accountID too, but it isn't the DM, so it should end up
-        // in the server section rather than pinned under "Recent chats".
+        // And a task report shares Alice's accountID without being the DM
         const aliceTaskReport: OptionData = {reportID: '999', keyForList: '999', accountID: 123, isDM: false, isTaskReport: true, text: 'Alice Task', alternateText: '', lastMessageText: ''};
         const brandNewServerReport: OptionData = {reportID: '789', keyForList: '789', accountID: 0, text: 'Bob', alternateText: '', lastMessageText: ''};
         mockUseFilteredOptions.mockReturnValue({
@@ -235,6 +233,10 @@ describe('SearchAutocompleteList', () => {
             isLoadingMore: false,
         });
         mockCombineOrdering.mockReturnValue({recentReports: [dmAsReport, aliceTaskReport, brandNewServerReport], personalDetails: []});
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['999', '789', '456']);
+        });
 
         rerender(
             <OnyxListItemProvider>
@@ -258,20 +260,19 @@ describe('SearchAutocompleteList', () => {
         const aliceTaskIndex = treeAfterServer.indexOf('Alice Task');
         const bobIndex = treeAfterServer.indexOf('Bob');
 
-        // Both section headers and all three rows rendered.
+        // Then the hydrated DM remains in the "Recent chats" section, and the other reports appear in "Search results"
         expect(recentChatsIndex).toBeGreaterThanOrEqual(0);
         expect(serverResultsIndex).toBeGreaterThan(recentChatsIndex);
         expect(aliceDMIndex).toBeGreaterThanOrEqual(0);
         expect(aliceTaskIndex).toBeGreaterThanOrEqual(0);
         expect(bobIndex).toBeGreaterThanOrEqual(0);
 
-        // The DM stayed under "Recent chats" (before the "Search results" header) despite the keyForList flip.
         expect(aliceDMIndex).toBeGreaterThan(recentChatsIndex);
         expect(aliceDMIndex).toBeLessThan(serverResultsIndex);
 
-        // Alice's task report and Bob's report are in the server section - the task wasn't pinned just
-        // because it shares Alice's accountID.
+        // And "Search results" follows Auth's order without treating Alice's task as her DM
         expect(aliceTaskIndex).toBeGreaterThan(serverResultsIndex);
         expect(bobIndex).toBeGreaterThan(serverResultsIndex);
+        expect(aliceTaskIndex).toBeLessThan(bobIndex);
     });
 });

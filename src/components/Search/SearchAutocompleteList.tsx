@@ -23,7 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, createOptionFromReport, getSearchOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
@@ -203,6 +203,7 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [searchResultReportIDs] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     // hasEffectiveInputQuery reflects the immediate input (used to hide recent searches the moment the user types).
@@ -261,7 +262,7 @@ function SearchAutocompleteList({
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
-            maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
+            maxResults: searchResultReportIDs && searchResultReportIDs.length > 0 ? listOptions.reports.length : CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
             includeUserToInvite: true,
             includeRecentReports: true,
             includeCurrentUser: true,
@@ -294,6 +295,7 @@ function SearchAutocompleteList({
         sortedActions,
         conciergeReportID,
         isTrackIntentUser,
+        searchResultReportIDs,
         translate,
         dateFnsLocale,
     ]);
@@ -428,14 +430,68 @@ function SearchAutocompleteList({
             reportOptions.push(searchOptions.userToInvite);
         }
 
-        return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions]);
+        if (searchResultReportIDs && searchResultReportIDs.length > 0) {
+            // The server can match a report on things the client-side matcher never checks (e.g. you own the
+            // report, not just that a participant's name matches). Add any server-confirmed report the
+            // client-side matcher missed, built straight from Onyx, so a real match is never silently dropped
+            // and backfilled with a lower-quality local guess.
+            const matchedReportIDs = new Set(reportOptions.map((option) => option.reportID).filter(Boolean));
+            for (const reportID of searchResultReportIDs) {
+                if (matchedReportIDs.has(reportID)) {
+                    continue;
+                }
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                if (!report) {
+                    continue;
+                }
+                reportOptions.push(
+                    createOptionFromReport({
+                        dateFnsLocale,
+                        report,
+                        personalDetails,
+                        privateIsArchived: undefined,
+                        policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+                        sortedActions,
+                        conciergeReportID,
+                        visibleReportActionsData,
+                        isTrackIntentUser,
+                    }),
+                );
+                matchedReportIDs.add(reportID);
+            }
+
+            const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
+            const rankOf = (option: OptionData) => {
+                if (option.isSelfDM) {
+                    return -1;
+                }
+                return option.reportID === undefined ? Number.MAX_SAFE_INTEGER : (rankByReportID.get(option.reportID) ?? Number.MAX_SAFE_INTEGER);
+            };
+            reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
+        }
+
+        return searchResultReportIDs && searchResultReportIDs.length > 0 ? reportOptions : reportOptions.slice(0, 20);
+    }, [
+        autocompleteQueryValue,
+        hasActiveSearchResults,
+        searchOptions,
+        searchResultReportIDs,
+        reports,
+        personalDetails,
+        dateFnsLocale,
+        policies,
+        sortedActions,
+        conciergeReportID,
+        visibleReportActionsData,
+        isTrackIntentUser,
+    ]);
 
     // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
     // reports merged into Onyx later do not shift the rows already visible in the top section.
     const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(EMPTY_RANK_MAP);
     const [prevAutocompleteQuery, setPrevAutocompleteQuery] = useState(autocompleteQueryValue);
+    const [prevSearchResultReportIDs, setPrevSearchResultReportIDs] = useState(searchResultReportIDs);
 
     const buildRankMap = (options: OptionData[]): Map<string, number> => {
         const rank = new Map<string, number>();
@@ -450,12 +506,19 @@ function SearchAutocompleteList({
 
     if (prevAutocompleteQuery !== autocompleteQueryValue) {
         setPrevAutocompleteQuery(autocompleteQueryValue);
-        if (autocompleteQueryValue.trim() === '') {
+        if (!hasActiveSearchResults) {
             setFrozenLocalRank(EMPTY_RANK_MAP);
         } else {
             setFrozenLocalRank(buildRankMap(recentReportsOptions));
         }
-    } else if (autocompleteQueryValue.trim() !== '' && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
+    }
+
+    if (prevSearchResultReportIDs !== searchResultReportIDs) {
+        setPrevSearchResultReportIDs(searchResultReportIDs);
+        if (hasActiveSearchResults && !searchResultReportIDs?.length) {
+            setFrozenLocalRank(buildRankMap(recentReportsOptions));
+        }
+    } else if (hasActiveSearchResults && !searchResultReportIDs?.length && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
         // Options hydrated after the rank was snapshotted as empty — recompute.
         setFrozenLocalRank(buildRankMap(recentReportsOptions));
     }
@@ -551,14 +614,15 @@ function SearchAutocompleteList({
                 });
             }
         } else {
-            // Active search: split rows into local (frozen order) and server sections.
+            // Active search: keep locally available rows fixed while server-only rows arrive separately.
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
+            const serverResultReportIDs = new Set(searchResultReportIDs);
             for (const item of nextStyledRecentReports) {
                 const stableKey = getStableRankKey(item);
                 if (stableKey && frozenLocalRank.has(stableKey)) {
                     localRows.push(item);
-                } else {
+                } else if (searchResultReportIDs === undefined || !item.reportID || serverResultReportIDs.has(item.reportID)) {
                     serverRows.push(item);
                 }
             }
@@ -625,6 +689,7 @@ function SearchAutocompleteList({
         recentSearchesData,
         searchOptions,
         searchQueryItems,
+        searchResultReportIDs,
         styles,
         translate,
         isLoadingOptions,
