@@ -9,6 +9,7 @@
                 "scripts/**/*.{js,mjs,ts}",
                 "web/proxy.ts",
                 "config/rsbuild/**/*.{js,mjs,cjs,ts}",
+                "config/repack/**/*.{js,mjs,ts}",
                 ".github/scripts/**/*.ts",
                 "tests/tooling/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
@@ -18,6 +19,7 @@
                 "eslint.changed.config.mjs",
                 "react-native.config.js",
                 "rock.config.mjs",
+                "rspack.config.mjs",
                 "src/components/HeaderWithBackButtonComposed/index.tsx"
             ],
             "project": [
