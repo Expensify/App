@@ -41,6 +41,11 @@ type FilterValueProps = {
     value: SearchFilter['value'];
 };
 
+type ArrayFilterValueProps = {
+    /** The array-valued search filter displayed by this component. */
+    value: Extract<SearchFilter['value'], string[]>;
+};
+
 type FilterValueWithKeyProps = FilterValueProps & {
     filterKey: SearchFilter['key'];
 };
@@ -53,16 +58,16 @@ function FilterWorkspaceValue({value}: FilterValueProps) {
     return useFilterWorkspaceValue(value);
 }
 
-function FilterFeedValue({value}: FilterValueProps) {
-    return useFilterFeedValue(value as string[]);
+function FilterFeedValue({value}: ArrayFilterValueProps) {
+    return useFilterFeedValue(value);
 }
 
 function FilterCardValue({value}: FilterValueProps) {
-    return useFilterCardValue(value as string[]);
+    return useFilterCardValue(Array.isArray(value) ? value : value.split(', '));
 }
 
-function FilterTaxRateValue({value}: FilterValueProps) {
-    return useFilterTaxRateValue(value as string[]);
+function FilterTaxRateValue({value}: ArrayFilterValueProps) {
+    return useFilterTaxRateValue(value);
 }
 
 function FilterReportValue({value}: FilterValueProps) {
@@ -88,7 +93,7 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         return <FilterWorkspaceValue value={value} />;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED && Array.isArray(value)) {
         return <FilterFeedValue value={value} />;
     }
 
@@ -96,7 +101,7 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         return <FilterCardValue value={value} />;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE && Array.isArray(value)) {
         return <FilterTaxRateValue value={value} />;
     }
 

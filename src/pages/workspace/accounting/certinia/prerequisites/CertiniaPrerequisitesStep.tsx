@@ -12,6 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -20,22 +22,37 @@ type CertiniaPrerequisitesStepProps = SubPageProps & {
     isSandbox: boolean;
 };
 
+const PAGE_NAMES = CONST.CERTINIA_PREREQUISITES.PAGE_NAME;
+type PageName = ValueOf<typeof PAGE_NAMES>;
+
+const PAGE_NAME_VALUES = Object.values(PAGE_NAMES);
+const TITLE_KEYS = {
+    [PAGE_NAMES.INSTALL_BUNDLE]: 'workspace.certinia.prerequisites.installBundle',
+    [PAGE_NAMES.SETUP_CONTACTS]: 'workspace.certinia.prerequisites.setupContacts',
+    [PAGE_NAMES.OAUTH]: 'workspace.certinia.prerequisites.oauth',
+} satisfies Record<PageName, TranslationPaths>;
+const BUTTON_KEYS = {
+    [PAGE_NAMES.INSTALL_BUNDLE]: 'workspace.certinia.prerequisites.installBundleConfirm',
+    [PAGE_NAMES.SETUP_CONTACTS]: 'workspace.certinia.prerequisites.setupContactsConfirm',
+    [PAGE_NAMES.OAUTH]: 'workspace.certinia.prerequisites.connectButton',
+} satisfies Record<PageName, TranslationPaths>;
+
+function isPageName(pageName: string | undefined): pageName is PageName {
+    return pageName !== undefined && PAGE_NAME_VALUES.some((configuredPageName) => configuredPageName === pageName);
+}
+
 function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect, isSandbox}: CertiniaPrerequisitesStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const isLastStep = currentPageName === CONST.CERTINIA_PREREQUISITES.PAGE_NAME.OAUTH;
-
-    const pageNames = CONST.CERTINIA_PREREQUISITES.PAGE_NAME;
-    const titleKey = `workspace.certinia.prerequisites.${currentPageName}` as TranslationPaths;
-    const descriptionKey = `workspace.certinia.prerequisites.${currentPageName}Description` as TranslationPaths;
-    const buttonKey = isLastStep
-        ? ('workspace.certinia.prerequisites.connectButton' as TranslationPaths)
-        : (`workspace.certinia.prerequisites.${currentPageName}Confirm` as TranslationPaths);
+    const pageName = isPageName(currentPageName) ? currentPageName : PAGE_NAMES.INSTALL_BUNDLE;
+    const isLastStep = pageName === PAGE_NAMES.OAUTH;
+    const titleKey = TITLE_KEYS[pageName];
+    const buttonKey = BUTTON_KEYS[pageName];
 
     let stepContent;
-    if (currentPageName === pageNames.INSTALL_BUNDLE) {
+    if (pageName === PAGE_NAMES.INSTALL_BUNDLE) {
         stepContent = (
             <View style={[styles.flex1, styles.mb3, styles.ph5]}>
                 <View>
@@ -58,7 +75,7 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect, isSandbo
                 </View>
             </View>
         );
-    } else if (currentPageName === pageNames.SETUP_CONTACTS) {
+    } else if (pageName === PAGE_NAMES.SETUP_CONTACTS) {
         stepContent = (
             <View style={[styles.flex1, styles.mb3, styles.ph5]}>
                 {[
@@ -79,7 +96,7 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect, isSandbo
             </View>
         );
     } else {
-        stepContent = <Text style={[styles.flex1, styles.mb3, styles.ph5, styles.mutedTextLabel]}>{translate(descriptionKey)}</Text>;
+        stepContent = <Text style={[styles.flex1, styles.mb3, styles.ph5, styles.mutedTextLabel]}>{translate('workspace.certinia.prerequisites.oauthDescription')}</Text>;
     }
 
     return (
