@@ -492,6 +492,7 @@ function SearchAutocompleteList({
     // reports merged into Onyx later do not shift the rows already visible in the top section.
     const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(EMPTY_RANK_MAP);
     const [prevAutocompleteQuery, setPrevAutocompleteQuery] = useState(autocompleteQueryValue);
+    const [prevSearchResultReportIDs, setPrevSearchResultReportIDs] = useState(searchResultReportIDs);
 
     const buildRankMap = (options: OptionData[]): Map<string, number> => {
         const rank = new Map<string, number>();
@@ -511,7 +512,14 @@ function SearchAutocompleteList({
         } else {
             setFrozenLocalRank(buildRankMap(recentReportsOptions));
         }
-    } else if (hasActiveSearchResults && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
+    }
+
+    if (prevSearchResultReportIDs !== searchResultReportIDs) {
+        setPrevSearchResultReportIDs(searchResultReportIDs);
+        if (hasActiveSearchResults && !searchResultReportIDs?.length) {
+            setFrozenLocalRank(buildRankMap(recentReportsOptions));
+        }
+    } else if (hasActiveSearchResults && !searchResultReportIDs?.length && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
         // Options hydrated after the rank was snapshotted as empty — recompute.
         setFrozenLocalRank(buildRankMap(recentReportsOptions));
     }
