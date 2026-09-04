@@ -1,3 +1,5 @@
+import type {PolicyConnectionName} from './Policy';
+
 /** Record of normalized policy vendors, indexed by externalID. */
 type PolicyVendors = Record<
     string,
@@ -8,11 +10,11 @@ type PolicyVendors = Record<
         /** The accounting-system display name. */
         name: string;
 
-        /** Whether the workspace preference permits this vendor to be selected. */
+        /** Whether the policy preference permits this vendor to be selected. */
         enabled: boolean;
 
         /** The active accounting connection that supplied this vendor. */
-        origin?: string;
+        origin?: PolicyConnectionName;
     }
 >;
 
