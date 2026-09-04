@@ -371,6 +371,9 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
         }
 
         for (const [key, val] of Object.entries(test)) {
+            if (val === null) {
+                continue;
+            }
             const expectedValueType = type[key];
             // val is a constant enum
             if (typeof expectedValueType === 'object') {
@@ -838,6 +841,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 thumbnail: 'string',
                 receiptTraceId: 'string',
                 receiptEnqueuedAt: 'number',
+                pageCount: 'number',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -1208,6 +1212,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 thumbnail: 'string',
                 receiptTraceId: 'string',
                 receiptEnqueuedAt: 'number',
+                pageCount: 'number',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
