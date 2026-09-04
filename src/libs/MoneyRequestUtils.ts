@@ -8,7 +8,7 @@ import type {ValueOf} from 'type-fest';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import replaceAllDigits from './replaceAllDigits';
 import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
-import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isExpenseUnreported} from './TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isCreatedMissing, isExpenseUnreported} from './TransactionUtils';
 import {getMerchantError} from './ValidationUtils';
 
 /**
@@ -244,8 +244,31 @@ function shouldShowConfirmationDate(shouldShowSmartScanFields: boolean, isDistan
     return shouldShowSmartScanFields || isDistanceRequest;
 }
 
+/**
+ * Whether the required amount is still missing on the money request confirmation surface.
+ * `isAmountSet` is only ever set by the manual flow (scan, per diem, distance and time populate the amount
+ * programmatically and never set it), so the manual gate is part of the predicate rather than of each call site.
+ * This is the single source of truth shared by the validation that raises `common.error.fieldRequired`, the effect
+ * that clears it once the field is filled, and the amount field that renders it inline, so the three never drift.
+ */
+function isConfirmationAmountMissing(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType' | 'isAmountSet'>>): boolean {
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet;
+}
+
+/**
+ * Whether the required date is still missing on the money request confirmation surface.
+ * Gating on the same `shouldShowConfirmationDate && !isReadOnly` condition that renders the inline date picker keeps
+ * validation, clearing and the UI in sync, and skips read-only/scan flows where the date is populated server-side.
+ * Shares the same drift-proofing purpose as `isConfirmationAmountMissing`.
+ */
+function isConfirmationDateMissing(transaction: OnyxEntry<Transaction>, shouldShowDate: boolean, isReadOnly: boolean): boolean {
+    return shouldShowDate && !isReadOnly && isCreatedMissing(transaction);
+}
+
 export {
     addLeadingZero,
+    isConfirmationAmountMissing,
+    isConfirmationDateMissing,
     shouldShowConfirmationDate,
     replaceAllDigits,
     stripCommaFromAmount,

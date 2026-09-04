@@ -4,7 +4,7 @@ import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {isConfirmationAmountMissing, isConfirmationDateMissing, isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {canSubmitPerDiemExpenseFromWorkspace, isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
@@ -15,7 +15,6 @@ import {
     getTag,
     getTaxAmount,
     hasTaxRateWithMatchingValue,
-    isCreatedMissing,
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
@@ -193,8 +192,7 @@ function useConfirmationValidation({
         if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        // isAmountSet only applies to manual expenses — scan, per diem, distance, and time set amount programmatically.
-        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet) {
+        if (isNewManualExpenseFlowEnabled && isConfirmationAmountMissing(transaction)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         if (
@@ -210,10 +208,8 @@ function useConfirmationValidation({
             return {errorKey: 'common.error.invalidAmount'};
         }
         // The date is an inline, clearable required field in the new manual flow for every type that shows it
-        // (manual, distance, time, invoice, ...). Block confirmation when the user cleared it. Gating on the same
-        // `shouldShowDate && !isReadOnly` condition that renders the inline picker keeps validation and UI in sync,
-        // and skips read-only/scan flows where the date is populated server-side.
-        if (isNewManualExpenseFlowEnabled && shouldShowDate && !isReadOnly && isCreatedMissing(transaction)) {
+        // (manual, distance, time, invoice, ...). Block confirmation when the user cleared it.
+        if (isNewManualExpenseFlowEnabled && isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';
