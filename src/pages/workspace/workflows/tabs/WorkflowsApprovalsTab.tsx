@@ -435,6 +435,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                                               workflow,
                                                               defaultWorkflowMembers: availableMembers,
                                                               usedApproverEmails,
+                                                              isFastEdit: true,
                                                           });
                                                           Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
                                                       }

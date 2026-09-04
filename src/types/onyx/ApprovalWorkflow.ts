@@ -163,6 +163,11 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     originalApprovers: Approver[];
 
     /**
+     * List of original members in the workflow, used to work out which members were removed by an edit
+     */
+    originalMembers?: Member[];
+
+    /**
      * Email of the member whose workflow this edit session belongs to.
      */
     memberEmail?: string;
@@ -171,6 +176,14 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      * Whether the user is in the initial creation flow
      */
     isInitialFlow?: boolean;
+
+    /**
+     * Whether this edit session was opened straight from the workflows page, skipping the edit page.
+     *
+     * The edit page is normally the only screen that saves a workflow, so a sub-page entered this way has
+     * to save the changes itself.
+     */
+    isFastEdit?: boolean;
 };
 
 export default ApprovalWorkflow;
