@@ -49,25 +49,28 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
         if (!policy) {
             return;
         }
+
+        // The bank account list has to be read before the writes below, not next to where it is used: a read that
+        // follows a write in the same tick resolves against the pre-write cache.
+        const shouldRouteToExistingBankAccount = isForcedToChangeCurrency && isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType);
+        const bankAccountList = shouldRouteToExistingBankAccount ? await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST) : undefined;
+
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         updateGeneralSettings(policy, policy?.name ?? '', item.currencyCode, getReviewWorkspaceSettingsTaskCompletion());
         clearCorpayBankAccountFields();
 
-        if (isForcedToChangeCurrency) {
-            if (isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType)) {
-                const bankAccountList = await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST);
-                const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, item.currencyCode, true).length > 0;
-                if (hasValidExistingAccounts) {
-                    Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id)));
-                    return;
-                }
-                navigateToBankAccountRoute({
-                    policyID: policy.id,
-                    backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id),
-                    navigationOptions: {forceReplace: true},
-                });
+        if (shouldRouteToExistingBankAccount) {
+            const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, item.currencyCode, true).length > 0;
+            if (hasValidExistingAccounts) {
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id)));
                 return;
             }
+            navigateToBankAccountRoute({
+                policyID: policy.id,
+                backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id),
+                navigationOptions: {forceReplace: true},
+            });
+            return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
