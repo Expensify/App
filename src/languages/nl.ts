@@ -2296,6 +2296,11 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Gemarkeerde span-namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interactie.klik, navigatie, ui.laden',
             showBranchNameInTitle: 'Toon branchnaam in titel van browser',
+            betaOverrides: 'Bèta-overrides',
+            betaOverridesDescription:
+                "Overrides gelden alleen voor dit apparaat en zijn alleen van invloed op frontendcontroles. Een bèta houdt een override alleen zolang die afwijkt van de bèta's van je account, dus door hem terug te zetten wordt de override verwijderd. 'Alle overrides resetten' herstelt de waarden van je account. Sommige bèta's worden ook door de backend bepaald en kunnen dus alsnog mislukken op verzoekniveau.",
+            resetAllOverrides: 'Alle overrides resetten',
+            overridden: 'Overschreven',
             qaAuth: 'QA-authenticatie (Cloudflare)',
             qaAuthRunProbe: 'Probe uitvoeren',
             qaAuthSession: 'QA-authsessie',

@@ -101,13 +101,21 @@ jest.mock('@components/MultifactorAuthentication/Context', () => ({
 }));
 
 const mockDismissModal = jest.fn();
+const mockNavigate = jest.fn();
 const mockGetActiveRoute = jest.fn(() => '');
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         getActiveRoute: () => mockGetActiveRoute(),
         dismissModal: (...args: unknown[]) => mockDismissModal(...args),
+        navigate: (...args: unknown[]) => mockNavigate(...args),
     },
+}));
+
+let mockIsProduction = false;
+jest.mock('@hooks/useEnvironment', () => ({
+    __esModule: true,
+    default: () => ({isProduction: mockIsProduction}),
 }));
 
 jest.mock('@userActions/Network', () => ({
@@ -322,5 +330,62 @@ describe('TestToolMenu biometrics', () => {
 
         expect(screen.queryByText(/troubleshootBiometricsStatus/)).toBeNull();
         expect(screen.queryByText('multifactorAuthentication.biometricsTest.test')).toBeNull();
+    });
+});
+
+describe('TestToolMenu beta overrides', () => {
+    beforeEach(() => {
+        setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+        mockIsProduction = false;
+    });
+
+    it('renders the beta overrides row outside production', () => {
+        // Given a build that is not production
+        // When the menu is rendered
+        render(<TestToolMenu />);
+
+        // Then the beta overrides row is offered
+        screen.getByText('initialSettingsPage.troubleshoot.betaOverrides');
+    });
+
+    it('hides the beta overrides row in production', () => {
+        // Given a production build
+        mockIsProduction = true;
+
+        // When the menu is rendered
+        render(<TestToolMenu />);
+
+        // Then the beta overrides row is not offered
+        expect(screen.queryByText('initialSettingsPage.troubleshoot.betaOverrides')).toBeNull();
+    });
+
+    it('dismisses the Test Tools modal before opening the overrides page', () => {
+        // Given The menu rendered inside the Test Tools modal
+        mockGetActiveRoute.mockReturnValue(ROUTES.TEST_TOOLS_MODAL.route);
+        render(<TestToolMenu />);
+
+        // When The row is pressed
+        fireEvent.press(screen.getByText('common.view'));
+
+        // Then The modal is dismissed first, because it and the overrides page cannot both be open
+        expect(mockDismissModal).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+    });
+
+    it('does not dismiss any modal when opened inline on the Troubleshoot page', () => {
+        // Given The menu rendered inline on the Troubleshoot page
+        mockGetActiveRoute.mockReturnValue(ROUTES.SETTINGS_TROUBLESHOOT);
+        render(<TestToolMenu />);
+
+        // When The row is pressed
+        fireEvent.press(screen.getByText('common.view'));
+
+        // Then Nothing is dismissed, because there is no modal open in this context
+        expect(mockDismissModal).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
     });
 });
