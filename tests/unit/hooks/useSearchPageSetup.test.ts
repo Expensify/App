@@ -14,7 +14,7 @@ let mockCurrentSearchResults: SearchResults | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchKey: 'expenses'}),
-    useSearchResultsContext: () => ({currentSearchResults: mockCurrentSearchResults, shouldUseLiveData: false}),
+    useSearchResultsContext: () => ({currentSearchResults: mockCurrentSearchResults}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
     useSearchSelectionContext: () => ({areAllMatchingItemsSelected: false}),
 }));

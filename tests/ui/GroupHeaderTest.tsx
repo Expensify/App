@@ -73,7 +73,6 @@ const baseState = {
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
     shouldShowFiltersBarLoading: false,
-    shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
     suggestedSearches: getEmptyObject<SearchStateContextValue['suggestedSearches']>(),
     sortedReportIDs: [],

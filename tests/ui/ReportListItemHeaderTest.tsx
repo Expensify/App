@@ -47,7 +47,6 @@ const mockSearchStateContext = {
     currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
     shouldShowFiltersBarLoading: false,
-    shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
     suggestedSearches: createMock<SearchStateContextValue['suggestedSearches']>({}),
     lastSearchType: undefined,

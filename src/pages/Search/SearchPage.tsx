@@ -40,7 +40,7 @@ function SearchPage({route}: SearchPageProps) {
     useDocumentTitle(translate('common.spend'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {lastSearchType, currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
+    const {lastSearchType, currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {setLastSearchType} = useSearchResultsActions();
@@ -58,7 +58,7 @@ function SearchPage({route}: SearchPageProps) {
     // commit one stale render before catching up. The reference equality check
     // (`currentSearchResults !== lastNonEmptySearchResults`) bounds the re-render loop to a single
     // extra pass — see https://react.dev/reference/react/useState#storing-information-from-previous-renders.
-    if (currentSearchResults?.data && !shouldUseLiveData && currentSearchResults !== lastNonEmptySearchResults) {
+    if (currentSearchResults?.data && currentSearchResults !== lastNonEmptySearchResults) {
         setLastNonEmptySearchResults(currentSearchResults);
     }
 
