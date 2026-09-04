@@ -1,4 +1,4 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -39,10 +39,14 @@ jest.mock('@src/CONFIG', () => ({
 }));
 
 const mockSetBetaOverride = jest.fn<void, [string, boolean]>();
+const mockClearBetaOverride = jest.fn<void, [string]>();
 const mockClearBetaOverrides = jest.fn<void, []>();
 jest.mock('@userActions/User', () => ({
     setBetaOverride: (beta: string, value: boolean): void => {
         mockSetBetaOverride(beta, value);
+    },
+    clearBetaOverride: (beta: string): void => {
+        mockClearBetaOverride(beta);
     },
     clearBetaOverrides: (): void => {
         mockClearBetaOverrides();
@@ -76,6 +80,7 @@ describe('BetaOverridesPage', () => {
     beforeEach(async () => {
         await Onyx.clear();
         mockSetBetaOverride.mockClear();
+        mockClearBetaOverride.mockClear();
         mockClearBetaOverrides.mockClear();
     });
 
@@ -94,7 +99,7 @@ describe('BetaOverridesPage', () => {
         expect(screen.queryByLabelText(CONST.BETAS.ALL)).toBeNull();
     });
 
-    it('pins the opposite value when a beta that is off is toggled', async () => {
+    it('stores an override when a beta that is off is toggled on', async () => {
         // Given An account without the beta, so its switch starts off
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
@@ -102,11 +107,11 @@ describe('BetaOverridesPage', () => {
         // When The switch is toggled
         fireEvent.press(screen.getByRole(CONST.ROLE.SWITCH, {name: CONST.BETAS.DEFAULT_ROOMS}));
 
-        // Then The opposite value is pinned, so the backend cannot change it back later in the session
+        // Then The override is stored, since it now differs from the account
         await waitFor(() => expect(mockSetBetaOverride).toHaveBeenCalledWith(CONST.BETAS.DEFAULT_ROOMS, true));
     });
 
-    it('pins false when a beta that is on is toggled', async () => {
+    it('stores an override when a beta that is on is toggled off', async () => {
         // Given An account with the beta, so its switch starts on
         await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.DEFAULT_ROOMS]);
         renderBetaOverridesPage();
@@ -115,20 +120,99 @@ describe('BetaOverridesPage', () => {
         // When The switch is toggled
         fireEvent.press(screen.getByRole(CONST.ROLE.SWITCH, {name: CONST.BETAS.DEFAULT_ROOMS}));
 
-        // Then False is pinned rather than the override being dropped, so toggling back is still an explicit choice
+        // Then The override is stored, since it now differs from the account
         await waitFor(() => expect(mockSetBetaOverride).toHaveBeenCalledWith(CONST.BETAS.DEFAULT_ROOMS, false));
     });
 
-    it('marks only the betas that have an override stored', async () => {
-        // Given A single beta with an override stored
+    it('drops the override when a beta is toggled back to the value the account has', async () => {
+        // Given An account without the beta and an override pinning it on
+        await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: true});
+        renderBetaOverridesPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When The switch is toggled back
+        fireEvent.press(screen.getByRole(CONST.ROLE.SWITCH, {name: CONST.BETAS.DEFAULT_ROOMS}));
+
+        // Then The override is dropped rather than stored, so only betas that differ from the account keep one
+        await waitFor(() => expect(mockClearBetaOverride).toHaveBeenCalledWith(CONST.BETAS.DEFAULT_ROOMS));
+        expect(mockSetBetaOverride).not.toHaveBeenCalled();
+    });
+
+    it('stops badging an override the account has caught up with', async () => {
+        // Given An override forcing a beta on that the account has since been granted
+        await Onyx.multiSet({
+            [ONYXKEYS.BETA_OVERRIDES]: {[CONST.BETAS.DEFAULT_ROOMS]: true},
+            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+        });
+
+        // When The page is opened
+        renderBetaOverridesPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Nothing is badged, since the stored value no longer differs from the account
+        expect(screen.queryByText('Overridden')).toBeNull();
+    });
+
+    it('keeps badging a beta forced off while the account betas are unknown', async () => {
+        // Given An override forcing a beta off before the account betas have loaded, which Onyx.clear does not preserve
         await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: false});
 
         // When The page is opened
         renderBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then Only that beta is badged, so a pinned beta is distinguishable from one following the backend
+        // Then It stays badged, since unknown account betas must not be read as every beta being off
+        expect(within(screen.getByTestId(`row-${CONST.BETAS.DEFAULT_ROOMS}`)).getByText('Overridden')).toBeOnTheScreen();
+    });
+
+    it('badges a beta forced off that the account grants', async () => {
+        // Given An account with the beta and an override forcing it off
+        await Onyx.multiSet({
+            [ONYXKEYS.BETA_OVERRIDES]: {[CONST.BETAS.DEFAULT_ROOMS]: false},
+            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+        });
+
+        // When The page is opened
+        renderBetaOverridesPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then It is badged and off, since a false override is load-bearing when the account grants the beta
+        expect(screen.getByRole(CONST.ROLE.SWITCH, {name: CONST.BETAS.DEFAULT_ROOMS, checked: false})).toBeOnTheScreen();
+        expect(within(screen.getByTestId(`row-${CONST.BETAS.DEFAULT_ROOMS}`)).getByText('Overridden')).toBeOnTheScreen();
+    });
+
+    it('drops the override when a beta the account grants is toggled back on', async () => {
+        // Given An account with the beta and an override forcing it off
+        await Onyx.multiSet({
+            [ONYXKEYS.BETA_OVERRIDES]: {[CONST.BETAS.DEFAULT_ROOMS]: false},
+            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+        });
+        renderBetaOverridesPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When The switch is toggled back on
+        fireEvent.press(screen.getByRole(CONST.ROLE.SWITCH, {name: CONST.BETAS.DEFAULT_ROOMS}));
+
+        // Then The override is dropped rather than rewritten to true
+        await waitFor(() => expect(mockClearBetaOverride).toHaveBeenCalledWith(CONST.BETAS.DEFAULT_ROOMS));
+        expect(mockSetBetaOverride).not.toHaveBeenCalled();
+    });
+
+    it('marks only the betas that differ from the account', async () => {
+        // Given Two stored overrides, one the account has caught up with and one it has not
+        await Onyx.multiSet({
+            [ONYXKEYS.BETA_OVERRIDES]: {[CONST.BETAS.DEFAULT_ROOMS]: true, [CONST.BETAS.ASAP_SUBMIT]: true},
+            [ONYXKEYS.BETAS]: [CONST.BETAS.ASAP_SUBMIT],
+        });
+
+        // When The page is opened
+        renderBetaOverridesPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Only the differing beta is badged, so the badge tracks the account rather than the stored key
         expect(screen.getAllByText('Overridden').length).toBe(1);
+        expect(screen.getByLabelText(CONST.BETAS.DEFAULT_ROOMS)).toBeOnTheScreen();
+        expect(within(screen.getByTestId(`row-${CONST.BETAS.DEFAULT_ROOMS}`)).getByText('Overridden')).toBeOnTheScreen();
     });
 
     it('clears every override when reset is pressed', async () => {

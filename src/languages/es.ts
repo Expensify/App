@@ -2229,7 +2229,7 @@ const translations: TranslationDeepObject<typeof en> = {
             showBranchNameInTitle: 'Mostrar nombre de rama en el título del navegador',
             betaOverrides: 'Anulaciones de betas',
             betaOverridesDescription:
-                'Las anulaciones solo se aplican a este dispositivo y solo afectan a las comprobaciones del frontend. Al activarla o desactivarla, una beta queda fijada en ese valor hasta que la restablezcas. «Restablecer todas las anulaciones» recupera los valores de tu cuenta. Algunas betas también están controladas por el backend, así que pueden fallar a nivel de solicitud.',
+                'Las anulaciones solo se aplican a este dispositivo y solo afectan a las comprobaciones del frontend. Una beta conserva una anulación solo mientras difiere de las betas de tu cuenta, por lo que al volver a cambiarla se elimina la anulación. «Restablecer todas las anulaciones» recupera los valores de tu cuenta. Algunas betas también están controladas por el backend, así que pueden fallar a nivel de solicitud.',
             resetAllOverrides: 'Restablecer todas las anulaciones',
             overridden: 'Anulada',
             qaAuth: 'Autenticación QA (Cloudflare)',

@@ -1396,6 +1396,10 @@ function setBetaOverride(beta: Beta, value: boolean) {
     Onyx.merge(ONYXKEYS.BETA_OVERRIDES, {[beta]: value});
 }
 
+function clearBetaOverride(beta: Beta) {
+    Onyx.merge(ONYXKEYS.BETA_OVERRIDES, {[beta]: null});
+}
+
 function clearBetaOverrides() {
     Onyx.set(ONYXKEYS.BETA_OVERRIDES, null);
 }
@@ -2023,6 +2027,7 @@ export {
     setIsDebugModeEnabled,
     setShouldShowBranchNameInTitle,
     setBetaOverride,
+    clearBetaOverride,
     clearBetaOverrides,
     lockAccount,
     requestUnlockAccount,
