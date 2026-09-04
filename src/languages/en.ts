@@ -7,7 +7,7 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
-import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './params';
+import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams, NewRulePromptUnsupportedParams} from './params';
 import type {
     AllConnectionName,
     ConnectionName,
@@ -8269,6 +8269,18 @@ const translations = {
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
                 createAgentRule: 'Agent rule',
                 createAgentRuleDescription: 'Describe flexible rules that run when you need.',
+                createRuleHeadline: 'Create a new rule',
+                describeRule: 'Describe your rule and Concierge will build it',
+                buildManually: 'Build rule manually',
+                createAgentRuleInstead: 'Create an agent rule instead',
+                promptErrors: {
+                    unsupported: ({area}: NewRulePromptUnsupportedParams) =>
+                        area
+                            ? `${area} rules aren't supported yet — we're working on it. Please try a different rule for now.`
+                            : "That rule isn't supported yet — we're working on it. Please try a different rule for now.",
+                    unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',
+                    multipleRules: 'One rule at a time, please — try describing a single rule, like: block retail purchases on all cards.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',

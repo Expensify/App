@@ -1,3 +1,4 @@
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,9 +7,16 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setDraftValues} from '@libs/actions/FormActions';
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
+import {setDraftFlagForReviewRule, setDraftMerchantRule, setDraftRequireFieldsRule, setDraftSpendRule} from '@libs/actions/User';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,13 +26,21 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import variables from '@styles/variables';
 
+import {clearNewRulePromptError, clearGeneratedRule, generateRule, setNewRulePromptError} from '@userActions/Policy/Rules';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
+import type {GeneratedRule} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+
+import RulesNewPromptForm from './RulesNewPromptForm';
 
 type RulesNewPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>
@@ -50,6 +66,128 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt', 'AiBot']);
     const isCategoryScopedCreate = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW || !!categoryName;
+
+    // The category-scoped flow already knows the category and offers fewer types, so it opens on the list.
+    const canDescribeRule = isRulesRevampEnabled && !isCategoryScopedCreate;
+    const [shouldShowRuleTypes, setShouldShowRuleTypes] = useState(!canDescribeRule);
+    const [generationID, setGenerationID] = useState<string>();
+
+    const [submittedPrompt, setSubmittedPrompt] = useState<string>();
+
+    // Set when the deterministic rule types cannot express the prompt, which an agent rule still can.
+    const [canOfferAgentRule, setCanOfferAgentRule] = useState(false);
+    const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const policy = usePolicy(policyID);
+
+    // Fetch categories if they're not loaded (e.g. after cache clear), so a generated rule can name one.
+    const fetchPolicyCategories = () => {
+        if (!policy?.areCategoriesEnabled || policyCategories) {
+            return;
+        }
+        openPolicyCategoriesPage(policyID);
+    };
+
+    useNetwork({onReconnect: fetchPolicyCategories});
+
+    useFocusEffect(() => {
+        fetchPolicyCategories();
+    });
+
+    const seedDraftAndNavigate = (rule: GeneratedRule) => {
+        const {category, ...ruleValues} = rule.rule ?? {};
+
+        // Concierge answers with the category name the admin typed, so it only seeds a draft once it matches a category they can pick.
+        const matchedCategory = category
+            ? Object.values(policyCategories ?? {}).find((policyCategory) => policyCategory.enabled && getDecodedCategoryName(policyCategory.name) === getDecodedCategoryName(category))
+            : undefined;
+        const draft: NonNullable<GeneratedRule['rule']> = matchedCategory ? {...ruleValues, category: matchedCategory.name} : ruleValues;
+
+        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS) {
+            setDraftRequireFieldsRule(draft);
+            Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, undefined, true));
+            return;
+        }
+
+        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW) {
+            setDraftFlagForReviewRule(draft);
+            Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, undefined, true));
+            return;
+        }
+
+        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND) {
+            setDraftSpendRule(draft);
+            Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+            return;
+        }
+
+        if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS) {
+            setDraftMerchantRule(draft);
+            Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+            return;
+        }
+
+        setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
+    };
+
+    const applyGeneratedRule = (rule: GeneratedRule) => {
+        setGenerationID(undefined);
+        clearGeneratedRule();
+
+        if (rule.state === CONST.GENERATED_RULE.STATE.RULE) {
+            seedDraftAndNavigate(rule);
+            return;
+        }
+
+        if (rule.state === CONST.GENERATED_RULE.STATE.UNSUPPORTED) {
+            setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unsupported', {area: rule.unsupportedArea ?? ''}));
+            setCanOfferAgentRule(true);
+            return;
+        }
+
+        if (rule.state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES) {
+            setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.multipleRules'));
+            return;
+        }
+
+        if (rule.state === CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE) {
+            setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
+            return;
+        }
+
+        setNewRulePromptError(translate('common.genericErrorMessage'));
+    };
+
+    useEffect(() => {
+        if (!generationID || generatedRule?.generationID !== generationID) {
+            return;
+        }
+        applyGeneratedRule(generatedRule);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- applyGeneratedRule reads only what it is given
+    }, [generationID, generatedRule]);
+
+    const describeRule = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM>) => {
+        const prompt = values.prompt.trim();
+        clearNewRulePromptError();
+        clearGeneratedRule();
+        setCanOfferAgentRule(false);
+        setSubmittedPrompt(prompt);
+        setGenerationID(generateRule(policyID, prompt));
+    };
+
+    // The prompt carries over so the admin does not retype it.
+    const createAgentRuleFromPrompt = (prompt: string) => {
+        setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[AGENT_RULE_INPUT_IDS.PROMPT]: prompt});
+        Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID));
+    };
+
+    const handleBackButtonPress = () => {
+        if (canDescribeRule && shouldShowRuleTypes) {
+            setShouldShowRuleTypes(false);
+            return;
+        }
+        Navigation.goBack();
+    };
 
     const newRuleOptions: NewRuleOption[] = [
         {
@@ -125,31 +263,44 @@ function RulesNewPage({route}: RulesNewPageProps) {
             <ScreenWrapper
                 testID="RulesNewPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.rules.newRule.title')} />
-                <ScrollView
-                    style={[styles.flexGrow1]}
-                    addBottomSafeAreaPadding
-                >
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
-                    <View style={styles.mh5}>
-                        {visibleNewRuleOptions.map((option) => (
-                            <MenuItem
-                                key={option.key}
-                                icon={option.icon}
-                                title={option.title}
-                                description={option.description}
-                                shouldShowRightIcon
-                                onPress={option.onPress}
-                                displayInDefaultIconColor
-                                iconWidth={variables.iconSizeExtraLarge}
-                                iconHeight={variables.iconSizeExtraLarge}
-                                wrapperStyle={styles.rulesNewMenuItem}
-                                sentryLabel={option.sentryLabel}
-                            />
-                        ))}
-                    </View>
-                </ScrollView>
+                <HeaderWithBackButton
+                    title={translate('workspace.rules.newRule.title')}
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                {canDescribeRule && !shouldShowRuleTypes ? (
+                    <RulesNewPromptForm
+                        onSubmit={describeRule}
+                        onBuildManually={() => setShouldShowRuleTypes(true)}
+                        onCreateAgentRule={isCustomAgentBetaEnabled && canOfferAgentRule && submittedPrompt ? () => createAgentRuleFromPrompt(submittedPrompt) : undefined}
+                        isLoading={!!generationID}
+                    />
+                ) : (
+                    <ScrollView
+                        style={[styles.flexGrow1]}
+                        addBottomSafeAreaPadding
+                    >
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
+                        <View style={styles.mh5}>
+                            {visibleNewRuleOptions.map((option) => (
+                                <MenuItem
+                                    key={option.key}
+                                    icon={option.icon}
+                                    title={option.title}
+                                    description={option.description}
+                                    shouldShowRightIcon
+                                    onPress={option.onPress}
+                                    displayInDefaultIconColor
+                                    iconWidth={variables.iconSizeExtraLarge}
+                                    iconHeight={variables.iconSizeExtraLarge}
+                                    wrapperStyle={styles.rulesNewMenuItem}
+                                    sentryLabel={option.sentryLabel}
+                                />
+                            ))}
+                        </View>
+                    </ScrollView>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

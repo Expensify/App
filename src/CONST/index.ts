@@ -531,6 +531,23 @@ const CONST = {
         MAX_LENGTH: 83,
     },
 
+    GENERATED_RULE: {
+        PROMPT_MAX_LENGTH: 6000,
+        STATE: {
+            RULE: 'rule',
+            UNSUPPORTED: 'unsupported',
+            MULTIPLE_RULES: 'multipleRules',
+            UNINTELLIGIBLE: 'unintelligible',
+            FAILED: 'failed',
+        },
+        RULE_TYPE: {
+            REQUIRE_FIELDS: 'requireFields',
+            FLAG_FOR_REVIEW: 'flagForReview',
+            RESTRICT_CARD_SPEND: 'restrictCardSpend',
+            EXPENSE_DEFAULTS: 'expenseDefaults',
+        },
+    },
+
     EXPORT_DOWNLOAD: {
         STATE: {
             PREPARING: 'preparing',
@@ -9335,6 +9352,8 @@ const CONST = {
                 NEW_RULE_MENU_ITEM_REQUIRE_FIELDS: 'WorkspaceRules-NewRuleMenuItem-RequireFields',
                 NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS: 'WorkspaceRules-NewRuleMenuItem-ApplyExpenseDefaults',
                 NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE: 'WorkspaceRules-NewRuleMenuItem-CreateAgentRule',
+                NEW_RULE_BUILD_MANUALLY: 'WorkspaceRules-NewRule-BuildManually',
+                NEW_RULE_CREATE_AGENT_RULE: 'WorkspaceRules-NewRule-CreateAgentRule',
                 REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
                 REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
                 FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',

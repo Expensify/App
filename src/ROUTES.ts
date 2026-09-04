@@ -37,6 +37,17 @@ function getOptionalCategoryNameQuery(categoryName?: string): string {
     return categoryName ? `?categoryName=${encodeURIComponent(categoryName)}` : '';
 }
 
+function getRuleCreateQuery(categoryName?: string, isPrefilled?: boolean): string {
+    const params = [];
+    if (categoryName) {
+        params.push(`categoryName=${encodeURIComponent(categoryName)}`);
+    }
+    if (isPrefilled) {
+        params.push('isPrefilled=true');
+    }
+    return params.length ? `?${params.join('&')}` : '';
+}
+
 function getOptionalIsCategoryLockedQuery(isCategoryLocked?: boolean): string {
     return isCategoryLocked ? '?isCategoryLocked=true' : '';
 }
@@ -3790,7 +3801,9 @@ const ROUTES = {
     },
     RULES_REQUIRE_FIELDS_RULE_NEW: {
         route: 'workspaces/:policyID/rules/require-fields-rules/new',
-        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/require-fields-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
+        /** @param isPrefilled the draft is already seeded, so the page must not reset it on mount */
+        getRoute: (policyID: string, categoryName?: string, isPrefilled?: boolean) =>
+            `workspaces/${policyID}/rules/require-fields-rules/new${getRuleCreateQuery(categoryName, isPrefilled)}` as const,
     },
     RULES_REQUIRE_FIELDS_RULE_EDIT: {
         route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName',
@@ -3807,7 +3820,9 @@ const ROUTES = {
     },
     RULES_FLAG_FOR_REVIEW_RULE_NEW: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new',
-        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
+        /** @param isPrefilled the draft is already seeded, so the page must not reset it on mount */
+        getRoute: (policyID: string, categoryName?: string, isPrefilled?: boolean) =>
+            `workspaces/${policyID}/rules/flag-for-review-rules/new${getRuleCreateQuery(categoryName, isPrefilled)}` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_EDIT: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName',

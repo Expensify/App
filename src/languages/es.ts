@@ -8265,6 +8265,18 @@ ${reportName}`,
                 requireFieldsDescription: 'Exige campos específicos de gasto o renuncia a exigirlos.',
                 createAgentRule: 'Regla de agente',
                 createAgentRuleDescription: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
+                createRuleHeadline: 'Crear una nueva regla',
+                describeRule: 'Describe tu regla y Concierge la creará',
+                buildManually: 'Crear la regla manualmente',
+                createAgentRuleInstead: 'Crear una regla de agente en su lugar',
+                promptErrors: {
+                    unsupported: ({area}) =>
+                        area
+                            ? `Las reglas de ${area} aún no son compatibles: estamos trabajando en ello. Prueba con otra regla por ahora.`
+                            : 'Esa regla aún no es compatible: estamos trabajando en ello. Prueba con otra regla por ahora.',
+                    unintelligible: 'Prueba a formular tu regla así: si los gastos superan los $100, exige un recibo.',
+                    multipleRules: 'Una regla a la vez, por favor. Prueba a describir una sola regla, como: bloquear compras en comercios minoristas en todas las tarjetas.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',

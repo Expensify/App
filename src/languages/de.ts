@@ -8313,6 +8313,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
                 createAgentRule: 'Agentenregel',
                 createAgentRuleDescription: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
+                createRuleHeadline: 'Neue Regel erstellen',
+                describeRule: 'Beschreibe deine Regel und Concierge erstellt sie',
+                buildManually: 'Regel manuell erstellen',
+                createAgentRuleInstead: 'Stattdessen eine Agent-Regel erstellen',
+                promptErrors: {
+                    unsupported: ({area}) =>
+                        area
+                            ? `${area}-Regeln werden noch nicht unterstützt – wir arbeiten daran. Bitte versuche vorerst eine andere Regel.`
+                            : 'Diese Regel wird noch nicht unterstützt – wir arbeiten daran. Bitte versuche vorerst eine andere Regel.',
+                    unintelligible: 'Formuliere deine Regel etwa so: Wenn Ausgaben über 100 $ liegen, ist ein Beleg erforderlich.',
+                    multipleRules: 'Bitte eine Regel nach der anderen – beschreibe eine einzelne Regel, z. B.: Einzelhandelskäufe auf allen Karten blockieren.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',

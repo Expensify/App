@@ -8162,6 +8162,18 @@ ${reportName}`,
                 requireFieldsDescription: '特定の経費項目フィールドを必須にするか、必須条件を免除します。',
                 createAgentRule: 'エージェントルール',
                 createAgentRuleDescription: '必要なときに実行できる柔軟なルールを設定します。',
+                createRuleHeadline: '新しいルールを作成',
+                describeRule: 'ルールを説明すると、Conciergeが作成します',
+                buildManually: '手動でルールを作成',
+                createAgentRuleInstead: '代わりにエージェントルールを作成',
+                promptErrors: {
+                    unsupported: ({area}) =>
+                        area
+                            ? `${area}のルールはまだ対応していません。現在対応を進めています。ほかのルールをお試しください。`
+                            : 'そのルールはまだ対応していません。現在対応を進めています。ほかのルールをお試しください。',
+                    unintelligible: '「経費が100ドルを超える場合は領収書を必須にする」のように書いてみてください。',
+                    multipleRules: '一度に1つのルールのみです。「すべてのカードで小売店での購入をブロックする」のように、1つのルールを説明してください。',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: '種類',

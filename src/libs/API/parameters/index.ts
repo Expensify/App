@@ -428,6 +428,7 @@ export type {default as SetPolicyExpenseMaxAmountNoItemizedReceipt} from './SetP
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
 export type {default as AddPolicyAgentRuleParams} from './AddPolicyAgentRuleParams';
+export type {default as GenerateRuleParams} from './GenerateRuleParams';
 export type {default as UpdatePolicyAgentRuleParams} from './UpdatePolicyAgentRuleParams';
 export type {default as DeletePolicyAgentRuleParams} from './DeletePolicyAgentRuleParams';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';

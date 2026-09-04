@@ -89,6 +89,7 @@ import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GeneratedRule from './GeneratedRule';
 import type GovernmentMileageRate from './GovernmentMileageRate';
 import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
@@ -247,6 +248,7 @@ export type {
     Domain,
     Download,
     ExportDownload,
+    GeneratedRule,
     DuplicateWorkspace,
     CopyPolicySettingsNVP,
     CopyPolicySettings,
