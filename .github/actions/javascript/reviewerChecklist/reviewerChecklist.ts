@@ -182,7 +182,7 @@ async function hasStandingInternalApproval(orgToken: string): Promise<boolean> {
 hasSuccessfulChecklistRun()
     .then((hasPassed) => {
         if (hasPassed) {
-            console.log('PR Reviewer Checklist has already passed for this commit, so no further validation is needed.');
+            console.log('PR Reviewer Checklist has already passed for this commit, so no further validation is needed');
             return;
         }
         return hasStandingInternalApproval(core.getInput('OS_BOTIFY_TOKEN'));
