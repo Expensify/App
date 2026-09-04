@@ -66002,7 +66002,7 @@ async function run() {
     return;
   }
   const apiKey = getInput("PROPOSAL_POLICE_API_KEY", { required: true });
-  const isTrustedCommenter = getInput("TRUSTED_COMMENTER") === "true";
+  const isTrustedCommenter = getInput("IS_TRUSTED_COMMENTER") === "true";
   const openAI = new OpenAIUtils_default(apiKey);
   const issueNumber = payload.issue?.number ?? -1;
   const commentID = payload.comment?.id ?? -1;

@@ -52,4 +52,4 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PROPOSAL_POLICE_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
-          TRUSTED_COMMENTER: ${{ steps.commenterTrust.outputs.TRUSTED }}
+          IS_TRUSTED_COMMENTER: ${{ steps.commenterTrust.outputs.TRUSTED }}

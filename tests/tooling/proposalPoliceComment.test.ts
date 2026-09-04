@@ -141,7 +141,7 @@ describe('proposalPoliceComment', () => {
     beforeEach(() => {
         resetMocks();
         process.env.INPUT_PROPOSAL_POLICE_API_KEY = 'test-api-key';
-        process.env.INPUT_TRUSTED_COMMENTER = 'false';
+        process.env.INPUT_IS_TRUSTED_COMMENTER = 'false';
     });
 
     it('does nothing at all for a bot-authored comment', async () => {
@@ -229,7 +229,7 @@ describe('proposalPoliceComment', () => {
     });
 
     it('does not minimize a content-free claim from a trusted commenter', async () => {
-        process.env.INPUT_TRUSTED_COMMENTER = 'true';
+        process.env.INPUT_IS_TRUSTED_COMMENTER = 'true';
         setPayload({action: 'created', comment: makeComment({body: 'I can take this.'})});
         mockPromptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'NOT_AN_ATTEMPT'}), responseID: 'resp_intent'});
 

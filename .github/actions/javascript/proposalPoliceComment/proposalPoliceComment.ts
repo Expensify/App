@@ -151,7 +151,7 @@ async function run() {
     }
 
     const apiKey = getInput('PROPOSAL_POLICE_API_KEY', {required: true});
-    const isTrustedCommenter = getInput('TRUSTED_COMMENTER') === 'true';
+    const isTrustedCommenter = getInput('IS_TRUSTED_COMMENTER') === 'true';
     const openAI = new OpenAIUtils(apiKey);
 
     const issueNumber = payload.issue?.number ?? -1;
