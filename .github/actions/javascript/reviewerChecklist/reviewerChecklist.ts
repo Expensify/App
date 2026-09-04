@@ -16,6 +16,30 @@ const ENGINEERING_TEAM_SLUG = 'engineering';
 
 // A reviewer's standing is their latest review in one of these states; plain "commented" reviews don't change it.
 const DECISIVE_REVIEW_STATES = new Set(['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED']);
+const REVIEWER_CHECKLIST_WORKFLOW = 'reviewerChecklist.yml';
+
+async function hasSuccessfulChecklistRun(): Promise<boolean> {
+    const headSHA = github.context.payload.pull_request?.head.sha;
+    const currentRunID = Number(process.env.GITHUB_RUN_ID);
+    if (!headSHA || !Number.isInteger(currentRunID)) {
+        return false;
+    }
+
+    const {owner, repo} = github.context.repo;
+    const {data: workflowRuns} = await GitHubUtils.octokit.actions.listWorkflowRuns({
+        owner,
+        repo,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        workflow_id: REVIEWER_CHECKLIST_WORKFLOW,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        head_sha: headSHA,
+        status: 'success',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100,
+    });
+
+    return workflowRuns.workflow_runs.some((workflowRun) => workflowRun.id !== currentRunID);
+}
 
 function getNumberOfItemsFromReviewerChecklist() {
     console.log('Getting the number of items in the reviewer checklist...');
@@ -140,8 +164,18 @@ async function hasStandingInternalApproval(orgToken: string): Promise<boolean> {
     return false;
 }
 
-hasStandingInternalApproval(core.getInput('OS_BOTIFY_TOKEN'))
+hasSuccessfulChecklistRun()
+    .then((hasPassed) => {
+        if (hasPassed) {
+            console.log('PR Reviewer Checklist has already passed for this commit, so no further validation is needed.');
+            return;
+        }
+        return hasStandingInternalApproval(core.getInput('OS_BOTIFY_TOKEN'));
+    })
     .then((isApproved) => {
+        if (isApproved === undefined) {
+            return;
+        }
         if (isApproved) {
             console.log('PR has a standing approval from an internal Expensify engineer, so the reviewer checklist is not required 🎉');
             return;
