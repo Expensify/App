@@ -1,13 +1,13 @@
 ---
 title: Merchant Rules
 description: Learn how to enable and use Merchant Rules to automatically apply consistent expense coding based on the expense merchant name.
-keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet]
+keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet, merchant rule vendor, set vendor by merchant, supplier rule Xero]
 internalScope: Audience is Workspace Admins on the Control plan. Covers creating, using, and bulk-importing Merchant Rules to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
 ---
 
 # Merchant Rules
 
-Merchant Rules let Workspace Admins automatically update expense fields when an expense matches a merchant name. Use them to apply consistent categories, tags, merchant names, tax settings, and other expense fields across expenses. 
+Merchant Rules let Workspace Admins automatically update expense fields when an expense matches a merchant name. Use them to apply consistent categories, tags, merchant names, tax settings, vendors, and other expense fields across expenses. 
 
 Merchant Rules are only available after **Rules** are enabled for the workspace. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#enable-workspace-rules).
 
@@ -92,6 +92,7 @@ Merchant Rules can help you:
 - Apply consistent tags (for example, Staples → Office)
 - Mark expenses as reimbursable or non-reimbursable (for example, Slack → Non-reimbursable)
 - Apply descriptions or tax settings automatically
+- Set the **Vendor** used when non-reimbursable company card expenses export to a connected accounting integration (for example, Uber → a specific vendor)
 
 ![Image of an expense with Merchant Rule applied]({{site.url}}/assets/images/ExpensiHelp-MerchantRules-2.png){:width="100%"}
 
@@ -143,4 +144,13 @@ Merchant Rules can update:
    - Reimbursable status
    - Billable status
    - Tax
+   - Vendor (available only on workspaces connected to QuickBooks Online, Sage Intacct, or Xero)
+
+## How does the Vendor field on a Merchant Rule work?
+
+If your workspace is connected to QuickBooks Online, Sage Intacct, or Xero, Merchant Rules include a **Vendor** field. On Xero workspaces, this field is labeled **Supplier**.
+
+When you set a **Vendor** on a Merchant Rule, Expensify assigns that vendor to matching non-reimbursable company card expenses before they export to your accounting integration. This takes priority over automatic vendor matching. Learn more about [vendor matching for QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online).
+
+To set a vendor on a Merchant Rule, add or edit a rule, select the **Vendor** field (or **Supplier** on Xero), choose a vendor from the list, and select **Save rule**.
 
