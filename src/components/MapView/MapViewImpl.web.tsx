@@ -63,6 +63,7 @@ function MapViewImpl({
     const hasAlternateDirection = !!alternateDirection?.coordinates?.length;
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
 
     const {isOffline} = useNetwork();
     const {translate, preferredLocale} = useLocalize();
@@ -199,26 +200,30 @@ function MapViewImpl({
     }, [mapRef]);
 
     // cspell:ignore styledata
-    // Keep the map labels in the user's preferred app locale, reapplying whenever the map or locale changes.
+    // Keep the map labels in the user's preferred app locale and its disputed borders drawn from the user's
+    // own worldview, reapplying whenever the map, the locale or the country changes.
     useEffect(() => {
         if (!mapRef) {
             return;
         }
 
         const map = mapRef.getMap();
-        const applyLanguage = () => map.setLanguage(utils.getMapboxLanguage(preferredLocale));
+        const applyLocalization = () => {
+            map.setLanguage(utils.getMapboxLanguage(preferredLocale));
+            map.setWorldview(utils.getMapboxWorldview(countryByIp));
+        };
 
         if (map.isStyleLoaded()) {
-            applyLanguage();
+            applyLocalization();
             return;
         }
 
-        // The style must be loaded before labels can be localized, so defer until it is ready.
-        map.once('styledata', applyLanguage);
+        // The style must be loaded before labels and borders can be localized, so defer until it is ready.
+        map.once('styledata', applyLocalization);
         return () => {
-            map.off('styledata', applyLanguage);
+            map.off('styledata', applyLocalization);
         };
-    }, [mapRef, preferredLocale]);
+    }, [mapRef, preferredLocale, countryByIp]);
 
     useImperativeHandle(
         ref,

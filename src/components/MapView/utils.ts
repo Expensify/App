@@ -20,6 +20,25 @@ function getMapboxLanguage(locale: Locale | undefined): string | undefined {
     return LOCALE_TO_MAPBOX_LANGUAGE[locale] ?? locale;
 }
 
+// cspell:ignore tileset
+/**
+ * Worldviews the Mapbox Streets tileset behind our map style ships boundaries for.
+ * A worldview decides which side of a disputed border is drawn, so Mapbox only defines one for the
+ * handful of countries that dispute borders; every other country shares Mapbox's default worldview.
+ */
+const MAPBOX_WORLDVIEWS = new Set<string>(['CN', 'IN', 'JP', 'US']);
+
+/**
+ * Maps the user's country to the Mapbox worldview used to draw disputed borders.
+ * Returns undefined for countries Mapbox has no dedicated worldview for, which leaves the style's default in place.
+ */
+function getMapboxWorldview(country: string | undefined): string | undefined {
+    if (!country || !MAPBOX_WORLDVIEWS.has(country)) {
+        return undefined;
+    }
+    return country;
+}
+
 /** A geographic point as a plain longitude/latitude pair. Mapbox's `LngLat` became a class in mapbox-gl 3.x, but these helpers only read `.lng`/`.lat`, so a literal shape is all that's needed. */
 type LngLatLiteral = {lng: number; lat: number};
 
@@ -262,4 +281,5 @@ export default {
     convertSegmentedRouteToSingleSegmentRoute,
     getCoordinatesFromAllDirections,
     getMapboxLanguage,
+    getMapboxWorldview,
 };

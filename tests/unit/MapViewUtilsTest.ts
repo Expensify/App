@@ -198,4 +198,23 @@ describe('MapView utils', () => {
             expect(utils.getMapboxLanguage(undefined)).toBeUndefined();
         });
     });
+
+    describe('getMapboxWorldview', () => {
+        it('returns the country when Mapbox defines a worldview for it', () => {
+            expect(utils.getMapboxWorldview('US')).toBe('US');
+            expect(utils.getMapboxWorldview('CN')).toBe('CN');
+            expect(utils.getMapboxWorldview('IN')).toBe('IN');
+            expect(utils.getMapboxWorldview('JP')).toBe('JP');
+        });
+
+        it('returns undefined for countries that share the default worldview', () => {
+            expect(utils.getMapboxWorldview('DE')).toBeUndefined();
+            expect(utils.getMapboxWorldview('AU')).toBeUndefined();
+        });
+
+        it('returns undefined when the country is unknown or empty', () => {
+            expect(utils.getMapboxWorldview(undefined)).toBeUndefined();
+            expect(utils.getMapboxWorldview('')).toBeUndefined();
+        });
+    });
 });
