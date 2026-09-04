@@ -34,6 +34,8 @@ import {
     haveWaypointAddressesChanged,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
     isOnHold,
     isScanning,
     removeTransactionFromDuplicateTransactionViolation,
@@ -1716,6 +1718,10 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     if (shouldFlagMerchantPending) {
         pendingFields.merchant = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     }
+
+    // Only map-drawn distance receipts are regenerated server-side. Odometer and manual receipts are user-uploaded, so
+    // their page count has to survive a distance edit or the badge would disappear for good.
+    const shouldClearReceiptPageCount = shouldFlagMerchantPending && !isManualDistanceRequest(transaction) && !isOdometerDistanceRequest(transaction);
     const clearedPendingFields = getClearedPendingFields(transactionChanges);
     // `getClearedPendingFields` only clears `merchant` for distance edits, so when we artificially
     // flag it for waypoint/rate edits we must also clear it here. Otherwise the flag persists past
@@ -1948,7 +1954,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         value: {
             ...updatedTransaction,
             // Clear the stale page count until the BE-regenerated receipt arrives.
-            ...(shouldFlagMerchantPending && updatedTransaction?.receipt ? {receipt: {...updatedTransaction.receipt, pageCount: null}} : {}),
+            ...(shouldClearReceiptPageCount && updatedTransaction?.receipt ? {receipt: {...updatedTransaction.receipt, pageCount: null}} : {}),
             pendingFields,
             errorFields: null,
             reportID: newTransactionReportID ?? updatedTransaction?.reportID,
@@ -2388,6 +2394,13 @@ function getUpdateTrackExpenseParams(
         dataToIncludeInParams.distance = transactionChanges.distance;
     }
 
+    // Same clear as `getUpdateMoneyRequestParams`: a distance-shaped edit makes the server regenerate the map receipt,
+    // so the old page count is stale until the new receipt arrives.
+    const shouldClearReceiptPageCount =
+        ('waypoints' in transactionChanges || 'distance' in transactionChanges || 'customUnitRateID' in transactionChanges || 'selectedRouteKey' in transactionChanges) &&
+        !isManualDistanceRequest(transaction) &&
+        !isOdometerDistanceRequest(transaction);
+
     const apiParams: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
         reportID: chatReport?.reportID,
@@ -2487,6 +2500,7 @@ function getUpdateTrackExpenseParams(
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             ...updatedTransaction,
+            ...(shouldClearReceiptPageCount && updatedTransaction?.receipt ? {receipt: {...updatedTransaction.receipt, pageCount: null}} : {}),
             pendingFields,
             errorFields: null,
         },
