@@ -56,7 +56,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const currentColumns = !searchResults?.data
         ? []
         : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value, sortBy: queryJSON.sortBy});
-    const sortableColumns = getSortByOptions(currentColumns, translate);
+    const sortableColumns = getSortByOptions(currentColumns, translate, searchDataType);
     const sortOrder = queryJSON.sortOrder;
 
     const [selectedItem, setSelectedItem] = useState(queryJSON.sortBy);

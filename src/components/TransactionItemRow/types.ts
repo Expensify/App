@@ -73,6 +73,7 @@ type TransactionItemRowProps = {
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
+    isDateColumnCreated?: boolean;
     submittedColumnSize?: TableColumnSize;
     approvedColumnSize?: TableColumnSize;
     postedColumnSize?: TableColumnSize;

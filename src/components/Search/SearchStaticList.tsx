@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
+import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -295,6 +295,7 @@ function SearchStaticList({
                         shouldShowCheckbox={canSelectMultiple}
                         shouldShowErrors
                         violations={item.violations}
+                        isDateColumnCreated={isCreatedDateType(type)}
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

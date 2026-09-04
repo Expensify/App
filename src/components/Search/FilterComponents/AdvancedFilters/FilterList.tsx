@@ -13,7 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
-import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getFilterViewLabelKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -43,15 +43,17 @@ type FilterListProps = FilterItemCallbacks & {
 type FilterItemProps = FilterItemCallbacks & {
     filterKey: SearchFilter['key'];
     isSelected?: boolean;
+    type: SearchDataTypes | undefined;
 };
 
-function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: FilterItemProps) {
+function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: FilterItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const {labelKey, icon} = FILTER_VIEW_MAP[filterKey];
+    const {icon} = FILTER_VIEW_MAP[filterKey];
+    const labelKey = getFilterViewLabelKey(filterKey, type);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', icon]);
 
     const getPressableBackgroundStyle = (pressed: boolean) => {
@@ -124,6 +126,7 @@ function FilterList({type, policyID, selectedFilter, style, contentContainerStyl
                         <FilterItem
                             key={item}
                             filterKey={item}
+                            type={type}
                             isSelected={item === selectedFilter}
                             onHoverIn={onHoverIn}
                             onFocus={onFocus}
