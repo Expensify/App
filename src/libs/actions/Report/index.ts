@@ -393,8 +393,8 @@ type OpenReportActionParams = {
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
 
-    /** This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411 */
-    conciergeChat?: OnyxEntry<Report>;
+    /** The Concierge chat report used to build the guided setup onboarding data */
+    conciergeChat: OnyxEntry<Report>;
 };
 
 type PregeneratedResponseParams = {
