@@ -621,6 +621,42 @@ describe('ConciergeDraftContext', () => {
         }
     });
 
+    it('completes a pending draft from a matching persisted action with identical HTML', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(
+            () => ({
+                actions: useConciergeDraftActions(),
+                state: useConciergeDraft(),
+            }),
+            {wrapper},
+        );
+
+        try {
+            await waitFor(() => {
+                expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+            });
+            jest.useFakeTimers();
+
+            act(() => {
+                emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent('OK'));
+                jest.advanceTimersByTime(100);
+            });
+
+            expect(getFirstMessageText(result.current.state.draftReportAction)).toBe('OK');
+            expect(result.current.state.isDraftPendingCompletion).toBe(true);
+
+            act(() => {
+                result.current.actions.revealDraftFromReportAction(createReportAction(SHORT_FINAL_RENDERED_HTML));
+            });
+
+            expect(getFirstMessageText(result.current.state.draftReportAction)).toBe('OK');
+            expect(result.current.state.isDraftPendingCompletion).toBe(false);
+        } finally {
+            unmount();
+            jest.useRealTimers();
+        }
+    });
+
     it('applies ordered batched Pusher draft events', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});

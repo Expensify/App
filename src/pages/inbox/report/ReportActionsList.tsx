@@ -202,7 +202,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         hasNewerActions,
     });
 
-    const persistedDraftReportAction = draftReportAction ? sortedVisibleReportActions.find((action) => action.reportActionID === draftReportAction.reportActionID) : undefined;
+    const persistedDraftReportAction = draftReportAction
+        ? (sortedAllReportActions ?? sortedVisibleReportActions).find(
+              (action) => action.reportActionID === draftReportAction.reportActionID && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+          )
+        : undefined;
 
     const renderedVisibleReportActions = (() => {
         if (!draftReportAction) {
@@ -251,10 +255,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     }, [clearDraft, draftReportAction, isSyntheticDraftVisible]);
 
     useEffect(() => {
-        if (!draftReportAction || !persistedDraftReportAction || getReportActionHtml(draftReportAction) === getReportActionHtml(persistedDraftReportAction)) {
+        if (!draftReportAction || !persistedDraftReportAction) {
             return;
         }
 
+        // The persisted action is the durable completion signal when a terminal Pusher event is missed.
+        // Reconcile by action ID even when its HTML is byte-identical to the last streamed draft.
         revealDraftFromReportAction(persistedDraftReportAction);
     }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
 
