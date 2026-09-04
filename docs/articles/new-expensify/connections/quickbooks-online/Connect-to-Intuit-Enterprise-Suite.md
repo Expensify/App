@@ -12,7 +12,7 @@ Connect Intuit Enterprise Suite to your Expensify workspace to sync your account
 Once connected, the integration imports:
 
  - Your chart of accounts as categories.
- - Your dimensions, like Departments, Projects, and Classes, as tags
+ - Your dimensions, like Departments, Projects, and Classes, as tags.
  - Tax rates (when enabled).
 
 ---
