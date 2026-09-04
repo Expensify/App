@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -5937,6 +5938,15 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             submit: 'Enviar',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Saldo atual',
+                remainingLimit: 'Limite restante',
+                notAvailable: 'Indisponível',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `O saldo atual é informado pelo seu banco e foi atualizado pela última vez em ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `O limite restante é informado pelo seu banco e foi atualizado pela última vez em ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'O saldo atual é informado pelo seu banco.',
+                remainingLimitDescriptionNoTimestamp: 'O limite restante é informado pelo seu banco.',
+            },
             addCards: 'Adicionar cartões',
             selectCards: 'Selecionar cartões',
             fromOtherWorkspaces: 'De outros workspaces',

@@ -1,5 +1,9 @@
 import type {ConnectionName} from './TranslationTypes';
 
+type CompanyCardBalanceParams = {
+    lastUpdated: string;
+};
+
 type StepCounterParams = {step: number; total?: number; text?: string};
 
 type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
@@ -36,6 +40,7 @@ type ExportAgainModalDescriptionParams = {
 
 type ExportIntegrationSelectedParams = {connectionName: ConnectionName; connectionNameFriendly?: string};
 export type {
+    CompanyCardBalanceParams,
     ParentNavigationSummaryParams,
     StepCounterParams,
     ChangeFieldParams,

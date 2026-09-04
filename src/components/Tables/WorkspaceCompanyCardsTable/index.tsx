@@ -13,6 +13,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,6 +22,7 @@ import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
+import WorkspaceCompanyCardsBalanceLabels from '@pages/workspace/companyCards/WorkspaceCompanyCardsBalanceLabels';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 
 import variables from '@styles/variables';
@@ -102,6 +104,7 @@ function WorkspaceCompanyCardsTable({
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const policy = usePolicy(policyID);
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
     const {
@@ -398,6 +401,13 @@ function WorkspaceCompanyCardsTable({
             isSelectionModeEnabled={isSelectionModeEnabled}
         />
     ) : undefined;
+    const balanceLabelsComponent = showCards ? (
+        <WorkspaceCompanyCardsBalanceLabels
+            selectedFeed={selectedFeed}
+            feedName={feedName}
+            currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
+        />
+    ) : undefined;
     const shouldShowPendingUnassignmentLoading = showCards && hasPendingUnassignment && cardsData.length === 0;
 
     return (
@@ -418,7 +428,7 @@ function WorkspaceCompanyCardsTable({
             title={translate('workspace.common.companyCards')}
             ListEmptyComponent={shouldShowPendingUnassignmentLoading ? <Table.LoadingState /> : undefined}
         >
-            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
+            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, balanceLabelsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
             {!showCards && headerButtonsComponent}
 
             {isLoading && <Table.LoadingState />}

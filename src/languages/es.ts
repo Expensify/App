@@ -17,6 +17,7 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
@@ -5869,6 +5870,15 @@ ${amount} para ${merchant} - ${date}`,
             submit: 'Enviar',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Saldo actual',
+                remainingLimit: 'Límite restante',
+                notAvailable: 'No disponible',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El saldo actual es informado por tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El límite restante lo informa tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Tu banco informa del saldo actual.',
+                remainingLimitDescriptionNoTimestamp: 'El límite restante lo indica tu banco.',
+            },
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
             fromOtherWorkspaces: 'De otros espacios de trabajo',

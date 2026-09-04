@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -5980,6 +5981,16 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             submit: 'Einreichen',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Aktueller Kontostand',
+                remainingLimit: 'Verbleibendes Limit',
+                notAvailable: 'Nicht verfügbar',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Der aktuelle Kontostand wird von Ihrer Bank gemeldet und zuletzt am ${lastUpdated} aktualisiert.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Der verbleibende Verfügungsrahmen wird von Ihrer Bank gemeldet und zuletzt am ${lastUpdated} aktualisiert.`,
+                currentBalanceDescriptionNoTimestamp: 'Der aktuelle Kontostand wird von Ihrer Bank gemeldet.',
+                remainingLimitDescriptionNoTimestamp: 'Der verbleibende Verfügungsrahmen wird von Ihrer Bank gemeldet.',
+            },
             addCards: 'Karten hinzufügen',
             selectCards: 'Karten auswählen',
             fromOtherWorkspaces: 'Aus anderen Workspaces',

@@ -1,35 +1,26 @@
 import Button from '@components/ButtonComposed';
-import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import Popover from '@components/Popover';
-import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import WorkspaceCardLabel, {useWorkspaceCardLabelPopover} from '@components/WorkspaceCardLabel';
 
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getCardSettings} from '@libs/CardUtils';
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
-
-import variables from '@styles/variables';
 
 import {queueExpensifyCardForBilling} from '@userActions/Card';
 import {requestExpensifyCardLimitIncrease} from '@userActions/Policy/Policy';
@@ -46,7 +37,7 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {addDays, format} from 'date-fns';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
@@ -60,21 +51,40 @@ type WorkspaceCardsListLabelProps = {
     style?: StyleProp<ViewStyle>;
 };
 
+type RequestLimitIncreaseButtonProps = {
+    /** Localized button text */
+    text: string;
+
+    /** Optional style applied to the button */
+    buttonStyle?: StyleProp<ViewStyle>;
+
+    /** Invoked with a callback to close the popover when the button is pressed */
+    onRequest: (closePopover: () => void) => void;
+};
+
+function RequestLimitIncreaseButton({text, buttonStyle, onRequest}: RequestLimitIncreaseButtonProps) {
+    const styles = useThemeStyles();
+    const {closePopover} = useWorkspaceCardLabelPopover();
+
+    return (
+        <View style={[styles.flexRow, styles.mt3]}>
+            <Button
+                onPress={() => onRequest(closePopover)}
+                style={buttonStyle}
+            >
+                <Button.Text>{text}</Button.Text>
+            </Button>
+        </View>
+    );
+}
+
 function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelProps) {
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
     const policyID = route.params.policyID;
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const theme = useTheme();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: isSmallScreenWidth,
-        addOfflineIndicatorBottomSafeAreaPadding: false,
-        style: [styles.p4, styles.pb4],
-    });
     const {showConfirmModal} = useConfirmModal();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -94,9 +104,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const isRegularOnboardingPending = !!introSelected && !introSelected.inviteType && isSupportedInviteOnboardingChoice(introSelected.choice) && !isOnboardingCompleted;
     const isPendingInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
     const isGuidedSetupPending = isRegularOnboardingPending || isPendingInviteOnboarding;
-    const [isVisible, setVisible] = useState(false);
-    const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
-    const anchorRef = useRef(null);
 
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -104,7 +111,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['Info']);
     const paymentBankAccountID = settings?.paymentBankAccountID;
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
@@ -117,22 +123,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         return !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
     }, [bankAccountList, paymentBankAccountID]);
 
-    useEffect(() => {
-        if (!anchorRef.current || !isVisible) {
-            return;
-        }
-
-        const position = getClickedTargetLocation(anchorRef.current);
-        const BOTTOM_MARGIN_OFFSET = 3;
-
-        setAnchorPosition({
-            top: position.top + position.height + BOTTOM_MARGIN_OFFSET,
-            left: position.left,
-        });
-    }, [isVisible, windowWidth]);
-
-    const requestLimitIncrease = () => {
-        setVisible(false);
+    const requestLimitIncrease = (closePopover: () => void) => {
+        closePopover();
 
         // The Concierge onboarding welcome message + tasks are created by OpenReport's guidedSetupData, and the request
         // queue is a blocking FIFO, so an OpenReport carrying that onboarding data must be enqueued BEFORE the limit-increase
@@ -200,82 +192,52 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
     };
 
-    return (
-        <View style={styles.flex1}>
-            <View style={styles.flex1}>
-                <View
-                    ref={anchorRef}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
-                >
-                    <Text style={[styles.mutedNormalTextLabel, styles.mr1]}>{translate(`workspace.expensifyCard.${type}`)}</Text>
-                    <PressableWithFeedback
-                        accessibilityLabel={translate(`workspace.expensifyCard.${type}`)}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        onPress={() => setVisible(true)}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_CARDS_LIST.INFO_BUTTON}
-                    >
-                        <Icon
-                            src={icons.Info}
-                            width={variables.iconSizeExtraSmall}
-                            height={variables.iconSizeExtraSmall}
-                            fill={theme.icon}
-                        />
-                    </PressableWithFeedback>
-                </View>
-                <View style={[styles.flexRow, styles.flexWrap]}>
-                    <Text style={[styles.shortTermsHeadline, isSettleBalanceButtonDisplayed && [styles.mb2, styles.mr3]]}>{convertToDisplayString(value, settlementCurrency)}</Text>
-                    {isSettleBalanceButtonDisplayed && (
-                        <View style={[styles.mr2, isLessThanMediumScreen && styles.mb3]}>
-                            <Button
-                                onPress={handleSettleBalanceButtonClick}
-                                innerStyles={[styles.buttonSmall]}
-                            >
-                                <Button.Text style={[styles.buttonSmallText]}>{translate('workspace.expensifyCard.settleBalance')}</Button.Text>
-                            </Button>
-                        </View>
-                    )}
-                </View>
-                {isCurrentBalanceType && (
-                    <TextLink
-                        onPress={handleViewTransactionsPress}
-                        style={styles.mt1}
-                    >
-                        {translate('workspace.common.viewTransactions')}
-                    </TextLink>
-                )}
-            </View>
-            {isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', settlementDate)}</Text>}
-            <Popover
-                onClose={() => setVisible(false)}
-                isVisible={isVisible}
-                outerStyle={!shouldUseNarrowLayout ? styles.pr5 : undefined}
-                innerContainerStyle={!shouldUseNarrowLayout ? {maxWidth: variables.modalContentMaxWidth} : undefined}
-                anchorRef={anchorRef}
-                anchorPosition={anchorPosition}
-                enableEdgeToEdgeBottomSafeAreaPadding
-            >
-                <View style={bottomSafeAreaPaddingStyle}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.optionDisplayName, styles.textStrong, styles.mb2]}
-                    >
-                        {translate(`workspace.expensifyCard.${type}`)}
-                    </Text>
-                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate(`workspace.expensifyCard.${type}Description`)}</Text>
+    const isLimitIncreaseDisplayed = !isConnectedWithPlaid && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT;
 
-                    {!isConnectedWithPlaid && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT && (
-                        <View style={[styles.flexRow, styles.mt3]}>
-                            <Button
-                                onPress={requestLimitIncrease}
-                                style={shouldUseNarrowLayout && styles.flex1}
-                            >
-                                <Button.Text>{translate('workspace.expensifyCard.requestLimitIncrease')}</Button.Text>
-                            </Button>
-                        </View>
+    return (
+        <WorkspaceCardLabel
+            style={style}
+            containerStyle={styles.flex1}
+            title={translate(`workspace.expensifyCard.${type}`)}
+            description={translate(`workspace.expensifyCard.${type}Description`)}
+            displayValue={convertToDisplayString(value, settlementCurrency)}
+            valueStyle={isSettleBalanceButtonDisplayed && [styles.mb2, styles.mr3]}
+            valueAccessory={
+                isSettleBalanceButtonDisplayed && (
+                    <View style={[styles.mr2, isLessThanMediumScreen && styles.mb3]}>
+                        <Button
+                            onPress={handleSettleBalanceButtonClick}
+                            innerStyles={[styles.buttonSmall]}
+                        >
+                            <Button.Text style={[styles.buttonSmallText]}>{translate('workspace.expensifyCard.settleBalance')}</Button.Text>
+                        </Button>
+                    </View>
+                )
+            }
+            footer={
+                <>
+                    {isCurrentBalanceType && (
+                        <TextLink
+                            onPress={handleViewTransactionsPress}
+                            style={styles.mt1}
+                        >
+                            {translate('workspace.common.viewTransactions')}
+                        </TextLink>
                     )}
-                </View>
-            </Popover>
-        </View>
+                    {isSettleDateTextDisplayed && (
+                        <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', settlementDate)}</Text>
+                    )}
+                </>
+            }
+        >
+            {isLimitIncreaseDisplayed && (
+                <RequestLimitIncreaseButton
+                    text={translate('workspace.expensifyCard.requestLimitIncrease')}
+                    buttonStyle={shouldUseNarrowLayout && styles.flex1}
+                    onRequest={requestLimitIncrease}
+                />
+            )}
+        </WorkspaceCardLabel>
     );
 }
 

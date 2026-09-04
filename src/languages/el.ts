@@ -22,6 +22,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
@@ -6274,6 +6275,17 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             assignNewCards: {
                 title: 'Ανάθεση νέων καρτών',
                 description: 'Λάβετε τις πιο πρόσφατες κάρτες προς ανάθεση από την τράπεζά σας',
+            },
+            balance: {
+                currentBalance: 'Τρέχον υπόλοιπο',
+                remainingLimit: 'Υπόλοιπο ορίου',
+                notAvailable: 'Μη διαθέσιμο',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Το τρέχον υπόλοιπο αναφέρεται από την τράπεζά σας και ενημερώθηκε τελευταία φορά στις ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Το υπόλοιπο ορίου αναφέρεται από την τράπεζά σας και ενημερώθηκε τελευταία φορά στις ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Το τρέχον υπόλοιπο αναφέρεται από την τράπεζά σας.',
+                remainingLimitDescriptionNoTimestamp: 'Το υπόλοιπο ορίου αναφέρεται από την τράπεζά σας.',
             },
         },
         expensifyCard: {
