@@ -51,8 +51,11 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
+
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
+import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
 import {getReportPreviewReportAction} from './MoneyRequestBuilder';
 
 type PayInvoiceArgs = {
@@ -93,14 +96,6 @@ type PayMoneyRequestData = {
     >;
 };
 
-type SearchPayOnyxKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT;
-
-type AdditionalPayOnyxData = {
-    optimisticData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
-    successData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
-    failureData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
-};
-
 type PayMoneyRequestFunctionParams = {
     paymentType: PaymentMethodType;
     chatReport: OnyxTypes.Report;
@@ -129,25 +124,6 @@ type PayMoneyRequestFunctionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     isFallbackChatReport?: boolean;
 };
-
-function mergeAdditionalPayOnyxData<
-    T extends {
-        optimisticData?: readonly unknown[];
-        successData?: readonly unknown[];
-        failureData?: readonly unknown[];
-    },
->(onyxData: T, additionalOnyxData?: AdditionalPayOnyxData): T {
-    if (!additionalOnyxData) {
-        return onyxData;
-    }
-
-    return {
-        ...onyxData,
-        optimisticData: [...(onyxData.optimisticData ?? []), ...(additionalOnyxData.optimisticData ?? [])],
-        successData: [...(onyxData.successData ?? []), ...(additionalOnyxData.successData ?? [])],
-        failureData: [...(onyxData.failureData ?? []), ...(additionalOnyxData.failureData ?? [])],
-    };
-}
 
 function getPayMoneyRequestParams({
     initialChatReport,
@@ -1245,5 +1221,4 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, mergeAdditionalPayOnyxData, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
-export type {AdditionalPayOnyxData};
+export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
