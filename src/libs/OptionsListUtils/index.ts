@@ -254,6 +254,12 @@ type GetAlternateTextConfig = {
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
+/**
+ * Fallback for non-React callers that cannot provide the hook-bound localeCompare.
+ * Mirrors LocaleContextProvider's collator options against the active locale.
+ * The collator is cached at module scope: constructing an Intl.Collator loads locale data,
+ * which is far too expensive to repeat per comparison inside a sort.
+ */
 let fallbackCollator: Intl.Collator | undefined;
 let fallbackCollatorLocale: Locale | undefined;
 function fallbackLocaleCompare(a: string, b: string): number {
@@ -321,6 +327,8 @@ function getAlternateText(
                 invoiceReceiverPolicy,
                 policyTags,
                 isReportArchived,
+                // The Search path has no separate report NVP source here; the archived flag and private_isArchived
+                // both derive from the same NVP, so the option's archived flag is the equivalent input.
                 privateIsArchived: !!isReportArchived,
                 conciergeReportID,
                 reportAttributesDerived,
