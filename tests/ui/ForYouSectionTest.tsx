@@ -450,7 +450,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByText('homePage.toDos')).not.toBeOnTheScreen();
             expect(screen.queryByTestId('forYouEmptyState')).not.toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
@@ -481,7 +481,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByText('homePage.toDos')).toBeOnTheScreen();
             expect(screen.getByText('Begin')).toBeOnTheScreen();
         });
 
