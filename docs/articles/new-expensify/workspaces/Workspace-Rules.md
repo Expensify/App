@@ -38,7 +38,7 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
 - **Require company cards for all purchases** - Flag out-of-pocket expenses that should have been made with a company card. Only available after company cards are connected to the workspace.
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
-- **Attendee tracking** – Track the per-person cost for every expense. When enabled, members can add attendees to an expense, and **Attendees** becomes available in the **Edit multiple expenses** panel for bulk edits.
+- **Attendee tracking** – Track the per-person cost for every expense. When enabled, members can add attendees to an expense.
 - **Merchant-based automation** – Automatically apply categories, tags, and other fields using Workspace Merchant Rules.
 - **Public receipt visibility** – Control who can view receipt images. When enabled, receipts are viewable by anyone with the URL, even people who don't have access to the report. When disabled (the default), receipts are only viewable by Expensify members with access to the report containing the receipt.
 
