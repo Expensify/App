@@ -1195,6 +1195,8 @@ const translations = {
             setupRules: 'Set up spend rules',
             customizeSpendCategories: 'Customize spend categories',
             customizeSpendCategoriesSubText: 'Organize and classify expenses',
+            customizeExpenseCategories: 'Customize your expense categories',
+            customizeExpenseCategoriesSubText: 'Add your company’s categories to code your expenses',
             createExpense: 'Create an expense',
             createExpenseSubText: 'Scan, drag and drop, or manually enter an expense using the + button',
             linkPersonalCard: 'Link personal card',
@@ -1356,6 +1358,7 @@ const translations = {
         addAdditionalReceipt: 'Add additional receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
+        pageCount: ({pageCount}: {pageCount: number}) => `Page 1 of ${pageCount}`,
         addAReceipt: {
             phrase1: 'Add a receipt',
             phrase2: 'or drag and drop one here',
@@ -5111,7 +5114,6 @@ const translations = {
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Use this account when exporting invoices to ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Set how company card purchases export to ${integrationName}.`,
             vendor: 'Vendor',
-            defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Set how out-of-pocket expenses export to ${integrationName}.`,
             exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
@@ -5273,8 +5275,6 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
-            defaultSupplier: 'Default supplier',
-            defaultSupplierDescription: 'Set a default supplier that will apply to all credit card transactions upon export.',
             noSuppliersFound: 'No suppliers found',
             noSuppliersFoundDescription: 'Please add the supplier in Xero and sync the connection again.',
             accountingMethods: {
@@ -6704,6 +6704,7 @@ const translations = {
             subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information.",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
+            cannotDisableImportedReportFields: 'Report fields imported from your accounting connection cannot be disabled.',
             importedFromAccountingSoftware: 'The report fields below are imported from your',
             textType: 'Text',
             dateType: 'Date',
@@ -7380,11 +7381,14 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
+            // fallbackVendorName is the vendor the integration auto-creates when nothing matches. Only integrations
+            // that actually create one pass it. The rest get the first sentence alone, because telling a Xero admin
+            // their expenses will export as "Credit Card Misc." describes a fallback Xero doesn't have.
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `Expenses that don't auto-match will default to this vendor.`
-                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Choose a default vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',

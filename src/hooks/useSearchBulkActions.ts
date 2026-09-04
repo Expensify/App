@@ -47,7 +47,7 @@ import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canAccessPolicyBankAccount, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -911,7 +911,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy?.achAccount?.bankAccountID) {
+            // Bulk pay funds from the workspace bank account when no account was picked in the menu, so a workspace only
+            // counts here if the workspace account is actually shared with the current user. Anyone else — including a
+            // payer the account was never shared with — has to open the report and pick an account of their own.
+            if (!policy || !canAccessPolicyBankAccount(policy, bankAccountList)) {
                 continue;
             }
 
@@ -919,7 +922,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return result;
-    }, [policies]);
+    }, [policies, bankAccountList]);
 
     const exportSearchData = searchResults?.data;
     const exportSearchType = searchResults?.search.type ?? queryJSON?.type;
