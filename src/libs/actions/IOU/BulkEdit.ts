@@ -45,7 +45,7 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {ReadonlyDeep, ValueOf} from 'type-fest';
 
 import {deepEqual} from 'fast-equals';
 // lodashUnionBy de-dupes recent attendees by email/displayName in one pass; no lodash-free equivalent is used here
@@ -55,6 +55,14 @@ import Onyx from 'react-native-onyx';
 
 import {getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData} from './MoneyRequestBuilder';
+
+/**
+ * A snapshot `data` object under construction. The container is mutable so keys can be assigned one at a time,
+ * while each value keeps the readonly shape it has when it comes out of an Onyx write input (`OnyxUpdate['value']`).
+ */
+type SnapshotDataDraft = {
+    -readonly [TKey in keyof NullishDeep<SearchResultDataType>]: ReadonlyDeep<NullishDeep<SearchResultDataType>[TKey]>;
+};
 
 type BulkEditWriteOnyxData = {
     optimisticData: Array<
@@ -608,7 +616,7 @@ function updateMultipleMoneyRequests({
         // result rendering and is not automatically updated by the TRANSACTION write above).
         if (hash) {
             // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
-            const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
+            const optimisticSnapshotData: SnapshotDataDraft = {};
             optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {...genericUpdatedTransaction, pendingFields};
             if (optimisticViolationsData && optimisticViolationsData.onyxMethod === Onyx.METHOD.SET) {
                 optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = optimisticViolationsData.value;
