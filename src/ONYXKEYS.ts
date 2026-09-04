@@ -90,6 +90,12 @@ const ONYXKEYS = {
     /** Contains all the personalDetails the user has access to, keyed by accountID */
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
+    /** Maps an agent's optimistic accountID to the real one CreateAgent assigns, so an agent screen opened on the optimistic ID resolves to the real agent. Persisted so it survives a reload (the mapping is sent only once). */
+    OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING: 'optimisticAgentAccountIDMapping',
+
+    /** When each OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING entry was written locally, so stale entries can be pruned. */
+    OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT: 'optimisticAgentAccountIDMappingCreatedAt',
+
     /** Contains all the private personal details of the user */
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
@@ -1610,6 +1616,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE]: string;
     [ONYXKEYS.INPUT_FOCUSED]: boolean;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
+    [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: OnyxTypes.OptimisticAgentAccountIDMapping;
+    [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT]: OnyxTypes.OptimisticAgentAccountIDMappingCreatedAt;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;
     [ONYXKEYS.TASK]: OnyxTypes.Task;

@@ -21,6 +21,8 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-n
 
 import Onyx from 'react-native-onyx';
 
+import pruneStaleOptimisticAccountIDMappingEntries from './pruneOptimisticAgentAccountIDMapping';
+
 function openAgentsPage() {
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [
         {
@@ -29,6 +31,9 @@ function openAgentsPage() {
             value: true,
         },
     ];
+
+    // See pruneOptimisticAgentAccountIDMapping.ts for why this needs to be triggered explicitly here.
+    pruneStaleOptimisticAccountIDMappingEntries();
 
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null, {finallyData});
 }
@@ -129,6 +134,13 @@ function createAgent(
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
             value: {isOptimisticReport: false},
         },
+
+        // Stamped here, not where the mapping itself arrives, since that onyxData is backend-owned.
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT,
+            value: {[optimisticAccountID]: Date.now()},
+        },
     ];
 
     const failureData: AnyOnyxUpdate[] = [
@@ -172,6 +184,15 @@ function createAgent(
     );
 
     return {optimisticAccountID, avatarURI, optimisticReportID};
+}
+
+/**
+ * Backfills a createdAt timestamp for a mapping entry this device notices without one — e.g. one that arrived via
+ * sync from another device/tab that resolved it first, so this device never got the chance to stamp it itself.
+ * Without a timestamp an entry is invisible to createAgent()'s pruning and never expires.
+ */
+function backfillOptimisticAccountIDMappingCreatedAt(optimisticAccountID: number) {
+    Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, {[optimisticAccountID]: Date.now()});
 }
 
 /**
@@ -462,6 +483,7 @@ export {
     openAgentsPage,
     openProfilePage,
     createAgent,
+    backfillOptimisticAccountIDMappingCreatedAt,
     setNewAgentTemplate,
     clearNewAgentTemplate,
     clearAgentError,

@@ -1,9 +1,9 @@
-import {write} from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {read, write} from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {isRecord} from '@libs/ObjectUtils';
 
-import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
+import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, openAgentsPage, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,14 +13,17 @@ import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 
 const mockWrite = jest.mocked(write);
+const mockRead = jest.mocked(read);
 const mockGoBack = jest.mocked(Navigation.goBack);
 
 type CapturedUpdate = Omit<AnyOnyxUpdate<OnyxKey>, 'value'> & {value?: unknown};
@@ -47,6 +50,24 @@ function getWriteOptions(): WriteOptions {
         optimisticData: optimisticData ?? [],
         successData: successData ?? [],
         failureData: failureData ?? [],
+    };
+}
+
+type ReadOptions = {finallyData: CapturedUpdate[]};
+
+function getReadOptions(): ReadOptions {
+    const options = mockRead.mock.calls.at(0)?.at(2);
+    if (!options || typeof options !== 'object' || !('finallyData' in options)) {
+        throw new Error('read was not called with onyx options');
+    }
+
+    const {finallyData} = options;
+    if (finallyData !== undefined && !Array.isArray(finallyData)) {
+        throw new Error('finallyData was not an update collection');
+    }
+
+    return {
+        finallyData: finallyData ?? [],
     };
 }
 
@@ -79,10 +100,18 @@ function getOptimisticAccountID(optimisticData: CapturedUpdate[]): number {
 
 const OWNER_ACCOUNT_ID = 999;
 const OWNER_LOGIN = 'owner@test.com';
+const STALE_OPTIMISTIC_ACCOUNT_ID = 111;
+const FRESH_OPTIMISTIC_ACCOUNT_ID = 222;
+
+beforeAll(() => {
+    Onyx.init({keys: ONYXKEYS});
+});
 
 describe('createAgent', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
+        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, null);
+        await waitForBatchedUpdates();
     });
 
     it('calls write with CREATE_AGENT command and provided params', () => {
@@ -365,6 +394,85 @@ describe('createAgent', () => {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         });
         expect(promptValue.errors).toBeTruthy();
+    });
+
+    it('stamps a createdAt timestamp for the new mapping entry in successData', () => {
+        const before = Date.now();
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
+        const after = Date.now();
+
+        const {successData} = getWriteOptions();
+        const createdAtValue = getUpdateRecord(successData, ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT)[result.optimisticAccountID];
+
+        expect(createdAtValue).toBeGreaterThanOrEqual(before);
+        expect(createdAtValue).toBeLessThanOrEqual(after);
+    });
+});
+
+describe('openAgentsPage', () => {
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, null);
+        await waitForBatchedUpdates();
+    });
+
+    it('calls read with OPEN_AGENTS_PAGE command', () => {
+        openAgentsPage();
+
+        expect(mockRead).toHaveBeenCalledWith(READ_COMMANDS.OPEN_AGENTS_PAGE, null, expect.any(Object));
+    });
+
+    it('sets ARE_AGENTS_LOADED to true in finallyData', () => {
+        openAgentsPage();
+
+        const {finallyData} = getReadOptions();
+        expect(findUpdate(finallyData, ONYXKEYS.ARE_AGENTS_LOADED)?.value).toBe(true);
+    });
+
+    it('prunes an entry that only became stale after it was written, since nothing else would trigger a recheck', async () => {
+        const writeTime = Date.now();
+        jest.useFakeTimers();
+        jest.setSystemTime(writeTime);
+
+        // FRESH is written 7 days after STALE, so once time jumps 8 days past STALE, STALE is 8 days old
+        // (past the 7-day window) while FRESH is only 1 day old (still within it).
+        const freshWriteTime = writeTime + 7 * 24 * 60 * 60 * 1000;
+        await Onyx.multiSet({
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[STALE_OPTIMISTIC_ACCOUNT_ID]: 555, [FRESH_OPTIMISTIC_ACCOUNT_ID]: 666},
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT]: {[STALE_OPTIMISTIC_ACCOUNT_ID]: writeTime, [FRESH_OPTIMISTIC_ACCOUNT_ID]: freshWriteTime},
+        });
+        await waitForBatchedUpdates();
+
+        // Advance time past the retention window with no further write — the reactive callback never fires
+        // again on its own, so only openAgentsPage()'s explicit check can catch this.
+        jest.setSystemTime(writeTime + 8 * 24 * 60 * 60 * 1000);
+
+        openAgentsPage();
+        await waitForBatchedUpdates();
+        jest.useRealTimers();
+
+        const mapping = await OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
+        const timestamps = await OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
+
+        expect(mapping?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
+        expect(mapping?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBe(666);
+        expect(timestamps?.[STALE_OPTIMISTIC_ACCOUNT_ID]).toBeUndefined();
+        expect(timestamps?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBe(freshWriteTime);
+    });
+
+    it('does not touch the mapping when nothing is stale', async () => {
+        await Onyx.set(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT, {[FRESH_OPTIMISTIC_ACCOUNT_ID]: Date.now() - 24 * 60 * 60 * 1000});
+        await waitForBatchedUpdates();
+
+        openAgentsPage();
+        await waitForBatchedUpdates();
+
+        const timestamps = await OnyxUtils.get(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING_CREATED_AT);
+        expect(timestamps?.[FRESH_OPTIMISTIC_ACCOUNT_ID]).toBeDefined();
+    });
+
+    it('does not throw when there are no existing timestamps', () => {
+        expect(() => openAgentsPage()).not.toThrow();
     });
 });
 

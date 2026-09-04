@@ -13,6 +13,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResolvedAgentAccountID from '@hooks/useResolvedAgentAccountID';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,7 +41,9 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'Users']);
-    const accountID = route.params.accountID;
+
+    // Resolve the optimistic accountID to the real one so opening this page mid-CreateAgent (or after a reload) doesn't 404.
+    const [accountID, isResolvedAccountIDLoaded] = useResolvedAgentAccountID(route.params.accountID);
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -48,14 +51,19 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
-    const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
+
+    // Wait for the optimistic->real mapping to load too, so an optimistic accountID that is about to resolve after a
+    // reload doesn't briefly flash the not-found page before the mapping is read from storage.
+    const isOnyxLoaded = isResolvedAccountIDLoaded && agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
     const shouldShowNotFoundPage = isOnyxLoaded && !agent && !personalDetails;
 
     const agentLogin = personalDetails?.login ?? '';
     const handleBackPress = () => Navigation.goBack();
-    const handleEditAvatarPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.getRoute(accountID));
-    const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(accountID));
-    const handleEditPromptPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID));
+
+    // Navigate with the raw route accountID (not the resolved one) so the sub-page URL stays consistent with this page's URL and device back doesn't create a duplicate entry.
+    const handleEditAvatarPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.getRoute(route.params.accountID));
+    const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(route.params.accountID));
+    const handleEditPromptPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(route.params.accountID));
     const handleDeletePress = async () => {
         const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(accountID, allPolicies);
         if (ruleBotEnforcedPolicy) {
