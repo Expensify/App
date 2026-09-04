@@ -455,7 +455,18 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense policyID:67890 merchant=Amazon description:Electronics laptop category:electronics,gadgets');
+            expect(result).toEqual('type:expense policyID:67890 merchant*:Amazon description:Electronics laptop category:electronics,gadgets');
+        });
+
+        test('defaults a merchant filter without an operator to contains', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                merchant: 'Amazon',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense merchant*:Amazon');
         });
 
         test('builds contains merchant query when merchant operator is contains', () => {
@@ -781,7 +792,7 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'amount', sortOrder: 'asc'});
 
-                expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant=Amazon limit:25');
+                expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant*:Amazon limit:25');
             });
 
             test('omits limit when not provided', () => {

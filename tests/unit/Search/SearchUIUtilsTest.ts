@@ -12431,6 +12431,12 @@ describe('SearchUIUtils', () => {
 
             expect(result).toBe(`${translateLocal('search.filters.merchant.contains')} "I"`);
         });
+
+        test('defaults a Merchant filter label without an operator to contains', () => {
+            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, {[FILTER_KEYS.MERCHANT]: 'I'}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(`${translateLocal('search.filters.merchant.contains')} "I"`);
+        });
     });
 
     describe('filterValidHasValues', () => {
