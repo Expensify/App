@@ -125,7 +125,7 @@ function WorkspaceCompanyCardsTableControls({
             prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
             confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (action !== ModalActions.CONFIRM) {
@@ -160,6 +160,7 @@ function WorkspaceCompanyCardsTableControls({
                     icon: icons.RemoveMembers,
                     text: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
                     value: 'unassign',
+                    shouldSkipFocusRestore: !!bankName,
                     onSelected: confirmBulkUnassign,
                 });
             }

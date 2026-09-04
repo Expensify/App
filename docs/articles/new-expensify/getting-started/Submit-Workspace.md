@@ -1,13 +1,13 @@
 ---
 title: Use a Free Submit Workspace
 description: Learn how to use a free Submit workspace in New Expensify to code expenses, submit them to an approver, and track which reports have been paid.
-keywords: [New Expensify, Submit workspace, free plan, get paid back, submit expenses, approver, Editor role, Received Payment]
+keywords: [New Expensify, Submit workspace, free plan, get paid back, submit expenses, approver, Editor role, Received Payment, Submit workspace email link, workspace I didn't create]
 internalScope: Audience is employees who want to get reimbursed by their employer. Covers creating a Submit workspace, submitting expenses to an approver, and tracking payment. Does not cover Collect or Control workspace configuration.
 ---
 
 A Submit workspace is a free workspace in New Expensify for employees who want to get reimbursed by their employer. You can scan receipts, code your expenses with categories and tags, and submit reports to an approver — even if your company hasn't adopted Expensify yet. There's no cost to submit, and your approver doesn't need an account to receive your report.
 
-Premium features are not included in a Submit workspace. To use approvals, payments, company cards, the Expensify Card, Per Diem, Expensify Travel, invoices, or accounting integrations, you'll need to [learn how to upgrade your workspace plan](https://github.com/articles/new-expensify/billing-and-subscriptions/Changing-Your-Workspace-Plan).
+Premium features are not included in a Submit workspace. To use approvals, payments, company cards, the Expensify Card, Per Diem, Expensify Travel, invoices, or accounting integrations, you'll need to [learn how to upgrade your workspace plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan).
 
 ---
 
@@ -17,12 +17,11 @@ Premium features are not included in a Submit workspace. To use approvals, payme
 - Anyone on your company's email domain can join your Submit workspace and is added as an **Editor**.
 - An **Editor** can configure the workspace (such as adding categories and tags) but cannot see other members' expenses or reports, and cannot change member roles.
 
-
 ---
 
 ## How to create a Submit workspace
 
-You can create a Submit workspace when you create your Expensify account or on the Expensify pricing and plans page.
+You can create a Submit workspace when you create your Expensify account, on the Expensify pricing and plans page, or from a link Expensify emails you.
 
 When creating your Expensify account:
 
@@ -36,6 +35,18 @@ If you already have an Expensify account:
 2. Find the Submit plan.
 3. Click **Get started**.
 
+If Expensify emails you a link to start submitting expenses:
+
+1. Click the link in the email.
+2. Sign in to Expensify if you aren't signed in already.
+3. A Submit workspace is created for you automatically, and you land on the **Expenses** page in the **Spend** tab.
+
+The email link doesn't create a duplicate workspace:
+
+- If you already belong to a workspace where you can submit expenses, no new workspace is created and nothing else about your account changes.
+- If you haven't finished setting up your Expensify account yet, the link takes you through the normal account setup instead, where you can select **Submit expenses to my employer**.
+
+Clicking the link again while you still have the workspace doesn't create a second one. If you delete the workspace and then click the link again, a new Submit workspace is created.
 
 ## What happens after you create a Submit workspace
 
@@ -53,7 +64,6 @@ Editors can't:
 - View other members' expenses or reports.
 - Change member roles.
 
-
 ---
 
 ## How to join an existing Submit workspace
@@ -68,6 +78,7 @@ If someone on your email domain already owns a Submit workspace, you can join it
 When you join, you're added as an **Editor**. You can collaborate on the workspace configuration, but you can't see or take action on other members' expenses or reports.
 
 If you weren't automatically added to the workspace when you created your account, ask a current Editor of the Submit workspace to invite you to join. Learn how to [invite members to a workspace](/articles/new-expensify/workspaces/Managing-Workspace-Members#invite-members-to-a-workspace).
+
 ---
 
 ## How to submit an expense to an approver
@@ -103,7 +114,7 @@ To submit a report as a PDF:
 6. Your approver can access the report to approve in Expensify by clicking the **Approve or Pay** button on the PDF or scanning the QR code on the PDF.
 7. If your report has been paid outside of Expensify, you can change the status from Outstanding to Paid by opening the report, selecting **More** and **Received Payment**.
 
-Your choice is sticky: future reports default to the last method you used, including when you submit from the **Spend** page.
+Your choice is sticky: future reports default to the last method you used, including when you submit from the **Spend** tab.
 
 ---
 
@@ -116,6 +127,19 @@ If you've been reimbursed outside of Expensify, you can mark an outstanding repo
 3. Select **Received Payment**.
 
 Marking a report as paid lets you track which of your submitted reports are still outstanding without requiring your approver to sign in. After a report is marked as paid, your approver can no longer take action on it.
+
+---
+
+## How to upgrade a Submit workspace
+
+If you have a free Submit workspace, you can upgrade it to a paid Collect or Control plan to unlock premium features such as approvals, payments, company cards, and accounting integrations. 
+
+Workspace Editors and anyone who approves a report on a Submit workspace can upgrade the workspace:
+
+ - Workspace Editors can switch the **Plan type** in the workspace **Overview** tab.
+ - Anyone who approves a report can upgrade the workspace by clicking **Approve** on a report submitted to them. 
+
+You can’t downgrade a Collect or Control workspace back to a Submit workspace after upgrading.
 
 ---
 
@@ -145,6 +169,10 @@ If they don't upgrade:
 
 No. Once a workspace is upgraded to Collect or Control, it can't be downgraded back to Submit. To use a Submit workspace again, delete the upgraded workspace and create a new Submit workspace.
 
+## Why do I have a Submit workspace I didn't create?
+
+If you clicked a link in an email from Expensify inviting you to start submitting expenses, a Submit workspace was created for you so you could start submitting right away. There's no cost to keep it. If you don't want it, [learn how to delete a workspace](/articles/new-expensify/workspaces/Delete-a-Workspace). After you delete it, don't click the same email link again — that creates a new Submit workspace.
+
 ## Why can't I see other members' expenses in my Submit workspace?
 
 Editors can configure the workspace, but can't see other members' submitted reports. This keeps everyone's expense data private while still allowing the group to share categories, tags, and other configurations.
@@ -152,4 +180,5 @@ Editors can configure the workspace, but can't see other members' submitted repo
 ## Do I have to pay to submit expenses?
 
 No. Submitting expenses and marking reports as paid are free. Payment is only required when someone upgrades the workspace to a paid plan, such as when an approver approves a report.
+
 

@@ -587,6 +587,9 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
+    // Whether the MoveFilesOutOfDocuments migration has rewritten attachment record paths, so later launches skip the collection scan
+    ATTACHMENT_RECORD_PATHS_MIGRATED: 'attachmentRecordPathsMigrated',
+
     // Stores last visited path
     LAST_VISITED_PATH: 'lastVisitedPath',
 
@@ -609,8 +612,14 @@ const ONYXKEYS = {
     /** Indicates whether we should mask fragile user data while exporting onyx state or not */
     SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
 
-    /** Indicates whether we should use the staging version of the secure API server */
+    /** @deprecated Use ACTIVE_SERVER. */
     SHOULD_USE_STAGING_SERVER: 'shouldUseStagingServer',
+
+    /** Which server environment the app talks to */
+    ACTIVE_SERVER: 'activeServer',
+
+    /** OAuth session used to reach the Cloudflare Access-protected QA server */
+    CLOUDFLARE_SESSION: 'cloudflareSession',
 
     /** Indicates whether the debug mode is currently enabled */
     IS_DEBUG_MODE_ENABLED: 'isDebugModeEnabled',
@@ -697,6 +706,9 @@ const ONYXKEYS = {
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
+    /** Stores the last measured Onyx database size, so the next app start can attach it to telemetry spans right away */
+    LAST_MEASURED_DATABASE_SIZE: 'lastMeasuredDatabaseSize',
+
     /** Stores the information if user loaded the Onyx state through Import feature  */
     IS_USING_IMPORTED_STATE: 'isUsingImportedState',
 
@@ -729,6 +741,9 @@ const ONYXKEYS = {
 
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
+
+    /** Draft message typed into the Concierge prompt box on the home page */
+    CONCIERGE_PROMPT_DRAFT: 'conciergePromptDraft',
 
     /** The user's Self DM reportID */
     SELF_DM_REPORT_ID: 'selfDMReportID',
@@ -885,6 +900,8 @@ const ONYXKEYS = {
         POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched_',
         POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
         POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN: 'policyMergeHRInitialSyncModalShown_',
+        POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN: 'policyMergeATSInitialSyncModalShown_',
+        RULE: 'rules_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         WORKSPACE_INVITE_ROLE_DRAFT: 'workspaceInviteRoleDraft_',
@@ -904,6 +921,9 @@ const ONYXKEYS = {
         /** Session-scoped loading flags for company cards page and feeds.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
+        /** Session-scoped loading flags for the Expensify Card page, keyed by policyID.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE: 'expensifyCardLoadingState_',
         /** Pagination cursors for a report's action list. */
         REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
@@ -916,6 +936,7 @@ const ONYXKEYS = {
         PENDING_CONCIERGE_RESPONSE: 'pendingConciergeResponse_',
         CONCIERGE_PENDING_FOLLOWUP_LIST: 'conciergePendingFollowupList_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
+        /** Deprecated: security group data now uses SHARED_NVP_SECURITY_GROUP. Kept so the legacy key is still read during the backend rollout. */
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
@@ -947,6 +968,9 @@ const ONYXKEYS = {
 
         /** The collection of card feeds */
         SHARED_NVP_PRIVATE_DOMAIN_MEMBER: 'sharedNVP_private_domain_member_',
+
+        /** Collection of domain security groups, keyed as <securityGroupID>_<domainAccountID> (the domain account owns the shared NVP) */
+        SHARED_NVP_SECURITY_GROUP: 'sharedNVP_domain_securityGroup_',
 
         /**
          * Stores the card list for a given fundID and feed in the format: cards_<fundID>_<bankName>
@@ -1311,6 +1335,7 @@ const ONYXKEYS = {
         CARD_FEED_ERRORS: 'cardFeedErrors',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
         LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
+        GUIDE_ACCOUNT_IDS: 'guideAccountIDs',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1465,6 +1490,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD]: OnyxTypes.ExportDownload;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.RULE]: OnyxTypes.Rule;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTagLists;
@@ -1482,6 +1508,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;
     [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
@@ -1495,6 +1522,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST]: OnyxTypes.ConciergePendingFollowupList;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.SKIP_CONFIRMATION]: boolean;
@@ -1511,6 +1539,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN]: boolean;
+    [ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN]: boolean;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.AgentPrompt;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
@@ -1702,7 +1731,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
-    [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
+    [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, OnyxTypes.DomainSecurityGroupMembership>;
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
@@ -1732,7 +1761,10 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key stays typed while it is still read
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
+    [ONYXKEYS.ACTIVE_SERVER]: ValueOf<typeof CONST.SERVER>;
+    [ONYXKEYS.CLOUDFLARE_SESSION]: OnyxTypes.CloudflareSession;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
@@ -1775,10 +1807,12 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA]: OnyxTypes.ImportedSpreadsheetMemberData[];
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE]: ValueOf<typeof CONST.POLICY.ROLE>;
     [ONYXKEYS.LAST_ROUTE]: string;
+    [ONYXKEYS.LAST_MEASURED_DATABASE_SIZE]: OnyxTypes.DatabaseSizeMeasurement;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.CONCIERGE_PROMPT_DRAFT]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
@@ -1788,6 +1822,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
     [ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN]: boolean;
+    [ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED]: boolean;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
@@ -1841,6 +1876,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
+    [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: OnyxTypes.GuideAccountIDsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

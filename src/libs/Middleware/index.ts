@@ -1,13 +1,16 @@
 import FailureTracking from './FailureTracking';
+import FraudMonitoring from './FraudMonitoring';
 import GlobalReimbursementPayError from './GlobalReimbursementPayError';
 import handleDeletedAccount from './HandleDeletedAccount';
 import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
+import LoadPostDataForOpenOrReconnect from './LoadPostDataForOpenOrReconnect';
 import LoadTest from './LoadTest';
 import Logging from './Logging';
 import {Pagination} from './Pagination';
 import Reauthentication from './Reauthentication';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
+import SentryServerTiming from './SentryServerTiming';
 import SupportalPermission from './SupportalPermission';
 
 export {
@@ -22,4 +25,7 @@ export {
     handleDeletedAccount,
     SupportalPermission,
     GlobalReimbursementPayError,
+    FraudMonitoring,
+    LoadPostDataForOpenOrReconnect,
+    SentryServerTiming,
 };

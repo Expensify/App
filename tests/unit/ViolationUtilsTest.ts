@@ -818,6 +818,60 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([futureDateViolation, ...transactionViolations]));
         });
 
+        describe('futureDate boundary', () => {
+            // The backend allows a transaction date up to NOW +14 hours, so whether "tomorrow" is a violation depends on
+            // the current UTC time. The clock is pinned on each case, otherwise these pass or fail by time of day.
+            afterEach(() => {
+                jest.useRealTimers();
+            });
+
+            function getFutureDateResult() {
+                return ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+            }
+
+            it("should not add futureDate violation for today's date", () => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+                transaction.created = '2026-08-29';
+
+                expect(getFutureDateResult().value).not.toContainEqual(futureDateViolation);
+            });
+
+            it('should not add futureDate violation for tomorrow when it is still within the +14 hour window', () => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T20:00:00Z'));
+                transaction.created = '2026-08-30';
+
+                expect(getFutureDateResult().value).not.toContainEqual(futureDateViolation);
+            });
+
+            it('should add futureDate violation for tomorrow when it is beyond the +14 hour window', () => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+                transaction.created = '2026-08-30';
+
+                expect(getFutureDateResult().value).toContainEqual(futureDateViolation);
+            });
+
+            it('should add futureDate violation from created when modifiedCreated is an empty string', () => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+                transaction.created = '2026-08-31';
+                transaction.modifiedCreated = '';
+
+                expect(getFutureDateResult().value).toContainEqual(futureDateViolation);
+            });
+        });
+
         it('should remove futureDate violation if the policy is downgraded', () => {
             transaction.created = '9999-12-31T23:59:59Z';
             policy.type = 'personal';
@@ -2789,7 +2843,7 @@ describe('getViolationsOnyxData', () => {
 
         it('adds the violation when the transaction vendor is not in the policy vendor list', () => {
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2805,7 +2859,7 @@ describe('getViolationsOnyxData', () => {
 
         it('does not duplicate the violation when one is already present and the vendor is still missing', () => {
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2822,7 +2876,7 @@ describe('getViolationsOnyxData', () => {
 
         it('removes an existing violation when the vendor is restored in the policy list', () => {
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2863,7 +2917,7 @@ describe('getViolationsOnyxData', () => {
                     },
                 },
             });
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2878,7 +2932,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('does not add the violation when the feature is inactive (no QBO connection)', () => {
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2895,7 +2949,7 @@ describe('getViolationsOnyxData', () => {
         it('adds the violation when the vendorMatching beta is disabled but QBO is configured, because QBO (R1) is generally available', () => {
             isBetaEnabledSpy.mockImplementation(() => false);
             policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
@@ -2912,7 +2966,7 @@ describe('getViolationsOnyxData', () => {
         it('does not add the violation while the QBO vendor list is still hydrating (vendors undefined)', () => {
             // Given a QBO-configured workspace whose vendor list has not yet synced (data.vendors is undefined)
             policy = policyWithQBOVendorFeature(null);
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', wasManuallySet: true}};
 
             // When violations are recomputed
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -2933,7 +2987,7 @@ describe('getViolationsOnyxData', () => {
         it('preserves an existing violation while the QBO vendor list is still hydrating', () => {
             // Given the vendor list is still hydrating but an inactive-vendor violation already exists from a prior real check
             policy = policyWithQBOVendorFeature(null);
-            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', wasManuallySet: true}};
 
             // When violations are recomputed
             const result = ViolationsUtils.getViolationsOnyxData({
@@ -2976,7 +3030,7 @@ describe('getViolationsOnyxData', () => {
                 // flag so the render layer uses the "Supplier no longer valid" copy that matches the
                 // rest of the Xero UI (picker, default-supplier row).
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -2997,7 +3051,7 @@ describe('getViolationsOnyxData', () => {
                 // shows "Supplier". The reconciliation pass must stamp the flag on existing
                 // violations so the copy matches.
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3033,7 +3087,7 @@ describe('getViolationsOnyxData', () => {
                         },
                     },
                 });
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3050,7 +3104,7 @@ describe('getViolationsOnyxData', () => {
 
             it('removes an existing violation when the Xero supplier is restored in the contacts list', () => {
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3070,7 +3124,7 @@ describe('getViolationsOnyxData', () => {
                 // missing. Otherwise every matched transaction would falsely flag inactive between
                 // the beta flip and the first supplier sync.
                 policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcAnything', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcAnything', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3089,7 +3143,7 @@ describe('getViolationsOnyxData', () => {
                 // server-fired inactiveVendor violation is already on the transaction, the App
                 // must preserve it rather than wiping it during the sync gap.
                 policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3106,7 +3160,7 @@ describe('getViolationsOnyxData', () => {
             it('does not add the violation when the vendorMatching beta is disabled, even with Xero connected', () => {
                 isBetaEnabledSpy.mockImplementation(() => false);
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3140,7 +3194,7 @@ describe('getViolationsOnyxData', () => {
                         },
                     },
                 });
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', wasManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -3249,7 +3303,6 @@ describe('getViolations', () => {
             type: CONST.POLICY.TYPE.TEAM,
             role: CONST.POLICY.ROLE.ADMIN,
             owner: CARLOS_EMAIL,
-            isPolicyExpenseChatEnabled: false,
             autoReporting: true,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
             outputCurrency: CONST.CURRENCY.USD,
@@ -3308,7 +3361,6 @@ describe('getViolations', () => {
             type: CONST.POLICY.TYPE.TEAM,
             role: CONST.POLICY.ROLE.ADMIN,
             owner: CARLOS_EMAIL,
-            isPolicyExpenseChatEnabled: false,
             autoReporting: true,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             outputCurrency: CONST.CURRENCY.USD,
@@ -3367,7 +3419,6 @@ describe('getViolations', () => {
             type: CONST.POLICY.TYPE.TEAM,
             role: CONST.POLICY.ROLE.ADMIN,
             owner: CARLOS_EMAIL,
-            isPolicyExpenseChatEnabled: false,
             autoReporting: true,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
             outputCurrency: CONST.CURRENCY.USD,
@@ -3421,6 +3472,23 @@ const brokenCardConnection530Violation: TransactionViolation = {
     },
 };
 
+const brokenCardConnection531Violation: TransactionViolation = {
+    name: CONST.VIOLATIONS.RTER,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    data: {
+        rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531,
+    },
+};
+
+const brokenCardConnectionReauthViolation: TransactionViolation = {
+    name: CONST.VIOLATIONS.RTER,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    data: {
+        isAdmin: true,
+        rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH,
+    },
+};
+
 describe('getViolationTranslation', () => {
     it('should return the correct message for broken card connection violation', () => {
         const testPolicyID = 'test-policy-123';
@@ -3440,6 +3508,31 @@ describe('getViolationTranslation', () => {
         );
         expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnection530ViolationExpected,
+        );
+    });
+
+    it('should return the correct message for a re-auth broken card connection violation', () => {
+        const testPolicyID = 'test-policy-123';
+        const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
+        const brokenCardConnectionReauthViolationExpected = translateLocal(
+            'violations.rter',
+            false,
+            true,
+            false,
+            undefined,
+            CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH,
+            companyCardPageURL,
+        );
+        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionReauthViolation, translate: translateLocal, convertToDisplayString})).toBe(
+            brokenCardConnectionReauthViolationExpected,
+        );
+    });
+
+    it('should return the temporary retry-later message for a 531 broken card connection', async () => {
+        IntlStore.load(CONST.LOCALES.EN);
+        await waitForBatchedUpdates();
+        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnection531Violation, translate: translateLocal, convertToDisplayString})).toBe(
+            "Can't auto-match receipt due to a temporary bank issue. Please try again later.",
         );
     });
 

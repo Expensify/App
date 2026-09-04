@@ -64,6 +64,7 @@ jest.mock('@libs/actions/Link', () => {
             const attrPath = Url.getPathFromURL(href);
             return (Url.hasSameExpensifyOrigin(href, CONSTreal.NEW_EXPENSIFY_URL) ||
                 Url.hasSameExpensifyOrigin(href, CONSTreal.STAGING_NEW_EXPENSIFY_URL) ||
+                Url.hasSameExpensifyOrigin(href, CONSTreal.QA_NEW_EXPENSIFY_URL) ||
                 href.startsWith(CONSTreal.DEV_NEW_EXPENSIFY_URL)) &&
                 !CONSTreal.PATHS_TO_TREAT_AS_EXTERNAL.find((p) => attrPath.startsWith(p))
                 ? attrPath
@@ -424,7 +425,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -476,7 +476,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             } as const;
 
@@ -523,7 +522,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -571,7 +569,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
