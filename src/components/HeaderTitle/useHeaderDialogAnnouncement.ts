@@ -4,10 +4,13 @@ import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useLocalize from '@hooks/useLocalize';
 
 /**
- * Registers `dialogTitle` as the RHP's dialog name and announces it to screen readers.
- * Pass an empty string to opt out (only `HeaderWithBackButton`'s screen-level `Header` should register a
- * dialog title — every other `Header` usage must pass `''`, or a second dialog label/announcement would fire
- * for the same screen).
+ * Announces `dialogTitle` to screen readers as the RHP's dialog name, and moves focus into the dialog
+ * after its transition finishes (`shouldSkipFocusAfterTransition`) — the focus-steal applies to every
+ * dialog-shaped `HeaderTitle` usage, regardless of title.
+ *
+ * The title registration/announcement half is opt-in: only the ONE `HeaderTitle` that represents the
+ * actual RHP screen title should pass a real `dialogTitle`. Any other `HeaderTitle` inside the same
+ * dialog must pass '' (default) — otherwise a second dialog name/announcement fires for the same screen.
  */
 function useHeaderDialogAnnouncement(dialogTitle: string, shouldSkipFocusAfterTransition: boolean) {
     const {translate} = useLocalize();
