@@ -420,12 +420,17 @@ function FormProvider({
         formWrapperRef.current?.scrollToEnd();
     }, []);
 
+    const scrollTo = useCallback((y: number) => {
+        formWrapperRef.current?.scrollTo(y);
+    }, []);
+
     useImperativeHandle(ref, () => ({
         resetForm,
         resetErrors,
         resetFormFieldError,
         submit,
         scrollToEnd,
+        scrollTo,
     }));
 
     const registerInput = useCallback<RegisterInput>(

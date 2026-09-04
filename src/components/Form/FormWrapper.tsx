@@ -177,6 +177,13 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
+    const scrollTo = (y: number) => {
+        // Wait for the keyboard animation to complete
+        setTimeout(() => {
+            formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
+        }, CONST.ANIMATED_TRANSITION);
+    };
+
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
     // we expect that the user wants to use the new edge-to-edge mode.
     // In this case, we want to get and apply the padding unconditionally.
@@ -202,6 +209,7 @@ function FormWrapper({
 
     useImperativeHandle(ref, () => ({
         scrollToEnd,
+        scrollTo,
     }));
 
     const SubmitButton = isSubmitButtonVisible && (
