@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -83,11 +83,10 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
             />
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                    <Avatar
+                    <UserAvatar
                         containerStyles={[styles.mv5, styles.noOutline]}
                         source={details.avatar}
-                        avatarID={accountID}
-                        type={CONST.ICON_TYPE_AVATAR}
+                        accountID={accountID}
                         size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         fallbackIcon={fallbackIcon}
                     />
@@ -112,7 +111,7 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
                             <Button.Text>{translate('workspace.people.removeRoomMemberButtonTitle')}</Button.Text>
                         </Button>
                         <ConfirmModal
-                            danger
+                            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                             title={translate('workspace.people.removeRoomMemberButtonTitle')}
                             isVisible={isRemoveMemberConfirmModalVisible}
                             onConfirm={removeUser}

@@ -29,6 +29,7 @@ import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
+import {getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount} from './PolicyUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
@@ -340,8 +341,24 @@ function getActivePaymentType(
 
 /**
  * Get the last 4 digits of a bank account used for payment.
+ *
+ * @param accountNumber - Masked account number stored on the payment action itself. It is the only viewer-independent
+ * source, so it wins over any local lookup: the payer's account is not in every viewer's `bankAccountList`, and
+ * falling back to the policy account would show a different account to different people for the same payment.
+ * @param payerAccountID - Who made the payment. The workspace account is only a valid guess when the payment came from
+ * the designated payer; for anyone else it belongs to a different bank account than the one actually used.
  */
-function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policy: OnyxEntry<Policy>): string {
+function getBankAccountLastFourDigits(
+    bankAccountID: number | undefined,
+    bankAccountList: OnyxEntry<Record<string, BankAccount>>,
+    policy: OnyxEntry<Policy>,
+    accountNumber?: string,
+    payerAccountID?: number,
+): string {
+    if (accountNumber) {
+        return accountNumber.slice(-4);
+    }
+
     const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
 
     if (bankAccount?.accountData?.accountNumber) {
@@ -352,7 +369,19 @@ function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAcc
     if (bankAccountID != null) {
         return '';
     }
-    return policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+
+    // Nothing on the action identifies the account, so the workspace account is a guess. Only make it for a payment by
+    // the designated payer — showing a non-payer admin's payment as the workspace account is wrong for every viewer,
+    // and it is exactly what makes the payer and the payer's colleagues see two different accounts.
+    if (!wasPaidWithPolicyBankAccount(policy, payerAccountID)) {
+        return '';
+    }
+
+    // Resolve the workspace account through `bankAccountList` when we can. `achAccount.accountNumber` goes stale while
+    // `achAccount.bankAccountID` moves on, so the two can name different accounts; the ID is the one that was debited.
+    const policyBankAccount = getAccessiblePolicyBankAccount(policy, bankAccountList);
+
+    return (policyBankAccount?.accountData?.accountNumber ?? policy?.achAccount?.accountNumber)?.slice(-4) ?? '';
 }
 
 export {

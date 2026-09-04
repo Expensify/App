@@ -23,6 +23,7 @@ type GetSubmitExpensePreMountDestinationRouteParams = {
     iouType: IOUType;
     isCreatingTrackExpense: boolean;
     isSelfDMDestination: boolean;
+    isLookingAroundUser: boolean;
     /** Whether the flow relocates an already-tracked expense (SUBMIT/SHARE/CATEGORIZE) rather than creating one in place. */
     isMovingTransactionFromTrackExpense: boolean;
 };
@@ -40,6 +41,7 @@ function getSubmitExpensePreMountDestinationRoute({
     iouType,
     isCreatingTrackExpense,
     isSelfDMDestination,
+    isLookingAroundUser,
     isMovingTransactionFromTrackExpense,
 }: GetSubmitExpensePreMountDestinationRouteParams): Route | undefined {
     // Unlike getSkipConfirmationPreMountDestinationRoute (which lets usePreMountDestination own the narrow gate), this builder
@@ -66,8 +68,11 @@ function getSubmitExpensePreMountDestinationRoute({
     // Spend tab) pre-inserting a report is wrong - the user should stay on Search. Global-create TRACK targets self-DM, PAY/SPLIT
     // target a specific chat report, and a self-DM CREATE is effectively a TRACK, so all are eligible when Search is NOT topmost.
     const isReportBoundGlobalCreate = iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT;
+    // Never pre-insert the self-DM report for a LOOKING_AROUND self-DM create - it routes to Search, and pre-inserting would
+    // strand the user on the self-DM. Scoped to isSelfDMDestination so other destinations still get pre-inserted.
     const canUseReportPreInsert =
         !shouldPreInsertSearch &&
+        !(isFromGlobalCreate && isLookingAroundUser && isSelfDMDestination) &&
         (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isSelfDMDestination || isReportBoundGlobalCreate || !isFromGlobalCreate)));
 
     // RHP has its own dismiss handler; pre-inserting under it would break the stack.

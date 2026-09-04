@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePreMountDestination from '@hooks/usePreMountDestination';
@@ -17,12 +18,12 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
-import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import {isLookingAroundSearchRoutingActive, isMovingTransactionFromTrackExpense, isSelfDMSoleDestination} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
+import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -41,7 +42,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {isLookingAroundUserSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
@@ -74,6 +75,7 @@ function IOURequestStepAmount({
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
@@ -96,6 +98,7 @@ function IOURequestStepAmount({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isLookingAroundUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isLookingAroundUserSelector});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
@@ -132,10 +135,18 @@ function IOURequestStepAmount({
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
     const isAmountCreateEntry = !backTo && !isEditing;
-    // Mirrors the amount input, signed the same way the form composes it. `undefined` until the form reports
-    // a change, so the baseline below stands in and a prefilled amount starts clean.
+    // `undefined` until the form reports a change, so the baseline below stands in and a prefilled amount starts clean.
     const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
+    const [isSignDirty, setIsSignDirty] = useState(false);
+    const [prevRequestType, setPrevRequestType] = useState(iouRequestType);
+    if (prevRequestType !== iouRequestType) {
+        setPrevRequestType(iouRequestType);
+        setTypedAmount(undefined);
+        setIsSignDirty(false);
+    }
+
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
@@ -144,6 +155,7 @@ function IOURequestStepAmount({
                 isCreateEntry: isAmountCreateEntry,
                 selectedCurrency,
                 originalCurrency,
+                isSignChanged: isSignDirty,
             }),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -163,7 +175,17 @@ function IOURequestStepAmount({
         return !(isReportArchived || isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, isReportArchived]);
 
-    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(shouldSkipConfirmation, report?.reportID);
+    // Both self-DM signals are ORed on purpose. The navigate half (IOUAmountSubmission) reads participants at submit time,
+    // but on a quick-action flow they are not populated yet when this pre-mount decision runs, so the participants check
+    // alone misses and the self-DM gets pre-inserted - then navigateAfterExpenseCreate reveals it instead of going to Search.
+    // isSelfDM(report) answers the question this site actually cares about ("is the report I am about to pre-insert the
+    // self-DM?") and is available immediately.
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(
+        shouldSkipConfirmation,
+        report?.reportID,
+        isLookingAroundSearchRoutingActive(isLookingAroundUser, isOffline),
+        isSelfDM(report) || isSelfDMSoleDestination(transaction?.participants ?? [], iouType, currentUserPersonalDetails.accountID),
+    );
     usePreMountDestination(skipConfirmationPreMountRoute);
 
     useFocusEffect(
@@ -254,6 +276,7 @@ function IOURequestStepAmount({
             paymentMethod,
             formatPhoneNumber,
             isTrackIntentUser,
+            isOffline,
             policyTags,
             reportPolicyTags,
             ...submitData,
@@ -316,6 +339,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={handleSubmit}
                 onAmountChange={setTypedAmount}
+                onSignDirtyChange={setIsSignDirty}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}

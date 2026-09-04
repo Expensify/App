@@ -7,6 +7,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {ListItem} from '@components/SelectionList/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
@@ -54,6 +55,7 @@ function DynamicTaskAssigneeSelectorModal() {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: delegateEmailSelector,
@@ -173,6 +175,7 @@ function DynamicTaskAssigneeSelectorModal() {
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     hasOutstandingChildTask,
                     delegateEmail,
+                    delegateAccountID,
                     assigneeAccountID: option?.accountID,
                     assigneeChatReport,
                     isOptimisticReport,

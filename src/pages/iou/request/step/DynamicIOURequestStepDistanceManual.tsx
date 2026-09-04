@@ -5,7 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -15,6 +15,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -83,6 +84,7 @@ function DynamicIOURequestStepDistanceManual({
     // The page is also mounted on the static distance create screen, where there is nothing to go back to within the flow.
     const backTo = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL ? backPath : undefined;
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
@@ -155,7 +157,7 @@ function DynamicIOURequestStepDistanceManual({
         currentUserAccountIDParam,
     );
     const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isManualDistanceRequest: true,
     });
@@ -326,6 +328,7 @@ function DynamicIOURequestStepDistanceManual({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
+            isOffline,
             selfDMReport,
             policyForMovingExpenses,
             betas,
@@ -351,7 +354,7 @@ function DynamicIOURequestStepDistanceManual({
     };
 
     const submitAndNavigateToNextPage = () => {
-        if (blockManualOrOdometerDistanceRequestIfNeeded()) {
+        if (blockDistanceRequestIfNeeded()) {
             return;
         }
 

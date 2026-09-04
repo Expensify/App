@@ -1,11 +1,13 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {setMoneyRequestAccountant} from '@libs/actions/IOU/MoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDraftWorkspaceAndNavigateToConfirmationScreen} from '@libs/ReportUtils';
 
@@ -13,14 +15,10 @@ import MoneyRequestAccountantSelector from '@pages/iou/request/MoneyRequestAccou
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
-import {activeAdminPoliciesSelector} from '@selectors/Policy';
 import React from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -32,13 +30,12 @@ type DynamicIOURequestStepAccountantProps = WithWritableReportOrNotFoundProps<ty
 
 function DynamicIOURequestStepAccountant({
     route: {
-        params: {transactionID, reportID, iouType, action},
+        params: {transactionID, iouType, action},
     },
 }: DynamicIOURequestStepAccountantProps) {
     const {translate} = useLocalize();
-    const {accountID, login, email = '', localCurrencyCode} = useCurrentUserPersonalDetails();
-    const selector = (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? '');
-    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
+    const {accountID, email = '', localCurrencyCode} = useCurrentUserPersonalDetails();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.path);
@@ -49,8 +46,7 @@ function DynamicIOURequestStepAccountant({
 
     const navigateToNextStep = () => {
         // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
-        const hasActiveAdminWorkspaces = (adminPolicies?.length ?? 0) > 0;
-        if (!hasActiveAdminWorkspaces) {
+        if (!hasActiveAdminPolicies) {
             createDraftWorkspaceAndNavigateToConfirmationScreen(
                 introSelected,
                 transactionID,
@@ -63,7 +59,7 @@ function DynamicIOURequestStepAccountant({
             return;
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute(), action));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.path));
     };
 
     const navigateBack = () => {
