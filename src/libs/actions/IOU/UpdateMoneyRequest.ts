@@ -34,8 +34,7 @@ import {
     haveWaypointAddressesChanged,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
-    isManualDistanceRequest,
-    isOdometerDistanceRequest,
+    isMapBasedDistanceRequest,
     isOnHold,
     isScanning,
     removeTransactionFromDuplicateTransactionViolation,
@@ -1719,8 +1718,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         pendingFields.merchant = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     }
 
-    // Odometer and manual receipts are uploaded, not regenerated, so their page count has to survive the edit.
-    const shouldClearReceiptPageCount = shouldFlagMerchantPending && !isManualDistanceRequest(transaction) && !isOdometerDistanceRequest(transaction);
+    // Odometer and pure manual receipts are uploaded, not regenerated, so their page count has to survive the edit.
+    const shouldClearReceiptPageCount = shouldFlagMerchantPending && isMapBasedDistanceRequest(transaction);
     const clearedPendingFields = getClearedPendingFields(transactionChanges);
     // `getClearedPendingFields` only clears `merchant` for distance edits, so when we artificially
     // flag it for waypoint/rate edits we must also clear it here. Otherwise the flag persists past
@@ -2396,8 +2395,7 @@ function getUpdateTrackExpenseParams(
     // Same page count clear as `getUpdateMoneyRequestParams`.
     const shouldClearReceiptPageCount =
         ('waypoints' in transactionChanges || 'distance' in transactionChanges || 'customUnitRateID' in transactionChanges || 'selectedRouteKey' in transactionChanges) &&
-        !isManualDistanceRequest(transaction) &&
-        !isOdometerDistanceRequest(transaction);
+        isMapBasedDistanceRequest(transaction);
 
     const apiParams: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
