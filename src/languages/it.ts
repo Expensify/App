@@ -4570,8 +4570,9 @@ ${amount} per ${merchant} - ${date}`,
                 'Sapevi che puoi prenotare e gestire viaggi di gruppo come questo direttamente in Expensify? Evita lo stress la prossima volta e prova il nostro strumento <a href="https://help.expensify.com/travel/hubs/event-management/">Eventi di viaggio</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Viaggi non abilitato',
-            message: 'Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
+            title: 'Non puoi ancora prenotare viaggi',
+            message:
+                'Sei membro di uno spazio di lavoro con viaggi abilitati, ma non è il tuo spazio di lavoro predefinito. Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
         },
     },
     workspace: {

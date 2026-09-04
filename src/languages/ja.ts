@@ -4526,8 +4526,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
         },
         defaultWorkspaceTravelDisabled: {
-            title: '出張機能は有効になっていません',
-            message: '予約するには、デフォルトのワークスペースで出張機能を有効にするか、出張機能が有効になっているワークスペースをデフォルトとして設定してください。',
+            title: 'まだ旅行を予約できません',
+            message:
+                '現在、出張機能が有効なワークスペースのメンバーですが、そのワークスペースはデフォルトではありません。予約するには、デフォルトのワークスペースで出張機能を有効にするか、デフォルトのワークスペースを出張機能が有効なワークスペースに変更してください。',
         },
     },
     workspace: {

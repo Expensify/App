@@ -3164,6 +3164,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Travel feature is enabled */
         isTravelEnabled?: boolean;
 
+        /** Whether the workspace has been provisioned for Travel */
+        isTravelProvisioned?: boolean;
+
         /** Whether the Per diem rates feature is enabled */
         arePerDiemRatesEnabled?: boolean;
 

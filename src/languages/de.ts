@@ -4596,8 +4596,9 @@ ${amount} für ${merchant} – ${date}`,
                 'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Reisen ist nicht aktiviert',
-            message: 'Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standard-Arbeitsbereich oder wechseln Sie Ihren Standard-Arbeitsbereich zu einem, in dem Reisen aktiviert ist.',
+            title: 'Sie können noch keine Reisen buchen',
+            message:
+                'Sie sind Mitglied eines Reise-fähigen Arbeitsbereichs, aber er ist nicht Ihr Standardarbeitsbereich. Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standardarbeitsbereich oder ändern Sie Ihren Standardarbeitsbereich auf einen, der Reisen aktiviert hat.',
         },
     },
     workspace: {

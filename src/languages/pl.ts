@@ -4595,8 +4595,9 @@ ${amount} dla ${merchant} - ${date}`,
                 'Wiesz, że możesz rezerwować i zarządzać takimi wyjazdami grupowymi bezpośrednio w Expensify? Oszczędź sobie zachodu następnym razem i wypróbuj nasze narzędzie <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Podróże są wyłączone',
-            message: 'Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej lub ustaw jako domyślną inną przestrzeń roboczą, w której podróże są włączone.',
+            title: 'Nie możesz jeszcze rezerwować podróży',
+            message:
+                'Jesteś członkiem przestrzeni roboczej z włączonymi podróżami, ale nie jest to twoja domyślna przestrzeń robocza. Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej albo zmień domyślną przestrzeń roboczą na taką, która ma włączone podróże.',
         },
     },
     workspace: {

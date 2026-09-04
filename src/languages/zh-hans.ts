@@ -4416,7 +4416,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             hotelBlockCard:
                 '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
         },
-        defaultWorkspaceTravelDisabled: {title: '差旅功能未启用', message: '如需预订，请在您的默认工作区中启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。'},
+        defaultWorkspaceTravelDisabled: {
+            title: '你目前还不能预订行程',
+            message: '您是已启用差旅功能的工作区成员，但该工作区不是您的默认工作区。要预订，请在您的默认工作区启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。',
+        },
     },
     workspace: {
         common: {

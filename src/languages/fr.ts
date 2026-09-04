@@ -4604,8 +4604,9 @@ ${amount} pour ${merchant} - ${date}`,
                 'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Voyage n’est pas activé',
-            message: 'Pour réserver, veuillez activer les voyages sur votre espace de travail par défaut ou définir par défaut un espace de travail sur lequel les voyages sont activés.',
+            title: 'Vous ne pouvez pas encore réserver de voyage',
+            message:
+                'Vous êtes membre d’un espace de travail avec voyage activé, mais ce n’est pas votre espace de travail par défaut. Pour réserver, veuillez activer le voyage sur votre espace de travail par défaut ou définir comme espace de travail par défaut un espace de travail avec voyage activé.',
         },
     },
     workspace: {
