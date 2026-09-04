@@ -1253,6 +1253,7 @@ function getCardAssignmentStartDate(isEditing: boolean | undefined, existingStar
 function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsData: CombinedCardFeeds, plaidBank?: string) {
     const prevFeeds = Object.keys(prevFeedsData);
     const currentFeeds = Object.keys(currentFeedsData);
+    const newFeed = currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeedWithDomainID | undefined;
 
     const plaidBankFound =
         plaidBank &&
@@ -1262,7 +1263,7 @@ function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsD
 
     return {
         isNewFeedConnected: currentFeeds.length > prevFeeds.length || plaidBankFound,
-        newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeedWithDomainID | undefined,
+        newFeed: newFeed ?? (plaidBankFound as CompanyCardFeedWithDomainID | undefined),
     };
 }
 
