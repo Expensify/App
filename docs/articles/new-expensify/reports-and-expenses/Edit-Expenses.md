@@ -49,7 +49,7 @@ Use edit multiple to update the same field across several expenses simultaneousl
 
 ## How to add attendees to multiple expenses at once
 
-**Attendees** appears in the **Edit multiple expenses** panel when every selected expense belongs to a Workspace on the Control plan that has **Attendee tracking** turned on. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
+**Attendees** appears in the **Edit multiple expenses** panel when every selected expense belongs to a Workspace on the Control plan that has **Attendee tracking** enabled. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Expenses**. 
 2. Select 2 or more expenses using the checkboxes.
@@ -59,16 +59,6 @@ Use edit multiple to update the same field across several expenses simultaneousl
 6. Select attendees from **Recents**, **Contacts**, or enter a name, email, or phone number.
 7. Click **Save**.
 8. Click **Save** again to apply your changes to every selected expense.
-
-The **Attendees** field starts empty, even when the selected expenses already have attendees. The attendees you select replace the attendees on each selected expense, and each expense total is split evenly across the new attendee list. [Learn how to add attendees to a single expense](/articles/new-expensify/reports-and-expenses/Adding-Attendees).
-
-**Note:** You must select at least one attendee. If you click **Save** without selecting anyone, the error **At least one attendee must be selected** appears.
-
-<!-- SCREENSHOT:
-Suggestion: The Edit multiple expenses panel for a Control plan Workspace with Attendee tracking on, showing the Attendees row below the other editable fields.
-Location: Immediately after the numbered steps in "How to add attendees to multiple expenses at once".
-Purpose: Members often can't tell whether the missing Attendees row is a bug or a plan restriction; seeing where the row sits in the panel confirms they are looking in the right place.
--->
 
 ---
 ## What expense fields can be edited 
@@ -105,11 +95,11 @@ If a field is restricted for any selected expense (for example, amount on a card
 
 ## Why don't I see the Attendees field in Edit multiple?
 
-**Attendees** only appears when every expense you selected sits on a Workspace that is on the Control plan and has **Attendee tracking** turned on under **Rules**. It is not available for invoices or for personal expenses that aren't on a Workspace.
+**Attendees** only appears when every expense you selected sits on a Workspace that is on the Control plan and has **Attendee tracking** enabled under **Rules**. It is not available for invoices or for personal expenses that aren't on a Workspace.
 
 ## Does editing attendees in bulk keep the attendees already on my expenses?
 
-No. The **Attendees** field opens empty, and the attendees you select replace whatever was already on each selected expense.
+No. The attendees you select replace the ones already on selected expense.
 
 ## Why can't I see the Edit multiple option?
 
