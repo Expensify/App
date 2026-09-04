@@ -8032,6 +8032,15 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 thenApplyFollowingDefaults: 'Appliquez ensuite les valeurs par défaut suivantes :',
                 vendorUnavailable: 'Fournisseur indisponible',
                 supplierUnavailable: 'Fournisseur indisponible',
+                confirmErrorCategory: 'Veuillez sélectionner une catégorie',
+                confirmErrorCategoryTax: 'Veuillez sélectionner un taux de taxe',
+                confirmErrorCondition: 'Veuillez saisir un commerçant',
+                confirmErrorConditionAndDefault: 'Saisissez un commerçant et appliquez au moins un paramètre par défaut',
+                turnOnTaxesFirstTitle: 'Activer d’abord les taxes',
+                turnOnTaxesFirstPrompt: 'Les règles de catégorie définissent un taux de taxe par défaut. Activez les taxes dans les paramètres de votre espace de travail pour les utiliser.',
+                categoryRulesApplyGoingForwardTitle: 'Les règles de catégorie s’appliquent à partir de maintenant',
+                categoryRulesApplyGoingForwardPrompt:
+                    'Un taux de taxe par défaut s’applique aux nouvelles dépenses de cette catégorie. Les dépenses déjà existantes ne seront pas modifiées.',
             },
             categoryRules: {
                 title: 'Règles de catégorie',
@@ -8332,10 +8341,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 applyExpenseDefaultsDescription: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
                 flagForReview: 'Marquer pour examen',
                 flagForReviewDescription: 'Avertir les approbateurs lorsque les dépenses dépassent les limites de catégorie',
-                requireFields: 'Exigences des champs',
+                requireFields: 'Définir les exigences des champs',
                 requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
-                createAgentRule: 'Règle d’agent',
-                createAgentRuleDescription: 'Décrivez des règles flexibles qui s’exécutent quand vous en avez besoin.',
+                createAgentRule: 'Décrire la règle de l’agent',
+                createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -8346,6 +8355,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 update: 'Mettre à jour',
                 merchantIs: (merchant: string) => `Le commerçant est « ${merchant} »`,
                 merchantTypeIs: (merchantType: string) => `Le type de commerçant est « ${merchantType} »`,
+                categoryIs: (category: string) => `La catégorie est « ${category} »`,
             },
             merchantTypeRule: {merchantType: 'Type de marchand', saveRule: 'Enregistrer la règle', confirmErrorCategory: 'Veuillez sélectionner une catégorie.'},
             requireFieldsTable: {
@@ -8362,6 +8372,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireReceipt: 'Reçu obligatoire',
                 doNotRequireReceipt: 'Ne pas exiger de reçu',
                 doNotRequireItemizedReceipt: 'Ne pas exiger de reçu détaillé',
+                typeLabel: 'Exiger',
             },
             requireFieldsEmptyState: {
                 title: 'Identifiez les informations manquantes dès le départ',
@@ -8414,6 +8425,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cta: 'Ajouter une règle IA',
             },
             categoriesDisabledEmptyState: {title: 'Les catégories ne sont pas activées', subtitle: 'Activez les catégories pour mieux contrôler vos dépenses.'},
+            expenseDefaultType: {
+                title: 'Appliquer les valeurs de dépense par défaut',
+                subtitle: 'Sur quoi cette règle doit-elle faire correspondre ?',
+                merchant: 'Commerçant',
+                merchantDescription: 'Mettre à jour les champs des dépenses d’un commerçant spécifique',
+                category: 'Catégorie',
+                categoryDescription: 'Définir un taux de taxe par défaut pour une catégorie spécifique',
+            },
+            taxesDisabledEmptyState: {title: 'Les taxes ne sont pas activées', subtitle: 'Activez les taxes pour documenter et récupérer les taxes admissibles.', cta: 'Activer les taxes'},
         },
         planTypePage: {
             planTypes: {

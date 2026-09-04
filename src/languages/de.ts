@@ -8010,6 +8010,14 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 thenApplyFollowingDefaults: 'Wenden Sie dann die folgenden Standardwerte an:',
                 vendorUnavailable: 'Anbieter nicht verfügbar',
                 supplierUnavailable: 'Lieferant nicht verfügbar',
+                confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus',
+                confirmErrorCategoryTax: 'Bitte wählen Sie einen Steuersatz aus',
+                confirmErrorCondition: 'Bitte geben Sie einen Händler ein',
+                confirmErrorConditionAndDefault: 'Geben Sie einen Händler ein und wenden Sie mindestens eine Standardeinstellung an',
+                turnOnTaxesFirstTitle: 'Schalten Sie zuerst Steuern ein',
+                turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen Standardsteuersatz fest. Aktivieren Sie Steuern in Ihren Workspace-Einstellungen, um sie zu verwenden.',
+                categoryRulesApplyGoingForwardTitle: 'Kategorienregeln gelten ab jetzt',
+                categoryRulesApplyGoingForwardPrompt: 'Ein Standardsatz für Steuern gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
             },
             categoryRules: {
                 title: 'Kategorienregeln',
@@ -8309,10 +8317,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 applyExpenseDefaultsDescription: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
                 flagForReview: 'Zur Überprüfung markieren',
                 flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
-                requireFields: 'Feldanforderungen',
+                requireFields: 'Feldanforderungen festlegen',
                 requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
-                createAgentRule: 'Agentenregel',
-                createAgentRuleDescription: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
+                createAgentRule: 'Agentenregel beschreiben',
+                createAgentRuleDescription: 'Erstellen Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -8323,6 +8331,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 update: 'Aktualisieren',
                 merchantIs: (merchant: string) => `Händler ist „${merchant}“`,
                 merchantTypeIs: (merchantType: string) => `Händlertyp ist „${merchantType}"`,
+                categoryIs: (category: string) => `Kategorie ist „${category}“`,
             },
             merchantTypeRule: {merchantType: 'Händlerart', saveRule: 'Regel speichern', confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.'},
             requireFieldsTable: {
@@ -8339,6 +8348,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 requireReceipt: 'Beleg erforderlich',
                 doNotRequireReceipt: 'Beleg nicht erforderlich',
                 doNotRequireItemizedReceipt: 'Keine detaillierte Quittung erforderlich',
+                typeLabel: 'Erforderlich',
             },
             requireFieldsEmptyState: {
                 title: 'Fehlende Details frühzeitig erfassen',
@@ -8391,6 +8401,19 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cta: 'KI-Regel hinzufügen',
             },
             categoriesDisabledEmptyState: {title: 'Kategorien sind nicht aktiviert', subtitle: 'Aktivieren Sie Kategorien, um Ihre Ausgaben besser zu kontrollieren.'},
+            expenseDefaultType: {
+                title: 'Standardspesen übernehmen',
+                subtitle: 'Worauf soll diese Regel angewendet werden?',
+                merchant: 'Händler',
+                merchantDescription: 'Felder bei Ausgaben eines bestimmten Händlers aktualisieren',
+                category: 'Kategorie',
+                categoryDescription: 'Legen Sie einen Standardsteuersatz für eine bestimmte Kategorie fest',
+            },
+            taxesDisabledEmptyState: {
+                title: 'Steuern sind nicht aktiviert',
+                subtitle: 'Aktivieren Sie Steuern, um anfallende Steuern zu dokumentieren und zurückzufordern.',
+                cta: 'Steuern aktivieren',
+            },
         },
         planTypePage: {
             planTypes: {
