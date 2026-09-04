@@ -5870,7 +5870,7 @@ function getDisplayValue(
             return;
         }
 
-        const matchTypeKey = form[FILTER_KEYS.MERCHANT_OPERATOR] === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS ? 'search.filters.merchant.contains' : 'search.filters.merchant.exactMatch';
+        const matchTypeKey = form[FILTER_KEYS.MERCHANT_OPERATOR] === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? 'search.filters.merchant.exactMatch' : 'search.filters.merchant.contains';
         return `${translate(matchTypeKey)} "${merchant}"`;
     }
 
