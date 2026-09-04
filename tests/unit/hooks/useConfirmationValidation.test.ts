@@ -364,7 +364,7 @@ describe('useConfirmationValidation', () => {
     });
 
     describe('amount validation — manual expense (isAmountSet)', () => {
-        const newManualFlowParams = {
+        const zeroAmountParams = {
             iouAmount: 0,
         };
 
@@ -375,7 +375,7 @@ describe('useConfirmationValidation', () => {
                         createValidationParamsForParticipant(
                             POLICY_EXPENSE_CHAT_PARTICIPANT,
                             {
-                                ...newManualFlowParams,
+                                ...zeroAmountParams,
                                 iouType,
                             },
                             {isAmountSet: false},
@@ -391,7 +391,7 @@ describe('useConfirmationValidation', () => {
                         createValidationParamsForParticipant(
                             POLICY_EXPENSE_CHAT_PARTICIPANT,
                             {
-                                ...newManualFlowParams,
+                                ...zeroAmountParams,
                                 iouType: CONST.IOU.TYPE.PAY,
                             },
                             {isAmountSet: false},
@@ -405,7 +405,7 @@ describe('useConfirmationValidation', () => {
             it('returns errorKey: null when manual amount is explicitly set to zero for submit', () => {
                 const {result} = renderHook(() =>
                     useConfirmationValidation(
-                        createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.SUBMIT}, {amount: 0, isAmountSet: true}),
+                        createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...zeroAmountParams, iouType: CONST.IOU.TYPE.SUBMIT}, {amount: 0, isAmountSet: true}),
                     ),
                 );
                 expect(result.current.validate()).toEqual({errorKey: null});
@@ -414,7 +414,7 @@ describe('useConfirmationValidation', () => {
             it('returns invalidAmount when manual amount is explicitly set to zero for invoice', () => {
                 const {result} = renderHook(() =>
                     useConfirmationValidation(
-                        createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.INVOICE}, {amount: 0, isAmountSet: true}),
+                        createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...zeroAmountParams, iouType: CONST.IOU.TYPE.INVOICE}, {amount: 0, isAmountSet: true}),
                     ),
                 );
                 expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
@@ -430,7 +430,7 @@ describe('useConfirmationValidation', () => {
                             createValidationParamsForParticipant(
                                 P2P_PARTICIPANT,
                                 {
-                                    ...newManualFlowParams,
+                                    ...zeroAmountParams,
                                     iouType,
                                 },
                                 {isAmountSet: false},
@@ -447,7 +447,7 @@ describe('useConfirmationValidation', () => {
                         createValidationParamsForParticipant(
                             P2P_PARTICIPANT,
                             {
-                                ...newManualFlowParams,
+                                ...zeroAmountParams,
                                 iouAmount: 2500,
                             },
                             {amount: 2500, isAmountSet: true},
@@ -458,15 +458,13 @@ describe('useConfirmationValidation', () => {
             });
 
             it('returns invalidAmount when manual amount is explicitly set to zero', () => {
-                const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, newManualFlowParams, {amount: 0, isAmountSet: true})));
+                const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, zeroAmountParams, {amount: 0, isAmountSet: true})));
                 expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
             });
 
             it('returns invalidAmount when manual amount is explicitly set to zero for invoice', () => {
                 const {result} = renderHook(() =>
-                    useConfirmationValidation(
-                        createValidationParamsForParticipant(P2P_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.INVOICE}, {amount: 0, isAmountSet: true}),
-                    ),
+                    useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, {...zeroAmountParams, iouType: CONST.IOU.TYPE.INVOICE}, {amount: 0, isAmountSet: true})),
                 );
                 expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
             });
@@ -474,12 +472,12 @@ describe('useConfirmationValidation', () => {
 
         describe('self-DM participant', () => {
             it('returns fieldRequired for unset manual amount', () => {
-                const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(SELF_DM_PARTICIPANT, newManualFlowParams, {isAmountSet: false})));
+                const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(SELF_DM_PARTICIPANT, zeroAmountParams, {isAmountSet: false})));
                 expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
             });
 
             it('returns errorKey: null when manual amount is explicitly set to zero', () => {
-                const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(SELF_DM_PARTICIPANT, newManualFlowParams, {amount: 0, isAmountSet: true})));
+                const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(SELF_DM_PARTICIPANT, zeroAmountParams, {amount: 0, isAmountSet: true})));
                 expect(result.current.validate()).toEqual({errorKey: null});
             });
         });
@@ -553,14 +551,10 @@ describe('useConfirmationValidation', () => {
     });
 
     describe('amount validation — programmatic request types (scan, distance, time, per diem)', () => {
-        const newManualFlowParams = {
-            ...baseParams,
-        };
-
         it('does not return fieldRequired for scan expense when amount is not set', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation({
-                    ...newManualFlowParams,
+                    ...baseParams,
                     transaction: createTransactionBase({
                         amount: 1000,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
@@ -576,7 +570,7 @@ describe('useConfirmationValidation', () => {
         it('does not return fieldRequired for distance expense when amount is not set', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation({
-                    ...newManualFlowParams,
+                    ...baseParams,
                     iouAmount: 5000,
                     isDistanceRequest: true,
                     transaction: createTransactionBase({
@@ -594,7 +588,7 @@ describe('useConfirmationValidation', () => {
         it('does not return fieldRequired for time expense when amount is not set', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation({
-                    ...newManualFlowParams,
+                    ...baseParams,
                     iouAmount: 3600,
                     isTimeRequest: true,
                     transaction: createTransactionBase({
@@ -612,7 +606,7 @@ describe('useConfirmationValidation', () => {
         it('does not return fieldRequired for per diem expense when amount is not set', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation({
-                    ...newManualFlowParams,
+                    ...baseParams,
                     isPerDiemRequest: true,
                     transaction: createTransactionBase({
                         amount: 5000,
@@ -794,21 +788,15 @@ describe('useConfirmationValidation', () => {
     });
 
     describe('date validation — inline required date', () => {
-        const newManualFlowParams = {
-            ...baseParams,
-        };
-
         it('returns fieldRequired for manual expense when the date is removed', () => {
-            const {result} = renderHook(() =>
-                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, newManualFlowParams, {created: '', isAmountSet: true})),
-            );
+            const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, baseParams, {created: '', isAmountSet: true})));
             expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
         });
 
         it('returns fieldRequired for distance expense when the date is removed', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation({
-                    ...newManualFlowParams,
+                    ...baseParams,
                     isDistanceRequest: true,
                     transaction: createTransactionBase({
                         amount: 1000,
@@ -826,7 +814,7 @@ describe('useConfirmationValidation', () => {
         it('returns fieldRequired for time expense when the date is removed', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation({
-                    ...newManualFlowParams,
+                    ...baseParams,
                     isTimeRequest: true,
                     transaction: createTransactionBase({
                         amount: 1000,
@@ -844,7 +832,7 @@ describe('useConfirmationValidation', () => {
         it('returns fieldRequired for invoice when the date is removed', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation(
-                    createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.INVOICE}, {created: '', isAmountSet: true}),
+                    createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...baseParams, iouType: CONST.IOU.TYPE.INVOICE}, {created: '', isAmountSet: true}),
                 ),
             );
             expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
@@ -852,25 +840,21 @@ describe('useConfirmationValidation', () => {
 
         it('does not return fieldRequired when the date is present', () => {
             const {result} = renderHook(() =>
-                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, newManualFlowParams, {created: '2025-01-15', isAmountSet: true})),
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, baseParams, {created: '2025-01-15', isAmountSet: true})),
             );
             expect(result.current.validate()).toEqual({errorKey: null});
         });
 
         it('does not return fieldRequired when the fields are read-only (date populated server-side)', () => {
             const {result} = renderHook(() =>
-                useConfirmationValidation(
-                    createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, isReadOnly: true}, {created: '', isAmountSet: true}),
-                ),
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...baseParams, isReadOnly: true}, {created: '', isAmountSet: true})),
             );
             expect(result.current.validate()).toEqual({errorKey: null});
         });
 
         it('does not return fieldRequired when the date field is not shown (pure scan flow)', () => {
             const {result} = renderHook(() =>
-                useConfirmationValidation(
-                    createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, shouldShowDate: false}, {created: '', isAmountSet: true}),
-                ),
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...baseParams, shouldShowDate: false}, {created: '', isAmountSet: true})),
             );
             expect(result.current.validate()).toEqual({errorKey: null});
         });

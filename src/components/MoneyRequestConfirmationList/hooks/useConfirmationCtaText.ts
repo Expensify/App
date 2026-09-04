@@ -16,9 +16,6 @@ type UseConfirmationCtaTextParams = {
     /** Whether the current IOU type is invoice */
     isTypeInvoice: boolean;
 
-    /** Whether the current IOU type is track-expense */
-    isTypeTrackExpense: boolean;
-
     /** Whether the current IOU type is split */
     isTypeSplit: boolean;
 
@@ -57,7 +54,6 @@ type UseConfirmationCtaTextParams = {
 function useConfirmationCtaText({
     expensesNumber,
     isTypeInvoice,
-    isTypeTrackExpense,
     isTypeSplit,
     isTypeRequest,
     iouAmount,
@@ -79,11 +75,11 @@ function useConfirmationCtaText({
         } else {
             text = translate('common.next');
         }
-    } else if (isTypeTrackExpense) {
-        text = translate('iou.createExpense');
     } else if (isTypeSplit && iouAmount === 0) {
         text = translate('iou.splitExpense');
     } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
+        // Sits between the two split branches on purpose: a non-zero split with a pending distance route or per diem
+        // keeps the create copy rather than falling through to "Split expense".
         text = translate('iou.createExpense');
     } else if (isTypeSplit) {
         text = translate('iou.splitExpense');

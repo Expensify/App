@@ -72,8 +72,8 @@ type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
     onConfirm?: () => void;
 
-    /** When set, used in the new manual expense flow to open the parent-owned participant picker instead of navigating away */
-    onOpenParticipantPicker?: () => void;
+    /** Opens the participant picker owned by the page hosting this list. Pages that cannot show an editable participant row pass a no-op. */
+    onOpenParticipantPicker: () => void;
 
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
     isParticipantPickerVisible?: boolean;
@@ -265,7 +265,6 @@ function MoneyRequestConfirmationList({
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
-    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
@@ -384,7 +383,6 @@ function MoneyRequestConfirmationList({
     const splitOrRequestOptions = useConfirmationCtaText({
         expensesNumber,
         isTypeInvoice,
-        isTypeTrackExpense,
         isTypeSplit,
         isTypeRequest,
         iouAmount,
@@ -451,7 +449,7 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        onOpenParticipantPicker?.();
+        onOpenParticipantPicker();
     };
 
     const {validate} = useConfirmationValidation({

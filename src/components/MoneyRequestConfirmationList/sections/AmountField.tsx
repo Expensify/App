@@ -85,8 +85,10 @@ function AmountField({
     const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
     const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
-    // amount itself is the missing value.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && !transactionSlice?.isAmountSet;
+    // amount itself is the missing value. `isAmountSet` is only written by the manual flow, so mirror the
+    // `iouRequestType` gate the validation side uses – otherwise a missing date makes scan expenses show the
+    // required error under an already populated amount.
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transactionSlice?.isAmountSet;
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';
