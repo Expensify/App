@@ -5,7 +5,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type {RefObject, SyntheticEvent} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 type ZoomDelta = {offsetX: number; offsetY: number};
 
@@ -113,44 +113,39 @@ function useClickZoomPan({scrollableRef, containerSize, zoomFactor}: UseClickZoo
         }
     };
 
-    const resetZoom = useCallback(() => {
+    // No manual memoization anywhere in this hook — React Compiler stabilizes these callbacks.
+    const resetZoom = () => {
         setIsZoomed(false);
         setIsDragging(false);
         setIsMouseDown(false);
         setZoomDelta(undefined);
-    }, []);
+    };
 
-    const trackPointerPosition = useCallback(
-        (event: MouseEvent) => {
-            // Whether the pointer is released inside the scrollable container
-            const isInsideContainer = event.target instanceof Node && scrollableRef.current?.contains(event.target);
+    const trackPointerPosition = (event: MouseEvent) => {
+        // Whether the pointer is released inside the scrollable container
+        const isInsideContainer = event.target instanceof Node && scrollableRef.current?.contains(event.target);
 
-            if (!isInsideContainer && isZoomed && isDragging && isMouseDown) {
-                setIsDragging(false);
-                setIsMouseDown(false);
-            }
-        },
-        [isDragging, isMouseDown, isZoomed, scrollableRef],
-    );
+        if (!isInsideContainer && isZoomed && isDragging && isMouseDown) {
+            setIsDragging(false);
+            setIsMouseDown(false);
+        }
+    };
 
-    const trackMovement = useCallback(
-        (event: MouseEvent) => {
-            if (!isZoomed) {
-                return;
-            }
+    const trackMovement = (event: MouseEvent) => {
+        if (!isZoomed) {
+            return;
+        }
 
-            const scrollableContainer = scrollableRef.current;
-            if (isDragging && isMouseDown && scrollableContainer) {
-                const moveX = initialX - event.x;
-                const moveY = initialY - event.y;
-                scrollableContainer.scrollLeft = initialScrollLeft + moveX;
-                scrollableContainer.scrollTop = initialScrollTop + moveY;
-            }
+        const scrollableContainer = scrollableRef.current;
+        if (isDragging && isMouseDown && scrollableContainer) {
+            const moveX = initialX - event.x;
+            const moveY = initialY - event.y;
+            scrollableContainer.scrollLeft = initialScrollLeft + moveX;
+            scrollableContainer.scrollTop = initialScrollTop + moveY;
+        }
 
-            setIsDragging(isMouseDown);
-        },
-        [initialScrollLeft, initialScrollTop, initialX, initialY, isDragging, isMouseDown, isZoomed, scrollableRef],
-    );
+        setIsDragging(isMouseDown);
+    };
 
     useEffect(() => {
         const scrollableContainer = scrollableRef.current;

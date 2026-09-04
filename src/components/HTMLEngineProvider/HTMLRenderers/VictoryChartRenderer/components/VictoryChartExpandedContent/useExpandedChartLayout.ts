@@ -1,6 +1,7 @@
 import {CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+import {DOUBLE_TAP_SCALE} from '@components/MultiGestureCanvas/constants';
 
 import useTheme from '@hooks/useTheme';
 
@@ -12,8 +13,9 @@ import type {ColorValue} from 'react-native';
 // size, so zooming never allocates an excessively large canvas. The fitted render itself is
 // never reduced — the chart must at least fill the viewport.
 const MAX_CANVAS_DIMENSION = 2048;
-// 2x headroom covers typical zoom depth without paying for a larger render surface.
-const MAX_ZOOM_HEADROOM = 2;
+// MultiGestureCanvas double-taps to at least DOUBLE_TAP_SCALE regardless of zoomRange, so the
+// headroom must reach it for double-tap to land exactly on rendered (not upscaled) pixels.
+const MAX_ZOOM_HEADROOM = DOUBLE_TAP_SCALE;
 
 type ExpandedChartLayout = {
     /** Whether the chart has numeric design dimensions and the available area has been measured */

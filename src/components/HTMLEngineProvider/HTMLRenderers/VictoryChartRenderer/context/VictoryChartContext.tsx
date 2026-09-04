@@ -8,7 +8,7 @@ import scaleVictoryChartContextValue from '@components/HTMLEngineProvider/HTMLRe
 
 import type {TNode} from 'react-native-render-html';
 
-import React, {createContext, useContext, useMemo} from 'react';
+import React, {createContext, useContext} from 'react';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -106,7 +106,8 @@ function VictoryChartScaledProvider({scale, children}: VictoryChartScaledProvide
     const value = useVictoryChartContext();
     const typefaces = useChartTypefaces();
     const typeface = getVictoryChartTreeTypeface(typefaces);
-    const scaledValue = useMemo(() => scaleVictoryChartContextValue(value, scale, typeface), [value, scale, typeface]);
+    // No manual memoization — React Compiler memoizes this call automatically.
+    const scaledValue = scaleVictoryChartContextValue(value, scale, typeface);
     return <VictoryChartContext.Provider value={scaledValue}>{children}</VictoryChartContext.Provider>;
 }
 
