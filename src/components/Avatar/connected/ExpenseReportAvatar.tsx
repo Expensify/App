@@ -1,9 +1,4 @@
-import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
-
-import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
-
-import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,11 +6,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import {expenseReportAvatarSelector} from '@selectors/Report';
+import {reportAvatarFieldsSelector} from '@selectors/Report';
 import React from 'react';
 
-import useAccountIcons from './useAccountIcons';
-import useReportWorkspaceIcon from './useReportWorkspaceIcon';
+import {useSeededAccountIcons} from './useAccountIcons';
+import WorkspaceSubscriptAvatar from './WorkspaceSubscriptAvatar';
 
 type ExpenseReportAvatarProps = {
     /** Expense report whose avatars to render */
@@ -34,23 +29,15 @@ type ExpenseReportAvatarProps = {
     fallbackDisplayName?: string;
 };
 
-/** Renders an expense report's avatars: the report owner as the primary avatar with the workspace icon as the subscript. Expense reports never render in any other layout. */
+/** Renders an expense report's avatars: the owner with the workspace icon as the subscript. */
 function ExpenseReportAvatar({reportID, size, backdropColor, containerStyle, fallbackDisplayName}: ExpenseReportAvatarProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: expenseReportAvatarSelector});
-    const defaultAvatars = useDefaultAvatars();
-    const ownerAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [ownerIcon] = useAccountIcons([ownerAccountID]);
-    // Get deterministic user fallback icon instead of generic.
-    const primaryAvatar =
-        ownerIcon.source === defaultAvatars.FallbackAvatar && ownerAccountID !== CONST.DEFAULT_NUMBER_ID
-            ? {...ownerIcon, source: getDefaultAvatarURL({accountID: ownerAccountID})}
-            : ownerIcon;
-    const workspaceIcon = useReportWorkspaceIcon(report);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportAvatarFieldsSelector});
+    const [primaryAvatar] = useSeededAccountIcons([report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     return (
-        <SubscriptAvatar
+        <WorkspaceSubscriptAvatar
+            report={report}
             primaryAvatar={primaryAvatar}
-            secondaryAvatar={workspaceIcon}
             size={size}
             backdropColor={backdropColor}
             containerStyle={containerStyle}

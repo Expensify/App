@@ -16,6 +16,7 @@ import {reportAvatarKindSelector} from '@selectors/Report';
 import React from 'react';
 
 import AccountAvatar from './AccountAvatar';
+import ChatThreadAvatar from './ChatThreadAvatar';
 import ExpenseReportAvatar from './ExpenseReportAvatar';
 import GroupChatAvatar from './GroupChatAvatar';
 
@@ -79,7 +80,6 @@ function ReportAvatar({
                 <GroupChatAvatar
                     reportID={reportID}
                     size={size}
-                    // The layout is always single, but the legacy component still drops the single avatar's container styles when horizontal stacking is requested.
                     containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
                     fallbackDisplayName={fallbackDisplayName}
                 />
@@ -94,12 +94,22 @@ function ReportAvatar({
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
+        case CONST.REPORT_AVATAR_KIND.CHAT_THREAD:
+            return (
+                <ChatThreadAvatar
+                    reportID={reportID}
+                    size={size}
+                    backdropColor={backdropColor}
+                    containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
+                    subscriptContainerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : undefined}
+                    fallbackDisplayName={fallbackDisplayName}
+                />
+            );
         // TODO: The remaining kinds still render the legacy component. https://github.com/Expensify/App/issues/94590 adds a
         // dedicated wrapper per kind, one PR at a time. The last of those deletes the ReportActionAvatars import and simplifies props.
         case CONST.REPORT_AVATAR_KIND.IOU:
         case CONST.REPORT_AVATAR_KIND.TASK:
         case CONST.REPORT_AVATAR_KIND.INVOICE:
-        case CONST.REPORT_AVATAR_KIND.CHAT_THREAD:
         case CONST.REPORT_AVATAR_KIND.POLICY_EXPENSE_CHAT:
         case CONST.REPORT_AVATAR_KIND.ROOM:
         case CONST.REPORT_AVATAR_KIND.DEFAULT:
