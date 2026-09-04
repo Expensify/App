@@ -5431,4 +5431,20 @@ describe('getDistanceInMeters', () => {
         const transaction = generateTransaction({comment: {selectedRouteKey: 'route1'}, routes: {route0: routes.route0}});
         expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1000);
     });
+
+    it('falls back to routeDistanceMeters when the routes are gone and the quantity is not written yet', () => {
+        const transaction = generateTransaction({
+            comment: {customUnit: {quantity: 0, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, routeDistanceMeters: 4680656}},
+            routes: undefined,
+        });
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(4680656);
+    });
+
+    it('prefers the quantity over routeDistanceMeters once the quantity is written', () => {
+        const transaction = generateTransaction({
+            comment: {customUnit: {quantity: 10, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, routeDistanceMeters: 4680656}},
+            routes: undefined,
+        });
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).not.toBe(4680656);
+    });
 });
