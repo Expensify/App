@@ -2,8 +2,6 @@ import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
 import isTeamMember from '@github/libs/isTeamMember';
 
-import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
-
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import https from 'https';
@@ -19,8 +17,6 @@ const ENGINEERING_TEAM_SLUG = 'engineering';
 // A reviewer's standing is their latest review in one of these states; plain "commented" reviews don't change it.
 const DECISIVE_REVIEW_STATES = new Set(['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED']);
 const REVIEWER_CHECKLIST_WORKFLOW = 'reviewerChecklist.yml';
-
-type WorkflowRunsResponse = RestEndpointMethodTypes['actions']['listWorkflowRuns']['response'];
 
 async function hasSuccessfulChecklistRun(): Promise<boolean> {
     const pullRequestPayload: unknown = github.context.payload.pull_request;
@@ -43,7 +39,7 @@ async function hasSuccessfulChecklistRun(): Promise<boolean> {
     }
 
     const {owner, repo} = github.context.repo;
-    const workflowRuns = (await GitHubUtils.octokit.actions.listWorkflowRuns({
+    const workflowRuns = await GitHubUtils.octokit.actions.listWorkflowRuns({
         owner,
         repo,
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -53,7 +49,7 @@ async function hasSuccessfulChecklistRun(): Promise<boolean> {
         status: 'success',
         // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
-    })) as WorkflowRunsResponse;
+    });
 
     return workflowRuns.data.workflow_runs.some(
         (workflowRun) => workflowRun.id !== currentRunID && (workflowRun.pull_requests?.some((workflowRunPullRequest) => workflowRunPullRequest.number === issue) ?? false),
