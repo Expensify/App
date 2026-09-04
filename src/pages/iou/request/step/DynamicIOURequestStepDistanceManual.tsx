@@ -160,6 +160,7 @@ function DynamicIOURequestStepDistanceManual({
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isManualDistanceRequest: true,
+        isEditingExistingDistanceRequest: isEditing,
     });
 
     // to make sure the correct distance amount and unit will be shown we use distance unit
