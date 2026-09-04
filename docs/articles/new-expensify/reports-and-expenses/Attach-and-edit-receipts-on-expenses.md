@@ -1,8 +1,8 @@
 ---
 title: Attach and edit receipts on expenses
 description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify for audits and accounting.
-keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt]
-internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses. Does not cover SmartScan configuration or receipt forwarding via email.
+keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt, multi-page receipt, multi page PDF receipt, PDF receipt pages, receipt page count, page 1 of, receipt only shows first page]
+internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, cropping, and rotating receipts on expenses, plus the page count shown on multi-page PDF receipts. Does not cover SmartScan configuration or receipt forwarding via email.
 ---
 
 Make sure your receipts are attached correctly to individual expenses for audit and accounting compliance. This guide explains how to attach, verify, and troubleshoot receipts in New Expensify — and when to use report comments for additional documentation.
@@ -65,6 +65,28 @@ You can rotate a receipt to correct its orientation. Rotation is available for u
 
 ---
 
+## How to tell when a PDF receipt has more than one page
+
+The receipt shown on an expense is a preview of the first page only. If a total or an itemized breakdown appears on a later page of a PDF, it will not be visible in that preview.
+
+When a PDF receipt has more than one page, a **Page 1 of X** badge appears in the bottom-left corner of the receipt, where X is the total number of pages.
+
+To read the remaining pages:
+
+1. Open the expense.
+2. Click the receipt to open it.
+3. Scroll down to move through the rest of the pages.
+
+<!-- SCREENSHOT:
+Suggestion: The expense detail view showing a PDF receipt preview with the **Page 1 of 3** badge visible in the bottom-left corner of the receipt.
+Location: Immediately after the numbered steps in this section.
+Purpose: Members reporting that an expense amount does not match the receipt often do not realize the badge exists or where to look for it, since it sits away from the receipt action buttons in the top-right corner.
+-->
+
+The badge appears on PDF receipts only. Image receipts are a single page, so they never show it. Receipts uploaded before this badge was released also do not show a page count, even when the PDF has more than one page.
+
+---
+
 ## How to Add Additional Receipts to an Expense
 
 Each expense has one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed — for example, the front and back of a paper receipt, or both the credit card slip and the itemized breakdown.
@@ -117,6 +139,12 @@ Approved and Paid reports are locked for editing. To make changes:
 
 ## Why isn’t my receipt showing on the expense?
 It was likely uploaded in the report comments. Receipts must be attached directly to the expense to appear properly.
+
+## Why does my PDF receipt only show the first page?
+
+The receipt on an expense is a preview of page 1. A **Page 1 of X** badge in the bottom-left corner tells you how many pages the PDF has. Click the receipt to open it and scroll through the rest.
+
+If a multi-page PDF shows no badge, it was uploaded before the page count was released. The receipt itself is unchanged — open it to see every page.
 
 ## Can I attach one receipt to multiple expenses?
 No. Each expense must have its own receipt. You can upload the same file more than once if needed.
