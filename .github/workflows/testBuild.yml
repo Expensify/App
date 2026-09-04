@@ -34,6 +34,10 @@ on:
         description: Force a full native build, bypassing Rock remote cache
         type: boolean
         default: false
+      MOBILE_EXPENSIFY_MAIN:
+        description: Build against the tip of Mobile-Expensify main instead of the commit pinned by the submodule. Misses the Rock remote cache.
+        type: boolean
+        default: false
 
 jobs:
   # Validates the actor and that they reviewed the PR before any token is used or untrusted code is checked out.
@@ -62,8 +66,8 @@ jobs:
       # Fall back to App main when nothing is resolved (test builds default to the latest NewDot).
       APP_REF: ${{ needs.resolveRefs.outputs.APP_REF || 'main' }}
       APP_PR_NUMBER: ${{ needs.resolveRefs.outputs.APP_PR_NUMBER }}
-      # Fall back to Mobile-Expensify main when nothing is resolved (test builds track the latest OldDot).
-      MOBILE_EXPENSIFY_REF: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF || 'main' }}
+      # Empty means the pinned submodule commit, so the fingerprint matches the builds `testBuildOnPush.yml` seeds the cache from.
+      MOBILE_EXPENSIFY_REF: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF || (inputs.MOBILE_EXPENSIFY_MAIN && 'main' || '') }}
       MOBILE_EXPENSIFY_PR: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_PR }}
       BUILD_WEB: ${{ inputs.WEB && 'true' || 'false' }}
       BUILD_IOS: ${{ inputs.IOS && 'true' || 'false' }}
