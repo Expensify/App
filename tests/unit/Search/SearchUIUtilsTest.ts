@@ -12893,7 +12893,7 @@ describe('SearchUIUtils', () => {
     });
 
     describe('getHasOptions', () => {
-        test('returns expense has options including submitted violation', () => {
+        test('returns expense has options including submitted and approved violation', () => {
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
             expect(result).toEqual([
@@ -12902,10 +12902,11 @@ describe('SearchUIUtils', () => {
                 {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
                 {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
                 {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+                {text: translateLocal('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
             ]);
         });
 
-        test('returns chat has options without submitted violation', () => {
+        test('returns chat has options without submitted or approved violation', () => {
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.CHAT);
 
             expect(result).toEqual([
@@ -12997,6 +12998,60 @@ describe('SearchUIUtils', () => {
 
             expect(SearchUIUtils.getViolationsForTransaction([addExpenseAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.overLimit'));
             expect(SearchUIUtils.getViolationsForTransaction([addExpenseAction], otherTransactionID, translateLocal)).toBeUndefined();
+        });
+
+        test('reads the snapshot recorded when the report was approved', () => {
+            const approvedAction = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                    },
+                },
+                'approve-action-1',
+            );
+
+            expect(SearchUIUtils.getViolationsForTransaction([approvedAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.missingCategory'));
+            expect(SearchUIUtils.getViolationsForTransaction([approvedAction], otherTransactionID, translateLocal)).toBeUndefined();
+        });
+
+        test('reads the snapshot recorded when the report was forwarded to the next approver', () => {
+            const forwardedAction = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.OVER_LIMIT}],
+                    },
+                },
+                'forward-action-1',
+            );
+
+            expect(SearchUIUtils.getViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.overLimit'));
+        });
+
+        test('dedupes a violation recorded in both the submit and approve snapshots', () => {
+            const submitAction = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                    },
+                },
+                'submit-action-1',
+            );
+            const approvedAction = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_COMMENT}],
+                    },
+                },
+                'approve-action-1',
+            );
+
+            expect(SearchUIUtils.getViolationsForTransaction([submitAction, approvedAction], transactionIDForViolations, translateLocal)).toBe(
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+            );
         });
 
         test('aggregates across multiple submit actions and dedupes by name', () => {
