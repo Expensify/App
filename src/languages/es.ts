@@ -7991,6 +7991,8 @@ ${reportName}`,
                 expenseDefaultsSubtitle: 'Actualizar campos sin que quien los envía haga nada',
                 ifAnyExpenseMatches: 'Si algún gasto coincide con:',
                 thenApplyFollowingDefaults: 'Luego aplica las siguientes opciones predeterminadas:',
+                createRuleFromExpenseAction: 'Crear una norma',
+                createRuleFromExpensePrompt: 'para aplicar tus cambios a todos los gastos que coincidan con tus criterios.',
             },
             categoryRules: {
                 title: 'Reglas de categoría',

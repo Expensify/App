@@ -5,6 +5,7 @@ import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getChangedTagLevels} from '@libs/MerchantRuleSuggestionUtils';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isGroupPolicy, isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -28,6 +29,7 @@ import {
     getClearedPendingFields,
     getDistanceRateTaxUpdates,
     getMerchant,
+    getTag,
     getUpdatedTransaction,
     hasLocallyKnownDistance,
     hasSubmissionBlockingViolationInReport,
@@ -40,6 +42,7 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 
+import {trackMerchantRuleSuggestion} from '@userActions/MerchantRuleSuggestion';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 
@@ -408,6 +411,7 @@ function updateMoneyRequestBillable({
         getCurrencySymbol,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE, transactionThreadReport.reportID, policy, policyCategories);
 }
 
 function updateMoneyRequestReimbursable({
@@ -473,6 +477,7 @@ function updateMoneyRequestReimbursable({
         getCurrencySymbol,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE, transactionThreadReport.reportID, policy, policyCategories);
 }
 
 /** Updates the merchant field of an expense */
@@ -819,6 +824,8 @@ type UpdateMoneyRequestTagParams = {
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
     tag: string;
+    /** Which level of a multi-level tag was edited, so the "Create a rule" callout can seed that level alone */
+    tagListIndex?: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -843,6 +850,7 @@ function updateMoneyRequestTag({
     parentReport,
     iouReportOwnerLogin,
     tag,
+    tagListIndex,
     policy,
     policyTagList,
     policyRecentlyUsedTags,
@@ -884,6 +892,15 @@ function updateMoneyRequestTag({
         getCurrencySymbol,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
+    // Callers that edit one level of a multi-level tag say which. The rest, like the Search table, hand over a whole
+    // tag, so the edited levels come from comparing it with the one `transaction` still holds.
+    let editedTagLevels: number[] | undefined;
+    if (tagListIndex !== undefined) {
+        editedTagLevels = [tagListIndex];
+    } else if (transaction) {
+        editedTagLevels = getChangedTagLevels(getTag(transaction), tag);
+    }
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, transactionThreadReport?.reportID, policy, policyCategories, editedTagLevels);
 }
 
 /** Updates the created tax amount of an expense */
@@ -1013,6 +1030,7 @@ function updateMoneyRequestTaxRate({
     });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX, transactionThreadReport?.reportID, policy, policyCategories);
 }
 
 type UpdateMoneyRequestDistanceParams = {
@@ -1248,6 +1266,7 @@ function updateMoneyRequestCategory({
         getCurrencySymbol,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY, transactionThreadReport?.reportID, policy, policyCategories);
 }
 
 /** Updates the description of an expense */
@@ -1332,6 +1351,7 @@ function updateMoneyRequestDescription({
     const {params, onyxData} = data;
     params.description = parsedComment;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
+    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION, transactionThreadReport?.reportID, policy, policyCategories);
 }
 
 /** Updates the distance rate of an expense */

@@ -1,5 +1,6 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
+import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useEnvironment from '@hooks/useEnvironment';
@@ -10,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -143,6 +145,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     }, [reportID]);
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
+
+    // Owned here rather than by the callout, which unmounts as the layout and composer change size.
+    useRetireMerchantRuleSuggestionOnLeave(reportID);
 
     // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
     const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
@@ -446,6 +451,14 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     return (
         <>
+            {/* Pinned over the top of the list rather than laid out inside it, so scrolling the expense detail view
+                does not carry it out of sight. Renders nothing on the layouts the composer mount serves. */}
+            <MerchantRuleSuggestionBanner
+                reportID={reportID}
+                policyID={report?.policyID}
+                containerStyles={[styles.mh4, styles.mt2]}
+                overlayStyles={styles.merchantRuleCalloutOverlay}
+            />
             <FloatingMessageCounter
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}

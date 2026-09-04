@@ -8010,6 +8010,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 thenApplyFollowingDefaults: 'Wenden Sie dann die folgenden Standardwerte an:',
                 vendorUnavailable: 'Anbieter nicht verfügbar',
                 supplierUnavailable: 'Lieferant nicht verfügbar',
+                createRuleFromExpenseAction: 'Regel erstellen',
+                createRuleFromExpensePrompt: 'um Ihre Änderungen auf alle Ausgaben anzuwenden, die Ihren Kriterien entsprechen.',
             },
             categoryRules: {
                 title: 'Kategorienregeln',

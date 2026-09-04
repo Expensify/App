@@ -111,6 +111,7 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
@@ -353,6 +354,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MerchantRuleSuggestion,
     MergeTransaction,
     TransactionViolation,
     TransactionViolations,

@@ -7970,6 +7970,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 thenApplyFollowingDefaults: 'Quindi applica le seguenti impostazioni predefinite:',
                 vendorUnavailable: 'Fornitore non disponibile',
                 supplierUnavailable: 'Fornitore non disponibile',
+                createRuleFromExpenseAction: 'Crea una regola',
+                createRuleFromExpensePrompt: 'per applicare le modifiche a tutte le spese che corrispondono ai tuoi criteri.',
             },
             categoryRules: {
                 title: 'Regole di categoria',

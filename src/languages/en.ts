@@ -8215,6 +8215,8 @@ const translations = {
                 subtitle: 'Set merchant rules so expenses arrive correctly coded and require less cleanup.',
                 addRule: 'Add merchant rule',
                 findRule: 'Find merchant rule',
+                createRuleFromExpenseAction: 'Create a rule',
+                createRuleFromExpensePrompt: 'to apply your changes to all expenses that match your criteria.',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 importRulesTitle: 'Import merchant rules',

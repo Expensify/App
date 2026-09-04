@@ -11,7 +11,7 @@ import {trimTag} from '@libs/TagUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -20,11 +20,15 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useMemo} from 'react';
 
-type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAG>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAG | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAG>;
 
 function AddTagPage({route}: AddTagPageProps) {
-    const {policyID, ruleID, orderWeight} = route.params;
-    const isEditing = ruleID !== ROUTES.NEW;
+    const {policyID, ruleID, orderWeight: orderWeightParam} = route.params;
+    // Dynamic routes hand their path params over as strings, so the tag list lookup below would miss without this.
+    const orderWeight = Number(orderWeightParam);
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TAG_FROM_EXPENSE.path, policyID, ruleID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {selector: getTagLists});
@@ -47,8 +51,6 @@ function AddTagPage({route}: AddTagPageProps) {
     }, [tagList?.tags, formTag]);
 
     const selectedTagItem = tagItems.find(({value}) => value === formTag);
-
-    const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
         const newTags = [...formTags];

@@ -7945,6 +7945,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
                 vendorUnavailable: 'Leverancier niet beschikbaar',
                 supplierUnavailable: 'Leverancier niet beschikbaar',
+                createRuleFromExpenseAction: 'Maak een regel',
+                createRuleFromExpensePrompt: 'om je wijzigingen toe te passen op alle onkosten die aan je criteria voldoen.',
             },
             categoryRules: {
                 title: 'Categorisatieregels',

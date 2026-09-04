@@ -4426,6 +4426,43 @@ const staticStyles = (theme: ThemeColors) =>
             flexShrink: 1,
         },
 
+        merchantRuleCalloutContainer: {
+            backgroundColor: theme.tooltipHighlightBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        // Pins the callout to the top of the scroll area, like floatingMessageCounterWrapper, so scrolling cannot hide it.
+        merchantRuleCalloutOverlay: {
+            ...positioning.pAbsolute,
+            ...positioning.t0,
+            ...positioning.l0,
+            ...positioning.r0,
+            zIndex: 100,
+        },
+
+        // Floats above the composer without taking height, so the conversation does not jump when it appears.
+        merchantRuleCalloutComposerOverlay: {
+            ...positioning.pAbsolute,
+            ...positioning.bFull,
+            ...positioning.l0,
+            ...positioning.r0,
+            zIndex: 100,
+        },
+
+        merchantRuleCalloutText: {
+            ...textVariants.label,
+            color: theme.textReversed,
+            // Banner sets breakAll on its container, which would split this sentence mid-word
+            ...wordBreak.breakWord,
+        },
+
+        // The callout sits on a reversed surface, dark in the light theme and light in the dark one, so text and link
+        // use the reversed colors.
+        merchantRuleCalloutAction: {
+            ...textVariants.labelStrong,
+            color: theme.linkReversed,
+        },
+
         quickReactionsContainer: {
             gap: 12,
             flexDirection: 'row',
