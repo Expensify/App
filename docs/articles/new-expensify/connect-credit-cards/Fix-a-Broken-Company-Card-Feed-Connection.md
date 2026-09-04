@@ -1,8 +1,8 @@
 ---
 title: Fix a Broken Company Card Feed Connection
 description: Learn how to fix a broken company card connection in Expensify so transactions resume importing correctly.
-keywords: [fix company card connection, troubleshoot card feed, Expensify card errors, reconnect bank feed]
-internalScope: Audience is Workspace Admins. Covers fixing broken company card connections and resolving connection errors. Does not cover CSV imports, missing transactions, or feed monitoring.
+keywords: [fix company card connection, troubleshoot card feed, Expensify card errors, reconnect bank feed, temporary bank issue, can't auto-match receipt]
+internalScope: Audience is Workspace Admins. Covers fixing broken company card connections, resolving connection errors, and recognizing temporary bank issues that resolve on their own. Does not cover CSV imports, missing transactions, or feed monitoring.
 ---
 
 # Fix a Broken Company Card Feed Connection
@@ -63,6 +63,24 @@ If you see an error while reconnecting, use the guidance below:
 
 ---
 
+## How to recognize a temporary bank issue on a company card expense
+
+Not every card connection message means the feed is broken. When your bank returns a temporary error, Expensify holds the expense and shows this message on it instead:
+
+“Can't auto-match receipt due to a temporary bank issue. Please try again later.”
+
+This message means the bank couldn't be reached right now, not that the card feed needs reconnecting.
+
+- Do not reconnect the card feed. The connection is still valid.
+- No Workspace Admin or member action is required.
+- Expensify retries automatically, and the message clears once the transaction imports and matches the receipt.
+
+Both members and Workspace Admins see this message on the expense and in the expense report header, whether the card is a company card or a personal card.
+
+If the same expense still shows the message after several days, check the card feed for a “Card feed connection is broken” message and reconnect it using the steps above, or contact Concierge.
+
+---
+
 ## What happens after you fix a company card connection
 
 When a company card connection is fixed, the card feed reconnects to your bank and the red dot error message disappears. 
@@ -91,6 +109,10 @@ Workspace Admins are alerted on the Home page and in the #admins room when a car
 After fixing the feed, you can update an assigned company card manually from the Company cards list: 
 1. Click on the company card you want to update
 2. Select **Update card**
+
+## Why does my expense say “Can't auto-match receipt due to a temporary bank issue”?
+
+Your bank returned a temporary error, so Expensify couldn't pull the card transaction to match against the receipt. The card feed is not broken, so there's nothing to reconnect. Expensify retries automatically and the message clears once the transaction imports.
 
 ## What should I do if the connection still fails after retrying?
 
