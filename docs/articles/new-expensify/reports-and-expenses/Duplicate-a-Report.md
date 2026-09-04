@@ -43,19 +43,23 @@ You can select multiple reports and duplicate them all in one action from the Re
 
 1. In the navigation tabs on the left, click **Spend** > **Reports**.
 2. Select two or more expense reports that you submitted.
-3. Click **Selected**, then **Duplicate report**.
+3. Click the green **N selected** button at the top of the list, where N is the number of reports you selected.
+4. Choose **Duplicate reports**.
 
 **On mobile:**
 
 1. In the navigation tabs on the bottom, tap **Spend** > **Reports**.
 2. Long-press a report, then tap **Select** to enter selection mode.
 3. Select two or more expense reports that you submitted.
-4. Tap **Selected**, then **Duplicate report**.
+4. Tap the green **N selected** button at the top of the list, where N is the number of reports you selected.
+5. Choose **Duplicate reports**.
 
 Each selected report is duplicated individually. The same rules apply as for single duplication — only reports you created can be duplicated.
 
+Reports are duplicated one at a time, so the new reports appear in the list gradually rather than all at once. You can keep scrolling and using the page while they are created.
+
 <!-- SCREENSHOT:
-Suggestion: Show the bulk actions dropdown with the "Duplicate report" option visible after selecting multiple reports on the Reports search page.
+Suggestion: Show the bulk actions dropdown with the "Duplicate reports" option visible after selecting multiple reports on the Reports search page.
 Location: After step 3 (web).
 Purpose: Helps the user identify the bulk duplicate option in the dropdown.
 -->
@@ -90,7 +94,7 @@ The following details are **not** copied:
 
 ## Can I duplicate multiple reports at once?
 
-Yes. On the Reports search page, select two or more reports that you submitted, click **Selected**, then choose **Duplicate report**. A duplicate is created for each selected report.
+Yes. On the Reports search page, select two or more reports that you submitted, click the green **N selected** button, then choose **Duplicate reports**. A duplicate is created for each selected report.
 
 ## Are card expenses included in the duplicate?
 
