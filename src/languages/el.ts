@@ -474,6 +474,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Αντιγραφή στο πρόχειρο',
         thisIsTakingLongerThanExpected: 'Αυτό παίρνει περισσότερο χρόνο από το αναμενόμενο...',
         domains: 'Τομείς',
+        actionRequired: 'Απαιτείται ενέργεια',
         duplicate: 'Διπλότυπο',
         duplicated: 'Διπλότυπο',
         duplicateExpense: 'Διπλή δαπάνη',
@@ -2774,6 +2775,19 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Παρακαλούμε επιβεβαιώστε τις δοκιμαστικές συναλλαγές',
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
+            debitBlocked: 'Η τράπεζά σας μπλόκαρε τις δοκιμαστικές συναλλαγές σε αυτόν τον λογαριασμό',
+            insufficientFunds: 'Οι δοκιμαστικές συναλλαγές απέτυχαν λόγω ανεπαρκών χρημάτων',
+            validationFailedFallback: 'Η τράπεζά σας μπλόκαρε τις δοκιμαστικές συναλλαγές σε αυτόν τον λογαριασμό. <concierge-link>Επικοινωνήστε με το Concierge</concierge-link>',
+        },
+        fixBankAccount: {
+            title: 'Διόρθωση τραπεζικού λογαριασμού',
+            debitBlockedBody:
+                'Η τράπεζά σας μπλόκαρε τις δοκιμαστικές συναλλαγές σε αυτόν τον λογαριασμό.<br/><br/>Παρακαλούμε ζητήστε τους να προσθέσουν στις εξαιρέσεις τα ACH IDs της Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Έπειτα, στείλτε ξανά τις παρακάτω δοκιμαστικές συναλλαγές.',
+            insufficientFundsBody: 'Οι δοκιμαστικές συναλλαγές απέτυχαν λόγω ανεπαρκών κεφαλαίων. Μόλις υπάρχουν διαθέσιμα κεφάλαια, χρησιμοποιήστε το παρακάτω κουμπί.',
+            resendButton: 'Επαναποστολή συναλλαγών',
+            successTitle: 'Οι συναλλαγές στάλθηκαν!',
+            successBody: 'Ελέγξτε τον τραπεζικό σας λογαριασμό μέσα στις επόμενες 1–2 εργάσιμες ημέρες.',
+            successButton: 'Το κατάλαβα',
         },
     },
     cardPage: {

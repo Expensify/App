@@ -243,6 +243,7 @@ function PaymentMethodList({
         onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         isPendingDelete = false,
+        onFixPress?: () => void,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
@@ -252,6 +253,10 @@ function PaymentMethodList({
         // An account queued for deletion is struck through, so its action is disabled rather than hidden.
         isActionDisabled: isPendingDelete,
         onActionPress: () => {
+            if (onFixPress) {
+                onFixPress();
+                return;
+            }
             if (status.requiresUnlockHandler) {
                 (onUnlockPress ?? onActionPress)(undefined);
                 return;
@@ -597,8 +602,7 @@ function PaymentMethodList({
             // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const bankAccountCurrency = ('bankCurrency' in paymentMethod ? paymentMethod.bankCurrency : undefined) || paymentMethod.accountData?.additionalData?.currency;
-            const bankConnectionStatus =
-                shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData), bankAccountCurrency) : undefined;
+            const bankConnectionStatus = shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(paymentMethod.accountData, bankAccountCurrency) : undefined;
             const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                 pressHandler({
                     event: e,
@@ -611,6 +615,12 @@ function PaymentMethodList({
                         event: e,
                         ...paymentMethodData,
                     }));
+
+            const methodID = paymentMethod.methodID;
+            const onFixPress =
+                bankConnectionStatus?.requiresFixHandler && methodID !== undefined
+                    ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(methodID.toString())))
+                    : undefined;
 
             return {
                 ...paymentMethod,
@@ -630,6 +640,7 @@ function PaymentMethodList({
                           paymentMethodPress,
                           paymentMethodThreeDotsPress,
                           paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                          onFixPress,
                       )
                     : undefined,
             };

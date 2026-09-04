@@ -469,6 +469,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这比预期花费的时间更长…',
         domains: '域名',
+        actionRequired: '需要采取操作',
         duplicate: '复制',
         duplicated: '已重复',
         duplicateExpense: '重复报销',
@@ -2610,6 +2611,19 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: '请确认测试交易',
             accountRequiresAttention: '此账户需要处理',
             unlock: '解锁',
+            debitBlocked: '您的银行已拦截向此账户发起的测试交易',
+            insufficientFunds: '测试交易因资金不足而失败',
+            validationFailedFallback: '您的银行已拦截到此账户的测试交易。<concierge-link>联系 Concierge</concierge-link>',
+        },
+        fixBankAccount: {
+            title: '修复银行账户',
+            debitBlockedBody:
+                '您的银行已拦截到此账户的测试交易。<br/><br/>请联系银行将 Expensify 的 ACH ID 加入白名单：<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>然后，重新发送下面的测试交易。',
+            insufficientFundsBody: '测试交易因资金不足而失败。资金到位后，请使用下方按钮。',
+            resendButton: '重新发送交易',
+            successTitle: '交易已发送！',
+            successBody: '请在接下来的 1–2 个工作日内查看您的银行账户。',
+            successButton: '明白了',
         },
     },
     cardPage: {

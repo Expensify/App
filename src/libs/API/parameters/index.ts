@@ -172,6 +172,7 @@ export type {default as UpdateThemeParams} from './UpdateThemeParams';
 export type {default as UpdateUserAvatarParams} from './UpdateUserAvatarParams';
 export type {default as UpdateGroupChatAvatarParams} from './UpdateGroupChatAvatarParams';
 export type {default as UpdateRoomAvatarParams} from './UpdateRoomAvatarParams';
+export type {default as ResendFailedValidationAmountsParams} from './ResendFailedValidationAmountsParams';
 export type {default as ValidateBankAccountWithTransactionsParams} from './ValidateBankAccountWithTransactionsParams';
 export type {default as ValidateSecondaryLoginParams} from './ValidateSecondaryLoginParams';
 export type {default as ValidateTwoFactorAuthParams} from './ValidateTwoFactorAuthParams';

@@ -25,7 +25,8 @@ import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
@@ -47,7 +48,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {AccountData, BankAccount, LastPaymentMethodType, Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -172,6 +173,7 @@ function SettlementButton({
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const isBankAccountLocked = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+    const isBankAccountValidationFailed = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED;
 
     function getLatestPersonalBankAccount() {
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
@@ -180,6 +182,14 @@ function SettlementButton({
     // The guards checked after the account-validation gate. Also re-checked when a payment
     // interrupted by account validation resumes, since the validation gate skipped them.
     const checkForPostValidationBlockers = () => {
+        if (isBankAccountValidationFailed && policy?.achAccount?.bankAccountID) {
+            const bankConnectionStatus = getBankAccountConnectionStatus(bankAccountList?.[policy.achAccount.bankAccountID]?.accountData);
+            if (bankConnectionStatus?.requiresFixHandler) {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(policy.achAccount.bankAccountID.toString())));
+                return true;
+            }
+        }
+
         if (isBankAccountLocked) {
             showConfirmModal({
                 title: translate('bankAccount.lockedBankAccount'),

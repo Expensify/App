@@ -474,6 +474,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet ...',
         domains: 'Domains',
+        actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
         duplicateExpense: 'Doppelte Ausgabe',
@@ -2715,6 +2716,19 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Bitte bestätigen Sie Testtransaktionen',
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
+            debitBlocked: 'Ihre Bank hat Testtransaktionen auf dieses Konto blockiert',
+            insufficientFunds: 'Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen',
+            validationFailedFallback: 'Ihre Bank hat Testtransaktionen auf dieses Konto blockiert. <concierge-link>Kontaktieren Sie Concierge</concierge-link>',
+        },
+        fixBankAccount: {
+            title: 'Bankkonto beheben',
+            debitBlockedBody:
+                'Ihre Bank hat die Testtransaktionen auf dieses Konto blockiert.<br/><br/>Bitte lassen Sie die folgenden ACH-IDs von Expensify auf die Whitelist setzen:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Senden Sie anschließend die unten stehenden Testtransaktionen erneut.',
+            insufficientFundsBody: 'Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen. Sobald wieder Geld verfügbar ist, verwenden Sie die Schaltfläche unten.',
+            resendButton: 'Transaktionen erneut senden',
+            successTitle: 'Transaktionen gesendet!',
+            successBody: 'Prüfen Sie Ihr Bankkonto in den nächsten 1–2 Werktagen.',
+            successButton: 'Verstanden',
         },
     },
     cardPage: {

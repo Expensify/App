@@ -72,6 +72,9 @@ type BankAccountAdditionalData = {
 
     /** Phone number of the bank account owner */
     companyPhone?: string;
+
+    /** ACH Return Codes, reason the payment was returned or flagged for correction */
+    lastNocCode?: string;
 };
 
 /** Model of bank account */

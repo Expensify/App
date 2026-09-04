@@ -472,6 +472,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
+        actionRequired: 'Ação necessária',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
         duplicateExpense: 'Duplicar despesa',
@@ -2702,6 +2703,19 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Confirme as transações de teste',
             accountRequiresAttention: 'Esta conta precisa de atenção',
             unlock: 'Desbloquear',
+            debitBlocked: 'Seu banco bloqueou as transações de teste para esta conta',
+            insufficientFunds: 'As transações de teste falharam por falta de fundos',
+            validationFailedFallback: 'Seu banco bloqueou as transações de teste para esta conta. <concierge-link>Falar com o Concierge</concierge-link>',
+        },
+        fixBankAccount: {
+            title: 'Corrigir conta bancária',
+            debitBlockedBody:
+                'Seu banco bloqueou as transações de teste para esta conta.<br/><br/>Peça para liberarem os IDs ACH da Expensify na lista de permissões:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Depois, reenvie as transações de teste abaixo.',
+            insufficientFundsBody: 'As transações de teste falharam por falta de fundos. Quando houver fundos disponíveis, use o botão abaixo.',
+            resendButton: 'Reenviar transações',
+            successTitle: 'Transações enviadas!',
+            successBody: 'Confira sua conta bancária nos próximos 1 a 2 dias úteis.',
+            successButton: 'Entendi',
         },
     },
     cardPage: {

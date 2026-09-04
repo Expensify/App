@@ -41,6 +41,7 @@ import Hand from '@assets/images/hand.svg';
 import LaptopWithMembers from '@assets/images/illustration-laptop-members.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
+import LaptopWithSecondScreenBank from '@assets/images/laptop-with-second-screen-bank.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Multifactor Authentication Illustrations
@@ -101,6 +102,7 @@ import ValidateCode from '@assets/images/product-illustrations/validate-code.svg
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
+import ScissorsCuttingMoney from '@assets/images/scissors-cutting-money.svg';
 import Shutter from '@assets/images/shutter.svg';
 // Simple Illustrations - Bucket 3 (Common)
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
@@ -266,6 +268,7 @@ const Illustrations = {
     Computer,
     ExpensifyCardImage,
     LaptopWithSecondScreenAndHourglass,
+    LaptopWithSecondScreenBank,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
     LaptopOnDeskWithCoffeeAndKey,
@@ -333,6 +336,7 @@ const Illustrations = {
     ReceiptStack,
     RunningTurtle,
     Shutter,
+    ScissorsCuttingMoney,
     TravelCVV,
     TurtleInShell,
 

@@ -473,6 +473,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '想定より時間がかかっています…',
         domains: 'ドメイン',
+        actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '複製済み',
         duplicateExpense: '重複経費',
@@ -2683,6 +2684,19 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'テスト取引を確認してください',
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
+            debitBlocked: 'この口座へのテスト取引は銀行によってブロックされました',
+            insufficientFunds: '残高不足のためテスト取引に失敗しました',
+            validationFailedFallback: 'この口座へのテスト取引は銀行によってブロックされました。<concierge-link>Concierge に連絡する</concierge-link>',
+        },
+        fixBankAccount: {
+            title: '銀行口座を修正',
+            debitBlockedBody:
+                'この口座へのテスト取引が銀行によってブロックされました。<br/><br/>銀行に依頼して、Expensify の ACH ID をホワイトリストに登録してもらってください。<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>その後、以下のテスト取引を再送してください。',
+            insufficientFundsBody: '残高不足のためテスト取引に失敗しました。残高が利用可能になりましたら、下のボタンを使用してください。',
+            resendButton: '取引を再送信',
+            successTitle: '取引を送信しました！',
+            successBody: '1〜2営業日以内に銀行口座をご確認ください。',
+            successButton: '了解しました',
         },
     },
     cardPage: {

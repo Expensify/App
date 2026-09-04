@@ -474,6 +474,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copia negli appunti',
         thisIsTakingLongerThanExpected: 'Sta impiegando più tempo del previsto...',
         domains: 'Domini',
+        actionRequired: 'Azione richiesta',
         duplicate: 'Duplica',
         duplicated: 'Duplicato',
         duplicateExpense: 'Spesa duplicata',
@@ -2708,6 +2709,19 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Conferma le transazioni di prova',
             accountRequiresAttention: 'Questo conto richiede attenzione',
             unlock: 'Sblocca',
+            debitBlocked: 'La tua banca ha bloccato le transazioni di prova su questo conto',
+            insufficientFunds: 'Le transazioni di prova non sono riuscite per fondi insufficienti',
+            validationFailedFallback: 'La tua banca ha bloccato le transazioni di prova su questo conto. <concierge-link>Contatta Concierge</concierge-link>',
+        },
+        fixBankAccount: {
+            title: 'Correggi conto bancario',
+            debitBlockedBody:
+                'La tua banca ha bloccato le transazioni di prova verso questo conto.<br/><br/>Chiedi loro di inserire nella whitelist gli ID ACH di Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Poi reinvia le transazioni di prova qui sotto.',
+            insufficientFundsBody: 'Le transazioni di prova non sono andate a buon fine per fondi insufficienti. Quando i fondi saranno disponibili, usa il pulsante qui sotto.',
+            resendButton: 'Invia nuovamente le transazioni',
+            successTitle: 'Transazioni inviate!',
+            successBody: 'Controlla il tuo conto bancario entro 1-2 giorni lavorativi.',
+            successButton: 'Ricevuto',
         },
     },
     cardPage: {
