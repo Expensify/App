@@ -1259,6 +1259,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '領収書を追加',
             phrase2: 'または、ここにファイルをドラッグ＆ドロップしてください',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `${pageCount} ページ中 1 ページ`,
     },
     quickAction: {
         scanReceipt: 'レシートをスキャン',
@@ -6485,6 +6486,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             subtitle: 'レポートフィールドはすべての支出に適用され、追加情報の入力を促したい場合に便利です。',
             disableReportFields: 'レポート項目を無効にする',
             disableReportFieldsConfirmation: '本当に実行しますか？テキストと日付フィールドは削除され、リストは無効になります。',
+            cannotDisableImportedReportFields: '会計ソフト連携からインポートされたレポートフィールドは無効にすることができません。',
             importedFromAccountingSoftware: '以下のレポート項目は、次からインポートされます',
             textType: 'テキスト',
             dateType: '日付',

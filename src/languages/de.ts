@@ -1278,6 +1278,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Beleg hinzufügen',
             phrase2: 'oder ziehe eine hierher und lege sie ab',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Seite 1 von ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -6609,6 +6610,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             subtitle: 'Berichtsfelder gelten für alle Ausgaben und können hilfreich sein, wenn du nach zusätzlichen Informationen fragen möchtest.',
             disableReportFields: 'Berichtsfelder deaktivieren',
             disableReportFieldsConfirmation: 'Bist du sicher? Text- und Datumsfelder werden gelöscht und Listen werden deaktiviert.',
+            cannotDisableImportedReportFields: 'Berichtsfelder, die aus Ihrer Buchhaltungsverbindung importiert wurden, können nicht deaktiviert werden.',
             importedFromAccountingSoftware: 'Die folgenden Berichtsfelder werden importiert aus Ihrem',
             textType: 'Text',
             dateType: 'Datum',

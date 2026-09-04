@@ -1282,6 +1282,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Ajouter un reçu',
             phrase2: 'ou faites-en glisser un ici',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Page 1 sur ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -6629,6 +6630,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             subtitle: 'Les champs de note de frais s’appliquent à toutes les dépenses et peuvent être utiles lorsque vous souhaitez demander des informations supplémentaires.',
             disableReportFields: 'Désactiver les champs de note de frais',
             disableReportFieldsConfirmation: 'Êtes-vous sûr(e) ? Les champs de texte et de date seront supprimés, et les listes seront désactivées.',
+            cannotDisableImportedReportFields: 'Les champs de note de frais importés depuis votre connexion comptable ne peuvent pas être désactivés.',
             importedFromAccountingSoftware: 'Les champs de note de frais ci-dessous sont importés depuis votre',
             textType: 'Texte',
             dateType: 'Date',

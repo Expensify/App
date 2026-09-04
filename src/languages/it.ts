@@ -1277,6 +1277,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Aggiungi una ricevuta',
             phrase2: 'o trascinalo qui',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Pagina 1 di ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Scansiona ricevuta',
@@ -6577,6 +6578,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             subtitle: 'I campi del report si applicano a tutte le spese e possono essere utili quando desideri richiedere informazioni aggiuntive.',
             disableReportFields: 'Disattiva campi del report',
             disableReportFieldsConfirmation: 'Sei sicuro? I campi di testo e data verranno eliminati e gli elenchi verranno disattivati.',
+            cannotDisableImportedReportFields: 'I campi del report importati dalla tua connessione contabile non possono essere disattivati.',
             importedFromAccountingSoftware: 'I campi del report riportati di seguito sono importati dal tuo',
             textType: 'Testo',
             dateType: 'Data',

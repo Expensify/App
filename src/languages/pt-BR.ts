@@ -1276,6 +1276,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Adicionar um recibo',
             phrase2: 'ou arraste e solte um aqui',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Página 1 de ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Digitalizar recibo',
@@ -6563,6 +6564,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             subtitle: 'Os campos de relatório se aplicam a todos os gastos e podem ser úteis quando você quiser solicitar informações extras.',
             disableReportFields: 'Desativar campos de relatório',
             disableReportFieldsConfirmation: 'Tem certeza? Campos de texto e data serão excluídos e listas serão desativadas.',
+            cannotDisableImportedReportFields: 'Campos de relatório importados da sua conexão contábil não podem ser desativados.',
             importedFromAccountingSoftware: 'Os campos de relatório abaixo são importados do seu',
             textType: 'Texto',
             dateType: 'Data',

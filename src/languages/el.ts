@@ -1327,6 +1327,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Προσθήκη απόδειξης',
             phrase2: 'ή σύρετε και αποθέστε ένα εδώ',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Σελίδα 1 από ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Σαρώστε απόδειξη',
@@ -6739,6 +6740,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             subtitle: 'Τα πεδία αναφοράς εφαρμόζονται σε όλες τις δαπάνες και μπορεί να είναι χρήσιμα όταν θέλετε να ζητήσετε επιπλέον πληροφορίες.',
             disableReportFields: 'Απενεργοποίηση πεδίων αναφοράς',
             disableReportFieldsConfirmation: 'Είστε βέβαιοι; Τα πεδία κειμένου και ημερομηνίας θα διαγραφούν και οι λίστες θα απενεργοποιηθούν.',
+            cannotDisableImportedReportFields: 'Τα πεδία αναφοράς που έχουν εισαχθεί από τη λογιστική σας σύνδεση δεν μπορούν να απενεργοποιηθούν.',
             importedFromAccountingSoftware: 'Τα παρακάτω πεδία αναφοράς εισάγονται από την/τον',
             textType: 'Κείμενο',
             dateType: 'Ημερομηνία',
