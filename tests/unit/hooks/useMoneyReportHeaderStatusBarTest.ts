@@ -74,8 +74,8 @@ describe('useMoneyReportHeaderStatusBar - duplicate transactions', () => {
         jest.spyOn(ReportActionsUtils, 'getOriginalMessage').mockReturnValue(undefined);
         jest.spyOn(ReportActionsUtils, 'isMoneyRequestAction').mockReturnValue(false);
         jest.spyOn(ReportPrimaryActionUtils, 'isMarkAsResolvedAction').mockReturnValue(false);
-        // isPaidGroupPolicy/isPaidGroupPolicyExpenseReport are billing-only and restricted from static import;
-        // this hook never touches them, but a namespace import can't be statically proven not to, so these
+        // isPaidGroupPolicy/isPaidGroupPolicyExpenseReport are billing-only and restricted from static import.
+        // This hook never touches them, but a namespace import can't be statically proven not to, so these
         // ReportUtils spies go through require() instead (matches other tests spying on this module).
         jest.spyOn(require('@libs/ReportUtils'), 'hasOnlyHeldExpenses').mockReturnValue(false);
         jest.spyOn(require('@libs/ReportUtils'), 'isSettled').mockReturnValue(false);
