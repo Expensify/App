@@ -2008,7 +2008,6 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
 }
 
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, reportTotal = 0): string {
-    // When the workspace has approval workflow rules, they — not the legacy employeeList — name the first approver.
     const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal});
     if (ruleMatch) {
         return ruleMatch.forwardsTo ?? '';
