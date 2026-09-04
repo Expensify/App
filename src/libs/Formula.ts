@@ -281,6 +281,14 @@ function isSubmissionInfoPart(part: FormulaPart): boolean {
 }
 
 /**
+ * Empty is the value until a cross-border reimbursement exists, matching backend.
+ */
+function isReimbursementAmountPart(part: FormulaPart): boolean {
+    const field = part.fieldPath.at(0)?.toLowerCase();
+    return part.type === FORMULA_PART_TYPES.REPORT && (field === 'debitedamount' || field === 'creditedamount');
+}
+
+/**
  * Compute a formula and report whether any tokenized part fell back to its raw `{...}` definition.
  * Callers doing optimistic recomputes use the flag to discard outputs the BE will render better.
  */
@@ -299,9 +307,8 @@ function computeWithMetadata(formula?: string, context?: FormulaContext): {value
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
-                // Apply fallback to formula definition for empty values, except for submission info
-                // Submission info explicitly returns empty strings when data is missing (matches backend)
-                if (value === '' && !isSubmissionInfoPart(part)) {
+                // Empty is a real value for submit and reimbursement-amount tokens. Keep it instead of falling back to the raw definition.
+                if (value === '' && !isSubmissionInfoPart(part) && !isReimbursementAmountPart(part)) {
                     value = part.definition;
                 }
                 break;
@@ -362,6 +369,19 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
 }
 
 /**
+ * Format a cross-border reimbursement amount (debited or credited), or empty if it hasn't happened yet.
+ */
+function formatReimbursementAmount(amount: number | undefined, currency: string | undefined, format: string | undefined, part: FormulaPart, context: FormulaContext): string {
+    if (!amount || !currency) {
+        return '';
+    }
+    // formatAmount can return '' (not just null) for an unrecognized display currency modifier, which must
+    // fall back to the raw definition too so an invalid modifier doesn't look like a resolved empty amount.
+    const formattedAmount = formatAmount(amount, currency, format, context.getCurrencyDecimals);
+    return formattedAmount === null || formattedAmount === '' ? part.definition : formattedAmount;
+}
+
+/**
  * Compute the value of a report formula part
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
@@ -397,6 +417,10 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format, context.getCurrencyDecimals);
             return formattedAmount ?? '';
         }
+        case 'debitedamount':
+            return formatReimbursementAmount(report.debitedAmount, report.debitedCurrency, format, part, context);
+        case 'creditedamount':
+            return formatReimbursementAmount(report.creditedAmount, report.creditedCurrency, format, part, context);
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
