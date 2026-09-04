@@ -9389,7 +9389,6 @@ const CONST = {
         },
         SIDE_PANEL: {
             HELP: 'SidePanel-Help',
-            BACKDROP: 'SidePanel-Backdrop',
         },
         PRODUCT_TRAINING: {
             TOOLTIP: 'ProductTraining-Tooltip',

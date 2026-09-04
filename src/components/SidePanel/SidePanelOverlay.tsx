@@ -1,13 +1,10 @@
-import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import CONST from '@src/CONST';
-
 import React from 'react';
-import Animated, {Keyframe} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 type SidePanelOverlayProps = {
     /** Whether the Side Panel is displayed over RHP */
@@ -17,25 +14,22 @@ type SidePanelOverlayProps = {
     onBackdropPress: () => void;
 };
 
+// This backdrop intentionally does NOT use reanimated `entering`/`exiting` layout animations.
+// Reanimated's web implementation hides the element with `visibility: hidden` until its
+// `animationstart` event fires, and with the 1ms web animation duration that event can be missed
+// when the main thread is busy, leaving the backdrop permanently hidden (and non-interactive).
+// The fade was imperceptible anyway, so it is dropped rather than made conditional per platform.
 function SidePanelOverlay({shouldBeVisible, onBackdropPress}: SidePanelOverlayProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const CustomFadeIn = new Keyframe(getModalInAnimation('fadeIn')).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
-    const CustomFadeOut = new Keyframe(getModalOutAnimation('fadeOut')).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT);
-
     return (
-        <Animated.View
-            style={[styles.sidePanelOverlay, styles.sidePanelOverlayOpacity(shouldBeVisible)]}
-            entering={shouldBeVisible ? CustomFadeIn : undefined}
-            exiting={shouldBeVisible ? CustomFadeOut : undefined}
-        >
+        <Animated.View style={[styles.sidePanelOverlay, styles.sidePanelOverlayOpacity(shouldBeVisible)]}>
             <PressableWithoutFeedback
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
                 onPress={onBackdropPress}
                 style={styles.flex1}
-                sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.BACKDROP}
             />
         </Animated.View>
     );
