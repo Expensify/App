@@ -231,7 +231,7 @@ export default function TableRow({
                     handleCheckboxPress(event);
                 }
             },
-            {shouldCheck: shouldAllowTextSelection, shouldDelayMousePress: true},
+            {shouldCheck: shouldAllowTextSelection},
         );
     };
 

@@ -1,10 +1,8 @@
 import CONST from '@src/CONST';
 
-import {useEffect, useRef} from 'react';
+import {useRef} from 'react';
 
 const COPYABLE_TEXT_SELECTOR = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
-// Accommodate slower browser double-click intervals while keeping single-click navigation responsive.
-const COPYABLE_TEXT_SINGLE_PRESS_DELAY_MS = 500;
 
 type MarkCopyableTextMouseDownOptions = {
     shouldSuppressNextPress?: boolean;
@@ -12,7 +10,6 @@ type MarkCopyableTextMouseDownOptions = {
 
 type HandleCopyableTextRowPressOptions = {
     shouldCheck?: boolean;
-    shouldDelayMousePress?: boolean;
 };
 
 function getCopyableTextElement(target: EventTarget | Node | null | undefined): HTMLElement | null {
@@ -144,21 +141,8 @@ function useCopyableTextRowPress() {
     const wasMouseDownOnCopyableTextRef = useRef(false);
     const wasTouchStartOnCopyableTextRef = useRef(false);
     const shouldSuppressNextPressRef = useRef(false);
-    const pendingCopyableTextPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    const clearPendingCopyableTextPress = () => {
-        if (!pendingCopyableTextPressRef.current) {
-            return;
-        }
-
-        clearTimeout(pendingCopyableTextPressRef.current);
-        pendingCopyableTextPressRef.current = null;
-    };
-
-    useEffect(() => clearPendingCopyableTextPress, []);
 
     const markMouseDownOnCopyableText = (target: EventTarget | null | undefined, shouldCheck = true, {shouldSuppressNextPress = false}: MarkCopyableTextMouseDownOptions = {}): boolean => {
-        clearPendingCopyableTextPress();
         const isCopyableTarget = shouldCheck && isCopyableTextTarget(target);
         wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
         shouldSuppressNextPressRef.current = isCopyableTarget && shouldSuppressNextPress;
@@ -166,7 +150,6 @@ function useCopyableTextRowPress() {
     };
 
     const markTouchStartOnCopyableText = (event: unknown, shouldCheck = true): boolean => {
-        clearPendingCopyableTextPress();
         const isCopyableTarget = shouldCheck && isCopyableTextTarget(getPressStartTarget(event));
         wasMouseDownOnCopyableTextRef.current = false;
         wasTouchStartOnCopyableTextRef.current = isCopyableTarget;
@@ -189,21 +172,12 @@ function useCopyableTextRowPress() {
         return shouldSuppressLongPress;
     };
 
-    const handleCopyableTextRowPress = (onPress: () => void, {shouldCheck = true, shouldDelayMousePress = false}: HandleCopyableTextRowPressOptions = {}) => {
-        const shouldDelayPress = shouldCheck && shouldDelayMousePress && wasMouseDownOnCopyableTextRef.current && !shouldSuppressNextPressRef.current;
+    const handleCopyableTextRowPress = (onPress: () => void, {shouldCheck = true}: HandleCopyableTextRowPressOptions = {}) => {
         if (shouldSuppressCopyableTextRowPress(shouldCheck)) {
             return;
         }
 
-        if (!shouldDelayPress) {
-            onPress();
-            return;
-        }
-
-        pendingCopyableTextPressRef.current = setTimeout(() => {
-            pendingCopyableTextPressRef.current = null;
-            onPress();
-        }, COPYABLE_TEXT_SINGLE_PRESS_DELAY_MS);
+        onPress();
     };
 
     // Pointer focus from copyable text should not make virtualized lists scroll the row into view.

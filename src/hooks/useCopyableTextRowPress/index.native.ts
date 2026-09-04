@@ -4,7 +4,6 @@ type MarkCopyableTextMouseDownOptions = {
 
 type HandleCopyableTextRowPressOptions = {
     shouldCheck?: boolean;
-    shouldDelayMousePress?: boolean;
 };
 
 const isPressStartOnCopyableText = () => false;
