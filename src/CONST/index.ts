@@ -6972,6 +6972,8 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
+        // Null byte can't appear in a query, so it's safe to join query parts with it
+        QUERY_PARAMS_SEPARATOR: '\x00',
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',

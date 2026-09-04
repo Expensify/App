@@ -122,7 +122,7 @@ import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
 import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -1777,6 +1777,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
 
+    // Matches exist that the client hasn't loaded, and so can't validate
+    const hasUnloadedMatchingExpenses = !!currentSearchResults?.search?.hasMoreResults;
+    const isUnreportedOnlyQuery = useMemo(() => {
+        const statusFilter = queryJSON ? getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) : undefined;
+        return !statusFilter?.isNegated && !!statusFilter?.value?.length && statusFilter.value.every((status) => status === CONST.SEARCH.STATUS.EXPENSE.UNREPORTED);
+    }, [queryJSON]);
+
     const headerButtonsOptions = useMemo(() => {
         if ((selectedTransactionsKeys.length === 0 && !(isExpenseType && areAllMatchingItemsSelected)) || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -2149,8 +2156,53 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return isExportTheOnlyAction && subMenuItems.length > 0 ? subMenuItems : builtOptions;
         };
 
+        // Move-eligibility only sees the loaded page. The backend enforces it on the full set.
+        const moveOwnerAccountIDs = new Set<number>();
+        let moveHasUnknownOwner = false;
+        for (const id of selectedTransactionsKeys) {
+            const transactionEntry = selectedTransactions[id];
+            if (!transactionEntry) {
+                continue;
+            }
+            const ownerAccountID =
+                transactionEntry.ownerAccountID ??
+                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
+            if (typeof ownerAccountID === 'number') {
+                moveOwnerAccountIDs.add(ownerAccountID);
+                if (moveOwnerAccountIDs.size > 1) {
+                    break;
+                }
+            } else {
+                moveHasUnknownOwner = true;
+            }
+        }
+        const moveHasMultipleOwners = moveOwnerAccountIDs.size > 1 || (moveHasUnknownOwner && (moveOwnerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+        // `every` is vacuously true on an empty selection, and the destination page bails out when nothing is selected
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        const canMoveExpenses = canAllTransactionsBeMoved && !moveHasMultipleOwners && !isExpenseReportType;
+
+        const moveExpensesOption: DropdownOption<SearchHeaderOptionValue> = {
+            text: translate('iou.moveExpenses'),
+            icon: expensifyIcons.DocumentMerge,
+            value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                // A queued all-matching move would send a stale query, so ask the user to reconnect (same as export)
+                if (areAllMatchingItemsSelected && isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute());
+            },
+        };
+
         if (areAllMatchingItemsSelected) {
-            return openExportOptionsDirectlyIfSoleAction([exportButtonOption]);
+            // The backend moves the whole query, so the query must guarantee every match is movable: a non-movable
+            // expense hiding in unloaded results makes it reject the entire move. Unreported-only queries are safe
+            // because those expenses live in their owner's self DM. Exclusions can't be expressed in a query.
+            const isAllMatchingSelectionMovable = isEmptyObject(excludedTransactions) && (!hasUnloadedMatchingExpenses || isUnreportedOnlyQuery);
+
+            return openExportOptionsDirectlyIfSoleAction(canMoveExpenses && isAllMatchingSelectionMovable ? [exportButtonOption, moveExpensesOption] : [exportButtonOption]);
         }
 
         if (allSelectedAreDeleted) {
@@ -2628,37 +2680,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
         }
 
-        const ownerAccountIDs = new Set<number>();
-        let hasUnknownOwner = false;
-        for (const id of selectedTransactionsKeys) {
-            const transactionEntry = selectedTransactions[id];
-            if (!transactionEntry) {
-                continue;
-            }
-            const ownerAccountID =
-                transactionEntry.ownerAccountID ??
-                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
-            if (typeof ownerAccountID === 'number') {
-                ownerAccountIDs.add(ownerAccountID);
-                if (ownerAccountIDs.size > 1) {
-                    break;
-                }
-            } else {
-                hasUnknownOwner = true;
-            }
-        }
-        const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
-
-        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
-
-        if (canAllTransactionsBeMoved && !hasMultipleOwners && !isExpenseReportType) {
-            options.push({
-                text: translate('iou.moveExpenses'),
-                icon: expensifyIcons.DocumentMerge,
-                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute()),
-            });
+        if (canMoveExpenses) {
+            options.push(moveExpensesOption);
         }
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
@@ -2844,6 +2867,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
         delegateAccountID,
+        hasUnloadedMatchingExpenses,
+        isUnreportedOnlyQuery,
         currentSearchQueryJSON,
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,

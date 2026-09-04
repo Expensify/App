@@ -1,5 +1,6 @@
+import DecisionModal from '@components/DecisionModal';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
@@ -7,13 +8,17 @@ import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCr
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -30,7 +35,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import Onyx from 'react-native-onyx';
 
 type TransactionGroupListItem = ListItem & {
@@ -39,11 +44,29 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+
+    const allMatchingQueryParams = getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
+
+    /**
+     * A queued all-matching move would replay a stale query on reconnect: the hash resolves the match set at
+     * backend execution time, not when the user submitted, so expenses that started matching while offline would be
+     * swept in. The upstream check in `useSearchBulkActions` only runs while opening this RHP, so re-check here in
+     * case the connection dropped after. Block the query-based move and ask the user to reconnect (same as export).
+     */
+    const shouldBlockOfflineAllMatchingMove = () => isOffline && !!allMatchingQueryParams.jsonQuery;
+
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
         .map((transactionItem) => transactionItem.transaction)
@@ -190,6 +213,7 @@ function SearchTransactionsChangeReport() {
                 delegateAccountID,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                ...allMatchingQueryParams,
             });
             clearSelectedTransactions();
         });
@@ -204,6 +228,10 @@ function SearchTransactionsChangeReport() {
     });
 
     const createReport = () => {
+        if (shouldBlockOfflineAllMatchingMove()) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
         if (shouldNavigateToUpgradePath && selectedTransactionsKeys.length > 0) {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
@@ -255,6 +283,10 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
+        if (shouldBlockOfflineAllMatchingMove()) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
 
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
@@ -282,12 +314,17 @@ function SearchTransactionsChangeReport() {
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            ...allMatchingQueryParams,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
 
     const removeFromReport = () => {
         if (selectedTransactionsKeys.length === 0) {
+            return;
+        }
+        if (shouldBlockOfflineAllMatchingMove()) {
+            setIsOfflineModalVisible(true);
             return;
         }
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
@@ -307,28 +344,40 @@ function SearchTransactionsChangeReport() {
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            ...allMatchingQueryParams,
         });
         clearSelectedTransactions();
         Navigation.goBack();
     };
 
     return (
-        <IOURequestEditReportCommon
-            backTo={undefined}
-            transactionIDs={selectedTransactionsKeys}
-            isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
-            isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
-            selectedReportID={selectedReportID}
-            selectReport={selectReport}
-            removeFromReport={removeFromReport}
-            createReport={createReport}
-            isEditing
-            isUnreported={areAllTransactionsUnreported}
-            targetOwnerAccountID={targetOwnerAccountID}
-            transactionPolicyID={selectedReportPolicyID}
-            isPerDiemRequest={hasPerDiemTransactions}
-            isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
-        />
+        <>
+            <IOURequestEditReportCommon
+                backTo={undefined}
+                transactionIDs={selectedTransactionsKeys}
+                isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
+                isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
+                selectedReportID={selectedReportID}
+                selectReport={selectReport}
+                removeFromReport={removeFromReport}
+                createReport={createReport}
+                isEditing
+                isUnreported={areAllTransactionsUnreported}
+                targetOwnerAccountID={targetOwnerAccountID}
+                transactionPolicyID={selectedReportPolicyID}
+                isPerDiemRequest={hasPerDiemTransactions}
+                isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
+            />
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isOfflineModalVisible}
+                onClose={() => setIsOfflineModalVisible(false)}
+            />
+        </>
     );
 }
 

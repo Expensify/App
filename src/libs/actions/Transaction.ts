@@ -14,6 +14,7 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
+import Log from '@libs/Log';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -860,6 +861,8 @@ type ChangeTransactionsReportProps = {
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    jsonQuery?: string;
+    hash?: number;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -2001,6 +2004,48 @@ function getChangeTransactionsReportOnyxData({
 }
 
 function changeTransactionsReport(props: ChangeTransactionsReportProps) {
+    const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    // Without the hash this falls back to the explicit list and moves only the loaded page, so surface it
+    if (props.jsonQuery && props.hash === undefined) {
+        Log.warn('changeTransactionsReport: received an all-matching jsonQuery without a hash; falling back to the explicit transaction list, which only moves the loaded transactions.');
+    }
+
+    if (props.jsonQuery && props.hash !== undefined) {
+        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+        const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+
+        if (props.newReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
+                value: {pendingFields: {reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
+                value: {pendingFields: {reportID: null}},
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
+                value: {pendingFields: {reportID: null}},
+            });
+        }
+
+        const queryParameters: ChangeTransactionsReportParams = {
+            transactionList: '',
+            reportID,
+            transactionIDToReportActionAndThreadData: '{}',
+            jsonQuery: props.jsonQuery,
+            hash: props.hash,
+        };
+
+        API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, queryParameters, {optimisticData, successData, failureData});
+        return;
+    }
+
     const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData(props);
     if (!changeTransactionsReportOnyxData) {
         return;
@@ -2013,8 +2058,6 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         return;
     }
 
-    const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
-
     const parameters: ChangeTransactionsReportParams = {
         transactionList: movedTransactionIDs.join(','),
         reportID,
@@ -2024,6 +2067,9 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         }),
     };
 
+    // The query-based all-matching path above already called API.write and returned, so this branch only runs for the
+    // explicit-transaction move. The two writes are mutually exclusive and never fire within the same invocation.
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
         optimisticData,
         successData,

@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -25,6 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
+import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -66,8 +67,9 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const {isMovingExpenses} = route.params ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path);
     const {isOffline} = useNetwork();
-    const {selectedTransactions, selectedTransactionIDs} = useSearchSelectionContext();
+    const {selectedTransactions, selectedTransactionIDs, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
@@ -133,6 +135,10 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                 ...reports,
                 [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
             };
+            // The all-matching query has to travel through the workspace-picker path too, or only the loaded page
+            // moves while the UI claims every match was selected. Drop the query params when offline so a queued
+            // move can't replay a stale query on reconnect; the frozen explicit list is moved instead.
+            const allMatchingQueryParams = isOffline ? {} : getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
                     transactionIDs,
@@ -152,6 +158,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     delegateAccountID,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    ...allMatchingQueryParams,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values
