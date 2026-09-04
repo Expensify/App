@@ -152,6 +152,11 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
         return;
     }
 
+    if (isConnectedAsDelegate({delegatedAccess})) {
+        Log.info('[Delegate] Already connected as a delegate, skipping connect');
+        return;
+    }
+
     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials ?? {});
     Onyx.set(ONYXKEYS.STASHED_SESSION, session ?? {});
 
@@ -224,7 +229,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
             return SequentialQueue.waitForIdle()
                 .then(() => {
                     // Update authToken in Onyx so it persists if the further flow does not complete for any reason.
-                    return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
+                    return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken, CONST.AUTH_TOKEN_TYPES.DELEGATE);
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);

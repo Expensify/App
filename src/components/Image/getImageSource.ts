@@ -1,4 +1,4 @@
-import {isExpiredSession} from '@libs/actions/Session';
+import {isDelegateSession, isExpiredSession} from '@libs/actions/Session';
 
 import CONST from '@src/CONST';
 import type Session from '@src/types/onyx/Session';
@@ -25,7 +25,7 @@ export default function getImageSource({propsSource, session, isAuthTokenRequire
 
         const authToken = session?.encryptedAuthToken ?? null;
         if (isAuthTokenRequired && authToken) {
-            if (isOffline || (!!session?.creationDate && !isExpiredSession(session.creationDate))) {
+            if (isOffline || isDelegateSession(session) || (!!session?.creationDate && !isExpiredSession(session.creationDate))) {
                 return {
                     source: {
                         ...propsSource,

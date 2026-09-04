@@ -132,7 +132,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then it should redirect to sign in instead of attempting to call Authenticate with undefined credentials
-        expect(result).toBe(false);
+        expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
 
         redirectToSignInSpy.mockRestore();
@@ -150,7 +150,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then it aborts cleanly without redirecting to sign in
-        expect(result).toBe(false);
+        expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).not.toHaveBeenCalled();
 
         redirectToSignInSpy.mockRestore();
@@ -175,7 +175,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then reauthenticate aborts without redirecting to sign in, so the SAML callback can complete
-        expect(result).toBe(false);
+        expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).not.toHaveBeenCalled();
 
         // When the browser is cancelled/fails, the guard is cleared so future reauthentication isn't blocked
@@ -200,7 +200,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then the legacy persisted flag does NOT block reauth. Reauth proceeds, finds no credentials, and redirects to sign in.
-        expect(result).toBe(false);
+        expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
 
         redirectToSignInSpy.mockRestore();
@@ -228,7 +228,7 @@ describe('Session', () => {
 
             // Then only the first request redirects to the SAML sign-in page; the rest are skipped, so the page
             // is not torn down and re-mounted (and SAML re-initiated) once per concurrent 407
-            expect(results).toEqual([false, false, false]);
+            expect(results).toEqual([{wasSuccessful: false}, {wasSuccessful: false}, {wasSuccessful: false}]);
             expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
             expect(redirectToSignInSpy).toHaveBeenCalledWith(undefined, true);
 

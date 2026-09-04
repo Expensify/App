@@ -7,6 +7,7 @@ import {isAuthenticating as isAuthenticatingNetworkStore, setIsAuthenticating} f
 import type {RequestError} from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
 import reauthenticateLibs from '@libs/Reauthentication';
+import type {ReauthenticationResult} from '@libs/Reauthentication';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 
@@ -20,11 +21,11 @@ import type {OnyxKey} from 'react-native-onyx';
 import type Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
-let isAuthenticating: Promise<boolean> | null = null;
+let isAuthenticating: Promise<ReauthenticationResult> | null = null;
 
 const reauthThrottle = new RequestThrottle('Re-authentication');
 
-function reauthenticate(commandName?: string): Promise<boolean> {
+function reauthenticate(commandName?: string): Promise<ReauthenticationResult> {
     if (isAuthenticating) {
         return isAuthenticating;
     }
@@ -37,7 +38,7 @@ function reauthenticate(commandName?: string): Promise<boolean> {
     return isAuthenticating;
 }
 
-function retryReauthenticate(commandName?: string): Promise<boolean> {
+function retryReauthenticate(commandName?: string): Promise<ReauthenticationResult> {
     return reauthenticateLibs(commandName).catch((error: RequestError) => {
         return reauthThrottle
             .sleep(error, 'Authenticate')
@@ -46,7 +47,7 @@ function retryReauthenticate(commandName?: string): Promise<boolean> {
                 setIsAuthenticating(false);
                 Log.hmmm('[Reauthenticate] Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
                 redirectToSignIn('passwordForm.error.fallback');
-                return false;
+                return {wasSuccessful: false};
             });
     });
 }
@@ -110,8 +111,8 @@ function handleExpiredSession<TKey extends OnyxKey>(
     }
 
     return reauthenticate(request?.commandName)
-        .then((wasSuccessful) => {
-            if (!wasSuccessful) {
+        .then((result) => {
+            if (!result.wasSuccessful) {
                 if (isFromSequentialQueue) {
                     // A resolved 407 reads as success to SequentialQueue, which deletes the persisted write.
                     // Throw on every give-up: the latched short-lived-token abort and the delegate restore return
@@ -120,8 +121,12 @@ function handleExpiredSession<TKey extends OnyxKey>(
                 }
 
                 // Reauth already handled the sign-in redirect, so do not briefly show the failed request UI before sign-in.
-                request.failureData = undefined;
-                request.finallyData = undefined;
+                // However, during a delegate auth failure, restoreDelegateSession restores the original account rather than
+                // signing out. Preserve failureData and finallyData so that loading states are properly cleared.
+                if (!result.didRestoreOriginalSession) {
+                    request.failureData = undefined;
+                    request.finallyData = undefined;
+                }
                 return data;
             }
 
