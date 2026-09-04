@@ -1,5 +1,5 @@
 import Button from '@components/ButtonComposed';
-import Header from '@components/Header';
+import HeaderTitle from '@components/HeaderTitle';
 import Modal from '@components/Modal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -43,10 +43,9 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={bottomSafeAreaPaddingStyle}>
-                <Header
-                    title={translate('openAppFailureModal.title')}
-                    textStyles={[styles.mb2]}
-                />
+                <HeaderTitle>
+                    <HeaderTitle.Text style={[styles.mb2]}>{translate('openAppFailureModal.title')}</HeaderTitle.Text>
+                </HeaderTitle>
                 <Text style={[styles.mb6]}>
                     {`${translate('openAppFailureModal.subtitle')} `}
                     <TextLink

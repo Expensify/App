@@ -1,4 +1,4 @@
-import Header from '@components/Header';
+import HeaderTitleComponent from '@components/HeaderTitle';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -6,15 +6,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {StepCounterParams} from '@src/languages/params';
 
-import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 
 type HeaderTitleProps = {
     /** Title of the header. */
-    children: string;
+    title: string;
 
     /** Subtitle of the header. */
-    subtitle?: ReactNode;
+    subtitle?: string;
 
     /** Title color. */
     titleColor?: string;
@@ -35,21 +34,27 @@ type HeaderTitleProps = {
     shouldUseHeadlineHeader: boolean;
 };
 
-function HeaderTitle({children, subtitle = '', titleColor, titleStyles, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false, shouldUseHeadlineHeader}: HeaderTitleProps) {
+function HeaderTitle({title, subtitle = '', titleColor, titleStyles, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false, shouldUseHeadlineHeader}: HeaderTitleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
+    const resolvedSubtitle = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : subtitle;
+
     return (
-        <Header
-            title={children}
-            subtitle={stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : subtitle}
-            textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
-            subTitleLink={subTitleLink}
-            numberOfTitleLines={1}
-            isScreenHeader
+        <HeaderTitleComponent
+            dialogLabel={title}
             shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
-        />
+        >
+            <HeaderTitleComponent.Text
+                numberOfLines={1}
+                style={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
+            >
+                {title}
+            </HeaderTitleComponent.Text>
+            {!!resolvedSubtitle && <HeaderTitleComponent.Subtitle>{resolvedSubtitle}</HeaderTitleComponent.Subtitle>}
+            {!!subTitleLink && <HeaderTitleComponent.SubtitleLink>{subTitleLink}</HeaderTitleComponent.SubtitleLink>}
+        </HeaderTitleComponent>
     );
 }
 

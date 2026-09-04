@@ -1,5 +1,5 @@
 import Button from '@components/ButtonComposed';
-import Header from '@components/Header';
+import HeaderTitle from '@components/HeaderTitle';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
@@ -40,7 +40,9 @@ function UpdateRequiredView() {
     return (
         <View style={[styles.appBG, styles.h100, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
             <View style={[styles.pt5, styles.ph5, styles.updateRequiredViewHeader]}>
-                <Header title={translate('updateRequiredView.updateRequired')} />
+                <HeaderTitle>
+                    <HeaderTitle.Text>{translate('updateRequiredView.updateRequired')}</HeaderTitle.Text>
+                </HeaderTitle>
             </View>
             <View style={[styles.flex1, StyleUtils.getUpdateRequiredViewStyles(shouldUseNarrowLayout)]}>
                 {isReduceMotionEnabled ? (
