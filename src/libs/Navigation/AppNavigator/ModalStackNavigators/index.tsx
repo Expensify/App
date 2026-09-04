@@ -95,6 +95,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
         animation: Animations.NONE,
     },
+    [SCREENS.SEARCH.MERGE_REPORTS_SEARCH_RHP]: {
+        animation: Animations.NONE,
+    },
     [SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT]: {
         animationTypeForReplace: 'push',
     },
@@ -117,6 +120,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
         animationTypeForReplace: 'push',
     },
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS]: {
         animationTypeForReplace: 'push',
     },
 };
@@ -922,10 +928,15 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryVendorBillDatePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_COMPANY_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryCompanyCardAccountPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_ACCOUNT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryExpensifyCardAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryDefaultCompanyCardVendorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_PROGRAM_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryCardProgramAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryCardProgramAccountSelectorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT_CARD_LIST]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryCardAccountCardListPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryAdvancedPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPORT_METHOD]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryExportMethodPage').default,
@@ -953,7 +964,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceTaxCodePage').default,
     [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsName').default,
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsWebsite').default,
-    [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesVerifyAccountPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BrokenCardFeedConnectionPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/RefreshCardFeedConnectionPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardAddWorkEmailPage').default,
@@ -1083,6 +1093,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_CUSTOM]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesCustomPage').default,
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesProhibitedDefaultPage').default,
     [SCREENS.WORKSPACE.RULES_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesNewPage').default,
+    [SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/ExpenseDefaultTypePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantRulePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/ImportMerchantRulesPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/ImportedMerchantRulesPage').default,
@@ -1126,6 +1137,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddBillablePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/PreviewMatchesPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/EditMerchantRulePage').default,
+    [SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddCategoryToMatchPage').default,
+    [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/EditCategoryTaxRulePage').default,
     [SCREENS.WORKSPACE.RULES_AGENT_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/AgentRules/AddAgentRulePage').default,
     [SCREENS.WORKSPACE.RULES_AGENT_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/AgentRules/EditAgentRulePage').default,
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/perDiem/ImportPerDiemPage').default,
@@ -1244,6 +1257,7 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_SEARCH]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
+    [SCREENS.SEARCH.MERGE_REPORTS_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchReportsMergeReports').default,
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchChangeApproverPage').default,
     [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAddApproverPage').default,
     [SCREENS.SEARCH.EDIT_MULTIPLE_TRANSACTIONS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultiplePage').default,
@@ -1320,6 +1334,7 @@ const WorkspacesDomainModalStackNavigator = createModalStackNavigator<Workspaces
     [SCREENS.WORKSPACES_DOMAIN_ADDED]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAddedPage').default,
     [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/domain/AddDomainVerifyAccountPage').default,
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAccessRestrictedPage').default,
+    [SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAlreadyExistsPage').default,
 });
 
 const MultifactorAuthenticationStackNavigator = createModalStackNavigator<MultifactorAuthenticationParamList>({

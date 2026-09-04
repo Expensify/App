@@ -1,8 +1,6 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
@@ -53,9 +51,8 @@ function FeatureTrainingModal({
     children,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeModeUtil(windowWidth, windowHeight);
+    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const pendingCloseRef = useRef(false);
 

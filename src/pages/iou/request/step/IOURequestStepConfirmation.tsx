@@ -127,7 +127,7 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
         shouldHideHeader?: boolean;
     };
 
-function IOURequestStepConfirmation({
+function IOURequestStepConfirmationContent({
     report: reportReal,
     reportDraft,
     route,
@@ -178,7 +178,6 @@ function IOURequestStepConfirmation({
     const realPolicyID = selectedWorkspacePolicyID ?? getIOURequestPolicyID(initialTransaction, pickReportForPolicy(reportReal, participantReport));
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
@@ -199,10 +198,9 @@ function IOURequestStepConfirmation({
                 transaction,
                 transactionReport,
                 routeReport: reportWithDraftFallback,
-                policy: policyReal,
                 reportNameValuePair,
             }),
-        [transaction, transactionReport, reportWithDraftFallback, policyReal, reportNameValuePair],
+        [transaction, transactionReport, reportWithDraftFallback, reportNameValuePair],
     );
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 
@@ -909,11 +907,7 @@ function IOURequestStepConfirmation({
 
     const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
-            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
-            testID="IOURequestStepConfirmation"
-        >
+        <>
             <TelemetrySpanManager
                 iouType={iouType}
                 requestType={requestType}
@@ -1094,6 +1088,25 @@ function IOURequestStepConfirmation({
                     </View>
                 </View>
             </DragAndDropProvider>
+        </>
+    );
+}
+
+/**
+ * The standalone RHP route. It owns the chrome for this screen - the ScreenWrapper, its focus trap and its
+ * viewport sizing - and renders the same body inside it. IOURequestStartPage composes the body directly instead,
+ * because it already owns a trap whose containers are its header (with the Back button), its tab bar and the
+ * active tab; a second ScreenWrapper there would push another FocusTrapForScreen onto the shared trap stack,
+ * pause that one, and confine Tab to the confirmation form.
+ */
+function IOURequestStepConfirmation(props: IOURequestStepConfirmationProps) {
+    return (
+        <ScreenWrapper
+            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
+            testID="IOURequestStepConfirmation"
+        >
+            <IOURequestStepConfirmationContent {...props} />
         </ScreenWrapper>
     );
 }
@@ -1102,4 +1115,11 @@ const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransact
 
 const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
 
+const IOURequestStepConfirmationContentWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmationContent);
+
+const IOURequestStepConfirmationContentWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationContentWithFullTransactionOrNotFound);
+
 export default IOURequestStepConfirmationWithWritableReportOrNotFound;
+
+/** The body on its own, for a parent that already owns this screen's ScreenWrapper and focus trap. */
+export {IOURequestStepConfirmationContentWithWritableReportOrNotFound};

@@ -60,6 +60,7 @@ import {
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isArchivedPolicy,
+    isMaxExpenseAmountSet,
     isMergeHRCompleteSetupNeededSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
@@ -68,6 +69,7 @@ import {
     isTaxCodeCustomized,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
+    shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
@@ -4342,7 +4344,7 @@ describe('PolicyUtils', () => {
         };
         const buildMergeHRPolicy = (seed: number, mergeHR: MergeHRTestConnection): Policy => Object.assign(createRandomPolicy(seed), {connections: {merge_hris: mergeHR}});
         const mergeHRBase = {
-            lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+            lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
             data: {groups: [{id: 'g1', name: 'Engineering'}]},
         };
 
@@ -4356,7 +4358,7 @@ describe('PolicyUtils', () => {
         });
 
         it('returns false when sync is not done', () => {
-            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING}});
+            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING}});
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
         });
 
@@ -4374,6 +4376,24 @@ describe('PolicyUtils', () => {
             const policy = buildMergeHRPolicy(5, mergeHRBase);
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
         });
+    });
+});
+
+describe('isMaxExpenseAmountSet', () => {
+    it('returns false when the amount was never set', () => {
+        expect(isMaxExpenseAmountSet(undefined)).toBe(false);
+    });
+
+    it('returns false when the amount is explicitly disabled', () => {
+        expect(isMaxExpenseAmountSet(CONST.DISABLED_MAX_EXPENSE_VALUE)).toBe(false);
+    });
+
+    it('returns true for an explicit 0, which means the receipt is always required', () => {
+        expect(isMaxExpenseAmountSet(0)).toBe(true);
+    });
+
+    it('returns true for a positive amount', () => {
+        expect(isMaxExpenseAmountSet(5000)).toBe(true);
     });
 });
 
@@ -4610,5 +4630,27 @@ describe('getPolicyApproverLogins', () => {
             },
         };
         expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
+    });
+});
+
+describe('shouldHideDynamicExternalWorkflowPeople', () => {
+    it('returns false when the policy is undefined', () => {
+        expect(shouldHideDynamicExternalWorkflowPeople(undefined)).toBe(false);
+    });
+
+    it('returns true for a Dynamic External Workflow policy with the flag set', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, dynamicExternalWorkflowHidePeople: true};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(true);
+    });
+
+    // The backend only returns the flag when it is `true`, so an absent flag is the normal DEW case.
+    it('returns false for a Dynamic External Workflow policy without the flag', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+
+    it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
     });
 });
