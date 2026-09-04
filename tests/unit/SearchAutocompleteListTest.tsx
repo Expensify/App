@@ -590,6 +590,7 @@ describe('SearchAutocompleteList', () => {
         });
 
         it('should display "Recent chats" section when query is empty', async () => {
+            // Given recent searches and chats are available
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
             recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
 
@@ -601,18 +602,19 @@ describe('SearchAutocompleteList', () => {
                 [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
             });
 
+            // When the search router opens without a query
             render(<SearchRouterWrapper />);
             await flushAllUpdates();
 
+            // Then only the Recent chats section is shown
             await waitFor(() => {
                 expect(screen.getByText('Recent chats')).toBeTruthy();
             });
-
-            // "Search results" section should NOT be visible when query is empty
             expect(screen.queryByText('Search results')).toBeNull();
         });
 
         it('should keep "Recent chats" header when an active search query is entered', async () => {
+            // Given recent searches and chats are available
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
             recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
 
@@ -624,15 +626,15 @@ describe('SearchAutocompleteList', () => {
                 [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
             });
 
+            // And the search router is open
             render(<SearchRouterWrapper />);
             await flushAllUpdates();
 
-            // Verify initial state shows "Recent chats" section
             await waitFor(() => {
                 expect(screen.getByText('Recent chats')).toBeTruthy();
             });
 
-            // Type a search query
+            // When the user searches and Auth responds
             const textInput = screen.getByTestId('search-autocomplete-text-input');
             fireEvent.changeText(textInput, 'test');
             await flushAllUpdates();
@@ -643,12 +645,14 @@ describe('SearchAutocompleteList', () => {
             });
             await flushAllUpdates();
 
+            // Then Recent chats remains visible
             await waitFor(() => {
                 expect(screen.getByText('Recent chats')).toBeTruthy();
             });
         });
 
         it('should return to "Recent chats" section when search query is cleared', async () => {
+            // Given recent searches and chats are available
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
             recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
 
@@ -660,10 +664,11 @@ describe('SearchAutocompleteList', () => {
                 [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
             });
 
+            // And the search router is open
             render(<SearchRouterWrapper />);
             await flushAllUpdates();
 
-            // Type a search query
+            // When the user searches and Auth responds
             const textInput = screen.getByTestId('search-autocomplete-text-input');
             fireEvent.changeText(textInput, 'some query');
             await flushAllUpdates();
@@ -674,24 +679,24 @@ describe('SearchAutocompleteList', () => {
             });
             await flushAllUpdates();
 
+            // Then Recent chats remains visible
             await waitFor(() => {
                 expect(screen.getByText('Recent chats')).toBeTruthy();
             });
 
-            // Clear the query
+            // When the user clears the query
             fireEvent.changeText(textInput, '');
             await flushAllUpdates();
 
-            // Should return to "Recent chats" section
+            // Then Recent chats remains visible without Search results
             await waitFor(() => {
                 expect(screen.getByText('Recent chats')).toBeTruthy();
             });
-
-            // "Search results" section should not be visible
             expect(screen.queryByText('Search results')).toBeNull();
         });
 
         it('should keep locally available matches while ordering server-only results', async () => {
+            // Given locally available reports
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
@@ -699,16 +704,16 @@ describe('SearchAutocompleteList', () => {
                 [ONYXKEYS.BETAS]: mockedBetas,
             });
 
+            // And the search router is open
             render(<SearchRouterWrapper />);
             await flushAllUpdates();
 
-            // When a query is typed, the currently visible local reports are frozen in their existing order.
+            // When a query freezes the visible local reports in their existing order
             const textInput = screen.getByTestId('search-autocomplete-text-input');
             fireEvent.changeText(textInput, 'test');
             await flushAllUpdates();
 
-            // When Auth returns its 20 results, it includes none of the frozen local reports. The local
-            // options are deliberately placed after the server results to catch a premature global cap.
+            // And Auth returns 20 server-only results before the local reports
             const serverReports = Array.from({length: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS}, (_, index) => {
                 const reportID = String(201 + index);
                 return {reportID, keyForList: reportID, text: `Server${index + 1} Report`, alternateText: '', lastMessageText: ''};
@@ -736,6 +741,7 @@ describe('SearchAutocompleteList', () => {
             });
             await flushAllUpdates();
 
+            // Then local reports remain first and server reports follow Auth's order
             await waitFor(() => {
                 expect(screen.getByText('Recent chats')).toBeTruthy();
                 expect(screen.getByText('Search results')).toBeTruthy();
@@ -751,6 +757,7 @@ describe('SearchAutocompleteList', () => {
         });
 
         it('widens the candidate pool to the full pre-filtered set once the server returns an order', async () => {
+            // Given locally available reports
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
@@ -758,22 +765,26 @@ describe('SearchAutocompleteList', () => {
                 [ONYXKEYS.BETAS]: mockedBetas,
             });
 
+            // And the search router is open
             render(<SearchRouterWrapper />);
             await flushAllUpdates();
 
+            // When the user searches before Auth responds
             const textInput = screen.getByTestId('search-autocomplete-text-input');
             fireEvent.changeText(textInput, 'test');
             await flushAllUpdates();
 
-            // Before a server order arrives, results are capped to the default suggestion limit (by recency).
+            // Then the local result candidate pool uses the suggestion limit
             expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS}));
 
+            // When Auth returns an order
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['101']);
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
             });
             await flushAllUpdates();
 
+            // Then the candidate pool expands to include all locally available reports
             expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: mockedOptions.reports.length}));
         });
 

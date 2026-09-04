@@ -194,10 +194,11 @@ describe('SearchAutocompleteList', () => {
         const mockUseFilteredOptions = jest.mocked(useFilteredOptions);
         const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
 
-        // Before the report loads, the DM is just a personal detail keyed by accountID.
+        // Given a locally available DM represented by its participant accountID
         const dmAsPersonalDetail: OptionData = {reportID: '', keyForList: '123', accountID: 123, text: 'Alice', alternateText: '', lastMessageText: ''};
         mockCombineOrdering.mockReturnValue({recentReports: [dmAsPersonalDetail], personalDetails: []});
 
+        // When the search results first render
         const {rerender, toJSON} = render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
@@ -212,18 +213,15 @@ describe('SearchAutocompleteList', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // The DM shows up under "Recent chats" and its position is now frozen.
+        // Then the DM is shown in Recent chats
         const treeAfterFreeze = JSON.stringify(toJSON());
         expect(treeAfterFreeze).toContain('Recent chats');
         expect(treeAfterFreeze).toContain('Alice');
         expect(treeAfterFreeze.indexOf('Recent chats')).toBeLessThan(treeAfterFreeze.indexOf('Alice'));
 
-        // When search results arrive, the DM's keyForList flips to the reportID while its accountID remains
-        // stable. Re-render with a new options reference without changing the query so the local rank remains
-        // the snapshot from before the response.
+        // When the server response hydrates the DM report and adds server-only reports
         const dmAsReport: OptionData = {reportID: '456', keyForList: '456', accountID: 123, isDM: true, text: 'Alice', alternateText: '', lastMessageText: ''};
-        // Alice also has a task report. It carries her accountID too, but it isn't the DM, so it should end up
-        // in the server section rather than pinned under "Recent chats".
+        // And a task report shares Alice's accountID without being the DM
         const aliceTaskReport: OptionData = {reportID: '999', keyForList: '999', accountID: 123, isDM: false, isTaskReport: true, text: 'Alice Task', alternateText: '', lastMessageText: ''};
         const brandNewServerReport: OptionData = {reportID: '789', keyForList: '789', accountID: 0, text: 'Bob', alternateText: '', lastMessageText: ''};
         mockUseFilteredOptions.mockReturnValue({
@@ -262,19 +260,17 @@ describe('SearchAutocompleteList', () => {
         const aliceTaskIndex = treeAfterServer.indexOf('Alice Task');
         const bobIndex = treeAfterServer.indexOf('Bob');
 
-        // Both section headers and all three rows rendered.
+        // Then the hydrated DM remains in Recent chats and the other reports appear in Search results
         expect(recentChatsIndex).toBeGreaterThanOrEqual(0);
         expect(serverResultsIndex).toBeGreaterThan(recentChatsIndex);
         expect(aliceDMIndex).toBeGreaterThanOrEqual(0);
         expect(aliceTaskIndex).toBeGreaterThanOrEqual(0);
         expect(bobIndex).toBeGreaterThanOrEqual(0);
 
-        // The DM stayed under "Recent chats" (before the "Search results" header) despite the keyForList flip.
         expect(aliceDMIndex).toBeGreaterThan(recentChatsIndex);
         expect(aliceDMIndex).toBeLessThan(serverResultsIndex);
 
-        // Alice's task report and Bob's report are in the server section, in Auth's order. The task was not
-        // pinned merely because it shares Alice's accountID.
+        // And Search results follows Auth's order without treating Alice's task as her DM
         expect(aliceTaskIndex).toBeGreaterThan(serverResultsIndex);
         expect(bobIndex).toBeGreaterThan(serverResultsIndex);
         expect(aliceTaskIndex).toBeLessThan(bobIndex);
