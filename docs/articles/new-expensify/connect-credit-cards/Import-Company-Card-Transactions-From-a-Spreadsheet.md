@@ -23,20 +23,30 @@ Only **Workspace Admins** can import transactions for company cards.
 
 ## How to import company card transactions from a spreadsheet
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to the **Workspaces** and select your workspace.
-2. Click **Company Cards**.
-3. Click on **Add card**.
- - If you already have a company card feed set up, click the feed name to see **Add Card**.
-5. Choose **Import transactions from file**.
-6. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
-7. Enter a name for the card feed.
-8. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
-9. Assign cards to users based on the transactions in the file.
-10. Click **Import**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**. 
+2. Select **Company Cards**.
+3. Select **Add cards**.
+ - If you already have a company card feed set up, select the feed name, then select **Add cards**.
+4. Choose the country where your bank is located, then select **Next**.
+5. Select **Import transactions from file**.
+5. Select an existing **Company card layout name**, or enter a name for a new layout.
+8. Select **Next**.
+9. Select **Choose file** and choose the CSV, TXT, XLS, or XLSX file containing the transactions you want to import.
+ - **Note**: Select **Download our template** to download an example CSV with the recommended columns and formatting for company card transaction imports.
+10. Map the transaction fields. You must map:
+ - Either **Card number** or **Card name**
+ - **Date**
+ - **Merchant**
+ - **Amount**
+ - **Currency**
+11. Assign each card to a Workspace member based on the transactions in the file.
+12. Select **Import**.
 
 You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
-**Note:** Download the [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for an example of the recommended column structure and formatting for company card transaction imports.
+![Company cards page with Add Card highlighted]({{site.url}}/assets/images/Companycards_add_cards.png){:width="100%"}
+
+![Company cards import options with file import highlighted]({{site.url}}/assets/images/Companycards_file_import.png){:width="100%"}
 
 ---
 
@@ -78,7 +88,7 @@ You must map at least one card-identity column — a **Card number** or a **Card
 
 ## What should I do if my file upload fails or results in an error?
 
-Ensure the file includes the required fields and matches the formatting guidelines. Use Expensify’s [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for reference.
+Ensure the file includes the required fields and matches the formatting guidelines. Click **Download our template** on the **Import transactions from file** step for an example of the recommended structure and formatting.
 
 ## What file formats are supported for company card imports?
 
@@ -94,7 +104,7 @@ Your file must include a way to identify each card so transactions can be matche
 
 ## How does matching transactions by card name work?
 
-Instead of a **Card number**, you can map a **Card name** column, and Expensify groups each transaction under the card identified by that name. After you upload the file, those cards appear as entries you can assign to users — the name doesn't need to match a card you've already assigned. You only need one card-identity column, so map a **Card number** column instead if you'd rather identify cards by number.
+Instead of a **Card number**, you can map a **Card name** column, and Expensify groups each transaction under the card identified by that name. After you upload the file, those cards appear as entries you can assign to Workspace members — the name doesn't need to match a card you've already assigned. You only need one card-identity column, so map a **Card number** column instead if you'd rather identify cards by number.
 
 ## What happens if I map the same spreadsheet column twice?
 
