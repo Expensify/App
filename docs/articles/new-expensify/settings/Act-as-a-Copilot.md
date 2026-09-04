@@ -26,8 +26,9 @@ Depending on the access level assigned to you, you may be able to:
  - View expenses and chats
  - Create and submit expenses
  - Review reports
- - Update account, workspace, and domain settings
- - Forward receipts to the account owner's account
+ - Update the member's account, workspace, and domain settings
+ - Merge accounts on the member's behalf
+ - Forward receipts to the member's account
 
 Some actions may be restricted if you've been granted Limited Access. 
 
