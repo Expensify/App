@@ -1350,6 +1350,119 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
+    it('canExport should return false while an export started from this client is still running', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({})};
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        // The report carried no export errors when the export was started, so no new one has arrived yet.
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: {exportErrorCountAtRequest: 0},
+                ownerLogin: CURRENT_USER_EMAIL,
+            }),
+        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
+    });
+
+    it('canExport should return true again once the export fails with a new error', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            isWaitingOnBankAccount: false,
+            errorFields: {export: {exportError: 'export failed'}},
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({})};
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        // One export error has arrived since the request, so this attempt is resolved and the button comes back.
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: {exportErrorCountAtRequest: 0},
+                ownerLogin: CURRENT_USER_EMAIL,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
+    });
+
+    it('canExport should stay hidden when the report already carried the same export errors', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            isWaitingOnBankAccount: false,
+            errorFields: {export: {exportError: 'export failed'}},
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({})};
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        // Retrying an export on a report that already failed once: the pre-existing error must not resolve the attempt.
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: {exportErrorCountAtRequest: 1},
+                ownerLogin: CURRENT_USER_EMAIL,
+            }),
+        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
+    });
+
     describe('DEW (Dynamic External Workflow) submit pending', () => {
         it('should return VIEW action when DEW submit is pending and report is OPEN', async () => {
             // Given an open expense report with a corporate policy where DEW submit is pending

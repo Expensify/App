@@ -172,6 +172,7 @@ import {
     isSelfDM,
     isUploadingAttachmentRemovedFromDraft,
     isValidReportIDFromPath,
+    getExportErrorCount,
     prepareOnboardingOnyxData,
     replaceLocalAttachmentReferences,
 } from '@libs/ReportUtils';
@@ -6484,9 +6485,13 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
 function exportToIntegration(reportID: string, connectionName: ConnectionName, policy: OnyxEntry<Policy>) {
     const action = buildOptimisticExportIntegrationAction(connectionName, false, getExportLabelForConnection(connectionName, policy));
     const optimisticReportActionID = action.reportActionID;
-    const previousExportedValue = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.isExportedToIntegration;
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    // Snapshot the export errors the report already carries, so only a new one counts as this attempt's outcome.
+    const exportErrorCountAtRequest = getExportErrorCount(report);
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    // `isExportedToIntegration` is deliberately not updated optimistically because the server doesn't set it false
+    // when export fails so we track export errors to identify an export failure.
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -6496,14 +6501,14 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName, p
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isExportedToIntegration: true,
+                exportErrorCountAtRequest,
             },
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -6515,9 +6520,9 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName, p
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isExportedToIntegration: previousExportedValue,
+                exportErrorCountAtRequest: null,
             },
         },
     ];

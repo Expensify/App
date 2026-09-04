@@ -13508,6 +13508,37 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
     return lastSuccessfulExportCreated > lastResetCreated;
 }
 
+/**
+ * Count the export errors a report currently carries because it is
+ * what identifies a new failure against a snapshotted baseline.
+ */
+function getExportErrorCount(report: OnyxEntry<Report>): number {
+    return Object.values(report?.errorFields?.export ?? {}).filter((error) => error != null).length;
+}
+
+/**
+ * Whether an export this client started is still running.
+ *
+ * There is no client event meaning "the export finished" - the 200 only means the request was accepted, `failureData`
+ * never runs, and the real outcome arrives later over Pusher - so the state is resolved by comparison at read time
+ * rather than cleared from a callback. That also means a stale flag can never strand the button.
+ *
+ * Both signals live on the report, so this holds in a preview where the report actions are not loaded, and it
+ * survives a refresh.
+ */
+function isExportInProgress(report: OnyxEntry<Report>, reportMetadata: OnyxEntry<ReportMetadata>): boolean {
+    const {exportErrorCountAtRequest} = reportMetadata ?? {};
+    // Checked against null rather than falsy value, because zero is the usual count for a report that never failed.
+    if (exportErrorCountAtRequest == null) {
+        return false;
+    }
+
+    // Only an export error the report did not already carry belongs to this attempt. Pre-existing ones must not
+    // resolve it, because a report that already failed to export is exactly the retry case where the button is
+    // offered again.
+    return getExportErrorCount(report) === exportErrorCountAtRequest;
+}
+
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
     if (report?.hasExportError) {
         return true;
@@ -14750,6 +14781,8 @@ export {
     isExported,
     hasExpensifyGuidesEmails,
     hasExportError,
+    getExportErrorCount,
+    isExportInProgress,
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,
     getReportLastVisibleActionCreated,

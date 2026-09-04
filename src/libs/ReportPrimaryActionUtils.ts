@@ -55,6 +55,7 @@ import {
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
+    isExportInProgress,
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
@@ -279,8 +280,12 @@ function isPrimaryPayAction({
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[]) {
+function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[], reportMetadata?: OnyxEntry<ReportMetadata>) {
     if (!policy) {
+        return false;
+    }
+
+    if (isExportInProgress(report, reportMetadata)) {
         return false;
     }
 
@@ -566,7 +571,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
-    if (isExportAction(report, currentUserLogin, policy, reportActions)) {
+    if (isExportAction(report, currentUserLogin, policy, reportActions, reportMetadata)) {
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 
