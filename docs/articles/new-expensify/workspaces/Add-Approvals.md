@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, import workflows, import approval workflows, bulk approval workflows, spreadsheet import]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -61,6 +61,24 @@ Set up default or custom approval workflows to route expenses through one or mor
 9. Click **Add workflow** to save.
 
 **Note:** Custom workflows are only available on the Control plan. To enable custom workflows, upgrade to the Control plan in Settings > Billing & Subscriptions.
+
+---
+
+## How to import approval workflows from a spreadsheet
+
+Instead of adding workflows one member at a time, you can set up multiple members' approval workflows at once by importing a spreadsheet directly from the **Workflows** page.
+
+1. Navigate to **Workspaces > [Workspace Name] > Workflows**.
+2. Under **Approvals**, click **More**.
+3. Select **Import workflows**.
+4. Drag and drop your file or click **Upload File** to browse.
+5. Map each column in your file to a member field, then complete the import.
+
+To route each member's expenses through the right approvers, map the **Submit to**, **Forward to**, and **Over limit forward to** columns. These fields set up each member's approval workflow, which you can review under **Workflows** after the import completes.
+
+**Control plan required:** The **Submit to**, **Forward to**, **Over limit forward to**, and **Approval limit** fields are only available on the Control plan. If your workspace isn't on the Control plan, you'll be prompted to upgrade before the import can finish.
+
+The import uses the same spreadsheet mapping screen as the Members importer, so when the import completes you're returned to the **Members** page. Learn more about the column mapping and template in [Invite Multiple Members via Spreadsheet](/articles/new-expensify/workspaces/Managing-Workspace-Members#invite-multiple-members-via-spreadsheet).
 
 ---
 
