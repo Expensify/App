@@ -8,9 +8,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import type {TokenizationStatus} from '@expensify/react-native-wallet';
 
@@ -49,12 +51,14 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                 if (status === 'success') {
                     Log.info('Card added to wallet');
                     getPaymentMethods();
+                    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));
                 } else {
                     setIsLoading(false);
                 }
             })
             .catch((error) => {
                 setIsLoading(false);
+                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));
                 Log.warn(`Error while adding card to wallet: ${error}`);
                 Alert.alert('Failed to add card to wallet', 'Please try again later.');
             });
@@ -92,9 +96,9 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
             });
     }, [isCardAvailable]);
 
-    if (!isWalletAvailable || isInWallet == null || !isCardAvailable) {
-        return null;
-    }
+    // if (!isWalletAvailable || isInWallet == null || !isCardAvailable) {
+    //     return null;
+    // }
 
     if (isLoading) {
         return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;

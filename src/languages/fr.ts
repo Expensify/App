@@ -2765,6 +2765,15 @@ const translations: TranslationDeepObject<typeof en> = {
             updateAddress: 'Mettre à jour l’adresse',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Ajouté au portefeuille ${platform}`,
+        cardAddedToWalletPage: {
+            title: 'Tout est prêt !',
+            description: 'Votre carte a été ajoutée à Apple Wallet.',
+            firstSupportingText: 'Apple Pay est un moyen plus simple de payer en magasin, dans les apps et en ligne avec votre iPhone, votre Apple Watch, votre iPad et votre Mac.',
+            secondSupportingText: 'Utilisez Apple Pay partout où vous voyez\nces symboles.',
+            applePayMark: 'Apple Pay',
+            contactlessMark: 'Paiement sans contact',
+            buttonText: 'Compris',
+        },
         cardDetailsLoadingFailure: 'Une erreur s’est produite lors du chargement des détails de la carte. Veuillez vérifier votre connexion Internet et réessayer.',
         validateCardTitle: 'Vérifions que c’est bien vous',
         enterSecurityCode: (contactMethod: string) =>

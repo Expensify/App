@@ -2367,6 +2367,10 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string, isFromDomainCardDetail?: boolean) => `settings/wallet/card/${cardID}/activate${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
     },
+    SETTINGS_WALLET_CARD_ADDED_TO_WALLET: {
+        route: 'settings/wallet/card/:cardID/added-to-wallet',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/added-to-wallet` as const,
+    },
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_AGENTS: 'settings/agents',

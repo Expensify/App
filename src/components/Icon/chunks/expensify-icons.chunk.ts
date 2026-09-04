@@ -1,6 +1,7 @@
 import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
+import ApplePayMark from '@assets/images/apple-pay-mark.svg';
 import Apple from '@assets/images/apple.svg';
 import ArrowCircleClockwise from '@assets/images/arrow-circle-clockwise.svg';
 import ArrowCollapse from '@assets/images/arrow-collapse.svg';
@@ -68,6 +69,7 @@ import Compass from '@assets/images/compass.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
+import Contactless from '@assets/images/contactless.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
@@ -589,6 +591,8 @@ const Expensicons = {
     TreasureChestGreenWithSparkle,
     UserShield,
     Compass,
+    ApplePayMark,
+    Contactless,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

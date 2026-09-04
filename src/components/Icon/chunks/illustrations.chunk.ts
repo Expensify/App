@@ -34,6 +34,7 @@ import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 // Expensify Card
 import ExpensifyCardCoins from '@assets/images/emptystate__expensify-card-coins.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import ExpensifyCardAppleWalletIllustration from '@assets/images/expensifyCard/cardAppleWalletIllustration.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 import ExpensifyCardProtectionIllustration from '@assets/images/expensifyCard/cardProtectionIllustration.svg';
 // Other Images
@@ -274,6 +275,7 @@ const Illustrations = {
     // Expensify Card
     ExpensifyCardIllustration,
     ExpensifyCardProtectionIllustration,
+    ExpensifyCardAppleWalletIllustration,
 
     // Product Illustrations
     Abracadabra,

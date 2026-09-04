@@ -401,6 +401,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 </CardDetailsActionButton>
                             </CardDetailsActionButtons>
                         )}
+                        {cardToAdd !== undefined && (
+                            <View style={[styles.alignItemsCenter, styles.mb3, styles.mt6]}>
+                                <AddToWalletButton
+                                    card={cardToAdd}
+                                    cardHolderName={displayName ?? ''}
+                                    cardDescription={expensifyCardTitle}
+                                />
+                            </View>
+                        )}
                         {shouldShowChangePINRow && isCardPINBlocked && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mb5]}>
                                 <DotIndicatorMessage
@@ -673,14 +682,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             </View>
                         )}
                     </>
-                )}
-                {cardToAdd !== undefined && (
-                    <AddToWalletButton
-                        card={cardToAdd}
-                        style={styles.alignSelfCenter}
-                        cardHolderName={displayName ?? ''}
-                        cardDescription={expensifyCardTitle}
-                    />
                 )}
             </ScrollView>
             {currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
