@@ -2170,7 +2170,7 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     filters={filterConfig}
-                    isItemInFilter={(item, filterValues) => filterValues.includes(item.category)}
+                    isItemInFilter={(item, filterValues) => filterValues.length === 0 || filterValues.includes(item.category)}
                     isItemInSearch={props.isItemInSearch}
                 >
                     <Table.ListHeader>
