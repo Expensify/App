@@ -2,7 +2,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchSuggestionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
