@@ -1,62 +1,42 @@
 ---
-title: Understand Card Connection Issues
-description: Learn why card connections fail in Expensify, the difference between a connection that needs re-authentication and one that's broken, and how to tell which situation you're in.
-keywords: [New Expensify, card connection, broken connection, re-authenticate, reconnect card, bank connection, company card feed, personal card, credit card import]
-internalScope: Audience is members with personal cards and Workspace Admins with company card feeds. Covers why a new card may fail to connect, why an existing connection stops importing, the two failure modes (needs re-authentication vs. broken), the indicators members see, and who resolves each. Does not cover the step-by-step reconnect workflows or connecting a new card.
-retrievalIntent: Why a card connection failed or stopped importing and what the difference is between re-authentication and a broken connection.
-contentType: topic
-platform: new
+title: Understand card connection issues
+description: Learn why card connections fail in Expensify and the difference between a connection that needs reauthentication and one that is broken.
+keywords: [card connection issues Expensify, card connection failed, card stopped importing transactions, broken card connection, reauthenticate card connection, reconnect card Expensify, bank connection issue, company card connection issue, personal card connection issue]
+internalScope: Audience is members with personal cards and workspace admins and card admins with company card feeds. Covers why new and existing card connections can fail, the difference between reauthentication and a broken connection, where connection issues appear, and how they affect expenses. Does not cover specific connection errors or step-by-step troubleshooting.
+retrievalIntent: Why a card connection failed or stopped importing and what the difference is between reauthentication and a broken connection.
 order: 1
 ---
 
 # Understand Card Connection Issues
 
-Expensify connects to your bank by establishing a secure connection to your bank to import card transactions. Card connection issues can happen when you first try to connect a card or after a card has already been connected. If Expensify is unable to establish a connection with your bank, or the connection is established but later breaks, transactions will stop importing. 
+Expensify establishes a secure connection with your bank to import card transactions If Expensify is unable to establish a connection with your bank, or the connection is established but later breaks, new transactions will stop importing. 
 
 The cause can range from a bank authentication requirement to a temporary bank outage or a change to the account itself. Understanding where the connection is failing can help you find the right troubleshooting steps.
 
-This applies to personal cards you manage in **Wallet** and company card feeds a Workspace Admin manages under **Company cards**.
+This applies to personal cards that members manage in **Wallet** and company cards workspace admins and card admins manage under **Company cards**.
 
 ---
 
-## Why a new card may have trouble connecting
+## Why card connection issues occur
 
-When you add a card, Expensify must establish a connection with your bank and receive access to the eligible cards or accounts.
+A card connection depends on your bank authorizing Expensify to access eligible cards or accounts. The connection may require attention when:
 
-A new connection may have an issue if:
+- Your bank requires additional authentication or an action in its portal.
+- Your bank's authorization expires.
+- Your banking credentials change.
+- Online banking credentials or account numbers change.
+- The bank changes or stops supporting the connection method.
+- The bank is temporarily unavailable.
 
- - Your bank requires additional authentication or an action in its portal.
- - Expensify can't authenticate with the credentials provided.
- - The card or account isn't available through the bank connection.
- - The bank doesn't support the connection you're trying to establish.
- - The bank is temporarily unavailable.
-
-If you encounter an issue while adding a card, use the error shown during the connection process to find the appropriate troubleshooting steps.
-
----
-
-## Why an existing card connection may stop working
-
-After a card is connected, Expensify relies on your bank continuing to authorize access to its transactions.
-
-An existing connection can break if: 
-
- - Your bank's authorization expired. Banks may periodically require you to approve the connection again.
- - Your banking credentials changed. A password reset or updated login details can break the connection.
- - Your bank requires an extra step. Multi-factor authentication, a security question, or an action in your bank's portal may block access.
- - Your card or account changed. A reissued card, changed account number, or other account change may affect the existing connection.
- - Your bank changed its connection support. The bank may change or stop supporting a connection method.
- - Your bank is temporarily unavailable. Temporary bank outages can interrupt transaction imports.
-
-Depending on the cause, the connection may need to be re-authenticated or may be considered broken.
+When you first connect a card, these issues can prevent Expensify from establishing the connection. After a card is connected, they can interrupt transaction imports until the connection is restored.
 
 ---
 
 ## What It means when a card connection needs reauthentication
 
-A connection that needs reauthentication is paused because your bank requires you to authorize Expensify again before transactions can continue importing.
+A connection that needs reauthentication is paused because your bank requires you to authorize Expensify again. This commonly happens when the bank's authorization expires and does not mean the connection itself has failed.
 
-This commonly happens when your bank's authorization expires. It doesn't mean the connection itself has failed.
+Once the connection is reauthenticated, Expensify can resume importing transactions.
 
 [Learn how to re-authenticate a card connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Reauthenticate-a-Card-Connection).
 
@@ -64,11 +44,9 @@ This commonly happens when your bank's authorization expires. It doesn't mean th
 
 ## What it means when a card connection is broken
 
-A broken connection means the connection has been disrupted and Expensify can no longer reach your bank.
+A broken connection means Expensify can no longer retrieve transactions through the existing connection. This may result from changed credentials, changes to the card or account, a bank-side issue, or a change in the connection method supported by the bank.
 
-This can happen because of changed credentials, changes to the card or account, a bank outage, or changes to the connection supported by the bank.
-
-Resolving a broken connection may require reconnecting or reassigning cards, using another available connection method, or waiting for a bank-side issue to be resolved.
+Resolving a broken connection may require reconnecting the account, reassigning company cards, using another available connection method, or waiting for the bank to resolve an issue.
 
 [Learn how to fix a broken card connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error).
 
@@ -86,20 +64,44 @@ The message can indicate whether the connection needs to be reauthenticated or i
 
 ---
 
-## What happens while an existing card connection has an issue
+## Where card connection issues appear
 
-While an existing connection needs attention, new transactions stop importing.
+When an existing connection needs attention, Expensify may surface the issue in several places:
 
-You may also see a **broken connection** violation on receipt-scanned expenses. Expensify holds these expenses in case they need to be matched with card transactions after the connection is restored. Once the connection is fixed, imports resume and the violation is removed. 
+- In the **Time Sensitive** section on **Home**.
+- On the affected card or feed, with a message describing the issue and a **Fix** action.
+- For company card feeds, in a message from Concierge in the **#admins** room.
 
-If you need an expense to move forward before the connection is fixed, you can mark it as cash to request payment right away.
+Use the message shown in Expensify to find the troubleshooting guidance for that specific issue.
 
 ---
 
-## Where to troubleshoot a card connection issue
+## What happens while a connection has an issue
 
+New card transactions stop importing while the connection needs attention.
 
-Use the troubleshooting guidance for the specific error or connection state you're seeing rather than removing or reconnecting a card without first identifying the issue.
+Receipt-scanned expenses may also show a broken connection violation while Expensify waits for the corresponding card transactions to import. Once the connection is restored and the transactions import, Expensify can match them with the receipts.
 
-* [Learn how to re-authenticate a card connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Reauthenticate-a-Card-Connection)
-* [Learn how to fix a card connection error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error)
+---
+
+# FAQ
+
+## Why did my card transactions stop importing?
+
+Transactions stop importing when Expensify can no longer retrieve them through the card connection. Your bank may require you to authorize the connection again, the connection may be broken, or the bank may be temporarily unavailable.
+
+## Will missing transactions import after the connection is restored?
+
+Once the connection is restored, Expensify resumes importing available transactions from the bank. The transactions imported may depend on the bank and the timeframe it makes available.
+
+## Why does my receipt show a broken connection violation?
+
+Expensify may be waiting for a card transaction to import so it can match the transaction with the receipt. The violation remains while the connection prevents that transaction from importing.
+
+## Can I submit an expense before the connection is restored?
+
+If the expense must move forward immediately, you can mark it as cash and submit it without waiting for the card transaction.
+
+## What should I do if a commercial card feed stops importing transactions?
+
+Commercial card feeds rarely experience connection errors because the bank maintains the feed. If transactions stop importing from a commercial card feed, contact Concierge for help.
