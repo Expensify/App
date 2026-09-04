@@ -119,6 +119,13 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const shouldShowPayButton = travelSpend > 0 && travelSpend > pendingInvoiceAmount && isMonthlySettlementFrequency && !hasPendingSettlement;
     const formattedSpend = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
 
+    // Mirror the spend so the pay-balance confirmation settles the balance as it stands when the user confirms.
+    // The awaited handler would otherwise keep the value captured when the modal was opened.
+    const travelSpendRef = useRef(travelSpend);
+    useEffect(() => {
+        travelSpendRef.current = travelSpend;
+    }, [travelSpend]);
+
     // Pay-by-invoice customers settle by wire against an invoice, so the pay CTA and modal use invoice copy
     const isPayByInvoice = getIsTravelBillingPayByInvoice(travelSettings);
     const payBalanceCtaText = translate(
@@ -195,7 +202,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        payTravelBillingSpend(policyID, defaultFundID, travelSpend);
+        payTravelBillingSpend(policyID, defaultFundID, travelSpendRef.current);
     };
 
     /**

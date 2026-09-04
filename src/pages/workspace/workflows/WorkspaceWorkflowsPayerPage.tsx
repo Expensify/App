@@ -212,8 +212,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         Navigation.closeRHPFlow();
     };
 
-    // Acknowledgement-only modal shown when the bank account still needs to be validated. The result is ignored;
-    // the only actionable path is the link inside the prompt, which closes the modal before navigating away.
+    // Acknowledgement-only modal shown when the bank account still needs to be validated. The result is ignored.
+    // The only actionable path is the link inside the prompt, which closes the modal before navigating away.
     const showBankAccountValidationModal = () => {
         showConfirmModal({
             title: translate('workflowsPayerPage.shareBankAccount.validationTitle'),
@@ -236,8 +236,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         });
     };
 
-    // Acknowledgement-only modal shown when the current user isn't allowed to share the bank account. The result is
-    // ignored; the link inside the prompt closes the modal and opens a chat with the workspace owner.
+    // Acknowledgement-only modal shown when the current user isn't allowed to share the bank account. The result is ignored.
+    // The link inside the prompt closes the modal and opens a chat with the workspace owner.
     const showMissingSharePermissionModal = () => {
         showConfirmModal({
             title: translate('workflowsPayerPage.shareBankAccount.errorTitle'),
