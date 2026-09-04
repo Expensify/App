@@ -82,14 +82,4 @@ type ExpenseDefaultRule = {
     actions: ExpenseDefaultActions;
 };
 
-export type {
-    ExpenseDefaultAction,
-    ExpenseDefaultActionField,
-    ExpenseDefaultActionName,
-    ExpenseDefaultActionValue,
-    ExpenseDefaultActions,
-    ExpenseDefaultRule,
-    ExpenseDefaultTaxValue,
-    ExpenseDefaultTrigger,
-    ExpenseDefaultTriggers,
-};
+export type {ExpenseDefaultAction, ExpenseDefaultActionField, ExpenseDefaultActions, ExpenseDefaultRule, ExpenseDefaultTaxValue, ExpenseDefaultTriggers};

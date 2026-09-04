@@ -38,4 +38,3 @@ type Rule = OnyxValueWithOfflineFeedback<
 >;
 
 export default Rule;
-export type {RuleBody, RuleScope};

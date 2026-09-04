@@ -10,7 +10,7 @@ import type {
     ExpenseDefaultTaxValue,
     ExpenseDefaultTriggers,
 } from '@src/types/onyx/ExpenseDefaultRules';
-import type {RuleFilter, RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
+import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -104,16 +104,6 @@ function isRuleFilterComparison(node: RuleFilterNode): node is RuleFilterCompari
     return typeof node.left === 'string';
 }
 
-/** Folds a list of nodes into a left-leaning tree joined by `operator`. Returns undefined for an empty list. */
-function combineRuleFilterNodes(nodes: RuleFilterNode[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>): RuleFilterNode | undefined {
-    const [firstNode, ...remainingNodes] = nodes;
-    if (!firstNode) {
-        return undefined;
-    }
-
-    return remainingNodes.reduce<RuleFilterNode>((accumulator, node) => ({left: accumulator, operator, right: node}) satisfies RuleFilter, firstNode);
-}
-
 /**
  * A rule is an expense default rule when it runs on transaction creation and changes at least one field.
  * This is what decides whether a rule shows up in the workspace's expense defaults list.
@@ -150,12 +140,6 @@ function getPolicyExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | un
     }
 
     return rules;
-}
-
-/** Returns the value of the `Set` action for `field`, or undefined when the rule doesn't set that field. */
-function getExpenseDefaultRuleActionValue(rule: Rule | ExpenseDefaultRule | undefined, field: ExpenseDefaultActionField): ExpenseDefaultAction['value'] | undefined {
-    const action = getRuleActions(rule).find((candidate) => candidate?.name === ACTION.SET && 'field' in candidate && candidate.field === field);
-    return action && 'value' in action ? action.value : undefined;
 }
 
 /** Builds the `tax` action value, which carries the rate's name and value alongside its external ID for display. */
@@ -349,11 +333,6 @@ function getMerchantRuleFormValues(rule: Rule | ExpenseDefaultRule | undefined):
     return formValues;
 }
 
-/** Whether the merchant rule editor can safely open this rule. See `getMerchantRuleFormValues`. */
-function isEditableMerchantRule(rule: Rule | ExpenseDefaultRule | undefined): boolean {
-    return !!getMerchantRuleFormValues(rule);
-}
-
 /**
  * Flattens a filter tree into its leaf comparisons, left to right. Used to summarize rules the editor
  * can't open, which still have to render a readable condition in the rules list.
@@ -402,21 +381,5 @@ function getExpenseDefaultRuleSummaryFields(rule: Rule | ExpenseDefaultRule | un
     return summaryFields;
 }
 
-export type {ExpenseDefaultRuleSummaryField, MerchantRuleFormValues, RuleWithID};
-export {
-    buildMerchantRule,
-    buildMerchantRuleActions,
-    buildMerchantRuleFilters,
-    buildTaxActionValue,
-    combineRuleFilterNodes,
-    getExpenseDefaultRuleActionValue,
-    getExpenseDefaultRuleSummaryFields,
-    getMerchantRuleFormValues,
-    getRuleFilterLeaves,
-    getPolicyExpenseDefaultRules,
-    isEditableMerchantRule,
-    isExpenseDefaultRule,
-    isPolicyScopedRule,
-    isRuleFilterComparison,
-    isRuleFilterNode,
-};
+export type {MerchantRuleFormValues};
+export {buildMerchantRule, getExpenseDefaultRuleSummaryFields, getMerchantRuleFormValues, getPolicyExpenseDefaultRules, getRuleFilterLeaves, isExpenseDefaultRule};

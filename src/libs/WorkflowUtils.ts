@@ -1742,6 +1742,7 @@ export {
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
+    isApprovalWorkflowRule,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,

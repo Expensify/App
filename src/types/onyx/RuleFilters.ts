@@ -39,4 +39,4 @@ type RuleFilter = {
 /** The root of a rule's filter tree: either a single comparison or a boolean combination of nodes. */
 type RuleFilterNode = RuleFilter | RuleFilterComparison;
 
-export type {RuleFilter, RuleFilterComparison, RuleFilterNode, RuleFilterValue};
+export type {RuleFilter, RuleFilterComparison, RuleFilterNode};
