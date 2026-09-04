@@ -40,7 +40,15 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(conciergeReportID, introSelected, session.accountID ?? CONST.DEFAULT_NUMBER_ID, isSelfTourViewed, betas, true, () => !isUnmounted.current);
+                    navigateToConciergeChat({
+                        conciergeReportID,
+                        introSelected,
+                        currentUserAccountID: session.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        isSelfTourViewed,
+                        betas,
+                        shouldDismissModal: true,
+                        checkIfCurrentPageActive: () => !isUnmounted.current,
+                    });
                 });
             } else {
                 Navigation.navigate(ROUTES.INBOX);
