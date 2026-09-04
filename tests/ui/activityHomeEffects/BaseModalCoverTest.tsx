@@ -1,10 +1,12 @@
+import {act} from '@testing-library/react-native';
+
 import BaseModal from '@components/Modal/BaseModal';
 
-import {setModalCovering, willAlertModalBecomeVisible} from '@userActions/Modal';
+import {setModalCovering, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import renderScreenWithCover, {getCoverMode} from '../../utils/ScreenCoverHarness';
 
@@ -80,6 +82,53 @@ describe('BaseModal under a cover', () => {
         await screenCover.reveal();
 
         expect(jest.mocked(setModalCovering).mock.calls.at(-1)?.at(1)).toBe(true);
+        screenCover.unmount();
+    });
+
+    it('puts the visibility key back for a still-visible modal on a reveal', async () => {
+        const screenCover = renderScreenWithCover(
+            <BaseModal
+                isVisible
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                {null}
+            </BaseModal>,
+        );
+        expect(setModalVisibility).not.toHaveBeenCalled();
+
+        await screenCover.hide();
+
+        expect(jest.mocked(setModalVisibility).mock.calls.at(-1)).toEqual(getCoverMode() === 'activity' ? [false] : undefined);
+
+        await screenCover.reveal();
+
+        expect(jest.mocked(setModalVisibility).mock.calls.at(-1)).toEqual(getCoverMode() === 'activity' ? [true, CONST.MODAL.MODAL_TYPE.CENTERED] : undefined);
+        screenCover.unmount();
+    });
+
+    it('leaves the visibility key alone on a reveal of a modal that closed while covered', async () => {
+        let closeModal: (() => void) | undefined;
+        function ClosableModal() {
+            const [isVisible, setIsVisible] = useState(true);
+            useEffect(() => {
+                closeModal = () => setIsVisible(false);
+            }, []);
+            return (
+                <BaseModal
+                    isVisible={isVisible}
+                    type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                >
+                    {null}
+                </BaseModal>
+            );
+        }
+        const screenCover = renderScreenWithCover(<ClosableModal />);
+
+        await screenCover.hide();
+        act(() => closeModal?.());
+        await screenCover.reveal();
+
+        expect(jest.mocked(setModalVisibility).mock.calls.at(-1)).toEqual(getCoverMode() === 'activity' ? [false] : undefined);
         screenCover.unmount();
     });
 });
