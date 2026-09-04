@@ -4,6 +4,8 @@ type CollapsibleHeaderOnKeyboardProps = {
      *  component, keyboard, and focused input — e.g. a tab bar below the list.
      *  The collapse target is reduced by this amount so those elements are not counted twice. */
     collapsibleHeaderOffset?: number;
+    // Whether to always collapse the header when the keyboard is open.
+    alwaysCollapseHeaderOnKeyboard?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export
