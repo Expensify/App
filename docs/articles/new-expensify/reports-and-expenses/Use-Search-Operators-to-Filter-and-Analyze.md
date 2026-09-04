@@ -78,6 +78,7 @@ You can use the following operators to filter expenses:
 - `attendee:` – expense attendees (email, phone, display name, or `me`), e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
 - `bank-account:` – settlement bank account an expense was reimbursed from. Start typing after the colon to choose from your bank accounts, each shown as the bank name and last four digits (e.g. `Chase xx1234`). Available only when you have at least one bank account.
+- `paid-by:` – the member who paid the expense's report, by email or phone number, e.g. `paid-by:admin@company.com`. Returns nothing for expenses that have not been paid
 
 **Example queries:**
 - `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
@@ -100,6 +101,7 @@ You can use the following operators to filter reports:
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
 - `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`
+- `paid-by:` – the member who paid the report, by email or phone number, e.g. `paid-by:admin@company.com`. Returns nothing for reports that have not been paid
 - `action:` – blocking report action, e.g. `action:approve`
 - `submitter-user-id:` – Custom field 1 value set for the report submitter
 - `submitter-payroll-id:` – Custom field 2 value set for the report submitter
