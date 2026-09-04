@@ -9,9 +9,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 
-import Onyx from 'react-native-onyx';
-
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

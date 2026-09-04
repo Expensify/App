@@ -89,8 +89,7 @@ function useApprovalWorkflows(policy: OnyxEntry<Policy>, policyID: string | unde
     // An "Approves to" user set above an approval limit is a custom workflow too, but it hangs off
     // `overLimitForwardsTo` instead of extending the approver chain, so counting approvers alone misses it.
     const hasOverLimitApprover = filteredApprovalWorkflows.some((workflow) => workflow.approvers.some((approver) => !!approver.overLimitForwardsTo));
-    const isAdvanceApproval =
-        (filteredApprovalWorkflows.length > 1 || (filteredApprovalWorkflows.at(0)?.approvers ?? []).length > 1 || hasOverLimitApprover) && isControlPolicy(policy);
+    const isAdvanceApproval = (filteredApprovalWorkflows.length > 1 || (filteredApprovalWorkflows.at(0)?.approvers ?? []).length > 1 || hasOverLimitApprover) && isControlPolicy(policy);
 
     return {approvalWorkflows, filteredApprovalWorkflows, availableMembers, usedApproverEmails, isAdvanceApproval, rulesCollection, personalDetails};
 }
