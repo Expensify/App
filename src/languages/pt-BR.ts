@@ -305,6 +305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Faturável',
         nonBillable: 'Não faturável',
         tag: 'Etiqueta',
+        violations: 'Violações',
         receipt: 'Recibo',
         verified: 'Verificado',
         replace: 'Substituir',
@@ -423,6 +424,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseReport: 'Relatório de despesas',
         rateOutOfPolicy: 'Tarifa fora da política',
         leaveWorkspace: 'Sair do espaço de trabalho',
+        leaveWorkspaceTitle: (workspaceName: string) => `Sair de ${workspaceName}?`,
         leaveWorkspaceConfirmation: 'Se você sair deste workspace, não poderá enviar despesas para ele.',
         leaveWorkspaceConfirmationAuditor: 'Se você sair deste espaço de trabalho, não poderá visualizar seus relatórios e configurações.',
         leaveWorkspaceConfirmationAdmin: 'Se você sair deste workspace, não poderá mais gerenciar as configurações dele.',
@@ -470,7 +472,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
-        actionRequired: 'Ação necessária',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
         duplicateExpense: 'Duplicar despesa',
@@ -497,7 +498,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         editor: 'Editor',
         restrictions: 'Restrições',
         tryAgain: 'Tentar novamente',
@@ -979,6 +979,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Carteira',
             },
             validateAccount: {title: 'Valide sua conta', subtitle: 'Conta', cta: 'Validar'},
+            addHomeAddress: {title: 'Adicione seu endereço residencial para rastrear distâncias', subtitle: 'Conta', cta: 'Adicionar endereço'},
             fixFailedBilling: {title: 'Não foi possível cobrar o cartão cadastrado', subtitle: 'Assinatura'},
             unlockBankAccount: {
                 workspaceTitle: 'Sua conta bancária comercial foi bloqueada',
@@ -1093,6 +1094,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Convide seu contador',
             customizeSpendCategories: 'Personalizar categorias de gastos',
             customizeSpendCategoriesSubText: 'Organize e classifique despesas',
+            customizeExpenseCategories: 'Personalize suas categorias de despesas',
+            customizeExpenseCategoriesSubText: 'Adicione as categorias da sua empresa para codificar suas despesas',
             createExpense: 'Criar uma despesa',
             createExpenseSubText: 'Escaneie, arraste e solte ou insira manualmente uma despesa usando o botão +',
             linkPersonalCard: 'Vincular cartão pessoal',
@@ -1273,6 +1276,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Adicionar um recibo',
             phrase2: 'ou arraste e solte um aqui',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Página 1 de ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Digitalizar recibo',
@@ -1291,6 +1295,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Criar despesa de tempo',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Endereço residencial é obrigatório',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Antes de registrar a distância, você precisa adicionar seu endereço residencial ao seu perfil privado. ${workspaceName} usa esse endereço para deduções de deslocamento.`
+                    : 'Antes de registrar a distância, você precisa adicionar seu endereço residencial ao seu perfil privado. Este workspace usa esse endereço para deduções de deslocamento.',
+            cta: 'Adicionar endereço residencial',
+        },
         amount: 'Valor',
         percent: 'Porcentagem',
         date: 'Data',
@@ -2278,6 +2290,14 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nomes de trechos destacados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navegação, ui.carregar',
             showBranchNameInTitle: 'Mostrar nome da branch no título do navegador',
+            qaAuth: 'Autenticação de QA (Cloudflare)',
+            qaAuthRunProbe: 'Executar sondagem',
+            qaAuthSession: 'Sessão de autenticação de QA',
+            qaAuthClearSession: 'Limpar sessão',
+            qaAuthStatusSuccess: 'Sonda concluída com sucesso',
+            qaAuthStatusReauthRequired: 'Sessão expirada — execute novamente para entrar',
+            qaAuthStatusSignInFailed: 'O login não foi concluído — execute novamente para tentar de novo',
+            qaAuthStatusError: 'Sondagem falhou',
         },
         security: 'Segurança',
         signOut: 'Sair',
@@ -2990,7 +3010,6 @@ ${amount} para ${merchant} - ${date}`,
         cardLastFour: 'Cartão com final',
         addFirstPaymentMethod: 'Adicione uma forma de pagamento para enviar e receber pagamentos diretamente no app.',
         defaultPaymentMethod: 'Padrão',
-        bankAccountLastFour: (lastFour: string) => `Conta bancária • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agentes',
@@ -3610,7 +3629,8 @@ ${amount} para ${merchant} - ${date}`,
         legalName: 'Nome legal',
         legalFirstName: 'Primeiro nome legal',
         legalLastName: 'Sobrenome legal',
-        address: 'Endereço',
+        address: 'Endereço residencial',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} usa este endereço para exclusões de transporte diário.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `A data deve ser anterior a ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `A data deve ser posterior a ${dateString}`,
@@ -4536,6 +4556,10 @@ ${amount} para ${merchant} - ${date}`,
                 'Você sabia que pode reservar e gerenciar viagens de trem direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pela <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Você sabia que dá para reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são enviados automaticamente para você? Da próxima vez, é só reservar pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            hotelBlockManual:
+                'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
+            hotelBlockCard:
+                'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Viagem não está ativada',
@@ -4595,6 +4619,7 @@ ${amount} para ${merchant} - ${date}`,
             settlementFrequency: 'Frequência de liquidação',
             setAsDefault: 'Definir como espaço de trabalho padrão',
             defaultNote: `Recibos enviados para ${CONST.EMAIL.RECEIPTS} aparecerão neste workspace.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `Excluir ${workspaceName}?`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
             deleteOpenExpensifyCardsError: 'Sua empresa ainda tem Cartões Expensify. Por favor, <concierge-link>fale com o Concierge</concierge-link> para removê-los.',
@@ -4931,7 +4956,6 @@ ${amount} para ${merchant} - ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Use esta conta ao exportar faturas para o ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Defina como as compras com cartão corporativo serão exportadas para o ${integrationName}.`,
             vendor: 'Fornecedor',
-            defaultVendorDescription: 'Defina um fornecedor padrão que será aplicado a todas as transações de cartão de crédito na exportação.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Defina como as despesas reembolsáveis serão exportadas para o ${integrationName}.`,
             exportCheckDescription: 'Vamos criar um cheque detalhado para cada relatório do Expensify e enviá-lo a partir da conta bancária abaixo.',
             exportJournalEntryDescription: 'Vamos criar um lançamento contábil detalhado para cada relatório do Expensify e lançá-lo na conta abaixo.',
@@ -5097,8 +5121,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione a conta no Xero e sincronize a conexão novamente',
-            defaultSupplier: 'Fornecedor padrão',
-            defaultSupplierDescription: 'Defina um fornecedor padrão que será aplicado a todas as transações de cartão de crédito na exportação.',
             noSuppliersFound: 'Nenhum fornecedor encontrado',
             noSuppliersFoundDescription: 'Adicione o fornecedor no Xero e sincronize a conexão novamente.',
             accountingMethods: {
@@ -5854,10 +5876,59 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 label: 'Conta de cartão corporativo',
                 description: 'Escolha para onde exportar as transações do cartão corporativo.',
             },
-            expensifyCardAccount: {
-                label: 'Conta do Expensify Card',
-                description: 'Escolha para onde exportar as transações do Expensify Card.',
+            exportToMultipleAccounts: 'Configurar exportação para várias contas',
+            cardProgramAccount: {
+                label: 'Conta do programa de cartão',
+                description: 'Substitua a conta do espaço de trabalho para esses programas de cartão.',
+                descriptionLevel2: 'Substituir a conta do workspace para este programa de cartão.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos os programas usam a conta padrão';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programa com conta personalizada`;
+                    }
+                    return `${customAccountsCount} programas com contas personalizadas`;
+                },
             },
+            cardAccount: {
+                label: 'Conta por cartão',
+                description: 'Substitua a conta do programa para cartões individuais.',
+                descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Todos os cartões usam contas de programa';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} cartão com conta personalizada`;
+                    }
+                    return `${customAccountsCount} cartões com contas personalizadas`;
+                },
+            },
+            autoSyncDescription: 'Sincronize DualEntry e Expensify automaticamente, todos os dias. Os relatórios são sincronizados em tempo real.',
+            accountingMethods: {
+                label: 'Método de exportação',
+                description: 'Escolha quando exportar as despesas.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Regime de competência',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas reembolsáveis serão exportadas quando forem aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas reembolsáveis serão exportadas quando forem pagas',
+                },
+            },
+            syncReimbursedReports: 'Sincronizar relatórios reembolsados',
+            syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento de conta será gerado nesta conta.',
+            billPaymentAccount: {label: 'Conta de pagamento de faturas', description: 'Escolha de onde deseja pagar as contas e criaremos o pagamento no DualEntry.'},
+            syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
+            settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no DualEntry.'},
+            syncTravelInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
+            travelInvoicingSettlementAccount: {
+                label: 'Conta de liquidação de faturamento de viagem',
+                description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no DualEntry.',
+            },
+            travelInvoicingPayableAccount: {label: 'Conta a pagar de faturamento de viagens'},
         },
         type: {
             free: 'Grátis',
@@ -5982,6 +6053,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     comment: 'Descrição',
                     category: 'Categoria',
                     tag: 'Etiqueta',
+                    uniqueID: 'ID exclusivo',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Atribua uma coluna a cada um dos atributos: ${missingColumns}.`,
@@ -6081,6 +6153,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             finishSetup: 'Concluir configuração',
             chooseBankAccount: 'Escolher conta bancária',
             chooseExistingBank: 'Escolha uma conta bancária empresarial existente para pagar o saldo do seu Cartão Expensify ou adicione uma nova conta bancária',
+            chooseExistingBankForTravelBilling: 'Escolha uma conta bancária empresarial existente para pagar o saldo da sua Fatura Consolidada de Viagem ou adicione uma nova conta bancária',
             accountEndingIn: 'Conta com final',
             addNewBankAccount: 'Adicionar uma nova conta bancária',
             settlementAccount: 'Conta de liquidação',
@@ -6460,7 +6533,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 defaultHourlyRate: 'Taxa horária padrão',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desativar RH, desconecte primeiro a integração ${integration} deste workspace.`},
-            vendors: {title: 'Fornecedores', subtitle: 'Combine as despesas do cartão com fornecedores importados do seu software de contabilidade.'},
+            vendors: {
+                title: 'Fornecedores',
+                subtitle: 'Combine as despesas do cartão com fornecedores importados do seu software de contabilidade.',
+                disabledTitle: 'Calma lá...',
+                disabledMessage: 'Para ativar ou desativar este recurso, você precisará alterar suas configurações de importação contábil.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',
@@ -6486,6 +6564,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             subtitle: 'Os campos de relatório se aplicam a todos os gastos e podem ser úteis quando você quiser solicitar informações extras.',
             disableReportFields: 'Desativar campos de relatório',
             disableReportFieldsConfirmation: 'Tem certeza? Campos de texto e data serão excluídos e listas serão desativadas.',
+            cannotDisableImportedReportFields: 'Campos de relatório importados da sua conexão contábil não podem ser desativados.',
             importedFromAccountingSoftware: 'Os campos de relatório abaixo são importados do seu',
             textType: 'Texto',
             dateType: 'Data',
@@ -6971,7 +7050,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 },
             },
             connections: {
-                syncStageName: (stage, integrationName = 'QuickBooks Online') => {
+                syncStageName: (stage: PolicyConnectionSyncStage, integrationName = 'QuickBooks Online') => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6995,15 +7074,15 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'intacctImportSyncBillPayments':
                             return 'Sincronizando relatórios reembolsados e pagamentos de contas';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importando códigos de impostos';
+                            return 'Importando códigos de imposto';
                         case 'quickbooksOnlineCheckConnection':
                             return `Verificando conexão com ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Importando dados do ${integrationName}`;
+                            return `Importando dados de ${integrationName}`;
                         case 'startingImportXero':
                             return 'Importando dados do Xero';
                         case 'startingImportQBO':
-                            return `Importando dados do ${integrationName}`;
+                            return `Importando dados de ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Importando dados do QuickBooks Desktop';
@@ -7040,7 +7119,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'xeroSyncImportCustomers':
                             return 'Sincronizando clientes';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Marcando relatórios do Expensify como reembolsados';
+                            return 'Marcar relatórios do Expensify como reembolsados';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Marcar contas e faturas do Xero como pagas';
                         case 'xeroSyncImportTrackingCategories':
@@ -7050,11 +7129,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'xeroSyncImportTaxRates':
                             return 'Sincronizando taxas de imposto';
                         case 'xeroCheckConnection':
-                            return 'Verificando conexão com Xero';
+                            return 'Verificando conexão com o Xero';
                         case 'xeroSyncTitle':
                             return 'Sincronizando dados do Xero';
                         case 'netSuiteSyncConnection':
-                            return 'Inicializando conexão com a NetSuite';
+                            return 'Inicializando conexão com o NetSuite';
                         case 'netSuiteSyncCustomers':
                             return 'Importando clientes';
                         case 'netSuiteSyncInitData':
@@ -7072,15 +7151,15 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'netSuiteSyncCategories':
                             return 'Sincronizando categorias';
                         case 'netSuiteSyncReportFields':
-                            return 'Importar dados como campos de relatório do Expensify';
+                            return 'Importando dados como campos de relatório do Expensify';
                         case 'netSuiteSyncTags':
                             return 'Importando dados como tags do Expensify';
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Atualizando informações de conexão';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Marcando relatórios do Expensify como reembolsados';
+                            return 'Marcar relatórios do Expensify como reembolsados';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Marcando contas e faturas do NetSuite como pagas';
+                            return 'Marcar contas e faturas do NetSuite como pagas';
                         case 'netSuiteImportVendorsTitle':
                             return 'Importando fornecedores';
                         case 'netSuiteImportCustomListsTitle':
@@ -7101,7 +7180,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'financialForceSyncTitle':
                             return 'Sincronizando dados do Certinia';
                         case 'financialForceSyncStep':
-                            return 'Sincronizando conexao do Certinia';
+                            return 'Sincronizando conexão Certinia';
                         case 'financialForceSyncCategories':
                             return 'Importando categorias';
                         case 'financialForceSyncTags':
@@ -7113,11 +7192,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'financialForceSyncCompanies':
                             return 'Importando empresas';
                         case 'financialForceSyncUsers':
-                            return 'Importando usuarios';
+                            return 'Importando usuários';
                         case 'financialForceSyncDimensions':
-                            return 'Importando dimensoes';
+                            return 'Importando dimensões';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Marcando relatorios como reembolsados';
+                            return 'Marcando relatórios como reembolsados';
                         case 'rilletSyncTitle':
                             return 'Sincronizando dados do Rillet';
                         case 'rilletSyncConnection':
@@ -7125,13 +7204,19 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'rilletSyncImportData':
                             return 'Carregando dados';
                         case 'dualEntrySyncTitle':
-                            return 'Sincronizando dados DualEntry';
+                            return 'Sincronizando dados do DualEntry';
                         case 'dualEntrySyncConnection':
                             return 'Inicializando conexão com o DualEntry';
                         case 'dualEntrySyncImportData':
                             return 'Carregando dados';
+                        case 'dualEntrySyncPayments':
+                            return 'Sincronizando pagamentos a fornecedores';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Sincronizando liquidações do cartão';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Sincronizando acertos de viagem';
                         default: {
-                            return `Tradução ausente para o estágio: ${stage}`;
+                            return `Tradução ausente para etapa: ${stage}`;
                         }
                     }
                 },
@@ -7145,11 +7230,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             exportCompanyCard: 'Exportar despesas de cartão corporativo como',
             exportDate: 'Data de exportação',
             defaultVendor: 'Fornecedor padrão',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
-                    ? `Despesas que não forem correspondidas automaticamente terão este fornecedor como padrão.`
-                    : `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão. Caso contrário, serão exportadas como Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Escolha um fornecedor padrão do ${connectionName} para despesas que não sejam correspondidas automaticamente.`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
+                    ? `Despesas que não tiverem correspondência automática serão associadas a este fornecedor por padrão.`
+                    : `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão. Caso contrário, serão exportadas como ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Escolha um fornecedor padrão para as despesas que não forem correspondidas automaticamente.`,
             defaultAccount: 'Conta padrão',
             autoSync: 'Sincronização automática',
             autoSyncDescription: 'Sincronize NetSuite e Expensify automaticamente, todos os dias. Exporte relatórios finalizados em tempo real',
@@ -7170,6 +7255,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                     `Tenha certeza de que esta conta corresponde à sua conta de liquidação de Faturamento Consolidado de Viagem (terminando em ${lastFourPAN}) para que a Conciliação Contínua funcione corretamente.`,
             },
             syncTravelInvoicingSettlements: 'Sincronizar liquidações de Faturamento de Viagens Consolidado',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',
@@ -7217,16 +7304,33 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
         distanceRates: {
             oopsNotSoFast: 'Opa! Não tão rápido...',
             workspaceNeeds: 'Um workspace precisa de pelo menos uma taxa de distância ativada.',
+            requireMapOrGPSDescription: 'A entrada manual e do hodômetro será desativada.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'A opção Excluir deslocamentos exige dados de rota, portanto a distância do mapa ou do GPS sempre será obrigatória enquanto ela estiver ativada. Para alterar essa configuração, defina Excluir deslocamentos como “Não excluir deslocamentos”.',
             commuterExclusions: {
                 title: 'Excluir deslocamentos para o trabalho',
                 summaryDisabled: 'Sem exclusão de deslocamento',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por solicitação`,
                 optionDisabledTitle: 'Não excluir deslocamentos de casa para o trabalho',
-                optionDisabledHelp: 'Nenhuma exclusão de deslocamento é aplicada.',
+                optionDisabledHelp: 'Nenhum deslocamento é removido das solicitações.',
                 optionFixedDistanceTitle: 'Excluir uma distância fixa por solicitação',
                 optionFixedDistanceHelp: 'Remova a mesma distância de deslocamento de cada reembolso. Ideal para membros que enviam um reembolso por dia de trabalho.',
                 distanceLabel: 'Distância',
-                errors: {distanceMustBePositive: 'A distância deve ser um número inteiro positivo.', distanceTooLarge: 'A distância é muito grande.'},
+                summaryHomeAndOffice: 'Usar endereços de casa e escritório',
+                optionHomeAndOfficeTitle: 'Calcular por casa e escritório',
+                optionHomeAndOfficeHelp: 'Use o endereço residencial, o regime de trabalho e a designação de escritório da pessoa colaboradora para calcular as exclusões de deslocamento.',
+                workspaceAddressRequired: {
+                    title: 'Calma lá...',
+                    promptStart: 'Você não pode ativar a configuração de cálculo por casa e escritório até primeiro adicionar um endereço de escritório em',
+                    linkText: 'Visão geral',
+                    promptEnd: '.',
+                    cta: 'Entendi',
+                },
+                errors: {
+                    distanceMustBePositive: 'A distância deve ser um número inteiro positivo.',
+                    invalidAddress: 'Insira um endereço válido',
+                    distanceTooLarge: 'A distância é muito grande.',
+                },
             },
             distance: 'Distância',
             centrallyManage: 'Gerencie tarifas centralmente, acompanhe em milhas ou quilômetros e defina uma categoria padrão.',
@@ -8135,6 +8239,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 requireAboveAmount: 'Exigir valor acima',
                 saveRule: 'Salvar regra',
                 emptyAmountError: 'Informe um valor válido antes de salvar',
+                receiptAmountGreaterThanItemizedError: 'O valor exigido de recibo não pode ser maior que o valor exigido de recibo itemizado.',
             },
             requireFields: {title: 'Exigir campos para todas as despesas', category: 'Categoria', tag: 'Etiqueta', save: 'Salvar regra'},
             newRule: {
@@ -8217,6 +8322,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 confirmErrorCategory: 'Selecione uma categoria.',
                 confirmErrorAmount: 'Insira um valor.',
                 thenFlagForReview: 'Então sinalizar para revisão quando:',
+                thenDoTheFollowing: 'Em seguida, faça o seguinte:',
+                flagType: 'Tipo de sinalização',
+                flagTypeWarning: 'Aviso',
+                flagTypeWarningDescription: 'A pessoa que envia será avisada, mas ainda poderá enviar a despesa',
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
             categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},
@@ -8324,13 +8433,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
-                syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
             },
             notSync: 'Não sincronizado',
             authenticationError: (providerName: string) => `Não é possível conectar a ${providerName} devido a uma conexão expirada.`,
             reconnect: 'Reconectar',
             reconnectLink: 'Reconectar.',
             findIntegration: 'Encontrar integração',
+        },
+        merge: {
+            syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',
@@ -8513,10 +8624,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `adicionou a alíquota de imposto "${newValue} (${newTaxPercentage})" à tarifa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `alterou a parte recuperável de impostos na taxa de distância "${customUnitRateName}" para "${newValue}" (antes "${oldValue}")`;
+            if (oldValue !== undefined) {
+                return `alterou a parte recuperável de impostos na taxa de distância "${customUnitRateName}" para "${newValue}%" (antes "${oldValue}%")`;
             }
-            return `adicionou uma parte recuperável de impostos de "${newValue}" à taxa de distância "${customUnitRateName}"`;
+            return `adicionou uma parte recuperável de impostos de "${newValue}%" à taxa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `renomeou a taxa de ${customUnitName} de "${oldValue}" para "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -8583,27 +8694,29 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 case 'tags':
                     return `${enabled ? 'ativado' : 'desativado'} tags`;
                 case 'workflows':
-                    return `Fluxos de trabalho ${enabled ? 'ativado' : 'desativado'}`;
+                    return `${enabled ? 'ativado' : 'desativado'} fluxos de trabalho`;
                 case 'distance rates':
-                    return `${enabled ? 'ativado' : 'desativado'} taxas de distância`;
+                    return `${enabled ? 'ativado' : 'desativado'} tarifas de distância`;
                 case 'accounting':
                     return `${enabled ? 'ativado' : 'desativado'} contabilidade`;
                 case 'Expensify Cards':
                     return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
                 case 'travel invoicing':
-                    return `${enabled ? 'ativado' : 'desativado'} Faturamento Consolidado de Viagens`;
+                    return `${enabled ? 'ativado' : 'desativado'} Faturamento Consolidado de Viagem`;
                 case 'company cards':
                     return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
                 case 'invoicing':
-                    return `Faturamento de ${enabled ? 'ativado' : 'desativado'}`;
+                    return `Faturamento ${enabled ? 'ativado' : 'desativado'}`;
                 case 'per diem':
                     return `${enabled ? 'ativado' : 'desativado'} por dia`;
                 case 'receipt partners':
-                    return `${enabled ? 'ativado' : 'desativado'} parceiros de recibos`;
+                    return `Parceiros de recibos ${enabled ? 'ativado' : 'desativado'}`;
                 case 'rules':
                     return `Regras de ${enabled ? 'ativado' : 'desativado'}`;
                 case 'tax tracking':
-                    return `${enabled ? 'ativado' : 'desativado'} rastreamento de impostos`;
+                    return `rastreamento de impostos ${enabled ? 'ativado' : 'desativado'}`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'ativado' : 'desativado'} exige GPS ou entrada no mapa para taxas de distância`;
                 default:
                     return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
             }
@@ -9200,6 +9313,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             approved: 'Aprovado',
             firstApprover: 'Primeira pessoa aprovadora',
             firstApproved: 'Primeira aprovada',
+            paidBy: 'Pago por',
             paid: 'Pago',
             exported: 'Exportado',
             posted: 'Publicado',
@@ -9327,6 +9441,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             topSpenders: 'Maiores gastadores',
             topCategories: 'Principais categorias',
             topMerchants: 'Principais estabelecimentos',
+            violationsBySubmitter: 'Violações por quem enviou',
         },
     },
     genericErrorPage: {
@@ -9504,6 +9619,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         time: 'Horário (formato de 24 horas)',
         durationAmount: 'Duração',
         durationUnit: 'Unidade',
+        leaveType: 'Tipo de licença',
+        normalOOO: 'Fora do escritório normal',
         reason: 'Motivo',
         workingPercentage: 'Porcentagem de trabalho',
         dateRequired: 'A data de início é obrigatória.',
@@ -9690,10 +9807,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         error: {
             selectSuggestedAddress: 'Selecione um endereço sugerido ou use a localização atual',
-            mapOrGpsDistanceRequired: {
-                title: 'Distância de mapa ou GPS obrigatória',
-                description: 'Este espaço de trabalho exige despesas de distância baseadas em mapa ou rastreadas por GPS.',
-            },
+            mapOrGpsDistanceRequired: {title: 'Exigir GPS ou inserção no mapa', description: 'Este espaço de trabalho exige despesas de distância baseadas em mapa ou rastreadas por GPS.'},
         },
         odometer: {
             startReading: 'Começar a ler',
@@ -9946,47 +10060,51 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Não é possível conciliar automaticamente o recibo devido a uma conexão bancária com erro.';
+                return 'Não foi possível associar o recibo automaticamente devido a uma conexão bancária com problema.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Não foi possível associar automaticamente o recibo devido a um problema temporário no banco. Tente novamente mais tarde.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada.';
+                        return 'Não foi possível associar o recibo automaticamente porque sua conexão bancária precisa ser reautenticada.';
                     }
                     return isMarkAsCash
-                        ? `Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada. Marque como dinheiro para ignorar ou <a href="${connectionLink}">reconecte</a> para corresponder o recibo.`
-                        : `Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada. <a href="${connectionLink}">Reconecte</a> para corresponder o recibo.`;
+                        ? `Não é possível fazer a correspondência automática do recibo porque a conexão com seu banco precisa ser reautenticada. Marque como dinheiro para ignorar ou <a href="${connectionLink}">reconecte</a> para corresponder o recibo.`
+                        : `Não é possível fazer a correspondência automática do recibo porque a conexão com seu banco precisa ser reautenticada. <a href="${connectionLink}">Reconectar</a> para corresponder o recibo.`;
                 }
                 return isAdmin
-                    ? `A conexão bancária precisa ser reautenticada. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
-                    : 'A conexão bancária precisa ser reautenticada. Peça para um administrador reconectar para corresponder ao recibo.';
+                    ? `A conexão bancária precisa ser autenticada novamente. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
+                    : 'A conexão com o banco precisa de nova autenticação. Peça para um administrador reconectar para corresponder ao recibo.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Não é possível conciliar automaticamente o recibo devido a uma conexão bancária com erro.';
+                    return 'Não foi possível associar o recibo automaticamente devido a uma conexão bancária com problema.';
                 }
                 return isMarkAsCash
-                    ? `Não é possível corresponder automaticamente o recibo devido a uma conexão de cartão com problema. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para corresponder o recibo.`
-                    : `Não é possível corresponder automaticamente o recibo devido a uma conexão quebrada com o cartão. <a href="${connectionLink}">Corrigir o cartão</a> para corresponder o recibo.`;
+                    ? `Não é possível corresponder o recibo automaticamente devido a uma conexão de cartão com problema. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para corresponder o recibo.`
+                    : `Não foi possível conciliar automaticamente o recibo devido a uma conexão quebrada do cartão. <a href="${connectionLink}">Corrija o cartão</a> para conciliar o recibo.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Conexão bancária interrompida. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
-                    : 'Conexão bancária interrompida. Peça para um administrador reconectar para corresponder ao recibo.';
+                    ? `Conexão bancária interrompida. <a href="${companyCardPageURL}">Reconectar para combinar com o recibo</a>`
+                    : 'Conexão bancária interrompida. Peça para um administrador reconectar para coincidir com o recibo.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Peça para ${member} marcar como dinheiro ou aguarde 7 dias e tente novamente` : 'Aguardando associação com a transação do cartão.';
+                return isAdmin ? `Peça para ${member} marcar como dinheiro ou aguarde 7 dias e tente novamente` : 'Aguardando combinação com a transação do cartão.';
             }
             return '';
         },
         brokenConnection530Error: 'Recibo pendente devido à conexão bancária interrompida',
+        brokenConnection531Error: 'Não foi possível associar automaticamente o recibo devido a um problema temporário no banco. Tente novamente mais tarde.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Recibo pendente devido a uma conexão bancária interrompida. Resolva em <a href="${workspaceCompanyCardRoute}">Cartões corporativos</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendente devido à conexão bancária com problemas. Peça a um administrador do workspace para resolver.',
@@ -10029,6 +10147,53 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `A tarifa só é válida a partir de ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `A tarifa só é válida até ${endDate}`,
         cannotMergeDuplicates: 'Você só pode mesclar despesas em relatórios rascunho ou pendentes. Retraia o relatório e tente novamente.',
+        shortName: {
+            allTagLevelsRequired: 'Todas as tags obrigatórias',
+            autoReportedRejectedExpense: 'Despesa rejeitada',
+            billableExpense: 'Faturável não é mais válido',
+            cashExpenseWithNoReceipt: 'Recibo obrigatório',
+            categoryOutOfPolicy: 'Categoria não é mais válida',
+            companyCardRequired: 'Cartão corporativo obrigatório',
+            conversionSurcharge: 'Taxa de conversão aplicada',
+            customUnitOutOfPolicy: 'Tarifa inválida para o espaço de trabalho',
+            customUnitRateOutOfDateRange: 'Tarifa fora das datas válidas',
+            duplicatedTransaction: 'Possível duplicado',
+            fieldRequired: 'Campo de relatório obrigatório',
+            futureDate: 'Data futura não é permitida',
+            hold: 'Despesa em espera',
+            inactiveVendor: 'Fornecedor não é mais válido',
+            increasedDistance: 'A distância excede a rota',
+            invoiceMarkup: 'Fatura com acréscimo',
+            itemizedReceiptRequired: 'É necessário recibo detalhado',
+            maxAge: 'Data anterior ao limite máximo de idade da despesa',
+            missingAttendees: 'Participantes obrigatórios',
+            missingCategory: 'Categoria ausente',
+            missingComment: 'Descrição obrigatória',
+            missingTag: 'Tag ausente',
+            modifiedAmount: 'Valor modificado',
+            modifiedDate: 'Data de modificação',
+            noRoute: 'Nenhuma rota válida',
+            nonExpensiworksExpense: 'Despesa fora do Expensiworks',
+            overAutoApprovalLimit: 'Acima do limite de aprovação automática',
+            overCategoryLimit: 'Acima do limite da categoria',
+            overLimit: 'Acima do limite',
+            overTripLimit: 'Acima do limite da viagem',
+            perDayLimit: 'Acima do limite diário',
+            prohibitedExpense: 'Despesa proibida',
+            receiptGeneratedWithAI: 'Possível recibo gerado por IA',
+            receiptNotSmartScanned: 'Recibo adicionado manualmente',
+            receiptRequired: 'Recibo obrigatório',
+            rter: 'Aguardando correspondência do cartão',
+            smartscanFailed: 'Falha ao escanear recibo',
+            someTagLevelsRequired: 'Tag obrigatória',
+            tagOutOfPolicy: 'Tag não é mais válida',
+            overLimitAttendee: 'Acima do limite de pessoas',
+            customRules: 'Violação de regra personalizada',
+            taxAmountChanged: 'Valor do imposto modificado',
+            taxOutOfPolicy: 'Alíquota de imposto não é mais válida',
+            taxRateChanged: 'Alíquota de imposto modificada',
+            taxRequired: 'Alíquota de imposto ausente',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,
@@ -10621,6 +10786,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
     domain: {
         notVerified: 'Não verificado',
         retry: 'Tentar novamente',
+        requestSent: 'Solicitação enviada',
         verifyDomain: {
             title: 'Verificar domínio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10693,6 +10859,14 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             subtitle: 'Insira o nome do domínio privado que você quer acessar (por exemplo, expensify.com).',
             domainName: 'Nome de domínio',
             newDomain: 'Novo domínio',
+            alreadyHaveAccessError: 'Este domínio já existe na sua conta.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'O domínio já existe',
+            title: 'Domínio já configurado. Solicitar acesso?',
+            description: 'Alguém já configurou este domínio no Expensify. Quer solicitar acesso de administrador?',
+            requestAccess: 'Solicitar acesso de administrador',
+            requestAccessError: 'Não foi possível enviar sua solicitação. Tente novamente.',
         },
         domainAdded: {
             title: 'Domínio adicionado',
@@ -10787,6 +10961,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             forceTwoFactorAuthError: 'Não foi possível alterar a exigência de autenticação em duas etapas. Tente novamente mais tarde.',
             resetTwoFactorAuth: 'Redefinir autenticação de dois fatores',
             error: 'Não foi possível salvar esta alteração. Tente novamente.',
+            neverMind: 'Deixa pra lá',
         },
         groups: {
             title: 'Grupos',
@@ -10795,7 +10970,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Tem certeza de que deseja tornar ${newName} o grupo padrão? Novos membros serão convidados para este grupo em vez do grupo padrão anterior (${currentName}). `,
             makeDefault: 'Tornar padrão',
-            neverMind: 'Deixa pra lá',
             createGroupError: 'Não foi possível criar este grupo. Tente novamente.',
             permissions: 'Permissões do grupo',
             createNewGroupButton: 'Novo grupo',

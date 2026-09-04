@@ -20,7 +20,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 
-import Avatar from './Avatar';
+import AvatarFromIcon from './Avatar/AvatarFromIcon';
 import UserAvatar from './Avatar/UserAvatar';
 import WorkspaceAvatar from './Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
@@ -111,13 +111,9 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                 accessibilityLabel={icon.name ?? ''}
                 disabled={icon.source === expensifyIcons.FallbackAvatar}
             >
-                <Avatar
-                    source={icon.source}
+                <AvatarFromIcon
+                    icon={icon}
                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    name={icon.name}
-                    avatarID={icon.id}
-                    type={icon.type}
-                    fallbackIcon={icon.fallbackIcon}
                 />
             </PressableWithoutFocus>
         );
@@ -135,7 +131,9 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
 
     // Bordered workspace avatars here are 88px (avatar + border), so they keep the larger rounded radius instead of the 16px radius mapped to a plain xxx-large avatar.
     const getRoomHeaderAvatarBorderRadius = (type?: string) =>
-        type === CONST.ICON_TYPE_WORKSPACE ? {borderRadius: variables.componentBorderRadiusRounded} : StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXX_LARGE, type);
+        type === CONST.ICON_TYPE_WORKSPACE
+            ? {borderRadius: variables.componentBorderRadiusRounded}
+            : StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.XXX_LARGE, StyleUtils.getShapeFromIconType(type));
     return (
         <View style={styles.pointerEventsBoxNone}>
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
@@ -152,14 +150,10 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                             accessibilityLabel={icon.name ?? ''}
                             disabled={icon.source === expensifyIcons.FallbackAvatar}
                         >
-                            <Avatar
-                                source={icon.source}
+                            <AvatarFromIcon
+                                icon={icon}
                                 size={CONST.AVATAR_SIZE.XXX_LARGE}
                                 containerStyles={[...iconStyle, getRoomHeaderAvatarBorderRadius(icon.type)]}
-                                name={icon.name}
-                                avatarID={icon.id}
-                                type={icon.type}
-                                fallbackIcon={icon.fallbackIcon}
                             />
                         </PressableWithoutFocus>
                         {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (

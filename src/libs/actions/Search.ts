@@ -36,8 +36,8 @@ import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
-import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
+    canAccessPolicyBankAccount,
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     getValidConnectedIntegration,
@@ -52,7 +52,6 @@ import {
     buildOptimisticIOUReportAction,
     buildOptimisticSubmittedReportAction,
     generateReportID,
-    getApprovalChain,
     getParsedComment,
     getReportOrDraftReport,
     getReportTransactions,
@@ -108,6 +107,8 @@ import Onyx from 'react-native-onyx';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 
+import {getBankAccountList} from './BankAccounts';
+import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
@@ -637,9 +638,13 @@ function getPayActionCallback({
         return;
     }
 
+    const paymentPolicy = policy ?? snapshotPolicy;
+
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
-        if (!hasVBBA) {
+        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
+        // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
+        // them pick it instead of silently paying with (and reporting) the workspace one.
+        if (!canAccessPolicyBankAccount(paymentPolicy, getBankAccountList())) {
             goToItem();
             return;
         }
@@ -661,14 +666,14 @@ function getPayActionCallback({
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
-        policy: snapshotPolicy ?? policy,
+        policy: paymentPolicy,
         chatReportPolicy: chatReportPolicyForPayment,
         betas,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
+        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,
@@ -773,7 +778,7 @@ function getOnyxLoadingData(
                     ...(isSearchAPI && {isLoading: true}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
                     ...(offset !== undefined ? {offset} : {}),
-                    ...(shouldClearTotals ? {count: null, total: null, currency: null} : {}),
+                    ...(shouldClearTotals ? {count: null, reportCount: null, total: null, currency: null} : {}),
                 },
             },
         },
@@ -1162,7 +1167,10 @@ function search({
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
-        const needsTotalsUpgrade = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
+        // Not just EXPENSE: any type can now need totals (e.g. EXPENSE_REPORT's reportCount). Gating this
+        // to one type let a totals request for another type collide with an in-flight request and get
+        // silently dropped, so the total never arrived and the bulk-actions button spun forever.
+        const needsTotalsUpgrade = shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
         // A user-submitted query colliding with an unflagged in-flight request (e.g. a programmatic refresh
         // of the same query) must still reach the backend flagged, or it never enters recent searches.
         const needsSaveRecentSearchUpgrade = shouldSaveRecentSearch && !inFlightRequest.shouldSaveRecentSearch;
@@ -1497,15 +1505,17 @@ function submitMoneyRequestOnSearch(
     }
 
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport, submitterLogin).at(0));
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin);
-    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID) : submitReportManagerAccountID;
+
+    // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
+    // accountID from the approval chain, which would point the server at someone other than the chosen approver.
+    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail) : submitReportManagerAccountID;
 
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID: resolvedManagerAccountID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        ...(resolvedManagerAccountID !== undefined ? {managerAccountID: resolvedManagerAccountID} : {}),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
     };
 
@@ -1889,6 +1899,8 @@ function queueExportSearchItemsToCSV({
         exportID,
     }) as QueueExportSearchItemsToCSVParams;
 
+    markExportInitiatedLocally(exportID);
+
     write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {
         optimisticData,
         failureData,
@@ -1939,6 +1951,10 @@ function queueExportSearchWithTemplate(
         exportName,
         ...(shouldTrackExportProgress ? {exportID} : {}),
     }) as QueueExportSearchWithTemplateParams;
+
+    if (shouldTrackExportProgress) {
+        markExportInitiatedLocally(exportID);
+    }
 
     write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
 

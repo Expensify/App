@@ -615,6 +615,9 @@ const ONYXKEYS = {
     /** Indicates whether we should use the staging version of the secure API server */
     SHOULD_USE_STAGING_SERVER: 'shouldUseStagingServer',
 
+    /** OAuth session used to reach the Cloudflare Access-protected QA server */
+    CLOUDFLARE_SESSION: 'cloudflareSession',
+
     /** Indicates whether the debug mode is currently enabled */
     IS_DEBUG_MODE_ENABLED: 'isDebugModeEnabled',
 
@@ -700,6 +703,9 @@ const ONYXKEYS = {
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
+    /** Stores the last measured Onyx database size, so the next app start can attach it to telemetry spans right away */
+    LAST_MEASURED_DATABASE_SIZE: 'lastMeasuredDatabaseSize',
+
     /** Stores the information if user loaded the Onyx state through Import feature  */
     IS_USING_IMPORTED_STATE: 'isUsingImportedState',
 
@@ -732,6 +738,9 @@ const ONYXKEYS = {
 
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
+
+    /** Draft message typed into the Concierge prompt box on the home page */
+    CONCIERGE_PROMPT_DRAFT: 'conciergePromptDraft',
 
     /** The user's Self DM reportID */
     SELF_DM_REPORT_ID: 'selfDMReportID',
@@ -820,10 +829,6 @@ const ONYXKEYS = {
     /** List of transaction IDs used when navigating to prev/next transaction when viewing it in RHP */
     TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS: 'transactionThreadNavigationTransactionIDs',
 
-    /** Hash of the search snapshot that holds the transactions referenced by TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS.
-     * Used to fall back to snapshot data when the live transaction collection hasn't loaded those transactions yet (e.g. opening an expense from the Spend page as an approver). */
-    TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH: 'transactionThreadNavigationSnapshotHash',
-
     /** Optional map of transactionID -> sibling descriptor for prev/next navigation in snapshot-backed flows (e.g. Home "Recently added"), where siblings may be absent from the main Onyx collections. When set, navigation resolves (and lazily creates) each sibling's thread on demand from its descriptor. */
     TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS: 'transactionThreadNavigationThreadReportIDs',
 
@@ -889,6 +894,7 @@ const ONYXKEYS = {
         POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched_',
         POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
         POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN: 'policyMergeHRInitialSyncModalShown_',
+        POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN: 'policyMergeATSInitialSyncModalShown_',
         RULE: 'rules_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
@@ -1323,6 +1329,7 @@ const ONYXKEYS = {
         CARD_FEED_ERRORS: 'cardFeedErrors',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
         LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
+        GUIDE_ACCOUNT_IDS: 'guideAccountIDs',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1526,6 +1533,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN]: boolean;
+    [ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN]: boolean;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.AgentPrompt;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
@@ -1748,6 +1756,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
+    [ONYXKEYS.CLOUDFLARE_SESSION]: OnyxTypes.CloudflareSession;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
@@ -1790,10 +1799,12 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA]: OnyxTypes.ImportedSpreadsheetMemberData[];
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE]: ValueOf<typeof CONST.POLICY.ROLE>;
     [ONYXKEYS.LAST_ROUTE]: string;
+    [ONYXKEYS.LAST_MEASURED_DATABASE_SIZE]: OnyxTypes.DatabaseSizeMeasurement;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.CONCIERGE_PROMPT_DRAFT]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
@@ -1827,7 +1838,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY]: OnyxTypes.LastSearchParams;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS]: string[];
-    [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH]: number;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS]: Record<string, TransactionThreadNavigationDescriptor>;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
@@ -1857,6 +1867,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
+    [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: OnyxTypes.GuideAccountIDsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

@@ -341,6 +341,7 @@ const translations = {
         billable: 'Billable',
         nonBillable: 'Non-billable',
         tag: 'Tag',
+        violations: 'Violations',
         receipt: 'Receipt',
         verified: 'Verified',
         replace: 'Replace',
@@ -367,8 +368,6 @@ const translations = {
         automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
-        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} of ${total}`,
         default: 'Default',
         update: 'Update',
         member: 'Member',
@@ -473,6 +472,7 @@ const translations = {
         // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',
         leaveWorkspace: 'Leave workspace',
+        leaveWorkspaceTitle: (workspaceName: string) => `Leave ${workspaceName}?`,
         leaveWorkspaceConfirmation: "If you leave this workspace, you won't be able to submit expenses to it.",
         leaveWorkspaceConfirmationAuditor: "If you leave this workspace, you won't be able to view its reports and settings.",
         leaveWorkspaceConfirmationAdmin: "If you leave this workspace, you won't be able to manage its settings.",
@@ -520,7 +520,6 @@ const translations = {
         copyToClipboard: 'Copy to clipboard',
         thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
-        actionRequired: 'Action required',
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
         duplicateExpense: 'Duplicate expense',
@@ -1062,6 +1061,11 @@ const translations = {
                 subtitle: 'Account',
                 cta: 'Validate',
             },
+            addHomeAddress: {
+                title: 'Add your home address for distance tracking',
+                subtitle: 'Account',
+                cta: 'Add address',
+            },
             fixFailedBilling: {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
@@ -1191,6 +1195,8 @@ const translations = {
             setupRules: 'Set up spend rules',
             customizeSpendCategories: 'Customize spend categories',
             customizeSpendCategoriesSubText: 'Organize and classify expenses',
+            customizeExpenseCategories: 'Customize your expense categories',
+            customizeExpenseCategoriesSubText: 'Add your company’s categories to code your expenses',
             createExpense: 'Create an expense',
             createExpenseSubText: 'Scan, drag and drop, or manually enter an expense using the + button',
             linkPersonalCard: 'Link personal card',
@@ -1352,6 +1358,7 @@ const translations = {
         addAdditionalReceipt: 'Add additional receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
+        pageCount: ({pageCount}: {pageCount: number}) => `Page 1 of ${pageCount}`,
         addAReceipt: {
             phrase1: 'Add a receipt',
             phrase2: 'or drag and drop one here',
@@ -1374,6 +1381,14 @@ const translations = {
         createTimeExpense: 'Create time expense',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Home address is required',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Before you track distance, you need to add your home address to your private profile. ${workspaceName} uses this address for commuter deductions.`
+                    : 'Before you track distance, you need to add your home address to your private profile. This workspace uses this address for commuter deductions.',
+            cta: 'Add Home Address',
+        },
         amount: 'Amount',
         percent: 'Percent',
         date: 'Date',
@@ -2363,6 +2378,14 @@ const translations = {
             releaseOptions: 'Release options',
             testingPreferences: 'Testing preferences',
             useStagingServer: 'Use Staging Server',
+            qaAuth: 'QA auth (Cloudflare)',
+            qaAuthRunProbe: 'Run probe',
+            qaAuthSession: 'QA auth session',
+            qaAuthClearSession: 'Clear session',
+            qaAuthStatusSuccess: 'Probe succeeded',
+            qaAuthStatusReauthRequired: 'Session expired — run again to sign in',
+            qaAuthStatusSignInFailed: "Sign-in didn't complete — run again to retry",
+            qaAuthStatusError: 'Probe failed',
             forceOffline: 'Force offline',
             simulatePoorConnection: 'Simulate poor internet connection',
             simulateFailingNetworkRequests: 'Simulate failing network requests',
@@ -3088,7 +3111,6 @@ const translations = {
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
-        bankAccountLastFour: (lastFour: string) => `Bank Account • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agents',
@@ -3732,7 +3754,8 @@ const translations = {
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
-        address: 'Address',
+        address: 'Home address',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} uses this address for commuter exclusions.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
@@ -4655,6 +4678,10 @@ const translations = {
             hotelManual:
                 'Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard: 'Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelBlockManual:
+                'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
+            hotelBlockCard:
+                'Did you know you can book and manage group trips like this right in Expensify? Save yourself the hassle next time and try out our <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> tool.',
             carManual:
                 'Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard: 'Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
@@ -4742,6 +4769,7 @@ const translations = {
             settlementFrequency: 'Settlement frequency',
             setAsDefault: 'Set as default workspace',
             defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
+            deleteWorkspaceTitle: (workspaceName: string) => `Delete ${workspaceName}?`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             deleteOpenExpensifyCardsError: 'Your company still has Expensify Cards. Please <concierge-link>reach out to Concierge</concierge-link> to remove them.',
@@ -5086,7 +5114,6 @@ const translations = {
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Use this account when exporting invoices to ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Set how company card purchases export to ${integrationName}.`,
             vendor: 'Vendor',
-            defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Set how out-of-pocket expenses export to ${integrationName}.`,
             exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
@@ -5248,8 +5275,6 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
-            defaultSupplier: 'Default supplier',
-            defaultSupplierDescription: 'Set a default supplier that will apply to all credit card transactions upon export.',
             noSuppliersFound: 'No suppliers found',
             noSuppliersFoundDescription: 'Please add the supplier in Xero and sync the connection again.',
             accountingMethods: {
@@ -5992,9 +6017,66 @@ const translations = {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
             },
-            expensifyCardAccount: {
-                label: 'Expensify Card account',
-                description: 'Choose where to export Expensify Card transactions.',
+            exportToMultipleAccounts: 'Configure exporting to multiple accounts',
+            cardProgramAccount: {
+                label: 'Card program account',
+                description: 'Override the workspace account for these card programs.',
+                descriptionLevel2: 'Override the workspace account for this card program.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'All programs use default account';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} program with custom account`;
+                    }
+                    return `${customAccountsCount} programs with custom accounts`;
+                },
+            },
+            cardAccount: {
+                label: 'Per-card account',
+                description: 'Override the program account for individual cards.',
+                descriptionLevel2: 'Override the program account for these cards.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'All cards use program accounts';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} card with custom account`;
+                    }
+                    return `${customAccountsCount} cards with custom accounts`;
+                },
+            },
+            autoSyncDescription: 'Sync DualEntry and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: "Choose where to pay bills from and we'll create the payment in DualEntry.",
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in DualEntry.",
+            },
+            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            travelInvoicingSettlementAccount: {
+                label: 'Travel Invoicing settlement account',
+                description: "Choose your settlement account and we'll create the payment in DualEntry.",
+            },
+            travelInvoicingPayableAccount: {
+                label: 'Travel Invoicing payable account',
             },
         },
         type: {
@@ -6108,6 +6190,7 @@ const translations = {
                     comment: 'Description',
                     category: 'Category',
                     tag: 'Tag',
+                    uniqueID: 'Unique ID',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Please assign a column to each of the attributes: ${missingColumns}.`,
@@ -6211,6 +6294,7 @@ const translations = {
             finishSetup: 'Finish setup',
             chooseBankAccount: 'Choose bank account',
             chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
+            chooseExistingBankForTravelBilling: 'Choose an existing business bank account to pay your Consolidated Travel Billing balance, or add a new bank account',
             accountEndingIn: 'Account ending in',
             addNewBankAccount: 'Add a new bank account',
             settlementAccount: 'Settlement account',
@@ -6547,6 +6631,8 @@ const translations = {
             vendors: {
                 title: 'Vendors',
                 subtitle: 'Match card expenses to vendors imported from your accounting software.',
+                disabledTitle: 'Not so fast...',
+                disabledMessage: "To enable or disable this feature, you'll need to change your accounting import settings.",
             },
             reportFields: {
                 title: 'Report fields',
@@ -6618,6 +6704,7 @@ const translations = {
             subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information.",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
+            cannotDisableImportedReportFields: 'Report fields imported from your accounting connection cannot be disabled.',
             importedFromAccountingSoftware: 'The report fields below are imported from your',
             textType: 'Text',
             dateType: 'Date',
@@ -7273,6 +7360,12 @@ const translations = {
                             return 'Initializing connection to DualEntry';
                         case 'dualEntrySyncImportData':
                             return 'Loading data';
+                        case 'dualEntrySyncPayments':
+                            return 'Syncing vendor payments';
+                        case 'dualEntrySyncCardSettlements':
+                            return 'Syncing card settlements';
+                        case 'dualEntrySyncTravelSettlements':
+                            return 'Syncing travel settlements';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -7288,11 +7381,14 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
+            // fallbackVendorName is the vendor the integration auto-creates when nothing matches. Only integrations
+            // that actually create one pass it. The rest get the first sentence alone, because telling a Xero admin
+            // their expenses will export as "Credit Card Misc." describes a fallback Xero doesn't have.
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `Expenses that don't auto-match will default to this vendor.`
-                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Choose a default vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',
@@ -7301,6 +7397,8 @@ const translations = {
             reconciliationAccount: 'Reconciliation account',
             continuousReconciliation: 'Continuous Reconciliation',
             syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'To unlock, set an account for your exports.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'To unlock, enable auto-sync.',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
@@ -7402,10 +7500,12 @@ const translations = {
                     title: 'Groups',
                     description: 'Choose the groups of employees you would like to sync with this workspace',
                 },
-                syncLimitReached: {
-                    title: 'Try again tomorrow',
-                    prompt: "You've reached your sync limit for the day.",
-                },
+            },
+        },
+        merge: {
+            syncLimitReached: {
+                title: 'Try again tomorrow',
+                prompt: "You've reached your sync limit for the day.",
             },
         },
         export: {
@@ -7454,17 +7554,31 @@ const translations = {
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
             workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
+            requireMapOrGPSDescription: 'Manual and odometer entry will be disabled.',
+            requireMapOrGPSLockedByCommuterExclusions:
+                'Exclude commutes needs route data, so map or GPS distance is always required while it\'s on. To change this setting, set Exclude Commutes to "Do not exclude commutes".',
             commuterExclusions: {
                 title: 'Exclude commutes',
                 summaryDisabled: 'No commute exclusion',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
+                summaryHomeAndOffice: 'Use home and office locations',
                 optionDisabledTitle: 'Do not exclude commutes',
-                optionDisabledHelp: 'No commute exclusion is applied.',
+                optionDisabledHelp: 'No commute is removed from claims.',
                 optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
                 optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
+                optionHomeAndOfficeTitle: 'Calculate by home and office',
+                optionHomeAndOfficeHelp: 'Use member’s home address, work arrangement, and office assignment to calculate commute exclusions.',
                 distanceLabel: 'Distance',
+                workspaceAddressRequired: {
+                    title: 'Not so fast...',
+                    promptStart: 'You can’t enable the calculate by home and office setting until you first add an office location in ',
+                    linkText: 'Overview',
+                    promptEnd: '.',
+                    cta: 'Got it',
+                },
                 errors: {
                     distanceMustBePositive: 'Distance must be a positive whole number.',
+                    invalidAddress: 'Please enter a valid address',
                     distanceTooLarge: 'Distance is too large.',
                 },
             },
@@ -8000,6 +8114,7 @@ const translations = {
                 requireItemizedReceipt: 'Require itemized receipt',
                 requireAboveAmount: 'Require above amount',
                 emptyAmountError: 'Enter a valid amount before saving',
+                receiptAmountGreaterThanItemizedError: "The require receipt amount can't be greater than the require itemized receipt amount.",
                 saveRule: 'Save rule',
             },
             requireFields: {
@@ -8234,6 +8349,10 @@ const translations = {
                 confirmErrorCategory: 'Please select a category.',
                 confirmErrorAmount: 'Please enter an amount.',
                 thenFlagForReview: 'Then flag for review when:',
+                thenDoTheFollowing: 'Then do the following:',
+                flagType: 'Flag type',
+                flagTypeWarning: 'Warning',
+                flagTypeWarningDescription: 'Submitter will be warned, but can still submit expense',
             },
             categoryRules: {
                 title: 'Category rules',
@@ -8688,10 +8807,10 @@ const translations = {
             return `added the tax rate "${newValue} (${newTaxPercentage})" to the distance rate "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
-            if (oldValue) {
-                return `changed the tax reclaimable portion on the distance rate "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`;
+            if (oldValue !== undefined) {
+                return `changed the tax reclaimable portion on the distance rate "${customUnitRateName}" to "${newValue}%" (previously "${oldValue}%")`;
             }
-            return `added a tax reclaimable portion of "${newValue}" to the distance rate "${customUnitRateName}"`;
+            return `added a tax reclaimable portion of "${newValue}%" to the distance rate "${customUnitRateName}"`;
         },
         updatedCustomUnitRateName: (customUnitName: string, oldValue: string, newValue: string) => `renamed the ${customUnitName} rate "${oldValue}" to "${newValue}"`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
@@ -8999,6 +9118,8 @@ const translations = {
                     return `${enabled ? 'enabled' : 'disabled'} rules`;
                 case 'tax tracking':
                     return `${enabled ? 'enabled' : 'disabled'} tax tracking`;
+                case 'require GPS or map entry for distance rates':
+                    return `${enabled ? 'turned on' : 'turned off'} require GPS or map entry for distance rates`;
                 default:
                     return `${enabled ? 'enabled' : 'disabled'} ${featureName}`;
             }
@@ -9242,6 +9363,7 @@ const translations = {
             topSpenders: 'Top spenders',
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
+            violationsBySubmitter: 'Violations by submitter',
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
@@ -9405,6 +9527,7 @@ const translations = {
             approved: 'Approved',
             firstApprover: 'First approver',
             firstApproved: 'First approved',
+            paidBy: 'Paid by',
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
@@ -9699,6 +9822,8 @@ const translations = {
         time: 'Time (use 24-hour format)',
         durationAmount: 'Duration',
         durationUnit: 'Unit',
+        leaveType: 'Leave type',
+        normalOOO: 'Normal OOO',
         reason: 'Reason',
         workingPercentage: 'Working percentage',
         dateRequired: 'Start date is required.',
@@ -9886,7 +10011,7 @@ const translations = {
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
             mapOrGpsDistanceRequired: {
-                title: 'Map or GPS distance required',
+                title: 'Require GPS or map entry',
                 description: 'This workspace requires either map-based or GPS-tracked distance expenses.',
             },
         },
@@ -10161,6 +10286,9 @@ const translations = {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Can't auto-match receipt due to broken bank connection.";
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return "Can't auto-match receipt due to a temporary bank issue. Please try again later.";
+            }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
@@ -10194,6 +10322,7 @@ const translations = {
             return '';
         },
         brokenConnection530Error: 'Receipt pending due to broken bank connection',
+        brokenConnection531Error: "Can't auto-match receipt due to a temporary bank issue. Please try again later.",
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
@@ -10240,6 +10369,57 @@ const translations = {
         resolvedDuplicates: 'resolved the duplicate',
         companyCardRequired: 'Company card purchases required',
         noRoute: 'Please select a valid address',
+        /**
+         * Parameter-free labels for submitted violations shown in Search table columns.
+         * Prefer these over sibling `violations.*` keys when violation data/context is unavailable.
+         */
+        shortName: {
+            allTagLevelsRequired: 'All tags required',
+            autoReportedRejectedExpense: 'Expense rejected',
+            billableExpense: 'Billable no longer valid',
+            cashExpenseWithNoReceipt: 'Receipt required',
+            categoryOutOfPolicy: 'Category no longer valid',
+            companyCardRequired: 'Company card required',
+            conversionSurcharge: 'Conversion surcharge applied',
+            customUnitOutOfPolicy: 'Rate not valid for workspace',
+            customUnitRateOutOfDateRange: 'Rate outside valid dates',
+            duplicatedTransaction: 'Potential duplicate',
+            fieldRequired: 'Report field required',
+            futureDate: 'Future date not allowed',
+            hold: 'Expense on hold',
+            inactiveVendor: 'Vendor no longer valid',
+            increasedDistance: 'Distance exceeds route',
+            invoiceMarkup: 'Invoice marked up',
+            itemizedReceiptRequired: 'Itemized receipt required',
+            maxAge: 'Date older than max expense age',
+            missingAttendees: 'Attendees required',
+            missingCategory: 'Missing category',
+            missingComment: 'Description required',
+            missingTag: 'Missing tag',
+            modifiedAmount: 'Amount modified',
+            modifiedDate: 'Date modified',
+            noRoute: 'No valid route',
+            nonExpensiworksExpense: 'Non-Expensiworks expense',
+            overAutoApprovalLimit: 'Over auto-approval limit',
+            overCategoryLimit: 'Over category limit',
+            overLimit: 'Over limit',
+            overTripLimit: 'Over trip limit',
+            perDayLimit: 'Over daily limit',
+            prohibitedExpense: 'Prohibited expense',
+            receiptGeneratedWithAI: 'Possible AI-generated receipt',
+            receiptNotSmartScanned: 'Receipt added manually',
+            receiptRequired: 'Receipt required',
+            rter: 'Awaiting card match',
+            smartscanFailed: 'Receipt scanning failed',
+            someTagLevelsRequired: 'Tag required',
+            tagOutOfPolicy: 'Tag no longer valid',
+            overLimitAttendee: 'Over person limit',
+            customRules: 'Custom rule violation',
+            taxAmountChanged: 'Tax amount modified',
+            taxOutOfPolicy: 'Tax rate no longer valid',
+            taxRateChanged: 'Tax rate modified',
+            taxRequired: 'Missing tax rate',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,
@@ -10851,6 +11031,7 @@ const translations = {
     domain: {
         notVerified: 'Not verified',
         retry: 'Retry',
+        requestSent: 'Request sent',
         verifyDomain: {
             title: 'Verify domain',
             beforeProceeding: ({domainName}: {domainName: string}) => `Before proceeding, verify that you own <strong>${domainName}</strong> by updating its DNS settings.`,
@@ -10922,6 +11103,14 @@ const translations = {
             subtitle: 'Enter the name of the private domain you want to access (e.g. expensify.com).',
             domainName: 'Domain name',
             newDomain: 'New domain',
+            alreadyHaveAccessError: 'This domain already exists in your account.',
+        },
+        domainAlreadyExists: {
+            headerTitle: 'Domain exists',
+            title: 'Domain already set up. Request access?',
+            description: 'Someone already set this domain up in Expensify. Want to request admin access?',
+            requestAccess: 'Ask for admin access',
+            requestAccessError: "We couldn't send your request. Please try again.",
         },
         domainAdded: {
             title: 'Domain added',
@@ -11022,6 +11211,7 @@ const translations = {
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
             resetTwoFactorAuth: 'Reset two-factor authentication',
             error: "Couldn't save this change. Please try again.",
+            neverMind: 'Never mind',
         },
         groups: {
             title: 'Groups',
@@ -11035,7 +11225,6 @@ const translations = {
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Are you sure you want to make ${newName} the default group? New members will be invited to this group instead of the previous default group (${currentName}). `,
             makeDefault: 'Make default',
-            neverMind: 'Never mind',
             createGroupError: 'Unable to create this group. Please try again.',
             permissions: 'Group permissions',
             createNewGroupButton: 'New group',
