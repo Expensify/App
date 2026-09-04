@@ -481,7 +481,7 @@ describe('getUpdateMoneyRequestParams — receipt page count', () => {
         } as Transaction;
     }
 
-    function getOptimisticReceiptForDistanceChange() {
+    function getOptimisticPageCountForDistanceChange() {
         const {onyxData} = getUpdateMoneyRequestParams({
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
@@ -501,8 +501,11 @@ describe('getUpdateMoneyRequestParams — receipt page count', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
         });
 
-        const transactionEntry = onyxData.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
-        return (transactionEntry?.value as Transaction | undefined)?.receipt;
+        const optimisticTransaction: unknown = onyxData.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`)?.value;
+        if (!isRecord(optimisticTransaction) || !isRecord(optimisticTransaction.receipt)) {
+            throw new Error('Expected an optimistic transaction with a receipt');
+        }
+        return optimisticTransaction.receipt.pageCount;
     }
 
     it('clears the page count when the map receipt is about to be regenerated', async () => {
@@ -512,7 +515,7 @@ describe('getUpdateMoneyRequestParams — receipt page count', () => {
 
         // When the distance changes
         // Then the stale count is cleared so the badge cannot outlive the receipt it described
-        expect(getOptimisticReceiptForDistanceChange()?.pageCount).toBeNull();
+        expect(getOptimisticPageCountForDistanceChange()).toBeNull();
     });
 
     it('clears the page count for a manual distance expense that carries waypoints', async () => {
@@ -521,7 +524,7 @@ describe('getUpdateMoneyRequestParams — receipt page count', () => {
         await waitForBatchedUpdates();
 
         // When the distance changes
-        expect(getOptimisticReceiptForDistanceChange()?.pageCount).toBeNull();
+        expect(getOptimisticPageCountForDistanceChange()).toBeNull();
     });
 
     it('keeps the page count for an odometer expense, whose receipt is uploaded', async () => {
@@ -531,6 +534,6 @@ describe('getUpdateMoneyRequestParams — receipt page count', () => {
 
         // When the distance changes
         // Then the count survives, because nothing regenerates that receipt
-        expect(getOptimisticReceiptForDistanceChange()?.pageCount).toBe(3);
+        expect(getOptimisticPageCountForDistanceChange()).toBe(3);
     });
 });
