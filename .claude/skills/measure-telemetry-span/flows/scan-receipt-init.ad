@@ -1,9 +1,14 @@
-# @desc   From the Inbox tab, open the FAB -> Create expense -> switch to Scan tab. Triggers the ManualCameraInit Sentry span (Scan tab mount -> camera session ready). Assumes the user is signed in and camera permission is granted.
-# @pre    text="Inbox"
-# @pre    role="button" label="Open actions menu"
+# @desc   From the Inbox tab, open the FAB, create an expense, and switch to the Scan tab. Triggers the ManualCameraInit Sentry span (Scan tab mount -> camera session ready). Assumes the user is signed in and camera permission is granted.
+# @pre    id="BaseSidebarScreen"
+# @pre    id="floating-action-button" || role="button" label="Open actions menu"
 # @post   text="Take a photo"
+# @reset  .claude/skills/agent-device/flows/macros/return-to-inbox.ad
 # @span   ManualCameraInit
-find "Inbox" "click"
-press "role=\"button\" label=\"Open actions menu\""
-press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""
-press "label=\"Scan\""
+is exists "id=\"BaseSidebarScreen\""
+is exists "id=\"floating-action-button\" || role=\"button\" label=\"Open actions menu\""
+press "id=\"floating-action-button\" || role=\"button\" label=\"Open actions menu\""
+wait "role=\"button\" label=\"Create expense\" || label=\"Create expense\" hittable=true" 10000
+press "role=\"button\" label=\"Create expense\" || label=\"Create expense\" hittable=true"
+wait "id=\"IOURequestStartPage\"" 10000
+press "role=\"tab\" label=\"Scan\" || label=\"Scan\" hittable=true"
+wait "text=\"Take a photo\"" 15000

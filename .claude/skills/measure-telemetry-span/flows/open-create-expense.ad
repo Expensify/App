@@ -1,8 +1,12 @@
 # @desc   From the Inbox tab, open the FAB actions menu and tap "Create expense". Triggers the ManualOpenCreateExpense Sentry span (startMoneyRequest -> IOURequestStart/Participants/Confirmation page). Assumes the user is signed in and the Inbox bottom nav with the floating action button is visible.
-# @pre    text="Inbox"
-# @pre    role="button" label="Open actions menu"
-# @post   text="Manual"
+# @pre    id="BaseSidebarScreen"
+# @pre    id="floating-action-button" || role="button" label="Open actions menu"
+# @post   id="IOURequestStartPage"
+# @reset  .claude/skills/agent-device/flows/macros/return-to-inbox.ad
 # @span   ManualOpenCreateExpense
-find "Inbox" "click"
-press "role=\"button\" label=\"Open actions menu\""
-press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""
+is exists "id=\"BaseSidebarScreen\""
+is exists "id=\"floating-action-button\" || role=\"button\" label=\"Open actions menu\""
+press "id=\"floating-action-button\" || role=\"button\" label=\"Open actions menu\""
+wait "role=\"button\" label=\"Create expense\" || label=\"Create expense\" hittable=true" 10000
+press "role=\"button\" label=\"Create expense\" || label=\"Create expense\" hittable=true"
+wait "id=\"IOURequestStartPage\"" 10000

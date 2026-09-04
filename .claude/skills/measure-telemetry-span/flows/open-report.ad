@@ -1,9 +1,12 @@
-# @desc   From the Inbox tab, open a chat/report matching TARGET_CHAT in the LHN, with fallback to the first available chat row. Triggers the ManualOpenReport Sentry span (LHN row press -> report screen mounted with composer visible). Assumes the user is signed in with at least one chat in the Inbox.
-# @pre    text="Inbox"
-# @pre    role="button" label="Search"
-# @post   role="textview" label="Write something..."
+# @desc   From the Inbox tab, open the chat or report matching TARGET_CHAT in the LHN. Triggers the ManualOpenReport Sentry span (LHN row press -> report screen mounted with composer visible). Assumes the user is signed in with at least one chat in the Inbox.
+# @pre    id="BaseSidebarScreen"
+# @pre    id="searchButton" || role="button" label="Search"
+# @post   label="Write something..." editable=true
+# @reset  .claude/skills/agent-device/flows/macros/return-to-inbox.ad
 # @span   ManualOpenReport
-# @param  TARGET_CHAT Visible report/chat title to open from Inbox LHN.
+# @param  TARGET_CHAT Exact accessible label of the report or chat row to open from the Inbox LHN.
 
-find "Inbox" "click"
-find "${TARGET_CHAT}" "click"
+is exists "id=\"BaseSidebarScreen\""
+is exists "id=\"searchButton\" || role=\"button\" label=\"Search\""
+press "role=\"button\" label=\"${TARGET_CHAT}\" || label=\"${TARGET_CHAT}\" hittable=true"
+wait "label=\"Write something...\" editable=true" 10000

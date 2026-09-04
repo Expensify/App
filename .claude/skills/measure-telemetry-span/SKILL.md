@@ -57,7 +57,11 @@ If you see **no Android device** (`adb devices` empty): append **`--boot`** to t
 
 ## Platform coverage
 
-`switch-home-to-inbox` and `switch-home-to-reports` are verified on Android only. On iOS the bottom tab items carry no durable selector: they are not `role="tab"`, not `role="button"`, and not `hittable=true`, while a bare `label="Home"` resolves to an unrelated node such as a chat row. Both flows therefore fail their `@post` on iOS rather than producing a wrong number. Measuring them on iOS needs a `testID` on each tab item first.
+The bottom tab items carry no unique selector on either native platform, so the three flows that must press a tab (`switch-home-to-inbox`, `switch-home-to-reports`, and the `switch-to-home` reset macro) can fail to resolve a single target.
+
+On narrow layouts the app renders two `NavigationTabBar` instances at once: one from `TabNavigatorBar` and a second from `TabBarBottomContent`, which `HomePage` and `BaseSidebarScreen` pass as `bottomContent` for the swipe-back animation. Both copies sit at the same rect and both are hittable, so `label="Inbox"` matches four nodes and `label="Inbox" hittable=true` still matches two. On iOS the tab items additionally carry no `role="tab"`, because React Native maps that role to no iOS accessibility trait. Newer Agent Device versions reject an ambiguous `press` outright, which is the correct outcome but means these three flows cannot run as written.
+
+Every other flow here asserts its start screen with a screen-scoped `id=` and never presses a tab, so they are unaffected. Making the three tab flows durable needs a `testID` on each tab item in the app.
 
 ## Contract
 

@@ -1,6 +1,6 @@
 # @desc   Switch to the Home tab and wait for the Home screen anchor.
-# @pre    label="Home"
+# @pre    role="tab" label="Home" || label="Home" hittable=true
 # @post   id="HomePage"
-is exists "label=\"Home\""
-press "label=\"Home\""
+is exists "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"
+press "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"
 wait "id=\"HomePage\"" 10000

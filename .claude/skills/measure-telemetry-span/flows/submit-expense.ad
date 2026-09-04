@@ -1,8 +1,12 @@
 # @desc   Tap the submit button on the IOU confirmation page (IOURequestStepConfirmation). Triggers ManualCreateExpenseSubmit, ManualSubmitToDestinationVisible, and ManualCreateExpenseServerResponse. If the device has location permission granted, ManualGeolocationWait also fires as a child of Submit. Requires being on the confirmation page already.
-# @pre    role="button" label="Upload receipt" || role="button" label="Create expense"
-# @post   role="button" label="Open actions menu"
+# @pre    id="IOURequestStepConfirmation"
+# @post   id="SearchPageNarrow" || id="Search"
+# @post   role="tab" label="Expenses" || role="button" label="Expenses" || label="Expenses" hittable=true
 # @span   ManualCreateExpenseSubmit
 # @span   ManualSubmitToDestinationVisible
 # @span   ManualCreateExpenseServerResponse
 # @span   ManualGeolocationWait
-press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""
+is exists "id=\"IOURequestStepConfirmation\""
+press "role=\"button\" label=\"Create expense\" || label=\"Create expense\" hittable=true"
+wait "id=\"SearchPageNarrow\" || id=\"Search\"" 15000
+is exists "role=\"tab\" label=\"Expenses\" || role=\"button\" label=\"Expenses\" || label=\"Expenses\" hittable=true"

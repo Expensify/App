@@ -1,10 +1,10 @@
 # @desc   Switch the bottom navigation tab from Home to Inbox. Triggers the ManualNavigateToInboxTab Sentry span end-to-end (BottomTab click -> Inbox layout completion). Assumes the user is signed in and the bottom nav bar is visible.
 # @pre    id="HomePage"
-# @pre    label="Inbox" || label="Inbox. Your review is required"
+# @pre    role="tab" label="Inbox" || role="tab" label="Inbox. Your review is required" || label="Inbox" hittable=true || label="Inbox. Your review is required" hittable=true
 # @post   id="BaseSidebarScreen"
 # @reset  .claude/skills/agent-device/flows/macros/switch-to-home.ad
 # @span   ManualNavigateToInboxTab
 is exists "id=\"HomePage\""
-is exists "label=\"Inbox\" || label=\"Inbox. Your review is required\""
-press "label=\"Inbox\" || label=\"Inbox. Your review is required\""
+is exists "role=\"tab\" label=\"Inbox\" || role=\"tab\" label=\"Inbox. Your review is required\" || label=\"Inbox\" hittable=true || label=\"Inbox. Your review is required\" hittable=true"
+press "role=\"tab\" label=\"Inbox\" || role=\"tab\" label=\"Inbox. Your review is required\" || label=\"Inbox\" hittable=true || label=\"Inbox. Your review is required\" hittable=true"
 wait "id=\"BaseSidebarScreen\"" 10000

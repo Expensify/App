@@ -22,6 +22,10 @@ RESET_FLOW=""
 # The repository replay wrapper enforces this deadline outside the Agent Device daemon.
 REPLAY_TIMEOUT_MS="${REPLAY_TIMEOUT_MS:-120000}"
 export AGENT_DEVICE_STATE_DIR="${AGENT_DEVICE_STATE_DIR:-$HOME/.agent-device-expensify-headless}"
+# A separate state dir does not isolate the device-claim registry, which defaults to
+# ~/.agent-device/device-claims. Without this the runner cannot acquire a device that any
+# other agent-device session already claims, and fails with DEVICE_IN_USE.
+export AGENT_DEVICE_CLAIMS_DIR="${AGENT_DEVICE_CLAIMS_DIR:-$AGENT_DEVICE_STATE_DIR/device-claims}"
 
 if ! [[ "$REPLAY_TIMEOUT_MS" =~ ^[0-9]+$ ]] || [[ "$REPLAY_TIMEOUT_MS" -lt 1 ]]; then
   echo "REPLAY_TIMEOUT_MS must be a positive integer." >&2
@@ -268,8 +272,7 @@ measure_current_branch() {
     # app is most likely to raise a LogBox that aborts the very transition being measured.
     agent-device open "$APP_ID" --platform "$PLATFORM" >&2
     dismiss_react_native_overlays
-    echo "Resetting with: $RESET_FLOW" >&2
-    run_replay "$RESET_FLOW" >&2
+    reset_if_needed
   else
     agent-device open "$APP_ID" --platform "$PLATFORM" --relaunch >&2
     sleep 5

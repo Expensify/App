@@ -1,7 +1,9 @@
-# @desc   Open Create Expense from the FAB, enter an amount on the Manual tab, fill the Merchant field, and submit. Supports configurable currency-aware submit button matching. Exercises the full submit-chain Sentry spans end-to-end. Assumes a workspace where Category is not required.
-# @pre    role="button" label="Open actions menu"
-# @post   text="Reports"
-# @post   role="button" label="Expenses"
+# @desc   Open Create Expense from the FAB, enter an amount on the Manual tab, fill the Merchant field, and submit. Supports configurable currency-aware submit button matching. Exercises the confirmation-page Sentry spans. Assumes a workspace where Category is not required.
+# @pre    id="BaseSidebarScreen"
+# @pre    id="floating-action-button" || role="button" label="Open actions menu"
+# @post   id="SearchPageNarrow" || id="Search"
+# @post   role="tab" label="Expenses" || role="button" label="Expenses" || label="Expenses" hittable=true
+# @reset  .claude/skills/agent-device/flows/macros/return-to-inbox.ad
 # @span   ManualConfirmationMount
 # @span   ManualConfirmationListReady
 # @span   ManualConfirmationReceiptLoad
@@ -9,13 +11,19 @@
 # @param  CURRENCY Currency symbol used by the submit CTA selector (for example `PLN` or `USD`).
 # @param  MERCHANT Merchant name to populate before submit.
 
-press "role=\"button\" label=\"Open actions menu\""
-press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""
-press "label=\"Manual\""
-is exists "role=\"button\" label=\"Flip\""
-fill "editable=true" "${AMOUNT}"
-press "role=\"button\" label=\"Next\" || label=\"Next\""
-press "role=\"button\" label=\"Merchant\" || label=\"Merchant\""
-fill "role=\"text-field\" label=\"Merchant,\" editable=true || label=\"Merchant,\" editable=true" "${MERCHANT}"
-press "role=\"button\" label=\"Save\" || label=\"Save\""
-press "label=\"Create ${CURRENCY} ${AMOUNT}.00 expense\" || label=\"Create expense\""
+is exists "id=\"BaseSidebarScreen\""
+is exists "id=\"floating-action-button\" || role=\"button\" label=\"Open actions menu\""
+press "id=\"floating-action-button\" || role=\"button\" label=\"Open actions menu\""
+wait "role=\"button\" label=\"Create expense\" || label=\"Create expense\" hittable=true" 10000
+press "role=\"button\" label=\"Create expense\" || label=\"Create expense\" hittable=true"
+wait "id=\"IOURequestStartPage\"" 10000
+press "role=\"tab\" label=\"Manual\" || label=\"Manual\" hittable=true"
+wait "id=\"moneyRequestAmountInput\"" 10000
+fill "id=\"moneyRequestAmountInput\"" "${AMOUNT}"
+press "role=\"button\" label=\"Next\" || label=\"Next\" hittable=true"
+press "role=\"button\" label=\"Merchant\" || label=\"Merchant\" hittable=true"
+fill "label=\"Merchant,\" editable=true || label=\"Merchant\" editable=true" "${MERCHANT}"
+press "role=\"button\" label=\"Save\" || label=\"Save\" hittable=true"
+press "role=\"button\" label=\"Create ${CURRENCY} ${AMOUNT}.00 expense\" || role=\"button\" label=\"Create expense\" || label=\"Create ${CURRENCY} ${AMOUNT}.00 expense\" hittable=true || label=\"Create expense\" hittable=true"
+wait "id=\"SearchPageNarrow\" || id=\"Search\"" 15000
+is exists "role=\"tab\" label=\"Expenses\" || role=\"button\" label=\"Expenses\" || label=\"Expenses\" hittable=true"
