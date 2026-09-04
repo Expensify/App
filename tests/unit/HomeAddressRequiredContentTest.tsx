@@ -20,6 +20,10 @@ jest.mock('@components/RenderHTML', () => ({
     },
 }));
 
+jest.mock('@components/EnvironmentContextProvider', () => ({
+    useEnvironmentActions: () => ({adjustExpensifyLinksForEnv: (html: string) => html}),
+}));
+
 jest.mock('@components/ReportActionItem/ActionableItemButtons', () => () => null);
 jest.mock('@components/ButtonComposed', () => {
     function MockButton() {
@@ -49,6 +53,16 @@ describe('HomeAddressRequiredContent', () => {
         render(<HomeAddressRequiredContent action={mockReportAction} />);
 
         expect(mockRenderHTML).toHaveBeenCalledWith('<comment><muted-text>Add your <a href="https://example.com">home address</a>.</muted-text></comment>');
+    });
+
+    it('focuses Address line 1 when the home address link is opened', () => {
+        jest.mocked(getReportActionHtml).mockReturnValue('Add your <a href="https://new.expensify.com/settings/profile/private-personal-details">home address</a>.');
+
+        render(<HomeAddressRequiredContent action={mockReportAction} />);
+
+        expect(mockRenderHTML).toHaveBeenCalledWith(
+            '<comment><muted-text>Add your <a href="https://new.expensify.com/settings/profile/private-personal-details?fieldToFocus=addressLine1">home address</a>.</muted-text></comment>',
+        );
     });
 
     it('renders the text message when HTML is unavailable', () => {
