@@ -7,9 +7,11 @@ import {
     hasDomainGroupsErrors,
     hasDomainMembersErrors,
     hasDomainMembersSettingsErrors,
+    hasPendingDomainAdminRequestsToReview,
 } from '@libs/DomainUtils';
 
 import CONST from '@src/CONST';
+import type {Domain} from '@src/types/onyx';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
 import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
 
@@ -112,6 +114,76 @@ describe('DomainUtils', () => {
                 technicalContactEmailErrors: {timestamp1: 'Invalid email'},
             };
             expect(hasDomainAdminsErrors(domainErrors)).toBe(true);
+        });
+
+        it('should return false when adminshipRequesterErrors exist but have no errors inside', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                adminshipRequesterErrors: {[adminID]: {errors: {}}},
+            };
+            expect(hasDomainAdminsErrors(domainErrors)).toBe(false);
+        });
+
+        it('should return true when an adminship requester has errors', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                adminshipRequesterErrors: {[adminID]: {errors: {timestamp1: 'Approve/deny error'}}},
+            };
+            expect(hasDomainAdminsErrors(domainErrors)).toBe(true);
+        });
+    });
+
+    describe('hasPendingDomainAdminRequestsToReview', () => {
+        const currentUserAccountID = 42;
+        const requesterAccountID = 99;
+        const adminPermissionKey = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${currentUserAccountID}` as const;
+        const baseDomain: Domain = {
+            validated: true,
+            accountID: 1,
+            email: 'test@example.com',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            domain_defaultSecurityGroupID: '',
+        };
+
+        it('should return false when domain is undefined', () => {
+            expect(hasPendingDomainAdminRequestsToReview(undefined, currentUserAccountID)).toBe(false);
+        });
+
+        it('should return false when currentUserAccountID is undefined', () => {
+            const domain: Domain = {
+                ...baseDomain,
+                [adminPermissionKey]: currentUserAccountID,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            expect(hasPendingDomainAdminRequestsToReview(domain, undefined)).toBe(false);
+        });
+
+        it('should return true when the current user is an admin and there is a pending request', () => {
+            const domain: Domain = {
+                ...baseDomain,
+                [adminPermissionKey]: currentUserAccountID,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            expect(hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID)).toBe(true);
+        });
+
+        it('should return false when the current user is only a requester, not an admin', () => {
+            const domain: Domain = {
+                ...baseDomain,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[currentUserAccountID]: 'read'},
+            };
+            expect(hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID)).toBe(false);
+        });
+
+        it('should return false when the current user is an admin but there are no pending requests', () => {
+            const domain: Domain = {
+                ...baseDomain,
+                [adminPermissionKey]: currentUserAccountID,
+            };
+            expect(hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID)).toBe(false);
         });
     });
 

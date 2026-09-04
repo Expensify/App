@@ -5,7 +5,7 @@ import usePolicyIndicatorChecks from '@hooks/usePolicyIndicatorChecks';
 import CONST from '@src/CONST';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Domain, Policy} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
@@ -349,6 +349,67 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.domainStatus).toBe(CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS);
+        });
+    });
+
+    describe('domain info statuses', () => {
+        const domainAdminAccountID = 555;
+        const requesterAccountID = 777;
+        const domainAccountID = 1;
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}domain1` as const;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('returns HAS_PENDING_DOMAIN_ADMIN_REQUESTS when the current user is a domain admin with pending requests', async () => {
+            const domainWithAdmin: Domain = {
+                validated: true,
+                accountID: domainAccountID,
+                email: 'domain.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            Reflect.set(domainWithAdmin, `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${domainAdminAccountID}`, domainAdminAccountID);
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {accountID: domainAdminAccountID, email: userID},
+                    [domainKey]: domainWithAdmin,
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.domainInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS);
+        });
+
+        it('does not return an indicator when the current user is only a requester, not a domain admin', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {accountID: requesterAccountID, email: otherUserID},
+                    [domainKey]: {
+                        validated: true,
+                        accountID: domainAccountID,
+                        email: 'domain.com',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        domain_defaultSecurityGroupID: '',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        domain_adminRequesters: {[requesterAccountID]: 'read'},
+                    },
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.domainInfoStatus).toBeUndefined();
         });
     });
 

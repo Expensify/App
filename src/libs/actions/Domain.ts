@@ -6,6 +6,7 @@ import type {
     AddMemberToDomainParams,
     ChangeDomainSecurityGroupParams,
     CreateDomainSecurityGroupParams,
+    DeclineDomainAdminshipRequestParams,
     DeleteDomainMemberParams,
     DeleteDomainParams,
     DeleteDomainSecurityGroupParams,
@@ -831,6 +832,158 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
 }
 
 /**
+ * Approves a pending domain adminship request, granting the requester admin access.
+ */
+function approveDomainAdminshipRequest(domainAccountID: number, accountID: number, targetEmail: string, domainName: string) {
+    const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
+
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.DOMAIN
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+        >
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [PERMISSION_KEY]: accountID,
+            } as PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[accountID]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
+                adminshipRequesterErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: 'admins', id: String(accountID)},
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [PERMISSION_KEY]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.DOMAIN
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+        >
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [PERMISSION_KEY]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[accountID]: 'read'},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminshipRequesterErrors: {
+                    [accountID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.approveRequestError'),
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: null, id: null},
+        },
+    ];
+
+    const params: AddAdminToDomainParams = {
+        domainName,
+        targetEmail,
+        domainAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_DOMAIN_ADMIN, params, {optimisticData, successData, failureData});
+}
+
+/**
  * Removes an error and pending actions after trying to add admin
  */
 function clearAdminError(domainAccountID: number, accountID: number) {
@@ -911,6 +1064,97 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
     };
 
     API.write(WRITE_COMMANDS.REMOVE_DOMAIN_ADMIN, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Denies a pending domain adminship request.
+ */
+function declineDomainAdminshipRequest(domainAccountID: number, accountID: number) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                adminshipRequester: {
+                    [accountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminshipRequesterErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                adminshipRequester: {
+                    [accountID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                adminshipRequester: {
+                    [accountID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminshipRequesterErrors: {
+                    [accountID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.declineRequestError'),
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: DeclineDomainAdminshipRequestParams = {
+        domainAccountID,
+        targetAccountID: accountID,
+    };
+
+    API.write(WRITE_COMMANDS.DECLINE_DOMAIN_ADMINSHIP_REQUEST, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears errors and pending actions after trying to approve or deny a domain adminship request
+ */
+function clearAdminshipRequesterError(domainAccountID: number, accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        adminshipRequesterErrors: {
+            [accountID]: null,
+        },
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        adminshipRequester: {
+            [accountID]: null,
+        },
+    });
 }
 
 /**
@@ -2507,8 +2751,11 @@ export {
     toggleConsolidatedDomainBilling,
     clearToggleConsolidatedDomainBillingErrors,
     addAdminToDomain,
+    approveDomainAdminshipRequest,
     clearAdminError,
     revokeDomainAdminAccess,
+    declineDomainAdminshipRequest,
+    clearAdminshipRequesterError,
     resetDomain,
     clearDomainErrors,
     addMemberToDomain,

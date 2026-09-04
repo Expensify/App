@@ -11135,6 +11135,11 @@ const translations = {
             consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
             addAdmin: 'Add admin',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
+            requests: 'Requests',
+            approve: 'Approve',
+            deny: 'Deny',
+            approveRequestError: 'Unable to approve this request. Please try again.',
+            declineRequestError: 'Unable to deny this request. Please try again.',
             revokeAdminAccess: 'Revoke admin access',
             cantRevokeAdminAccess: "Can't revoke admin access from the technical contact",
             error: {

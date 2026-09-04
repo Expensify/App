@@ -676,6 +676,7 @@ const WRITE_COMMANDS = {
     ADD_DOMAIN_ADMIN: 'AddDomainAdmin',
     REMOVE_DOMAIN_ADMIN: 'RemoveDomainAdmin',
     REQUEST_DOMAIN_ADMINSHIP: 'RequestDomainAdminship',
+    DECLINE_DOMAIN_ADMINSHIP_REQUEST: 'DeclineDomainAdminshipRequest',
     DELETE_DOMAIN: 'DeleteDomain',
     DELETE_DOMAIN_MEMBER: 'DeleteDomainMember',
     TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN: 'ToggleTwoFactorAuthRequiredForDomain',
@@ -1397,6 +1398,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_DOMAIN]: Parameters.DeleteDomainParams;
     [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: Parameters.AddAdminToDomainParams;
     [WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP]: Parameters.RequestDomainAdminshipParams;
+    [WRITE_COMMANDS.DECLINE_DOMAIN_ADMINSHIP_REQUEST]: Parameters.DeclineDomainAdminshipRequestParams;
     [WRITE_COMMANDS.ADD_DOMAIN_MEMBER]: Parameters.AddMemberToDomainParams;
     [WRITE_COMMANDS.TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN]: Parameters.ToggleTwoFactorAuthRequiredForDomainParams;
     [WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN]: Parameters.SetTwoFactorAuthExemptEmailForDomainParams;

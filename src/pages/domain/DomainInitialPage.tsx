@@ -26,7 +26,7 @@ import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isAdminSelector} from '@src/selectors/Domain';
+import {hasPendingAdminRequestsSelector, isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
@@ -53,10 +53,12 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     useDocumentTitle(domainName ?? '');
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
+    const hasPendingAdminRequests = hasPendingAdminRequestsSelector(domain);
 
     const domainMenuItems = getDomainMenuItems({
         domainAccountID,
         domainErrors,
+        hasPendingAdminRequests,
         icons,
     }).map((item) => ({
         ...item,

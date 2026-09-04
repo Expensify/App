@@ -152,7 +152,7 @@ export default {
     tableCardStatusColumnWidth: 128,
     workspaceTagsTableCountColumnWidth: 100,
     domainTableActionColumnWidth: 64,
-    domainAdminsTableActionColumnWidth: 140,
+    domainAdminsTableActionColumnWidth: 220,
     agentsTableActionColumnWidth: 260,
     workspaceTableActionColumnWidth: 64,
     workspaceMembersRoleColumnWidth: 148,
