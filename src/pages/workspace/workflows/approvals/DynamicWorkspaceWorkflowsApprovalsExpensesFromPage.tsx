@@ -18,10 +18,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
-import {clearApprovalWorkflow, setApprovalWorkflowMembers} from '@libs/actions/Workflow';
+import {clearApprovalWorkflow, setApprovalWorkflowMembers, updateApprovalWorkflow, updateApprovalWorkflowRules, validateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import runAfterPredictedTransition from '@libs/Navigation/runAfterPredictedTransition';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
@@ -435,13 +436,39 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
         if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
-        } else {
-            // Use goBack so we return to the existing parent (e.g. the workflow edit page) in the stack
-            // instead of pushing a new instance. A fresh mount of the edit page would re-derive members
-            // from policy.employeeList via its useEffect and overwrite the selection we just saved.
-            Navigation.goBack(backPath, {compareParams: false});
+            return;
         }
-    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, backPath, policy?.employeeList]);
+
+        // Use goBack so we return to the existing parent (e.g. the workflow edit page) in the stack
+        // instead of pushing a new instance. A fresh mount of the edit page would re-derive members
+        // from policy.employeeList via its useEffect and overwrite the selection we just saved.
+        Navigation.goBack(backPath, {compareParams: false});
+
+        // A fast edit goes back to the workflows page rather than the edit page, so no other screen will
+        // ever save this workflow. Save it here, or the member the admin just picked or dropped is lost.
+        if (!approvalWorkflow?.isFastEdit) {
+            return;
+        }
+
+        const workflowToSave = {...approvalWorkflow, members: allMembers};
+        if (!validateApprovalWorkflow(workflowToSave)) {
+            return;
+        }
+
+        const originalMembers = approvalWorkflow.originalMembers ?? [];
+        // Wait for the transition so the save doesn't blank this page's list while it is still sliding away.
+        runAfterPredictedTransition(() => {
+            if (isMultipleApproversBetaEnabled) {
+                updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow: {...workflowToSave, members: originalMembers}, policy, rules: rulesCollection});
+                // The rules path leaves the draft behind, unlike updateApprovalWorkflow which clears it optimistically.
+                clearApprovalWorkflow();
+                return;
+            }
+
+            const membersToRemove = originalMembers.filter((originalMember) => !allMembers.some((member) => member.email === originalMember.email));
+            updateApprovalWorkflow(workflowToSave, membersToRemove, [], policy);
+        });
+    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, backPath, policy, approvalWorkflow, isMultipleApproversBetaEnabled, rulesCollection]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');

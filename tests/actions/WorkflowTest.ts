@@ -10,6 +10,7 @@ import {
     createApprovalWorkflowRules,
     removeApprovalWorkflow,
     removeApprovalWorkflowRules,
+    selectApprovalWorkflowForEdit,
     setApprovalWorkflowApprover,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
@@ -169,6 +170,37 @@ describe('actions/Workflow', () => {
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('selectApprovalWorkflowForEdit', () => {
+        it('should store the original members so a fast edit can work out who was removed', async () => {
+            const members = [{email: employee1Email, displayName: 'Employee 1'}, {email: employee2Email, displayName: 'Employee 2'}];
+
+            selectApprovalWorkflowForEdit({
+                workflow: {members, approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+                isFastEdit: true,
+            });
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.originalMembers).toEqual(members);
+            expect(approvalWorkflow?.isFastEdit).toBe(true);
+            expect(approvalWorkflow?.action).toBe(CONST.APPROVAL_WORKFLOW.ACTION.EDIT);
+        });
+
+        it('should not mark an edit-page session as a fast edit', async () => {
+            selectApprovalWorkflowForEdit({
+                workflow: {members: [{email: employee1Email, displayName: 'Employee 1'}], approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+            });
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.isFastEdit).toBeUndefined();
         });
     });
 
