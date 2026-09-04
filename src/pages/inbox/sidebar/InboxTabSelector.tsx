@@ -56,8 +56,12 @@ function InboxTabSelector() {
 
     const getBadgeText = (count: number) => (count > 0 ? count.toString() : undefined);
 
+    const isInboxTab = (key: string): key is ValueOf<typeof CONST.INBOX_TAB> => {
+        return key === CONST.INBOX_TAB.ALL || key === CONST.INBOX_TAB.UNREAD || key === CONST.INBOX_TAB.TODO;
+    };
+
     const openMarkAllAsReadMenu = (key: string) => {
-        if (key !== CONST.INBOX_TAB.ALL && key !== CONST.INBOX_TAB.UNREAD && key !== CONST.INBOX_TAB.TODO) {
+        if (!isInboxTab(key)) {
             return;
         }
         calculatePopoverPosition(tabRefs[key], anchorAlignment).then((position) => {
@@ -130,7 +134,7 @@ function InboxTabSelector() {
                     tabs={tabs}
                     activeTabKey={activeTab}
                     onTabPress={(key) => {
-                        if (key !== CONST.INBOX_TAB.ALL && key !== CONST.INBOX_TAB.UNREAD && key !== CONST.INBOX_TAB.TODO) {
+                        if (!isInboxTab(key)) {
                             return;
                         }
                         setActiveTab(key);
