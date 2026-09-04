@@ -245,9 +245,8 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
         });
     }
-    // Downloading is read-only, so it stays available under the read-only HR modes. It is dropped when the workflow is
-    // hidden though: the exported file is the approval workflow written out per member, so offering it would hand back
-    // exactly what the section above stops rendering.
+    // Downloading is read-only, so the read-only HR modes keep it. Hiding the workflow drops it too, because the
+    // exported CSV is that workflow written out per member.
     if (!shouldHideApprovalWorkflows) {
         approvalSecondaryActions.push({
             icon: expensifyIcons.Download,
