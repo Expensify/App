@@ -36,6 +36,8 @@ function useComposerSubmit(reportID: string) {
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {isBetaEnabled} = usePermissions();
+    const [pendingConciergeResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`);
+    const [pendingConciergeFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
 
@@ -72,8 +74,11 @@ function useComposerSubmit(reportID: string) {
         // A new user message supersedes any Concierge processing indicator from a prior turn (e.g. a persisted
         // "...is working on your chat" while a human is handling it). Clear it optimistically so it disappears
         // the instant the user sends, instead of lingering until the ProcessAgentZeroRequest job runs; the
-        // backend re-establishes the correct status afterward.
-        if (isConciergeChatReport(report, conciergeReportID)) {
+        // backend re-establishes the correct status afterward. Skip the clear while a suggested-followup turn
+        // is still reconciling (pregenerated reply queued or followup-list pending) — the indicator then
+        // reflects that in-flight turn, and clearing it would blank the status mid-generation.
+        const hasPendingConciergeTurn = !!pendingConciergeResponse || !!pendingConciergeFollowupList;
+        if (isConciergeChatReport(report, conciergeReportID) && !hasPendingConciergeTurn) {
             clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
         }
 
