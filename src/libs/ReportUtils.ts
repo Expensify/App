@@ -3973,6 +3973,9 @@ function getIconsForChatThread(
     if (!report?.parentReportID || !report?.parentReportActionID) {
         return [];
     }
+    if (report.parentReportID === conciergeReportIDOnyxConnect) {
+        return getIconsForParticipants([CONST.ACCOUNT_ID.CONCIERGE], personalDetails);
+    }
     const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
     const actorAccountID = getReportActionActorAccountID(parentReportAction, report as OnyxEntry<Report>, report as OnyxEntry<Report>);
     const actorDetails = actorAccountID ? personalDetails?.[actorAccountID] : undefined;
