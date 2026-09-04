@@ -26050,13 +26050,14 @@ var ENGINEERING_TEAM_SLUG = "engineering";
 var DECISIVE_REVIEW_STATES = /* @__PURE__ */ new Set(["APPROVED", "CHANGES_REQUESTED", "DISMISSED"]);
 var REVIEWER_CHECKLIST_WORKFLOW = "reviewerChecklist.yml";
 async function hasSuccessfulChecklistRun() {
-  const headSHA = context2.payload.pull_request?.head.sha;
+  const pullRequest = context2.payload.pull_request;
+  const headSHA = pullRequest?.head?.sha;
   const currentRunID = Number(process.env.GITHUB_RUN_ID);
   if (!headSHA || !Number.isInteger(currentRunID)) {
     return false;
   }
   const { owner, repo } = context2.repo;
-  const { data: workflowRuns } = await GithubUtils_default.octokit.actions.listWorkflowRuns({
+  const workflowRuns = await GithubUtils_default.octokit.actions.listWorkflowRuns({
     owner,
     repo,
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -26067,7 +26068,9 @@ async function hasSuccessfulChecklistRun() {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     per_page: 100
   });
-  return workflowRuns.workflow_runs.some((workflowRun) => workflowRun.id !== currentRunID && workflowRun.pull_requests.some((pullRequest) => pullRequest.number === issue2));
+  return workflowRuns.data.workflow_runs.some(
+    (workflowRun) => workflowRun.id !== currentRunID && (workflowRun.pull_requests?.some((pullRequest2) => pullRequest2.number === issue2) ?? false)
+  );
 }
 function getNumberOfItemsFromReviewerChecklist() {
   console.log("Getting the number of items in the reviewer checklist...");

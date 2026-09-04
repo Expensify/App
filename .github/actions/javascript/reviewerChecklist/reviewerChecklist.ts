@@ -2,6 +2,8 @@ import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
 import isTeamMember from '@github/libs/isTeamMember';
 
+import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
+
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import https from 'https';
@@ -18,15 +20,18 @@ const ENGINEERING_TEAM_SLUG = 'engineering';
 const DECISIVE_REVIEW_STATES = new Set(['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED']);
 const REVIEWER_CHECKLIST_WORKFLOW = 'reviewerChecklist.yml';
 
+type WorkflowRun = RestEndpointMethodTypes['actions']['listWorkflowRuns']['response']['data']['workflow_runs'][number];
+
 async function hasSuccessfulChecklistRun(): Promise<boolean> {
-    const headSHA = github.context.payload.pull_request?.head.sha;
+    const pullRequest = github.context.payload.pull_request as {head?: {sha?: string}} | undefined;
+    const headSHA = pullRequest?.head?.sha;
     const currentRunID = Number(process.env.GITHUB_RUN_ID);
     if (!headSHA || !Number.isInteger(currentRunID)) {
         return false;
     }
 
     const {owner, repo} = github.context.repo;
-    const {data: workflowRuns} = await GitHubUtils.octokit.actions.listWorkflowRuns({
+    const workflowRuns = (await GitHubUtils.octokit.actions.listWorkflowRuns({
         owner,
         repo,
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -36,9 +41,11 @@ async function hasSuccessfulChecklistRun(): Promise<boolean> {
         status: 'success',
         // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
-    });
+    })) as {data: {workflow_runs: WorkflowRun[]}};
 
-    return workflowRuns.workflow_runs.some((workflowRun) => workflowRun.id !== currentRunID && workflowRun.pull_requests.some((pullRequest) => pullRequest.number === issue));
+    return workflowRuns.data.workflow_runs.some(
+        (workflowRun) => workflowRun.id !== currentRunID && (workflowRun.pull_requests?.some((pullRequest) => pullRequest.number === issue) ?? false),
+    );
 }
 
 function getNumberOfItemsFromReviewerChecklist() {
