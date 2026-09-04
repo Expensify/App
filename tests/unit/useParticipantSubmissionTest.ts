@@ -263,7 +263,6 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_RATE_ID);
     });
 
-    // The draft is a snapshot taken when the move started, so submitting early leaves it with no rate ID at all.
     it("selects the destination workspace's rate when the tracked expense draft has no rate ID yet", () => {
         mockDraftTransactions = [buildTrackedDistanceDraft(undefined)];
         const {result} = renderSubmission();
@@ -276,7 +275,6 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_RATE_ID);
     });
 
-    // A time expense keeps its rate under `comment.units`, so its rate ID is absent rather than foreign.
     it.each([
         ['per diem', CONST.IOU.REQUEST_TYPE.PER_DIEM, 'PER_DIEM_RATE'],
         ['time', CONST.IOU.REQUEST_TYPE.TIME, undefined],
@@ -302,8 +300,7 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         expect(setCustomUnitRateID).not.toHaveBeenCalled();
     });
 
-    // Only the default workspace is guaranteed full customUnits from OpenApp; keeping the old rate there strands it.
-    it('falls back to the p2p rate when the destination workspace has no rates loaded yet', () => {
+    it('leaves the rate alone when the destination workspace has no rates loaded yet', () => {
         mockPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`]: {...createRandomPolicy(2), id: DESTINATION_POLICY_ID}};
         mockDraftTransactions = [buildTrackedDistanceDraft(OTHER_WORKSPACE_RATE_ID)];
         const {result} = renderSubmission();
@@ -312,8 +309,24 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
             result.current.addParticipant([DESTINATION_CHAT]);
         });
 
-        expect(setCustomUnitRateID).toHaveBeenCalledTimes(1);
-        expect(jest.mocked(setCustomUnitRateID).mock.calls.at(0)?.at(1)).toBe(CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        expect(setCustomUnitRateID).not.toHaveBeenCalled();
+    });
+
+    it('leaves the rate alone when every rate on the destination workspace is disabled', () => {
+        const policy = buildDestinationPolicy();
+        const distanceUnit = policy.customUnits?.distance;
+        if (distanceUnit?.rates[WORKSPACE_RATE_ID]) {
+            distanceUnit.rates[WORKSPACE_RATE_ID].enabled = false;
+        }
+        mockPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`]: policy};
+        mockDraftTransactions = [buildTrackedDistanceDraft(OTHER_WORKSPACE_RATE_ID)];
+        const {result} = renderSubmission();
+
+        act(() => {
+            result.current.addParticipant([DESTINATION_CHAT]);
+        });
+
+        expect(setCustomUnitRateID).not.toHaveBeenCalled();
     });
 
     it('leaves a rate the destination workspace already owns alone', () => {

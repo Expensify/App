@@ -260,12 +260,9 @@ function useParticipantSubmission({
             setMoneyRequestParticipants(initialTransactionID, val);
         }
 
-        // Keep an explicit p2p rate so the confirmation step can still ask for a workspace rate. Anything else
-        // resolves nowhere on the destination: the draft is a snapshot and can carry a foreign or missing rate ID.
         const isMovingToPolicyExpenseChat = isMovingTransactionFromTrackExpense && isPolicyExpenseChat;
         const destinationRates = isMovingToPolicyExpenseChat ? DistanceRequestUtils.getMileageRates(policy) : undefined;
         const shouldKeepTrackExpenseRate = (transaction: OnyxEntry<Transaction>) => {
-            // A per diem or time rate is not a mileage rate, so the destination's rates can never resolve it.
             if (!isDistanceRequest(transaction)) {
                 return true;
             }
@@ -285,6 +282,9 @@ function useParticipantSubmission({
                     lastSelectedDistanceRates: distanceRates,
                     expenseDate: transaction.created,
                 });
+                if (isMovingToPolicyExpenseChat && rateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+                    continue;
+                }
                 setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
             }
         } else if (!isMovingToPolicyExpenseChat) {

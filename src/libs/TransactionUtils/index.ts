@@ -2169,8 +2169,7 @@ function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations
 
 /**
  * Check if the transaction has a defined route.
- * Unlike getDistanceInMeters this ignores `routeDistanceMeters`: a distance stored by an earlier fetch does not
- * make the current route resolved.
+ * Unlike getDistanceInMeters this ignores `routeDistanceMeters`: an earlier fetch's distance does not make the current route resolved.
  */
 function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: boolean): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && transaction?.comment?.customUnit?.quantity !== undefined);

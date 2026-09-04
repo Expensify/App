@@ -87,7 +87,6 @@ function useDistanceRequestState({
     const calculateFromTransactionData = isMovingTransactionFromTrackExpense && !distanceRate;
     const customUnit = transaction?.comment?.customUnit;
     const unit = calculateFromTransactionData ? customUnit?.distanceUnit : distanceUnit;
-    // Substituting 1 for an unwritten quantity is not a fix either: the amount becomes the rate and compounds back in.
     const backCalculationQuantity = customUnit?.quantity;
     const rate = calculateFromTransactionData && !!backCalculationQuantity ? Math.abs(iouAmount) / backCalculationQuantity : distanceRate;
     const currency = calculateFromTransactionData ? iouCurrencyCode : (mileageRate.currency ?? CONST.CURRENCY.USD);
