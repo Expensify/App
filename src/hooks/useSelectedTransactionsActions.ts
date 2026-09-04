@@ -11,7 +11,7 @@ import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
@@ -458,12 +458,10 @@ function useSelectedTransactionsActions({
                 return false;
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-
-            // The report's full action history from the collection subscription above — the paginated `reportActions`
-            // slice for display can miss workflow actions (e.g. submit/forward) outside the loaded chain.
+            const moneyRequestReportID = iouReportAction?.reportID ?? (isMoneyRequestAction(iouReportAction) ? getOriginalMessage(iouReportAction)?.IOUReportID : undefined);
             const canMoveExpense = canEditFieldOfMoneyRequest({
                 reportAction: iouReportAction,
-                reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
+                reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReportID}`],
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 outstandingReportsByPolicyID,
                 transaction,
