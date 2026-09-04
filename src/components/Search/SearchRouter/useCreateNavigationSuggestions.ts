@@ -4,6 +4,7 @@
 import useCreateReport from '@hooks/useCreateReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -11,8 +12,10 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 
+import {showSupportalPermissionDenied} from '@libs/actions/App';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -94,6 +97,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
+    const isSupportalSession = useIsSupportalSession();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportID] = useState(() => generateReportID());
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -216,7 +220,15 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
             text: translate('sidebarScreen.fabNewChat'),
             icon: icons.ChatBubble,
             matchTerms: chatMatchTerms,
-            action: () => replaceTopmostModalWithAction(() => interceptAnonymousUser(startNewChat)),
+            action: () =>
+                replaceTopmostModalWithAction(() => {
+                    // Support agents cannot create chats on a user's behalf, so block before the selector opens.
+                    if (isSupportalSession) {
+                        showSupportalPermissionDenied({command: WRITE_COMMANDS.OPEN_REPORT});
+                        return;
+                    }
+                    interceptAnonymousUser(startNewChat);
+                }),
             keyForList: 'create_chat',
         },
         {

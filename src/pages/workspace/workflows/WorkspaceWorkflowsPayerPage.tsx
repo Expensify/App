@@ -14,6 +14,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -89,6 +90,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isSupportalSession = useIsSupportalSession();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [searchTerm, setSearchTerm] = useState('');
@@ -394,16 +396,17 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                     return;
                                 }
                                 setShowErrorModal(false);
-                                navigateToAndOpenReportWithAccountIDs(
-                                    [policy.ownerAccountID],
-                                    currentUserPersonalDetails.accountID,
+                                navigateToAndOpenReportWithAccountIDs({
+                                    participantAccountIDs: [policy.ownerAccountID],
+                                    currentUserAccountID: currentUserPersonalDetails.accountID,
                                     introSelected,
-                                    guidedSetupAndTourStatus?.isSelfTourViewed,
-                                    guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                                     betas,
                                     personalDetails,
                                     conciergeChat,
-                                );
+                                    isSupportalSession,
+                                });
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
                                 admin: selectedPayerDisplayName ?? '',
