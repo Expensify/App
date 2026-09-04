@@ -37,3 +37,10 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
           SEED_STICKY_DISKS: 'true'
+
+  # Seeds the Jest transform cache that reassurePerformanceTests.yml restores. Lives here rather
+  # than in its own workflow so main has one cache-seeding entry point; it runs on a different
+  # runner class (the perf jobs' 4vcpu), which is a per-job setting and so costs nothing here.
+  seedJestPerfCache:
+    name: Seed Jest perf cache
+    uses: ./.github/workflows/seedJestPerfCache.yml
