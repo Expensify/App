@@ -3030,6 +3030,13 @@ const CONST = {
     CONCIERGE_DISPLAY_NAME: 'Concierge',
     CONCIERGE_GREETING_ACTION_ID: 'concierge-greeting',
 
+    // English values of `common.hidden` and `common.you`, for text that is stored in English regardless of the
+    // viewer's locale. IMPORTANT: keep in sync with `en.ts`. See getDisplayNameOrDefaultEnLocale.
+    EN_LOCALE_TEXT: {
+        HIDDEN: 'Hidden',
+        YOU: 'you',
+    },
+
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
         NONE: 'NONE',

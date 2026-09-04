@@ -18562,6 +18562,65 @@ describe('ReportUtils', () => {
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
                 expect(result).toContain('owes');
             });
+
+            it('resolves a nameless participant to the English "Hidden" regardless of the viewer locale', async () => {
+                const hiddenManagerAccountID = 246810;
+                const iouReport: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-en-hidden-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: CONST.CURRENCY.USD,
+                    managerID: hiddenManagerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                // A participant with no name falls back to the "hidden" copy, which used to follow the viewer's locale
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''},
+                });
+
+                await IntlStore.load(CONST.LOCALES.EN).then(waitForBatchedUpdates);
+                const englishResult = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsLocal);
+
+                await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
+                const spanishResult = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsLocal);
+
+                expect(spanishResult).toBe(englishResult);
+                expect(spanishResult).toContain('Hidden');
+                expect(spanishResult).not.toContain(translate(CONST.LOCALES.ES, 'common.hidden'));
+                expect(spanishResult).toContain('owes');
+            });
+
+            it('keeps the non-reimbursable "spent" owner name in English regardless of the viewer locale', async () => {
+                const hiddenOwnerAccountID = 246811;
+                const iouReport: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-en-spent-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: CONST.CURRENCY.USD,
+                    ownerAccountID: hiddenOwnerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [hiddenOwnerAccountID]: {accountID: hiddenOwnerAccountID, login: '', displayName: ''},
+                });
+                // A non-reimbursable transaction routes the preview into the "spent" branch
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}preview-en-spent-transaction`, {
+                    transactionID: 'preview-en-spent-transaction',
+                    reportID: iouReport.reportID,
+                    reimbursable: false,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                });
+                await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
+
+                const result = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsLocal);
+
+                expect(result).toContain('Hidden spent');
+            });
         });
     });
 
