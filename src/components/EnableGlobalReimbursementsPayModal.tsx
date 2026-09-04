@@ -54,6 +54,7 @@ function EnableGlobalReimbursementsPayModal() {
                 // SETs, so the signal must transition null -> object each time).
                 Navigation.navigate(
                     ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(bankAccountID, CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER),
+                    {skipMatchingFullScreenRoute: true},
                 );
                 return;
             }
