@@ -1769,6 +1769,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Het rapport kon niet worden afgewezen. Probeer het opnieuw.',
         },
         moveExpenses: 'Verplaatsen naar rapport',
+        autoReport: 'Automatisch rapport',
+        autoReportDescription: 'Toevoegen aan conceptrapporten namens de werknemer',
         moveExpensesMaxTransactionsError: `Rapporten zijn beperkt tot ${CONST.REPORT.MAX_TRANSACTIONS} uitgaven. Verplaats er enkele naar een ander rapport.`,
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',
         submitReportTo: {

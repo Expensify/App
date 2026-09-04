@@ -2031,6 +2031,26 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     });
 }
 
+/**
+ * Reports expenses without naming a destination: the backend puts each one in its owner's latest draft report, or a new
+ * report when they have none. Needed when a selection spans submitters, since any report the App picked would belong to
+ * just one of them. Carries no optimistic data because every update the normal move builds hangs off a destination only
+ * the backend knows.
+ */
+function autoReportTransactions(transactionIDs: string[]) {
+    if (transactionIDs.length === 0) {
+        return;
+    }
+
+    const parameters: ChangeTransactionsReportParams = {
+        transactionList: transactionIDs.join(','),
+        reportID: CONST.REPORT.AUTOMATIC_REPORT_ID,
+        transactionIDToReportActionAndThreadData: '{}',
+    };
+
+    API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters);
+}
+
 function getDefaultP2PMileageRate() {
     API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
 }
@@ -2052,6 +2072,7 @@ function getDuplicateTransactionDetails(transactionID?: string) {
 }
 
 export {
+    autoReportTransactions,
     saveWaypoint,
     removeWaypoint,
     getRoute,

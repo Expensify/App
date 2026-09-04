@@ -1773,6 +1773,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'No se pudo rechazar el informe. Por favor, inténtalo de nuevo.',
         },
         moveExpenses: 'Mover a informe',
+        autoReport: 'Informe automático',
+        autoReportDescription: 'Añadir a los informes borrador en nombre del empleado',
         moveExpensesMaxTransactionsError: `Los informes están limitados a ${CONST.REPORT.MAX_TRANSACTIONS} gastos. Por favor, mueve algunos a otro informe.`,
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
         submitReportTo: {

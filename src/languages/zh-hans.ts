@@ -1707,6 +1707,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: '无法拒绝该报表。请重试。',
         },
         moveExpenses: '移动到报告',
+        autoReport: '自动报告',
+        autoReportDescription: '代表员工添加到草稿报告',
         moveExpensesMaxTransactionsError: `每个报告最多可包含 ${CONST.REPORT.MAX_TRANSACTIONS} 笔支出。请将部分支出移动到其他报告。`,
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         submitReportTo: {

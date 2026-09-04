@@ -1780,6 +1780,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'La note de frais n’a pas pu être rejetée. Veuillez réessayer.',
         },
         moveExpenses: 'Déplacer vers le rapport',
+        autoReport: 'Rapport automatique',
+        autoReportDescription: 'Ajouter aux brouillons de rapports au nom de l’employé',
         moveExpensesMaxTransactionsError: `Les rapports sont limités à ${CONST.REPORT.MAX_TRANSACTIONS} dépenses. Veuillez en déplacer certaines vers un autre rapport.`,
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',

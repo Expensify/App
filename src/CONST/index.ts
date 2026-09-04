@@ -1537,6 +1537,8 @@ const CONST = {
         UNREPORTED_REPORT_ID: '0',
         TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
+        // "Auto report" destination: the backend picks each expense's report (its owner's latest draft, or a new one).
+        AUTOMATIC_REPORT_ID: '-3',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',

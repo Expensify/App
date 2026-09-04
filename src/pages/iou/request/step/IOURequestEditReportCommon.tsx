@@ -61,6 +61,10 @@ type Props = {
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
     isUnreportedManagedCardTransaction?: boolean;
+    /** Whether the expenses being moved belong to more than one submitter */
+    hasMultipleSubmitters?: boolean;
+    /** Lets the backend pick a destination report per expense. Required to offer the action to multiple submitters */
+    autoReport?: () => void;
 };
 
 function IOURequestEditReportCommon({
@@ -81,8 +85,10 @@ function IOURequestEditReportCommon({
     isPerDiemRequest,
     isTimeRequest = false,
     isUnreportedManagedCardTransaction = false,
+    hasMultipleSubmitters = false,
+    autoReport,
 }: Props) {
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document', 'DocumentMagicWand']);
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
@@ -147,7 +153,8 @@ function IOURequestEditReportCommon({
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
-        if (outstandingReports.length === 0) {
+        // Outstanding reports belong to one owner, so listing them would offer their reports for everyone else's expenses.
+        if (outstandingReports.length === 0 || hasMultipleSubmitters) {
             return [];
         }
 
@@ -196,6 +203,7 @@ function IOURequestEditReportCommon({
         localeCompare,
         allPolicies,
         currentUserPersonalDetails.accountID,
+        hasMultipleSubmitters,
         isPerDiemRequest,
         isTimeRequest,
         translate,
@@ -311,7 +319,8 @@ function IOURequestEditReportCommon({
 
     const policyForMovingExpensesName = policyForMovingExpenses?.name;
     const createReportOption = useMemo(() => {
-        if (!createReport || (isEditing && !isOwner && !isAdmin)) {
+        // A report per submitter would need one API call each, so "Auto report" serves them alone in a single call.
+        if (!createReport || hasMultipleSubmitters || (isEditing && !isOwner && !isAdmin)) {
             return undefined;
         }
 
@@ -328,10 +337,27 @@ function IOURequestEditReportCommon({
                 </MenuItem.Row>
             </MenuItem.Root>
         );
-    }, [icons.Document, createReport, translate, policyForMovingExpensesName, handleCreateReport, isEditing, isOwner, isAdmin]);
+    }, [createReport, hasMultipleSubmitters, isEditing, isOwner, isAdmin, handleCreateReport, icons.Document, translate, policyForMovingExpensesName]);
+
+    const autoReportOption = useMemo(() => {
+        if (!autoReport || !hasMultipleSubmitters) {
+            return undefined;
+        }
+
+        return (
+            <MenuItem
+                onPress={autoReport}
+                title={translate('iou.autoReport')}
+                description={translate('iou.autoReportDescription')}
+                icon={icons.DocumentMagicWand}
+            />
+        );
+    }, [icons.DocumentMagicWand, autoReport, hasMultipleSubmitters, translate]);
+
+    const listHeaderContent = createReportOption ?? autoReportOption;
 
     const shouldShowNotFoundPage = useMemo(() => {
-        if (createReportOption) {
+        if (listHeaderContent) {
             return false;
         }
 
@@ -347,7 +373,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReportOption, outstandingReports.length, shouldShowNotFoundPageFromProps, selectedReport, isAdmin]);
+    }, [listHeaderContent, outstandingReports.length, shouldShowNotFoundPageFromProps, selectedReport, isAdmin]);
 
     const hidePerDiemWarningModal = () => setPerDiemWarningModalVisible(false);
 
@@ -364,7 +390,7 @@ function IOURequestEditReportCommon({
                 data={reportOptions}
                 onSelectRow={handleSelectReport}
                 isRowMultilineSupported
-                shouldShowTextInput={outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                shouldShowTextInput={!hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 textInputOptions={{
                     value: searchValue,
                     label: translate('common.search'),
@@ -375,9 +401,9 @@ function IOURequestEditReportCommon({
                 }}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={selectedReportID}
-                shouldScrollToFocusedIndexOnMount={!createReportOption}
+                shouldScrollToFocusedIndexOnMount={!listHeaderContent}
                 ListItem={InviteMemberListItem}
-                customListHeaderContent={createReportOption}
+                customListHeaderContent={listHeaderContent}
                 listFooterContent={
                     shouldShowRemoveFromReport ? (
                         <MenuItem.Root onPress={removeFromReport}>
@@ -393,7 +419,7 @@ function IOURequestEditReportCommon({
                         </MenuItem.Root>
                     ) : undefined
                 }
-                listEmptyContent={createReportOption}
+                listEmptyContent={listHeaderContent}
             />
             <ConfirmModal
                 isVisible={perDiemWarningModalVisible}
