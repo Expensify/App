@@ -7562,12 +7562,12 @@ const translations = {
                 summaryDisabled: 'No commute exclusion',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
                 summaryHomeAndOffice: 'Use home and office locations',
-                optionDisabledTitle: 'Do not exclude commutes',
+                optionDisabledTitle: 'Do not exclude commute',
                 optionDisabledHelp: 'No commute is removed from claims.',
-                optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
-                optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
-                optionHomeAndOfficeTitle: 'Calculate by home and office',
-                optionHomeAndOfficeHelp: 'Use member’s home address, work arrangement, and office assignment to calculate commute exclusions.',
+                optionFixedDistanceTitle: 'Remove fixed distance',
+                optionFixedDistanceHelp: 'Subtracts the same distance from every claim.',
+                optionHomeAndOfficeTitle: 'Exclude usual commute',
+                optionHomeAndOfficeHelp: "Subtracts each member's regular commute based on their home, work arrangement, and office.",
                 distanceLabel: 'Distance',
                 workspaceAddressRequired: {
                     title: 'Not so fast...',
@@ -9667,6 +9667,10 @@ const translations = {
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
+        },
+        mergeReports: {
+            title: 'Merge reports',
+            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
         },
     },
     genericErrorPage: {
