@@ -46,6 +46,7 @@ function Composer({
     ...props
 }: ComposerProps) {
     const textInputRef = useRef<MarkdownTextInput | null>(null);
+    const lastAppliedComposerSizeRef = useRef<boolean | null>(null);
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
@@ -57,6 +58,13 @@ function Composer({
     useBlurOnKeyboardHide(textInputRef);
 
     useEffect(() => {
+        // The caret move belongs to a size toggle, and an effect remount repeats it with the size unchanged, which
+        // would scroll a composer the user has since scrolled away back to the caret.
+        if (lastAppliedComposerSizeRef.current === isComposerFullSize) {
+            return;
+        }
+        lastAppliedComposerSizeRef.current = isComposerFullSize;
+
         if (!textInputRef.current?.setSelection || !selection || isComposerFullSize) {
             return;
         }
