@@ -51,6 +51,7 @@ import type {
     Transaction,
     TransactionViolation,
     TransactionViolations,
+    ViolationName,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
@@ -104,7 +105,7 @@ import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
 
 import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
-import {getBankAccountFromID} from './actions/BankAccounts';
+import {getBankAccountFromID, getBankAccountList} from './actions/BankAccounts';
 import {unholdRequest} from './actions/IOU/Hold';
 import {
     createDraftTransaction,
@@ -446,6 +447,12 @@ type BuildOptimisticIOUReportActionParams = {
     linkedExpenseReportAction?: OnyxEntry<ReportAction>;
     payAsBusiness?: boolean;
     bankAccountID?: number | undefined;
+    /**
+     * Masked number of the bank account the report was actually paid with. Stored on the action so every viewer sees
+     * the same account, since the payer's account is not present in every viewer's `bankAccountList` and the policy's
+     * ACH account can belong to a different bank account than the one used to pay.
+     */
+    accountNumber?: string;
     isPersonalTrackingExpense?: boolean;
     reportActionID?: string;
     // TODO: delegateAccountIDParam will be made required when all callers pass the value (https://github.com/Expensify/App/issues/66425)
@@ -1309,7 +1316,7 @@ function getReportOrDraftReport(
 }
 
 /**
- * This function is being migrated to remove `deprecatedReportsTransactions`.
+ * @deprecated This function is being migrated and will be removed later.
  * If you need to use this function, you must explicitly pass the `allReportsTransactions` parameter
  * instead of relying on the default value. In React components, prefer using the `useReportTransactions` hook.
  */
@@ -5083,13 +5090,13 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
 }
 
 function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
-    return isExpenseReport(report) || isGroupPolicyPolicyUtils(policy);
+    return isEmptyObject(report) ? isGroupPolicyPolicyUtils(policy) : isExpenseReport(report);
 }
 
 /**
  * Returns a transaction's amount with the sign it is displayed with. A transaction on an expense report, on a group
- * policy, unreported, or deleted is stored with the opposite sign, so its stored amount is negated. Any other
- * transaction returns its magnitude.
+ * policy with no report of its own, unreported, or deleted is stored with the opposite sign, so its stored amount is
+ * negated. Any other transaction returns its magnitude.
  */
 function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
     const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -6078,7 +6085,7 @@ function getReportPreviewMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
-            const isFromInvoice = !!originalMessage?.bankAccountID;
+            const isFromInvoice = originalMessage?.paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA && !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
@@ -6103,7 +6110,7 @@ function getReportPreviewMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+            const last4Digits = getBankAccountLastFourDigits(undefined, getBankAccountList(), policy ?? undefined, originalMessage?.accountNumber, payerAccountID);
             const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits) : undefined;
             if (crossBorderMessage) {
                 return crossBorderMessage;
@@ -6300,7 +6307,10 @@ function getReportPreviewReportActionMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
-            const isFromInvoice = !!originalMessage?.bankAccountID;
+            // `bankAccountID` alone doesn't imply the invoice was paid outside VBBA, since a paying admin can pick a
+            // bank account for any payment type. The VBBA check must be evaluated first (see below) so a VBBA
+            // payment always renders as "paid with bank account 1234" rather than being mislabeled as personal.
+            const isFromInvoice = originalMessage?.paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA && !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
@@ -6325,7 +6335,7 @@ function getReportPreviewReportActionMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+            const last4Digits = getBankAccountLastFourDigits(undefined, getBankAccountList(), reportPolicy, originalMessage?.accountNumber, payerAccountID);
 
             // This variant returns raw English to match the surrounding non-localized preview strings.
             if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
@@ -7854,6 +7864,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         isPersonalTrackingExpense = false,
         payAsBusiness,
         bankAccountID,
+        accountNumber,
         reportActionID,
         delegateAccountIDParam,
         isSubmitterMarkedPaymentReceived,
@@ -7894,6 +7905,11 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
 
         if (isSubmitterMarkedPaymentReceived) {
             originalMessage.isSubmitterMarkedPaymentReceived = true;
+        }
+
+        // Persist the masked account used to pay so every viewer resolves the same account (see `accountNumber` above).
+        if (accountNumber) {
+            originalMessage.accountNumber = accountNumber;
         }
     }
 
@@ -9899,7 +9915,10 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
             const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
-            const excludedNoticeNamesForLHN = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
+            // A submitted `companyCardRequired` is not actionable by the submitter, so it must not drive the RBR. It is
+            // excluded by name because the back end owns its type.
+            const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.COMPANY_CARD_REQUIRED] : [];
+            const excludedNoticeNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 
             return (
                 !isInvoiceReport(potentialReport) &&
@@ -9910,62 +9929,57 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                     deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     policy,
                     transactions,
+                    excludedViolationNamesForLHN,
                 ) &&
-                (hasViolations(
-                    potentialReport.reportID,
+                hasViolationOfAnyTypeForRBRInLHN(
                     transactionViolations,
                     deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin,
-                    true,
                     transactions,
                     potentialReport,
-                    // This path only runs for reports the current user submitted, so the report owner is the current user.
-                    currentUserLogin,
                     policy,
-                ) ||
-                    hasWarningTypeViolations(
-                        potentialReport.reportID,
-                        transactionViolations,
-                        deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                        currentUserLogin,
-                        true,
-                        transactions,
-                        potentialReport,
-                        // This path only runs for reports the current user submitted, so the report owner is the current user.
-                        currentUserLogin,
-                        policy,
-                    ) ||
-                    hasNoticeTypeViolationsForRBRInLHN(
-                        transactionViolations,
-                        deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                        currentUserLogin,
-                        transactions,
-                        potentialReport,
-                        policy,
-                        excludedNoticeNamesForLHN,
-                    ))
+                    excludedViolationNamesForLHN,
+                    excludedNoticeNamesForLHN,
+                )
             );
         });
     return violatingReport ? violatingReport.reportID : null;
 }
 
-function hasNoticeTypeViolationsForRBRInLHN(
+/**
+ * Whether any transaction on the report carries a violation that should drive the LHN RBR, checking all three violation
+ * types. Names in `excludedViolationNames` are dropped from every type check, so the exclusion holds regardless of which
+ * bucket the back end assigns the violation to. Names in `excludedNoticeNames` are dropped from the notice check only.
+ * Apart from the name filtering this is the same decision the three separate `hasViolations` /
+ * `hasWarningTypeViolations` / `hasNoticeTypeViolationsForRBRInLHN` calls used to make, folded into a single pass over
+ * the report transactions.
+ */
+function hasViolationOfAnyTypeForRBRInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     reportTransactions: Transaction[],
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    excludedViolationNames: string[],
+    excludedViolationNames: ViolationName[],
+    excludedNoticeNames: ViolationName[],
 ): boolean {
     return reportTransactions.some((transaction) => {
         const rawViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
         if (!rawViolations?.length) {
             return false;
         }
-        const filteredViolations = excludedViolationNames.length > 0 ? rawViolations.filter((violation) => !excludedViolationNames.includes(violation.name)) : rawViolations;
+        const violations = excludedViolationNames.length > 0 ? rawViolations.filter((violation) => !excludedViolationNames.includes(violation.name)) : rawViolations;
+        if (!violations.length) {
+            return false;
+        }
+        const noticeViolations = excludedNoticeNames.length > 0 ? violations.filter((violation) => !excludedNoticeNames.includes(violation.name)) : violations;
         // This path only runs for reports the current user submitted, so the report owner is the current user.
-        return hasNoticeTypeViolation(transaction, filteredViolations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true);
+        return (
+            hasViolation(transaction, violations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true) ||
+            hasWarningTypeViolation(transaction, violations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true) ||
+            hasNoticeTypeViolation(transaction, noticeViolations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true)
+        );
     });
 }
 
@@ -11421,7 +11435,7 @@ function getIOUReportActionDisplayMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    policyACHAccountNumber: string | undefined,
+    policy: OnyxEntry<Policy>,
     transaction?: OnyxEntry<Transaction>,
     bankAccountList?: OnyxEntry<BankAccountList>,
 ): string {
@@ -11436,7 +11450,7 @@ function getIOUReportActionDisplayMessage(
 
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policyACHAccountNumber);
+        const last4Digits = getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policy, originalMessage?.accountNumber, reportAction?.actorAccountID);
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 
         switch (originalMessage.paymentType) {

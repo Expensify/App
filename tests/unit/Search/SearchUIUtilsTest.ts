@@ -1043,7 +1043,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         },
         formattedFrom: 'Admin',
         formattedTo: 'Approver',
-        formattedTotal: -1200,
+        formattedTotal: 1200,
         formattedMerchant: '',
         date: '2025-03-05',
         shouldShowMerchant: false,
@@ -1113,7 +1113,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         },
         formattedFrom: 'Admin',
         formattedTo: 'Approver',
-        formattedTotal: -3200,
+        formattedTotal: 3200,
         formattedMerchant: '',
         date: '2025-03-05',
         shouldShowMerchant: false,
@@ -1547,7 +1547,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 },
                 formattedFrom: 'Admin',
                 formattedTo: 'Approver',
-                formattedTotal: -1200,
+                formattedTotal: 1200,
                 formattedMerchant: '',
                 date: '2025-03-05',
                 shouldShowMerchant: false,
@@ -1616,7 +1616,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 },
                 formattedFrom: 'Admin',
                 formattedTo: 'Approver',
-                formattedTotal: -3200,
+                formattedTotal: 3200,
                 formattedMerchant: '',
                 date: '2025-03-05',
                 shouldShowMerchant: false,
@@ -6449,22 +6449,15 @@ describe('SearchUIUtils', () => {
                 expect(item?.formattedTotal).toBe(-5000);
             });
 
-            it('should keep the negative sign on formattedTotal for a credit on a group policy whose report is not an expense report', () => {
-                const data = makeFilterTestData({type: CONST.REPORT.TYPE.IOU}, {amount: 5000});
-                const [sections] = callGetTransactionsSections(data);
-                const item = sections.find((s) => s.transactionID === filterTestTxID);
-                expect(item?.formattedTotal).toBe(-5000);
-            });
-
             // Amounts are stored with the opposite sign, so these three rows render +$80.00, -$40.00 and +$10.00.
             function makeAmountSortData() {
                 const baseTransaction = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                 return makeFilterTestData(
-                    {type: CONST.REPORT.TYPE.IOU},
-                    {amount: -8000},
+                    {},
+                    {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: -8000},
                     {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}sort-credit`]: {...baseTransaction, transactionID: 'sort-credit', reportID: filterTestReportID, amount: 4000},
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}sort-small`]: {...baseTransaction, transactionID: 'sort-small', reportID: filterTestReportID, amount: -1000},
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}sort-credit`]: {...baseTransaction, transactionID: 'sort-credit', reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 4000},
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}sort-small`]: {...baseTransaction, transactionID: 'sort-small', reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: -1000},
                     },
                 );
             }
@@ -12946,7 +12939,7 @@ describe('SearchUIUtils', () => {
         const otherTransactionID = 'tx-violations-2';
 
         const createSubmittedAction = (
-            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED | typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
             violations?: {transactions: Record<string, Array<{name: string}>>},
             reportActionID = 'submit-action-1',
         ): OnyxTypes.ReportAction =>
@@ -13003,6 +12996,17 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.receiptRequired'),
             );
+        });
+
+        test('reads the snapshot recorded when an expense joined an already submitted report', () => {
+            const addExpenseAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.OVER_LIMIT}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([addExpenseAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.overLimit'));
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([addExpenseAction], otherTransactionID, translateLocal)).toBeUndefined();
         });
 
         test('aggregates across multiple submit actions and dedupes by name', () => {
