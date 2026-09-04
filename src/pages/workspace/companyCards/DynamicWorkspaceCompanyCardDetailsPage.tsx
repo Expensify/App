@@ -296,7 +296,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                                     prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
                                     confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 }).then((result) => {
                                     if (result.action !== ModalActions.CONFIRM) {
                                         return;
