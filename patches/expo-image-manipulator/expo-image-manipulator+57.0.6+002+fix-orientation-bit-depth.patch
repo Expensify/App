@@ -1,0 +1,41 @@
+diff --git a/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift b/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
+index c3e3b66..719ff9c 100644
+--- a/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
++++ b/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
+@@ -9,6 +9,13 @@ internal struct ImageFixOrientationTransformer: ImageTransformer {
+     guard let cgImage = image.cgImage else {
+       throw ImageNotFoundException()
+     }
++
++    // The transform below is the identity for an upright image, so skip building a full-resolution bitmap to
++    // redraw it into unchanged.
++    if image.imageOrientation == .up {
++      return image
++    }
++
+     guard var colorSpace = cgImage.colorSpace else {
+       // That should never happen as `colorSpace` is empty only when the image is a mask.
+       throw ImageColorSpaceNotFoundException()
+@@ -44,13 +51,20 @@ internal struct ImageFixOrientationTransformer: ImageTransformer {
+       break
+     }
+ 
++    // `CGBitmapContext` accepts a fixed table of pixel formats. `bitmapInfo` below is hardcoded to
++    // `premultipliedLast`, and 8 bits per component in RGB is the only depth always valid with it, so taking the
++    // depth from a 10-bit HDR HEIC returns nil and throws `ImageContextLostException` on every attempt, whatever
++    // memory is free. Clamping costs nothing: the manipulator encodes to JPEG next, which is 8-bit.
++    let isSupportedPixelFormat = cgImage.bitsPerComponent == 8 && colorSpace.model == .rgb
++    let contextColorSpace = isSupportedPixelFormat ? colorSpace : CGColorSpaceCreateDeviceRGB()
++
+     let context = CGContext(
+       data: nil,
+       width: Int(image.size.width),
+       height: Int(image.size.height),
+-      bitsPerComponent: cgImage.bitsPerComponent,
++      bitsPerComponent: isSupportedPixelFormat ? cgImage.bitsPerComponent : 8,
+       bytesPerRow: 0,
+-      space: colorSpace,
++      space: contextColorSpace,
+       bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+     )
+ 
