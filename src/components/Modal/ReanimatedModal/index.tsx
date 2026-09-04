@@ -109,15 +109,15 @@ function ReanimatedModal({
         };
     }, [handleEscape, onBackButtonPressHandler]);
 
+    // Only the tracked transition is torn down here. Resetting the open state would be dead code at a real
+    // unmount, and an effect remount would close a modal that is still open.
     useEffect(
         () => () => {
-            if (transitionHandleRef.current) {
-                TransitionTracker.endTransition(transitionHandleRef.current);
-                transitionHandleRef.current = null;
+            if (!transitionHandleRef.current) {
+                return;
             }
-
-            setIsVisibleState(false);
-            setIsContainerOpen(false);
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
         },
 
         [],

@@ -12,7 +12,7 @@ import {onModalDidClose, setCloseModal, willAlertModalBecomeVisible} from '@libs
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import type PopoverWithoutOverlayProps from './types';
@@ -53,28 +53,38 @@ function PopoverWithoutOverlay({
             enableEdgeToEdgeBottomSafeAreaPadding,
         });
 
-    useEffect(() => {
-        let removeOnClose: () => void;
-        if (isVisible) {
-            onModalShow();
+    // Announcing an open or a close is one-shot work that belongs to the change of `isVisible`, so an effect that
+    // runs again with the same value must skip it. The registration below is the opposite: its cleanup drops the
+    // handler, so every run has to put it back.
+    const lastAnnouncedVisibilityRef = useRef<boolean | undefined>(undefined);
 
-            onOpen?.({
-                ref: withoutOverlayRef,
-                close: onClose ?? NOOP,
-                anchorRef,
-            });
-            removeOnClose = setCloseModal(onClose ?? NOOP);
-        } else {
-            onModalHide();
-            close(anchorRef);
-            onModalDidClose();
+    useEffect(() => {
+        const hasVisibilityChanged = lastAnnouncedVisibilityRef.current !== isVisible;
+        lastAnnouncedVisibilityRef.current = isVisible;
+
+        if (hasVisibilityChanged) {
+            if (isVisible) {
+                onModalShow();
+
+                onOpen?.({
+                    ref: withoutOverlayRef,
+                    close: onClose ?? NOOP,
+                    anchorRef,
+                });
+            } else {
+                onModalHide();
+                close(anchorRef);
+                onModalDidClose();
+            }
+            willAlertModalBecomeVisible(isVisible, true);
         }
-        willAlertModalBecomeVisible(isVisible, true);
+
+        if (!isVisible) {
+            return;
+        }
+        const removeOnClose = setCloseModal(onClose ?? NOOP);
 
         return () => {
-            if (!removeOnClose) {
-                return;
-            }
             removeOnClose();
         };
         // We want this effect to run strictly ONLY when isVisible prop changes
