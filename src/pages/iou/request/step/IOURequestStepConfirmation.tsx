@@ -343,14 +343,14 @@ function IOURequestStepConfirmationContent({
     const sourceReportID = transaction?.reportID ?? reportID;
     const sourceReport = useMemo(() => (sourceReportID ? getReportOrDraftReport(sourceReportID) : undefined), [sourceReportID]);
     const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
+    const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
     const defaultParticipants = useMemo(() => {
         // Don't override the participants the user has already selected, and bail when there is no source report.
-        const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
         if (hasSelectedParticipants || !sourceReportID) {
             return [];
         }
         return resolvedDefaultParticipants;
-    }, [transaction?.participants, sourceReportID, resolvedDefaultParticipants]);
+    }, [hasSelectedParticipants, sourceReportID, resolvedDefaultParticipants]);
 
     const shouldAutoOpenParticipantPicker = useMemo(() => {
         if (!transaction?.transactionID) {
@@ -380,6 +380,10 @@ function IOURequestStepConfirmationContent({
 
     const shouldReopenParticipantPickerOnFocusRef = useRef(false);
 
+    // The referral banner inside the picker navigates to its own RHP, which the picker would otherwise cover, so the
+    // picker closes first and is reopened when the user comes back. This goes through `closeParticipantPicker`, which
+    // permanently marks the auto-open as dismissed, so the reopen below deliberately re-enters through the manual path.
+    // That is what we want: after the round trip a genuine dismissal must close the picker for good.
     const closeParticipantPickerForReferralNavigation = useCallback(() => {
         shouldReopenParticipantPickerOnFocusRef.current = isParticipantPickerVisible;
         closeParticipantPicker();
@@ -387,17 +391,21 @@ function IOURequestStepConfirmationContent({
 
     useEffect(
         () =>
+            // This screen is also rendered embedded by `IOURequestStartPage`, so the listener fires on every refocus of
+            // that screen, not only on back from the referral page. Re-checking that the expense still has no recipient
+            // keeps an unrelated RHP round trip (or a recipient resolved meanwhile) from slamming the picker open over a
+            // form the user wasn't editing.
             navigation.addListener('focus', () => {
                 if (!shouldReopenParticipantPickerOnFocusRef.current) {
                     return;
                 }
                 shouldReopenParticipantPickerOnFocusRef.current = false;
-                if (!activeTransactionID) {
+                if (!activeTransactionID || hasSelectedParticipants) {
                     return;
                 }
                 setManuallyOpenedParticipantPickerForTransactionID(activeTransactionID);
             }),
-        [navigation, activeTransactionID],
+        [navigation, activeTransactionID, hasSelectedParticipants],
     );
 
     const handleParticipantsAdded = useCallback(

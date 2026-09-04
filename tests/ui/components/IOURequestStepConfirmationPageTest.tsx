@@ -4,6 +4,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type {ParticipantPickerProps} from '@components/ParticipantPicker/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
@@ -27,6 +28,7 @@ import * as MoneyRequest from '../../../src/libs/actions/IOU/MoneyRequest';
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
+import createMockScreenNavigation from '../../utils/createMockScreenNavigation';
 import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -100,11 +102,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
 // The picker is only rendered under the new manual expense flow beta, so this is inert for every other test here.
 let mockSelectedParticipants: Participant[] = [];
 let mockSelectedPolicy: OnyxEntry<Policy>;
-type MockParticipantPickerProps = {
-    onParticipantsAdded: (participants: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void;
-    isVisible?: boolean;
-    onCloseForReferralNavigation?: () => void;
-};
+type MockParticipantPickerProps = Pick<ParticipantPickerProps, 'onParticipantsAdded' | 'isVisible' | 'onClose' | 'onCloseForReferralNavigation'>;
 jest.mock('@components/ParticipantPicker', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Text, TouchableOpacity} = jest.requireActual<{
@@ -114,8 +112,9 @@ jest.mock('@components/ParticipantPicker', () => {
     return {
         __esModule: true,
         // `MockParticipantPickerVisible` stands in for the docked overlay itself, so tests can assert whether the picker
-        // is showing. `MockParticipantPickerReferralBanner` stands in for the referral CTA inside it.
-        default: ({onParticipantsAdded, isVisible, onCloseForReferralNavigation}: MockParticipantPickerProps) =>
+        // is showing. `MockParticipantPickerReferralBanner` stands in for the referral CTA inside it, and
+        // `MockParticipantPickerDismiss` for a real dismissal (the back button), which must not arm the reopen.
+        default: ({onParticipantsAdded, isVisible, onClose, onCloseForReferralNavigation}: MockParticipantPickerProps) =>
             ReactModule.createElement(
                 ReactModule.Fragment,
                 null,
@@ -129,36 +128,13 @@ jest.mock('@components/ParticipantPicker', () => {
                     {testID: 'MockParticipantPickerReferralBanner', onPress: () => onCloseForReferralNavigation?.()},
                     ReactModule.createElement(Text, null, 'Referral banner'),
                 ),
+                ReactModule.createElement(TouchableOpacity, {testID: 'MockParticipantPickerDismiss', onPress: () => onClose?.()}, ReactModule.createElement(Text, null, 'Dismiss picker')),
                 isVisible ? ReactModule.createElement(Text, {testID: 'MockParticipantPickerVisible'}, 'Participant picker is open') : null,
             ),
     };
 });
 
-// These tests render the page outside a navigator, so the screen's `navigation` prop is stubbed with just the pieces the
-// page calls. Recording the 'focus' subscriptions lets a test replay the refocus that happens on returning from another RHP.
-const mockFocusListeners: Array<() => void> = [];
-const mockNavigation = {
-    addListener: jest.fn((event: string, callback: () => void) => {
-        if (event !== 'focus') {
-            return () => {};
-        }
-        mockFocusListeners.push(callback);
-        return () => {
-            const index = mockFocusListeners.indexOf(callback);
-            if (index === -1) {
-                return;
-            }
-            mockFocusListeners.splice(index, 1);
-        };
-    }),
-    setParams: jest.fn(),
-};
-
-function emitScreenFocus() {
-    for (const callback of mockFocusListeners) {
-        callback();
-    }
-}
+const {navigation: mockNavigation, emitScreenFocus, resetScreenFocusListeners} = createMockScreenNavigation();
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/getCurrentPosition');
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
@@ -346,7 +322,7 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
 describe('IOURequestStepConfirmationPageTest', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockFocusListeners.length = 0;
+        resetScreenFocusListeners();
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
@@ -394,7 +370,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                         reportID: routeReportID,
                                     },
                                 }}
-                                // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                 navigation={mockNavigation}
                             />
                         </LocaleContextProvider>
@@ -436,7 +411,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                         reportID: REPORT_ID,
                                     },
                                 }}
-                                // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                 navigation={mockNavigation}
                             />
                         </LocaleContextProvider>
@@ -485,7 +459,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                         reportID: REPORT_ID,
                                     },
                                 }}
-                                // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                 navigation={mockNavigation}
                             />
                         </LocaleContextProvider>
@@ -564,7 +537,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -623,7 +595,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -691,7 +662,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -731,7 +701,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -838,7 +807,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -941,7 +909,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -999,7 +966,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -1088,7 +1054,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: routeReportID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -1155,7 +1120,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: routeReportID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -1231,7 +1195,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                                 reportID: routeReportID,
                                             },
                                         }}
-                                        // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                         navigation={mockNavigation}
                                     />
                                 </LocaleContextProvider>
@@ -1291,7 +1254,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -1363,7 +1325,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -1449,7 +1410,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -1506,7 +1466,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -1565,7 +1524,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: '',
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -1616,7 +1574,23 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
 
         it('leaves the picker closed on refocus when it was dismissed normally rather than by the referral banner', async () => {
-            // Given a new manual expense whose participant picker the user dismissed by picking a recipient
+            // Given a new manual expense whose participant picker the user dismissed with the back button
+            await renderConfirmationWithOpenPicker();
+            expect(screen.getByTestId('MockParticipantPickerVisible')).toBeOnTheScreen();
+
+            fireEvent.press(screen.getByTestId('MockParticipantPickerDismiss'));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+
+            // When the screen regains focus after some unrelated navigation
+            await returnToScreen();
+
+            // Then the picker stays closed, since only the referral navigation arms the reopen
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+        });
+
+        it('leaves the picker closed on refocus once a recipient was picked', async () => {
+            // Given a new manual expense whose participant picker closed because the user picked a recipient
             await renderConfirmationWithOpenPicker();
             expect(screen.getByTestId('MockParticipantPickerVisible')).toBeOnTheScreen();
 
@@ -1628,7 +1602,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // When the screen regains focus after some unrelated navigation
             await returnToScreen();
 
-            // Then the picker stays closed — only the referral navigation arms the reopen
+            // Then the picker stays closed rather than covering a form the user is already filling in
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+        });
+
+        it('does not reopen the picker on refocus when a recipient was resolved while the referral page was open', async () => {
+            // Given a new manual expense whose picker closed because the referral banner navigated away
+            await renderConfirmationWithOpenPicker();
+            fireEvent.press(screen.getByTestId('MockParticipantPickerReferralBanner'));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+
+            // When the expense gains a recipient in the meantime (a deep link, or default participant resolution)
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                });
+            });
+
+            // Then coming back leaves the picker closed, because there is nothing left to pick
+            await returnToScreen();
             expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
         });
     });
@@ -1717,7 +1710,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: SOURCE_CHAT_REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error the stub only carries the navigation APIs this page actually calls.
                                     navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
@@ -1867,8 +1859,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                             reportID: REPORT_ID,
                         },
                     }}
-                    // @ts-expect-error only setParams is used by the participant selection handler.
-                    navigation={{setParams: jest.fn()}}
+                    navigation={mockNavigation}
                     shouldHideHeader={isEmbedded}
                 />
             );

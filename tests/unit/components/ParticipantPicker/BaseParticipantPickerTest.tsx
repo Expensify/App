@@ -2,7 +2,11 @@ import {render} from '@testing-library/react-native';
 
 import BaseParticipantPicker from '@components/ParticipantPicker/BaseParticipantPicker';
 
+import type MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
+
 import CONST from '@src/CONST';
+
+import type {ComponentProps} from 'react';
 
 import React from 'react';
 
@@ -22,10 +26,7 @@ jest.mock('@components/HeaderWithBackButton', () => {
     return MockHeaderWithBackButton;
 });
 
-type CapturedSelectorProps = {
-    onCloseParticipantPicker?: () => void;
-    onRestrictedParticipantSelected?: () => void;
-};
+type CapturedSelectorProps = Pick<ComponentProps<typeof MoneyRequestParticipantsSelector>, 'onCloseParticipantPicker' | 'onRestrictedParticipantSelected'>;
 
 let lastSelectorProps: CapturedSelectorProps = {};
 jest.mock('@pages/iou/request/MoneyRequestParticipantsSelector', () => {
