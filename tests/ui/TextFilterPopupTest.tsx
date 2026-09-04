@@ -10,7 +10,7 @@ import {NavigationContainer} from '@react-navigation/native';
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isSmallScreenWidth: false}));
 
-function renderMerchantPopup() {
+function renderMerchantPopup(hasStoredMerchantOperator = true) {
     const closeOverlay = jest.fn();
     const updateFilterForm = jest.fn();
 
@@ -20,7 +20,7 @@ function renderMerchantPopup() {
                 baseFilterKey={FILTER_KEYS.MERCHANT}
                 values={{
                     [FILTER_KEYS.MERCHANT]: 'I',
-                    [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+                    ...(hasStoredMerchantOperator ? {[FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS} : {}),
                 }}
                 label="common.merchant"
                 closeOverlay={closeOverlay}
@@ -53,6 +53,18 @@ describe('TextFilterPopup', () => {
             [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
         });
         expect(closeOverlay).toHaveBeenCalledTimes(1);
+    });
+
+    it('defaults to Contains when no Merchant operator is stored', () => {
+        const {updateFilterForm} = renderMerchantPopup(false);
+
+        fireEvent.press(screen.getByText('common.apply'));
+
+        expect(updateFilterForm).toHaveBeenCalledWith({
+            [FILTER_KEYS.MERCHANT]: 'I',
+            [FILTER_KEYS.MERCHANT_NOT]: undefined,
+            [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+        });
     });
 
     it('hides the match type and submits exact matching for a negated Merchant', () => {
