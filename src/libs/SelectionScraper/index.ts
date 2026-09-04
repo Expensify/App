@@ -123,7 +123,7 @@ function selectionContainsTextOutsideCopyableRows(selection: Selection): boolean
         let textNode = walker.nextNode();
 
         while (textNode) {
-            if (range.intersectsNode(textNode) && getSelectedTextForTextNode(textNode as globalThis.Text, range).trim()) {
+            if (textNode instanceof globalThis.Text && range.intersectsNode(textNode) && getSelectedTextForTextNode(textNode, range).trim()) {
                 const textElement = getElementFromNode(textNode);
                 if (!textElement?.closest(COPYABLE_ROW_SELECTOR) && !textElement?.closest(hiddenElementSelector)) {
                     return true;
