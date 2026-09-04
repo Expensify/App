@@ -54,7 +54,6 @@ import * as Device from '@userActions/Device';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
-import {getOnboardingTaskCompletionOnSuccessData} from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
@@ -1578,9 +1577,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
 
 /**
  * @param addWorkEmailTaskReport The join-workspace intent's "add work email" Concierge task, when one exists. Auth
- * auto-completes it as part of AddWorkEmail via a forwarded CompleteTask, but ticking it here too avoids waiting on
- * that command's Pusher update to reach the client. The tick rides AddWorkEmail's successData so it only lands once
- * the command has actually succeeded - see getOnboardingTaskCompletionOnSuccessData.
+ * auto-completes it after the work email has been fully validated or merged.
  */
 function AddWorkEmail(
     workEmail: string,
@@ -1591,6 +1588,7 @@ function AddWorkEmail(
     addWorkEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
     currentUserAccountID?: number,
 ) {
+    const completedTaskReportActionID = addWorkEmailTaskReport && currentUserAccountID ? rand64() : undefined;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1598,6 +1596,7 @@ function AddWorkEmail(
             value: {
                 onboardingWorkEmail: workEmail,
                 isLoading: true,
+                completedTaskReportActionID,
             },
         },
         {
@@ -1626,20 +1625,6 @@ function AddWorkEmail(
             },
         },
     ];
-
-    let completedTaskReportActionID: string | undefined;
-    if (addWorkEmailTaskReport && currentUserAccountID) {
-        const addWorkEmailTaskCompletion = getOnboardingTaskCompletionOnSuccessData(
-            addWorkEmailTaskReport,
-            addWorkEmailTaskParentReport,
-            isAddWorkEmailTaskParentReportArchived ?? false,
-            currentUserAccountID,
-            addWorkEmailTaskHasOutstandingChildTask ?? false,
-            addWorkEmailTaskParentReportAction,
-        );
-        successData.push(...addWorkEmailTaskCompletion.successData);
-        completedTaskReportActionID = addWorkEmailTaskCompletion.completedTaskReportActionID;
-    }
 
     // We need to inspect the response to detect the closed-account error and surface a specific translation key, which API.write cannot do.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
@@ -1674,7 +1659,7 @@ function AddWorkEmail(
     });
 }
 
-function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
+function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined, completedTaskReportActionID?: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1728,7 +1713,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
-        {workEmail, validateCode, accountID},
+        {workEmail, validateCode, accountID, completedTaskReportActionID},
         {
             optimisticData,
             successData,
@@ -1851,3 +1836,4 @@ export {
     clearDisableTwoFactorAuthErrors,
     isSupportalSession,
 };
+import {rand64} from '@libs/NumberUtils';
