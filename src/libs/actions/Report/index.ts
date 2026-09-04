@@ -2128,18 +2128,31 @@ function pruneReportActionPagesToNewestWindow(reportID: string | undefined, sort
  * @param introSelected The intro selected data for guided setup
  * @param avatar The avatar file to upload for the group chat (optional)
  */
-function createGroupChat(
-    reportID: string,
-    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
-    newReportObject: OptimisticChatReport,
-    currentUserLogin: string,
-    introSelected: OnyxEntry<IntroSelected>,
-    isSelfTourViewed: boolean,
-    hasCompletedGuidedSetupFlow: boolean,
-    betas: OnyxEntry<Beta[]>,
-    currentUserAccountID: number,
-    avatar?: File | CustomRNImageManipulatorResult,
-) {
+type CreateGroupChatParams = {
+    reportID: string;
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>;
+    newReportObject: OptimisticChatReport;
+    currentUserLogin: string;
+    introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean;
+    hasCompletedGuidedSetupFlow: boolean;
+    conciergeChat: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    avatar?: File | CustomRNImageManipulatorResult;
+};
+
+function createGroupChat({
+    reportID,
+    participantsPersonalDetails,
+    newReportObject,
+    currentUserLogin,
+    introSelected,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    conciergeChat,
+    currentUserAccountID,
+    avatar,
+}: CreateGroupChatParams) {
     const participantLoginList = Object.values(participantsPersonalDetails ?? {})
         .map((participant) => participant?.login)
         .filter((login): login is string => !!login);
@@ -2325,8 +2338,7 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    // Deferred: thread the real conciergeChat when the createGroupChat cascade is migrated (https://github.com/Expensify/App/issues/66411)
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, undefined, isSelfTourViewed, hasCompletedGuidedSetupFlow);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, conciergeChat, isSelfTourViewed, hasCompletedGuidedSetupFlow);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2660,7 +2672,7 @@ type NavigateToAndCreateGroupChatParams = {
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean;
     hasCompletedGuidedSetupFlow: boolean;
-    betas: OnyxEntry<Beta[]>;
+    conciergeChat: OnyxEntry<Report>;
     currentUserAccountID: number;
     avatarUri?: string;
     avatarFile?: File | CustomRNImageManipulatorResult | undefined;
@@ -2675,7 +2687,7 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
+        conciergeChat,
         currentUserAccountID,
         avatarUri,
         avatarFile,
@@ -2687,18 +2699,18 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-    createGroupChat(
-        newChat.reportID,
+    createGroupChat({
+        reportID: newChat.reportID,
         participantsPersonalDetails,
-        newChat,
+        newReportObject: newChat,
         currentUserLogin,
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
+        conciergeChat,
         currentUserAccountID,
-        avatarFile,
-    );
+        avatar: avatarFile,
+    });
 
     navigateToReport(newChat.reportID, {afterTransition: clearGroupChat});
 }
