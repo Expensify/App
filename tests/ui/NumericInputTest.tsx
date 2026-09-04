@@ -3,8 +3,10 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {NumericEditingRef} from '@components/NumericEditingController';
-import NumericInput from '@components/NumericInput';
+import NumericInput, {useNumericDynamicFontSize, useNumericInputActions} from '@components/NumericInput';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import CONST from '@src/CONST';
@@ -27,6 +29,7 @@ type NumericInputProps = React.ComponentProps<typeof NumericInput>;
 const INPUT_TEST_ID = 'numeric-text-input';
 const CONTAINER_TEST_ID = 'numeric-input-container';
 const SYMBOL_ACCESSIBILITY_LABEL = 'Select a symbol or currency';
+const MINUS_SIGN = '-';
 
 function renderWithProviders(children: React.ReactNode) {
     return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>);
@@ -49,6 +52,18 @@ function getContainerViewId(testID: string) {
     return container.props.id;
 }
 
+function ToggleSignTrigger() {
+    const {toggleSign} = useNumericInputActions();
+
+    return (
+        <PressableWithoutFeedback
+            accessibilityLabel="Toggle sign"
+            testID="toggle-sign"
+            onPress={toggleSign}
+        />
+    );
+}
+
 describe('NumericInput', () => {
     const onInputChange = jest.fn();
 
@@ -61,6 +76,7 @@ describe('NumericInput', () => {
             >
                 {children ?? (
                     <>
+                        <NumericInput.MinusSign />
                         <NumericInput.Symbol>$</NumericInput.Symbol>
                         <NumericInput.TextInput testID={INPUT_TEST_ID} />
                     </>
@@ -191,6 +207,56 @@ describe('NumericInput', () => {
     });
 
     describe('text input primitive', () => {
+        it('renders a negative value as a separate sign and editable magnitude', () => {
+            renderNumericInput({value: '-12', allowNegative: true});
+
+            expect(screen.getByText(MINUS_SIGN)).toBeOnTheScreen();
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('12');
+        });
+
+        it('preserves the sign when the magnitude is edited', () => {
+            renderNumericInput({value: '-12', allowNegative: true});
+
+            fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '123');
+
+            expect(onInputChange).toHaveBeenCalledWith('-123');
+        });
+
+        it('clears the sign when the magnitude is cleared', () => {
+            renderNumericInput({value: '-12', allowNegative: true});
+
+            const input = screen.getByTestId(INPUT_TEST_ID);
+            fireEvent.changeText(input, '');
+
+            expect(screen.queryByText(MINUS_SIGN)).not.toBeOnTheScreen();
+            expect(input).toHaveDisplayValue('');
+            expect(onInputChange).toHaveBeenCalledWith('');
+        });
+
+        it('clears a standalone minus when backspace is pressed on an empty input', () => {
+            renderNumericInput({value: '-', allowNegative: true});
+
+            fireEvent(screen.getByTestId(INPUT_TEST_ID), 'keyPress', {nativeEvent: {key: 'Backspace'}});
+
+            expect(screen.queryByText(MINUS_SIGN)).not.toBeOnTheScreen();
+            expect(onInputChange).toHaveBeenCalledWith('');
+        });
+
+        it('toggles the sign and notifies the parent with the signed value', () => {
+            renderNumericInput(
+                {value: '12', allowNegative: true},
+                <>
+                    <NumericInput.MinusSign />
+                    <ToggleSignTrigger />
+                </>,
+            );
+
+            fireEvent.press(screen.getByTestId('toggle-sign'));
+
+            expect(screen.getByText(MINUS_SIGN)).toBeOnTheScreen();
+            expect(onInputChange).toHaveBeenLastCalledWith('-12');
+        });
+
         it('commits a valid edit through the root and displays it', () => {
             // Given a composition with two accepted decimal places and value "12"
             renderNumericInput({value: '12'});
@@ -276,6 +342,38 @@ describe('NumericInput', () => {
             // Then each callback runs exactly once
             expect(onBlur).toHaveBeenCalledTimes(1);
             expect(onSubmitEditing).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('error primitive', () => {
+        it('renders the root error where the composition places it', () => {
+            renderNumericInput(
+                {errorText: 'Invalid amount'},
+                <>
+                    <NumericInput.TextInput testID={INPUT_TEST_ID} />
+                    <NumericInput.Error />
+                </>,
+            );
+
+            expect(screen.getByText('Invalid amount')).toBeOnTheScreen();
+        });
+    });
+
+    describe('useNumericDynamicFontSize', () => {
+        function FontSizeReadout({symbol}: {symbol?: string}) {
+            const {fontSize} = useNumericDynamicFontSize(symbol);
+
+            return <Text testID="font-size">{String(fontSize)}</Text>;
+        }
+
+        it('scales down as the displayed value grows', () => {
+            renderNumericInput({value: '1'}, <FontSizeReadout />);
+            const shortValueFontSize = Number(screen.getByTestId('font-size').props.children);
+
+            screen.unmount();
+            renderNumericInput({value: '-123456789', allowNegative: true}, <FontSizeReadout symbol="PLN" />);
+
+            expect(Number(screen.getByTestId('font-size').props.children)).toBeLessThan(shortValueFontSize);
         });
     });
 
