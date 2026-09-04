@@ -634,11 +634,12 @@ describe('SearchAutocompleteList', () => {
                 expect(screen.getByText('Recent chats')).toBeTruthy();
             });
 
-            // When the user searches and Auth responds
+            // When the user enters a search query
             const textInput = screen.getByTestId('search-autocomplete-text-input');
             fireEvent.changeText(textInput, 'test');
             await flushAllUpdates();
 
+            // And Auth returns search results
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['101', '102', '103']);
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
@@ -668,11 +669,12 @@ describe('SearchAutocompleteList', () => {
             render(<SearchRouterWrapper />);
             await flushAllUpdates();
 
-            // When the user searches and Auth responds
+            // When the user enters a search query
             const textInput = screen.getByTestId('search-autocomplete-text-input');
             fireEvent.changeText(textInput, 'some query');
             await flushAllUpdates();
 
+            // And Auth returns search results
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['101', '102', '103']);
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
@@ -708,12 +710,12 @@ describe('SearchAutocompleteList', () => {
             render(<SearchRouterWrapper />);
             await flushAllUpdates();
 
-            // When a query freezes the visible local reports in their existing order
+            // When the user enters a query
             const textInput = screen.getByTestId('search-autocomplete-text-input');
             fireEvent.changeText(textInput, 'test');
             await flushAllUpdates();
 
-            // And Auth returns 20 server-only results before the local reports
+            // And Auth returns 20 server-only results ahead of the local reports
             const serverReports = Array.from({length: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS}, (_, index) => {
                 const reportID = String(201 + index);
                 return {reportID, keyForList: reportID, text: `Server${index + 1} Report`, alternateText: '', lastMessageText: ''};
@@ -777,7 +779,7 @@ describe('SearchAutocompleteList', () => {
             // Then the local result candidate pool uses the suggestion limit
             expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS}));
 
-            // When Auth returns an order
+            // When Auth returns the server result order
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['101']);
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);

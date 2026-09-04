@@ -198,7 +198,7 @@ describe('SearchAutocompleteList', () => {
         const dmAsPersonalDetail: OptionData = {reportID: '', keyForList: '123', accountID: 123, text: 'Alice', alternateText: '', lastMessageText: ''};
         mockCombineOrdering.mockReturnValue({recentReports: [dmAsPersonalDetail], personalDetails: []});
 
-        // When the search results first render
+        // When the search results are first rendered
         const {rerender, toJSON} = render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
@@ -213,7 +213,7 @@ describe('SearchAutocompleteList', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then the DM is shown in Recent chats
+        // Then the DM is shown in the "Recent chats" section
         const treeAfterFreeze = JSON.stringify(toJSON());
         expect(treeAfterFreeze).toContain('Recent chats');
         expect(treeAfterFreeze).toContain('Alice');
@@ -260,7 +260,7 @@ describe('SearchAutocompleteList', () => {
         const aliceTaskIndex = treeAfterServer.indexOf('Alice Task');
         const bobIndex = treeAfterServer.indexOf('Bob');
 
-        // Then the hydrated DM remains in Recent chats and the other reports appear in Search results
+        // Then the hydrated DM remains in the "Recent chats" section, and the other reports appear in "Search results"
         expect(recentChatsIndex).toBeGreaterThanOrEqual(0);
         expect(serverResultsIndex).toBeGreaterThan(recentChatsIndex);
         expect(aliceDMIndex).toBeGreaterThanOrEqual(0);
@@ -270,7 +270,7 @@ describe('SearchAutocompleteList', () => {
         expect(aliceDMIndex).toBeGreaterThan(recentChatsIndex);
         expect(aliceDMIndex).toBeLessThan(serverResultsIndex);
 
-        // And Search results follows Auth's order without treating Alice's task as her DM
+        // And "Search results" follows Auth's order without treating Alice's task as her DM
         expect(aliceTaskIndex).toBeGreaterThan(serverResultsIndex);
         expect(bobIndex).toBeGreaterThan(serverResultsIndex);
         expect(aliceTaskIndex).toBeLessThan(bobIndex);
