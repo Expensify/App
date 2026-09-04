@@ -25,6 +25,7 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
     const country = bankAccount?.bankCountry;
     const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
     const [enableGlobalReimbursementsDraft, enableGlobalReimbursementsDraftMetadata] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
+    const isLoadingDraft = isLoadingOnyxValue(enableGlobalReimbursementsDraftMetadata);
     const defaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM] ?? [];
     const bankStatement = enableGlobalReimbursementsDraft?.[INPUT_IDS.BANK_STATEMENT];
 
@@ -33,12 +34,12 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
     };
 
     useEffect(() => {
-        if (bankStatement?.length || isLoadingOnyxValue(enableGlobalReimbursementsDraftMetadata)) {
+        if (bankStatement?.length || isLoadingDraft) {
             return;
         }
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
-    }, [bankAccountID, bankStatement?.length, enableGlobalReimbursementsDraftMetadata.status]);
+    }, [bankAccountID, bankStatement?.length, isLoadingDraft]);
 
     const onSubmit = () => {
         enableGlobalReimbursementsForUSDBankAccount({
