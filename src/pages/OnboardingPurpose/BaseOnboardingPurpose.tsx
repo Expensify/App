@@ -83,6 +83,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {isBetaEnabled} = usePermissions();
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
@@ -145,6 +146,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         isSelfTourViewed,
                         conciergeChat,
                         adminsChatReport,
+                        currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     }).then(() => {
                         navigateAfterOnboardingWithMicrotaskQueue(
                             shouldUseNarrowLayout,
