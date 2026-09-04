@@ -4388,7 +4388,7 @@ ${amount} για ${merchant} - ${date}`,
         enterSignerInfo: 'Εισαγάγετε τα στοιχεία υπογράφοντα',
         thisStep: 'Αυτό το βήμα έχει ολοκληρωθεί',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `συνδέει έναν επαγγελματικό τραπεζικό λογαριασμό σε ${currency} που λήγει σε ${bankAccountLastFour} με το Expensify για να πληρώνει εργαζομένους σε ${currency}. Το επόμενο βήμα απαιτεί στοιχεία υπογράφοντος από έναν διευθυντή.`,
+            `πρόσθεσε έναν τραπεζικό λογαριασμό σε ${currency} που λήγει σε ${bankAccountLastFour}. Καταχωρίστε τα στοιχεία υπογράφοντος ως διευθυντής, ώστε αυτός ο τραπεζικός λογαριασμός να μπορεί να χρησιμοποιηθεί για την πληρωμή εργαζομένων.`,
         error: {
             emailsMustBeDifferent: 'Τα email πρέπει να είναι διαφορετικά',
         },

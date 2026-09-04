@@ -4337,7 +4337,7 @@ ${amount} dla ${merchant} - ${date}`,
         enterSignerInfo: 'Wprowadź dane sygnatariusza',
         thisStep: 'Ten krok został ukończony',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `łączy firmowe konto bankowe w ${currency} z numerem kończącym się na ${bankAccountLastFour} z Expensify, aby wypłacać wynagrodzenia pracownikom w ${currency}. Następnym krokiem jest podanie danych sygnatariusza będącego dyrektorem.`,
+            `dodaje konto bankowe w ${currency} z numerem kończącym się na ${bankAccountLastFour}. Podaj swoje dane sygnatariusza jako dyrektor, aby to konto bankowe mogło być używane do wypłaty wynagrodzeń pracownikom.`,
         error: {
             emailsMustBeDifferent: 'Adresy e-mail muszą być różne',
         },

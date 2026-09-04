@@ -4311,7 +4311,7 @@ ${amount} per ${merchant} - ${date}`,
         enterSignerInfo: 'Inserisci le informazioni del firmatario',
         thisStep: 'Questo passaggio è stato completato',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `sta collegando un conto bancario aziendale in ${currency} che termina con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni del firmatario da un direttore.`,
+            `ha aggiunto un conto bancario in ${currency} che termina con ${bankAccountLastFour}. Inserisci le tue informazioni di firmatario come direttore in modo che questo conto bancario possa essere utilizzato per pagare i dipendenti.`,
         error: {
             emailsMustBeDifferent: 'Le email devono essere diverse',
         },

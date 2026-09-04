@@ -4310,7 +4310,7 @@ ${amount} voor ${merchant} - ${date}`,
         enterSignerInfo: 'Voer ondertekenaargegevens in',
         thisStep: 'Deze stap is voltooid',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `verbindt een zakelijke ${currency}-bankrekening die eindigt op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarsgegevens van een directeur.`,
+            `heeft een ${currency}-bankrekening die eindigt op ${bankAccountLastFour} toegevoegd. Voer je ondertekenaarsgegevens in als directeur zodat deze bankrekening kan worden gebruikt om werknemers te betalen.`,
         error: {
             emailsMustBeDifferent: 'E-mails moeten verschillend zijn',
         },

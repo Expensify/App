@@ -4173,7 +4173,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         enterSignerInfo: '输入签署人信息',
         thisStep: '此步骤已完成',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `正在连接一 个以 ${bankAccountLastFour} 结尾的 ${currency} 企业银行账户到 Expensify，以便以 ${currency} 支付员工。下一步需要一位董事的签署人信息。`,
+            `添加了一个以 ${bankAccountLastFour} 结尾的 ${currency} 银行账户。请以董事身份输入您的签署人信息，以便此银行账户可用于支付员工工资。`,
         error: {
             emailsMustBeDifferent: '电子邮箱地址必须不同',
         },
