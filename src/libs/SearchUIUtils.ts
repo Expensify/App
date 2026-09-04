@@ -59,6 +59,7 @@ import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCard
 
 import type {ThemeColors} from '@styles/theme/types';
 import type {ButtonVariant} from '@styles/utils/types';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -6982,12 +6983,36 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean) {
+/** The gap the table renders between two adjacent columns, matching the row's `gap3` styling. */
+const SEARCH_TABLE_COLUMN_GAP = 12;
+
+/**
+ * Width of the arrow ending each row. The arrow is a row child rather than a column, so it is counted separately: leave
+ * it out and it gets pushed past the edge instead of the table scrolling to reach it.
+ */
+const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal;
+
+/** The margin and padding each row sits inside on both sides (`mh5` on its wrapper, `ph3` on the row). */
+const SEARCH_TABLE_ROW_CHROME_WIDTH = (20 + 12) * 2;
+
+function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean, columnMinWidths?: Partial<Record<SearchColumnType, number>>) {
     // Starts at 24px to account for the checkbox width
     let minWidth = 24;
 
+    // The row lays out the checkbox, then every column, then the trailing arrow, as flex children of one gapped row, so
+    // it spends a gap between each adjacent pair: one more than there are columns. Those gaps, the arrow, and the row's
+    // own margin and padding are all width the table needs on top of the columns themselves.
+    minWidth += (columns.length + 1) * SEARCH_TABLE_COLUMN_GAP + SEARCH_TABLE_ROW_ARROW_WIDTH + SEARCH_TABLE_ROW_CHROME_WIDTH;
+
     for (const column of columns) {
-        if (column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
+        // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates
+        // are a second copy of widths that live in the column styles, and several of them are off by 70px or more, so
+        // the table scrolls well before it has actually run out of room.
+        const knownMinWidth = columnMinWidths?.[column];
+
+        if (knownMinWidth !== undefined) {
+            minWidth += knownMinWidth;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
             minWidth += 36;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT) {
             minWidth += 28;

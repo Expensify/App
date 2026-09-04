@@ -34,6 +34,23 @@ type HorizontalTableScrollProps = {
 
     /** Re-restores the saved horizontal offset whenever this value changes (typically the list data). */
     dataKey: unknown;
+
+    /** Known minimums for the columns that have one, replacing the estimates `getTableMinWidth` assumes for them. */
+    columnMinWidths?: Partial<Record<SearchColumnType, number>>;
+
+    /**
+     * What each column wants rather than the least it can take. Used to size the scrolled content, so that once the
+     * table scrolls its columns are laid out from what they hold instead of staying squeezed to the widths that only a
+     * table short of room would have needed.
+     */
+    columnContentWidths?: Partial<Record<SearchColumnType, number>>;
+
+    /**
+     * Measured width of the area the table lays out into. The page is inset from the window, so the window is wider and
+     * comparing against it would leave the table overflowing its container without ever scrolling. Falls back to the
+     * window width until the first layout.
+     */
+    availableWidth?: number;
 };
 
 /**
@@ -41,11 +58,17 @@ type HorizontalTableScrollProps = {
  * the saved horizontal offset across query changes (before paint, to avoid a visible shift). Extracted
  * from SearchList so ExpenseFlatSearchView can reuse it.
  */
-function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey}: HorizontalTableScrollProps) {
+function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey, columnMinWidths, columnContentWidths, availableWidth}: HorizontalTableScrollProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide);
-    const shouldScrollHorizontally = isHeaderVisible && minTableWidth > windowWidth;
+    const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide, columnMinWidths);
+    const tableWidth = availableWidth && availableWidth > 0 ? availableWidth : windowWidth;
+
+    // Whether to scroll is decided on the minimums, so the table only gives up on fitting once it truly cannot. The
+    // scrolled content is then laid out from what the columns want, since there is no longer any room to save by
+    // squeezing them, and never narrower than the space already available.
+    const shouldScrollHorizontally = isHeaderVisible && minTableWidth > tableWidth;
+    const contentTableWidth = Math.max(getTableMinWidth(columns, type, isActionColumnWide, columnContentWidths), minTableWidth, tableWidth);
 
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
 
@@ -71,7 +94,7 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
             horizontal
             showsHorizontalScrollIndicator
             style={styles.flex1}
-            contentContainerStyle={{width: minTableWidth}}
+            contentContainerStyle={{width: contentTableWidth}}
             contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
             onScroll={handleHorizontalScroll}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}

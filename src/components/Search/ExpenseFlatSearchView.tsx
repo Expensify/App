@@ -43,6 +43,8 @@ function ExpenseFlatSearchView({
     isActionColumnWide,
     isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
+    policyCategories,
+    policyTags,
     isMobileSelectionModeEnabled,
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
@@ -137,6 +139,10 @@ function ExpenseFlatSearchView({
             isActionColumnWide={isActionColumnWide}
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
+            data={data}
+            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+            policyCategories={policyCategories}
+            policyTags={policyTags}
             isKeyboardShown={isKeyboardShown}
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
