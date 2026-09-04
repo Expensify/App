@@ -1,4 +1,4 @@
-import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
 
@@ -101,7 +101,6 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
-    const {shouldUseLiveData} = useSearchResultsContext();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const reportAttributesDerivedValue = useReportAttributes();
     const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
@@ -155,8 +154,8 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in
     // addition to checking that the data is loaded we also check that the snapshot matches the query.
-    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
-    const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
+    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const searchDataType = searchResults?.search?.type;
 
     // Mirror the legacy `<Search>` gate: skip the heavy projection while deferring, before data is
     // loaded, or for the invalid group-by-on-chat/task combo. Drives every stage below.

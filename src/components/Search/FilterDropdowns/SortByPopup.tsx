@@ -1,7 +1,7 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
-import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchGroupBy, SearchQueryJSON, SearchSortBy} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -47,12 +47,11 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
-    const {shouldUseLiveData} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
-    const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
+    const searchDataType = searchResults?.search?.type;
     const currentColumns = !searchResults?.data
         ? []
         : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value, sortBy: queryJSON.sortBy});

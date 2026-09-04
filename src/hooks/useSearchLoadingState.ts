@@ -1,4 +1,3 @@
-import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {getValidGroupBy} from '@libs/SearchUIUtils';
@@ -17,10 +16,9 @@ import useOnyx from './useOnyx';
  */
 function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined, searchResults: SearchResults | undefined): boolean {
     const {isOffline} = useNetwork();
-    const {shouldUseLiveData} = useSearchResultsContext();
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
-    if (shouldUseLiveData || isOffline || !queryJSON) {
+    if (isOffline || !queryJSON) {
         return false;
     }
 

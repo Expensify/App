@@ -149,7 +149,7 @@ function Search({
 
     const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
-    const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
+    const {lastSearchType} = useSearchResultsContext();
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
@@ -186,7 +186,7 @@ function Search({
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
-    const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
+    const searchDataType = searchResults?.search?.type;
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
     const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
@@ -250,7 +250,6 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
-        shouldUseLiveData,
     });
 
     const {
@@ -289,7 +288,7 @@ function Search({
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
@@ -370,15 +369,15 @@ function Search({
     const [skeletonWasDisplayed, setSkeletonWasDisplayed] = useState(false);
     const onSkeletonLayout = useCallback(() => setSkeletonWasDisplayed(true), []);
 
-    // Show a skeleton whenever heavy work is deferred, even for live-data (to-do) searches,
-    // so we never fall through to the empty-state check with stale zero-length data.
+    // Show a skeleton whenever heavy work is deferred, so we never fall through to the
+    // empty-state check with stale zero-length data.
     const isDeferringHeavyWork = !isOffline && shouldDeferHeavySearchWork;
     const isSearchLoadingWithNoResults = isSearchPending(searchResults) && Array.isArray(searchResults?.data) && searchResults.data.length === 0;
     // Every write of `errors` stores the response code next to them, so a reload keeps the classification
     // that component state would have lost. `null` means no response has been recorded for this query yet.
     const responseStatusCode = searchResults?.search?.responseJsonCode ?? null;
     const hasUnresolvedErrors = hasErrors && responseStatusCode === null;
-    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
+    const isWaitingForInitialData = !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
     const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && showPendingExpensePlaceholder && !hasErrors;
 
@@ -397,9 +396,8 @@ function Search({
             isCardFeedsLoading,
             isSearchLoading: !!searchResults?.search?.isLoading,
             hasErrors,
-            shouldUseLiveData,
         });
-    }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
+    }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */

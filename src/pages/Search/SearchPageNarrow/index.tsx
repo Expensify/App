@@ -7,7 +7,7 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
@@ -85,7 +85,6 @@ function SearchPageNarrow({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {shouldUseLiveData} = useSearchResultsContext();
     const {isOffline} = useNetwork();
 
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
@@ -225,7 +224,7 @@ function SearchPageNarrow({
         );
     }
 
-    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     // Use the request state because `isLoading` also covers temporary UI loading that should not keep this bar visible.
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;

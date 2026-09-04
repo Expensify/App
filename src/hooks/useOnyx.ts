@@ -1,4 +1,4 @@
-import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContext';
+import {SearchQueryContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
 import CONST from '@src/CONST';
@@ -77,19 +77,16 @@ const useOnyx: UseOnyxWithoutSnapshots = <TKey extends OnyxKey, TReturnValue = O
     const isOnSearch = useIsOnSearch();
 
     let currentSearchHash: number | undefined;
-    let shouldUseLiveData = false;
     if (isOnSearch && isSnapshotCompatibleKey) {
         const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchQueryContext);
-        const {shouldUseLiveData: contextShouldUseLiveData} = use(SearchResultsContext);
         currentSearchHash = searchContextCurrentSearchHash;
-        shouldUseLiveData = !!contextShouldUseLiveData;
     }
 
     const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
     // Determine if we should use snapshot data based on search state and key
-    const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatibleKey && !shouldUseLiveData;
+    const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatibleKey;
 
     // Create selector function that handles both regular and snapshot data
     const selector = !selectorProp || !shouldUseSnapshot ? selectorProp : (data: OnyxValue<OnyxKey> | undefined) => selectorProp(getKeyData(data as SearchResults, key));

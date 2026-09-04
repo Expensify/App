@@ -60,7 +60,7 @@ jest.mock('@hooks/useMultipleSnapshots', () => ({
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchKey: undefined}),
-    useSearchResultsContext: () => ({shouldUseLiveData: false}),
+    useSearchResultsContext: () => ({}),
 }));
 jest.mock('@libs/TransactionUtils', () => ({
     shouldShowAttendees: () => false,

@@ -3,11 +3,13 @@ import {render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchResultsContext} from '@components/Search/SearchContextDefinitions';
+import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContextDefinitions';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import SearchActionHeader from '@pages/inbox/report/SearchActionHeader';
 
@@ -34,26 +36,36 @@ function renderSearchActionHeader(action: ReportAction, report: Report | undefin
     return render(
         <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
             <SearchScopeProvider isOnSearch={isOnSearch}>
-                {/* shouldUseLiveData: true keeps useOnyx reading from real Onyx collections instead of a search snapshot, since this test doesn't set up snapshot data */}
-                <SearchResultsContext.Provider
+                {/* A falsy currentSearchHash keeps useOnyx reading from real Onyx collections instead of a search snapshot, since this test doesn't set up snapshot data */}
+                <SearchQueryContext.Provider
                     value={{
-                        currentSearchResults: undefined,
-                        currentSearchTransactionsByReportID: new Map(),
-                        currentSearchViolations: CONST.EMPTY_OBJECT,
-                        shouldUseLiveData: true,
-                        sortedReportIDs: [],
-                        shouldShowFiltersBarLoading: false,
-                        lastSearchType: undefined,
+                        currentSearchHash: 0,
+                        currentSimilarSearchHash: 0,
+                        currentSearchKey: undefined,
+                        currentSearchQueryJSON: undefined,
+                        suggestedSearches: getSuggestedSearches(),
+                        shouldResetSearchQuery: false,
                     }}
                 >
-                    <SearchActionHeader
-                        action={action}
-                        report={report}
-                        isWhisper={false}
+                    <SearchResultsContext.Provider
+                        value={{
+                            currentSearchResults: undefined,
+                            currentSearchTransactionsByReportID: new Map(),
+                            currentSearchViolations: CONST.EMPTY_OBJECT,
+                            sortedReportIDs: [],
+                            shouldShowFiltersBarLoading: false,
+                            lastSearchType: undefined,
+                        }}
                     >
-                        <Text>Child content</Text>
-                    </SearchActionHeader>
-                </SearchResultsContext.Provider>
+                        <SearchActionHeader
+                            action={action}
+                            report={report}
+                            isWhisper={false}
+                        >
+                            <Text>Child content</Text>
+                        </SearchActionHeader>
+                    </SearchResultsContext.Provider>
+                </SearchQueryContext.Provider>
             </SearchScopeProvider>
         </ComposeProviders>,
     );
