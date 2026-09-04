@@ -174,6 +174,7 @@ function useCopyableTextRowPress() {
     };
 
     const markMouseDownOnCopyableText = (target: EventTarget | null | undefined, shouldCheck = true, {shouldSuppressNextPress = false}: MarkCopyableTextMouseDownOptions = {}): boolean => {
+        pressStartOnCopyableTextCacheRef.current = null;
         const isCopyableTarget = shouldCheck && isCopyableTextTarget(target);
         wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
         shouldSuppressNextPressRef.current = isCopyableTarget && shouldSuppressNextPress;
@@ -181,6 +182,7 @@ function useCopyableTextRowPress() {
     };
 
     const markTouchStartOnCopyableText = (event: unknown, shouldCheck = true): boolean => {
+        pressStartOnCopyableTextCacheRef.current = null;
         const isCopyableTarget = shouldCheck && isCopyableTextTarget(getPressStartTarget(event));
         wasMouseDownOnCopyableTextRef.current = false;
         wasTouchStartOnCopyableTextRef.current = isCopyableTarget;
