@@ -14,11 +14,6 @@ type SidePanelOverlayProps = {
     onBackdropPress: () => void;
 };
 
-// This backdrop intentionally does NOT use reanimated `entering`/`exiting` layout animations.
-// Reanimated's web implementation hides the element with `visibility: hidden` until its
-// `animationstart` event fires, and with the 1ms web animation duration that event can be missed
-// when the main thread is busy, leaving the backdrop permanently hidden (and non-interactive).
-// The fade was imperceptible anyway, so it is dropped rather than made conditional per platform.
 function SidePanelOverlay({shouldBeVisible, onBackdropPress}: SidePanelOverlayProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
