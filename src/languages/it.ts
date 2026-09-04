@@ -1771,6 +1771,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Questo report è stato rifiutato. In attesa che tu risolva i problemi e lo invii di nuovo manualmente.',
             selectMemberError: 'Seleziona un membro a cui rimandare indietro questo report per rifiutarlo.',
             couldNotReject: 'Non è stato possibile rifiutare il report. Riprova.',
+            couldNotRejectExpense: 'La spesa non può essere rifiutata perché potrebbe essere già stata spostata o rifiutata.',
         },
         moveExpenses: 'Sposta nel report',
         moveExpensesMaxTransactionsError: `I report sono limitati a ${CONST.REPORT.MAX_TRANSACTIONS} spese. Spostane alcune in un altro report.`,

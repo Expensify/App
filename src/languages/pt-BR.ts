@@ -1766,6 +1766,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Este relatório foi rejeitado. Aguardando você corrigir os problemas e reenviar manualmente.',
             selectMemberError: 'Selecione um membro para o qual rejeitar este relatório.',
             couldNotReject: 'Não foi possível rejeitar o relatório. Tente novamente.',
+            couldNotRejectExpense: 'A despesa não pôde ser rejeitada porque ela pode já ter sido movida ou rejeitada.',
         },
         moveExpenses: 'Mover para relatório',
         moveExpensesMaxTransactionsError: `Os relatórios são limitados a ${CONST.REPORT.MAX_TRANSACTIONS} despesas. Mova algumas para outro relatório.`,

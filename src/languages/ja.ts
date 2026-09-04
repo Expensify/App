@@ -1750,6 +1750,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'このレポートは却下されました。問題を修正し、手動で再提出していただくのをお待ちしています。',
             selectMemberError: 'このレポートを差し戻すメンバーを選択してください。',
             couldNotReject: 'レポートを拒否できませんでした。もう一度お試しください。',
+            couldNotRejectExpense: 'この経費は、すでに移動または却下されている可能性があるため、却下できませんでした。',
         },
         moveExpenses: 'レポートに移動',
         moveExpensesMaxTransactionsError: `レポートは${CONST.REPORT.MAX_TRANSACTIONS}件の経費までに制限されています。一部を別のレポートに移動してください。`,

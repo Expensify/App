@@ -30,7 +30,7 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import createRandomReportAction from 'tests/utils/collections/reportActions';
 
-import {changeTransactionsReport as changeTransactionsReportAction} from '../../src/libs/actions/Transaction';
+import {changeTransactionsReport as changeTransactionsReportAction, clearError} from '../../src/libs/actions/Transaction';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -191,6 +191,34 @@ describe('actions/Transaction', () => {
 
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    describe('clearError', () => {
+        it('should clear the reject error reported against an expense that had already moved', async () => {
+            const transactionID = 'transaction-with-reject-error';
+            const errorTimestamp = '1770000000000000';
+
+            // Given: An expense carrying a reject error from the server alongside an unrelated route error
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                transactionID,
+                errors: {[errorTimestamp]: 'Something went wrong'},
+                errorFields: {
+                    reject: {[errorTimestamp]: 'The expense has already been moved or rejected.'},
+                    route: {[errorTimestamp]: 'Route error'},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When: The error is dismissed
+            clearError(transactionID);
+            await waitForBatchedUpdates();
+
+            // Then: The reject field is cleared along with the errors already covered
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.errors).toBeFalsy();
+            expect(transaction?.errorFields?.reject).toBeFalsy();
+            expect(transaction?.errorFields?.route).toBeFalsy();
+        });
     });
 
     describe('changeTransactionsReport', () => {

@@ -618,6 +618,11 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 
+        /**
+         * The report a failed reject was attempted from.
+         */
+        rejectFailedFromReportID?: string;
+
         /** The name of iouReport associated with the transaction */
         reportName?: string;
 

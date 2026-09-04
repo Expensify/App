@@ -990,6 +990,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
     }
     switch (key) {
         case 'reportID':
+        case 'rejectFailedFromReportID':
         case 'reportName':
         case 'currency':
         case 'tag':
@@ -1193,6 +1194,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    rejectFailedFromReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );

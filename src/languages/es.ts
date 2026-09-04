@@ -1771,6 +1771,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Este informe fue rechazado. Esperando a que corrijas los problemas y lo vuelvas a enviar manualmente.',
             selectMemberError: 'Selecciona un miembro al que devolver este informe.',
             couldNotReject: 'No se pudo rechazar el informe. Por favor, inténtalo de nuevo.',
+            couldNotRejectExpense: 'No se ha podido rechazar el gasto porque es posible que ya se haya movido o rechazado.',
         },
         moveExpenses: 'Mover a informe',
         moveExpensesMaxTransactionsError: `Los informes están limitados a ${CONST.REPORT.MAX_TRANSACTIONS} gastos. Por favor, mueve algunos a otro informe.`,

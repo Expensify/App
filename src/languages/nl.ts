@@ -1767,6 +1767,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Dit rapport is afgekeurd. We wachten tot jij de problemen oplost en het handmatig opnieuw indient.',
             selectMemberError: 'Selecteer een lid om dit rapport naar terug te sturen.',
             couldNotReject: 'Het rapport kon niet worden afgewezen. Probeer het opnieuw.',
+            couldNotRejectExpense: 'De uitgave kon niet worden afgewezen omdat deze mogelijk al is verplaatst of afgewezen.',
         },
         moveExpenses: 'Verplaatsen naar rapport',
         moveExpensesMaxTransactionsError: `Rapporten zijn beperkt tot ${CONST.REPORT.MAX_TRANSACTIONS} uitgaven. Verplaats er enkele naar een ander rapport.`,

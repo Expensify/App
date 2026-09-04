@@ -1705,6 +1705,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: '此报表已被拒绝。等待你修复问题并手动重新提交。',
             selectMemberError: '选择一位成员将此报表退回给 TA。',
             couldNotReject: '无法拒绝该报表。请重试。',
+            couldNotRejectExpense: '无法拒绝该报销，因为它可能已被移动或已被拒绝。',
         },
         moveExpenses: '移动到报告',
         moveExpensesMaxTransactionsError: `每个报告最多可包含 ${CONST.REPORT.MAX_TRANSACTIONS} 笔支出。请将部分支出移动到其他报告。`,
