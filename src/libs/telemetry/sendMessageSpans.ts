@@ -44,7 +44,7 @@ function markSendMessageCommitted(reportActionID: string | undefined) {
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT);
 }
 
-// Call before ending the parent. Sentry drops a child still running when its parent ends.
+// Call before ending the parent. Sentry drops descendants that have not ended when the root span does.
 function endSendMessagePhases(reportActionID: string | undefined) {
     if (!reportActionID || !getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`)) {
         return;
@@ -58,7 +58,7 @@ function endSendMessagePhases(reportActionID: string | undefined) {
     endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT);
 }
 
-// Call before cancelling the parent. Sentry drops a child still running when its parent ends.
+// Call before cancelling the parent. Sentry drops descendants that have not ended when the root span does.
 function cancelSendMessagePhases(parentSpanID: string | undefined) {
     const parentPrefix = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_`;
     if (!parentSpanID?.startsWith(parentPrefix)) {

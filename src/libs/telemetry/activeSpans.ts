@@ -79,7 +79,7 @@ function cancelAllSpans() {
     }
 }
 
-// Reverse insertion order is children-first. Sentry drops a child still running when its parent ends.
+// Reverse insertion order is children-first. Sentry's isFullFinishedSpan filter drops any descendant that has not ended when the root span does.
 function cancelSpansByPrefix(prefix: string) {
     const spanIDs = [...activeSpans.keys()].filter((spanID) => spanID.startsWith(prefix));
     for (const spanID of spanIDs.reverse()) {
