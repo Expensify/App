@@ -2402,7 +2402,7 @@ const translations = {
             showBranchNameInTitle: 'Show branch name in browser title',
             betaOverrides: 'Beta overrides',
             betaOverridesDescription:
-                'Overrides are local to this device and only affect frontend checks. Toggling pins a beta to that value until you reset it. “Reset all overrides” restores the values from your account. Some betas are gated on the backend too, so those can still fail at the request level.',
+                'Overrides are local to this device and only affect frontend checks. A beta keeps an override only while it differs from your account betas, so toggling it back removes the override. “Reset all overrides” restores the values from your account. Some betas are gated on the backend too, so those can still fail at the request level.',
             resetAllOverrides: 'Reset all overrides',
             overridden: 'Overridden',
             invalidFile: 'Invalid file',

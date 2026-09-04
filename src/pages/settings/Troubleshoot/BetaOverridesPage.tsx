@@ -13,11 +13,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearBetaOverrides, setBetaOverride} from '@userActions/User';
+import Permissions from '@libs/Permissions';
+
+import {clearBetaOverride, clearBetaOverrides, setBetaOverride} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Beta from '@src/types/onyx/Beta';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -36,6 +39,25 @@ function BetaOverridesPage() {
     const isProduction = isResolvedProduction && CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION;
     const {isBetaEnabled} = usePermissions();
     const [betaOverrides] = useOnyx(ONYXKEYS.BETA_OVERRIDES);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION);
+
+    // usePermissions applies the overrides, so the value the account has is resolved here without them
+    const isEnabledOnAccount = (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration);
+
+    // An override that matches the account resolves to the same answer, so it only counts as one while it differs.
+    // Undefined betas mean the account values are unknown rather than off, so keep showing the override until they load
+    const isOverridden = (beta: Beta) => betaOverrides?.[beta] !== undefined && (betas === undefined || betaOverrides[beta] !== isEnabledOnAccount(beta));
+
+    // Only betas that differ from the account keep an override, so toggling back to the account value drops it
+    const toggleBeta = (beta: Beta) => {
+        const nextValue = !isBetaEnabled(beta);
+        if (nextValue === isEnabledOnAccount(beta)) {
+            clearBetaOverride(beta);
+            return;
+        }
+        setBetaOverride(beta, nextValue);
+    };
 
     return (
         <ScreenWrapper
@@ -49,11 +71,12 @@ function BetaOverridesPage() {
                     {sortedBetas.map((beta) => (
                         <View
                             key={beta}
+                            testID={`row-${beta}`}
                             style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap4, styles.mnw120, styles.mnh16]}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flexGrow1, styles.flexShrink1]}>
                                 <Text>{beta}</Text>
-                                {betaOverrides?.[beta] !== undefined && (
+                                {isOverridden(beta) && (
                                     <Badge
                                         text={translate('initialSettingsPage.troubleshoot.overridden')}
                                         isCondensed
@@ -66,7 +89,7 @@ function BetaOverridesPage() {
                                 <Switch
                                     accessibilityLabel={beta}
                                     isOn={isBetaEnabled(beta)}
-                                    onToggle={() => setBetaOverride(beta, !isBetaEnabled(beta))}
+                                    onToggle={() => toggleBeta(beta)}
                                 />
                             </View>
                         </View>

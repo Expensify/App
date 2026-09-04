@@ -2305,7 +2305,7 @@ const translations: TranslationDeepObject<typeof en> = {
             showBranchNameInTitle: 'Branch-Namen im Browser-Titel anzeigen',
             betaOverrides: 'Beta-Überschreibungen',
             betaOverridesDescription:
-                'Überschreibungen gelten nur für dieses Gerät und wirken sich nur auf Frontend-Prüfungen aus. Durch Umschalten wird eine Beta auf diesen Wert festgelegt, bis Sie sie zurücksetzen. „Alle Überschreibungen zurücksetzen“ stellt die Werte Ihres Kontos wieder her. Einige Betas werden zusätzlich vom Backend gesteuert und können daher weiterhin auf Anfrageebene fehlschlagen.',
+                'Überschreibungen gelten nur für dieses Gerät und wirken sich nur auf Frontend-Prüfungen aus. Eine Beta behält eine Überschreibung nur so lange, wie sie von den Betas Ihres Kontos abweicht; schalten Sie sie zurück, wird die Überschreibung entfernt. „Alle Überschreibungen zurücksetzen“ stellt die Werte Ihres Kontos wieder her. Einige Betas werden zusätzlich vom Backend gesteuert und können daher weiterhin auf Anfrageebene fehlschlagen.',
             resetAllOverrides: 'Alle Überschreibungen zurücksetzen',
             overridden: 'Überschrieben',
             qaAuth: 'QA-Authentifizierung (Cloudflare)',

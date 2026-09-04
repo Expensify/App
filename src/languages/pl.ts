@@ -2328,7 +2328,7 @@ const translations: TranslationDeepObject<typeof en> = {
             showBranchNameInTitle: 'Pokaż nazwę gałęzi w tytule przeglądarki',
             betaOverrides: 'Nadpisywanie bet',
             betaOverridesDescription:
-                'Nadpisywanie działa tylko na tym urządzeniu i tylko po stronie frontendu. Przełączenie przypina betę do wybranej wartości dopóki jej nie zresetujesz. „Zresetuj wszystkie nadpisania” przywraca wartości z Twojego konta. Niektóre bety są też kontrolowane przez backend, więc mogą w pełni nie działać zwłaszcza przy żądaniach wysyłanych do backendu.',
+                'Nadpisywanie działa tylko na tym urządzeniu i tylko po stronie frontendu. Beta zachowuje nadpisanie tylko wtedy, gdy różni się od bet z Twojego konta, więc przełączenie jej z powrotem usuwa nadpisanie. „Zresetuj wszystkie nadpisania” przywraca wartości z Twojego konta. Niektóre bety są też kontrolowane przez backend, więc mogą w pełni nie działać zwłaszcza przy żądaniach wysyłanych do backendu.',
             resetAllOverrides: 'Zresetuj wszystkie nadpisania',
             overridden: 'Nadpisana',
             qaAuth: 'Uwierzytelnianie QA (Cloudflare)',
