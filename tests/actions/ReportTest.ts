@@ -5776,6 +5776,52 @@ describe('actions/Report', () => {
             );
         });
 
+        it('should open an invoice child report in the expense report wide RHP scrolled to the latest message', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT: OnyxTypes.Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.INVOICE};
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            mockGetIsNarrowLayout.mockReturnValueOnce(false);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                appendParam(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: EXISTING_CHILD_REPORT.reportID}), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'),
+            );
+        });
+
+        it('should open an invoice child report in the full report view on narrow layouts, still scrolled to the latest message', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT: OnyxTypes.Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.INVOICE};
+            const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            mockGetIsNarrowLayout.mockReturnValueOnce(true);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                appendParam(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'),
+            );
+        });
+
         it('should work with undefined child report ID (new thread scenario)', async () => {
             const PARENT_REPORT = createRandomReport(1, undefined);
             const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
@@ -7768,7 +7814,7 @@ describe('actions/Report', () => {
                 introSelected: TEST_INTRO_SELECTED,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
-                betas: undefined,
+                conciergeChat: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -7789,6 +7835,66 @@ describe('actions/Report', () => {
             // Then verify isInviteOnboardingComplete is set to true after creating group chat
             const introSelected = await getOnyxValue(ONYXKEYS.NVP_INTRO_SELECTED);
             expect(introSelected?.isInviteOnboardingComplete).toBe(true);
+        });
+
+        it('threads the conciergeChat report into the guided setup data sent with the group chat', async () => {
+            // Given a signed-in user with onboarding still pending and an existing Concierge chat
+            const GROUP_CHAT_NAME = 'Test Group Chat';
+            const GROUP_CHAT_REPORT_ID = '856';
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-group-chat-1'};
+            await waitForBatchedUpdates();
+
+            // When a group chat is created with the conciergeChat threaded through
+            Report.navigateToAndCreateGroupChat({
+                participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
+                reportName: GROUP_CHAT_NAME,
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: GROUP_CHAT_REPORT_ID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false},
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
+                conciergeChat,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic onboarding actions target the threaded Concierge chat, not the deprecated module-level lookup
+            const conciergeReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChat.reportID}`);
+            expect(Object.keys(conciergeReportActions ?? {}).length).toBeGreaterThan(0);
+        });
+
+        it('does not post onboarding actions to the conciergeChat when guided setup is already completed', async () => {
+            // Given a signed-in user who has already finished onboarding
+            const GROUP_CHAT_NAME = 'Completed Onboarding Group';
+            const GROUP_CHAT_REPORT_ID = '857';
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(778, undefined), reportID: 'concierge-group-chat-2'};
+            await waitForBatchedUpdates();
+
+            // When a group chat is created with the conciergeChat threaded through
+            Report.navigateToAndCreateGroupChat({
+                participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
+                reportName: GROUP_CHAT_NAME,
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: GROUP_CHAT_REPORT_ID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.SUBMIT},
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: true,
+                conciergeChat,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the group chat is created but no onboarding data is posted to the Concierge chat
+            const newGroupChatReport: OnyxEntry<OnyxTypes.Report> = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`);
+            expect(newGroupChatReport).not.toBeNull();
+            const conciergeReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChat.reportID}`);
+            expect(Object.keys(conciergeReportActions ?? {}).length).toBe(0);
         });
 
         it('should create group chat with avatar URI and isSelfTourViewed', async () => {
@@ -7824,7 +7930,7 @@ describe('actions/Report', () => {
                 introSelected: TEST_INTRO_SELECTED,
                 isSelfTourViewed: true,
                 hasCompletedGuidedSetupFlow: false,
-                betas: undefined,
+                conciergeChat: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 avatarUri: AVATAR_URI,
             });
@@ -7860,7 +7966,7 @@ describe('actions/Report', () => {
                 introSelected: {...TEST_INTRO_SELECTED, isInviteOnboardingComplete: true},
                 isSelfTourViewed: true,
                 hasCompletedGuidedSetupFlow: true,
-                betas: undefined,
+                conciergeChat: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -7888,7 +7994,7 @@ describe('actions/Report', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
-                betas: undefined,
+                conciergeChat: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 avatarFile,
             });
@@ -7928,7 +8034,7 @@ describe('actions/Report', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
-                betas: undefined,
+                conciergeChat: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -7976,7 +8082,7 @@ describe('actions/Report', () => {
                 introSelected: TEST_INTRO_SELECTED,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
-                betas: undefined,
+                conciergeChat: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -8025,7 +8131,7 @@ describe('actions/Report', () => {
                 introSelected: TEST_INTRO_SELECTED,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
-                betas: undefined,
+                conciergeChat: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
