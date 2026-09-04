@@ -465,7 +465,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
         const isApproved = isReportApproved({report: currentItemReport});
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
-        const isCancelled = currentItemReport?.isCancelledIOU;
         const percentage = adjustedPercentages.at(index) ?? 0;
 
         const date = DateUtils.formatWithUTCTimeZone(
@@ -475,9 +474,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         );
         previewHeaderText.unshift({text: date}, dotSeparator);
 
-        if (isCancelled) {
-            previewHeaderText.push(dotSeparator, {text: translate('iou.canceled')});
-        } else if (isApproved) {
+        if (isApproved) {
             previewHeaderText.push(dotSeparator, {text: translate('iou.approved')});
         } else if (isSettled) {
             previewHeaderText.push(dotSeparator, {text: translate('iou.settledExpensify')});
