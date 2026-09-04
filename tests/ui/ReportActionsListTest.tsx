@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {render, screen, waitFor} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
@@ -379,6 +379,84 @@ describe('ReportActionsList (body)', () => {
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
             expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(false);
             expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(false);
+        });
+
+        it('reconciles a pending draft when the matching persisted action has identical HTML', async () => {
+            const persistedReportAction = mockReportActions.at(-1);
+            const revealDraftFromReportAction = jest.fn();
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: persistedReportAction ?? null,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            });
+            mockUseConciergeDraftActions.mockReturnValue({
+                clearDraft: jest.fn(),
+                dispatchLocalDraftEvent: jest.fn(),
+                revealDraftFromReportAction,
+            });
+
+            renderReportActionsList();
+
+            await waitFor(() => {
+                expect(revealDraftFromReportAction).toHaveBeenCalledWith(persistedReportAction);
+            });
+        });
+
+        it('reconciles from all persisted actions when the matching action is outside the visible page', async () => {
+            const persistedReportAction: OnyxTypes.ReportAction = {
+                ...conciergeDraftReportAction,
+                reportActionID: 'persisted-outside-visible-page',
+            };
+            const revealDraftFromReportAction = jest.fn();
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+                sortedAllReportActions: [...mockReportActions, persistedReportAction],
+            });
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: {...persistedReportAction},
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            });
+            mockUseConciergeDraftActions.mockReturnValue({
+                clearDraft: jest.fn(),
+                dispatchLocalDraftEvent: jest.fn(),
+                revealDraftFromReportAction,
+            });
+
+            renderReportActionsList();
+
+            await waitFor(() => {
+                expect(revealDraftFromReportAction).toHaveBeenCalledWith(persistedReportAction);
+            });
+        });
+
+        it('does not reconcile from a matching optimistic Concierge action', () => {
+            const optimisticReportAction: OnyxTypes.ReportAction = {
+                ...conciergeDraftReportAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                isOptimisticAction: true,
+            };
+            const revealDraftFromReportAction = jest.fn();
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, optimisticReportAction],
+                sortedAllReportActions: [...mockReportActions, optimisticReportAction],
+            });
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: optimisticReportAction,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            });
+            mockUseConciergeDraftActions.mockReturnValue({
+                clearDraft: jest.fn(),
+                dispatchLocalDraftEvent: jest.fn(),
+                revealDraftFromReportAction,
+            });
+
+            renderReportActionsList();
+
+            expect(revealDraftFromReportAction).not.toHaveBeenCalled();
         });
     });
 
