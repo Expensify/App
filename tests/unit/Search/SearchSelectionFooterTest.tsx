@@ -1,7 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
-import type {SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
+import type {SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 
@@ -32,6 +32,7 @@ const mockSearchQueryContext: {current: MockSearchQueryContext} = {
 };
 const mockSelectedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockExcludedTransactions: {current: SelectedTransactions} = {current: {}};
+const mockSelectedReports: {current: SelectedReports[]} = {current: []};
 const mockAreAllMatchingItemsSelected = {current: false};
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => mockSearchQueryContext.current,
@@ -40,7 +41,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         selectedTransactions: mockSelectedTransactions.current,
         excludedTransactions: mockExcludedTransactions.current,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected.current,
-        selectedReports: [],
+        selectedReports: mockSelectedReports.current,
     }),
 }));
 
@@ -72,7 +73,13 @@ const ACCOUNT_ID = 1;
 const PERSONAL_POLICY_ID = 'personalPolicy1';
 const WORKSPACE_POLICY_ID = 'workspacePolicy1';
 
-function buildSearchResults(currency: string | undefined, count = 1, total = -100, type: SearchResults['search']['type'] = CONST.SEARCH.DATA_TYPES.EXPENSE): SearchResults {
+function buildSearchResults(
+    currency: string | undefined,
+    count = 1,
+    total = -100,
+    type: SearchResults['search']['type'] = CONST.SEARCH.DATA_TYPES.EXPENSE,
+    hasMoreResults = false,
+): SearchResults {
     return {
         search: {
             count,
@@ -84,14 +91,14 @@ function buildSearchResults(currency: string | undefined, count = 1, total = -10
             type,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-            hasMoreResults: false,
+            hasMoreResults,
             hasResults: true,
         },
         data: {},
     };
 }
 
-function buildSelectedTransaction(currency: string, groupCurrency?: string, groupAmount?: number): SelectedTransactionInfo {
+function buildSelectedTransaction(currency: string, groupCurrency?: string, groupAmount?: number, reportID?: string): SelectedTransactionInfo {
     return {
         isSelected: true,
         canReject: false,
@@ -103,11 +110,26 @@ function buildSelectedTransaction(currency: string, groupCurrency?: string, grou
         canUnhold: false,
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
         policyID: undefined,
+        reportID,
         amount: 100,
         currency,
         groupCurrency,
         groupAmount,
         isFromOneTransactionReport: false,
+    };
+}
+
+function buildSelectedReport(reportID: string, total: number): SelectedReports {
+    return {
+        reportID,
+        policyID: undefined,
+        action: CONST.SEARCH.ACTION_TYPES.VIEW,
+        canPay: false,
+        canApprove: false,
+        canSubmit: false,
+        canChangeApprover: false,
+        total,
+        chatReportID: undefined,
     };
 }
 
@@ -120,6 +142,7 @@ describe('SearchSelectionFooter', () => {
         mockSearchQueryContext.current = {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE}};
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
         mockExcludedTransactions.current = {};
+        mockSelectedReports.current = [];
         mockAreAllMatchingItemsSelected.current = false;
         mockCapturedFooterProps.current = undefined;
         // Clear here rather than in afterEach: Onyx.clear() there re-renders the previous test's still-mounted
@@ -147,23 +170,58 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 35900, currency: CONST.CURRENCY.USD}));
     });
 
-    it('keeps the expense-report server count and total unchanged', async () => {
+    it("subtracts an excluded report's expenses and total from the all-matching footer", async () => {
         mockSearchQueryContext.current = {
             currentSearchHash: 1,
             currentSearchKey: undefined,
             currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
         };
-        mockSelectedTransactions.current = {};
+        mockSelectedTransactions.current = {transaction3: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report2')};
         mockExcludedTransactions.current = {
-            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD),
-            transaction2: buildSelectedTransaction(CONST.CURRENCY.USD),
+            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+            transaction2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
         };
+        mockSelectedReports.current = [buildSelectedReport('report2', -100)];
         mockAreAllMatchingItemsSelected.current = true;
 
         render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)} />);
         await waitForBatchedUpdates();
 
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 8, total: 35800, currency: CONST.CURRENCY.USD}));
+    });
+
+    it('shows the authoritative expense count and total before every report page is loaded', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1')};
+        mockSelectedReports.current = [buildSelectedReport('report1', -100)];
+        mockAreAllMatchingItemsSelected.current = true;
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, true)} />);
+        await waitForBatchedUpdates();
+
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 10, total: 36000, currency: CONST.CURRENCY.USD}));
+    });
+
+    it('counts the expenses inside manually selected reports', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {
+            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+            transaction2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+        };
+        mockSelectedReports.current = [buildSelectedReport('report1', -200)];
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 200, currency: CONST.CURRENCY.USD}));
     });
 
     it("offers the user's live payment currency as the Reset target when there is no active workspace", async () => {

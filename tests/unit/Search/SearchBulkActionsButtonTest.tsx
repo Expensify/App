@@ -20,6 +20,7 @@ let mockSearchCount: number | undefined;
 let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
 let mockIsOffline = false;
+let mockSelectedTransactions: SelectedTransactions = {tx1: makeTransaction()};
 
 jest.mock('@components/ButtonWithDropdownMenu', () => ({
     __esModule: true,
@@ -73,7 +74,7 @@ jest.mock('@hooks/useSearchBulkActions', () => ({
 }));
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
-        selectedTransactions: {tx1: {isSelected: true, reportID: 'report1'}},
+        selectedTransactions: mockSelectedTransactions,
         excludedTransactions: mockExcludedTransactions,
         selectedReports: [],
         areAllMatchingItemsSelected: true,
@@ -97,7 +98,7 @@ if (!queryJSON || !reportQueryJSON) {
     throw new Error('Expected the search queries to be valid');
 }
 
-function makeTransaction(): SelectedTransactions[string] {
+function makeTransaction(reportID = 'report1'): SelectedTransactions[string] {
     return {
         isSelected: true,
         canReject: false,
@@ -109,7 +110,7 @@ function makeTransaction(): SelectedTransactions[string] {
         canUnhold: false,
         isFromOneTransactionReport: false,
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        reportID: 'report1',
+        reportID,
         policyID: 'policy1',
         amount: 100,
         currency: 'USD',
@@ -124,7 +125,7 @@ function getButtonProps(): {customText: string; isLoading: boolean} {
     return {customText: props.customText, isLoading: props.isLoading};
 }
 
-describe('SearchBulkActionsButton all-matching label', () => {
+describe('SearchBulkActionsButton all-matching count', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockExcludedTransactions = {};
@@ -132,9 +133,10 @@ describe('SearchBulkActionsButton all-matching label', () => {
         mockSearchReportCount = undefined;
         mockSearchIsLoading = false;
         mockIsOffline = false;
+        mockSelectedTransactions = {tx1: makeTransaction()};
     });
 
-    it('falls back to the selected count and keeps loading while the server count is missing', () => {
+    it('shows the loaded selected count and keeps loading while the server count is missing', () => {
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
@@ -142,7 +144,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
     });
 
-    it('shows the server count when it arrives and there are no exclusions', () => {
+    it('shows the server count when it arrives', () => {
         mockSearchCount = 172;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
@@ -189,11 +191,21 @@ describe('SearchBulkActionsButton all-matching label', () => {
         // `count` is the expense total; `reportCount` is the matching-report total the Reports tab must show.
         mockSearchCount = 320;
         mockSearchReportCount = 50;
-        mockExcludedTransactions = {tx2: makeTransaction()};
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:50', isLoading: false});
+    });
+
+    it('subtracts excluded reports from the server report count', () => {
+        mockSearchCount = 320;
+        mockSearchReportCount = 50;
+        mockSelectedTransactions = {tx1: makeTransaction('report1'), tx2: makeTransaction('report2')};
+        mockExcludedTransactions = {tx3: makeTransaction('report3'), tx4: makeTransaction('report3')};
+
+        render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
+
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:49', isLoading: false});
     });
 
     it('falls back to the loaded report count for expense reports offline before the report count arrives', () => {
