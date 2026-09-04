@@ -577,8 +577,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
     const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
-    // Fall back to the raw selection so transaction-only selections (which have no selected reports) and selections
-    // with nothing payable keep their previous derivations. The Pay group is hidden in the latter case anyway.
     const payScopedReports = useMemo(() => (payableSelectedReports.length > 0 ? payableSelectedReports : selectedReports), [payableSelectedReports, selectedReports]);
     const payScopedReportIDs = useMemo(() => payScopedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payScopedReports]);
 
@@ -714,9 +712,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
-        // When "Select all" spans pages, the selection can cover many workspaces/currencies whose per-report payment
-        // methods aren't all loaded, and QueueBulkPayReports only carries the query (no payment method). So offer only
-        // the manual "Pay elsewhere" option in that mode, which routes to QueueBulkPayReports in onBulkPaySelected.
         onlyShowPayElsewhere: onlyShowPayElsewhere || areAllMatchingItemsSelected,
     });
 
@@ -1347,8 +1342,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            // "Select all" can cover more reports than are loaded on the current page(s), so the client can't enumerate them.
-            // Hand the search query to the backend, which pages through every matching report and queues a payment for each.
             if (areAllMatchingItemsSelected) {
                 const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
                 queueBulkPayReports(serializedQuery);
@@ -1809,11 +1802,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
-        // A hold only blocks paying the report that holds it. Bulk pay acts on the payable subset of the selection
-        // (see payableSelectedReports), and canPay is already false for any report containing a held expense, so a
-        // hold inside a report the viewer is not paying must not drop Pay for the ones they are. Whole-page
-        // selections routinely mix the two, which is why the unscoped check left Export as the only bulk action.
-        // Transaction-level selections have no payable subset to fall back to, so they keep the unscoped check.
         const isAnyPayableTransactionOnHold =
             payableSelectedReports.length > 0
                 ? Object.values(selectedTransactions).some((transaction) => transaction.isHeld && !!transaction.reportID && payableSelectedReportIDs.includes(transaction.reportID))
@@ -2181,17 +2169,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return isExportTheOnlyAction && subMenuItems.length > 0 ? subMenuItems : builtOptions;
         };
 
-        // Pay is offered for both "Select all" (all matching) and normal selections, so build it once here and reuse it in both branches below.
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
-        // Keep Pay visible while offline: selecting it is handled by onBulkPaySelected, which shows the offline modal
-        // rather than attempting a payment. Gating on !isOffline here would hide Pay entirely offline, which is wrong.
-        //
-        // Under "Select all" the selection covers every report matching the query, but only the first page is loaded,
-        // and QueueBulkPayReports re-resolves eligibility server-side from that query. So the two page-derived gates
-        // must not apply: the hold check lets one held expense on the loaded page drop Pay for the whole query, and
-        // getPayOption additionally requires every payable report to agree on a report type. Both make the menu depend
-        // on what happens to be loaded rather than on what is actually payable. Keep only the "some report is payable"
-        // signal, which is the one thing the loaded page can honestly tell us.
         const hasLoadedPayableReport = payableSelectedReports.length > 0 || selectedReports.length === 0;
         const shouldShowPayOption = areAllMatchingItemsSelected
             ? hasLoadedPayableReport && !!bulkPayButtonOptions?.length
@@ -2207,8 +2185,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             onSelected: () => onBulkPaySelected(undefined),
         };
 
-        // With "Select all" the selection can span more reports than are loaded, so per-report actions other than Pay
-        // (which the backend resolves from the query) can't be built. Offer the manual bulk Pay alongside Export only.
         if (areAllMatchingItemsSelected) {
             return openExportOptionsDirectlyIfSoleAction(shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption]);
         }
