@@ -682,8 +682,10 @@ const ViolationsUtils = {
         }
 
         const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;
-        const inputDate = new Date(updatedTransaction.modifiedCreated ?? updatedTransaction.created);
-        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
+        // `getCreated` rather than `modifiedCreated ?? created`: the backend sends `modifiedCreated: ''` when the date
+        // was never edited, and `??` only falls back on null/undefined, so the empty string would win.
+        const inputDate = TransactionUtils.getCreated(updatedTransaction);
+        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isTransactionDateFuture(inputDate) && isControlPolicy;
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasItemizedReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -1179,6 +1181,10 @@ const ViolationsUtils = {
      * Checks if any transactions in the report have violations that should be visible to the current user.
      * Filters violations based on user role (submitter, admin, policy member) and report state.
      * Also filters out dismissed violations.
+     *
+     * `excludedViolationNames` lets a caller that is answering a narrower question than "is anything visible" drop
+     * violations by name first. Callers that pair this with their own name-filtered check must pass the same list here,
+     * otherwise an excluded-but-visible violation vouches for a violation that the caller has already filtered out.
      */
     hasVisibleViolationsForUser(
         report: OnyxEntry<Report>,
@@ -1187,6 +1193,7 @@ const ViolationsUtils = {
         currentUserAccountID: number,
         policy: OnyxEntry<Policy>,
         transactions: Transaction[],
+        excludedViolationNames: ViolationName[] = [],
     ): boolean {
         if (!report || !violations || !transactions) {
             return false;
@@ -1202,6 +1209,7 @@ const ViolationsUtils = {
             // Check if any violation is not dismissed and should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
+                    !excludedViolationNames.includes(violation.name) &&
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, currentUserEmail, policy) &&
                     shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)
                 );

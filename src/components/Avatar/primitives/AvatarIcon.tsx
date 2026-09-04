@@ -34,12 +34,12 @@ type AvatarIconProps = AvatarPrimitivesCommonProps & {
 };
 
 /** Renders an avatar as an SVG icon. */
-function AvatarIcon({avatarSource, size, type, iconContainerStyles, iconAdditionalStyles, fallbackAvatarTestID, iconColors, fill}: AvatarIconProps) {
+function AvatarIcon({avatarSource, size, shape, iconContainerStyles, iconAdditionalStyles, fallbackAvatarTestID, iconColors, fill}: AvatarIconProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const iconSize = StyleUtils.getAvatarSize(size);
     const containerStyles = iconContainerStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, iconContainerStyles] : undefined;
-    const additionalStyles = [StyleUtils.getAvatarBorderStyle(size, type), iconColors, iconAdditionalStyles];
+    const additionalStyles = [StyleUtils.getAvatarBorderStyle(size, shape), iconColors, iconAdditionalStyles];
 
     return (
         <View style={containerStyles}>
