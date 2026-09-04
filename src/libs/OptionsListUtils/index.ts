@@ -327,7 +327,7 @@ function getAlternateText(
                 invoiceReceiverPolicy,
                 policyTags,
                 isReportArchived,
-                // The Search path has no separate report NVP source here; the archived flag and private_isArchived
+                // The Search path has no separate report NVP source here. The archived flag and private_isArchived
                 // both derive from the same NVP, so the option's archived flag is the equivalent input.
                 privateIsArchived: !!isReportArchived,
                 conciergeReportID,
