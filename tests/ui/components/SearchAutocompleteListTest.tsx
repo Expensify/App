@@ -190,45 +190,6 @@ describe('SearchAutocompleteList', () => {
         expect(mockHtmlToText).toHaveBeenCalled();
     });
 
-    it('renders active-search results as a single "Search results" list ordered by the server order', async () => {
-        const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
-
-        const alice: OptionData = {reportID: '456', keyForList: '456', accountID: 123, isDM: true, text: 'Alice', alternateText: '', lastMessageText: ''};
-        const bob: OptionData = {reportID: '789', keyForList: '789', accountID: 0, text: 'Bob', alternateText: '', lastMessageText: ''};
-        mockCombineOrdering.mockReturnValue({recentReports: [alice, bob], personalDetails: []});
-
-        // Once the server has answered (searchResultReportIDs is set), recentReportsOptions is already in
-        // server order and stays a single list instead of splitting into local/server sections.
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['456', '789']);
-        });
-
-        const {toJSON} = render(
-            <OnyxListItemProvider>
-                <LocaleContextProvider>
-                    <SearchAutocompleteList
-                        autocompleteQueryValue="te"
-                        handleSearch={jest.fn()}
-                        onListItemPress={jest.fn()}
-                    />
-                </LocaleContextProvider>
-            </OnyxListItemProvider>,
-        );
-
-        await waitForBatchedUpdatesWithAct();
-
-        const tree = JSON.stringify(toJSON());
-
-        // Active search renders one "Search results" section, not a separate "Recent chats" section.
-        expect(tree).toContain('Search results');
-        expect(tree).not.toContain('Recent chats');
-        expect(tree).toContain('Alice');
-        expect(tree).toContain('Bob');
-
-        // Rows follow the order recentReportsOptions provides.
-        expect(tree.indexOf('Alice')).toBeLessThan(tree.indexOf('Bob'));
-    });
-
     it('keeps a known DM in "Recent chats" after its report loads from search', async () => {
         const mockUseFilteredOptions = jest.mocked(useFilteredOptions);
         const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
@@ -257,10 +218,9 @@ describe('SearchAutocompleteList', () => {
         expect(treeAfterFreeze).toContain('Alice');
         expect(treeAfterFreeze.indexOf('Recent chats')).toBeLessThan(treeAfterFreeze.indexOf('Alice'));
 
-        // Now the search results come back. The DM's report loads, so its keyForList flips to the reportID
-        // (accountID stays the same). We hand back a new options reference so the list recomputes without
-        // touching the query, otherwise the frozen ranks would be rebuilt. searchResultReportIDs stays unset
-        // here (still no server order), which is what keeps this in the two-section branch.
+        // When search results arrive, the DM's keyForList flips to the reportID while its accountID remains
+        // stable. Re-render with a new options reference without changing the query so the local rank remains
+        // the snapshot from before the response.
         const dmAsReport: OptionData = {reportID: '456', keyForList: '456', accountID: 123, isDM: true, text: 'Alice', alternateText: '', lastMessageText: ''};
         // Alice also has a task report. It carries her accountID too, but it isn't the DM, so it should end up
         // in the server section rather than pinned under "Recent chats".
@@ -275,6 +235,10 @@ describe('SearchAutocompleteList', () => {
             isLoadingMore: false,
         });
         mockCombineOrdering.mockReturnValue({recentReports: [dmAsReport, aliceTaskReport, brandNewServerReport], personalDetails: []});
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['999', '789', '456']);
+        });
 
         rerender(
             <OnyxListItemProvider>
@@ -309,9 +273,10 @@ describe('SearchAutocompleteList', () => {
         expect(aliceDMIndex).toBeGreaterThan(recentChatsIndex);
         expect(aliceDMIndex).toBeLessThan(serverResultsIndex);
 
-        // Alice's task report and Bob's report are in the server section - the task wasn't pinned just
-        // because it shares Alice's accountID.
+        // Alice's task report and Bob's report are in the server section, in Auth's order. The task was not
+        // pinned merely because it shares Alice's accountID.
         expect(aliceTaskIndex).toBeGreaterThan(serverResultsIndex);
         expect(bobIndex).toBeGreaterThan(serverResultsIndex);
+        expect(aliceTaskIndex).toBeLessThan(bobIndex);
     });
 });

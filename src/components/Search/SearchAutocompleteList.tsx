@@ -606,16 +606,8 @@ function SearchAutocompleteList({
                     customHeader: skeletonHeader,
                 });
             }
-        } else if (searchResultReportIDs && searchResultReportIDs.length > 0) {
-            // The server has answered: recentReportsOptions is already in server order (stable until the
-            // query changes again), so render it as a single list instead of splitting it.
-            if (nextStyledRecentReports.length > 0 || !isLoadingOptions) {
-                pushSection({title: translate('search.serverResults'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
-            } else {
-                pushSection({title: undefined, data: [], sectionIndex: sectionIndex++, customHeader: skeletonHeader});
-            }
         } else {
-            // Active search without a server order yet: split rows into local (frozen order) and server sections.
+            // Active search: keep locally available rows fixed while server-only rows arrive separately.
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
             for (const item of nextStyledRecentReports) {
@@ -689,7 +681,6 @@ function SearchAutocompleteList({
         recentSearchesData,
         searchOptions,
         searchQueryItems,
-        searchResultReportIDs,
         styles,
         translate,
         isLoadingOptions,

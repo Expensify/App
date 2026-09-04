@@ -612,7 +612,7 @@ describe('SearchAutocompleteList', () => {
             expect(screen.queryByText('Search results')).toBeNull();
         });
 
-        it('should show "Search results" header when an active search query is entered', async () => {
+        it('should keep "Recent chats" header when an active search query is entered', async () => {
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
             recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
 
@@ -637,17 +637,14 @@ describe('SearchAutocompleteList', () => {
             fireEvent.changeText(textInput, 'test');
             await flushAllUpdates();
 
-            // Until the server answers, this stays under "Recent chats" (frozen local order) rather than
-            // showing a "Search results" section — see the "chat switcher results" tests below for that case.
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['101', '102', '103']);
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
             });
             await flushAllUpdates();
 
-            // Once the server has answered, the results collapse into a single "Search results" section
             await waitFor(() => {
-                expect(screen.getByText('Search results')).toBeTruthy();
+                expect(screen.getByText('Recent chats')).toBeTruthy();
             });
         });
 
@@ -671,7 +668,6 @@ describe('SearchAutocompleteList', () => {
             fireEvent.changeText(textInput, 'some query');
             await flushAllUpdates();
 
-            // Simulate the server answering, which collapses the result into a single "Search results" section
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['101', '102', '103']);
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
@@ -679,7 +675,7 @@ describe('SearchAutocompleteList', () => {
             await flushAllUpdates();
 
             await waitFor(() => {
-                expect(screen.getByText('Search results')).toBeTruthy();
+                expect(screen.getByText('Recent chats')).toBeTruthy();
             });
 
             // Clear the query
