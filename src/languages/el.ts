@@ -4706,6 +4706,7 @@ ${amount} για ${merchant} - ${date}`,
             rooms: 'Δωμάτια',
             accounting: 'Λογιστική',
             hr: 'HR',
+            recruiting: 'Προσλήψεις',
             receiptPartners: 'Συνεργάτες αποδείξεων',
             rules: 'Κανόνες',
             displayedAs: 'Εμφανίζεται ως',
@@ -7513,6 +7514,20 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
         },
+        recruiting: {
+            title: 'Προσλήψεις',
+            connectionsSubtitle:
+                'Συνδεθείτε με το σύστημα προσλήψεών σας για να συγχρονίζετε τα δεδομένα υποψηφίων, να αντιστοιχίζετε αυτόματα τις αποζημιώσεις στα σωστά άτομα και να διατηρείτε τις δαπάνες της ομάδας σας ακριβείς χωρίς χειροκίνητη εργασία.',
+            alreadyConnectedTitle: 'Αδυναμία σύνδεσης σε πολλές πλατφόρμες ATS',
+            alreadyConnectedPrompt: 'Πρέπει να αποσυνδέσετε το τρέχον ATS σας πριν συνδέσετε κάποιο άλλο.',
+            syncing: 'Γίνεται συγχρονισμός υποψηφίων',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Συνδέθηκε. ${setupLink ? `<a href="${setupLink}">Ολοκληρώστε τη ρύθμιση</a>` : 'Ολοκληρώστε τη ρύθμιση'} για εισαγωγή υποψηφίων.</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>Δεν βλέπετε εδώ το ATS σας; <a href="#">Ρωτήστε το Concierge</a> και μπορούμε να το προσθέσουμε.</muted-text-label>`,
+            importSettings: 'Ρυθμίσεις εισαγωγής',
+            defaultApprover: 'Προεπιλεγμένος εγκρίνων',
+            approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
+        },
         merge: {
             connections: 'Συνδέσεις',
             connect: 'Σύνδεση',
@@ -7535,6 +7550,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 basic: 'Βασική έγκριση',
                 manager: 'Έγκριση προϊσταμένου',
                 custom: 'Προσαρμοσμένη έγκριση',
+                advanced: 'Προηγμένη έγκριση',
             },
             syncLimitReached: {
                 title: 'Δοκιμάστε ξανά αύριο',
