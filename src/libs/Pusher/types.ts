@@ -19,7 +19,6 @@ type States = {
 type Args = {
     appKey: string;
     cluster: string;
-    authEndpoint: string;
 };
 
 type UserIsTypingEvent = ReportUserIsTyping & {

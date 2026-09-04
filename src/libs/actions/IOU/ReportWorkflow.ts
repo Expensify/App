@@ -283,7 +283,7 @@ function canIOUBePaid(
         !isPayBlockedByArchivedState(iouReport, policy, isChatReportArchived) &&
         !isAutoReimbursable &&
         !isPayAtEndExpenseReport &&
-        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))
+        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy))
     );
 }
 
