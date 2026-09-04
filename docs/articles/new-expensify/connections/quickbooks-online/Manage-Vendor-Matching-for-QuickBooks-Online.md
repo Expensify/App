@@ -1,8 +1,8 @@
 ---
 title: Manage Vendor Matching for QuickBooks Online
 description: Learn how QuickBooks Online vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
-keywords: [QuickBooks Online, vendor matching, vendor, company card expenses, default vendor, Credit Card Misc, Debit Card Misc, credit card export]
-internalScope: Audience is Workspace Admins using the QuickBooks Online connection with Credit card or Debit card company card exports. Covers imported vendors, automatic and manual vendor assignment, default vendor behavior, and vendor export order. Does not cover QuickBooks Online connection setup or other export types.
+keywords: [QuickBooks Online, vendor matching, vendor, company card expenses, default vendor, Credit Card Misc, Debit Card Misc, credit card export, Vendors, More features]
+internalScope: Audience is Workspace Admins using the QuickBooks Online connection with Credit card or Debit card company card exports. Covers where the Vendors row appears under More features, why its switch is read-only, imported vendors, automatic and manual vendor assignment, default vendor behavior, and vendor export order. Does not cover QuickBooks Online connection setup or other export types.
 ---
 
 # Manage Vendor Matching for QuickBooks Online
@@ -17,6 +17,31 @@ This feature is available to Workspace Admins whose Workspace:
  - Has **Credit card** or **Debit card** selected under **Export company card expenses as** in the QuickBooks Online configuration.
 
 If your Workspace isn't connected to QuickBooks Online yet, learn how to [connect to QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online).
+
+## Where to find Vendors in More features
+
+Once your Workspace is connected to QuickBooks Online, a **Vendors** row appears on the **More features** page.
+
+1. Click the navigation tabs (on the left on web, on the bottom on mobile), then go to **Workspaces > [workspace name] > More features**.
+2. Scroll to the **Organize** section.
+3. Click **Vendors** to open the vendor list imported from QuickBooks Online.
+
+The **Vendors** row is only shown on Workspaces connected to QuickBooks Online. Workspaces connected to NetSuite or QuickBooks Desktop, and Workspaces with no accounting connection, don't see the row at all.
+
+<!-- SCREENSHOT:
+Suggestion: The More features page scrolled to the Organize section on a Workspace connected to QuickBooks Online, showing the Vendors row with its read-only switch below Categories, Tags, and Taxes.
+Location: Immediately after the numbered steps in this section.
+Purpose: Admins expect Vendors to sit with the accounting settings under Integrate, so they miss it in Organize and report the feature as missing.
+-->
+
+## Why the Vendors switch can't be turned on or off
+
+The **Vendors** switch is read-only. It reports your QuickBooks Online export settings instead of acting as an independent setting:
+
+ - The switch is on when **Export company card expenses as** is set to **Credit card** or **Debit card**.
+ - The switch is off for every other **Export company card expenses as** selection.
+
+Clicking the switch opens a **Not so fast...** message telling you to change your accounting import settings. To change whether vendor matching applies, update **Export company card expenses as** in your QuickBooks Online configuration. Clicking the rest of the **Vendors** row still opens your imported vendor list.
 
 ## How vendors are matched to company card expenses
 
@@ -70,4 +95,12 @@ Only Workspace Admins can view and edit the **Vendor** field. Members and submit
 ## Does manually assigning a vendor stop automatic matching?
 
 Yes. Once a Workspace Admin manually assigns a vendor to an expense, Expensify preserves that selection and won't replace it with automatic matching.
+
+## Why don't I see the Vendors row under More features?
+
+The **Vendors** row only appears on Workspaces connected to QuickBooks Online. If your Workspace has no accounting connection, or is connected to NetSuite or QuickBooks Desktop, the row is hidden.
+
+## Why is the Vendors switch off even though I'm connected to QuickBooks Online?
+
+Your **Export company card expenses as** setting isn't set to **Credit card** or **Debit card**. The row stays visible so you can see the feature exists, but the switch stays off until you select one of those export options.
 
