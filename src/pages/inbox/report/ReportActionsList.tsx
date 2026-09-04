@@ -184,7 +184,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
-    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
+    const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID,
         sortedVisibleReportActions,
         sortedReportActions,
@@ -261,6 +261,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
     const actionBadgeTargetIndex = actionBadgeTargetID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
+
+    // Resolve the unread marker against the rendered actions because a synthetic Concierge draft can shift the FlatList indices.
+    const unreadMarkerReportActionIndex = unreadMarkerReportActionID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID) : -1;
 
     const {
         trackVerticalScrolling,
