@@ -5,36 +5,36 @@ keywords: [New Expensify, set up direct company card feed, connect company cards
 internalScope: Audience is Workspace Admins. Covers connecting a company card feed using direct feed or Plaid. Does not cover assigning cards, managing cards, or troubleshooting feeds.
 ---
 
-# Set up a Direct Company Card Feed Connection
+# Set up a Direct Company Card Connection
 
-Setting up a direct company card feed connection allows you to automatically import card transactions into Expensify.
+When you set up a direct company card connection, Expensify establishes a secure connection with your bank to import card transactions automatically. 
 
-You can connect company cards using a direct connection with your bank, or through Plaid, depending on your bank and country. If your bank isn't supported, you can also [learn how to import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet).
+If your bank isn't supported, you can [import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet) instead.
 
 ---
 
 ## Who can set up a direct company card feed connection 
 
-Any Workspace Admin can set up a direct company card feed connection. 
+To set up a direct company card connection, you must: 
 
- - On the **Collect** plan, you can add one company card feed. 
- - On the **Control** plan, you can add unlimited company card feeds. 
+- Be a workspace admin or card admin on workspace on the Collect or Control plan
+- Have **Company Cards** enabled on the workspace
+- Have adminstrator login credentials to the relevant online banking account
 
-[Learn about the different plan types available in Expensify.](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans)
+**Note**: Workspaces on the Collect plan are limited to one company card connecton. [Learn about the different plan types available in Expensify.](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans)
 
 ---
 
-## How to set up a direct company card feed connection 
+## How to set up a direct company card connection 
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile) and select **Workspaces > [Workspace name]**.
-2. Choose **Company cards** to view your company’s card setup page.
- - If you don't see **Company cards**, enable the feature under **More features > Company cards**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Workspaces > [Workspace name]**.
+2. Select **Company cards**.
 3. Click **Add cards** to set up your first connection.
     -  If you don't see **Add cards**, click on your existing company card feed connection then **Add cards**.
 4. Select the country your bank is located in and select **Next**.
 5. Choose **Direct feed** and select **Next**.
-6. Choose your bank from the list, or select **Other** to see additional banks supported by Plaid.
-
+6. Choose your bank from the list, or select **Other** to see additional banks.
+7. Follow the prompts to authenticate the connection with your bank.
 
 ![Click add cards to add a card feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_01.png){:width="100%"}
 
@@ -42,7 +42,7 @@ Any Workspace Admin can set up a direct company card feed connection.
 
 ## What happens after you set up a direct company card feed connection 
 
- - Cards with recent expenses will appear as a list and can be assigned to Workspace members.
+ - Cards with recent expenses will appear as a list and can be assigned to workspace members.
  - After a card is assigned, posted transactions import into the assigned member's account automatically as expenses.
 
 [Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/Assign-Company-Cards).
