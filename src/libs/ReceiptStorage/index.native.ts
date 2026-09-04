@@ -7,6 +7,8 @@ import RNFS from 'react-native-fs';
 
 import type ReceiptStorage from './types';
 
+import {isInDurableFolder, toDurableName} from './durableFolder';
+
 // A durable name is the bare filename inside the receipts folder. Never store a full path: iOS moves
 // the app data container on most upgrades, so an absolute path stored before the upgrade names a
 // directory the device no longer has, even though iOS carried the file itself across.
@@ -50,20 +52,6 @@ const adopt: ReceiptStorage['adopt'] = async (uriOrPath, fileName) => {
 
 const toLocalUri: ReceiptStorage['toLocalUri'] = (durableName) => `file://${getReceiptsUploadFolderPath()}/${durableName}`;
 
-/**
- * Matches on the folder name and ignores the container prefix. The app reads this directory through
- * two filesystem libraries whose absolute forms can differ (/private/var and /var), but the trailing
- * segments stay stable.
- */
-function toDurableName(storedPath: string): string | undefined {
-    const dirName = getReceiptsUploadFolderPath().split('/').pop();
-    const path = fileURIToPath(storedPath);
-    if (!dirName || !path.includes(`/${dirName}/`)) {
-        return undefined;
-    }
-    return path.split('/').pop();
-}
-
 const resolve: ReceiptStorage['resolve'] = (source) => {
     if (typeof source !== 'string') {
         return undefined;
@@ -73,18 +61,6 @@ const resolve: ReceiptStorage['resolve'] = (source) => {
     }
     const durableName = toDurableName(source);
     return durableName ? toLocalUri(durableName) : source;
-};
-
-const isInDurableFolder: ReceiptStorage['isInDurableFolder'] = (storedPath) => {
-    if (typeof storedPath !== 'string') {
-        return false;
-    }
-    try {
-        return toDurableName(storedPath) !== undefined;
-    } catch {
-        // getReceiptsUploadFolderPath reaches the native filesystem module, which is not always available.
-        return false;
-    }
 };
 
 const receiptStorage: ReceiptStorage = {adopt, toLocalUri, resolve, isInDurableFolder};

@@ -4,7 +4,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
-import ReceiptStorage from '@libs/ReceiptStorage';
+import {isInDurableFolder} from '@libs/ReceiptStorage/durableFolder';
 
 import type {SignOutReason} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -321,7 +321,7 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
             transactionID,
             command: request.command,
             msSinceEnqueued: enqueuedAt !== undefined ? now - enqueuedAt : undefined,
-            isSourceInDurableFolder: ReceiptStorage.isInDurableFolder(getQueuedReceiptPath(data.receipt)),
+            isSourceInDurableFolder: isInDurableFolder(getQueuedReceiptPath(data.receipt)),
         });
     }
 
