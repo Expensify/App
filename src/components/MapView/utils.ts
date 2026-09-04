@@ -1,5 +1,6 @@
 import {LOCALES} from '@src/CONST/LOCALES';
 import type {Locale} from '@src/CONST/LOCALES';
+
 import type {AlternateDirection, Coordinate} from './MapViewTypes';
 
 /** App locales whose value isn't already the BCP-47 code Mapbox expects for label localization. */
