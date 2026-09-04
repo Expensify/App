@@ -29,12 +29,11 @@ module PatchedIOSArtifacts
 
     def self.setup
         is_hybrid = ENV['IS_HYBRID_APP'] == 'true'
-        package_name = is_hybrid ? 'react-hybrid' : 'react-standalone'
 
         # Manual escape hatch: force a full from-source build (e.g. to unblock a prebuild issue).
         build_from_source = ENV['BUILD_RN_FROM_SOURCE'] == '1'
         # The escape hatch short-circuits before anything touches the network: no resolver, no prefetch.
-        resolution = build_from_source ? {'buildFromSource' => true, 'version' => nil} : prefetch(resolve(package_name, is_hybrid))
+        resolution = build_from_source ? {'buildFromSource' => true, 'version' => nil} : prefetch(resolve(is_hybrid))
 
         # A single decision drives both prebuilt flags, so we never land in a mixed
         # prebuilt-deps / source-core state (which desyncs the CocoaPods sandbox).
@@ -218,10 +217,10 @@ module PatchedIOSArtifacts
         destination
     end
 
-    def self.resolve(package_name, is_hybrid)
+    def self.resolve(is_hybrid)
         cmd = [
             'bun', File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/resolve-artifacts.ts'),
-            '--platform=ios', "--package=#{package_name}", "--hybrid=#{is_hybrid}", "--new-dot-root=#{NEW_DOT_ROOT}"
+            '--platform=ios', "--hybrid=#{is_hybrid}", "--new-dot-root=#{NEW_DOT_ROOT}"
         ]
         # stdout is pure JSON; the resolver logs to stderr.
         output = IO.popen(cmd, chdir: NEW_DOT_ROOT, &:read)
