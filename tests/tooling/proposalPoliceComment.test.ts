@@ -235,7 +235,7 @@ describe('proposalPoliceComment', () => {
 
         await run();
 
-        expect(mockPromptResponses.mock.calls[0]?.[0].input).toContain('<author_context>trusted:');
+        expect(mockPromptResponses.mock.calls.at(0)?.[0].input).toContain('<author_context>trusted:');
         expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
         expect(mockCreateComment).not.toHaveBeenCalled();
     });

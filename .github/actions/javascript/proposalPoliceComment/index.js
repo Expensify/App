@@ -41911,7 +41911,7 @@ var require_lib2 = __commonJS({
 var require_awesome_phonenumber = __commonJS({
   "node_modules/awesome-phonenumber/index.js"(exports, module) {
     var exportedName = "PhoneNumber$$module$src$index";
-    var lib = require_lib2()[exportedName] || (typeof globalThis !== "undefined" && globalThis || typeof global !== "undefined" && global || typeof window !== "undefined" && window || typeof self !== "undefined" && self || exports)[exportedName];
+    module.exports = require_lib2()[exportedName] || (typeof globalThis !== "undefined" && globalThis || typeof global !== "undefined" && global || typeof window !== "undefined" && window || typeof self !== "undefined" && self || exports)[exportedName];
     Object.defineProperty(
       module.exports,
       "__esModule",
@@ -41920,9 +41920,8 @@ var require_awesome_phonenumber = __commonJS({
       }
     );
     module.exports.parsePhoneNumber = (...args) => {
-      "worklet";
       try {
-        const ret = lib(...args).toJSON();
+        const ret = module.exports(...args).toJSON();
         if (!ret.valid && !ret.possible) {
           ret.possible = false;
           if (!ret.possibility)
@@ -41938,13 +41937,13 @@ var require_awesome_phonenumber = __commonJS({
         };
       }
     };
-    module.exports.getCountryCodeForRegionCode = lib.getCountryCodeForRegionCode;
-    module.exports.getRegionCodeForCountryCode = lib.getRegionCodeForCountryCode;
-    module.exports.getSupportedCallingCodes = lib.getSupportedCallingCodes;
-    module.exports.getSupportedRegionCodes = lib.getSupportedRegionCodes;
-    module.exports.getExample = lib.getExample;
-    module.exports.getAsYouType = lib.getAsYouType;
-    module.exports.getNumberFrom = lib.getNumberFrom;
+    module.exports.getCountryCodeForRegionCode = module.exports.getCountryCodeForRegionCode;
+    module.exports.getRegionCodeForCountryCode = module.exports.getRegionCodeForCountryCode;
+    module.exports.getSupportedCallingCodes = module.exports.getSupportedCallingCodes;
+    module.exports.getSupportedRegionCodes = module.exports.getSupportedRegionCodes;
+    module.exports.getExample = module.exports.getExample;
+    module.exports.getAsYouType = module.exports.getAsYouType;
+    module.exports.getNumberFrom = module.exports.getNumberFrom;
   }
 });
 
@@ -42227,7 +42226,6 @@ var require_surrogate_pairs = __commonJS({
 // node_modules/html-entities/lib/index.js
 var require_lib3 = __commonJS({
   "node_modules/html-entities/lib/index.js"(exports) {
-    "worklet";
     "use strict";
     var __assign = exports && exports.__assign || function() {
       __assign = Object.assign || function(t) {

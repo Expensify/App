@@ -37,7 +37,7 @@ jobs:
           done
 
           shopt -s nocasematch
-          if [[ "$COMMENT_BODY" =~ [[:space:]]from[[:space:]]+(Callstack|Margelo|Software[[:space:]]Mansion)([^[:alnum:]_]|$) ]]; then
+          if [[ "$COMMENT_BODY" =~ (^|[[:space:]])from[[:space:]]+(Callstack|Margelo|Software[[:space:]]?Mansion)([^[:alnum:]_]|$) ]]; then
             TRUSTED=true
           fi
 
