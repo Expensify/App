@@ -3159,6 +3159,7 @@ ${amount} per ${merchant} - ${date}`,
         unread: 'Non letti',
         markAllAsRead: 'Segna tutto come letto',
         markAllAsReadConfirmationPrompt: 'Vuoi davvero segnare tutte le chat come lette?',
+        markAllTodosAsReadConfirmationPrompt: 'Vuoi davvero segnare come lette tutte le chat da gestire?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,

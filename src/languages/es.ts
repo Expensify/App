@@ -3076,6 +3076,7 @@ ${amount} para ${merchant} - ${date}`,
         unread: 'No leído',
         markAllAsRead: 'Marcar todo como leído',
         markAllAsReadConfirmationPrompt: '¿Seguro que quieres marcar todos los chats como leídos?',
+        markAllTodosAsReadConfirmationPrompt: '¿Seguro que quieres marcar como leídos todos los chats pendientes?',
     },
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',

@@ -3175,6 +3175,7 @@ ${amount} pour ${merchant} - ${date}`,
         unread: 'Non lu',
         markAllAsRead: 'Tout marquer comme lu',
         markAllAsReadConfirmationPrompt: 'Voulez-vous vraiment marquer toutes les discussions comme lues ?',
+        markAllTodosAsReadConfirmationPrompt: 'Voulez-vous vraiment marquer comme lues toutes les discussions à traiter ?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `dans ${policyName}`,
