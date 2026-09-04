@@ -4,7 +4,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -84,7 +83,6 @@ function getTypeIdentifier(reservation: Reservation): string {
 function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -120,7 +118,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
             onPress={handlePress}
             shouldShowRightIcon
             leftComponent={
-                <View style={[styles.homeWidgetIconContainer, StyleUtils.getBackgroundColorStyle(theme.border)]}>
+                <View style={styles.widgetItemIconContainer}>
                     <Icon
                         src={reservationIcon}
                         width={variables.iconSizeNormal}
