@@ -6,6 +6,9 @@ type ConciergePendingFollowupList = {
     /** Timestamp (ms) when the pending flag was created, used for TTL cleanup */
     createdAt: number;
 
+    /** The user question that produced the pending Concierge response */
+    questionReportActionID?: string;
+
     /** Whether the skeleton should be visually hidden (e.g., user is offline) */
     hidden?: boolean;
 };
