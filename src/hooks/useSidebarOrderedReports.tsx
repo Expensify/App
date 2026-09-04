@@ -1,5 +1,4 @@
 import {setInboxTab} from '@libs/actions/User';
-import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import SidebarUtils from '@libs/SidebarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -11,7 +10,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-import {startOfDay, subMonths} from 'date-fns';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import useCollectionDelta from './useCollectionDelta';
@@ -345,16 +343,8 @@ function SidebarOrderedReportsContextProvider({
         return orderedReportIDs.filter((reportID) => baseSet.has(reportID) || reportID === stickyReportID);
     }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID]);
 
-    // The count shown in each tab's badge, derived from the full "All" set (not the currently filtered view).
-    const inboxTabCounts = useMemo(() => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
-
-    const hasStaleUnreadReport = useMemo(() => {
-        const staleUnreadTime = DateUtils.getDBTime(subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS).valueOf());
-        return orderedReportIDs.some((reportID) => {
-            const report = reportsToDisplayInLHN[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            return !!report?.isUnreadReport && (report.lastVisibleActionCreated ?? '') < staleUnreadTime;
-        });
-    }, [orderedReportIDs, reportsToDisplayInLHN]);
+    // Derived from the full "All" set (not the currently filtered view).
+    const {counts: inboxTabCounts, hasStaleUnreadReport} = useMemo(() => SidebarUtils.getInboxTabSummary(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
 
     // Get the actual reports based on the filtered IDs
     const getOrderedReports = useCallback(

@@ -39,7 +39,10 @@ function InboxTabSelector() {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {showConfirmModal} = useConfirmModal();
     // Only show the tooltip if we have unread message > 3 months old.
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MARK_ALL_AS_READ, hasStaleUnreadReport);
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MARK_ALL_AS_READ,
+        hasStaleUnreadReport,
+    );
     // Anchor the popover to the Unread tab itself (not the whole tab row) so it opens at that tab's left edge.
     const unreadTabRef = useRef<View | HTMLDivElement>(null);
     const {calculatePopoverPosition} = usePopoverPosition();
@@ -53,6 +56,7 @@ function InboxTabSelector() {
         if (key !== CONST.INBOX_TAB.UNREAD) {
             return;
         }
+        hideProductTrainingTooltip();
         calculatePopoverPosition(unreadTabRef, anchorAlignment).then((position) => {
             setPopoverPosition(position);
             setIsMenuVisible(true);

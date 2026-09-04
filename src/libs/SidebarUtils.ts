@@ -30,9 +30,12 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {startOfDay, subMonths} from 'date-fns';
+
 import type {OptionData} from './ReportUtils';
 
 import {isAnonymousUser} from './actions/Session';
+import DateUtils from './DateUtils';
 import Log from './Log';
 import {shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
@@ -1002,10 +1005,18 @@ function filterReportsForInboxTab(reportIDs: string[], reportsToDisplay: Reports
     });
 }
 
-/** Counts how many of the ordered reports fall into the To-do and Unread Inbox tabs, for the count badge shown on each. */
-function getInboxTabCounts(reportIDs: string[], reportsToDisplay: ReportsToDisplayInLHN): Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number> {
+/**
+ * Summarizes the ordered reports for the Inbox tab row: how many fall into the To-do and Unread tabs (for the count
+ * badge shown on each), and whether any unread report's newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS.
+ */
+function getInboxTabSummary(
+    reportIDs: string[],
+    reportsToDisplay: ReportsToDisplayInLHN,
+): {counts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>; hasStaleUnreadReport: boolean} {
+    const staleUnreadTime = DateUtils.getDBTime(subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS).valueOf());
     let todoCount = 0;
     let unreadCount = 0;
+    let hasStaleUnreadReport = false;
 
     for (const reportID of reportIDs) {
         const report = reportsToDisplay[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -1017,12 +1028,16 @@ function getInboxTabCounts(reportIDs: string[], reportsToDisplay: ReportsToDispl
         }
         if (report.isUnreadReport) {
             unreadCount++;
+            hasStaleUnreadReport = hasStaleUnreadReport || (report.lastVisibleActionCreated ?? '') < staleUnreadTime;
         }
     }
 
     return {
-        [CONST.INBOX_TAB.TODO]: todoCount,
-        [CONST.INBOX_TAB.UNREAD]: unreadCount,
+        counts: {
+            [CONST.INBOX_TAB.TODO]: todoCount,
+            [CONST.INBOX_TAB.UNREAD]: unreadCount,
+        },
+        hasStaleUnreadReport,
     };
 }
 
@@ -1043,5 +1058,5 @@ export default {
     updateReportsToDisplayInLHN,
     shouldDisplayReportInLHN,
     filterReportsForInboxTab,
-    getInboxTabCounts,
+    getInboxTabSummary,
 };
