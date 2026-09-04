@@ -1491,4 +1491,86 @@ describe('useSearchBulkActions - export options', () => {
             expect(getIncludeMultipleTaxExportArgument()).toBe(false);
         });
     });
+
+    describe('Reconciliation - All Expenses eligibility', () => {
+        /** The includeReconciliationAllExpenses argument getExportTemplates was last called with */
+        function getIncludeReconciliationAllExpensesArgument() {
+            return mockGetExportTemplates.mock.calls.at(-1)?.at(8);
+        }
+
+        it('offers the template when the user is a workspace admin of the selected workspace and it has company cards enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
+        });
+
+        it('offers the template when the user is a card admin of the selected workspace and it has the Expensify Card enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.CARD_ADMIN, areExpensifyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
+        });
+
+        it('hides the template when the user is a member, not admin, of every workspace', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.USER, areCompanyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('hides the template when the admin workspaces have no card product enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: false, areExpensifyCardsEnabled: false});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('offers the template when the user is a card-enabled workspace admin of any workspace, even if the selected rows belong to a workspace they are only a member of', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {id: POLICY_ID_2, role: CONST.POLICY.ROLE.USER, areCompanyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+            mockSelectedTransactions = {
+                tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+            };
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
+        });
+    });
 });
