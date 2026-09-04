@@ -69,7 +69,9 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    // Only for the read-only modal a locked row still owes a member. `canWrite` is the `canWriteRules` prop already.
+    // Every toggle here owes a locked-out member the read-only modal, the way the pre-revamp section gave all four of
+    // them. Splitting this section out dropped it, so a member saw a lock with nothing explaining it. Only the modal is
+    // taken from the hook: its `canWrite` is the `canWriteRules` prop already.
     const {withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'CreditCard', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
@@ -303,7 +305,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     isActive={areEReceiptsEnabled}
                     disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
                     showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD || isCollect}
-                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
+                    disabledAction={withReadOnlyFallback(isCollect ? navigateToRulesControlUpgrade : undefined)}
                     onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
                     pendingAction={policy?.pendingFields?.eReceipts}
                     rowIcon={icons.Receipt}
@@ -316,7 +318,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     isActive={isAttendeeTrackingEnabledForPolicy}
                     disabled={!canWriteRules || isCollect}
                     showLockIcon={!canWriteRules || isCollect}
-                    disabledAction={isCollect && canWriteRules ? navigateToRulesControlUpgrade : undefined}
+                    disabledAction={withReadOnlyFallback(isCollect ? navigateToRulesControlUpgrade : undefined)}
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                     rowIcon={icons.Users}
@@ -324,6 +326,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                 <PublicReceiptVisibilityToggle
                     policyID={policyID}
                     canWriteRules={canWriteRules}
+                    withReadOnlyFallback={withReadOnlyFallback}
                     rowIcon={icons.Eye}
                 />
             </View>
