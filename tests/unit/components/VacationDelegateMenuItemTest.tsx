@@ -51,7 +51,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 jest.mock('@hooks/useVacationDelegatePersonalDetails', () => jest.fn(() => undefined));
 
-// Capture the props passed to the MenuItemAvater so the test can assert against `avatarID` directly
+// Capture the props passed to the MenuItemAvatar so the test can assert against `avatarID` directly
 // (rather than re-encoding through `toJSON()`).
 const capturedAvatarProps: Array<Record<string, unknown>> = [];
 

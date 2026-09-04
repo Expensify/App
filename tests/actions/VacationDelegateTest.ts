@@ -10,6 +10,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {createGlobalFetchMock, getFetchMockCalls} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -25,10 +26,10 @@ describe('actions/VacationDelegate', () => {
     });
 
     describe('setVacationDelegate', () => {
-        it('sends SetVacationDelegate with the mapped params and clears policyDiff optimistically', () => {
+        it('sends SetVacationDelegate with the mapped params and clears policyDiff optimistically', async () => {
             const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
 
-            setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
+            await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
 
             expect(apiSideEffectSpy).toHaveBeenCalledWith(
                 SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
@@ -60,16 +61,50 @@ describe('actions/VacationDelegate', () => {
             apiSideEffectSpy.mockRestore();
         });
 
-        it('sends a persisted write instead of a side effect request once the policy diff warning is overridden', () => {
+        it('sends a persisted write instead of a side effect request once the policy diff warning is overridden', async () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => undefined);
             const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
 
-            setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', shouldOverridePolicyDiffWarning: true});
+            await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', shouldOverridePolicyDiffWarning: true});
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.objectContaining({overridePolicyDiffWarning: true}), expect.anything());
             expect(apiSideEffectSpy).not.toHaveBeenCalled();
 
             jest.restoreAllMocks();
+        });
+
+        it('waits for queued writes to settle before starting, so their responses cannot clear the policy diff it captures', async () => {
+            const mockFetch = createGlobalFetchMock();
+            global.fetch = mockFetch;
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'admin@test.com', accountID: 1, authToken: 'testAuthToken'});
+            await waitForBatchedUpdates();
+
+            const policyDiff = {adminPolicies: ['1'], nonAdminPolicies: ['2']};
+            mockFetch.mockAPICommand(WRITE_COMMANDS.SET_VACATION_DELEGATE, (params) =>
+                params.vacationDelegateEmail === 'second@test.com'
+                    ? {jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING, data: {policyDiff, phpCommandName: 'SetVacationDelegate', authWriteCommands: []}}
+                    : {jsonCode: CONST.JSON_CODE.SUCCESS},
+            );
+
+            // The write sent by the invite step is still sitting in the sequential queue when the next delegate is picked.
+            mockFetch.pause();
+            setVacationDelegate({creator: 'admin@test.com', delegate: 'first@test.com', shouldOverridePolicyDiffWarning: true});
+            await waitForBatchedUpdates();
+
+            const request = setVacationDelegate({creator: 'admin@test.com', delegate: 'second@test.com', currentDelegate: 'first@test.com'});
+            await waitForBatchedUpdates();
+
+            // Nothing of the second selection may reach the network or the NVP while the queued write can still respond over it.
+            expect(getFetchMockCalls(WRITE_COMMANDS.SET_VACATION_DELEGATE).length).toBe(1);
+            expect((await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE))?.delegate).toBe('first@test.com');
+
+            await mockFetch.resume();
+            await request;
+            await waitForBatchedUpdates();
+
+            const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+            expect(vacationDelegate?.delegate).toBe('second@test.com');
+            expect(vacationDelegate?.policyDiff).toEqual(policyDiff);
         });
 
         it('merges the policyDiff from a 305 response into the NVP without ever surfacing an error', async () => {

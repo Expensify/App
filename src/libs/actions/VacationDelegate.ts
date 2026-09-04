@@ -1,4 +1,5 @@
 import * as API from '@libs/API';
+import {waitForWrites} from '@libs/API';
 import type {SetVacationDelegateParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -72,6 +73,11 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
         API.write(WRITE_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});
         return;
     }
+
+    // A SetVacationDelegate write from the invite step, and the workspace invitations queued with it, can still be in flight.
+    // Its success data clears policyDiff and previousDelegate on this same NVP, so letting it settle first keeps it from
+    // overwriting the optimistic delegate and the policy diff this request is about to capture.
+    await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE);
 
     // We need to read the API response for capturing a policy diff warning. This is the other half of the branch above, not a chained call.
     // No failureData: the API layer treats the 305 policy diff warning as a failure, and any error written for this request lights up a red brick
