@@ -2011,6 +2011,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+                // Wider than category/tag so short violation labels are less likely to truncate.
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
                 columnWidth = {
                     ...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96),
@@ -2459,6 +2463,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
         paddingBottom: safeAreaPaddingBottom,
         backgroundColor: theme.appBG,
+    }),
+
+    getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({
+        ...style,
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
     }),
 });
 

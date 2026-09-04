@@ -1,0 +1,14 @@
+name: 'Verify staging builds succeeded'
+description: 'Check that the staging deploy for the version being shipped succeeded on every native platform'
+inputs:
+  GITHUB_TOKEN:
+    description: Auth token for New Expensify Github; necessary for accessing Octokit.
+    required: true
+outputs:
+  ALL_NATIVE_BUILDS_SUCCEEDED:
+    description: A true/false indicating whether every native platform built and uploaded successfully to staging.
+  REASON:
+    description: Human-readable explanation of the result, including the deploy run URL when there is one.
+runs:
+  using: 'node24'
+  main: 'index.js'

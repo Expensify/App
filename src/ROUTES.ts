@@ -103,6 +103,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.COMPANY_CARDS,
             SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED,
             SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS,
+            SCREENS.WORKSPACE.INVOICES,
             SCREENS.HOME,
             SCREENS.SEARCH.ROOT,
             SCREENS.REPORT,
@@ -892,6 +893,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED,
             SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED,
             SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED,
+            SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION,
+            SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_CONFIGURATION,
+            SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_BILLING_CONFIGURATION,
+            SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION,
         ],
         queryParams: ['connection', 'reconciliationAccountSettingsType'],
     },
@@ -1239,6 +1244,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS,
             SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS,
             SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST,
+            SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT_CARD_LIST,
         ],
         getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/export/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
     },
@@ -2839,12 +2845,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
+        getRoute: (policyID: string | undefined) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT route');
             }
 
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export` as const, backTo, false);
+            return `workspaces/${policyID}/accounting/quickbooks-online/export` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
@@ -3116,10 +3122,6 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/invoices` as const;
         },
-    },
-    WORKSPACE_INVOICES_VERIFY_ACCOUNT: {
-        route: `workspaces/:policyID/invoices/${VERIFY_ACCOUNT}`,
-        getRoute: (policyID: string) => `workspaces/${policyID}/invoices/${VERIFY_ACCOUNT}` as const,
     },
     WORKSPACE_INVOICES_COMPANY_NAME: {
         route: 'workspaces/:policyID/invoices/company-name',
@@ -4699,13 +4701,25 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/dualentry/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/company-card-account` as const,
     },
-    POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/dualentry/export/expensify-card-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/expensify-card-account` as const,
-    },
     POLICY_ACCOUNTING_DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR: {
         route: 'workspaces/:policyID/accounting/dualentry/export/default-company-card-vendor',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/dualentry/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/dualentry/export/card-account/${encodeURIComponent(feed)}` as const,
     },
     POLICY_ACCOUNTING_DUALENTRY_ADVANCED: {
         route: 'workspaces/:policyID/accounting/dualentry/advanced',

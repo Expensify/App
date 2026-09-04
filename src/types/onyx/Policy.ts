@@ -2176,9 +2176,6 @@ type DualEntryExport = {
     /** Account used when exporting company card expenses. */
     creditCardAccountID: string;
 
-    /** Account used when exporting Expensify Card expenses. */
-    expensifyCardAccountID: string;
-
     /**
      * Whether card transactions should be exported to multiple
      * accounts based on card program mappings.
@@ -2988,15 +2985,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
-
-        /** Configuration for collecting employee deposit account details for reimbursement outside of Expensify */
-        reimbursement?: {
-            /** Whether reimbursement is enabled for the policy */
-            enabled?: boolean;
-
-            /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, unknown>;
-        };
 
         /** The set reimburser for the policy */
         reimburser?: string;
