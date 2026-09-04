@@ -1025,6 +1025,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             conciergeChat,
             // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
             hasActiveAdminPolicies: undefined,
+            // This workspace is created by AddTrackedExpenseToPolicy, which does not apply CreatePolicy's
+            // paid-workspace check, so the #admins room keeps starting out pinned here.
+            hasOwnedPaidPolicy: undefined,
             betas,
             isSelfTourViewed,
         });

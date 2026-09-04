@@ -9199,6 +9199,34 @@ describe('ReportUtils', () => {
             expect(result.expenseChatReportID).toBe(providedExpenseReportID);
             expect(result.expenseChatData.reportID).toBe(providedExpenseReportID);
         });
+
+        describe('#admins room pinning', () => {
+            const ownerEmail = 'workspace-owner@expensifail.com';
+
+            it('should pin the #admins room when the account owns no paid workspace yet', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail, undefined, false);
+
+                expect(result.adminsChatData.isPinned).toBe(true);
+            });
+
+            it('should not pin the #admins room when the account already owns a paid workspace', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail, undefined, true);
+
+                expect(result.adminsChatData.isPinned).toBe(false);
+            });
+
+            it('should pin the #admins room when the flows that do not go through CreatePolicy omit the flag', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail);
+
+                expect(result.adminsChatData.isPinned).toBe(true);
+            });
+
+            it('should never pin the #admins room for an Expensify employee', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, 'employee@expensify.com', undefined, false);
+
+                expect(result.adminsChatData.isPinned).toBe(false);
+            });
+        });
     });
 
     describe('getWorkspaceNameUpdatedMessage', () => {

@@ -19,6 +19,7 @@ import {useState} from 'react';
 import useActivePolicy from './useActivePolicy';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from './useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnboardingMessages from './useOnboardingMessages';
@@ -42,6 +43,7 @@ function useCompleteOnboarding() {
     const {isBetaEnabled} = usePermissions();
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -97,6 +99,7 @@ function useCompleteOnboarding() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      hasOwnedPaidPolicy,
                       conciergeChat,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};

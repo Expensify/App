@@ -14,6 +14,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -70,6 +71,7 @@ function DynamicIOURequestStepUpgrade({
     const activePolicy = useActivePolicy();
     const personalPolicy = usePersonalPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
@@ -329,6 +331,7 @@ function DynamicIOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
@@ -356,6 +359,7 @@ function DynamicIOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);

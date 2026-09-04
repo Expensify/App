@@ -6,6 +6,7 @@ import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -41,6 +42,7 @@ function DynamicWorkspaceConfirmationPage() {
     const isAnnualSubscription = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
 
     // On narrow layout the new workspace is mounted under this RHP and revealed when the modal
     // dismisses (via revealRouteBeforeDismissingModal). The reveal waits for the new screen to lay
@@ -79,6 +81,7 @@ function DynamicWorkspaceConfirmationPage() {
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             isAnnualSubscription,
         });
     };
