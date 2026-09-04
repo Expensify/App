@@ -23,7 +23,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
 import {createAdminPoliciesSelector} from '@selectors/Policy';
-import React from 'react';
+import React, {useState} from 'react';
 
 type WorkspaceListItem = {
     policyID: string;
@@ -48,6 +48,9 @@ function DomainGroupPreferredWorkspacePage({route}: DomainGroupPreferredWorkspac
 
     const currentPolicyID = group?.restrictedPrimaryPolicyID;
 
+    const [selectedPolicyID, setSelectedPolicyID] = useState<string>();
+    const currentSelection = selectedPolicyID ?? currentPolicyID;
+
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector(currentPolicyID)});
 
     const workspaceOptions: WorkspaceListItem[] = [];
@@ -61,9 +64,24 @@ function DomainGroupPreferredWorkspacePage({route}: DomainGroupPreferredWorkspac
             policyID: policy.id,
             created: policy.created,
             keyForList: policy.id,
-            isSelected: currentPolicyID === policy.id,
+            isSelected: currentSelection === policy.id,
         });
     }
+
+    const saveWorkspace = () => {
+        if (!group || !currentSelection) {
+            return;
+        }
+        updateDomainSecurityGroup(domainAccountID, groupID, group, {restrictedPrimaryPolicyID: currentSelection}, 'restrictedPrimaryPolicyID');
+        Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID));
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveWorkspace,
+        isDisabled: currentSelection === currentPolicyID,
+    };
 
     return (
         <DomainNotFoundPageWrapper
@@ -76,7 +94,7 @@ function DomainGroupPreferredWorkspacePage({route}: DomainGroupPreferredWorkspac
             <ScreenWrapper
                 shouldEnableMaxHeight
                 testID="DomainGroupPreferredWorkspacePage"
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('domain.groups.preferredWorkspace')}
@@ -86,15 +104,11 @@ function DomainGroupPreferredWorkspacePage({route}: DomainGroupPreferredWorkspac
                 <SelectionList<WorkspaceListItem>
                     data={workspaceOptions.sort((a, b) => localeCompare(a.created ?? '', b.created ?? ''))}
                     ListItem={UserListItem}
-                    onSelectRow={(item: WorkspaceListItem) => {
-                        if (!group) {
-                            return;
-                        }
-                        updateDomainSecurityGroup(domainAccountID, groupID, group, {restrictedPrimaryPolicyID: item.policyID}, 'restrictedPrimaryPolicyID');
-                        Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID));
-                    }}
+                    onSelectRow={(item: WorkspaceListItem) => setSelectedPolicyID(item.policyID)}
+                    confirmButtonOptions={confirmButtonOptions}
                     initiallyFocusedItemKey={currentPolicyID}
                     shouldUpdateFocusedIndex
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

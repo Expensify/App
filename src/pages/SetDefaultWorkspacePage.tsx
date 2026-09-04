@@ -27,7 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type SetDefaultWorkspacePageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE>;
@@ -45,6 +45,9 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
 
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const session = useSession();
+
+    const [draftPolicyID, setDraftPolicyID] = useState<string>();
+    const currentSelection = draftPolicyID ?? activePolicyID;
 
     const selectPolicy = (selectedPolicyID?: string) => {
         if (!selectedPolicyID) {
@@ -72,11 +75,18 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyIDs: undefined,
+        selectedPolicyIDs: draftPolicyID ? [draftPolicyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: (newPolicy) => isGroupPolicy(newPolicy),
     });
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: () => selectPolicy(currentSelection),
+        isDisabled: currentSelection === activePolicyID,
+    };
 
     const textInputOptions = useMemo(
         () => ({
@@ -91,7 +101,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     return (
         <ScreenWrapper
             testID="SetDefaultWorkspacePage"
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (
@@ -109,9 +119,11 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                             data={data}
                             ListItem={UserListItem}
                             textInputOptions={textInputOptions}
-                            onSelectRow={(option) => selectPolicy(option.policyID)}
+                            onSelectRow={(option) => setDraftPolicyID(option.policyID)}
+                            confirmButtonOptions={confirmButtonOptions}
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
+                            addBottomSafeAreaPadding
                         />
                     )}
                 </>

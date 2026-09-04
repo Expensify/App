@@ -54,7 +54,7 @@ import type {DismissedProductTraining} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -118,6 +118,9 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+
+    const [draftPolicyID, setDraftPolicyID] = useState<string>();
+    const currentSelection = draftPolicyID ?? report.policyID;
 
     // The snapshot keeps the report row after a workspace change, and only the server can tell whether it still matches the query.
     const refreshSearch = () => {
@@ -217,7 +220,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
+        selectedPolicyIDs: currentSelection ? [currentSelection] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: (newPolicy) => {
@@ -237,6 +240,13 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
     };
 
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: () => selectPolicy(currentSelection),
+        isDisabled: !currentSelection || currentSelection === report.policyID,
+    };
+
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report) || hasCommuterExclusionDistanceRequest) {
         return <NotFoundPage />;
     }
@@ -244,7 +254,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     return (
         <ScreenWrapper
             testID="DynamicReportChangeWorkspacePage"
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (
@@ -263,11 +273,13 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                         <SelectionList<WorkspaceListItemType>
                             ListItem={UserListItem}
                             data={data}
-                            onSelectRow={(option) => selectPolicy(option.policyID)}
+                            onSelectRow={(option) => setDraftPolicyID(option.policyID)}
                             textInputOptions={textInputOptions}
+                            confirmButtonOptions={confirmButtonOptions}
                             initiallyFocusedItemKey={report.policyID}
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
+                            addBottomSafeAreaPadding
                         />
                     )}
                 </>
