@@ -7,9 +7,11 @@ internalScope: Audience is Expensify members. Covers the differences between dir
 
 # Learn About Company Card Connections
 
-Company cards are connected on a workspace where the cards are assigned to workspace members. When a card is assigned to a member, transactions import into that member's account as expenses so they can be added to reports.
+When a company card account is connected, the individual card accounts under the connected account import into Expensify, where they can be assigned to workspace members. Once assigned, transactions import into the assigned member's account as expenses so they can be added to reports.
 
-Expensify supports two options for company card connections: direct connections and commercial card feeds. The connection determines how transactions are delivered to Expensify, but does not affect how they behave after they import. You can also import transactions manually from a spreadsheet.
+Expensify supports two options for company card connections: direct connections and commercial card feeds. The connection determines how transactions are delivered to Expensify, but does not affect how they behave after they import. 
+
+If your company cards can't be connected, you can import company card transactions from a spreadsheet instead. 
 
 ---
 
@@ -33,17 +35,36 @@ Learn how to set up a commercial card feed.
 
 ---
 
-## How Direct Connections and Commercial Card Feeds Differ
+## How direct connections and commercial card feeds compare
 
 |                                      | Direct connection                                                               | Commercial card feed                                                            |
 | ------------------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| How the connection is established    | A workspace admin or card Admin logs in to the bank through Expensify                         | The company arranges a file feed delivery with their bank                                  |
-| How transactions reach Expensify     | Through the direct bank connection                                              | Through files delivered by the bank                                             |
+| How the connection is established    | A workspace admin or card admin logs in to the bank through Expensify                         | The company arranges a file feed delivery with their bank                                  |
+| How the connection can be used across workspaces   | The direct bank connection can be shared with other workspaces                                            | The commercial card feed can be shared with other workspaces                                             |
 | How transactions behave after import | Transactions import into the assigned member's account as company card expenses | Transactions import into the assigned member's account as company card expenses |
 
 ---
 
-# Related articles 
+# FAQ 
+
+## Which company card connection should I use?
+
+Use a commercial card feed when one is available. Commercial card feeds are maintained by the bank and do not require you to manually authenticate the connection. If a commercial card feed is not available, use a direct connection if Expensify supports a connection with your bank.
+
+## Do direct connections and commercial card feeds import expenses differently?
+
+No. With both connection types, the individual card accounts under the connected account import into Expensify. Those cards are then assigned to workspace members, and transactions from each card import into the assigned member's account as company card expenses. After transactions import, they behave the same regardless of the connection type.
+
+## Can I import company card transactions without a direct connection or commercial card feed?
+
+Yes. You can manually import company card transactions from a spreadsheet instead of using a direct connection or commercial card feed. Learn how to import company card transactions from a spreadsheet.
+
+## Can I Use the Same Company Card Connection With Multiple Workspaces?
+
+Yes. Once a company card connection is established, you can share it with other workspaces instead of setting up the connection again. Learn how to share a company card connection across workspaces.
+
+## Related articles 
 
  - Understand How Card Connections Work
  - Share a Company Card Connection Across Workspaces
+ - Assign company cards 
