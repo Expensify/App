@@ -573,18 +573,6 @@ function activateStickyHeadersAfterListLoad() {
     requestAnimationFrameSpy.mockRestore();
 }
 
-function isSearchInputChangeHandler(value: unknown): value is (text: string) => void {
-    return typeof value === 'function';
-}
-
-function getSearchInputChangeHandler(input: TestInstance): (value: string) => void {
-    const onChangeText: unknown = input.props.onChangeText;
-    if (!isSearchInputChangeHandler(onChangeText)) {
-        throw new Error('Expected search input to provide onChangeText');
-    }
-    return onChangeText;
-}
-
 function getHostTableRows(): TestInstance[] {
     return screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => typeof row.type === 'string');
 }
@@ -2116,496 +2104,6 @@ describe('Table', () => {
             expect(screen.queryByTestId('row-3')).toBeNull();
         });
 
-        it('should correct a focused search offset when starting a non-empty search', () => {
-            const props = createDefaultProps();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.ListHeader>
-                        <Table.FilterBar label="Search" />
-                    </Table.ListHeader>
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            const searchInputNativeID: unknown = searchInput.props.nativeID;
-            fireEvent(searchInput, 'focus');
-            mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 1200}}});
-            mockFlashListScrollToOffset.mockClear();
-
-            fireEvent.changeText(searchInput, 'an');
-
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
-            expect(screen.getByTestId('row-2')).toBeTruthy();
-            expect(screen.getByTestId('row-5')).toBeTruthy();
-            expect(screen.queryByTestId('row-1')).toBeNull();
-            expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
-            expect(screen.getByTestId('search-input').props.value).toBe('an');
-            expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
-        });
-
-        it('should preserve the list data but correct the offset when only surrounding search whitespace changes', () => {
-            const props = createDefaultProps();
-            const onSearchStringChange = jest.fn();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                    onSearchStringChange={onSearchStringChange}
-                >
-                    <Table.ListHeader>
-                        <Table.FilterBar label="Search" />
-                    </Table.ListHeader>
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            fireEvent(searchInput, 'focus');
-            fireEvent.changeText(searchInput, 'an');
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
-
-            const listDataBeforeEquivalentEdit = mockFlashListProps.at(-1)?.data;
-            const flashListRenderCountBeforeEquivalentEdit = mockFlashListProps.length;
-            mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 1200}}});
-            mockFlashListScrollToOffset.mockClear();
-            fireEvent.changeText(searchInput, 'an ');
-
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
-            expect(mockFlashListProps).toHaveLength(flashListRenderCountBeforeEquivalentEdit);
-            expect(mockFlashListProps.at(-1)?.data).toBe(listDataBeforeEquivalentEdit);
-            expect(screen.getByTestId('search-input').props.value).toBe('an ');
-            expect(screen.getByTestId('row-2')).toBeTruthy();
-            expect(screen.getByTestId('row-5')).toBeTruthy();
-            expect(onSearchStringChange).toHaveBeenCalledTimes(2);
-            expect(onSearchStringChange).toHaveBeenLastCalledWith('an ');
-        });
-
-        it('should preserve an inline table offset when only surrounding search whitespace changes', () => {
-            const props = createDefaultProps();
-            const onSearchStringChange = jest.fn();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                    onSearchStringChange={onSearchStringChange}
-                >
-                    <Table.FilterBar label="Search" />
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            fireEvent(searchInput, 'focus');
-            fireEvent.changeText(searchInput, 'an');
-
-            const listDataBeforeEquivalentEdit = mockFlashListProps.at(-1)?.data;
-            const flashListRenderCountBeforeEquivalentEdit = mockFlashListProps.length;
-            mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 1200}}});
-            mockFlashListScrollToOffset.mockClear();
-            fireEvent.changeText(searchInput, 'an ');
-
-            expect(mockFlashListScrollToOffset).not.toHaveBeenCalled();
-            expect(mockFlashListProps).toHaveLength(flashListRenderCountBeforeEquivalentEdit);
-            expect(mockFlashListProps.at(-1)?.data).toBe(listDataBeforeEquivalentEdit);
-            expect(screen.getByTestId('search-input').props.value).toBe('an ');
-            expect(onSearchStringChange).toHaveBeenCalledTimes(2);
-            expect(onSearchStringChange).toHaveBeenLastCalledWith('an ');
-        });
-
-        it('should correct the offset before a focused active search query changes', () => {
-            const props = createDefaultProps();
-            const onSearchStringChange = jest.fn();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                    onSearchStringChange={onSearchStringChange}
-                >
-                    <Table.ListHeader>
-                        <Table.FilterBar label="Search" />
-                    </Table.ListHeader>
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            const searchInputNativeID: unknown = searchInput.props.nativeID;
-            fireEvent(searchInput, 'focus');
-            fireEvent.changeText(searchInput, 'fruits');
-            mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 1200}}});
-            mockFlashListScrollToOffset.mockClear();
-
-            fireEvent.changeText(searchInput, 'fruit');
-            expect(onSearchStringChange).toHaveBeenLastCalledWith('fruit');
-            expect(screen.getByTestId('search-input').props.value).toBe('fruit');
-            expect(screen.getByTestId('row-1')).toBeTruthy();
-            expect(screen.getByTestId('row-2')).toBeTruthy();
-            expect(screen.getByTestId('row-4')).toBeTruthy();
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
-            expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
-            expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
-        });
-
-        it('should commit the latest effective query when rapid input events are batched', () => {
-            const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, string>>();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    ref={tableRef}
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.ListHeader>
-                        <Table.FilterBar label="Search" />
-                    </Table.ListHeader>
-                    <Table.Body />
-                </Table>,
-            );
-
-            fireEvent.changeText(screen.getByTestId('search-input'), 'an');
-            const onChangeText = getSearchInputChangeHandler(screen.getByTestId('search-input'));
-
-            act(() => {
-                onChangeText('ant');
-                onChangeText('an');
-            });
-
-            expect(tableRef.current?.getActiveSearchString()).toBe('an');
-            expect(screen.getByTestId('search-input').props.value).toBe('an');
-            expect(screen.getByTestId('row-2')).toBeTruthy();
-            expect(screen.getByTestId('row-5')).toBeTruthy();
-        });
-
-        it('should preserve the latest cosmetic whitespace after a batched meaningful edit', () => {
-            const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, string>>();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    ref={tableRef}
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.ListHeader>
-                        <Table.FilterBar label="Search" />
-                    </Table.ListHeader>
-                    <Table.Body />
-                </Table>,
-            );
-
-            fireEvent.changeText(screen.getByTestId('search-input'), 'an');
-            const onChangeText = getSearchInputChangeHandler(screen.getByTestId('search-input'));
-
-            act(() => {
-                onChangeText('ant');
-                onChangeText('ant ');
-            });
-
-            expect(tableRef.current?.getActiveSearchString()).toBe('ant');
-            expect(screen.getByTestId('search-input').props.value).toBe('ant ');
-        });
-
-        it('should preserve a cosmetic input edit that follows an imperative update in the same batch', () => {
-            const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, string>>();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    ref={tableRef}
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.FilterBar label="Search" />
-                    <Table.Body />
-                </Table>,
-            );
-
-            fireEvent.changeText(screen.getByTestId('search-input'), 'an');
-            const onChangeText = getSearchInputChangeHandler(screen.getByTestId('search-input'));
-
-            act(() => {
-                tableRef.current?.updateSearchString('an');
-                onChangeText('an ');
-            });
-
-            expect(tableRef.current?.getActiveSearchString()).toBe('an');
-            expect(screen.getByTestId('search-input').props.value).toBe('an ');
-        });
-
-        it('should let a later input replace a different imperative query in the same batch', () => {
-            const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, string>>();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    ref={tableRef}
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.FilterBar label="Search" />
-                    <Table.Body />
-                </Table>,
-            );
-
-            fireEvent.changeText(screen.getByTestId('search-input'), 'an');
-            const onChangeText = getSearchInputChangeHandler(screen.getByTestId('search-input'));
-
-            act(() => {
-                tableRef.current?.updateSearchString('cat');
-                onChangeText('an ');
-            });
-
-            expect(tableRef.current?.getActiveSearchString()).toBe('an ');
-            expect(screen.getByTestId('search-input').props.value).toBe('an ');
-        });
-
-        it('should honor an imperative update that follows a cosmetic input edit in the same batch', () => {
-            const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, string>>();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    ref={tableRef}
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.FilterBar label="Search" />
-                    <Table.Body />
-                </Table>,
-            );
-
-            fireEvent.changeText(screen.getByTestId('search-input'), 'an');
-            const onChangeText = getSearchInputChangeHandler(screen.getByTestId('search-input'));
-
-            act(() => {
-                onChangeText('an ');
-                tableRef.current?.updateSearchString('an');
-            });
-
-            expect(tableRef.current?.getActiveSearchString()).toBe('an');
-            expect(screen.getByTestId('search-input').props.value).toBe('an');
-        });
-
-        it('should preserve a whitespace-only input that follows an imperative same-value clear', () => {
-            const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, string>>();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    ref={tableRef}
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.FilterBar label="Search" />
-                    <Table.Body />
-                </Table>,
-            );
-
-            const onChangeText = getSearchInputChangeHandler(screen.getByTestId('search-input'));
-            act(() => {
-                tableRef.current?.updateSearchString('');
-                onChangeText(' ');
-            });
-
-            expect(tableRef.current?.getActiveSearchString()).toBe('');
-            expect(screen.getByTestId('search-input').props.value).toBe(' ');
-        });
-
-        it('should not correct a focused search offset for a whitespace-only query', () => {
-            const props = createDefaultProps();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.ListHeader>
-                        <Table.FilterBar label="Search" />
-                    </Table.ListHeader>
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            fireEvent(searchInput, 'focus');
-            mockFlashListScrollToOffset.mockClear();
-
-            fireEvent.changeText(searchInput, '   ');
-
-            expect(mockFlashListScrollToOffset).not.toHaveBeenCalled();
-            expect(screen.getByTestId('row-1')).toBeTruthy();
-            expect(screen.getByTestId('row-5')).toBeTruthy();
-        });
-
-        it('should clear the canonical search when an active query becomes whitespace-only', () => {
-            const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, string>>();
-            const onSearchStringChange = jest.fn();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    ref={tableRef}
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                    onSearchStringChange={onSearchStringChange}
-                >
-                    <Table.ListHeader>
-                        <Table.FilterBar label="Search" />
-                    </Table.ListHeader>
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            fireEvent(searchInput, 'focus');
-            fireEvent.changeText(searchInput, 'apple');
-            fireEvent.changeText(searchInput, ' ');
-
-            expect(tableRef.current?.getActiveSearchString()).toBe('');
-            expect(screen.getByTestId('search-input').props.value).toBe('');
-            expect(screen.getByTestId('row-1')).toBeTruthy();
-            expect(screen.getByTestId('row-5')).toBeTruthy();
-            expect(onSearchStringChange).toHaveBeenCalledTimes(2);
-            expect(onSearchStringChange).toHaveBeenLastCalledWith(' ');
-        });
-
-        it('should honor an imperative clear when the canonical search is already empty', () => {
-            const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, string>>();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    ref={tableRef}
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.FilterBar label="Search" />
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            fireEvent.changeText(searchInput, '   ');
-            expect(screen.getByTestId('search-input').props.value).toBe('   ');
-
-            act(() => {
-                tableRef.current?.updateSearchString('');
-            });
-
-            expect(tableRef.current?.getActiveSearchString()).toBe('');
-            expect(screen.getByTestId('search-input').props.value).toBe('');
-        });
-
-        it('should honor a same-value imperative update after a cosmetic whitespace edit', () => {
-            const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, string>>();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    ref={tableRef}
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.FilterBar label="Search" />
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            fireEvent(searchInput, 'focus');
-            fireEvent.changeText(searchInput, 'an');
-            fireEvent.changeText(screen.getByTestId('search-input'), 'an ');
-            expect(screen.getByTestId('search-input').props.value).toBe('an ');
-            mockFlashListScrollToOffset.mockClear();
-
-            act(() => {
-                tableRef.current?.updateSearchString('an');
-            });
-
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
-            expect(tableRef.current?.getActiveSearchString()).toBe('an');
-            expect(screen.getByTestId('search-input').props.value).toBe('an');
-        });
-
-        it('should not repeat an empty-result offset correction for a whitespace-only query', () => {
-            const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
-            const filterConfig: FilterConfig<'category'> = {
-                category: {
-                    label: 'Category',
-                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
-                    options: [{label: 'Missing', value: 'missing'}],
-                },
-            };
-
-            render(
-                <Table<TestItem, TestColumnKey, 'category'>
-                    ref={tableRef}
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    filters={filterConfig}
-                    isItemInFilter={(item, filterValues) => filterValues.length === 0 || filterValues.includes(item.category)}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.ListHeader>
-                        <Table.FilterBar label="Search" />
-                    </Table.ListHeader>
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            fireEvent(searchInput, 'focus');
-            act(() => {
-                tableRef.current?.updateFilter({key: 'category', value: ['missing']});
-            });
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
-            mockFlashListScrollToOffset.mockClear();
-
-            fireEvent.changeText(searchInput, '   ');
-
-            expect(mockFlashListScrollToOffset).not.toHaveBeenCalled();
-        });
-
         it('should preserve ListHeader search state while filtering data', () => {
             const props = createDefaultProps();
 
@@ -2631,16 +2129,48 @@ describe('Table', () => {
             expect(screen.queryByTestId('row-2')).toBeNull();
         });
 
-        it('should correct a focused offset when the active search is updated imperatively', () => {
+        it('should show all items when search is cleared', () => {
             const props = createDefaultProps();
-            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, string>>();
             render(
                 <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.FilterBar label="Search" />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent.changeText(searchInput, 'apple');
+            expect(screen.queryByTestId('row-2')).toBeNull();
+
+            fireEvent.changeText(searchInput, '');
+            expect(screen.getByTestId('row-2')).toBeTruthy();
+        });
+
+        it('should reset a focused page-header table offset when search or filtered results change', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
+            const filterConfig: FilterConfig<'category'> = {
+                category: {
+                    label: 'Category',
+                    options: [{label: 'Vegetable', value: 'vegetable'}],
+                },
+            };
+
+            render(
+                <Table<TestItem, TestColumnKey, 'category'>
                     ref={tableRef}
                     data={props.data}
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
+                    filters={filterConfig}
+                    isItemInFilter={(item, filterValues) => filterValues.includes(item.category)}
                     isItemInSearch={props.isItemInSearch}
                 >
                     <Table.ListHeader>
@@ -2651,114 +2181,40 @@ describe('Table', () => {
             );
 
             const searchInput = screen.getByTestId('search-input');
-            const searchInputNativeID: unknown = searchInput.props.nativeID;
             fireEvent(searchInput, 'focus');
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(searchInput, ' ');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
             fireEvent.changeText(searchInput, 'apple');
-            mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 1200}}});
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'apple ');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(screen.getByTestId('search-input'), '');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
             mockFlashListScrollToOffset.mockClear();
 
             act(() => {
-                tableRef.current?.updateSearchString('an');
+                tableRef.current?.updateSearchString('apple');
             });
 
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
-            expect(screen.getByTestId('search-input').props.value).toBe('an');
-            expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
-            expect(screen.getByTestId('row-2')).toBeTruthy();
-            expect(screen.getByTestId('row-5')).toBeTruthy();
-            expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
-        });
-
-        it('should restore the offset after a focused search is cleared', () => {
-            let animationFrameCallback: FrameRequestCallback | undefined;
-            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-                animationFrameCallback = callback;
-                return 1;
-            });
-            const props = createDefaultProps();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.ListHeader>
-                        <Table.FilterBar label="Search" />
-                    </Table.ListHeader>
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            fireEvent(searchInput, 'focus');
-            fireEvent.changeText(searchInput, 'apple');
-            expect(screen.queryByTestId('row-2')).toBeNull();
-
-            mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 1200}}});
-            mockFlashListScrollToOffset.mockClear();
-
-            fireEvent.changeText(searchInput, '');
-            expect(screen.getByTestId('row-2')).toBeTruthy();
-            expect(animationFrameCallback).toBeDefined();
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
-
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
             mockFlashListScrollToOffset.mockClear();
 
             act(() => {
-                animationFrameCallback?.(0);
+                tableRef.current?.updateFilter({key: 'category', value: ['vegetable']});
             });
 
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
+            expect(mockFlashListScrollToOffset).toHaveBeenCalledTimes(1);
             expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
-            requestAnimationFrameSpy.mockRestore();
-        });
-
-        it('should cancel a pending clear correction when a new search starts', () => {
-            let nextAnimationFrameID = 0;
-            const animationFrameCallbacks = new Map<number, FrameRequestCallback>();
-            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-                nextAnimationFrameID += 1;
-                animationFrameCallbacks.set(nextAnimationFrameID, callback);
-                return nextAnimationFrameID;
-            });
-            const cancelAnimationFrameSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((frameID) => {
-                if (frameID === null || frameID === undefined) {
-                    return;
-                }
-                animationFrameCallbacks.delete(frameID);
-            });
-            const props = createDefaultProps();
-            render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.ListHeader>
-                        <Table.FilterBar label="Search" />
-                    </Table.ListHeader>
-                    <Table.Body />
-                </Table>,
-            );
-
-            const searchInput = screen.getByTestId('search-input');
-            fireEvent(searchInput, 'focus');
-            fireEvent.changeText(searchInput, 'apple');
-            fireEvent.changeText(searchInput, '');
-
-            expect(animationFrameCallbacks.has(1)).toBe(true);
-
-            fireEvent.changeText(screen.getByTestId('search-input'), 'ap');
-
-            expect(cancelAnimationFrameSpy).toHaveBeenCalledWith(1);
-            expect(animationFrameCallbacks.has(1)).toBe(false);
-            expect(screen.getByTestId('search-input').props.value).toBe('ap');
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
-            requestAnimationFrameSpy.mockRestore();
-            cancelAnimationFrameSpy.mockRestore();
         });
 
         it('should search by multiple fields when isItemInSearch checks multiple properties', () => {

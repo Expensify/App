@@ -266,7 +266,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         const phrase = userSearchPhrase ?? '';
         const currentSearchString = tableRef.current?.getActiveSearchString?.() ?? '';
 
-        if (currentSearchString.trim() === phrase.trim()) {
+        if (currentSearchString === phrase) {
             return;
         }
 

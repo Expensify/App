@@ -11,18 +11,6 @@ import type {ActiveSorting} from './middlewares/sorting';
 import type {TableHeaderProps} from './TableHeader';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
 
-type TableSearchInputUpdate = {
-    revision: number;
-    sequence: number;
-    source: 'input' | 'imperative';
-};
-
-type TableSearchInputActions = {
-    updateSearchStringFromInput: (value: string, sequence: number) => void;
-    getNextSearchInputSequence: () => number;
-    getLatestSearchEffectiveQuery: () => string;
-};
-
 /**
  * The shape of the Table context value.
  * This context is provided by the `<Table>` component and consumed by its sub-components.
@@ -100,12 +88,6 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Currently active search string. */
     activeSearchString: string;
 
-    /** Describes the latest canonical search update, including same-value imperative updates. */
-    searchInputUpdate: TableSearchInputUpdate;
-
-    /** Internal actions that coordinate canonical input and imperative search updates. */
-    searchInputActions: TableSearchInputActions;
-
     /** Methods exposed by the Table component for programmatic control. */
     tableMethods: TableMethods<ColumnKey, FilterKey>;
 
@@ -148,12 +130,6 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     initialSortColumn: undefined,
     narrowLayoutSortColumn: undefined,
     activeSearchString: '',
-    searchInputUpdate: {revision: 0, sequence: 0, source: 'input'},
-    searchInputActions: {
-        updateSearchStringFromInput: () => undefined,
-        getNextSearchInputSequence: () => 0,
-        getLatestSearchEffectiveQuery: () => '',
-    },
     tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,
     listProps: {} as SharedListProps<TableData>,
@@ -207,4 +183,4 @@ function useTableRowSemanticID() {
 
 export default TableContext;
 export {TableRowSemanticIDContext, useTableContext, useTableRowSemanticID};
-export type {TableContextValue, TableSearchInputUpdate};
+export type {TableContextValue};
