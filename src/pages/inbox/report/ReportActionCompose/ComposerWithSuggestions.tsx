@@ -269,7 +269,7 @@ function ComposerWithSuggestions({
     const composerRef = useRef<ComposerRef | null>(null);
 
     const {editingState, editingReportID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
-    const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
+    const {setEditingMessage, setCurrentEditMessageSelection, requestScrollToEditingAction} = useReportActionActiveEditActions();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const isEditing = editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF;
@@ -647,6 +647,10 @@ function ComposerWithSuggestions({
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
                     saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''));
+
+                    // The action being edited can be scrolled out of the list's render window, in which case its editor never mounts and never
+                    // takes focus. Ask the list to scroll to it so it mounts, gets focused and is visible while it's edited.
+                    requestScrollToEditingAction(lastReportAction.reportActionID);
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -698,6 +702,7 @@ function ComposerWithSuggestions({
             reportActions,
             updateComment,
             setCurrentEditMessageSelection,
+            requestScrollToEditingAction,
         ],
     );
 

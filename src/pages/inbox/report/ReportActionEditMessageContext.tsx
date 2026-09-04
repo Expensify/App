@@ -35,6 +35,8 @@ type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
     currentEditMessageSelection: TextSelection | null;
     /** The editing state */
     editingState: ReportActionEditMessageState;
+    /** The report action ID the report actions list still has to scroll into view, if any */
+    pendingScrollToEditingReportActionID: string | null;
 };
 
 type ReportActionEditMessageContextActions = {
@@ -46,6 +48,10 @@ type ReportActionEditMessageContextActions = {
     submitEdit: () => void;
     /** Stop the editing */
     stopEditing: () => void;
+    /** Ask the report actions list to scroll the action that just entered edit mode into view */
+    requestScrollToEditingAction: (reportActionID: string) => void;
+    /** Clear the pending scroll request once the list has handled it */
+    clearPendingScrollToEditingAction: () => void;
 };
 
 const ReportActionEditMessageContext = createContext<ReportActionEditMessageContextValue>({
@@ -55,6 +61,7 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
     editingReportAction: null,
     editingMessage: null,
     currentEditMessageSelection: null,
+    pendingScrollToEditingReportActionID: null,
 });
 
 const ReportActionEditMessageActionsContext = createContext<ReportActionEditMessageContextActions>({
@@ -62,6 +69,8 @@ const ReportActionEditMessageActionsContext = createContext<ReportActionEditMess
     setCurrentEditMessageSelection: noop,
     submitEdit: noop,
     stopEditing: noop,
+    requestScrollToEditingAction: noop,
+    clearPendingScrollToEditingAction: noop,
 });
 
 type ReportActionEditMessageContextProviderProps = {
@@ -85,6 +94,7 @@ function ReportActionEditMessageContextProvider({reportID, effectiveTransactionT
     const [prevEditingReportActionID, setPrevEditingReportActionID] = useState<string | null>(null);
     const [editingMessage, setEditingMessage] = useState<string | null>(null);
     const [currentEditMessageSelection, setCurrentEditMessageSelectionState] = useState<TextSelection | null>(null);
+    const [pendingScrollToEditingReportActionID, setPendingScrollToEditingReportActionID] = useState<string | null>(null);
 
     let editingReportID: string | null = null;
     let editingReportActionID: string | null = null;
@@ -152,6 +162,7 @@ function ReportActionEditMessageContextProvider({reportID, effectiveTransactionT
         editingReportAction,
         editingMessage,
         currentEditMessageSelection,
+        pendingScrollToEditingReportActionID,
     };
 
     const actions: ReportActionEditMessageContextActions = {
@@ -159,6 +170,8 @@ function ReportActionEditMessageContextProvider({reportID, effectiveTransactionT
         setCurrentEditMessageSelection,
         submitEdit,
         stopEditing,
+        requestScrollToEditingAction: setPendingScrollToEditingReportActionID,
+        clearPendingScrollToEditingAction: () => setPendingScrollToEditingReportActionID(null),
     };
 
     return (
