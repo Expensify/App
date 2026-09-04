@@ -29,6 +29,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
     const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
+    const isIOS = getPlatform() === CONST.PLATFORM.IOS;
     const styles = useThemeStyles();
 
     const checkIfCardIsInWallet = useCallback(() => {
@@ -51,18 +52,19 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                 if (status === 'success') {
                     Log.info('Card added to wallet');
                     getPaymentMethods();
-                    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));
+                    if (isIOS) {
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_ADDED_TO_WALLET.getRoute(card.id));
+                    }
                 } else {
                     setIsLoading(false);
                 }
             })
             .catch((error) => {
                 setIsLoading(false);
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));
                 Log.warn(`Error while adding card to wallet: ${error}`);
                 Alert.alert('Failed to add card to wallet', 'Please try again later.');
             });
-    }, [card, cardDescription, cardHolderName]);
+    }, [card, cardDescription, cardHolderName, isIOS]);
 
     useEffect(() => {
         if (!isCardAvailable) {
@@ -96,9 +98,9 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
             });
     }, [isCardAvailable]);
 
-    // if (!isWalletAvailable || isInWallet == null || !isCardAvailable) {
-    //     return null;
-    // }
+    if (!isWalletAvailable || isInWallet == null || !isCardAvailable) {
+        return null;
+    }
 
     if (isLoading) {
         return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
