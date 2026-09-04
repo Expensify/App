@@ -33,6 +33,7 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {rand64} from '@libs/NumberUtils';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
 import Pusher from '@libs/Pusher';
 import reauthenticate from '@libs/Reauthentication';
@@ -62,7 +63,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {TryNewDot} from '@src/types/onyx';
+import type {Report, ReportAction, TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -1603,7 +1604,20 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
-function AddWorkEmail(workEmail: string) {
+/**
+ * @param addWorkEmailTaskReport The join-workspace intent's "add work email" Concierge task, when one exists. Auth
+ * auto-completes it after the work email has been fully validated or merged.
+ */
+function AddWorkEmail(
+    workEmail: string,
+    addWorkEmailTaskReport?: OnyxEntry<Report>,
+    addWorkEmailTaskParentReport?: OnyxEntry<Report>,
+    isAddWorkEmailTaskParentReportArchived?: boolean,
+    addWorkEmailTaskHasOutstandingChildTask?: boolean,
+    addWorkEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
+    currentUserAccountID?: number,
+) {
+    const completedTaskReportActionID = addWorkEmailTaskReport && currentUserAccountID ? rand64() : undefined;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1611,6 +1625,7 @@ function AddWorkEmail(workEmail: string) {
             value: {
                 onboardingWorkEmail: workEmail,
                 isLoading: true,
+                completedTaskReportActionID,
             },
         },
         {
@@ -1620,7 +1635,7 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1644,7 +1659,7 @@ function AddWorkEmail(workEmail: string) {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
-        {workEmail},
+        {workEmail, completedTaskReportActionID},
         {
             optimisticData,
             successData,
@@ -1673,7 +1688,7 @@ function AddWorkEmail(workEmail: string) {
     });
 }
 
-function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
+function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined, completedTaskReportActionID?: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1727,7 +1742,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
-        {workEmail, validateCode, accountID},
+        {workEmail, validateCode, accountID, completedTaskReportActionID},
         {
             optimisticData,
             successData,

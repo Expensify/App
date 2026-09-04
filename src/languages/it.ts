@@ -3274,10 +3274,11 @@ ${amount} per ${merchant} - ${date}`,
         purpose: {
             title: 'Cosa vuoi fare oggi?',
             errorContinue: 'Premi Continua per completare la configurazione',
-            errorBackButton: 'Completa le domande di configurazione per iniziare a usare l’app',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Inviare le spese al mio datore di lavoro',
+            errorBackButton: "Completa le domande di configurazione per iniziare a usare l'app",
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Unisciti allo spazio di lavoro della mia azienda',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Invia le spese al mio datore di lavoro',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestisci le spese del mio team',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Tieni traccia delle spese aziendali',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Tieni traccia delle spese per la mia attività',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizza le mie spese personali',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Altro',
         },
@@ -3572,6 +3573,34 @@ ${amount} per ${merchant} - ${date}`,
                     E hai finito!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Aggiungi la tua email di lavoro',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Apri [Aggiungi email di lavoro](${workEmailLink}).
+                        2. Inserisci l’indirizzo email aziendale.
+                        3. Inserisci il codice che ti abbiamo inviato via email.
+                        4. Scegli uno spazio di lavoro a cui unirti oppure fai clic su *Chiedi di unirti* per inviare una richiesta al proprietario dello spazio di lavoro.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Conferma la tua email',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Apri [Conferma il tuo account](${validateEmailLink}).
+                        2. Inserisci il codice che abbiamo inviato a ${workEmail}.
+                        3. Scegli uno spazio di lavoro a cui unirti oppure fai clic su *Chiedi di unirti* per inviare una richiesta al proprietario dello spazio di lavoro.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Unisciti allo spazio di lavoro della tua azienda',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Apri [Unisciti a uno spazio di lavoro](${joinWorkspaceLink}).
+                        2. Trova il tuo team nell'elenco. Ogni team mostra il proprietario e quante persone ne fanno parte, dal più grande al più piccolo. Fai clic su *Mostra altro* se non vedi il tuo.
+                        3. Fai clic su *Unisciti ora* o su *Chiedi di unirti* se è necessaria l'approvazione dell'amministratore.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Fai un [giro di prova](${testDriveURL})` : 'Fai un giro di prova'),
@@ -3594,6 +3623,12 @@ ${amount} per ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come fare.',
             onboardingAdminMessage: 'Scopri come gestire lo spazio di lavoro del tuo team come amministratore e inviare le tue spese.',
             onboardingTestDriveReceiverMessage: '*Hai 3 mesi gratis! Inizia qui sotto.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Dato che vuoi entrare nello spazio di lavoro della tua azienda, non ne ho creato uno per te. Aggiungi la tua email di lavoro e controllerò a quali spazi di lavoro della tua azienda puoi unirti.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Dato che vuoi unirti allo spazio di lavoro della tua azienda, non ne ho creato uno per te. Verifica la tua email e controllerò a quali spazi di lavoro su ${companyDomain} puoi unirti.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Dato che vuoi entrare nello spazio di lavoro della tua azienda, non ne ho creato uno per te. Il tuo team su ${companyDomain} è già su Expensify. Dai un’occhiata agli spazi di lavoro a cui puoi unirti.`,
         },
         workspace: {
             title: 'Resta organizzato con uno spazio di lavoro',

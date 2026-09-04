@@ -80,6 +80,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
     const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
     const isCompletedFromOnyx = isCompletedTaskReport(report);
+
     const {
         isCompleted,
         shouldSplitTaskAccessibilityTargets,

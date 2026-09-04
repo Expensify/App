@@ -120,6 +120,7 @@ const reauthScrapeStatuses: number[] = [438];
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
 const selectableOnboardingChoices = {
+    JOIN_WORKSPACE: 'newDotJoinWorkspace',
     MANAGE_TEAM: 'newDotManageTeam',
     EMPLOYER: 'newDotEmployer',
     TRACK_BUSINESS: 'newDotTrackWorkspace',
@@ -8679,6 +8680,9 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
+        ADD_WORK_EMAIL: 'addWorkEmail',
+        VALIDATE_EMAIL: 'validateEmail',
+        JOIN_WORKSPACE: 'joinWorkspace',
     },
 
     MODAL_EVENTS: {

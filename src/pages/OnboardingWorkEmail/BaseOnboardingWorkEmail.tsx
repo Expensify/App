@@ -12,11 +12,15 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingIntent from '@hooks/useOnboardingIntent';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileSafari} from '@libs/Browser';
@@ -62,6 +66,18 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             isFromPublicDomain: acc?.isFromPublicDomain,
         }),
     });
+    const onboardingIntent = useOnboardingIntent();
+    const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
+    const {
+        taskReport: addWorkEmailTaskReport,
+        taskParentReport: addWorkEmailTaskParentReport,
+        isOnboardingTaskParentReportArchived: isAddWorkEmailTaskParentReportArchived,
+        hasOutstandingChildTask: addWorkEmailTaskHasOutstandingChildTask,
+        parentReportAction: addWorkEmailTaskParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
+    const isAddWorkEmailTaskCompleted = addWorkEmailTaskReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const returnToOriginReport = useReturnToOriginReport();
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -70,6 +86,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
+    const [hasSubmittedWorkEmail, setHasSubmittedWorkEmail] = useState(false);
     const {isOffline} = useNetwork();
     const ICON_SIZE = 48;
     const operatingSystem = getOperatingSystem();
@@ -92,6 +109,36 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
         };
 
+        // Opened from a Concierge task after onboarding is done: this screen is a standalone destination, not a step
+        // in the guided flow, so go straight to the workspace list once validated instead of resuming onboarding.
+        if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
+            // The task is done, so this screen has nothing left to offer. This also closes the screen right after a
+            // successful submission, since that optimistically completes the task.
+            if (isAddWorkEmailTaskCompleted) {
+                returnToOriginReport();
+                return;
+            }
+
+            // A validated account cannot add a work email at all (AddWorkEmail rejects it), so send those users to the
+            // workspace list instead of a form they cannot submit.
+            if (account?.validated) {
+                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
+                return;
+            }
+
+            // The task is still open, so show the form. Any shouldValidate left over from an earlier attempt is ignored
+            // until this visit submits something, otherwise a stale value would skip straight past the form.
+            if (!hasSubmittedWorkEmail) {
+                return;
+            }
+
+            // A code is needed to confirm the work email just submitted (an account already exists under that domain).
+            if (onboardingValues?.shouldValidate) {
+                Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            }
+            return;
+        }
+
         // A validated account has no reason to be on the onboarding "add work email" screen. For a public-domain primary the
         // PRIVATE_DOMAIN screen would reference gmail.com (etc.) so skip it.
         // During incomplete guided setup (e.g. required-2FA handoff), stay on work-email even if the account is validated.
@@ -110,6 +157,16 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             return;
         }
 
+        // Work email added outright, no merge needed - move on to the joinable-workspaces list.
+        if (isJoiningCompanyWorkspace && hasSubmittedWorkEmail) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
+            return;
+        }
+
+        if (isJoiningCompanyWorkspace) {
+            return;
+        }
+
         navigateToNextStep();
     }, [
         account?.validated,
@@ -119,13 +176,36 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         isVsb,
         isSmb,
         isFocused,
+        isJoiningCompanyWorkspace,
+        isAddWorkEmailTaskCompleted,
+        hasSubmittedWorkEmail,
+        returnToOriginReport,
         onboardingValues?.isMergeAccountStepCompleted,
         onboardingValues?.isMergeAccountStepSkipped,
     ]);
 
-    const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
-        AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim());
-    }, []);
+    const submitWorkEmail = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
+            setHasSubmittedWorkEmail(true);
+            AddWorkEmail(
+                values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim(),
+                addWorkEmailTaskReport,
+                addWorkEmailTaskParentReport,
+                isAddWorkEmailTaskParentReportArchived,
+                addWorkEmailTaskHasOutstandingChildTask,
+                addWorkEmailTaskParentReportAction,
+                currentUserPersonalDetails.accountID,
+            );
+        },
+        [
+            addWorkEmailTaskReport,
+            addWorkEmailTaskParentReport,
+            isAddWorkEmailTaskParentReportArchived,
+            addWorkEmailTaskHasOutstandingChildTask,
+            addWorkEmailTaskParentReportAction,
+            currentUserPersonalDetails.accountID,
+        ],
+    );
 
     useEffect(() => {
         if (!onboardingErrorMessageTranslationKey) {
@@ -205,7 +285,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <OnboardingHeader shouldShowBackButton={false} />
+            {/* This screen normally opens onboarding, so there is nothing to go back to unless the intent list sent us here. */}
+            <OnboardingHeader
+                shouldShowBackButton={isJoiningCompanyWorkspace}
+                onBackButtonPress={() => Navigation.goBack()}
+            />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                     <OnboardingMergingAccountBlockedView
@@ -244,6 +328,19 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                     setOnboardingErrorMessage(null);
 
                                     setOnboardingMergeAccountStepValue(true, true);
+
+                                    // Reached from a task link, so skipping returns to wherever it was opened from
+                                    // rather than continuing onboarding. goBack() falls through to Home here.
+                                    if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
+                                        returnToOriginReport();
+                                        return;
+                                    }
+
+                                    // The user already picked an intent, so skipping continues to the last onboarding
+                                    // step rather than returning them to the intent list they came from.
+                                    if (isJoiningCompanyWorkspace) {
+                                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
+                                    }
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                             >

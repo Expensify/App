@@ -3292,8 +3292,9 @@ ${amount} pour ${merchant} - ${date}`,
         errorSelection: 'Sélectionnez une option pour continuer',
         purpose: {
             title: 'Que voulez-vous faire aujourd’hui ?',
-            errorContinue: 'Veuillez appuyer sur Continuer pour procéder à la configuration',
+            errorContinue: 'Appuyez sur Continuer pour procéder à la configuration',
             errorBackButton: 'Veuillez terminer les questions de configuration pour commencer à utiliser l’application',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Rejoindre l’espace de travail de mon entreprise',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Soumettre des dépenses à mon employeur',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gérer les dépenses de mon équipe',
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Suivre les dépenses de mon entreprise',
@@ -3591,6 +3592,34 @@ ${amount} pour ${merchant} - ${date}`,
                     Et voilà, c’est terminé !
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Ajoutez votre adresse e-mail professionnelle',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Ouvrez [Ajouter un e-mail professionnel](${workEmailLink}).
+                        2. Saisissez votre adresse e-mail professionnelle.
+                        3. Saisissez le code que nous vous envoyons par e-mail.
+                        4. Choisissez un espace de travail à rejoindre, ou cliquez sur *Demander à rejoindre* pour envoyer une demande au responsable de l’espace de travail.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Valider votre e-mail',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Ouvrez [Validez votre compte](${validateEmailLink}).
+                        2. Saisissez le code que nous avons envoyé à ${workEmail}.
+                        3. Choisissez un espace de travail à rejoindre, ou cliquez sur *Demander à rejoindre* pour envoyer une demande au responsable de l’espace de travail.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Rejoindre l’espace de travail de votre entreprise',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Ouvrez [Rejoindre un espace de travail](${joinWorkspaceLink}).
+                        2. Trouvez votre équipe dans la liste. Chacune affiche son responsable et le nombre de personnes qui y sont, des plus grandes aux plus petites. Cliquez sur *Afficher plus* si vous ne voyez pas la vôtre.
+                        3. Cliquez sur *Rejoindre maintenant*, ou sur *Demander à rejoindre* si une approbation d’un administrateur est nécessaire.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Faites un [essai](${testDriveURL})` : 'Faites un essai'),
@@ -3613,6 +3642,12 @@ ${amount} pour ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Partager des notes de frais avec des amis est aussi simple que d’envoyer un message. Voici comment faire.',
             onboardingAdminMessage: 'Découvrez comment gérer l’espace de travail de votre équipe en tant qu’administrateur et soumettre vos propres dépenses.',
             onboardingTestDriveReceiverMessage: '*Vous bénéficiez de 3 mois gratuits ! Commencez ci-dessous.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Comme vous souhaitez rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Ajoutez votre adresse e-mail professionnelle et je vérifierai quels espaces de travail de votre entreprise vous pouvez rejoindre.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Puisque vous cherchez à rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Vérifiez votre adresse e-mail et je vérifierai à quels espaces de travail sur ${companyDomain} vous pouvez vous joindre.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Comme vous cherchez à rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Votre équipe chez ${companyDomain} utilise déjà Expensify. Consultez les espaces de travail que vous pouvez rejoindre.`,
         },
         workspace: {
             title: 'Restez organisé avec un espace de travail',
