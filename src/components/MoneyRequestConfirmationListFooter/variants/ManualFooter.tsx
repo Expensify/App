@@ -1,18 +1,23 @@
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import TimeDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/TimeDetailsFields';
+import ManualDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/ManualDetailsFields';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
-import type {TimeFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
+import type {ManualFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import React from 'react';
 import {View} from 'react-native';
 
-function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: TimeFooterProps) {
+/**
+ * Footer for manually entered expenses, and the dispatcher's residual case: it also serves pay, per-diem being
+ * moved off a track expense, and a time expense outside CREATE, all of which confirm as a plain expense.
+ */
+function ManualFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: ManualFooterProps) {
     return (
         <View>
             <ReceiptSection
                 policy={policy}
                 {...receiptOptions}
             />
+
             <ConfirmationFieldList
                 policy={policy}
                 policyTags={policyTags}
@@ -23,15 +28,16 @@ function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, re
                 errorState={errorState}
                 toggleHandlers={toggleHandlers}
             >
-                <TimeDetailsFields
+                <ManualDetailsFields
                     policy={policy}
                     amountDisplay={amountDisplay}
-                    isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                    requiredFlags={requiredFlags}
                     errorState={errorState}
+                    isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
                 />
             </ConfirmationFieldList>
         </View>
     );
 }
 
-export default TimeFooter;
+export default ManualFooter;

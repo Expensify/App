@@ -1,18 +1,34 @@
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import TimeDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/TimeDetailsFields';
+import DistanceDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/DistanceDetailsFields';
+import DistanceMapSection from '@components/MoneyRequestConfirmationListFooter/sections/DistanceMapSection';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
-import type {TimeFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
+import type {DistanceFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import React from 'react';
 import {View} from 'react-native';
 
-function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: TimeFooterProps) {
+/** Footer for distance expenses that can show a route map */
+function DistanceMapFooter({
+    policy,
+    policyTags,
+    selectedParticipants,
+    distanceData,
+    amountDisplay,
+    requiredFlags,
+    visibilityFlags,
+    errorState,
+    toggleHandlers = {},
+    receiptOptions,
+}: DistanceFooterProps) {
     return (
         <View>
+            <DistanceMapSection />
+
             <ReceiptSection
                 policy={policy}
                 {...receiptOptions}
             />
+
             <ConfirmationFieldList
                 policy={policy}
                 policyTags={policyTags}
@@ -23,9 +39,10 @@ function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, re
                 errorState={errorState}
                 toggleHandlers={toggleHandlers}
             >
-                <TimeDetailsFields
+                <DistanceDetailsFields
                     policy={policy}
                     amountDisplay={amountDisplay}
+                    distanceData={distanceData}
                     isDescriptionRequired={requiredFlags.isDescriptionRequired}
                     errorState={errorState}
                 />
@@ -34,4 +51,4 @@ function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, re
     );
 }
 
-export default TimeFooter;
+export default DistanceMapFooter;

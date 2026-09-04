@@ -1,18 +1,26 @@
+import InvoiceSenderField from '@components/MoneyRequestConfirmationList/sections/InvoiceSenderField';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import TimeDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/TimeDetailsFields';
+import ManualDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/ManualDetailsFields';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
-import type {TimeFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
+import type {InvoiceFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import React from 'react';
 import {View} from 'react-native';
 
-function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: TimeFooterProps) {
+/**
+ * Footer for invoices. An invoice is always a manual expense (the request-type tabs are not offered for it),
+ * so it renders the manual fields and adds the sender row on top.
+ */
+function InvoiceFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: InvoiceFooterProps) {
     return (
         <View>
+            <InvoiceSenderField selectedParticipants={selectedParticipants} />
+
             <ReceiptSection
                 policy={policy}
                 {...receiptOptions}
             />
+
             <ConfirmationFieldList
                 policy={policy}
                 policyTags={policyTags}
@@ -23,15 +31,16 @@ function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, re
                 errorState={errorState}
                 toggleHandlers={toggleHandlers}
             >
-                <TimeDetailsFields
+                <ManualDetailsFields
                     policy={policy}
                     amountDisplay={amountDisplay}
-                    isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                    requiredFlags={requiredFlags}
                     errorState={errorState}
+                    isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
                 />
             </ConfirmationFieldList>
         </View>
     );
 }
 
-export default TimeFooter;
+export default InvoiceFooter;
