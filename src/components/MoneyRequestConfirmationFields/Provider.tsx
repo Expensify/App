@@ -40,6 +40,9 @@ type ProviderProps = {
     /** Whether the new manual expense flow beta is enabled */
     isNewManualExpenseFlowEnabled?: boolean;
 
+    /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
+    canEnterScanFieldsManually?: boolean;
+
     /** Whether the surface is in a policy-expense chat */
     isPolicyExpenseChat?: boolean;
 
@@ -88,6 +91,7 @@ function Provider({
     didConfirm = false,
     isEditingSplitBill = false,
     isNewManualExpenseFlowEnabled = false,
+    canEnterScanFieldsManually = false,
     isPolicyExpenseChat = false,
     isDistanceRequest = false,
     isPerDiemRequest = false,
@@ -112,6 +116,7 @@ function Provider({
         didConfirm,
         isEditingSplitBill,
         isNewManualExpenseFlowEnabled,
+        canEnterScanFieldsManually,
         isPolicyExpenseChat,
         isDistanceRequest,
         isPerDiemRequest,

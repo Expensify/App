@@ -2,7 +2,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields, isMerchantMissing} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, getTag, hasManuallyEnteredScanFields, hasMissingSmartscanFields, isMerchantMissing} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 
@@ -75,6 +75,9 @@ type UseFormErrorManagementParams = {
     /** Whether the new manual expense flow is enabled (amount/date errors surface inline) */
     isNewManualExpenseFlowEnabled: boolean;
 
+    /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
+    canEnterScanFieldsManually: boolean;
+
     /** Whether the transaction is a distance request (its amount is read-only, so amount errors are not shown inline) */
     isDistanceRequest: boolean;
 };
@@ -142,6 +145,7 @@ function useFormErrorManagement({
     isTypeSplit,
     shouldShowReadOnlySplits,
     isNewManualExpenseFlowEnabled,
+    canEnterScanFieldsManually,
     isDistanceRequest,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
@@ -162,7 +166,10 @@ function useFormErrorManagement({
         ((!!hasSmartScanFailed && hasMissingSmartscanFields(transaction, transactionReport)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction, transactionReport)));
 
     const isMerchantEmpty = !iouMerchant || isMerchantMissing(transaction);
-    const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || !!isEditingSplitBill) && shouldShowMerchant;
+    // A scan the user started filling in (amount, merchant or date) behaves like a manual expense with a receipt
+    // attached, so the merchant becomes required no matter which chat the expense is headed to.
+    const hasEnteredScanFields = canEnterScanFieldsManually && hasManuallyEnteredScanFields(transaction);
+    const isMerchantRequired = (isPolicyExpenseChat && (!isScanRequest || !!isEditingSplitBill) && shouldShowMerchant) || hasEnteredScanFields;
     const isMerchantFieldValid = (() => {
         const merchantValue = iouMerchant ?? '';
         const trimmedMerchant = merchantValue.trim();

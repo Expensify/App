@@ -59,7 +59,7 @@ function DateField({
     reportActionID,
 }: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
@@ -79,16 +79,23 @@ function DateField({
     const createdMissing = dateState?.isMissing ?? true;
     const transactionHasReceipt = dateState?.hasReceipt ?? false;
 
+    // A draft is seeded with today's date, but in the Scan flow the date belongs to the receipt, not to today, so the
+    // picker stays empty until the user picks one — the same way the amount field starts empty.
+    const shouldShowEmptyDate = canEnterScanFieldsManually && !dateState?.isCreatedSet;
+    const isDateEmpty = createdMissing || shouldShowEmptyDate;
+
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
 
-    const inlineDateErrorText = formError === 'common.error.fieldRequired' && createdMissing ? translate('common.error.fieldRequired') : '';
+    const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateEmpty ? translate('common.error.fieldRequired') : '';
 
     const handleDateChange = (newDate: string) => {
         if (!transactionID) {
             return;
         }
 
-        if (newDate === iouCreated) {
+        // While the picker renders empty the persisted date is only a default, so a pick that matches it still has to
+        // be written — that write is what marks the date as chosen by the user.
+        if (newDate === iouCreated && !shouldShowEmptyDate) {
             return;
         }
 
@@ -126,7 +133,7 @@ function DateField({
             <View style={[styles.mh4, styles.mb2]}>
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
-                    value={iouCreated}
+                    value={shouldShowEmptyDate ? '' : iouCreated}
                     defaultValue={format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                     label={translate('common.date')}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}

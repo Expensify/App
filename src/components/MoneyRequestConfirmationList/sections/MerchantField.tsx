@@ -97,6 +97,12 @@ function MerchantField({
             return translate('iou.error.invalidMerchant');
         }
 
+        // `common.error.fieldRequired` is shared with the amount and date fields, so only surface it here when the
+        // merchant is the required value that is still missing.
+        if (formError === 'common.error.fieldRequired' && isMerchantRequired && !displayMerchantValue) {
+            return translate('common.error.fieldRequired');
+        }
+
         if (shouldDisplayFieldError && isMerchantRequired && !displayMerchantValue) {
             return translate('common.error.fieldRequired');
         }

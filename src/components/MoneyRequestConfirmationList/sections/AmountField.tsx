@@ -65,7 +65,8 @@ function AmountField({
     autoFocus = false,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, isNewManualExpenseFlowEnabled, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {isEditingSplitBill, isNewManualExpenseFlowEnabled, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} =
+        useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -103,9 +104,11 @@ function AmountField({
     const decimals = getCurrencyDecimals(effectiveCurrency);
     // In the new manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
     // touches it). Once the user explicitly sets an amount – including 0 – isAmountSet becomes true and we show the
-    // real value. This avoids showing "$0.00" as a pre-filled default. Scan and other non-manual flows populate
-    // amount programmatically and never set isAmountSet.
-    const shouldShowEmptyAmount = isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    // real value. This avoids showing "$0.00" as a pre-filled default. The Scan flow behaves the same way: its amount
+    // belongs to the receipt, so the field is empty until the user chooses to enter one instead of waiting for
+    // SmartScan. Per diem, distance and time flows populate the amount programmatically and never set isAmountSet.
+    const shouldShowEmptyAmount =
+        isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && (transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually);
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
 

@@ -579,6 +579,13 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the merchant has been explicitly set by the user */
         isMerchantSet?: boolean;
 
+        /**
+         * Whether the date has been explicitly picked by the user. A draft transaction is seeded with today's date,
+         * which the Scan flow can't tell apart from a date the user picked, so the Scan confirmation keeps its date
+         * field empty until this flag is set.
+         */
+        isCreatedSet?: boolean;
+
         /** The original merchant name */
         merchant: string;
 

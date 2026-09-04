@@ -272,6 +272,19 @@ function IOURequestStepConfirmationContent({
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    // The new manual expense flow lets the user fill in the amount, merchant and date on the Scan tab instead of
+    // waiting for SmartScan, so the Scan confirmation reveals those fields behind "Show more" as well. This only
+    // applies to a scan being created: a tracked expense being moved already carries real values, and its emptiness
+    // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Splits are
+    // excluded too because StartSplitBill takes no amount/merchant/date (the details are filled in once the receipt
+    // has been scanned), and so are test receipts, whose values are fixed.
+    const canEnterScanFieldsManually =
+        isNewManualExpenseFlowEnabled &&
+        requestType === CONST.IOU.REQUEST_TYPE.SCAN &&
+        !isMovingTransactionFromTrackExpense &&
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        !transaction?.receipt?.isTestReceipt &&
+        !transaction?.receipt?.isTestDriveReceipt;
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
     const headerTitle = useMemo(() => {
@@ -883,7 +896,8 @@ function IOURequestStepConfirmationContent({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
+    const shouldShowSmartScanFields =
+        !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN || canEnterScanFieldsManually;
     return (
         <>
             <TelemetrySpanManager
@@ -941,6 +955,7 @@ function IOURequestStepConfirmationContent({
                 participants={participants}
                 draftTransactionIDs={draftTransactionIDs}
                 isReceiptReady={!isOdometerDistanceRequest || isOdometerReady}
+                canEnterScanFieldsManually={canEnterScanFieldsManually}
                 onReceiptFilesChange={setReceiptFiles}
             />
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
@@ -1032,6 +1047,7 @@ function IOURequestStepConfirmationContent({
                                     receiptStitchError={stitchError}
                                     isPerDiemRequest={isPerDiemRequest}
                                     shouldShowSmartScanFields={shouldShowSmartScanFields}
+                                    canEnterScanFieldsManually={canEnterScanFieldsManually}
                                     action={action}
                                     isConfirmed={isConfirmed}
                                     isConfirming={isConfirming}
