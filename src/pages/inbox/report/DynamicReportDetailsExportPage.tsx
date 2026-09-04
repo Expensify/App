@@ -154,7 +154,11 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
             title="common.export"
             connectionName={connectionName}
             onSelectRow={({value}) => {
-                if (isExported) {
+                // Only the real "Export to integration" option can push the report into the external accounting
+                // company again, so it is the only one that should warn about re-exporting. "Mark as exported"
+                // just logs a per-report exported marker through MarkAsExported and never sends anything to e.g.
+                // QuickBooks Online, so warning about it there is wrong and blocks re-marking exported reports.
+                if (isExported && value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
                     showExportAgainModal(value);
                 } else {
                     confirmExport(value);
