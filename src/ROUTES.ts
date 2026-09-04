@@ -2845,12 +2845,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
+        getRoute: (policyID: string | undefined) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT route');
             }
 
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export` as const, backTo, false);
+            return `workspaces/${policyID}/accounting/quickbooks-online/export` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
@@ -3876,6 +3876,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/new',
         getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
+    RULES_EXPENSE_DEFAULT_TYPE: {
+        route: 'workspaces/:policyID/rules/expense-defaults/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/expense-defaults/new` as const,
+    },
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
         getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/merchant-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
@@ -3942,7 +3946,10 @@ const ROUTES = {
     },
     RULES_MERCHANT_TAX: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax` as const,
+        // `categoryName` is set when editing a category tax default, which is identified by its category rather than a
+        // ruleID. It tells the picker to return to that editor instead of the create page.
+        getRoute: (policyID: string, ruleID?: string, categoryName?: string) =>
+            `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
     RULES_MERCHANT_VENDOR: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/vendor',
@@ -3967,6 +3974,16 @@ const ROUTES = {
     RULES_MERCHANT_PREVIEW_MATCHES: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
+    },
+    RULES_CATEGORY_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/category-to-match',
+        // A category tax default has no ruleID, so editing one passes its category for the way back.
+        getRoute: (policyID: string, ruleID?: string, categoryName?: string) =>
+            `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category-to-match${getOptionalCategoryNameQuery(categoryName)}` as const,
+    },
+    RULES_CATEGORY_TAX_EDIT: {
+        route: 'workspaces/:policyID/rules/category-tax-rules/edit/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/category-tax-rules/edit/${encodeURIComponent(categoryName)}` as const,
     },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',
