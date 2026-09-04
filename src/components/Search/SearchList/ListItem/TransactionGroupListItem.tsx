@@ -205,7 +205,7 @@ function TransactionGroupListItemImpl({
         // A selected row paints an opaque background here, on top of the rounded wrapper below, so the outer
         // corners have to be rounded on this element too or the list's top/bottom corners look square.
         !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
-        !isLargeScreenWidth && isLastItem && styles.tableBottomRadius,
+        isLastItem && styles.tableBottomRadius,
         isItemSelected && styles.activeComponentBG,
     ];
     const pressableRef = useRef<View>(null);
