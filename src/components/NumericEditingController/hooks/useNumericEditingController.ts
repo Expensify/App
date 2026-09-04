@@ -63,7 +63,6 @@ function useNumericEditingController({
     // Keep the latest committed value available across batched state updates.
     const committedValueRef = useRef(externalValue);
 
-    const isNegative = currentValue.startsWith('-');
     const formattedNumber = replaceAllDigits(toDisplayText(currentValue), toLocaleDigit);
 
     const {selection, collapse, reset, syncToEnd, syncAfterEdit, handleKeyPress, rejectEdit, handleNativeSelectionChange} = useNumericSelection({displayText: formattedNumber});
@@ -135,7 +134,6 @@ function useNumericEditingController({
     return {
         value: currentValue,
         formattedNumber,
-        isNegative,
         selection,
         setNumber,
         setCanonicalValue,

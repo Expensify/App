@@ -254,6 +254,29 @@ describe('NumericInput', () => {
             expect(onInputChange).not.toHaveBeenCalled();
             expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('12');
         });
+
+        it('forwards blur and submit to the primitive callbacks', () => {
+            // Given a composition where the text input primitive registers blur and submit callbacks
+            const onBlur = jest.fn();
+            const onSubmitEditing = jest.fn();
+            renderNumericInput(
+                {value: '12'},
+                <NumericInput.TextInput
+                    testID={INPUT_TEST_ID}
+                    onBlur={onBlur}
+                    onSubmitEditing={onSubmitEditing}
+                />,
+            );
+
+            // When the input is blurred and submitted
+            const input = screen.getByTestId(INPUT_TEST_ID);
+            fireEvent(input, 'blur');
+            fireEvent(input, 'submitEditing');
+
+            // Then each callback runs exactly once
+            expect(onBlur).toHaveBeenCalledTimes(1);
+            expect(onSubmitEditing).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('root imperative API', () => {

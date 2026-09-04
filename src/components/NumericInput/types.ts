@@ -41,9 +41,11 @@ type NumericTextInputProps = {
     | 'onBlur'
     | 'onFocus'
     | 'onPress'
+    | 'onSubmitEditing'
     | 'prefixCharacter'
     | 'prefixContainerStyle'
     | 'prefixStyle'
+    | 'shouldAllowFocusInLandscapeMode'
     | 'shouldApplyPaddingToContainer'
     | 'shouldUseDefaultLineHeightForPrefix'
     | 'testID'
@@ -69,4 +71,14 @@ type NumericSymbolButtonProps = {
     textStyle?: StyleProp<TextStyle>;
 };
 
-export type {NumericInputContainerProps, NumericSymbolButtonProps, NumericSymbolProps, NumericTextInputProps};
+type NumericMinusSignProps = {
+    /** Style applied to the minus sign, appended to the primitive's defaults. */
+    style?: StyleProp<TextStyle>;
+};
+
+type NumericErrorProps = {
+    /** Style applied to the message container, appended to the primitive's defaults. */
+    style?: StyleProp<ViewStyle>;
+};
+
+export type {NumericErrorProps, NumericInputContainerProps, NumericMinusSignProps, NumericSymbolButtonProps, NumericSymbolProps, NumericTextInputProps};

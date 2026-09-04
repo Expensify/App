@@ -34,9 +34,11 @@ function NumericTextInput({
     keyboardType,
     onFocus,
     onPress,
+    onSubmitEditing,
     prefixCharacter,
     prefixStyle,
     prefixContainerStyle,
+    shouldAllowFocusInLandscapeMode = true,
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix,
     testID,
@@ -46,12 +48,19 @@ function NumericTextInput({
     const {setMouseDown, setMouseUp} = useMouseActions();
     const styles = useThemeStyles();
     const navigation = useNavigation();
-    const {formattedNumber, inputRef, selection} = useNumericInputState();
-    const {handleKeyPress, handleSelectionChange, setNumber} = useNumericInputActions();
+    const {formattedNumber, inputRef, isNegative, selection} = useNumericInputState();
+    const {clearSign, handleKeyPress, handleSelectionChange, setNumber} = useNumericInputActions();
 
     const handlePress = useNumericPressSelection(onPress);
 
     const handleInputKeyPress = (event: NumericEditingKeyPressEvent) => {
+        const key = event.nativeEvent.key.toLowerCase();
+
+        // The minus sign is rendered outside the input, so backspacing an empty input clears it.
+        if (!formattedNumber && key === 'backspace' && isNegative) {
+            clearSign();
+        }
+
         handleKeyPress(event);
         onKeyPress?.(event);
     };
@@ -96,6 +105,7 @@ function NumericTextInput({
             onMouseUp={handleMouseUp}
             onPress={handlePress}
             onSelectionChange={(event: TextInputSelectionChangeEvent) => handleSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end)}
+            onSubmitEditing={onSubmitEditing}
             placeholder={numberFormat(0)}
             prefixCharacter={prefixCharacter}
             prefixContainerStyle={prefixContainerStyle}
@@ -103,7 +113,7 @@ function NumericTextInput({
             // The root's ref drives focus and the web caret sync, so the caller's ref is merged into it.
             ref={mergeRefs(inputRef, ref)}
             selection={selection}
-            shouldAllowFocusInLandscapeMode
+            shouldAllowFocusInLandscapeMode={shouldAllowFocusInLandscapeMode}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldInterceptSwipe
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
