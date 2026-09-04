@@ -22,6 +22,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
@@ -31,11 +32,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut, LayoutAnimationConfig} from 'react-native-reanimated';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
+
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
@@ -121,21 +123,36 @@ function SearchPageWide({
                                 onSort={onSortPressedCallback}
                             />
                             <View style={styles.flex1}>
-                                {shouldShowLoadingSkeleton ? (
-                                    <SearchLoadingSkeleton />
-                                ) : (
-                                    <SearchWithNavigationDeferredMount
+                                {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
+                                <LayoutAnimationConfig skipEntering>
+                                    {/* A query change remounts this layer, which stays hidden for the delay before fading in — plus a grace
+                                        window when its results aren't in memory, so a quick query never shows a skeleton. */}
+                                    <Animated.View
                                         key={queryJSON.hash}
-                                        queryJSON={queryJSON}
-                                        searchResults={searchResults}
-                                        handleSearch={handleSearchAction}
-                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                        onSearchListScroll={scrollHandler}
-                                        onSortPressedCallback={onSortPressedCallback}
-                                        onDestinationVisible={endSubmitNavigationSpans}
-                                        onContentReady={onSearchContentReady}
-                                    />
-                                )}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(
+                                            shouldShowLoadingSkeleton
+                                                ? CONST.SEARCH.ANIMATION.FADE_DURATION + CONST.SEARCH.ANIMATION.SKELETON_GRACE_DURATION
+                                                : CONST.SEARCH.ANIMATION.FADE_DURATION,
+                                        )}
+                                        exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        style={StyleSheet.absoluteFill}
+                                    >
+                                        {shouldShowLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton />
+                                        ) : (
+                                            <SearchWithNavigationDeferredMount
+                                                queryJSON={queryJSON}
+                                                searchResults={searchResults}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onSearchListScroll={scrollHandler}
+                                                onSortPressedCallback={onSortPressedCallback}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                            />
+                                        )}
+                                    </Animated.View>
+                                </LayoutAnimationConfig>
                                 {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
                             </View>
                             <SearchSelectionFooter searchResults={searchResults} />
