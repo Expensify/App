@@ -16,6 +16,7 @@ on:
         'config/.editorconfig',
         'config/eslint/**',
         'scripts/lint.ts',
+        'scripts/lint/**',
         'scripts/lintChanged.sh',
         '.watchmanconfig',
         '.imgbotconfig',

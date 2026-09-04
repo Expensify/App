@@ -1,31 +1,84 @@
-import type {ESLint} from 'eslint';
+import {BANNED_RULE_ID, collectDisableDirectivesFromSource, findNewBypasses} from '../../scripts/onyxConnectBypass';
 
-import type {ResultWithSuppressed} from '../../scripts/onyxConnectBypass';
+const ONYX_CONNECT_CALL = `Onyx${'.connect'}`;
+const onyxConnectCall = (key: string): string => `${ONYX_CONNECT_CALL}({key: "${key}"});`;
 
-import {BANNED_RULE_ID, collectSuppressedBans, findNewBypasses} from '../../scripts/onyxConnectBypass';
+describe('collectDisableDirectivesFromSource', () => {
+    it('keeps only disable directives that name the no-onyx-connect ban', () => {
+        const source = [
+            '// eslint-disable-next-line no-console',
+            'console.log(1);',
+            `// eslint-disable-next-line ${BANNED_RULE_ID}`,
+            onyxConnectCall('x'),
+            '/* eslint-disable no-console */',
+        ].join('\n');
 
-const PROJECT_ROOT = '/repo';
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 3}]);
+    });
 
-function makeResult(relativePath: string, suppressedMessages: ESLint.LintResult['suppressedMessages']): ResultWithSuppressed {
-    return {filePath: `${PROJECT_ROOT}/${relativePath}`, suppressedMessages};
-}
+    it('flags a blanket eslint-disable that covers a banned call', () => {
+        const source = ['/* eslint-disable */', onyxConnectCall('x'), '// eslint-disable-next-line'].join('\n');
 
-function suppressed(ruleId: string, line: number): ESLint.LintResult['suppressedMessages'][number] {
-    return {ruleId, line, column: 1, message: 'x', severity: 2, suppressions: [{kind: 'directive', justification: ''}]};
-}
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
 
-describe('collectSuppressedBans', () => {
-    it('keeps only suppressed no-onyx-connect violations and relativizes their paths', () => {
-        const results = [makeResult('src/libs/Foo.ts', [suppressed(BANNED_RULE_ID, 12), suppressed('no-console', 3)]), makeResult('src/libs/Bar.ts', [suppressed(BANNED_RULE_ID, 7)])];
+    it('flags a blanket disable covering a spaced or split Onyx.connect call', () => {
+        const spaced = ['/* eslint-disable */', `Onyx${' . connect'} ({key: "x"});`].join('\n');
+        const split = ['/* eslint-disable */', `Onyx${'.'}`, '    connect({key: "x"});'].join('\n');
 
-        expect(collectSuppressedBans(results, PROJECT_ROOT)).toEqual([
-            {file: 'src/libs/Foo.ts', line: 12},
-            {file: 'src/libs/Bar.ts', line: 7},
+        expect(collectDisableDirectivesFromSource(spaced, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource(split, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('flags a blanket disable covering commented or parenthesized Onyx.connect calls', () => {
+        const commented = ['/* eslint-disable */', `Onyx${' /* x */ . connect'}({key: "x"});`].join('\n');
+        const parenthesized = ['/* eslint-disable */', `(Onyx)${'.connect'}({key: "x"});`].join('\n');
+
+        expect(collectDisableDirectivesFromSource(commented, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource(parenthesized, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('flags blanket line and next-line disables only when they cover a call', () => {
+        const source = [`${onyxConnectCall('line')} // eslint-disable-line`, '// eslint-disable-next-line', onyxConnectCall('next')].join('\n');
+
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([
+            {file: 'src/libs/Foo.ts', line: 1},
+            {file: 'src/libs/Foo.ts', line: 2},
         ]);
     });
 
-    it('returns nothing when there are no suppressed messages', () => {
-        expect(collectSuppressedBans([makeResult('src/libs/Foo.ts', [])], PROJECT_ROOT)).toEqual([]);
+    it('ignores blanket disables that do not cover a banned call', () => {
+        const source = ['/* eslint-disable */', 'console.log(1);', '// eslint-disable-next-line', 'console.log(2);'].join('\n');
+
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([]);
+    });
+
+    it('ignores a blanket disable after the ban is re-enabled', () => {
+        const source = ['/* eslint-disable */', '/* eslint-enable */', onyxConnectCall('x')].join('\n');
+
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([]);
+    });
+
+    it('matches a trailing eslint-disable-line that names the ban', () => {
+        const source = `${onyxConnectCall('x')} // eslint-disable-line ${BANNED_RULE_ID}\n`;
+
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('matches a multiline block disable that names the ban after the first line', () => {
+        const source = ['/* eslint-disable no-console,', `   ${BANNED_RULE_ID} */`, onyxConnectCall('x')].join('\n');
+
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('does not treat directive text in a string as an eslint-enable', () => {
+        const source = ['/* eslint-disable */', 'const text = "/* eslint-enable */";', onyxConnectCall('x')].join('\n');
+
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('returns nothing when there are no matching directives', () => {
+        expect(collectDisableDirectivesFromSource('const x = 1;\n', 'src/libs/Foo.ts')).toEqual([]);
     });
 });
 

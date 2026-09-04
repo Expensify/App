@@ -1,6 +1,6 @@
 # Linting
 
-The App is linted with [ESLint](https://eslint.org) and its configuration lives in [`config/eslint/`](../config/eslint/). The main source of truth is [`config/eslint/eslint.config.mjs`](../config/eslint/eslint.config.mjs) — every other file in that directory (plugins, processors, the seatbelt baseline) is wired up from there.
+The App is linted with [ESLint](https://eslint.org). Rule configuration lives in [`config/eslint/`](../config/eslint/); the runner, seatbelt ratchet, and post-process pipeline live in [`scripts/lint/`](../scripts/lint/).
 
 ## TL;DR
 
@@ -24,15 +24,19 @@ npm run lint-watch
 npm run eslint-report
 ```
 
-Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx eslint` invocations. Those wrappers increase the memory allocation to prevent OOM errors, and also include caching and concurrency flags for faster linting.
+Put flags before file or directory paths. The CLI stops parsing flags once it starts collecting variadic targets.
 
-By default the wrapper passes `--quiet` to ESLint so only blocking errors are printed — seatbelt-grandfathered violations (which CI does not fail on) are suppressed from the output but still evaluated against the baseline. Pass `--show-warnings` when you want to see them too, e.g. when paying down baselined errors.
+Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx eslint` invocations. The wrapper increases the memory allocation to prevent OOM errors, applies the seatbelt ratchet and the other post-processors, and includes caching and concurrency flags for faster linting.
 
-## eslint-seatbelt
-We use [eslint-seatbelt](https://github.com/justjake/eslint-seatbelt) to manage known lint errors.
+Editor integrations and bare `npx eslint` still run the rule set from `config/eslint/`, but they do **not** apply the seatbelt ratchet, the React Compiler filter, or no-deprecated stratification. Those run only in `scripts/lint/`. Grandfathered seatbelt rows may therefore show as errors in the editor even though `npm run lint` passes.
+
+By default the wrapper only prints blocking errors — seatbelt-grandfathered violations (which CI does not fail on) are suppressed from the output but still evaluated against the baseline. Pass `--show-warnings` when you want to see them too, e.g. when paying down baselined errors.
+
+## Seatbelt
+Known lint errors are grandfathered by a seatbelt ratchet implemented in [`scripts/lint/processors/Seatbelt.ts`](../scripts/lint/processors/Seatbelt.ts). The TSV format and env-var names match the previous `eslint-seatbelt` plugin so existing workflows stay the same.
 
 1. **Every rule is an error.** There are no warnings.
-2. **Pre-existing errors are grandfathered in via [`eslint-seatbelt`](https://github.com/justjake/eslint-seatbelt).** A per-file / per-rule baseline lives at [`config/eslint/eslint.seatbelt.tsv`](../config/eslint/eslint.seatbelt.tsv). As long as a file's error count for a given rule is **≤** its recorded baseline, seatbelt reclassifies those errors as warnings and the run still passes.
+2. **Pre-existing errors are grandfathered via the seatbelt ratchet.** A per-file / per-rule baseline lives at [`config/eslint/eslint.seatbelt.tsv`](../config/eslint/eslint.seatbelt.tsv). As long as a file's error count for a given rule is **≤** its recorded baseline, seatbelt reclassifies those errors as warnings and the run still passes.
 3. **The baseline is a ratchet.** The count can only go down over time — never up — unless you (and a reviewer) explicitly allow an increase.
 4. **The baseline auto-tightens on `main`.** When a PR merges, the lint job on `main` rewrites `eslint.seatbelt.tsv` to reflect the new (lower) counts and commits it back as OSBotify. You don't need to commit TSV updates yourself during normal development.
 5. **You never hand-edit `eslint.seatbelt.tsv`.** Seatbelt rewrites it deterministically based on what it sees during a lint run.
@@ -80,7 +84,7 @@ npm run eslint-report
 
 ### "I fixed an existing baselined error"
 
-Just run `npm run lint` (or `npm run lint-changed`) locally. Seatbelt notices the count went down and passes. **It does not rewrite `config/eslint/eslint.seatbelt.tsv` locally** — the config sets `readOnly: !process.env.CI`, so the TSV is only rewritten in CI. After your PR merges, the lint job on `main` re-runs, writes the tightened TSV, and OSBotify commits it back to `main` for you.
+Just run `npm run lint` (or `npm run lint-changed`) locally. Seatbelt notices the count went down and passes. **It does not rewrite `config/eslint/eslint.seatbelt.tsv` locally** — `readOnly` defaults to on unless `CI` is set, so the TSV is only rewritten in CI. After your PR merges, the lint job on `main` re-runs, writes the tightened TSV, and OSBotify commits it back to `main` for you.
 
 No TSV commit required on your end.
 
@@ -124,7 +128,7 @@ Commit the updated `config/eslint/eslint.seatbelt.tsv` alongside the rename. The
 
 ## CI behavior
 
-The [`ESLint check`](../.github/workflows/lint.yml) workflow runs `npm run lint`. In CI, `readOnly` is off (so seatbelt can write) and `SEATBELT_FROZEN=0` is exported from [`scripts/lint.ts`](../scripts/lint.ts) so GitHub Actions' auto-set `CI=true` doesn't flip seatbelt into frozen mode.
+The [`ESLint check`](../.github/workflows/lint.yml) workflow runs `npm run lint`. In CI, `readOnly` is off (so seatbelt can write) and `SEATBELT_FROZEN` defaults to off so GitHub Actions' auto-set `CI=true` doesn't flip seatbelt into frozen mode.
 
 - **PR runs:** counts go down → passes (TSV rewrite is ephemeral and thrown away with the runner). Counts go up without `SEATBELT_INCREASE` → fails with seatbelt's "exceeds allowed count" error.
 - **`push: main` runs:** same behavior, plus an extra step — if `config/eslint/eslint.seatbelt.tsv` changed, OSBotify commits the tightened baseline straight back to `main`.
@@ -143,7 +147,7 @@ Set any of these env vars for a one-off local run when you need to bypass seatbe
 | `SEATBELT_DISABLE=1`      | Skip all seatbelt processing for this run — raw ESLint output, baseline file ignored.    |
 | `SEATBELT_VERBOSE=1`      | Log every decrement/increment seatbelt performs. Handy when debugging the baseline.      |
 
-Full reference: [eslint-seatbelt README](https://github.com/justjake/eslint-seatbelt#configuration).
+The env-var names and TSV format are unchanged from the previous `eslint-seatbelt` plugin.
 
 ## Related reading
 
