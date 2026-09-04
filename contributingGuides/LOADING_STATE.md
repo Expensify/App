@@ -44,6 +44,7 @@ For loading driven by a **WRITE** command, use a dedicated hook from `src/hooks/
 Each hook maps to a **group**, which means a set of API commands that count as pending for one use case. Every group reads the two queue keys, `ONYXKEYS.PERSISTED_REQUESTS` and `ONYXKEYS.PERSISTED_ONGOING_REQUESTS`, with selectors that return booleans. The public API is one hook per group:
 
 - `useIsAppLoadPending()`: an `OpenApp` request or its deferred updates are pending.
+- `useIsOnlineAppLoadPending()`: the same, except an `OpenApp` still queued from while the device was offline does not count.
 - `useIsReportLoadPending(reportID)`: an `OpenReport` or its deferred updates are pending for that report.
 - `useIsLoadingBarPending()` / `useLoadingBarVisibility()`: a command relevant to the top-of-screen loading bar is active. Persisted requests that started offline are excluded, and the visible bar also requires the app to be online.
 
@@ -71,14 +72,14 @@ The request remains pending while offline, but a full-page loader cannot finish 
 
 The existing public hooks bridge this window:
 
-- `useIsAppLoadPending()` reads the two queue keys and `ONYXKEYS.IS_LOADING_APP`. An in-memory latch starts only after this process observes `OpenApp` in the queue. It stays set until the deferred update clears `IS_LOADING_APP`.
+- `useIsAppLoadPending()` and `useIsOnlineAppLoadPending()` read the two queue keys and `ONYXKEYS.IS_LOADING_APP`. An in-memory latch starts only after this process observes `OpenApp` in the queue. It stays set until the deferred update clears `IS_LOADING_APP`.
 - `useIsReportLoadPending(reportID)` reads the two queue keys and that report's `RAM_ONLY_REPORT_LOADING_STATE`. An in-memory set records report IDs observed with a matching `OpenReport`. It removes a report ID after `isLoadingInitialReportActions` clears.
 
 A fresh process does not inherit either latch. A stranded legacy loading value cannot make either hook pending by itself.
 
 Each hook creates exactly three Onyx subscriptions while this bridge exists:
 
-- `useIsAppLoadPending()` creates two queue subscriptions and one `IS_LOADING_APP` subscription.
+- `useIsAppLoadPending()` / `useIsOnlineAppLoadPending()` create two queue subscriptions and one `IS_LOADING_APP` subscription.
 - `useIsReportLoadPending()` creates two queue subscriptions and one report loading-state subscription.
 
 Do not call these hooks once per list row. Read the hook at screen or list level and pass the boolean down.
@@ -91,7 +92,7 @@ New groups are declared in the `PENDING_REQUEST_GROUPS` registry in `useInFlight
 const PENDING_REQUEST_GROUPS = {
     // Unscoped: matches on command alone.
     appLoad: {
-        commands: new Set<string>(APP_LOAD_COMMANDS), // WRITE_COMMANDS.OPEN_APP
+        commands: APP_LOAD_COMMANDS, // WRITE_COMMANDS.OPEN_APP
     },
     // Scoped: only requests whose scope key equals the caller's scope key match.
     reportLoad: {
@@ -106,7 +107,7 @@ const PENDING_REQUEST_GROUPS = {
 } satisfies Record<string, PendingRequestGroupConfig>;
 ```
 
-- **`commands`** (required): the WRITE commands whose presence in the queue counts as "pending" for this group. The backing arrays are typed `WriteCommand[]` (see the invariant below).
+- **`commands`** (required): the WRITE commands whose presence in the queue counts as "pending" for this group. The backing constants are typed `WriteCommand[]` (see the invariant below).
 - **`getScopeKey`** (optional): for scoped groups, extracts a scope key from a request so a caller sees only the requests it cares about (e.g. the `OpenReport` for one `reportID`). Omit it for groups that match on command alone. Callers should pass a defined scope key. An undefined request scope can only equal an undefined caller scope.
 - **`ignoreOfflineInitiatedPersisted`** (optional): when `true`, persisted requests initiated while offline are ignored, because they sit in the queue until reconnect and should not read as "loading." This filter applies to the persisted queue only, never to the ongoing request. `useLoadingBarVisibility` uses it so the bar does not show for work that is parked offline.
 

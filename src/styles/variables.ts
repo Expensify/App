@@ -53,6 +53,7 @@ export default {
     componentBorderWidth: 8,
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
+    widgetItemButtonMinWidth: 68,
     ...avatarSizes,
     avatarPreview: 360,
     avatarPreviewLarge: 720,

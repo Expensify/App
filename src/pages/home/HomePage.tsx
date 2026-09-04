@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useAppLoadSkeletonState, useShouldWaitForAppLoad} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -17,17 +18,21 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
+import {HomePageSkeletonRowCards, HomePageSkeletonSpinnerCard} from './HomePageSkeleton';
 import InsightsSection from './InsightsSection';
 import RecentlyAddedSection from './RecentlyAddedSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 import YourSpendSection from './YourSpendSection';
+
+const LEFT_COLUMN_TEST_ID = 'homePageLeftColumn';
+const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -39,11 +44,84 @@ function HomePage() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     // Offline the underlying commands never send, so the loading flags can stay true forever. Match useLoadingBarVisibility and hide the bar when offline.
     const isForYouLoading = !isOffline && !!(isLoadingApp || isLoadingReportData);
+    const {shouldShowSkeleton} = useAppLoadSkeletonState();
+    // The skeleton carries the same offline guard through useShouldWaitForAppLoad, which reports false once
+    // the device is offline with no OpenApp that ever reached the network to resolve it.
+    const shouldWaitForAppLoad = useShouldWaitForAppLoad();
+    const shouldShowHomeSkeleton = shouldShowSkeleton && shouldWaitForAppLoad;
     const receiptDropTargetRef = useRef<View>(null);
 
     // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that
     // happens on breakpoint change, converting between anchored popover and bottom-docked modal instead of vanishing.
     const [isConciergeMenuVisible, setIsConciergeMenuVisible] = useState(false);
+
+    // Held at the same array index in both states, and keyed so the match never depends on that index holding:
+    // a match that costs it a move relocates the host node, which blurs a focused Concierge input.
+    const forYouSection = (
+        <ForYouSection
+            key="forYouSection"
+            isConciergeMenuVisible={isConciergeMenuVisible}
+            setIsConciergeMenuVisible={setIsConciergeMenuVisible}
+        />
+    );
+
+    // Sections handle their own visibility and may render nothing. The skeleton fills these same slots rather
+    // than replacing the whole layout, which would unmount the Concierge card and interrupt anyone typing in it.
+    const homeLayout = shouldUseNarrowLayout ? (
+        <>
+            {/* Occupies a slot whether or not it renders, so the card below keeps its index across the swap. */}
+            {shouldShowHomeSkeleton ? null : <FreeTrialSection />}
+            {forYouSection}
+            {shouldShowHomeSkeleton ? (
+                <>
+                    <HomePageSkeletonSpinnerCard />
+                    <HomePageSkeletonRowCards />
+                </>
+            ) : (
+                <>
+                    <GettingStartedSection />
+                    <UpcomingTravelSection />
+                    <YourSpendSection />
+                    <RecentlyAddedSection />
+                    <InsightsSection />
+                    <DiscoverSection />
+                </>
+            )}
+        </>
+    ) : (
+        <>
+            <View
+                testID={LEFT_COLUMN_TEST_ID}
+                style={styles.homePageLeftColumn}
+            >
+                {forYouSection}
+                {shouldShowHomeSkeleton ? (
+                    <HomePageSkeletonSpinnerCard />
+                ) : (
+                    <>
+                        <GettingStartedSection />
+                        <InsightsSection />
+                    </>
+                )}
+            </View>
+            <View
+                testID={RIGHT_COLUMN_TEST_ID}
+                style={styles.homePageRightColumn}
+            >
+                {shouldShowHomeSkeleton ? (
+                    <HomePageSkeletonRowCards />
+                ) : (
+                    <>
+                        <FreeTrialSection />
+                        <YourSpendSection />
+                        <RecentlyAddedSection />
+                        <UpcomingTravelSection />
+                        <DiscoverSection />
+                    </>
+                )}
+            </View>
+        </>
+    );
 
     return (
         <View style={styles.flex1}>
@@ -65,6 +143,7 @@ function HomePage() {
                         shouldDisplayHelpButton
                     />
                     <ScrollView
+                        style={styles.homePageScrollView}
                         contentContainerStyle={styles.homePageContentContainer}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
@@ -74,48 +153,7 @@ function HomePage() {
                                 <QuickCreationActionsBar />
                             </View>
                         )}
-                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
-                            {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
-                            {shouldUseNarrowLayout ? (
-                                <>
-                                    <FreeTrialSection />
-                                    <ForYouSection
-                                        isConciergeMenuVisible={isConciergeMenuVisible}
-                                        setIsConciergeMenuVisible={setIsConciergeMenuVisible}
-                                    />
-                                    <GettingStartedSection />
-                                    <UpcomingTravelSection />
-                                    <YourSpendSection />
-                                    <RecentlyAddedSection />
-                                    <InsightsSection />
-                                    <DiscoverSection />
-                                </>
-                            ) : (
-                                <>
-                                    <View
-                                        testID="homePageLeftColumn"
-                                        style={styles.homePageLeftColumn}
-                                    >
-                                        <ForYouSection
-                                            isConciergeMenuVisible={isConciergeMenuVisible}
-                                            setIsConciergeMenuVisible={setIsConciergeMenuVisible}
-                                        />
-                                        <GettingStartedSection />
-                                        <InsightsSection />
-                                    </View>
-                                    <View
-                                        testID="homePageRightColumn"
-                                        style={styles.homePageRightColumn}
-                                    >
-                                        <FreeTrialSection />
-                                        <YourSpendSection />
-                                        <RecentlyAddedSection />
-                                        <UpcomingTravelSection />
-                                        <DiscoverSection />
-                                    </View>
-                                </>
-                            )}
-                        </View>
+                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{homeLayout}</View>
                     </ScrollView>
                 </ScreenWrapper>
             </View>
@@ -128,3 +166,4 @@ function HomePage() {
 }
 
 export default HomePage;
+export {LEFT_COLUMN_TEST_ID, RIGHT_COLUMN_TEST_ID};

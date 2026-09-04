@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
+import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 import Text from '@components/Text';
 import PopoverAnchorTooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
@@ -31,6 +32,7 @@ import SubmitDraftButton from '@pages/inbox/report/ReportActionCompose/SubmitDra
 import useDebouncedCommentMaxLengthValidation from '@pages/inbox/report/ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
 
+import {lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import {close} from '@userActions/Modal';
@@ -50,11 +52,21 @@ import {scheduleOnUI} from 'react-native-worklets';
 
 import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 
-// Max number of lines before the input starts scrolling internally.
 const MAX_INPUT_LINES = 5;
 
 // A single line of placeholder text is one lineHeightXLarge tall. Anything meaningfully taller has wrapped.
 const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = variables.lineHeightXLarge * 1.5;
+
+const DATE_LINE_HEIGHT = lineHeightScale.label;
+const GREETING_LINE_HEIGHT = lineHeightScale.h1;
+const PLACEHOLDER_LINE_HEIGHT = variables.lineHeightXLarge;
+
+// Bar widths approximating the copy each one stands in for.
+const DATE_BAR_WIDTH = 120;
+const GREETING_BAR_WIDTH = 220;
+const PLACEHOLDER_BAR_WIDTH = 200;
+
+const PLACEHOLDER_SKELETON_TEST_ID = 'conciergePromptBoxPlaceholderSkeleton';
 
 type ConciergePromptBoxProps = {
     /**
@@ -64,9 +76,15 @@ type ConciergePromptBoxProps = {
      */
     isMenuVisible: boolean;
     setIsMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /**
+     * The date and greeting read data that lands during app load (timezone, first name), so painting them early
+     * shows "Good morning." and then swaps it for "Good afternoon, <first name>".
+     */
+    isCopyLoading: boolean;
 };
 
-function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBoxProps) {
+function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: ConciergePromptBoxProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -160,10 +178,15 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const longPlaceholder = translate('homePage.conciergePrompt.inputPlaceholder');
     const shortPlaceholder = translate('homePage.conciergePrompt.inputPlaceholderMobile');
 
-    // Use the long placeholder only on the wide layout once the probe confirms it fits one line.
-    // Default to the short copy until measured, so it never flashes a wrapped long placeholder that then collapses.
     const longPlaceholderFitsOneLine = longPlaceholderHeight !== null && longPlaceholderHeight <= SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT;
     const placeholder = shouldUseNarrowLayout || !longPlaceholderFitsOneLine ? shortPlaceholder : longPlaceholder;
+
+    // Typed text hides the placeholder anyway, so the bar has nothing to stand in for once a draft is restored.
+    const shouldShowPlaceholderSkeleton = isCopyLoading && !value;
+    // Which copy applies is only known once the probe has measured, so painting either one first means a visible swap.
+    // A breakpoint remount reopens that window on a loaded app, where a bar would claim the app is still loading.
+    const isPlaceholderSettled = shouldUseNarrowLayout || longPlaceholderHeight !== null;
+    const shouldWithholdPlaceholderCopy = shouldShowPlaceholderSkeleton || !isPlaceholderSettled;
     const canSubmit = shouldShowAskConcierge && value.trim().length > 0 && !isExceedingMaxLength;
 
     const canAddAttachment = shouldShowAskConcierge && !isExceedingMaxLength;
@@ -194,8 +217,28 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     return (
         <View style={styles.gap6}>
             <View style={styles.gap1}>
-                <Text style={styles.textLabelSupporting}>{dateLabel}</Text>
-                <Text style={styles.textHeadlineH1}>{greeting}</Text>
+                {isCopyLoading ? (
+                    <>
+                        <SkeletonTextLine
+                            lineHeight={DATE_LINE_HEIGHT}
+                            barWidth={DATE_BAR_WIDTH}
+                        />
+                        <SkeletonTextLine
+                            lineHeight={GREETING_LINE_HEIGHT}
+                            barWidth={GREETING_BAR_WIDTH}
+                        />
+                    </>
+                ) : (
+                    <>
+                        <Text
+                            variant="label"
+                            style={styles.textLabelSupporting}
+                        >
+                            {dateLabel}
+                        </Text>
+                        <Text style={styles.textHeadlineH1}>{greeting}</Text>
+                    </>
+                )}
             </View>
             <View style={styles.pRelative}>
                 <View
@@ -317,7 +360,8 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                             maxLines={MAX_INPUT_LINES}
                             multiline
                             textAlignVertical="top"
-                            placeholder={placeholder}
+                            // Blanked while the bar stands in for it, so the two never paint on top of each other.
+                            placeholder={shouldWithholdPlaceholderCopy ? '' : placeholder}
                             placeholderTextColor={theme.placeholderText}
                             accessibilityLabel={placeholder}
                         />
@@ -334,6 +378,18 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                 {longPlaceholder}
                             </Text>
                         </View>
+                        {shouldShowPlaceholderSkeleton && (
+                            <View
+                                testID={PLACEHOLDER_SKELETON_TEST_ID}
+                                pointerEvents="none"
+                                style={styles.conciergePromptBoxPlaceholderSkeleton}
+                            >
+                                <SkeletonTextLine
+                                    lineHeight={PLACEHOLDER_LINE_HEIGHT}
+                                    barWidth={PLACEHOLDER_BAR_WIDTH}
+                                />
+                            </View>
+                        )}
                     </View>
                     {/* Mirror ComposerSendButton: the justifyContentEnd wrapper stretches to the row height and anchors the send button to the bottom. */}
                     <View style={styles.justifyContentEnd}>
@@ -363,3 +419,4 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
 }
 
 export default ConciergePromptBox;
+export {PLACEHOLDER_SKELETON_TEST_ID};

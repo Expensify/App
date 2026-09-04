@@ -1,5 +1,7 @@
 import LoadingIndicator from '@components/LoadingIndicator';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import lazyRetry from '@src/utils/lazyRetry';
 
 import React, {lazy, memo, Suspense} from 'react';
@@ -13,11 +15,13 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
+    const styles = useThemeStyles();
+
     if (authenticated) {
-        // Protected screens, only accessible with an authToken. Show a loader (not a blank
-        // screen) while the lazy AuthScreens chunk downloads during the sign-in swap.
+        // Opaque because this loader covers no content: AuthScreens has not mounted yet. The shared 0.8
+        // opacity lets the dark backdrop bleed into componentBG here, which reads as gray.
         return (
-            <Suspense fallback={<LoadingIndicator />}>
+            <Suspense fallback={<LoadingIndicator style={styles.opacity1} />}>
                 <AuthScreens />
             </Suspense>
         );
