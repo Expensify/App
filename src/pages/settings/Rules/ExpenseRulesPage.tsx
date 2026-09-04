@@ -34,7 +34,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 const getKeyForList = (rule: ExpenseRule, index: number) => `${getKeyForRule(rule)}-${index}`;
@@ -57,6 +57,13 @@ function ExpenseRulesPage() {
         // Clear selection when rule is changed as hash is outdated
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedRules([]);
+    }, [expenseRules]);
+
+    // The confirmation modal is global, so its promise resolves in a closure holding the rules from the render that opened it.
+    // This ref exposes the collection as it is at confirmation time so that snapshot can be checked for staleness.
+    const latestExpenseRulesRef = useRef(expenseRules);
+    useEffect(() => {
+        latestExpenseRulesRef.current = expenseRules;
     }, [expenseRules]);
 
     const hasRules = expenseRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
@@ -102,9 +109,8 @@ function ExpenseRulesPage() {
 
     const askForConfirmationToDelete = () => {
         const isSingleRule = selectedRules.length === 1;
-        // The selection is captured here because the effect above clears `selectedRules` whenever the Onyx value changes,
-        // and the modal's props are a snapshot taken at show time rather than a live binding.
         const rulesToDelete = selectedRules;
+        const expenseRulesWhenShown = expenseRules;
 
         showConfirmModal({
             title: translate(isSingleRule ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
@@ -114,6 +120,15 @@ function ExpenseRulesPage() {
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then(({action}) => {
             if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            // `deleteExpenseRules` rewrites the whole rule collection from the array it is given, so applying a snapshot
+            // taken before the rules changed would revive deleted rules and drop ones added while the modal was open.
+            // The keys are index based, so they cannot be remapped onto the new collection — drop the deletion instead,
+            // which is what happened before the modal became global and the effect above cleared the selection first.
+            if (latestExpenseRulesRef.current !== expenseRulesWhenShown) {
+                handleDeleteRules([]);
                 return;
             }
 
@@ -135,6 +150,16 @@ function ExpenseRulesPage() {
         .filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const headerDropdownOptions: Array<DropdownOption<DeepValueOf<typeof CONST.EXPENSE_RULES.BULK_ACTION_TYPES>>> = [
+        ...(selectedRules.length === 1
+            ? [
+                  {
+                      icon: icons.Pencil,
+                      text: translate('expenseRulesPage.editRule.title'),
+                      value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.EDIT,
+                      onSelected: () => navigateToEditRulePage(selectedRules.at(0)),
+                  },
+              ]
+            : []),
         {
             icon: icons.Trashcan,
             text: translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
@@ -143,14 +168,6 @@ function ExpenseRulesPage() {
             onSelected: askForConfirmationToDelete,
         },
     ];
-    if (selectedRules.length === 1) {
-        headerDropdownOptions.unshift({
-            icon: icons.Pencil,
-            text: translate('expenseRulesPage.editRule.title'),
-            value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.EDIT,
-            onSelected: () => navigateToEditRulePage(selectedRules.at(0)),
-        });
-    }
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
