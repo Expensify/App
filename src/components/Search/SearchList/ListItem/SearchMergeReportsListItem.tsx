@@ -43,8 +43,6 @@ function SearchMergeReportsListItem<TItem extends ListItem>({item, isFocused, sh
             isFocused={isFocused}
             showTooltip={showTooltip}
             onSelectRow={onSelectRow}
-            pendingAction={item.pendingAction}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}

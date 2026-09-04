@@ -57,7 +57,7 @@ function SearchMergeReports() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
@@ -170,6 +170,7 @@ function SearchMergeReports() {
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
+            getCurrencySymbol,
         });
 
         Navigation.dismissModal({
