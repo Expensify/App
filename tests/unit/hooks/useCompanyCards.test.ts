@@ -920,7 +920,7 @@ describe('useCompanyCards', () => {
             expect(result.current.companyCardEntries).toEqual([entry('553312XXXXXX0487', 'v1:ENCRYPTED_0487', true)]);
         });
 
-        it('should deduplicate assigned cards but not suppress unrelated accountList entries with old-format names', async () => {
+        it('should deduplicate an assigned card from its old-format accountList name while keeping unrelated entries', async () => {
             const feedWithAccountList: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#${domainID}` as CompanyCardFeedWithDomainID;
             const feedData = {
                 [feedWithAccountList]: {
@@ -966,12 +966,12 @@ describe('useCompanyCards', () => {
 
             const entries = result.current.companyCardEntries ?? [];
 
-            // Deduplication works for assigned cards: only 1 assigned entry.
-            // coveredNames tracks the resolved name '553312XXXXXX0487', so the accountList entry '0487' passes through as unassigned.
-            expect(entries).toHaveLength(3);
+            // The assigned card is registered under every representation (raw name '0487' and resolved name
+            // '553312XXXXXX0487'), so the accountList entry '0487' — the same card in old-format — is suppressed
+            // instead of leaking as a duplicate unassigned entry (#97138). 'SOME OTHER CARD' is unrelated and stays.
+            expect(entries).toHaveLength(2);
             expect(entries.at(0)).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
-            expect(entries.at(1)).toMatchObject({cardName: '0487', isAssigned: false});
-            expect(entries.at(2)).toMatchObject({cardName: 'SOME OTHER CARD', isAssigned: false});
+            expect(entries.at(1)).toMatchObject({cardName: 'SOME OTHER CARD', isAssigned: false});
         });
 
         it('should deduplicate three cards resolving to the same cardList entry', async () => {
