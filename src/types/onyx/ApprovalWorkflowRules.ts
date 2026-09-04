@@ -2,6 +2,8 @@ import type CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
+import type {RuleFilter, RuleFilterComparison} from './RuleFilters';
+
 /**
  * A report lifecycle event that can fire an approval-workflow rule (`ReportSubmit` or `ReportApprove`).
  */
@@ -35,39 +37,15 @@ type ApprovalWorkflowAction = {
 type ApprovalWorkflowActions = Record<string, ApprovalWorkflowAction>;
 
 /**
- * The value a comparison's field is compared against. For email-typed fields like `from`, this is a list
- * of emails to match against.
- */
-type ApprovalWorkflowFilterValue = string | number | string[];
-
-/**
  * A single comparison node: `<left> <operator> <right>`. Both `left` and `right` are always present.
  */
-type ApprovalWorkflowFilterComparison = {
-    /** The comparison operator. */
-    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
-
-    /** The field identifier being compared — one of the search-syntax filter keys (`from`, `to`, `amount`). */
-    left: string;
-
-    /** The literal value being compared against. */
-    right: ApprovalWorkflowFilterValue;
-};
+type ApprovalWorkflowFilterComparison = RuleFilterComparison;
 
 /**
  * A boolean filter that combines two child nodes. `left` / `right` may each be either a leaf comparison
  * or a nested boolean filter. Both children are always present.
  */
-type ApprovalWorkflowFilter = {
-    /** Boolean combinator (`AND` in practice). */
-    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
-
-    /** Left-hand child: leaf comparison or nested boolean filter. */
-    left: ApprovalWorkflowFilterComparison | ApprovalWorkflowFilter;
-
-    /** Right-hand child: leaf comparison or nested boolean filter. */
-    right: ApprovalWorkflowFilterComparison | ApprovalWorkflowFilter;
-};
+type ApprovalWorkflowFilter = RuleFilter;
 
 /**
  * The body of a single approval-workflow rule. When the report event matches one of the `triggers` and

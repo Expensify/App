@@ -1464,6 +1464,15 @@ function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: s
 }
 
 /**
+ * The `rules_` collection holds every kind of rule (approval workflows, expense defaults, ...), so anything
+ * reading it has to narrow to the kind it handles. An approval workflow rule is one that fires on a report event.
+ */
+function isApprovalWorkflowRule(rule: Rule): rule is Rule & ApprovalWorkflowRule {
+    const approvalWorkflowTriggers: string[] = Object.values(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER);
+    return Object.values(rule.triggers ?? {}).some((trigger) => approvalWorkflowTriggers.includes(trigger));
+}
+
+/**
  * Convert the `ONYXKEYS.COLLECTION.RULE` collection into the `ruleID -> rule body` map used by the
  * builder, reconcilers and converters, keeping only non-deleted rules scoped to `policyID`.
  */
@@ -1471,7 +1480,7 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
     const result: Record<string, ApprovalWorkflowRule> = {};
 
     for (const [onyxKey, rule] of Object.entries(filterRulesForPolicy(rulesCollection, policyID))) {
-        if (!rule || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!rule || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isApprovalWorkflowRule(rule)) {
             continue;
         }
         const ruleID = onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length);
