@@ -5506,6 +5506,9 @@ ${amount} pour ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Veuillez saisir un ID de formulaire personnalisé numérique valide',
                 },
+                fxExpenseAccount: 'Compte de frais de conversion de devise',
+                fxExpenseAccountDescription:
+                    'Lorsque votre entreprise prend en charge les frais de conversion de devise pour un remboursement payé à l’étranger, nous comptabiliserons ces frais dans le compte NetSuite ci‑dessous sous forme d’écriture de journal.',
             },
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter le compte dans NetSuite et synchroniser à nouveau la connexion',

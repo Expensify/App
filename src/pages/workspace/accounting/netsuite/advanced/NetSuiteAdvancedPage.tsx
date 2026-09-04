@@ -3,6 +3,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -49,13 +50,14 @@ import {useSharedValue} from 'react-native-reanimated';
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const autoSync = !!autoSyncConfig?.autoSync?.enabled;
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
-    const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
+    const {payableList, expenseAccounts} = policy?.connections?.netsuite?.options?.data ?? {};
 
     const shouldShowCustomFormIDOptions = useSharedValue(!shouldHideCustomFormIDOptions(config));
     const shouldAnimateAccordionSection = useSharedValue(false);
@@ -68,16 +70,18 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         () => getFilteredCollectionAccountOptions(payableList).find(({id}) => id === config?.collectionAccount),
         [payableList, config?.collectionAccount],
     );
+    const selectedFxExpenseAccount = useMemo(() => expenseAccounts?.find(({id}) => id === config?.fxExpenseAccount), [expenseAccounts, config?.fxExpenseAccount]);
+    const approvalAccount = config?.approvalAccount;
     const selectedApprovalAccount = useMemo(() => {
         // NetSuite uses a synthesized "default approval account" when nothing is explicitly set.
-        if (!config?.approvalAccount || config.approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
+        if (!approvalAccount || approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
             return {
                 id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
                 name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
             };
         }
-        return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === config?.approvalAccount);
-    }, [config?.approvalAccount, payableList, translate]);
+        return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === approvalAccount);
+    }, [approvalAccount, payableList, translate]);
 
     const renderDefaultMenuItem = (item: MenuItemToRender) => {
         return (
@@ -145,6 +149,14 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: selectedCollectionAccount ? selectedCollectionAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT],
             shouldHide: shouldHideReimbursedReportsSection(config),
+        },
+        {
+            type: 'menuitem',
+            description: translate('workspace.netsuite.advancedConfig.fxExpenseAccount'),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_FX_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
+            title: selectedFxExpenseAccount ? selectedFxExpenseAccount.name : undefined,
+            subscribedSettings: [CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT],
+            shouldHide: shouldHideReimbursedReportsSection(config) || !isGlobalReimbursementFXEnabled,
         },
         {
             type: 'divider',

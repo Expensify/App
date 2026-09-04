@@ -5265,6 +5265,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 error: {
                     customFormID: '请输入有效的数字自定义表单 ID',
                 },
+                fxExpenseAccount: '货币转换费用科目',
+                fxExpenseAccountDescription: '当您的公司承担向海外支付报销时产生的货币兑换成本，我们会将该成本作为一笔会计分录记入到下方的 NetSuite 科目中。',
             },
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在 NetSuite 中添加该账户，然后再次同步连接',

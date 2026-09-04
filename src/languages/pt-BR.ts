@@ -5457,6 +5457,9 @@ ${amount} para ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Insira um ID de formulário personalizado numérico válido',
                 },
+                fxExpenseAccount: 'Conta de taxa de conversão de moeda',
+                fxExpenseAccountDescription:
+                    'Quando sua empresa cobrir o custo de conversão de moeda em um reembolso pago no exterior, vamos lançar esse custo na conta do NetSuite abaixo como um lançamento contábil.',
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione a conta no NetSuite e sincronize a conexão novamente',

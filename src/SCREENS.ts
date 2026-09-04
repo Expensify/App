@@ -632,6 +632,7 @@ const SCREENS = {
             NETSUITE_VENDOR_BILL_APPROVAL_LEVEL_SELECT: 'Policy_Accounting_NetSuite_Vendor_Bill_Approval_Level_Select',
             NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT: 'Policy_Accounting_NetSuite_Journal_Entry_Approval_Level_Select',
             NETSUITE_APPROVAL_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Approval_Account_Select',
+            NETSUITE_FX_EXPENSE_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Fx_Expense_Account_Select',
             NETSUITE_CUSTOM_FORM_ID: 'Policy_Accounting_NetSuite_Custom_Form_ID',
             DYNAMIC_NETSUITE_AUTO_SYNC: 'Dynamic_Policy_Accounting_NetSuite_Auto_Sync',
             DYNAMIC_NETSUITE_ACCOUNTING_METHOD: 'Dynamic_Policy_Accounting_NetSuite_Accounting_Method',

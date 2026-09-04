@@ -4409,6 +4409,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/connections/netsuite/advanced/approval-account/select',
         getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/approval-account/select` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_FX_EXPENSE_ACCOUNT_SELECT: {
+        route: 'workspaces/:policyID/connections/netsuite/advanced/fx-expense-account/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/fx-expense-account/select` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID: {
         route: 'workspaces/:policyID/connections/netsuite/advanced/custom-form-id/:expenseType',
         getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>

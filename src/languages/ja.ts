@@ -5404,6 +5404,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 error: {
                     customFormID: '有効な数値のカスタムフォームIDを入力してください',
                 },
+                fxExpenseAccount: '通貨換算手数料勘定',
+                fxExpenseAccountDescription: '海外で支払われる精算について、会社が為替換算コストを負担する場合、そのコストは仕訳として以下の NetSuite アカウントに計上します。',
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'NetSuite にアカウントを追加して、接続をもう一度同期してください',
