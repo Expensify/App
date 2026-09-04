@@ -41,6 +41,7 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
+    flagReportNavigatedAway,
     joinReportViaSecureLink,
     markLocalReportActionsAsLoaded,
     openReport,
@@ -390,6 +391,21 @@ function ReportFetchHandler() {
             onUnmount();
         };
     }, []);
+
+    // Record when the user navigates away from this report so the next openReport can clear a manual unread
+    // marker on the return trip (see `flagReportNavigatedAway`). We flag on blur (wide layout keeps the screen
+    // mounted) and on unmount / reportID change (narrow layout tears it down), covering both navigation shapes.
+    // Staying in the report never flags it, so the marker the user created is not wiped mid-session.
+    useEffect(() => {
+        if (!prevIsFocused || isFocused) {
+            return;
+        }
+        flagReportNavigatedAway(reportIDFromRoute);
+    }, [isFocused, prevIsFocused, reportIDFromRoute]);
+
+    useEffect(() => {
+        return () => flagReportNavigatedAway(reportIDFromRoute);
+    }, [reportIDFromRoute]);
 
     // `isLoadingInitialReportActions` is memory-only and is not reset between navigations. A prior failed
     // fetch leaves a stale `false` that can make ReportNotFoundGuard show "not here" before the fetch below
