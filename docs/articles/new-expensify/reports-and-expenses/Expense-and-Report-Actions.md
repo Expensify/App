@@ -20,7 +20,7 @@ Use this guide to understand:
 
 - You can **submit** a report when it is in **Draft** status and you are the **submitter**
 - You can **approve** a report when it is in **Outstanding** (submitted) status and you are the **assigned approver**
-- You can **pay** a report after it is **Approved** status and you are a **payer**
+- You can **pay** a report after it is **Approved** status and you are a **Workspace Admin** on a workspace with **Payments** enabled. You do not have to be the workspace's **Payer**
 - You can **export** a report when it is **Approved or Paid** status and you are an **admin or exporter**
 - You can **Hold** expenses when they should not move forward yet
 
@@ -85,8 +85,10 @@ Use this guide to understand:
 **Payer**
 - Pay reports
 - Cancel payment (before processing)
+- Receive the payment reminders and prompts for reports awaiting payment
 
 **Workspace Admin**
+- Pay reports, even when they are not the workspace's **Payer**
 - Export reports
 - Mark reports as exported
 - Change approver
@@ -103,7 +105,7 @@ Use this guide to understand:
 |------------|---------------------|---------------------|------------------|
 | **Submit** | Draft reports | Submitter | Sends the report into the approval workflow |
 | **Approve** | Outstanding awaiting approval | Approver | Confirms the report is accurate and moves it forward |
-| **Pay** | Approved reports with reimbursable expenses | Payer | Initiates or records payment |
+| **Pay** | Approved reports with reimbursable expenses | Payer and any other Workspace Admin | Initiates or records payment |
 | **Export** | Approved or Paid reports not yet exported | Workspace Admin | Sends report data to an accounting system |
 | **Review** | When issues are detected | All roles | Prompts required fixes before continuing |
 
@@ -187,6 +189,10 @@ An error message appears with next steps. You can fix the issue and retry the ex
 ## Why can’t I cancel a payment?
 
 Payments can only be canceled before processing begins. Manual payments cannot be canceled.
+
+## Why do I see the Pay button when I am not the workspace Payer?
+
+Any Workspace Admin can pay an approved report on a workspace with **Payments** enabled, whether or not a bank account is connected to the workspace. Only the **Payer** is prompted to pay, so other admins see the **Pay** button on the report but do not receive payment reminders.
 
 ## Why can’t I see “Bypass approvers”?
 

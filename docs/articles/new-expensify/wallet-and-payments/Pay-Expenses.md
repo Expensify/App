@@ -1,7 +1,7 @@
 ---
 title: How to Pay Expenses in New Expensify
 description: Learn how to pay personal or workspace expenses in New Expensify using connected bank accounts or your Wallet.
-keywords: [New Expensify, pay expenses, reimburse teammates, reimburse friends, personal payments, business payments, connected bank account, Wallet, pay report]
+keywords: [New Expensify, pay expenses, reimburse teammates, reimburse friends, personal payments, business payments, connected bank account, Wallet, pay report, who can pay a report, workspace admin pay report, authorized payer]
 ---
 
 Paying expenses in New Expensify is fast and easy—whether you're reimbursing a teammate through a Workspace or sending money to a friend personally. You can pay using a connected business bank account or your Wallet.
@@ -13,6 +13,16 @@ Paying expenses in New Expensify is fast and easy—whether you're reimbursing a
 To pay Workspace expenses, you’ll first need to:
 - [Connect a business bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account)
 - Ask the submitter to [connect a personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account)
+
+## Who can pay workspace expenses
+
+Any **Workspace Admin** can pay an approved report on a workspace with **Payments** enabled, whether or not a bank account is connected to the workspace. You do not have to be the workspace's **Payer**.
+
+Only the **Payer** is prompted to pay. Other admins see the **Pay** button on the report but don't receive payment reminders in their **Inbox**.
+
+When you pay, you can use any business bank account that has been shared with you, or select **Mark as paid** to record a payment made outside of Expensify. If you don't have a business bank account yet, you're prompted to add one. Paying from a bank account other than the workspace's connected account does not change the workspace's connected bank account.
+
+Learn how to [set an authorized payer for your workspace](/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-an-authorized-payer-without-a-connected-bank-account).
 
 ## Where to Find Workspaces Expenses to Pay
 
@@ -86,6 +96,14 @@ You can reimburse Workspace expenses using business bank accounts in the followi
 ## Why don't I see my bank account when I click Pay?
 
 Only bank accounts that match the report's currency appear as payment options. If you have a USD bank account but the report is in EUR, the USD account will not be shown. To pay the report, connect a bank account in the matching currency, or select **Mark as paid** to record a payment made outside Expensify.
+
+---
+
+## Why don't I see the workspace's bank account when I pay a report?
+
+Only bank accounts that have been shared with you appear as payment options, so the workspace's connected bank account is shown only if you have access to it. If you don't, pay from another business bank account you have access to, add a new one when prompted, or select **Mark as paid**.
+
+Learn how to [share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
 
 ---
 
