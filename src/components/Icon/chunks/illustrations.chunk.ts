@@ -111,7 +111,9 @@ import AiBot from '@assets/images/simple-illustrations/simple-illustration__ai-b
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
+import BankCheck from '@assets/images/simple-illustrations/simple-illustration__bank-check.svg';
 import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
+import BankX from '@assets/images/simple-illustrations/simple-illustration__bank-x.svg';
 import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
@@ -341,7 +343,9 @@ const Illustrations = {
     AiBot,
     Building,
     BuildingCross,
+    BankCheck,
     BankCoin,
+    BankX,
     Coins,
     CreditCardsNew,
     FolderOpen,

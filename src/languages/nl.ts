@@ -2709,6 +2709,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Bevestig testtransacties alsjeblieft',
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
+            plaidBrokenReconnect: 'Herstel je Plaid-verbinding voor een nauwkeurigere limiet op je Expensify Kaart',
+            plaidConnectForLimit: 'Maak verbinding met Plaid voor een nauwkeuriger limiet voor je Expensify Kaart',
+            connect: 'Verbinding maken',
+        },
+        linkPlaid: {
+            title: 'Verbinden met Plaid',
+            successHeading: 'Verbinding geslaagd',
+            successDescription: 'Bedankt dat je verbinding hebt gemaakt met Plaid!',
+            failureHeading: 'Mislukte verbinding',
+            failureDescription: '<muted-text>Probeer het opnieuw of <concierge-link>neem contact op met Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Verkeerde bankrekening',
+            wrongAccountDescription: 'Selecteer de overeenkomende bankrekening in Plaid.',
         },
     },
     cardPage: {

@@ -2663,6 +2663,7 @@ const CONST = {
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
 
         BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
+        PLAID_WRONG_BANK_ACCOUNT: "The bank account you selected in Plaid doesn't match the one you're reconnecting. Please try again with the same account.",
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',

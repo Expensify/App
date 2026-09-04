@@ -25,7 +25,7 @@ function RBRRenderer({tnode, style}: CustomRendererProps<TText | TPhrasing>) {
                         numberOfLines={shouldShowEllipsis ? 1 : 0}
                         ellipsizeMode="tail"
                         key={props.key}
-                        style={[styles.textLabelError, flattenStyle, isSmall ? styles.textMicro : {}]}
+                        style={[styles.textLabelError, styles.badgeDangerText, flattenStyle, isSmall ? styles.textMicro : {}]}
                     >
                         {props.childElement}
                     </Text>

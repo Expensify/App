@@ -13,6 +13,7 @@ import {View} from 'react-native';
 import Button from './ButtonComposed';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
+import Text from './Text';
 
 type ConnectionStatusMessageProps = {
     message?: string;
@@ -33,7 +34,7 @@ function ConnectionStatusMessage({
     onLinkPress,
     shouldIncludeHorizontalPadding = true,
 }: ConnectionStatusMessageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -48,30 +49,35 @@ function ConnectionStatusMessage({
     }
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
+    const isSuccessStatus = statusTone === 'success';
     const messageTag = isDangerStatus ? 'rbr' : 'muted-text-label';
     const messageHTML = `<${messageTag}>${message ?? ''}</${messageTag}>`;
     const messageContent = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-            {isDangerStatus && (
+            {(isDangerStatus || isSuccessStatus) && (
                 <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
                     <Icon
                         src={icons.DotIndicator}
-                        fill={theme.danger}
+                        fill={isDangerStatus ? theme.danger : theme.iconSuccessFill}
                     />
                 </View>
             )}
             <View style={[styles.flex1, styles.flexRow]}>
-                <RenderHTML
-                    html={messageHTML}
-                    onLinkPress={onLinkPress}
-                />
+                {isSuccessStatus ? (
+                    <Text style={[styles.textLabelError, styles.badgeSuccessText]}>{message}</Text>
+                ) : (
+                    <RenderHTML
+                        html={messageHTML}
+                        onLinkPress={onLinkPress}
+                    />
+                )}
             </View>
         </View>
     );
 
     const actionButton = shouldShowActionButton ? (
         <Button
-            variant={CONST.BUTTON_VARIANT.DANGER}
+            variant={isSuccessStatus ? CONST.BUTTON_VARIANT.SUCCESS : CONST.BUTTON_VARIANT.DANGER}
             size={CONST.BUTTON_SIZE.SMALL}
             style={styles.alignSelfStart}
             onPress={onActionPress}

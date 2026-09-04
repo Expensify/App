@@ -2610,6 +2610,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: '请确认测试交易',
             accountRequiresAttention: '此账户需要处理',
             unlock: '解锁',
+            plaidBrokenReconnect: '修复您的 Plaid 连接以获得更准确的 Expensify 卡额度',
+            plaidConnectForLimit: '连接 Plaid，以获得更精确的 Expensify 卡额度',
+            connect: '连接',
+        },
+        linkPlaid: {
+            title: '连接到 Plaid',
+            successHeading: '连接成功',
+            successDescription: '感谢你连接 Plaid！',
+            failureHeading: '连接失败',
+            failureDescription: '<muted-text>请重试，或<concierge-link>联系 Concierge</concierge-link>。</muted-text>',
+            wrongAccountHeading: '银行账户错误',
+            wrongAccountDescription: '请在 Plaid 中选择对应的银行账户。',
         },
     },
     cardPage: {

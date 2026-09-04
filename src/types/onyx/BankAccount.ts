@@ -40,12 +40,6 @@ type BankAccountAdditionalData = {
         achAuthorizationForm?: FileObject[];
     };
 
-    /** Verification statuses returned by the backend, mirroring how Classic determines status */
-    verifications?: {
-        /** Present once the account is set up with Corpay for Global Reimbursement */
-        corpay?: Record<string, unknown>;
-    };
-
     /** First name of the bank account owner (OldDot field name) */
     firstName?: string;
 
@@ -72,6 +66,21 @@ type BankAccountAdditionalData = {
 
     /** Phone number of the bank account owner */
     companyPhone?: string;
+
+    /** External API verification results attached to the bank account */
+    verifications?: {
+        /** Responses from external verification APIs */
+        externalApiResponses?: {
+            /** Plaid assets verification state */
+            plaidAssets?: {
+                /** Whether the Plaid connection is broken and requires re-linking */
+                needsFixing?: boolean;
+            };
+        };
+
+        /** Present once the account is set up with Corpay for Global Reimbursement */
+        corpay?: Record<string, unknown>;
+    };
 };
 
 /** Model of bank account */
@@ -111,6 +120,9 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Country code related to the bank account */
     bankCountry: string;
+
+    /** Whether an async action on this bank account is in flight (e.g. Plaid connect/fix) */
+    isLoading?: boolean;
 
     /** Any additional error message to show */
     errors?: OnyxCommon.Errors;
