@@ -6,20 +6,15 @@ import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 
+import type {SignOutReason} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {ValueOf} from 'type-fest';
-
-/** Prefix on every receipt log line so we can filter the logs without parsing free text. */
-const RECEIPT_LOG_PREFIX = '[Receipt]';
+import RECEIPT_LOG_PREFIX from './receiptLogPrefix';
 
 /** Points in the app lifecycle where we snapshot the receipts that are still pending.*/
 type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
-
-/** Which sign-out path tore down the session, so a forced sign-out does not read as a deliberate one. */
-type SignOutReason = ValueOf<typeof CONST.SIGN_OUT_REASON>;
 
 /** How a receipt entered the app. */
 type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share';
@@ -44,7 +39,7 @@ type QueuedReceipt = {
 
 /** Inputs for the enqueued milestone, taken when the receipt request reaches the write queue. */
 type ReceiptEnqueuedParams = {
-    receipt: QueuedReceipt;
+    receiptTraceId: string | undefined;
     transactionID: string | undefined;
     command: string;
     persistedQueueLength: number;
@@ -146,7 +141,7 @@ function logReceiptSubmitted({
  * existing network "sent" log is the window where the queue is blocked, which is what we want to see. It records the
  * offline state and queue depth so we can tell a normal offline wait apart from a stuck queue.
  */
-function logReceiptEnqueued({receipt, transactionID, command, persistedQueueLength}: ReceiptEnqueuedParams) {
+function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQueueLength}: ReceiptEnqueuedParams) {
     if (transactionID) {
         // Re-insert so this key becomes the newest, then drop the oldest entries past the cap. This keeps the map
         // bounded even when no snapshot ever runs to drain it.
@@ -163,7 +158,7 @@ function logReceiptEnqueued({receipt, transactionID, command, persistedQueueLeng
 
     Log.info(`${RECEIPT_LOG_PREFIX} enqueued`, true, {
         event: 'enqueued',
-        receiptTraceId: receipt.receiptTraceId,
+        receiptTraceId,
         transactionID,
         command,
         isOffline: String(getIsOffline()),
@@ -358,6 +353,5 @@ export {
     logReceiptQueueSnapshot,
     getPickerCaptureSource,
     RECEIPT_BEARING_COMMANDS,
-    RECEIPT_LOG_PREFIX,
 };
-export type {ReceiptCaptureSource, SignOutReason};
+export type {ReceiptCaptureSource};

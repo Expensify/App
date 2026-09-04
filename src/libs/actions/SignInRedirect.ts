@@ -2,10 +2,10 @@ import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
-import type {SignOutReason} from '@libs/telemetry/ReceiptObservability';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
 import CONFIG from '@src/CONFIG';
+import type {SignOutReason} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,6 +90,10 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         keysToPreserve.push(ONYXKEYS.ACCOUNT);
     }
 
+    // SAML_REQUIRED is load-bearing here, not just a log label: it is what keeps CREDENTIALS and ACCOUNT alive across
+    // the clear so the SAML_SIGN_IN transition has something to resume from. A second SAML-ish reason added later must
+    // be added to this condition too, or that teardown will silently wipe the credentials. Pinned by
+    // "keeps the in-progress trip when a SAML re-auth forces the redirect" in tests/actions/SessionTest.ts.
     const shouldPreserveCredentialsForSAML = signOutReason === CONST.SIGN_OUT_REASON.SAML_REQUIRED;
 
     // Mark the account as loading and set the login in credentials to trigger the `SAML_SIGN_IN` transition

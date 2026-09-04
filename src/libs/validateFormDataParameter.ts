@@ -1,6 +1,6 @@
 import isFileUploadable from './isFileUploadable';
 import Log from './Log';
-import {RECEIPT_LOG_PREFIX} from './telemetry/ReceiptObservability';
+import RECEIPT_LOG_PREFIX from './telemetry/receiptLogPrefix';
 
 function getReceiptTraceId(value: unknown): string | undefined {
     if (typeof value !== 'object' || value === null) {

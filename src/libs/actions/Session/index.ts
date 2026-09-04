@@ -41,7 +41,6 @@ import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 import * as SessionUtils from '@libs/SessionUtils';
 import {getPartnerCredentials, resetDidUserLogInDuringSession} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
-import type {SignOutReason} from '@libs/telemetry/ReceiptObservability';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 import Timers from '@libs/Timers';
 
@@ -58,6 +57,7 @@ import redirectToSignIn from '@userActions/SignInRedirect';
 import * as Welcome from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
+import type {SignOutReason} from '@src/CONST';
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';

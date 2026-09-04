@@ -771,7 +771,7 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
         if (data.receipt) {
             data.receipt.receiptEnqueuedAt = Date.now();
             logReceiptEnqueued({
-                receipt: data.receipt,
+                receiptTraceId: data.receipt.receiptTraceId,
                 transactionID: data.transactionID,
                 command: newRequest.command,
                 persistedQueueLength: currentRequests.length,
