@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -15,6 +16,7 @@ import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
@@ -47,6 +49,8 @@ type AccountSwitcherProps = {
     /* Whether the screen is focused. Used to hide the product training tooltip */
     isScreenFocused: boolean;
 };
+
+const filterMenuItem = (item: PopoverMenuItem, searchInput: string) => tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '']).length > 0;
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -126,19 +130,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         [calculatePopoverPosition],
     );
 
-    const onPressSwitcher = () => {
-        hideProductTrainingTooltip();
-        if (shouldShowDelegatorMenu) {
-            setShouldShowDelegatorMenu(false);
-            return;
-        }
-        // Measure the button before opening so the menu renders at the right spot on the first frame.
-        measureDelegatorMenuPosition().then((position) => {
-            setPopoverPosition(position);
-            setShouldShowDelegatorMenu(true);
-        });
-    };
-
     // Keep the menu anchored to the button if the window is resized while it is open.
     useLayoutEffect(() => {
         if (!shouldShowDelegatorMenu) {
@@ -146,32 +137,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         }
         measureDelegatorMenuPosition().then(setPopoverPosition);
     }, [shouldShowDelegatorMenu, windowWidth, windowHeight, measureDelegatorMenuPosition]);
-
-    const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
-    const tooltipProps = shouldShowProductTrainingTooltip
-        ? {
-              shouldRender: shouldShowProductTrainingTooltip,
-              renderTooltipContent: renderProductTrainingTooltip,
-              anchorAlignment: {
-                  // Right-align so the tooltip opens leftward into the sidebar (matching the design mockup),
-                  // instead of overflowing past the Switch button into the central pane.
-                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                  vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-              },
-              shiftVertical: variables.accountSwitcherTooltipShiftVertical,
-              shiftHorizontal: variables.accountSwitcherTooltipShiftHorizontal,
-              wrapperStyle: styles.productTrainingTooltipWrapper,
-              onTooltipPress: onPressSwitcher,
-              // The switcher lives in the settings sidebar, which isn't the navigation-focused screen on wide layouts.
-              // Without this the educational tooltip is suppressed (it relies on the screen being focused), so keep it shown until dismissed.
-              shouldHideOnNavigate: false,
-              // The switcher scrolls away with the settings list, so the tooltip has to follow it or get out of the way.
-              shouldHideOnScroll: true,
-          }
-        : {
-              text: translate('delegate.copilotAccess'),
-              shouldRender: canSwitchAccounts,
-          };
 
     const createBaseMenuItem = (
         personalDetails: PersonalDetails | undefined,
@@ -195,9 +160,37 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         };
     };
 
-    const menuItems = (): PopoverMenuItem[] => {
-        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
+    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
+    const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
+        delegators
+            .filter(({email}) => email !== currentUserPersonalDetails.login)
+            .map(({email, role}) => {
+                const errorFields = account?.delegatedAccess?.errorFields ?? {};
+                const error = getLatestError(errorFields?.connect?.[email]);
+                const personalDetails = personalDetailsByLogin[email];
+                return createBaseMenuItem(personalDetails, error, {
+                    badgeText: translate('delegate.role', role),
+                    onSelected: () => {
+                        if (isOffline) {
+                            close(showOfflineModal);
+                            return;
+                        }
+                        if (isTrackingGPS) {
+                            close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
+                            return;
+                        }
+                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                    },
+                });
+            }),
+        'text',
+        localeCompare,
+    );
+    const allMenuItems = [currentUserMenuItem, ...delegatorMenuItems];
+    const [searchInput, setSearchInput, filteredMenuItems] = useSearchResults(allMenuItems, filterMenuItem);
+    const shouldShowSearchInput = !isActingAsDelegate && delegators.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
+    const menuItems = (): PopoverMenuItem[] => {
         if (isActingAsDelegate) {
             // Avoid duplicating the current user in the list when switching accounts
             if (delegate === currentUserPersonalDetails.login) {
@@ -226,39 +219,53 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             ];
         }
 
-        const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
-            delegators
-                .filter(({email}) => email !== currentUserPersonalDetails.login)
-                .map(({email, role}) => {
-                    const errorFields = account?.delegatedAccess?.errorFields ?? {};
-                    const error = getLatestError(errorFields?.connect?.[email]);
-                    const personalDetails = personalDetailsByLogin[email];
-                    return createBaseMenuItem(personalDetails, error, {
-                        badgeText: translate('delegate.role', role),
-                        onSelected: () => {
-                            if (isOffline) {
-                                close(showOfflineModal);
-                                return;
-                            }
-                            if (isTrackingGPS) {
-                                close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
-                                return;
-                            }
-                            connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
-                        },
-                    });
-                }),
-            'text',
-            localeCompare,
-        );
-
-        return [currentUserMenuItem, ...delegatorMenuItems];
+        return shouldShowSearchInput ? filteredMenuItems : allMenuItems;
     };
 
     const hideDelegatorMenu = () => {
         setShouldShowDelegatorMenu(false);
+        setSearchInput('');
         clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
+
+    const onPressSwitcher = () => {
+        hideProductTrainingTooltip();
+        if (shouldShowDelegatorMenu) {
+            hideDelegatorMenu();
+            return;
+        }
+        // Measure the button before opening so the menu renders at the right spot on the first frame.
+        measureDelegatorMenuPosition().then((position) => {
+            setPopoverPosition(position);
+            setShouldShowDelegatorMenu(true);
+        });
+    };
+
+    const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
+    const tooltipProps = shouldShowProductTrainingTooltip
+        ? {
+              shouldRender: shouldShowProductTrainingTooltip,
+              renderTooltipContent: renderProductTrainingTooltip,
+              anchorAlignment: {
+                  // Right-align so the tooltip opens leftward into the sidebar (matching the design mockup),
+                  // instead of overflowing past the Switch button into the central pane.
+                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                  vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+              },
+              shiftVertical: variables.accountSwitcherTooltipShiftVertical,
+              shiftHorizontal: variables.accountSwitcherTooltipShiftHorizontal,
+              wrapperStyle: styles.productTrainingTooltipWrapper,
+              onTooltipPress: onPressSwitcher,
+              // The switcher lives in the settings sidebar, which isn't the navigation-focused screen on wide layouts.
+              // Without this the educational tooltip is suppressed (it relies on the screen being focused), so keep it shown until dismissed.
+              shouldHideOnNavigate: false,
+              // The switcher scrolls away with the settings list, so the tooltip has to follow it or get out of the way.
+              shouldHideOnScroll: true,
+          }
+        : {
+              text: translate('delegate.copilotAccess'),
+              shouldRender: canSwitchAccounts,
+          };
 
     return (
         <>
@@ -333,7 +340,18 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     }}
                     menuItems={menuItems()}
                     headerText={translate('delegate.switchAccount')}
-                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
+                    searchInputOptions={
+                        shouldShowSearchInput
+                            ? {
+                                  label: translate('workspace.people.findMember'),
+                                  value: searchInput,
+                                  onChangeText: setSearchInput,
+                                  shouldShowEmptyState: filteredMenuItems.length === 0 && searchInput.length > 0,
+                                  style: styles.mb2,
+                              }
+                            : undefined
+                    }
+                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover]}
                     headerStyles={styles.pt0}
                     innerContainerStyle={styles.pb0}
                     shouldUseScrollView
