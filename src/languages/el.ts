@@ -9811,6 +9811,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την ενημέρωση του πεδίου. Προσπαθήστε ξανά αργότερα.',
         genericUpdateReportNameEditFailureMessage: 'Παρουσιάστηκε απρόσμενο σφάλμα κατά τη μετονομασία της αναφοράς. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
         noActivityYet: 'Καμία δραστηριότητα ακόμα',
+        collapsedSystemMessages: ({isExpanded}: {isExpanded: boolean}) => ({
+            one: `${isExpanded ? 'Απόκρυψη' : 'Εμφάνιση'} 1 ενέργειας`,
+            other: (count: number) => `${isExpanded ? 'Απόκρυψη' : 'Εμφάνιση'} ${count} ενεργειών`,
+        }),
         connectionSettings: 'Ρυθμίσεις σύνδεσης',
         actions: {
             type: {

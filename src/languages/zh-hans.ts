@@ -9176,6 +9176,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: '更新该字段时发生未知错误。请稍后重试。',
         genericUpdateReportNameEditFailureMessage: '重命名报表时发生意外错误。请稍后重试。',
         noActivityYet: '暂无活动',
+        collapsedSystemMessages: ({isExpanded}: {isExpanded: boolean}) => ({
+            one: `${isExpanded ? '隐藏' : '显示'} 1 项操作`,
+            other: (count: number) => `${isExpanded ? '隐藏' : '显示'} ${count} 项操作`,
+        }),
         connectionSettings: '连接设置',
         actions: {
             type: {

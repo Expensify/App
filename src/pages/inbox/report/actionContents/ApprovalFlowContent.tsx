@@ -27,16 +27,6 @@ type ApprovalFlowContentProps = {
     isTrackIntentUser: boolean;
 };
 
-function isApprovalFlowAction(action: OnyxTypes.ReportAction): boolean {
-    return (
-        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
-        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
-        isMarkAsClosedAction(action) ||
-        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED) ||
-        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)
-    );
-}
-
 function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrackIntentUser}: ApprovalFlowContentProps) {
     const {translate} = useLocalize();
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
@@ -130,4 +120,3 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
 }
 
 export default ApprovalFlowContent;
-export {isApprovalFlowAction};

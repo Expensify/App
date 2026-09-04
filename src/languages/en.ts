@@ -9740,6 +9740,10 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'Unexpected error updating the field. Please try again later.',
         genericUpdateReportNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
         noActivityYet: 'No activity yet',
+        collapsedSystemMessages: ({isExpanded}: {isExpanded: boolean}) => ({
+            one: `${isExpanded ? 'Hide' : 'Show'} 1 action`,
+            other: (count: number) => `${isExpanded ? 'Hide' : 'Show'} ${count} actions`,
+        }),
         connectionSettings: 'Connection Settings',
         actions: {
             type: {

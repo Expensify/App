@@ -9604,6 +9604,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         genericUpdateReportFieldFailureMessage: 'Unerwarteter Fehler beim Aktualisieren des Feldes. Bitte versuchen Sie es später noch einmal.',
         genericUpdateReportNameEditFailureMessage: 'Unerwarteter Fehler beim Umbenennen des Berichts. Bitte versuche es später noch einmal.',
         noActivityYet: 'Noch keine Aktivität',
+        collapsedSystemMessages: ({isExpanded}: {isExpanded: boolean}) => ({
+            one: isExpanded ? '1 Aktion ausblenden' : '1 Aktion anzeigen',
+            other: (count: number) => `${count} Aktionen ${isExpanded ? 'ausblenden' : 'anzeigen'}`,
+        }),
         connectionSettings: 'Verbindungseinstellungen',
         actions: {
             type: {

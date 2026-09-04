@@ -9422,6 +9422,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'フィールドの更新中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         genericUpdateReportNameEditFailureMessage: 'レポート名の変更中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         noActivityYet: 'まだアクティビティがありません',
+        collapsedSystemMessages: ({isExpanded}: {isExpanded: boolean}) => ({
+            one: `1件のアクションを${isExpanded ? '非表示' : '表示'}`,
+            other: (count: number) => `${count}件のアクションを${isExpanded ? '非表示' : '表示'}`,
+        }),
         connectionSettings: '接続設定',
         actions: {
             type: {
