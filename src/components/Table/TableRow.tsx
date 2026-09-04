@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import variables from '@styles/variables';
@@ -72,6 +73,7 @@ export default function TableRow({
     fullDisabled,
     tabIndex,
     shouldAllowTextSelection = false,
+    dataSet,
     ...props
 }: TableRowProps) {
     const theme = useTheme();
@@ -109,6 +111,7 @@ export default function TableRow({
     // the static ones. They're only ever set on wide web layouts.
     const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
+    const rowDataSet = shouldAllowTextSelection ? {...dataSet, ...COPYABLE_ROW_DATA_SET} : dataSet;
 
     const isDisabled = !!disabled || isAccessibilityHidden;
     const isFirstRow = rowIndex === 0;
@@ -299,6 +302,7 @@ export default function TableRow({
                 onLongPress={handleRowLongPress}
                 {...props}
                 {...inertProps}
+                dataSet={rowDataSet}
                 focusable={isAccessibilityHidden ? false : focusable}
                 fullDisabled={isAccessibilityHidden || fullDisabled}
                 tabIndex={isAccessibilityHidden ? -1 : tabIndex}

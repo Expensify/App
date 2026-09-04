@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import variables from '@styles/variables';
 
@@ -55,7 +55,6 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
         <Table.Row
             interactive
             shouldAllowTextSelection
-            dataSet={COPYABLE_ROW_DATA_SET}
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
