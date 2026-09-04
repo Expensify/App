@@ -1903,14 +1903,10 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
 /**
  * True when this node is a single comparison like `from = alice@expensify.com` rather than a boolean node
  * combining two children. Both shapes are `{operator, left, right}`, so the giveaway is `left`: a comparison
- * points at a field name (or a list of values), a boolean node points at another node.
+ * points at a field name, a boolean node points at another node.
  */
-function isApprovalWorkflowComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): node is ApprovalWorkflowFilterComparison {
-    if (!node) {
-        return false;
-    }
-    const nodeLeft = node.left;
-    return typeof nodeLeft !== 'object' || nodeLeft === null || Array.isArray(nodeLeft);
+function isApprovalWorkflowComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): node is ApprovalWorkflowFilterComparison {
+    return typeof node.left === 'string';
 }
 
 /** Match an email-valued comparison (`from`, `to`) against the email the report actually has. */
@@ -1945,11 +1941,7 @@ function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterCom
     }
 }
 
-function evaluateApprovalWorkflowFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, context: ApprovalWorkflowContext): boolean {
-    if (!node) {
-        return false;
-    }
-
+function evaluateApprovalWorkflowFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, context: ApprovalWorkflowContext): boolean {
     if (!isApprovalWorkflowComparison(node)) {
         const left = evaluateApprovalWorkflowFilter(node.left, context);
         const right = evaluateApprovalWorkflowFilter(node.right, context);
