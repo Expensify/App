@@ -4,7 +4,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
@@ -29,6 +28,7 @@ import type {TupleToUnion} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
@@ -42,11 +42,10 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CURRENCY>>();
     const {translate} = useLocalize();
     const isForcedToChangeCurrency = !!route.params?.isForcedToChangeCurrency;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
-    const onSelectCurrency = (item: CurrencyListItem) => {
+    const onSelectCurrency = async (item: CurrencyListItem) => {
         if (!policy) {
             return;
         }
@@ -56,6 +55,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
 
         if (isForcedToChangeCurrency) {
             if (isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType)) {
+                const bankAccountList = await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST);
                 const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, item.currencyCode, true).length > 0;
                 if (hasValidExistingAccounts) {
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id)));

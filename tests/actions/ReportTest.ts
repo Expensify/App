@@ -745,6 +745,8 @@ describe('actions/Report', () => {
                     reportID: REPORT_ID,
                 };
 
+                reportActionCreatedDate = DateUtils.getDBTime();
+
                 const optimisticReportActions: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
@@ -766,19 +768,11 @@ describe('actions/Report', () => {
                         400: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
-                            created: DateUtils.getDBTime(),
+                            created: reportActionCreatedDate,
                             reportActionID: '400',
                         },
                     },
                 };
-
-                reportActionCreatedDate = DateUtils.getDBTime();
-
-                const optimisticReportActionsValue = optimisticReportActions.value;
-
-                if (optimisticReportActionsValue?.[400]) {
-                    optimisticReportActionsValue[400].created = reportActionCreatedDate;
-                }
 
                 // When we emit the events for these pending created actions to update them to not pending
                 PusherHelper.emitOnyxUpdate([

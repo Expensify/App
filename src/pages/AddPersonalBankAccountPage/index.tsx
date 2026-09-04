@@ -27,6 +27,7 @@ import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 import React, {useContext, useEffect, useRef} from 'react';
+import Onyx from 'react-native-onyx';
 
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
@@ -70,7 +71,6 @@ function AddPersonalBankAccountPage() {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
-    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const shouldCollectInternationalDepositDetails = useShouldCollectInternationalDepositDetails(CONST.COUNTRY.US);
     const kycWallRef = useContext(KYCWallContext);
 
@@ -108,7 +108,8 @@ function AddPersonalBankAccountPage() {
         clearPersonalBankAccount();
     };
 
-    const submitBankAccountForm = () => {
+    const submitBankAccountForm = async () => {
+        const plaidData = await Onyx.get(ONYXKEYS.PLAID_DATA);
         const bankAccounts = plaidData?.bankAccounts ?? [];
 
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccount?.selectedPlaidAccountID);

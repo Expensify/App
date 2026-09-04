@@ -41,6 +41,7 @@ import {useNavigation} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -101,7 +102,6 @@ function DynamicIOURequestStepWaypoint({
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector});
-    const [allRecentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -138,7 +138,8 @@ function DynamicIOURequestStepWaypoint({
         return errors;
     };
 
-    const save = (waypoint: FormOnyxValues<'waypointForm'>) => {
+    const save = async (waypoint: FormOnyxValues<'waypointForm'>) => {
+        const allRecentWaypoints = await Onyx.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
         saveWaypoint({
             transactionID,
             index: pageIndex,
@@ -173,7 +174,8 @@ function DynamicIOURequestStepWaypoint({
         goBack();
     };
 
-    const selectWaypoint = (values: Waypoint) => {
+    const selectWaypoint = async (values: Waypoint) => {
+        const allRecentWaypoints = await Onyx.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
         const waypoint = {
             lat: values.lat,
             lng: values.lng,
