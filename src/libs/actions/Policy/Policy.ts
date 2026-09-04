@@ -167,6 +167,7 @@ import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
+import {getRules} from './Rules';
 
 type ReportCreationData = Record<
     string,
@@ -5737,6 +5738,8 @@ function openPolicyInitialPage(policyID: string) {
     const params: OpenPolicyInitialPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE, params);
+    // The rules collection is scoped per rule rather than per policy, so it is fetched whole whenever a workspace is opened.
+    getRules();
 }
 
 function setPolicyCustomTaxName(policyID: string, customTaxName: string, currentCustomTaxName: string | undefined) {

@@ -382,5 +382,19 @@ function getExpenseDefaultRuleSummaryFields(rule: Rule | ExpenseDefaultRule | un
     return summaryFields;
 }
 
-export type {MerchantRuleFormValues};
-export {buildMerchantRule, getExpenseDefaultRuleSummaryFields, getMerchantRuleFormValues, getPolicyExpenseDefaultRules, getRuleFilterLeaves, isExpenseDefaultRule};
+/** Whether the merchant rule editor can safely open this rule. See `getMerchantRuleFormValues`. */
+function isEditableMerchantRule(rule: Rule | ExpenseDefaultRule | undefined): boolean {
+    return !!getMerchantRuleFormValues(rule);
+}
+
+export type {MerchantRuleFormValues, RuleWithID};
+export {
+    buildMerchantRule,
+    getExpenseDefaultRuleSummaryFields,
+    getMerchantRuleFormValues,
+    getPolicyExpenseDefaultRules,
+    getRuleFilterLeaves,
+    isEditableMerchantRule,
+    isExpenseDefaultRule,
+    isExpenseDefaultTaxValue,
+};
