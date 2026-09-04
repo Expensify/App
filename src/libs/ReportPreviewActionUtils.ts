@@ -21,7 +21,6 @@ import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
-    getReportTransactions,
     hasExportError as hasExportErrorUtil,
     hasOnlyNonReimbursableTransactions,
     isClosedReport,
@@ -80,7 +79,7 @@ function canSubmit(
     return isExpense && isSubmitter && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
-function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
+function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy: Policy | undefined, transactions: Transaction[]) {
     if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
@@ -94,14 +93,13 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const managerID = report.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
-    const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
-    const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
+    const isAnyReceiptBeingScanned = transactions.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+    if (transactions.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -117,7 +115,7 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
         return false;
     }
 
-    return isExpense && isProcessing && !!isApprovalEnabled && reportTransactions.length > 0 && isCurrentUserManager;
+    return isExpense && isProcessing && !!isApprovalEnabled && transactions.length > 0 && isCurrentUserManager;
 }
 
 function canPay(
