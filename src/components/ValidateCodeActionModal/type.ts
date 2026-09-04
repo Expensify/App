@@ -1,6 +1,7 @@
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ValidateCodeReason} from '@src/types/onyx/VerifyValidateCodeAction';
 
 type ValidateCodeActionContentProps = {
     /** Title of the modal */
@@ -32,6 +33,9 @@ type ValidateCodeActionContentProps = {
 
     /** Function is called when validate code modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
+
+    /** When set, a recent request only suppresses the mount-time send if it was for this same reason */
+    validateCodeReasonCode?: ValidateCodeReason;
 
     /** Whether the form is loading or not */
     isLoading?: boolean;

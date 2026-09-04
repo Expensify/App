@@ -1094,6 +1094,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Nodig je accountant uit',
             customizeSpendCategories: 'Uitgaven­categorieën aanpassen',
             customizeSpendCategoriesSubText: 'Orden en classificeer uitgaven',
+            customizeExpenseCategories: 'Pas je uitgavencategorieën aan',
+            customizeExpenseCategoriesSubText: 'Voeg de categorieën van je bedrijf toe om je uitgaven te coderen',
             createExpense: 'Maak een uitgave',
             createExpenseSubText: 'Scan, sleep neer en zet neer, of voer handmatig een uitgave in met de +-knop',
             linkPersonalCard: 'Koppel persoonlijke kaart',
@@ -1274,6 +1276,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Voeg een bon toe',
             phrase2: 'of sleep ze hier naartoe',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Pagina 1 van ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -4958,7 +4961,6 @@ ${amount} voor ${merchant} - ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Gebruik deze rekening bij het exporteren van facturen naar ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Stel in hoe aankopen met bedrijfskaarten worden geëxporteerd naar ${integrationName}.`,
             vendor: 'Leverancier',
-            defaultVendorDescription: 'Stel een standaardleverancier in die bij export op alle creditcardtransacties wordt toegepast.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Stel in hoe contante uitgaven worden geëxporteerd naar ${integrationName}.`,
             exportCheckDescription: 'We maken een gespecificeerde cheque voor elk Expensify-rapport en versturen die vanaf de onderstaande bankrekening.',
             exportJournalEntryDescription: 'We maken een gespecificeerde journaalpost voor elk Expensify-rapport en boeken deze op de onderstaande rekening.',
@@ -5123,8 +5125,6 @@ ${amount} voor ${merchant} - ${date}`,
             },
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg het account toe in Xero en synchroniseer de verbinding opnieuw',
-            defaultSupplier: 'Standaardleverancier',
-            defaultSupplierDescription: 'Stel een standaardsupplier in die wordt toegepast op alle creditcardtransacties bij het exporteren.',
             noSuppliersFound: 'Geen leveranciers gevonden',
             noSuppliersFoundDescription: 'Voeg de leverancier toe in Xero en synchroniseer de koppeling opnieuw.',
             accountingMethods: {
@@ -6225,7 +6225,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             deleteFailureMessage: 'Er is een fout opgetreden bij het verwijderen van de categorie, probeer het opnieuw',
             categoryName: 'Categorienaam',
             requiresCategory: 'Leden moeten alle uitgaven categoriseren',
-            autoCategorizeNewExpenses: 'Nieuwe uitgaven automatisch categoriseren',
             showCategoryGLCodes: 'Toon GL-codes bij het categoriseren van uitgaven',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle onkosten moeten worden gecategoriseerd om te kunnen exporteren naar ${connectionName}.`,
             subtitle: 'Krijg beter inzicht in waar geld wordt uitgegeven. Gebruik onze standaardcategorieën of voeg je eigen categorieën toe.',
@@ -6561,6 +6560,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             subtitle: 'Rapportvelden zijn van toepassing op alle uitgaven en kunnen nuttig zijn wanneer je om extra informatie wilt vragen.',
             disableReportFields: 'Rapportvelden uitschakelen',
             disableReportFieldsConfirmation: 'Weet je het zeker? Tekst- en datumvelden worden verwijderd en lijsten worden uitgeschakeld.',
+            cannotDisableImportedReportFields: 'Rapportvelden die zijn geïmporteerd via je boekhoudkoppeling kunnen niet worden uitgeschakeld.',
             importedFromAccountingSoftware: 'De onderstaande rapportvelden worden geïmporteerd uit jouw',
             textType: 'Tekst',
             dateType: 'Datum',
@@ -7226,11 +7226,11 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             exportCompanyCard: 'Bedrijfspaskosten exporteren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standaardleverancier',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `Declaraties die niet automatisch worden gematcht, worden standaard aan deze leverancier gekoppeld.`
-                    : `Bonnetjes die niet automatisch worden gekoppeld, worden standaard aan deze leverancier toegewezen. Anders worden ze geëxporteerd als Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Kies een standaard ${connectionName}-leverancier voor uitgaven die niet automatisch worden gematcht.`,
+                    : `Declaraties die niet automatisch worden gekoppeld, worden standaard aan deze leverancier toegewezen. Anders worden ze geëxporteerd als ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Kies een standaardleverancier voor uitgaven die niet automatisch worden herkend.`,
             defaultAccount: 'Standaardrekening',
             autoSync: 'Automatisch synchroniseren',
             autoSyncDescription: 'Synchroniseer NetSuite en Expensify automatisch, elke dag. Exporteer een afgerond rapport in realtime',
@@ -7251,6 +7251,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                     `Zorg ervoor dat deze rekening overeenkomt met je Consolidated Travel Billing-afwikkelingsrekening (eindigend op ${lastFourPAN}), zodat Continuous Reconciliation goed werkt.`,
             },
             syncTravelInvoicingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -7308,12 +7310,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Sluit ${distance} ${unit} per declaratie uit`,
                 optionDisabledTitle: 'Woon-werkverkeer niet uitsluiten',
                 optionDisabledHelp: 'Er is geen woon-werkverkeer uit declaraties verwijderd.',
-                optionFixedDistanceTitle: 'Een vaste afstand per declaratie uitsluiten',
-                optionFixedDistanceHelp: 'Trek dezelfde woon-werkafstand van elke declaratie af. Het meest geschikt voor leden die één declaratie per werkdag indienen.',
+                optionFixedDistanceTitle: 'Vaste afstand verwijderen',
+                optionFixedDistanceHelp: 'Trekt dezelfde afstand van elke declaratie af.',
                 distanceLabel: 'Afstand',
                 summaryHomeAndOffice: 'Gebruik thuis- en kantoorlocaties',
-                optionHomeAndOfficeTitle: 'Berekenen per thuis en kantoor',
-                optionHomeAndOfficeHelp: 'Gebruik het thuisadres van het lid, de werkregeling en de kantoorindeling om woon-werkuitzonderingen te berekenen.',
+                optionHomeAndOfficeTitle: 'Gebruikelijke woon-werkrit uitsluiten',
+                optionHomeAndOfficeHelp: 'Trekt de gebruikelijke woon-werkrit van elk lid af op basis van hun thuisadres, werkafspraak en kantoor.',
                 workspaceAddressRequired: {
                     title: 'Niet zo snel...',
                     promptStart: 'Je kunt de instelling ‘berekenen op basis van thuis en kantoor’ pas inschakelen nadat je eerst een kantoorlocatie hebt toegevoegd in',
@@ -7943,6 +7945,14 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
                 vendorUnavailable: 'Leverancier niet beschikbaar',
                 supplierUnavailable: 'Leverancier niet beschikbaar',
+                confirmErrorCategory: 'Selecteer een categorie',
+                confirmErrorCategoryTax: 'Selecteer een belastingtarief',
+                confirmErrorCondition: 'Voer een leverancier in',
+                confirmErrorConditionAndDefault: 'Voer een leverancier in en stel minstens één standaard in',
+                turnOnTaxesFirstTitle: 'Zet eerst belastingen aan',
+                turnOnTaxesFirstPrompt: 'Categorischregels stellen een standaardbelastingtarief in. Schakel belastingen in bij de instellingen van je workspace om ze te gebruiken.',
+                categoryRulesApplyGoingForwardTitle: 'Categoriegregels gelden vanaf nu',
+                categoryRulesApplyGoingForwardPrompt: 'Een standaardbelastingtarief is van toepassing op nieuwe uitgaven in deze categorie. Bestaande uitgaven veranderen niet.',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -8241,10 +8251,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 applyExpenseDefaultsDescription: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
                 flagForReview: 'Markeren voor controle',
                 flagForReviewDescription: 'Goedkeurders informeren wanneer onkosten de categorielimieten overschrijden',
-                requireFields: 'Veldvereisten',
+                requireFields: 'Veldvereisten instellen',
                 requireFieldsDescription: 'Specifieke onkostenvakken verplicht stellen of afzien van het verplicht stellen ervan.',
-                createAgentRule: 'Agentregel',
-                createAgentRuleDescription: 'Beschrijf flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
+                createAgentRule: 'Agentregel beschrijven',
+                createAgentRuleDescription: 'Maak flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -8255,6 +8265,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 update: 'Bijwerken',
                 merchantIs: (merchant: string) => `Handelaar is "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `Type leverancier is "${merchantType}"`,
+                categoryIs: (category: string) => `Categorie is "${category}"`,
             },
             merchantTypeRule: {merchantType: 'Type handelaar', saveRule: 'Regel opslaan', confirmErrorCategory: 'Selecteer een categorie.'},
             requireFieldsTable: {
@@ -8271,6 +8282,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 requireReceipt: 'Bon nodig',
                 doNotRequireReceipt: 'Bon niet verplicht stellen',
                 doNotRequireItemizedReceipt: 'Geen gespecificeerde bon vereist',
+                typeLabel: 'Vereisen',
             },
             requireFieldsEmptyState: {
                 title: 'Signaleer ontbrekende gegevens direct',
@@ -8319,6 +8331,19 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
             categoriesDisabledEmptyState: {title: 'Categorieën zijn niet ingeschakeld', subtitle: 'Schakel categorieën in om meer controle te krijgen over je uitgaven.'},
+            expenseDefaultType: {
+                title: 'Standaardwaarden voor uitgaven toepassen',
+                subtitle: 'Waar moet deze regel op overeenkomen?',
+                merchant: 'Winkelier',
+                merchantDescription: 'Veldwaarden bij uitgaven van een specifieke verkoper bijwerken',
+                category: 'Categorie',
+                categoryDescription: 'Stel een standaardbelastingtarief in voor een specifieke categorie',
+            },
+            taxesDisabledEmptyState: {
+                title: 'Belastingen zijn niet ingeschakeld',
+                subtitle: 'Activeer belastingen om in aanmerking komende belastingen vast te leggen en terug te vorderen.',
+                cta: 'Belastingen inschakelen',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -9437,6 +9462,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             topMerchants: 'Topverkopers',
             violationsBySubmitter: 'Overtredingen door indiener',
         },
+        mergeReports: {
+            title: 'Rapporten samenvoegen',
+            description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
+        },
     },
     genericErrorPage: {
         title: 'Oeps, er is iets misgegaan!',
@@ -10057,47 +10086,51 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';
+                return 'Kan bon niet automatisch koppelen door een verbroken bankverbinding.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Kan bon niet automatisch koppelen vanwege een tijdelijk bankprobleem. Probeer het later opnieuw.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw geverifieerd moet worden.';
+                        return 'Kan de bon niet automatisch koppelen omdat je bankverbinding opnieuw moet worden geverifieerd.';
                     }
                     return isMarkAsCash
-                        ? `Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw geverifieerd moet worden. Markeer als contant om te negeren, of <a href="${connectionLink}">verbind opnieuw</a> om de bon te koppelen.`
-                        : `Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw geverifieerd moet worden. <a href="${connectionLink}">Verbind opnieuw</a> om de bon te koppelen.`;
+                        ? `Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw moet worden geverifieerd. Markeer als contant om te negeren, of <a href="${connectionLink}">maak opnieuw verbinding</a> om de bon te koppelen.`
+                        : `Kan de bon niet automatisch koppelen omdat je bankverbinding opnieuw moet worden geverifieerd. <a href="${connectionLink}">Verbind opnieuw</a> om de bon te koppelen.`;
                 }
                 return isAdmin
-                    ? `Bankkoppeling moet opnieuw worden geverifieerd. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
-                    : 'Bankkoppeling moet opnieuw worden geverifieerd. Vraag een beheerder om de verbinding opnieuw te maken om de bon te laten overeenkomen.';
+                    ? `Bankverbinding moet opnieuw worden geverifieerd. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
+                    : 'Bankkoppeling moet opnieuw worden geverifieerd. Vraag een beheerder om opnieuw te verbinden zodat het overeenkomt met de bon.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';
+                    return 'Kan bon niet automatisch koppelen door een verbroken bankverbinding.';
                 }
                 return isMarkAsCash
-                    ? `Kan bon niet automatisch koppelen vanwege een verbroken kaartverbinding. Markeer als contant om te negeren, of <a href="${connectionLink}">repareer de kaart</a> om de bon te koppelen.`
-                    : `Kan bon automatisch koppelen aan bon vanwege verbroken kaartverbinding. <a href="${connectionLink}">Herstel de kaart</a> om de bon te koppelen.`;
+                    ? `Kan bon niet automatisch koppelen vanwege een verbroken kaartverbinding. Markeer als contant om te negeren, of <a href="${connectionLink}">herstel de kaart</a> om de bon te koppelen.`
+                    : `Kan bon niet automatisch koppelen vanwege een verbroken kaartverbinding. <a href="${connectionLink}">Herstel de kaart</a> om de bon te koppelen.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Bankkoppeling verbroken. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
-                    : 'Bankkoppeling verbroken. Vraag een beheerder om de verbinding opnieuw te maken om de bon te laten overeenkomen.';
+                    ? `Bankverbinding verbroken. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
+                    : 'Bankkoppeling verbroken. Vraag een admin om opnieuw te verbinden om de bon te koppelen.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Vraag ${member} om het als contant te markeren of wacht 7 dagen en probeer het opnieuw` : 'In afwachting van koppeling met kaarttransactie.';
+                return isAdmin ? `Vraag ${member} om deze als contant te markeren of wacht 7 dagen en probeer het opnieuw` : 'In afwachting van samenvoeging met kaarttransactie.';
             }
             return '';
         },
         brokenConnection530Error: 'Bonnetje in behandeling vanwege verbroken bankverbinding',
+        brokenConnection531Error: 'Kan bon niet automatisch koppelen vanwege een tijdelijk bankprobleem. Probeer het later opnieuw.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Bon in behandeling vanwege een verbroken bankverbinding. Los dit op in <a href="${workspaceCompanyCardRoute}">Bedrijfspassen</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Bon wordt vastgehouden vanwege een verbroken bankkoppeling. Vraag een werkruimtebeheerder om dit op te lossen.',

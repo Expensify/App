@@ -177,7 +177,6 @@ function IOURequestStepConfirmationContent({
     const realPolicyID = selectedWorkspacePolicyID ?? getIOURequestPolicyID(initialTransaction, pickReportForPolicy(reportReal, participantReport));
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
@@ -198,10 +197,9 @@ function IOURequestStepConfirmationContent({
                 transaction,
                 transactionReport,
                 routeReport: reportWithDraftFallback,
-                policy: policyReal,
                 reportNameValuePair,
             }),
-        [transaction, transactionReport, reportWithDraftFallback, policyReal, reportNameValuePair],
+        [transaction, transactionReport, reportWithDraftFallback, reportNameValuePair],
     );
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 
