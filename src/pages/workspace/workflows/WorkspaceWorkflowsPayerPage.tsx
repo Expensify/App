@@ -77,7 +77,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const policyBankAccountID = policy?.achAccount?.bankAccountID;
     const bankAccountFromList = policyBankAccountID ? bankAccountList?.[policyBankAccountID] : undefined;
     const bankAccountInfo = bankAccountFromList ?? bankAccountConnectedToWorkspace;
-    const bankAccountID = policyBankAccountID ?? bankAccountInfo?.accountData?.bankAccountID;
     const policyAchAccountState = policy?.achAccount?.state;
     const isBankAccountFullySetup = policyAchAccountState === CONST.BANK_ACCOUNT.STATE.OPEN || policyAchAccountState === CONST.BANK_ACCOUNT.STATE.LOCKED;
     const bankAccountState = isBankAccountFullySetup ? policyAchAccountState : bankAccountConnectedToWorkspace?.accountData?.state;
@@ -188,7 +187,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const headerMessage = searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : '';
 
     const handleConfirm = () => {
-        if (!bankAccountID || !authorizedPayerEmail || !accountID || !policyID) {
+        if (!policyBankAccountID || !authorizedPayerEmail || !accountID || !policyID) {
             return;
         }
         if (!selectedPayer) {
@@ -203,7 +202,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             Navigation.goBack();
             return;
         }
-        startWithLoading(() => shareBankAccountAndSetPayer(Number(bankAccountID), accountID, policyID));
+        startWithLoading(() => shareBankAccountAndSetPayer(policyBankAccountID, accountID, policyID));
     };
 
     const onButtonPress = () => {
@@ -221,7 +220,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
 
-        if (isManualReimbursement || !bankAccountID) {
+        // Auth accepts only the withdrawal account of the policy. If the policy has none, there is nothing to share.
+        if (isManualReimbursement || !policyBankAccountID) {
             onButtonPress();
             return;
         }
@@ -344,7 +344,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                         <ErrorMessageRow
                                             errors={sharedBankAccountData?.errors}
                                             errorRowStyles={[styles.mv3]}
-                                            onDismiss={() => clearShareBankAccountErrors(Number(bankAccountID))}
+                                            onDismiss={() => clearShareBankAccountErrors(policyBankAccountID)}
                                         />
                                     }
                                     containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
