@@ -9448,6 +9448,11 @@ const translations = {
                 title: 'No expenses to approve',
                 subtitle: 'Zero expenses. Maximum chill. Well done!',
             },
+            staleResults: {
+                title: 'Refresh needed',
+                subtitle: 'This page is out of date, refresh to see the latest',
+                buttonText: 'Refresh',
+            },
         },
         columns: 'Columns',
         editColumns: 'Edit columns',

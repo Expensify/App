@@ -151,6 +151,7 @@ import FishbowlBlue from '@assets/images/simple-illustrations/simple-illustratio
 import Flag from '@assets/images/simple-illustrations/simple-illustration__flag.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
+import FolderSync from '@assets/images/simple-illustrations/simple-illustration__foldersync.svg';
 import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
@@ -345,6 +346,7 @@ const Illustrations = {
     Coins,
     CreditCardsNew,
     FolderOpen,
+    FolderSync,
     HandCard,
     Hashtag,
     InvoiceBlue,
