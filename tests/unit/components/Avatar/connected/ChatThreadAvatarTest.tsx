@@ -11,9 +11,6 @@ import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
-import Onyx from 'react-native-onyx';
-
-import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
 const THREAD_ID = 'thread123';
 const PARENT_REPORT_ID = 'parentReport456';
@@ -40,6 +37,19 @@ function MockFallbackAvatar() {
 let mockCapturedWorkspaceSubscriptAvatarProps: Record<string, unknown> = {};
 let mockCapturedSubscriptAvatarProps: Record<string, unknown> = {};
 let mockCapturedSingleAvatarProps: Record<string, unknown> = {};
+
+const mockGetContainerStyles = jest.fn((size: string) => [{marginRight: 12, size}]);
+
+// The component reads three Onyx rows. Serving them from a map keeps the test free of Onyx setup, seeding and clearing.
+let mockOnyxData: Record<string, unknown> = {};
+
+// Same shape as InboxTabButtonTest: the mocked module is the hook itself, reading the map lazily on every call.
+jest.mock('@hooks/useOnyx', () => (key: string, options?: {selector?: (value: unknown) => unknown}) => {
+    const value = mockOnyxData[key];
+    return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
+});
+
+jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getContainerStyles: mockGetContainerStyles})));
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({
@@ -119,6 +129,14 @@ const createCommentAction = (overrides: Partial<ReportAction<typeof CONST.REPORT
     ...overrides,
 });
 
+const tripPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW> = {
+    reportActionID: PARENT_ACTION_ID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
+    actorAccountID: ACTOR_ACCOUNT_ID,
+    created: '2024-01-01 00:00:00',
+    originalMessage: {linkedReportID: THREAD_ID},
+};
+
 const harvestedSubmitAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> = {
     reportActionID: PARENT_ACTION_ID,
     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -127,27 +145,22 @@ const harvestedSubmitAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMI
     originalMessage: {amount: 100, currency: CONST.CURRENCY.USD, harvesting: true},
 };
 
-const seedThread = async (parentType: ValueOf<typeof CONST.REPORT.TYPE> | undefined, parentAction: ReportAction | undefined, threadOverrides: Partial<Report> = {}) => {
-    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${THREAD_ID}`, {...thread, ...threadOverrides});
-    if (parentType) {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, {reportID: PARENT_REPORT_ID, type: parentType});
-    }
-    if (parentAction) {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {[PARENT_ACTION_ID]: parentAction});
-    }
-    await waitForBatchedUpdatesWithAct();
+/** Serves the thread row, its parent row and the parent's actions from the map, so a test only declares what exists. */
+const seedThread = (parentType: ValueOf<typeof CONST.REPORT.TYPE> | undefined, parentAction: ReportAction | undefined, threadOverrides: Partial<Report> = {}) => {
+    mockOnyxData = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${THREAD_ID}`]: {...thread, ...threadOverrides},
+        ...(parentType ? {[`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`]: {reportID: PARENT_REPORT_ID, type: parentType}} : {}),
+        ...(parentAction ? {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`]: {[PARENT_ACTION_ID]: parentAction}} : {}),
+    };
 };
 
 describe('ChatThreadAvatar (connected)', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-    });
-
     beforeEach(() => {
         jest.clearAllMocks();
         mockCapturedWorkspaceSubscriptAvatarProps = {};
         mockCapturedSubscriptAvatarProps = {};
         mockCapturedSingleAvatarProps = {};
+        mockOnyxData = {};
         mockPersonalDetails = {
             [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: ACTOR_LOGIN, avatar: ACTOR_AVATAR_URL},
             [DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: 'copilot@example.com', avatar: DELEGATE_AVATAR_URL},
@@ -155,27 +168,23 @@ describe('ChatThreadAvatar (connected)', () => {
         };
     });
 
-    afterEach(async () => {
-        await Onyx.clear();
-        await waitForBatchedUpdatesWithAct();
-    });
-
     it.each([
-        ['an expense report and a created expense', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedWorkspaceSubscriptAvatar'],
+        ['an expense report and a created expense', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedWorkspaceSubscriptAvatar', {}],
         // A send-money PAY action carries IOUDetails, which `isTransactionThread` counts as a transaction.
-        ['an expense report and a paid send-money action', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.PAY, true), 'MockedWorkspaceSubscriptAvatar'],
-        ['an IOU report and a created expense', CONST.REPORT.TYPE.IOU, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedSingleAvatar'],
-        ['an expense report and a comment', CONST.REPORT.TYPE.EXPENSE, createCommentAction(), 'MockedSingleAvatar'],
-        ['an expense report and a plain pay action', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.PAY), 'MockedSingleAvatar'],
-        ['a chat and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedSingleAvatar'],
+        ['an expense report and a paid send-money action', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.PAY, true), 'MockedWorkspaceSubscriptAvatar', {}],
+        ['an IOU report and a created expense', CONST.REPORT.TYPE.IOU, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedSingleAvatar', {}],
+        ['an expense report and a comment', CONST.REPORT.TYPE.EXPENSE, createCommentAction(), 'MockedSingleAvatar', {}],
+        ['an expense report and a plain pay action', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.PAY), 'MockedSingleAvatar', {}],
+        ['a chat and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedSingleAvatar', {}],
         // A thread inherits its room's chat type, but only a trip room takes the workspace subscript.
         ['a policy room and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedSingleAvatar', {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}],
         ['an admins room and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedSingleAvatar', {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS}],
         ['a policy expense chat and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedSingleAvatar', {chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT}],
-        ['an expense report whose parent action has not loaded', CONST.REPORT.TYPE.EXPENSE, undefined, 'MockedSingleAvatar'],
-        ['a parent that has not loaded', undefined, undefined, 'MockedSingleAvatar'],
-    ])('should route a thread under %s', async (_case, parentType, parentAction, expectedTestID, threadOverrides?: Partial<Report>) => {
-        await seedThread(parentType, parentAction, threadOverrides);
+        ['a workspace chat and a trip preview', CONST.REPORT.TYPE.CHAT, tripPreviewAction, 'MockedWorkspaceSubscriptAvatar', {chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
+        ['an expense report whose parent action has not loaded', CONST.REPORT.TYPE.EXPENSE, undefined, 'MockedSingleAvatar', {}],
+        ['a parent that has not loaded', undefined, undefined, 'MockedSingleAvatar', {}],
+    ])('should route a thread under %s', (_case, parentType, parentAction, expectedTestID, threadOverrides: Partial<Report>) => {
+        seedThread(parentType, parentAction, threadOverrides);
 
         render(
             <ChatThreadAvatar
@@ -187,8 +196,8 @@ describe('ChatThreadAvatar (connected)', () => {
         expect(screen.getByTestId(expectedTestID)).toBeOnTheScreen();
     });
 
-    it('should hand an expense request the subscript props', async () => {
-        await seedThread(CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE));
+    it('should hand an expense request the subscript props, its row and the resolved actor', () => {
+        seedThread(CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE));
 
         render(
             <ChatThreadAvatar
@@ -212,8 +221,8 @@ describe('ChatThreadAvatar (connected)', () => {
         });
     });
 
-    it('should hand an expense request the copilot as the primary avatar when one created the expense', async () => {
-        await seedThread(CONST.REPORT.TYPE.EXPENSE, {...createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), delegateAccountID: DELEGATE_ACCOUNT_ID});
+    it('should hand an expense request the copilot as the primary avatar when one created the expense', () => {
+        seedThread(CONST.REPORT.TYPE.EXPENSE, {...createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), delegateAccountID: DELEGATE_ACCOUNT_ID});
 
         render(
             <ChatThreadAvatar
@@ -225,23 +234,8 @@ describe('ChatThreadAvatar (connected)', () => {
         expect(mockCapturedWorkspaceSubscriptAvatarProps.primaryAvatar).toEqual(expect.objectContaining({id: DELEGATE_ACCOUNT_ID, source: DELEGATE_AVATAR_URL}));
     });
 
-    it("should route a trip room to the workspace subscript with the trip preview's actor as the primary avatar", async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${THREAD_ID}`, {...thread, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, {
-            reportID: PARENT_REPORT_ID,
-            type: CONST.REPORT.TYPE.CHAT,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
-            [PARENT_ACTION_ID]: {
-                reportActionID: PARENT_ACTION_ID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
-                actorAccountID: ACTOR_ACCOUNT_ID,
-                created: '2024-01-01 00:00:00',
-                originalMessage: {linkedReportID: THREAD_ID},
-            },
-        });
-        await waitForBatchedUpdatesWithAct();
+    it("should hand a trip room the trip preview's actor as the primary avatar", () => {
+        seedThread(CONST.REPORT.TYPE.CHAT, tripPreviewAction, {chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM});
 
         render(
             <ChatThreadAvatar
@@ -250,12 +244,11 @@ describe('ChatThreadAvatar (connected)', () => {
             />,
         );
 
-        expect(screen.getByTestId('MockedWorkspaceSubscriptAvatar')).toBeOnTheScreen();
         expect(mockCapturedWorkspaceSubscriptAvatarProps.primaryAvatar).toEqual(expect.objectContaining({id: ACTOR_ACCOUNT_ID, source: ACTOR_AVATAR_URL}));
     });
 
-    it('should render the parent action actor as a single avatar', async () => {
-        await seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction());
+    it('should render the parent action actor as a single avatar', () => {
+        seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction());
 
         render(
             <ChatThreadAvatar
@@ -272,8 +265,8 @@ describe('ChatThreadAvatar (connected)', () => {
         expect(mockCapturedSingleAvatarProps.fallbackDisplayName).toBe(FALLBACK_NAME);
     });
 
-    it('should fall back to the size-derived container styles for a single avatar', async () => {
-        await seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction());
+    it('should fall back to the size-derived container styles for a single avatar', () => {
+        seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction());
 
         render(
             <ChatThreadAvatar
@@ -282,11 +275,12 @@ describe('ChatThreadAvatar (connected)', () => {
             />,
         );
 
-        expect(mockCapturedSingleAvatarProps.containerStyles).toEqual(expect.any(Array));
+        expect(mockGetContainerStyles).toHaveBeenCalledWith(CONST.AVATAR_SIZE.DEFAULT);
+        expect(mockCapturedSingleAvatarProps.containerStyles).toEqual(mockGetContainerStyles.mock.results.at(0)?.value);
     });
 
-    it('should render the copilot as the primary avatar, badged as acting for the actor', async () => {
-        await seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction({delegateAccountID: DELEGATE_ACCOUNT_ID}));
+    it('should render the copilot as the primary avatar, badged as acting for the actor', () => {
+        seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction({delegateAccountID: DELEGATE_ACCOUNT_ID}));
 
         render(
             <ChatThreadAvatar
@@ -300,8 +294,8 @@ describe('ChatThreadAvatar (connected)', () => {
         );
     });
 
-    it('should render Concierge for a harvested submit', async () => {
-        await seedThread(CONST.REPORT.TYPE.CHAT, harvestedSubmitAction);
+    it('should render Concierge for a harvested submit', () => {
+        seedThread(CONST.REPORT.TYPE.CHAT, harvestedSubmitAction);
 
         render(
             <ChatThreadAvatar
@@ -316,9 +310,9 @@ describe('ChatThreadAvatar (connected)', () => {
     it.each([
         ['the first name when personal details carry one', 'Agnes', 'Agnes'],
         ['the generic support-agent label otherwise', undefined, HUMAN_SUPPORT_AGENT_KEY],
-    ])('should render Concierge with the revealed human agent as the subscript, named by %s', async (_case, firstName, expectedName) => {
+    ])('should render Concierge with the revealed human agent as the subscript, named by %s', (_case, firstName, expectedName) => {
         mockPersonalDetails[AGENT_ACCOUNT_ID] = {accountID: AGENT_ACCOUNT_ID, avatar: AGENT_AVATAR_URL, firstName};
-        await seedThread(
+        seedThread(
             CONST.REPORT.TYPE.CHAT,
             createCommentAction({
                 actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
@@ -342,8 +336,8 @@ describe('ChatThreadAvatar (connected)', () => {
         expect(mockCapturedSubscriptAvatarProps.containerStyle).toBe(SUBSCRIPT_CONTAINER_STYLE);
     });
 
-    it('should render the fallback avatar when the parent action is missing', async () => {
-        await seedThread(CONST.REPORT.TYPE.CHAT, undefined);
+    it('should render the fallback avatar when the parent action is missing', () => {
+        seedThread(CONST.REPORT.TYPE.CHAT, undefined);
 
         render(
             <ChatThreadAvatar
@@ -355,9 +349,9 @@ describe('ChatThreadAvatar (connected)', () => {
         expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: CONST.DEFAULT_NUMBER_ID, source: MockFallbackAvatar}));
     });
 
-    it('should seed the default avatar from the account ID when the actor is missing from personal details', async () => {
+    it('should seed the default avatar from the account ID when the actor is missing from personal details', () => {
         mockPersonalDetails = {};
-        await seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction());
+        seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction());
 
         render(
             <ChatThreadAvatar
