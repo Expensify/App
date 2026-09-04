@@ -57,6 +57,21 @@ function replaceElementContentWithLines(element: globalThis.Element, lines: stri
     }
 }
 
+function getSelectedTextForTextNode(textNode: globalThis.Text, range: Range): string {
+    const textNodeRange = document.createRange();
+    textNodeRange.selectNodeContents(textNode);
+
+    const intersectionRange = range.cloneRange();
+    if (intersectionRange.compareBoundaryPoints(globalThis.Range.START_TO_START, textNodeRange) < 0) {
+        intersectionRange.setStart(textNodeRange.startContainer, textNodeRange.startOffset);
+    }
+    if (intersectionRange.compareBoundaryPoints(globalThis.Range.END_TO_END, textNodeRange) > 0) {
+        intersectionRange.setEnd(textNodeRange.endContainer, textNodeRange.endOffset);
+    }
+
+    return intersectionRange.toString();
+}
+
 function getElementFromNode(node: globalThis.Node): globalThis.Element | null {
     if (node instanceof globalThis.Element) {
         return node;
@@ -90,6 +105,36 @@ function getCopyableElementsForSelectedRow(row: globalThis.Element, range: Range
     return [row, ...Array.from(row.querySelectorAll(COPYABLE_TEXT_SELECTOR))].filter(
         (copyableElement) => isTopLevelCopyableElementForRow(copyableElement, row) && range.intersectsNode(copyableElement),
     );
+}
+
+function selectionContainsTextOutsideCopyableRows(selection: Selection): boolean {
+    if (typeof document === 'undefined' || typeof NodeFilter === 'undefined') {
+        return false;
+    }
+
+    for (let i = 0; i < selection.rangeCount; i++) {
+        const range = selection.getRangeAt(i);
+        const rootElement = getElementFromNode(range.commonAncestorContainer);
+        if (!rootElement) {
+            continue;
+        }
+
+        const walker = document.createTreeWalker(rootElement, NodeFilter.SHOW_TEXT);
+        let textNode = walker.nextNode();
+
+        while (textNode) {
+            if (range.intersectsNode(textNode) && getSelectedTextForTextNode(textNode as globalThis.Text, range).trim()) {
+                const textElement = getElementFromNode(textNode);
+                if (!textElement?.closest(COPYABLE_ROW_SELECTOR) && !textElement?.closest(hiddenElementSelector)) {
+                    return true;
+                }
+            }
+
+            textNode = walker.nextNode();
+        }
+    }
+
+    return false;
 }
 
 function getHTMLOfSelectedCopyableRows(selection: Selection): string {
@@ -161,7 +206,7 @@ const getHTMLOfSelection = (): string => {
     }
 
     const selectedCopyableRowsHTML = getHTMLOfSelectedCopyableRows(selection);
-    if (selectedCopyableRowsHTML) {
+    if (selectedCopyableRowsHTML && !selectionContainsTextOutsideCopyableRows(selection)) {
         // Explicitly marked rows need normalized row text before generic selection cleanup.
         return selectedCopyableRowsHTML;
     }
