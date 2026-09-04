@@ -172,6 +172,18 @@ describe('OnyxTabNavigator tab discard input blur', () => {
         expect(blurActiveInputSpy).not.toHaveBeenCalled();
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
+
+    it('ignores a tab press while the discard modal is open', () => {
+        jest.spyOn(ComposerFocusManager, 'blurActiveInput').mockImplementation();
+        // The default mockShowConfirmModal never settles, so the modal is still open for the second press.
+        renderTabNavigator(true);
+
+        pressTargetTab();
+        const secondEvent = pressTargetTab();
+
+        expect(secondEvent.preventDefault).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+    });
 });
 
 describe('OnyxTabNavigator keyboard dismissal before tab switch', () => {
