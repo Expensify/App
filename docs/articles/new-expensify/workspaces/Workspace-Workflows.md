@@ -71,21 +71,21 @@ To reimburse employees or pay invoices directly from Expensify, connect your bus
 
 1. Go to **Workflows**.
 2. Toggle on **Payments**.
-3. Click **Connect Bank Account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
+3. Click **Add bank account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
 4. Choose an **authorized expense payer**—a Workspace Admin who has access to the bank account and will be the default reimburser.
 
 Learn how to [pay expenses submitted on a workspace](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Pay-Expenses#how-to-pay-expenses-submitted-to-a-workspace).
 
 ---
 
-## How to enable Mark as Paid
+## How to enable Mark as paid
 
-If you reimburse employees through another method, such as payroll or cash, you can enable **Payments** without connecting a bank account. This allows you to use **Mark as Paid** to record reimbursements processed outside of Expensify.
+If you reimburse employees through another method, such as payroll or cash, you can enable **Payments** without connecting a bank account. This allows you to use **Mark as paid** to record reimbursements processed outside of Expensify.
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name > Workflows**.
 2. Enable **Payments**.
 
-Once enabled, you can use **Mark as Paid** to keep track of reimbursements made outside of Expensify.
+Once enabled, you can use **Mark as paid** to keep track of reimbursements made outside of Expensify.
 
 ---
 
@@ -99,7 +99,14 @@ When **Payments** is enabled, you can set an **Authorized payer** even if no ban
 
 ## What happens after you set an authorized payer
 
-Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts. Other admins can still open a report and pay it.
+Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts.
+
+What other admins can do depends on whether a business bank account is connected:
+
+- **No business bank account connected:** other admins can still open a report and record the payment with **Mark as paid**.
+- **Business bank account connected:** only the authorized payer can pay reports. Other admins won't see the **Pay** button on the report.
+
+To let a different admin pay reports from the connected bank account, change the **Payer** to that admin.
 
 ---
 
