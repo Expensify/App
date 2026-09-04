@@ -1,8 +1,8 @@
 name: Seed Jest perf cache
 # cspell:ignore nvmrc -- the filename `.nvmrc`, hashed into the cache key below
 
-# Writes the Jest transform cache that reassurePerformanceTests.yml restores, saving it ~45% of
-# each measure job (217.0s cold vs 119.7s warm, measured).
+# Writes the Jest transform cache that reassurePerformanceTests.yml restores, which saves each
+# measure job a cold Babel pass over the whole source tree - a large fraction of its wall time.
 #
 # The perf workflow cannot write the entry itself: a cache entry is scoped to the ref that wrote
 # it, and that workflow is pull_request-only, so anything it wrote would be visible to that PR
@@ -10,10 +10,10 @@ name: Seed Jest perf cache
 # test.yml gets its entry for the same path the same way, via preDeploy.yml on push to main.
 #
 # Called by seedStickyDisks.yml, which already runs on every push to main. There is no paths
-# filter and no schedule: this probes on all ~41 pushes a day against ~1.7 real key rotations, and
-# a run that finds the entry present skips the 220s populate and exits in ~40s. That is ~0.54
-# runner-hours a day against the ~19 the cache saves, and it buys back the daily cron - an evicted
-# or missing entry is rebuilt on the next merge to main instead of up to 24 hours later.
+# filter and no schedule: pushes to main vastly outnumber real key rotations, and a run that finds
+# the entry already present skips the populate and exits in well under a minute. That cheap probe
+# is what buys back the daily cron - an evicted or missing entry is rebuilt on the next merge to
+# main instead of up to 24 hours later.
 #
 # workflow_dispatch re-seeds by hand. Concurrency is deliberately the caller's: a called workflow
 # runs inside the caller's run, so seedStickyDisks.yml's group gates this job too. Its
@@ -40,13 +40,21 @@ jobs:
       # The key covers everything that invalidates every entry at once: the lockfile and patches/**
       # for the toolchain, babel.config.js and config/babel/** for the Babel options, jest.config.js
       # for the config babel-jest hashes, and .nvmrc for process.version. It hashes
-      # normalized-package-lock.json, the app-version-stripped lockfile setupNode writes, because
-      # 317 of the 467 commits touching these paths in the last 90 days are deploy version bumps no
-      # transform can depend on. That is the difference between 5.2 rotations a day and 1.7.
+      # normalized-package-lock.json, the app-version-stripped lockfile setupNode writes, because most
+      # commits touching these paths are deploy version bumps no transform can depend on. Hashing the
+      # raw lockfile would rotate the key several times more often, for no change in transform output.
+      #
+      # The key deliberately does not cover `.env`. babel.config.js reads it at require time and
+      # applies `expoInlineEnvVars` on the Jest path too, and babel-jest hashes neither that plugin's
+      # behavior nor arbitrary env values into an entry's name (only NODE_ENV, BABEL_ENV and
+      # process.version).
+      # None of these three jobs creates a `.env`, so all three inline the same EXPO_PUBLIC_* defaults
+      # and agree. A step that gave one job a `.env` and not the others would make restored output
+      # wrong rather than stale, and would have to be hashed in here.
       #
       # No restore-keys, here or in the perf workflow: a prefix fallback would carry over output
       # built by the previous toolchain, which is what the lockfile hash exists to prevent. So a
-      # real rotation costs this job one cold run, ~220s.
+      # real rotation costs this job one cold run.
       #
       # lookup-only, so a hit skips the populate and save below. This workflow therefore only writes
       # on a real rotation, and every entry it saves was built from an empty directory, so the entry
@@ -65,6 +73,13 @@ jobs:
       # key space and leaves the perf jobs cold. --baseline vs --branch never reaches Jest
       # (reassure-cli commands/measure.js:121-134). The measurements are discarded; only the
       # transform output is wanted.
+      # Deliberately allowed to fail the job. `--baseline` returns before compare()
+      # (reassure-cli commands/measure.js), so neither DURATION_DEVIATION_PERCENTAGE nor
+      # COUNT_DEVIATION can fail this step - only a genuine Jest failure on main can, which is worth a
+      # red check. The save below is skipped on a failure because a plain `if:` implies success(), so
+      # no partial entry is ever written, and the next push to main repopulates.
+      # Do not add continue-on-error here without also emitting a ::warning:: on failure: it would
+      # turn this job green and leave the failure with no symptom at all.
       - name: Populate the Jest transform cache
         if: steps.lookup.outputs.cache-hit != 'true'
         shell: bash

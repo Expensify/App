@@ -4,8 +4,8 @@ import fs from 'fs';
 
 /**
  * reassurePerformanceTests.yml restores a Jest transform cache that seedJestPerfCache.yml writes.
- * Three properties make that safe and effective, and all three are invisible at a glance because
- * they are agreements between two files. These tests are the enforcement:
+ * Four properties make that safe and effective, and all four are invisible at a glance because they
+ * are agreements between two files. These tests are the enforcement:
  *
  * 1. Every copy of the cache key is byte-identical. A restore keyed differently from the save is a
  *    silent permanent miss - nothing fails, the perf jobs just go cold again.
@@ -15,13 +15,17 @@ import fs from 'fs';
  * 3. No `restore-keys` anywhere. A prefix fallback would reuse transform output built by a
  *    different babel-plugin-react-compiler, because babel-jest does not hash plugin versions into
  *    an entry's name, and this workflow gates render counts at COUNT_DEVIATION: 0.
+ * 4. Every restore is followed by a step that reads its `cache-hit`. A miss costs each measure job
+ *    a full cold Babel pass and fails nothing, and `Report Jest cache size` reads the directory
+ *    after the perf run, by which point Jest has written a full transform set either way. So that
+ *    warning is the only thing distinguishing a working mechanism from one that silently died.
  */
 
 const PERF_WORKFLOW = '.github/workflows/reassurePerformanceTests.yml';
 const SEED_WORKFLOW = '.github/workflows/seedJestPerfCache.yml';
 const STICKY_WORKFLOW = '.github/workflows/seedStickyDisks.yml';
 
-type Step = {name?: string; uses?: string; with?: Record<string, unknown>};
+type Step = {name?: string; id?: string; uses?: string; if?: string; run?: string; with?: Record<string, unknown>};
 // eslint-disable-next-line @typescript-eslint/naming-convention -- these mirror the workflow YAML keys verbatim
 type Job = {'runs-on'?: string; uses?: string; steps?: Step[]};
 type Workflow = {on?: Record<string, {paths?: string[]; branches?: string[]} | null>; jobs: Record<string, Job>};
@@ -82,6 +86,21 @@ describe('Jest perf transform cache', () => {
         );
         const seedRunner = String(Object.values(seedWorkflow.jobs).at(0)?.['runs-on']);
         expect([...measureRunners]).toEqual([seedRunner]);
+    });
+
+    it('warns on a miss, so a silently dead cache is not indistinguishable from a warm one', () => {
+        for (const job of Object.values(perfWorkflow.jobs)) {
+            const steps = job.steps ?? [];
+            for (const [index, step] of steps.entries()) {
+                if (!(typeof step.uses === 'string' && step.uses.startsWith('actions/cache')) || String(step.with?.path) !== '.jest-cache') {
+                    continue;
+                }
+                // The restore has to be addressable before anything can read its outputs.
+                expect(step.id).toBeString();
+                const consumers = steps.slice(index + 1).filter((later) => JSON.stringify(later).includes(`steps.${String(step.id)}.outputs.cache-hit`));
+                expect(consumers).not.toBeEmpty();
+            }
+        }
     });
 
     it('computes the key after setupNode has written normalized-package-lock.json', () => {
