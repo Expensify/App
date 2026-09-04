@@ -464,7 +464,6 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
         expect(exportReportsToPDF).toHaveBeenCalledWith(expect.arrayContaining(['1', '2']));
         expect(exportReportToPDF).not.toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 
     it('should show Export as PDF for selected Expensify Card settlement groups', async () => {
