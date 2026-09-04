@@ -26067,7 +26067,7 @@ async function hasSuccessfulChecklistRun() {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     per_page: 100
   });
-  return workflowRuns.workflow_runs.some((workflowRun) => workflowRun.id !== currentRunID);
+  return workflowRuns.workflow_runs.some((workflowRun) => workflowRun.id !== currentRunID && workflowRun.pull_requests.some((pullRequest) => pullRequest.number === issue2));
 }
 function getNumberOfItemsFromReviewerChecklist() {
   console.log("Getting the number of items in the reviewer checklist...");

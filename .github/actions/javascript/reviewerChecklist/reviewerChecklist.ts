@@ -38,7 +38,7 @@ async function hasSuccessfulChecklistRun(): Promise<boolean> {
         per_page: 100,
     });
 
-    return workflowRuns.workflow_runs.some((workflowRun) => workflowRun.id !== currentRunID);
+    return workflowRuns.workflow_runs.some((workflowRun) => workflowRun.id !== currentRunID && workflowRun.pull_requests.some((pullRequest) => pullRequest.number === issue));
 }
 
 function getNumberOfItemsFromReviewerChecklist() {
