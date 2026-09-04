@@ -1,9 +1,9 @@
 ---
-ruleId: CONSISTENCY-17
+ruleId: CONSISTENCY-16
 title: No AI-generated jargon in code or comments
 ---
 
-## [CONSISTENCY-17] No AI-generated jargon in code or comments
+## [CONSISTENCY-16] No AI-generated jargon in code or comments
 
 ### Reasoning
 
