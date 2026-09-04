@@ -1,3 +1,8 @@
+/**
+ * Renders a Home task group. Heading above a set of prebuilt rows (urgent/error rows first),
+ * with an expand/collapse toggle once past the visible limit. `children` is the slot for the loading
+ * skeleton and empty state. Collapses again whenever the user leaves and returns to Home.
+ */
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
