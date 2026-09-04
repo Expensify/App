@@ -7285,7 +7285,7 @@ const plainStyles = (theme: ThemeColors) =>
         homePageContentContainer: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexGrow: 1,
-                paddingTop: 0,
+                paddingTop: 4,
                 paddingHorizontal: shouldUseNarrowLayout ? 12 : 20,
                 paddingBottom: 20,
             }) satisfies ViewStyle,
@@ -7293,7 +7293,7 @@ const plainStyles = (theme: ThemeColors) =>
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
-                gap: 20,
+                gap: shouldUseNarrowLayout ? 12 : 20,
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',

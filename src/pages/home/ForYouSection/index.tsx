@@ -27,6 +27,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
+import ConciergeCloudsBackdrop from './ConciergeCloudsBackdrop';
 import ConciergePromptBox from './ConciergePromptBox';
 import ForYouSkeleton from './ForYouSkeleton';
 import shouldHideForYouSection from './shouldHideForYouSection';
@@ -211,6 +212,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
 
     return (
         <WidgetContainer
+            backgroundContent={shouldUseNarrowLayout ? <ConciergeCloudsBackdrop /> : undefined}
             titleContent={
                 <ConciergePromptBox
                     isMenuVisible={isConciergeMenuVisible}

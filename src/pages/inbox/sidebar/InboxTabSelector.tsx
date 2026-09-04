@@ -37,7 +37,7 @@ function InboxTabSelector() {
     const {activeTab, inboxTabCounts} = useSidebarOrderedReportsState();
     const {setActiveTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Feed', 'ChatBubbleUnread', 'Task']);
     const {showConfirmModal} = useConfirmModal();
 
     // Anchor the popover to the Unread tab itself (not the whole tab row) so it opens at that tab's left edge.
@@ -87,10 +87,12 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.ALL,
             title: translate('inboxTabs.all'),
+            icon: icons.Feed,
         },
         {
             key: CONST.INBOX_TAB.UNREAD,
             title: translate('inboxTabs.unread'),
+            icon: icons.ChatBubbleUnread,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
@@ -102,6 +104,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.TODO,
             title: translate('inboxTabs.todo'),
+            icon: icons.Task,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.TODO]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,

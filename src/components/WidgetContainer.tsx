@@ -25,15 +25,20 @@ type WidgetContainerProps = {
 
     /** The content to display on the right side of the title */
     titleRightContent?: ReactNode;
+
+    /** A decorative layer painted behind the card's content. Position it absolutely; it does not take up space. */
+    backgroundContent?: ReactNode;
 };
 
-function WidgetContainer({children, title, titleContent, containerStyles, titleRightContent}: WidgetContainerProps) {
+function WidgetContainer({children, title, titleContent, containerStyles, titleRightContent, backgroundContent}: WidgetContainerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <View style={[styles.widgetContainer, containerStyles]}>
+            {/* First child, so it paints beneath everything that follows. */}
+            {backgroundContent}
             <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
                 <View style={[styles.flexShrink1, styles.flexGrow1, styles.gap2]}>
                     {titleContent ?? (!!title && <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{title}</Text>)}

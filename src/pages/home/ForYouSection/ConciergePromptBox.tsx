@@ -20,6 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Accessibility from '@libs/Accessibility';
 import {isSafari} from '@libs/Browser';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys} from '@libs/ComposerUtils';
@@ -45,7 +46,7 @@ import type {NativeMethods, TextInputKeyPressEvent} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useAnimatedRef} from 'react-native-reanimated';
+import Animated, {cancelAnimation, Easing, useAnimatedRef, useAnimatedStyle, useSharedValue, withRepeat, withTiming} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 
 import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
@@ -55,6 +56,10 @@ const MAX_INPUT_LINES = 5;
 
 // Size of the Concierge illustration above the greeting.
 const CONCIERGE_ILLUSTRATION_SIZE = 68;
+
+// The illustration drifts this far up and back down on a slow loop, easing at each end so it never snaps.
+const CONCIERGE_BOB_DISTANCE = 4;
+const CONCIERGE_BOB_DURATION = 1500;
 
 // A single line of placeholder text is one lineHeightXLarge tall. Anything meaningfully taller has wrapped.
 const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = variables.lineHeightXLarge * 1.5;
@@ -80,6 +85,22 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const {askConcierge, askConciergeWithAttachment, shouldShowAskConcierge, conciergeTargetReportID} = useAskConcierge({forceConcierge: true});
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Send', 'Paperclip']);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBot']);
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const bobOffset = useSharedValue(0);
+
+    useEffect(() => {
+        if (isReduceMotionEnabled) {
+            cancelAnimation(bobOffset);
+            bobOffset.set(0);
+            return;
+        }
+
+        bobOffset.set(withRepeat(withTiming(-CONCIERGE_BOB_DISTANCE, {duration: CONCIERGE_BOB_DURATION, easing: Easing.inOut(Easing.ease)}), -1, true));
+
+        return () => cancelAnimation(bobOffset);
+    }, [isReduceMotionEnabled, bobOffset]);
+
+    const bobStyle = useAnimatedStyle(() => ({transform: [{translateY: bobOffset.get()}]}));
     const {calculatePopoverPosition} = usePopoverPosition();
     const [draft] = useOnyx(ONYXKEYS.CONCIERGE_PROMPT_DRAFT);
     const [value, setValue] = useState(draft ?? '');
@@ -199,11 +220,13 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         <View style={styles.gap6}>
             <View style={[styles.gap2, shouldUseNarrowLayout && styles.alignItemsCenter]}>
                 {shouldUseNarrowLayout && (
-                    <Icon
-                        src={illustrations.ConciergeBot}
-                        width={CONCIERGE_ILLUSTRATION_SIZE}
-                        height={CONCIERGE_ILLUSTRATION_SIZE}
-                    />
+                    <Animated.View style={bobStyle}>
+                        <Icon
+                            src={illustrations.ConciergeBot}
+                            width={CONCIERGE_ILLUSTRATION_SIZE}
+                            height={CONCIERGE_ILLUSTRATION_SIZE}
+                        />
+                    </Animated.View>
                 )}
                 <Text style={[styles.textLabelSupporting, shouldUseNarrowLayout && styles.textAlignCenter]}>{dateLabel}</Text>
                 <Text style={[styles.textHeadlineH1, shouldUseNarrowLayout && styles.textAlignCenter]}>{greeting}</Text>
