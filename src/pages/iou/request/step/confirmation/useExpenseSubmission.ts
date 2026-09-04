@@ -22,7 +22,7 @@ import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
-import {getExistingTransactionID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
+import {getExistingTransactionID, getReusableP2PReportID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
@@ -151,6 +151,13 @@ type UseExpenseSubmissionParams = {
 
     // Navigation
     backToReport?: string;
+
+    /**
+     * Called once validation has passed and the write is guaranteed to happen. Clear a pre-mount
+     * pre-mount marker here, not earlier - clearing it before validation could pass risks orphaning
+     * the pre-mounted report if validation then bails with no write.
+     */
+    onExpenseWriteWillStart?: () => void;
 };
 
 type SendMoneyReportIDs = {
@@ -199,6 +206,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
+        onExpenseWriteWillStart,
     } = params;
 
     // Localization
@@ -421,8 +429,15 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
+        onExpenseWriteWillStart?.();
 
-        const optimisticChatReportID = generateReportID();
+        // For a brand-new P2P recipient, reuse the optimistic report ID the confirmation screen already
+        // committed to the transaction, so the chat report built here is the one the screen subscribes
+        // to - otherwise it'd wait forever on an ID that's never created.
+        const transactionReportID = transaction?.reportID;
+        const reusableP2PReportID = getReusableP2PReportID(participant, transactionReportID);
+        const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
+        const {chatReportID: optimisticChatReportID} = resolveOptimisticChatReportID(participantAccountIDs, undefined, reusableP2PReportID);
         const optimisticCreatedReportActionID = rand64();
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
@@ -606,6 +621,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
             return;
         }
+        onExpenseWriteWillStart?.();
         if (isTrackExpense) {
             // Mirror the action's bail: a submit it would no-op must not clean up or dismiss.
             if (!isEmptyObject(policy) && hasCompletePerDiemCustomUnit(transaction.comment?.customUnit)) {
@@ -651,10 +667,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
                 existingChatReport = getReportOrDraftReport(participant.reportID);
             }
-            const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
-                [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID],
-                existingChatReport,
-            );
+            // The recipient can be swapped without this screen remounting, so `existingChatReport` above
+            // can still be whoever was selected before. Use the ID confirmation committed for the current
+            // pick instead, so the pre-mounted report stays aligned with a brand-new P2P recipient.
+            const transactionReportID = transaction.reportID;
+            // Reuse it so the pre-mounted screen subscribes to the report created on submission.
+            const reusableP2PReportID = !isExpenseReport ? getReusableP2PReportID(participant, transactionReportID) : undefined;
+            const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
+            const reportIDs =
+                !isExpenseReport && !participant.isPolicyExpenseChat
+                    ? resolveOptimisticChatReportID(participantAccountIDs, undefined, reusableP2PReportID)
+                    : resolveOptimisticChatReportID(participantAccountIDs, existingChatReport);
+            const {optimisticChatReportID, chatReportID} = reportIDs;
             const activeReportID = isExpenseReport ? report?.reportID : chatReportID;
             const notifyReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
 
@@ -741,6 +765,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
+        onExpenseWriteWillStart?.();
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
         // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
         // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
@@ -867,13 +892,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant) {
             return;
         }
+        onExpenseWriteWillStart?.();
 
-        // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the draft
-        // transaction to a freshly generated optimistic reportID via setTransactionReport. Build the optimistic chat
-        // report at that same ID so the report the screen subscribes to is the one that actually gets created.
-        // Otherwise the builder mints a different ID and the screen hangs waiting on a report that never materializes.
-        const isBrandNewP2PRecipient = !report && !participant.isPolicyExpenseChat && !participant.reportID;
-        const optimisticChatReportID = isBrandNewP2PRecipient && !!transaction.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : undefined;
+        // Same reasoning as above: reuse the confirmation screen's optimistic report ID for a brand-new
+        // P2P recipient, so the screen isn't left subscribed to a report ID that's never created.
+        const optimisticChatReportID = getReusableP2PReportID(participant, transaction.reportID);
         const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
@@ -1241,9 +1264,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const {optimisticChatReportID, chatReportID} =
             resolvedReportIDs ?? resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+        // An explicit optimistic ID means the selected recipient has no chat yet. Do not let a stale page-level
+        // report override that ID in getSendMoneyParams when the recipient changed without remounting this screen.
+        const sendMoneyReport = optimisticChatReportID ? undefined : report;
         const sendMoneyParams = {
             getCurrencyDecimals,
-            report,
+            report: sendMoneyReport,
             quickAction,
             amount: transaction.amount,
             currency,
@@ -1260,9 +1286,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         };
 
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            onExpenseWriteWillStart?.();
             setIsConfirmed(true);
             sendMoneyElsewhere(sendMoneyParams);
         } else if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            onExpenseWriteWillStart?.();
             setIsConfirmed(true);
             sendMoneyWithWallet(sendMoneyParams);
         } else {

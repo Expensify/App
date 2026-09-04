@@ -23,6 +23,7 @@ type GetSubmitExpensePreMountDestinationRouteParams = {
     iouType: IOUType;
     isCreatingTrackExpense: boolean;
     isSelfDMDestination: boolean;
+    isOptimisticNewChatDestination: boolean;
     isLookingAroundUser: boolean;
     /** Whether the flow relocates an already-tracked expense (SUBMIT/SHARE/CATEGORIZE) rather than creating one in place. */
     isMovingTransactionFromTrackExpense: boolean;
@@ -41,11 +42,11 @@ function getSubmitExpensePreMountDestinationRoute({
     iouType,
     isCreatingTrackExpense,
     isSelfDMDestination,
+    isOptimisticNewChatDestination,
     isLookingAroundUser,
     isMovingTransactionFromTrackExpense,
 }: GetSubmitExpensePreMountDestinationRouteParams): Route | undefined {
-    // Unlike getSkipConfirmationPreMountDestinationRoute (which lets usePreMountDestination own the narrow gate), this builder
-    // returns undefined on wide up front - it avoids the nav reads below, and reveal() would never consume a wide result anyway.
+    // Bail out early on wide layout: nothing here is ever shown on wide, so skip the navigation reads below entirely.
     if (!isTransactionReady || !getIsNarrowLayout()) {
         return undefined;
     }
@@ -85,12 +86,16 @@ function getSubmitExpensePreMountDestinationRoute({
     // screen opens, so the destination is a report the user has never been on. Skipping it costs only the pre-mount.
     const isReplacingVisibleReport =
         !hasPreInsertedFullscreen && isMovingTransactionFromTrackExpense && isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() !== destinationReportID;
-    // The report must be in the REPORT collection so the pre-inserted screen can render immediately. A draft-only report
-    // (e.g. the expense chat of a freshly created draft workspace in the zero-workspace "Submit to my employer" flow) can't
-    // render - the report screen only reads COLLECTION.REPORT - so pre-inserting one would strand the user on an infinite
-    // skeleton if they back out before submitting. Passing an empty draft to getReportOrDraftReport skips its REPORT_DRAFT
-    // fallback while keeping the module-cache fallback for real reports that useOnyx hasn't hydrated yet.
-    const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
+    // Passing {} as the draft argument only blocks the REPORT_DRAFT collection fallback. A draft the caller
+    // passes in via destinationReport still resolves here, because getReportOrDraftReport checks its `report`
+    // slot before falling back to the draft slot - and that is intentional: the caller copies that draft into
+    // COLLECTION.REPORT before reveal, so it is safe to treat as renderable.
+    const isDestinationReportRenderable = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
+    // Only pre-insert a report that's actually renderable - a report that resolves to neither a loaded report
+    // nor a pre-mounted draft can show an infinite skeleton after backing out.
+    // An optimistic new chat is the one exception: it has no report row yet, but that's fine since submit
+    // will create it under this same ID.
+    const isDestinationReportLoaded = isOptimisticNewChatDestination || isDestinationReportRenderable;
     const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded && !isReplacingVisibleReport;
 
     if (!shouldPreInsertSearch && !shouldPreInsertReport) {
@@ -103,7 +108,10 @@ function getSubmitExpensePreMountDestinationRoute({
         });
     }
 
-    return ROUTES.REPORT_WITH_ID.getRoute(destinationReportID);
+    // The last argument tells the report screen this ID is client-generated and doesn't exist on the server
+    // yet, so it should keep showing its normal loading state instead of fetching (which would 403 and show
+    // a not-found page). The other arguments in between aren't used for this route.
+    return ROUTES.REPORT_WITH_ID.getRoute(destinationReportID, undefined, undefined, undefined, undefined, isOptimisticNewChatDestination);
 }
 
 export default getSubmitExpensePreMountDestinationRoute;

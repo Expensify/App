@@ -297,6 +297,7 @@ function SubmitDetailsPage({
         iouType,
         isCreatingTrackExpense,
         isSelfDMDestination: isSelfDM(report),
+        isOptimisticNewChatDestination: false,
         isLookingAroundUser,
         isMovingTransactionFromTrackExpense: false,
     });

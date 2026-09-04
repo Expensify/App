@@ -1,3 +1,4 @@
+import cleanupPreMountedDraftReports from '@libs/cleanupPreMountedDraftReports';
 import '@libs/Middleware/register';
 import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
@@ -88,6 +89,8 @@ export default function () {
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
         ],
     });
+
+    cleanupPreMountedDraftReports();
 
     // Register the commands after Onyx is initialized so every JS runtime can process paginated
     // responses. Initial snapshots remain asynchronous and gate only pagination, not app startup.

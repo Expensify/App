@@ -262,7 +262,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
 
-import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxMultiSetInput, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
@@ -3294,6 +3294,33 @@ function togglePinnedState(reportID: string | undefined, isPinnedChat: boolean) 
 /** Saves the report draft to Onyx */
 function saveReportDraft(reportID: string, report: Report) {
     return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, report);
+}
+
+/**
+ * Copies an already-built draft report into COLLECTION.REPORT so a pre-mounted destination screen can render immediately.
+ */
+function preMountDraftReport(reportID: string, draftReport: Report) {
+    const preMountData: OnyxMultiSetInput = {};
+    preMountData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = draftReport;
+    preMountData[`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportID}`] = true;
+    return Onyx.multiSet(preMountData);
+}
+
+/**
+ * Removes a report created by `preMountDraftReport`, for when the caller backs out before submission actually happens.
+ */
+function clearPreMountedDraftReport(reportID: string) {
+    return Onyx.multiSet({
+        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportID}`]: null,
+    });
+}
+
+/**
+ * Clears only the pre-mount marker left by `preMountDraftReport`.
+ */
+function clearPreMountedDraftReportMarker(reportID: string) {
+    return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportID}`, null);
 }
 
 /**
@@ -8840,6 +8867,9 @@ export {
     mergeReports,
     getOptimisticChatReport,
     saveReportDraft,
+    preMountDraftReport,
+    clearPreMountedDraftReport,
+    clearPreMountedDraftReportMarker,
     moveIOUReportToPolicy,
     moveIOUReportToPolicyAndInviteSubmitter,
     convertIOUReportToExpenseReport,

@@ -2484,7 +2484,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
@@ -2498,6 +2498,9 @@ const ROUTES = {
             // Submit-via-PDF secure access link: lets an approver who opens the PDF link join and claim the report.
             if (secureKey) {
                 queryParams.push(`secureKey=${encodeURIComponent(secureKey)}`);
+            }
+            if (isPendingCreation) {
+                queryParams.push('isPendingCreation=true');
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
