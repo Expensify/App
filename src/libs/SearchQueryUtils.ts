@@ -102,7 +102,7 @@ const operatorToCharMap = {
 };
 const EXPLICIT_EQUAL_TO_OPERATOR = '=' as const;
 
-const DEFAULT_MERCHANT_OPERATOR = CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+const DEFAULT_MERCHANT_OPERATOR = CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
 function getMerchantOperator(operator: MerchantMatchType | undefined): MerchantMatchType {
     return operator ?? DEFAULT_MERCHANT_OPERATOR;
@@ -1379,8 +1379,8 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.join(',');
             if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT && !isNegated) {
-                filtersForm[FILTER_KEYS.MERCHANT_OPERATOR] = filterList.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS)
-                    ? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS
+                filtersForm[FILTER_KEYS.MERCHANT_OPERATOR] = filterList.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
+                    ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
                     : DEFAULT_MERCHANT_OPERATOR;
             }
         }

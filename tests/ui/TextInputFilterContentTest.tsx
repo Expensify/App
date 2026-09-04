@@ -9,7 +9,7 @@ import {NavigationContainer} from '@react-navigation/native';
 jest.mock('@hooks/useAutoFocusInput', () => () => ({inputCallbackRef: jest.fn()}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 
-function renderMerchantFilter(onChange = jest.fn()) {
+function renderMerchantFilter(onChange = jest.fn(), hasStoredMerchantOperator = true) {
     return {
         onChange,
         ...render(
@@ -18,7 +18,7 @@ function renderMerchantFilter(onChange = jest.fn()) {
                     baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
                     value="I"
                     isNegated={false}
-                    merchantOperator={CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}
+                    merchantOperator={hasStoredMerchantOperator ? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS : undefined}
                     onChange={onChange}
                 />
             </NavigationContainer>,
@@ -55,6 +55,14 @@ describe('TextInputFilterContent', () => {
 
     it('submits the selected Contains operator from the Rules layout', () => {
         const {onChange} = renderMerchantFilter();
+
+        fireEvent.press(screen.getByText('common.confirm'));
+
+        expect(onChange).toHaveBeenCalledWith('I', false, CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+    });
+
+    it('defaults to Contains when no Merchant operator is stored', () => {
+        const {onChange} = renderMerchantFilter(jest.fn(), false);
 
         fireEvent.press(screen.getByText('common.confirm'));
 

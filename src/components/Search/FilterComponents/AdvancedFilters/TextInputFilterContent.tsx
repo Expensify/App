@@ -51,7 +51,7 @@ function TextInputFilterContent({
     const [value, setValue] = useState(initialValue);
     const [isNegated, setIsNegated] = useState(initialIsNegated);
     const shouldShowMerchantMatchType = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT && !isNegated;
-    const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(initialMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+    const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(initialMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
     const {inputCallbackRef} = useAutoFocusInput();
     const error = useTextFilterValidation(baseFilterKey, value);

@@ -36,7 +36,7 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
     const [value, setValue] = useState(initialValue);
     const isMerchantFilter = baseFilterKey === FILTER_KEYS.MERCHANT;
     const shouldShowMerchantMatchType = isMerchantFilter && !isNegated;
-    const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(values?.[FILTER_KEYS.MERCHANT_OPERATOR] ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+    const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(values?.[FILTER_KEYS.MERCHANT_OPERATOR] ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
 
     const error = useTextFilterValidation(baseFilterKey, value);
     const filterInput = (
