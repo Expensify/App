@@ -31,7 +31,7 @@ import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
@@ -73,13 +73,13 @@ function DebugReportActionCreatePage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    const reportAction = useMemo(() => parseReportActionJSON(draftReportAction), [draftReportAction]);
+    const reportAction = parseReportActionJSON(draftReportAction);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
     const [error, setError] = useState<string>();
 
-    const createReportAction = useCallback(() => {
+    const createReportAction = () => {
         if (!reportAction) {
             return;
         }
@@ -87,22 +87,18 @@ function DebugReportActionCreatePage({
             [reportAction.reportActionID]: reportAction,
         });
         Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
-    }, [reportAction, reportID]);
+    };
 
-    const editJSON = useCallback(
-        (updatedJSON: string) => {
-            try {
-                DebugUtils.validateReportActionJSON(updatedJSON);
-                setError('');
-            } catch (e) {
-                const {cause, message} = e as SyntaxError;
-                setError(cause ? translate(message as TranslationPaths, cause as never) : message);
-            } finally {
-                setDraftReportAction(updatedJSON);
-            }
-        },
-        [translate],
-    );
+    const editJSON = (updatedJSON: string) => {
+        try {
+            DebugUtils.validateReportActionJSON(updatedJSON);
+            setError('');
+        } catch (e) {
+            const {cause, message} = e as SyntaxError;
+            setError(cause ? translate(message as TranslationPaths, cause as never) : message);
+        }
+        setDraftReportAction(updatedJSON);
+    };
 
     return (
         <ScreenWrapper

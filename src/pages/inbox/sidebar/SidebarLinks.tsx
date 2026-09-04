@@ -24,7 +24,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import React, {memo, useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 type SidebarLinksProps = {
@@ -58,38 +58,34 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     /**
      * Show Report page with selected report id
      */
-    const showReportPage = useCallback(
-        (option: Report & Pick<OptionData, 'actionTargetReportActionID'>) => {
-            // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
-            // or when clicking the active LHN row on large screens
-            // or when continuously clicking different LHNs, only apply to small screen
-            // since getTopmostReportId always returns on other devices
-            const reportActionID = Navigation.getTopmostReportActionId();
-            const actionTargetReportActionID = option.actionTargetReportActionID;
+    const showReportPage = (option: Report & Pick<OptionData, 'actionTargetReportActionID'>) => {
+        // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
+        // or when clicking the active LHN row on large screens
+        // or when continuously clicking different LHNs, only apply to small screen
+        // since getTopmostReportId always returns on other devices
+        const reportActionID = Navigation.getTopmostReportActionId();
+        const actionTargetReportActionID = option.actionTargetReportActionID;
 
-            // Prevent opening a new Report page if the user quickly taps on another conversation
-            // before the first one is displayed.
-            const shouldBlockReportNavigation = Navigation.getActiveRoute() !== `/${ROUTES.INBOX}` && shouldUseNarrowLayout;
+        // Prevent opening a new Report page if the user quickly taps on another conversation
+        // before the first one is displayed.
+        const shouldBlockReportNavigation = Navigation.getActiveRoute() !== `/${ROUTES.INBOX}` && shouldUseNarrowLayout;
 
-            if (
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID && !actionTargetReportActionID) ||
-                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID && !actionTargetReportActionID) ||
-                shouldBlockReportNavigation
-            ) {
-                cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
-                return;
-            }
-            // Keep this report visible in the active To-do/Unread tab even after opening it marks it read.
-            setStickyReportID(option.reportID);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, actionTargetReportActionID));
-        },
-        [shouldUseNarrowLayout, isActiveReport, setStickyReportID],
-    );
+        if (
+            (option.reportID === Navigation.getTopmostReportId() && !reportActionID && !actionTargetReportActionID) ||
+            (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID && !actionTargetReportActionID) ||
+            shouldBlockReportNavigation
+        ) {
+            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
+            return;
+        }
+        // Keep this report visible in the active To-do/Unread tab even after opening it marks it read.
+        setStickyReportID(option.reportID);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, actionTargetReportActionID));
+    };
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
+    const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
 
     const shouldShowEmptyLHN = optionListItems.length === 0;
 

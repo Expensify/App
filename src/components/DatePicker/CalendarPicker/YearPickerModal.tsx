@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 import type CalendarPickerListItem from './types';
@@ -34,17 +34,14 @@ type YearPickerModalProps = {
     shouldEnableBackdropInNarrowPane?: boolean;
 };
 
-function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear(), onYearChange, onClose, shouldEnableBackdropInNarrowPane = false}: YearPickerModalProps) {
+function YearPickerModal({isVisible, years, currentYear, onYearChange, onClose, shouldEnableBackdropInNarrowPane = false}: YearPickerModalProps) {
+    const resolvedCurrentYear = currentYear ?? new Date().getFullYear();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
-    const {data, headerMessage} = useMemo(() => {
-        const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
-        return {
-            headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
-            data: yearsList.sort((a, b) => b.value - a.value),
-        };
-    }, [years, searchText, translate]);
+    const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
+    const headerMessage = !yearsList.length ? translate('common.noResultsFound') : '';
+    const data = yearsList.sort((a, b) => b.value - a.value);
 
     useEffect(() => {
         if (isVisible) {
@@ -53,17 +50,14 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
         setSearchText('');
     }, [isVisible]);
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('yearPickerPage.selectYear'),
-            value: searchText,
-            onChangeText: (text: string) => setSearchText(text.replaceAll(CONST.REGEX.NON_NUMERIC, '').trim()),
-            headerMessage,
-            maxLength: 4,
-            inputMode: CONST.INPUT_MODE.NUMERIC,
-        }),
-        [headerMessage, searchText, translate],
-    );
+    const textInputOptions = {
+        label: translate('yearPickerPage.selectYear'),
+        value: searchText,
+        onChangeText: (text: string) => setSearchText(text.replaceAll(CONST.REGEX.NON_NUMERIC, '').trim()),
+        headerMessage,
+        maxLength: 4,
+        inputMode: CONST.INPUT_MODE.NUMERIC,
+    };
 
     return (
         <Modal
@@ -95,7 +89,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                         onYearChange?.(option.value);
                     }}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={currentYear.toString()}
+                    initiallyFocusedItemKey={resolvedCurrentYear.toString()}
                     disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
                     shouldStopPropagation

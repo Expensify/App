@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ReviewDuplicates} from '@src/types/onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type FieldItemType<T extends keyof ReviewDuplicates> = {
@@ -44,25 +44,25 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    let falsyCount = 0;
+    const noneText = translate('violations.none');
+    let seenNone = false;
     const filteredOptions = options?.filter((name) => {
-        if (name.text !== translate('violations.none')) {
+        if (name.text !== noneText) {
             return true;
         }
-        falsyCount++;
-        return falsyCount <= 1;
+        if (seenNone) {
+            return false;
+        }
+        seenNone = true;
+        return true;
     });
 
-    const optionRows = useMemo(
-        () =>
-            filteredOptions?.map((option, idx) => ({
-                text: option.text,
-                keyForList: `${option.text}-${idx}`,
-                value: option.value,
-                isSelected: option.value === selectedValue,
-            })),
-        [filteredOptions, selectedValue],
-    );
+    const optionRows = filteredOptions?.map((option, idx) => ({
+        text: option.text,
+        keyForList: `${option.text}-${idx}`,
+        value: option.value,
+        isSelected: option.value === selectedValue,
+    }));
 
     return (
         <View

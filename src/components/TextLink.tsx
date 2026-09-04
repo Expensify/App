@@ -40,7 +40,9 @@ type TextLinkProps = (LinkProps | PressProps) &
         suppressDefaultStyle?: boolean;
     };
 
-function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), suppressDefaultStyle = false, ref, ...rest}: TextLinkProps) {
+const defaultOnMouseDown: MouseEventHandler = (event) => event.preventDefault();
+
+function TextLink({href, onPress, children, style, onMouseDown = defaultOnMouseDown, suppressDefaultStyle = false, ref, ...rest}: TextLinkProps) {
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 
