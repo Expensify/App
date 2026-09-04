@@ -172,6 +172,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                         showDownloadErrorModal();
                     },
                     translate,
+                    Object.values(reportTransactions),
                 );
             },
         },
