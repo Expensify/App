@@ -2702,7 +2702,7 @@ export {
     removeNegation,
     getFilterFormValues,
     getFilterFromQuery,
-    queryHasSubmittedViolationFilter,
+    queryHasViolationSnapshotFilter,
 };
 
 export type {BuildUserReadableQueryStringParams};

@@ -74,7 +74,7 @@ import {
     buildSearchQueryString,
     getFilterFromQuery,
     isDefaultExpensesQuery,
-    queryHasSubmittedViolationFilter,
+    queryHasViolationSnapshotFilter,
     serializeQueryJSONForBackend,
 } from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
@@ -936,7 +936,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
                 // Grouped export skips getColumnsToShow(), so inject Violations when the query asks for it
                 // (e.g. Violations by submitter, which has groupBy but no saved columns).
-                if (queryHasSubmittedViolationFilter(queryJSON)) {
+                if (queryHasViolationSnapshotFilter(queryJSON)) {
                     insertColumnBeforeTotalAmount(columnsToExport, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
                 }
             } else {
