@@ -10404,6 +10404,15 @@ describe('actions/Report', () => {
 
         it('correctly handles snapshot updates when hash is provided', async () => {
             mockFetch.pause();
+            const transaction1Key = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_1_ID}` as const;
+            const transaction2Key = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_2_ID}` as const;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`, {
+                data: {
+                    [transaction1Key]: {...transaction1},
+                    [transaction2Key]: {...transaction2},
+                },
+            });
+            await waitForBatchedUpdates();
 
             Report.mergeReports({
                 destinationReportID: DESTINATION_REPORT_ID,
@@ -10431,6 +10440,8 @@ describe('actions/Report', () => {
             expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.total).toBe(-3000);
             expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(2);
+            expect(snapshotOptimistic?.data?.[transaction1Key]?.reportID).toBe(DESTINATION_REPORT_ID);
+            expect(snapshotOptimistic?.data?.[transaction2Key]?.reportID).toBe(DESTINATION_REPORT_ID);
 
             mockFetch.fail();
             await mockFetch.resume();
@@ -10441,6 +10452,8 @@ describe('actions/Report', () => {
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]?.reportID).toBe(SOURCE_REPORT_1_ID);
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.total).toBe(0);
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(0);
+            expect(snapshotFailure?.data?.[transaction1Key]?.reportID).toBe(SOURCE_REPORT_1_ID);
+            expect(snapshotFailure?.data?.[transaction2Key]?.reportID).toBe(SOURCE_REPORT_2_ID);
         });
     });
 
