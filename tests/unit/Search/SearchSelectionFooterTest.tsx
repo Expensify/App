@@ -170,7 +170,7 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 35900, currency: CONST.CURRENCY.USD}));
     });
 
-    it('uses report rows and subtracts an excluded report from the total after every report is loaded', async () => {
+    it("subtracts an excluded report's expenses and total from the all-matching footer", async () => {
         mockSearchQueryContext.current = {
             currentSearchHash: 1,
             currentSearchKey: undefined,
@@ -187,10 +187,10 @@ describe('SearchSelectionFooter', () => {
         render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)} />);
         await waitForBatchedUpdates();
 
-        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1, total: 35800, currency: CONST.CURRENCY.USD}));
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 8, total: 35800, currency: CONST.CURRENCY.USD}));
     });
 
-    it('does not show an inaccurate report count before every report page is loaded', async () => {
+    it('shows the authoritative expense count and total before every report page is loaded', async () => {
         mockSearchQueryContext.current = {
             currentSearchHash: 1,
             currentSearchKey: undefined,
@@ -203,7 +203,25 @@ describe('SearchSelectionFooter', () => {
         render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, true)} />);
         await waitForBatchedUpdates();
 
-        expect(mockCapturedFooterProps.current).toBeUndefined();
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 10, total: 36000, currency: CONST.CURRENCY.USD}));
+    });
+
+    it('counts the expenses inside manually selected reports', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {
+            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+            transaction2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+        };
+        mockSelectedReports.current = [buildSelectedReport('report1', -200)];
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 200, currency: CONST.CURRENCY.USD}));
     });
 
     it("offers the user's live payment currency as the Reset target when there is no active workspace", async () => {

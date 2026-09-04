@@ -20,7 +20,6 @@ let mockSearchCount: number | undefined;
 let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
 let mockIsOffline = false;
-let mockAreAllMatchingItemsSelected = true;
 let mockSelectedTransactions: SelectedTransactions = {tx1: makeTransaction()};
 
 jest.mock('@components/ButtonWithDropdownMenu', () => ({
@@ -78,7 +77,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         selectedTransactions: mockSelectedTransactions,
         excludedTransactions: mockExcludedTransactions,
         selectedReports: [],
-        areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
+        areAllMatchingItemsSelected: true,
     }),
     useSearchResultsContext: () => ({
         currentSearchResults: {search: {count: mockSearchCount, reportCount: mockSearchReportCount, isLoading: mockSearchIsLoading}},
@@ -126,7 +125,7 @@ function getButtonProps(): {customText: string; isLoading: boolean} {
     return {customText: props.customText, isLoading: props.isLoading};
 }
 
-describe('SearchBulkActionsButton all-matching label', () => {
+describe('SearchBulkActionsButton all-matching count', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockExcludedTransactions = {};
@@ -134,24 +133,23 @@ describe('SearchBulkActionsButton all-matching label', () => {
         mockSearchReportCount = undefined;
         mockSearchIsLoading = false;
         mockIsOffline = false;
-        mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {tx1: makeTransaction()};
     });
 
-    it('shows the all-matching label and keeps loading while the server count is missing', () => {
+    it('shows the loaded selected count and keeps loading while the server count is missing', () => {
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: true});
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
     });
 
-    it('keeps the all-matching label when the server count arrives and there are no exclusions', () => {
+    it('shows the server count when it arrives', () => {
         mockSearchCount = 172;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: false});
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:172', isLoading: false});
     });
 
     it('shows the exact count after an item is excluded', () => {
@@ -170,14 +168,6 @@ describe('SearchBulkActionsButton all-matching label', () => {
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
-    });
-
-    it('keeps the numeric label for page-only selection', () => {
-        mockAreAllMatchingItemsSelected = false;
-
-        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
-
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
     });
 
     it('shows the loaded selected count when an expense is excluded offline before the server count is available', () => {
@@ -211,7 +201,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
         mockSearchCount = 320;
         mockSearchReportCount = 50;
         mockSelectedTransactions = {tx1: makeTransaction('report1'), tx2: makeTransaction('report2')};
-        mockExcludedTransactions = {tx3: makeTransaction('report3')};
+        mockExcludedTransactions = {tx3: makeTransaction('report3'), tx4: makeTransaction('report3')};
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 

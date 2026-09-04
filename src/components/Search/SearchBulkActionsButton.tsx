@@ -187,13 +187,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     } else {
         selectedAllMatchingItemsCount = isExpenseType ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : allMatchingItemsCount;
     }
-    const hasExclusions = Object.keys(excludedTransactions).length > 0;
-    const shouldShowAllMatchingItemsSelected = isExpenseType && areAllMatchingItemsSelected && !hasExclusions;
-    const selectionButtonText = shouldShowAllMatchingItemsSelected
-        ? translate('search.exportAll.allMatchingItemsSelected')
-        : translate('workspace.common.selected', {
-              count: areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount,
-          });
+    const selectionButtonText = translate('workspace.common.selected', {
+        count: areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount,
+    });
 
     return (
         <>

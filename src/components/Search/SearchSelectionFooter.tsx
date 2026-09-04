@@ -149,9 +149,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         () => getTransactionCount(selectedTransactionsKeys, selectedTransactions, currentSearchResults?.data),
         [currentSearchResults?.data, selectedTransactions, selectedTransactionsKeys],
     );
+    // The Reports footer is also expense-based, so excluding one report removes each of its child expenses here.
     const excludedExpenseCount = useMemo(
-        () => (isExpenseType ? getTransactionCount(excludedTransactionsKeys, excludedTransactions, currentSearchResults?.data) : 0),
-        [currentSearchResults?.data, excludedTransactions, excludedTransactionsKeys, isExpenseType],
+        () => (isExpenseType || isReportsSearch ? getTransactionCount(excludedTransactionsKeys, excludedTransactions, currentSearchResults?.data) : 0),
+        [currentSearchResults?.data, excludedTransactions, excludedTransactionsKeys, isExpenseType, isReportsSearch],
     );
 
     // Individually-selected transactions (loose rows in a grouped view, or every row on a flat search).
@@ -342,10 +343,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         !hasConversionFailed &&
         hasCustomFooterCurrency &&
         (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh || ((hasExcludedExpenses || hasExcludedReports) && !areAllExcludedConverted));
-    const hasLoadedAllReports = isReportsSearch && metadata?.hasMoreResults === false;
-    const shouldShowFooter =
-        (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) ||
-        (shouldAllowFooterTotals && !!metadata?.count && (!isReportsSearch || !areAllMatchingItemsSelected || hasLoadedAllReports));
+    const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
     // Fetch converted figures whenever a custom currency is chosen and no request has covered what the footer needs.
     // Each request stamps the source figures it converts, so the requested checks keep this to one request per
@@ -524,7 +522,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 }, 0);
             }
 
-            return {count: isReportsSearch ? selectedReportIDs.length : selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : fallbackCurrency};
+            return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
 
         if (
@@ -551,19 +549,15 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 }, 0);
             }
             return {
-                count: isReportsSearch ? selectedReportIDs.length : Math.max(selectedCurrencyConvertedTotal.count - excludedExpenseCount, 0),
+                count: Math.max(selectedCurrencyConvertedTotal.count - excludedExpenseCount, 0),
                 total: selectedCurrencyConvertedTotal.total - excludedConvertedTotal,
                 currency: selectedCurrency,
             };
         }
 
         const excludedTotal = hasExcludedExpenses || hasExcludedReports ? getTransactionTotal(Object.values(excludedTransactions)) : 0;
-        let count = metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount, 0);
-        if (isReportsSearch) {
-            count = selectedReportIDs.length;
-        }
         return {
-            count,
+            count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount, 0),
             total: metadataTotal === undefined ? undefined : metadataTotal - excludedTotal,
             currency: effectiveDefaultCurrency ?? metadataCurrency,
         };
