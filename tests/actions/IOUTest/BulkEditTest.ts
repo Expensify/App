@@ -1275,6 +1275,180 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
         });
 
+        it('clears only the deselected level on each transaction when the recorded tag intent is empty (independent tags)', () => {
+            const firstTransactionID = 'transaction-deselect-1';
+            const secondTransactionID = 'transaction-deselect-2';
+            const iouReportID = 'iou-deselect-1';
+            const policy = {
+                ...createRandomPolicy(72, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(72, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            // The two expenses differ on both levels, so a shared string could not express this edit.
+            const firstTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: firstTransactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-deselect-1',
+                tag: 'CostCenterA:IndicationX',
+            };
+            const secondTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: secondTransactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-deselect-2',
+                tag: 'CostCenterB:IndicationY',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`]: firstTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`]: secondTransaction,
+            };
+
+            const policyTagList = {
+                CostCenter: {
+                    name: 'CostCenter',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {CostCenterA: {name: 'CostCenterA', enabled: true}, CostCenterB: {name: 'CostCenterB', enabled: true}},
+                },
+                Indication: {
+                    name: 'Indication',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {IndicationX: {name: 'IndicationX', enabled: true}, IndicationY: {name: 'IndicationY', enabled: true}},
+                },
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [firstTransactionID, secondTransactionID],
+                // The picker resolved the tap as a deselect, so it recorded an empty value for the Indication
+                // level. Built programmatically because numeric-string object-literal keys trip the
+                // naming-convention lint rule.
+                changes: {},
+                bulkEditTagChanges: Object.fromEntries([[1, '']]),
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                },
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Each expense keeps its OWN CostCenter. Only the deselected Indication level is cleared.
+            expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterA');
+            expect(getBulkEditUpdates(writeSpy, 1).tag).toBe('CostCenterB');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('clears the deselected level and its children when the recorded tag intent is empty (dependent tags)', () => {
+            const transactionID = 'transaction-deselect-dep-1';
+            const iouReportID = 'iou-deselect-dep-1';
+            const policy = {
+                ...createRandomPolicy(73, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(73, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-deselect-dep-1',
+                tag: 'CostCenterA:IndicationX:PhaseP',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const policyTagList = {
+                CostCenter: {name: 'CostCenter', orderWeight: 0, required: false, tags: {CostCenterA: {name: 'CostCenterA', enabled: true}}},
+                Indication: {
+                    name: 'Indication',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        IndicationX: {name: 'IndicationX', enabled: true, parentTagsFilter: 'CostCenterA'},
+                        IndicationZ: {name: 'IndicationZ', enabled: true, parentTagsFilter: 'CostCenterA'},
+                    },
+                },
+                Phase: {
+                    name: 'Phase',
+                    orderWeight: 2,
+                    required: false,
+                    tags: {PhaseP: {name: 'PhaseP', enabled: true, parentTagsFilter: 'IndicationX'}, PhaseR: {name: 'PhaseR', enabled: true, parentTagsFilter: 'IndicationZ'}},
+                },
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                // Deselecting the middle (Indication, index 1) level. Built programmatically because
+                // numeric-string object-literal keys trip the naming-convention lint rule.
+                changes: {},
+                bulkEditTagChanges: Object.fromEntries([[1, '']]),
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                },
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // The parent is preserved. The deselected level and the now-invalid Phase below it are dropped.
+            expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterA');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
         it('skips category, tag, tax, and billable changes for plain IOU transactions', async () => {
             const transactionID = 'transaction-iou-1';
             const transactionThreadReportID = 'thread-iou-1';
