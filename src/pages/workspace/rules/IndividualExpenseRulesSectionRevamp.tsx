@@ -129,12 +129,15 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
-    // There has to be a card to require before the rule means anything, and either card product counts. Collect is the
-    // one lock reason the pre-revamp row didn't have, so it is the only one that behaves differently: it goes to the
-    // upgrade the other rules use, and drops the More features tooltip, which isn't why the row is locked there.
+    // There has to be a card to require before the rule means anything, and either card product counts. Three separate
+    // things can lock the row, so each gets the response that actually explains it: no write access opens the read-only
+    // modal, Collect opens the upgrade the other rules use, and only a missing card product earns the More features
+    // tooltip. The pre-revamp row showed that tooltip for all three, which told an auditor to enable a feature that was
+    // already on.
     const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
     const areAnyCardsEnabled = !!policy?.areCompanyCardsEnabled || !!policy?.areExpensifyCardsEnabled;
     const isRequireCompanyCardsLocked = !canWriteRules || isCollect || !areAnyCardsEnabled;
+    const shouldExplainMissingCards = canWriteRules && !isCollect && !areAnyCardsEnabled;
 
     useEffect(() => {
         // The subtitle names the required tag lists, and only the Tags pages fetch them, so it would otherwise read
@@ -285,7 +288,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     isActive={requireCompanyCardsEnabled}
                     disabled={isRequireCompanyCardsLocked}
                     showLockIcon={isRequireCompanyCardsLocked}
-                    disabledText={isCollect ? undefined : translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
+                    disabledText={shouldExplainMissingCards ? translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip') : undefined}
                     disabledAction={withReadOnlyFallback(isCollect ? navigateToRulesControlUpgrade : undefined)}
                     onToggle={() => (canWriteRules && policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
                     pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
