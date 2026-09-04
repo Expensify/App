@@ -161,46 +161,38 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Notes**: `send_message_source` = `<tab>_<scenario>` (+ `_rhp` in the RHP, + `_from_report` when drilled in from a report) — slice the metric by send path.
 `report_action_count` / `money_request_preview_count` — how many renderable actions the chat's list holds and how many of them are `REPORT_PREVIEW` items — slice the metric by list weight (e.g. chats with many `MoneyRequestReportPreview` items).
 
-### Send Message Phases
+### Send Message (Propagate)
 
-**Constants**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.{PROPAGATE, POST_COMMIT}`
-**Sentry Names**: `ManualSendMessagePropagate`, `ManualSendMessagePostCommit`
-**Threshold**: none, read as slices of the parent
-**What's Measured**: Two child spans of `ManualSendMessageVisible` that split a send where React commits the sent row. Everything measured is client-side; no phase covers the `AddComment` request.
-**Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.<PHASE>}_${reportActionID}`, parented to the `ManualSendMessageVisible` span with the same `reportActionID`
-**Lifecycle**: [`src/libs/telemetry/sendMessageSpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/sendMessageSpans.ts)
+**Constant**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE`
+**Sentry Name**: `ManualSendMessagePropagate`
+**Threshold**: none, read as a slice of `ManualSendMessageVisible`
+**What's Measured**: Time from queueing the optimistic write to React committing the sent row: Onyx applying the merge, notifying subscribers, and React rendering and committing up to that row
+**Start**: `API.write` returns in `addActions` ([`src/libs/actions/Report/index.ts`](https://github.com/Expensify/App/blob/main/src/libs/actions/Report/index.ts))
+**End**: The sent row's layout effect ([`src/libs/telemetry/useSendMessageSpanMarks.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/useSendMessageSpanMarks.ts))
+**Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_${reportActionID}`, child of the `ManualSendMessageVisible` span with the same `reportActionID`
+**Notes**: Layout effects run inside the commit and innermost component first, so this ends mid-commit. The time before it starts is the submit itself, which has no span.
 
-**Sequence**, with the four marks in order:
+### Send Message (Post Commit)
 
-- `t0` composer submit ([`useComposerSubmit.ts`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/ReportActionCompose/useComposerSubmit.ts))
-- `t1` `API.write` returns and the merge is queued ([`Report/index.ts`](https://github.com/Expensify/App/blob/main/src/libs/actions/Report/index.ts))
-- Onyx applies the merge and notifies subscribers, React renders the new tree
-- React commits, in order:
-  - mutation: DOM / native views created
-  - layout effects, innermost component first. `t2` is the sent row's own ([`useSendMessageSpanMarks.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/useSendMessageSpanMarks.ts)), then its ancestors, the list and the screen
-  - passive effects
-- derived recomputes, and the re-renders their writes cause
-- platform layout
-- `t3` `onLayout` in `TextCommentFragment` or `AttachmentCommentFragment`
+**Constant**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT`
+**Sentry Name**: `ManualSendMessagePostCommit`
+**Threshold**: none, read as a slice of `ManualSendMessageVisible`
+**What's Measured**: Time from React committing the sent row to the platform laying it out: the rest of the commit, passive effects, derived recomputes and the re-renders their writes cause, then platform layout
+**Start**: The sent row's layout effect ([`src/libs/telemetry/useSendMessageSpanMarks.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/useSendMessageSpanMarks.ts))
+**End**: `onLayout` on the sent row, the same event that ends the parent
+**Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT}_${reportActionID}`, child of the `ManualSendMessageVisible` span with the same `reportActionID`
+**Notes**: Excludes the sent row's own render, which happened in `Propagate`. Both phases live in [`src/libs/telemetry/sendMessageSpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/sendMessageSpans.ts): they no-op unless the parent is active, and are closed before it, since Sentry discards a child still running when the root span becomes a transaction.
 
-`t2` is the first instant the row provably exists, since a layout effect cannot run before React created its view. Layout effects run child-before-parent, so the row's fires before the list's and the screen's, which puts those ancestor effects on the `PostCommit` side.
+### Onyx Derived Compute
 
-**Phases**:
-
-- **Submit**, `t0` to `t1`, no span, read as the `Propagate` offset: builds the optimistic action and queues the write. `Onyx.update` batches and defers, so no merge is applied and nothing has rendered. Measured flat at 2 to 13ms on light and heavy accounts, which is why it has no span.
-- **`Propagate`**, `t1` to `t2`: Onyx applying the merge, fan-out to every `reportActions_` and `report_` subscriber, React's render, and the commit up to the row's layout effect. Excludes ancestor layout effects, passive effects, platform layout.
-- **`PostCommit`**, `t2` to `t3`: commit tail, passive effects, derived recomputes landing here, the re-renders their writes cause, platform layout. Excludes the row's own render. Larger of the two phases on the heavy accounts we measured.
-
-**Triage**: a `Propagate` spike points at Onyx write application, subscriber fan-out, or the list render. A `PostCommit` spike points at the commit tail, passive effects, or derived recomputes and the re-renders they cause. Optimize one half and the other should stay flat, otherwise the work moved instead of going away.
-**Cancellation shape**: no `Propagate` child means the parent died before the write was queued. `Propagate` without `PostCommit` means the row never committed. `PostCommit` present means the row committed and never got a layout. An AppState transition produces the first shape too, since `cancelAllSpans` sweeps parents first and drops the phases with them.
-**Ordering**: phases no-op unless the parent is active, and every path that ends or cancels the parent closes them first. `@sentry/core` filters descendants through `isFullFinishedSpan` when a root span becomes a transaction, so a child still running at that point is discarded. `cancelSpansByPrefix` sweeps in reverse insertion order. `cancelAllSpans` keeps insertion order on purpose: it covers every span family, and reversing it would report other features' cancelled children with abort-time durations.
-**Coverage**: only sends made while scrolled to the bottom get a parent, so only those get phases. `addAttachmentWithComment` gets neither. Nothing past the row's layout is covered, and keypress to `addComment` sits outside the parent.
-
-**`OnyxDerivedCompute` children**: recomputes that fire while exactly one `ManualSendMessageVisible` is open nest under it, carrying `derivedKey` and `triggeredKeys`. With two sends in flight the engine coalesces the burst into one compute per key, so the recompute could belong to either and gets no parent.
-
-- Position carries no meaning. The engine defers its flush, so the phase a compute lands in varies between sends.
-- The span ends at `setDerivedValue`. Subscribers of the derived key re-render after that, outside the span, so a 2ms `sortedReportActions` compute can cost far more than 2ms. The rest surfaces as unattributed time in `PostCommit`.
-- `triggeredKeys` separates work the send caused from work that overlapped it. `reportAttributes` fired by `reportActions_` belongs to the send. Fired by `reportNameValuePairs_` it comes from `clearAgentZeroProcessingIndicator` on Concierge sends.
+**Constant**: `CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE`
+**Sentry Name**: `OnyxDerivedCompute`
+**Threshold**: none, read as a slice of its parent
+**What's Measured**: One derived-value recompute, from the compute function to its `setDerivedValue` write. Excludes the re-render that write causes in subscribers
+**Start**: Before the compute function runs ([`src/libs/actions/OnyxDerived/index.ts`](https://github.com/Expensify/App/blob/main/src/libs/actions/OnyxDerived/index.ts))
+**End**: After `setDerivedValue` writes the result
+**Attributes**: `derivedKey` (which value recomputed), `triggeredKeys` (which dependencies fired it), `is_startup`
+**Notes**: Recorded only when a parent span is open: app startup, or a send when exactly one `ManualSendMessageVisible` is active. The engine coalesces a dependency burst into one compute per key, so with two sends in flight the compute gets no parent rather than a guessed one. Which phase a compute lands in varies between sends, so read these for cost and cause, not for position.
 
 ## Failure Rates
 
