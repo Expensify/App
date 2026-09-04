@@ -8,9 +8,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import type {TokenizationStatus} from '@expensify/react-native-wallet';
 
@@ -27,6 +29,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
     const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
+    const isIOS = getPlatform() === CONST.PLATFORM.IOS;
     const styles = useThemeStyles();
 
     const checkIfCardIsInWallet = useCallback(() => {
@@ -49,6 +52,9 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                 if (status === 'success') {
                     Log.info('Card added to wallet');
                     getPaymentMethods();
+                    if (isIOS) {
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));
+                    }
                 } else {
                     setIsLoading(false);
                 }
@@ -58,7 +64,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                 Log.warn(`Error while adding card to wallet: ${error}`);
                 Alert.alert('Failed to add card to wallet', 'Please try again later.');
             });
-    }, [card, cardDescription, cardHolderName]);
+    }, [card, cardDescription, cardHolderName, isIOS]);
 
     useEffect(() => {
         if (!isCardAvailable) {

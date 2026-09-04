@@ -2754,6 +2754,15 @@ const translations: TranslationDeepObject<typeof en> = {
             updateAddress: 'Adres bijwerken',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Toegevoegd aan ${platform}-wallet`,
+        cardAddedToWalletPage: {
+            title: 'Alles is klaar!',
+            description: 'Je kaart is toegevoegd aan Apple Wallet.',
+            firstSupportingText: 'Apple Pay is een eenvoudigere manier om te betalen in winkels, in apps en online met je iPhone, Apple Watch, iPad en Mac.',
+            secondSupportingText: 'Gebruik Apple Pay waar je deze\nsymbolen ziet.',
+            applePayMark: 'Apple Pay',
+            contactlessMark: 'Contactloos betalen',
+            buttonText: 'Begrepen',
+        },
         cardDetailsLoadingFailure: 'Er is een fout opgetreden bij het laden van de kaartgegevens. Controleer je internetverbinding en probeer het opnieuw.',
         validateCardTitle: 'We willen zeker weten dat jij het bent',
         enterSecurityCode: (contactMethod: string) =>
