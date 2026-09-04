@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
+index 73dfb70..e1ed927 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
+@@ -636,14 +636,14 @@ void FabricUIManagerBinding::schedulerDidFinishTransaction(
+ 
+     std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
+     auto pendingTransaction = std::find_if(
+-        pendingTransactions_.begin(),
+-        pendingTransactions_.end(),
++        pendingTransactions_.rbegin(),
++        pendingTransactions_.rend(),
+         [&](const auto& transaction) {
+           return transaction.getSurfaceId() ==
+               mountingTransaction->getSurfaceId();
+         });
+ 
+-    if (pendingTransaction != pendingTransactions_.end() && pendingTransaction->canMergeWith(*mountingTransaction)) {
++    if (pendingTransaction != pendingTransactions_.rend() && pendingTransaction->canMergeWith(*mountingTransaction)) {
+       pendingTransaction->mergeWith(std::move(*mountingTransaction));
+     } else {
+       pendingTransactions_.push_back(std::move(*mountingTransaction));
