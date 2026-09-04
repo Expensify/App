@@ -490,7 +490,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     return (
         <View
-            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
+            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.overflowHidden, !shouldUseNarrowLayout && {maxHeight: variables.searchRouterPopoverMaxHeight}]}
             testID="SearchRouter"
             ref={ref}
         >
@@ -501,7 +501,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldDisplayHelpButton={false}
                 />
             )}
-            <View style={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}>
+            <View style={[shouldUseNarrowLayout ? styles.mv3 : styles.mv4, shouldUseNarrowLayout ? styles.mh5 : styles.mh4]}>
                 <SearchInputSelectionWrapper
                     value={textInputValue}
                     isFullWidth={shouldUseNarrowLayout}

@@ -74,6 +74,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
     }): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
+        // Wide layout: a 1px theme.border stroke around centered alert modals, matching the floating RHP cards.
+        const centeredModalBorder = !isSmallScreenWidth ? {borderWidth: 1, borderColor: theme.border} : {};
+
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
             ...outerStyle,
@@ -112,6 +115,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderRadius: variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     width: variables.sideBarWidth,
+                    ...centeredModalBorder,
                 };
 
                 // setting this to undefined we effectively disable the
@@ -216,6 +220,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderWidth: 0,
                     marginTop: 'auto',
                     marginBottom: 'auto',
+                    ...centeredModalBorder,
                 };
 
                 // Allow this modal to be dismissed with a swipe down or swipe right
@@ -285,21 +290,34 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 animationIn = 'fadeIn';
                 animationOut = 'fadeOut';
                 break;
-            case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
+            case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED: {
+                // On wide layout the box is widened by the inset on both sides so the floating card inside is rhpWidth.
+                const rightDockedBoxWidth = variables.rhpWidth + 2 * variables.rhpFloatingCardMargin;
                 modalStyle = {
                     ...modalStyle,
-                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - rightDockedBoxWidth,
+                    width: isSmallScreenWidth ? '100%' : rightDockedBoxWidth,
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
                     height: '100%',
                     zIndex: variables.modalRightDockedZIndex,
                 };
-                modalContainerStyle = {
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                    height: '100%',
-                    overflow: 'hidden',
-                };
+                modalContainerStyle = isSmallScreenWidth
+                    ? {
+                          width: '100%',
+                          height: '100%',
+                          overflow: 'hidden',
+                      }
+                    : {
+                          // Floating RHP style, matching RightModalNavigator's skinny RHP.
+                          flex: 1,
+                          margin: variables.rhpFloatingCardMargin,
+                          borderRadius: variables.componentBorderRadiusLarge,
+                          borderWidth: 1,
+                          borderColor: theme.border,
+                          boxShadow: theme.shadow,
+                          overflow: 'hidden',
+                      };
 
                 animationIn = 'slideInRight';
                 animationOut = 'slideOutRight';
@@ -308,6 +326,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding;
                 shouldAddTopSafeAreaPadding = true;
                 break;
+            }
             default:
                 modalStyle = {height: '100%'};
                 modalContainerStyle = {};

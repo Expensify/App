@@ -120,7 +120,16 @@ export default {
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
-    superWideRHPLeftMargin: 147,
+    superWideRHPLeftMargin: 360,
+    // Floating RHP card experiment (wide layout / web+desktop only): inset from the screen edges.
+    rhpFloatingCardMargin: 12,
+    // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
+    rhpWidth: 440,
+    // Right (detail) pane width of the wide/super-wide expense views. Decoupled from rhpWidth so the expense
+    // report view's right pane can differ from the standalone skinny RHP.
+    wideRHPRightPaneWidth: 400,
+    // RHP scrim opacity. Scoped to the RHP overlay so other modal backdrops keep the default overlayOpacity.
+    rhpOverlayOpacity: 0.5,
     searchSidebarExpandedWidth: 320,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
@@ -242,7 +251,10 @@ export default {
     popoverWidth: 375,
     compactPopoverMenuWidth: 300,
     compactPopoverMenuVerticalMargin: 100,
-    searchRouterPopoverWidth: 512,
+    searchRouterPopoverWidth: 600,
+    searchRouterPopoverMaxHeight: 520,
+    // Distance from the top of the screen to the centered search router popover on wide layout.
+    searchRouterPopoverTopOffset: 40,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,

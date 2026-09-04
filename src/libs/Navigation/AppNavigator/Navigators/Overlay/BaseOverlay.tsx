@@ -25,19 +25,35 @@ type BaseOverlayProps = {
 
     /* Overlay position from the right edge of the container */
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
+
+    /* Render with no dimming background — invisible but still positioned and pressable to dismiss */
+    transparent?: boolean;
 };
 
 // The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
-function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.sideBarWidth, positionRightValue = 0}: BaseOverlayProps) {
+function BaseOverlay({
+    onPress,
+    progress,
+    positionLeftValue = -2 * variables.sideBarWidth,
+    positionRightValue = 0,
+    transparent = false,
+}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const {translate} = useLocalize();
+
+    const activeProgress = progress ?? current.progress;
+    const scrimStyle = [styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: activeProgress, positionLeftValue, positionRightValue})];
+    // Transparent: keep positioning and pressability, drop the dimming background.
+    const transparentStyle = [styles.pFixed, styles.t0, styles.b0, styles.overlayStyles({progress: activeProgress, positionLeftValue, positionRightValue})];
+
+    const overlayStyle = transparent ? transparentStyle : scrimStyle;
 
     return (
         <Animated.View
             id="BaseOverlay"
             aria-hidden
-            style={[styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue})]}
+            style={overlayStyle}
         >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.

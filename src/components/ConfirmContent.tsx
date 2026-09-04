@@ -242,7 +242,8 @@ function ConfirmContent({
                     <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
                         <Header
                             title={title}
-                            textStyles={titleStyles}
+                            // Centered/confirm alert modals use the same h2 headline as the RHP modal titles.
+                            textStyles={[styles.textHeadlineH2, titleStyles]}
                         />
                         {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
                     </View>
