@@ -3017,8 +3017,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // And a search snapshot that has already loaded the Approved report.
         const reportSnapshotKey = `${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}` as const;
         const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+        const snapshotData: SearchResults['data'] = {};
+        snapshotData[reportSnapshotKey] = approvedReport;
         await Onyx.merge(snapshotKey, {
-            data: {[reportSnapshotKey]: approvedReport},
+            data: snapshotData,
             search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
         });
         await waitForBatchedUpdates();
