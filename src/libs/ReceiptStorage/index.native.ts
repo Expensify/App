@@ -7,7 +7,7 @@ import RNFS from 'react-native-fs';
 
 import type ReceiptStorage from './types';
 
-import {isInDurableFolder, toDurableName} from './durableFolder';
+import {toDurableName} from './durableFolder';
 
 // A durable name is the bare filename inside the receipts folder. Never store a full path: iOS moves
 // the app data container on most upgrades, so an absolute path stored before the upgrade names a
@@ -63,6 +63,6 @@ const resolve: ReceiptStorage['resolve'] = (source) => {
     return durableName ? toLocalUri(durableName) : source;
 };
 
-const receiptStorage: ReceiptStorage = {adopt, toLocalUri, resolve, isInDurableFolder};
+const receiptStorage: ReceiptStorage = {adopt, toLocalUri, resolve};
 
 export default receiptStorage;

@@ -10,9 +10,6 @@ type ReceiptStorage = {
 
     /** Re-roots a stored source onto the current folder. A remote source passes through unchanged. */
     resolve: (source: ReceiptSource | null | undefined) => string | undefined;
-
-    /** Whether a stored path sits in the receipts folder. */
-    isInDurableFolder: (storedPath: ReceiptSource | null | undefined) => boolean;
 };
 
 export default ReceiptStorage;
