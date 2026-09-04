@@ -12468,6 +12468,34 @@ function isReportOutstanding(
     return iouReport.stateNum < CONST.REPORT.STATE_NUM.SUBMITTED && iouReport.statusNum < CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
+/** Group the expense reports that can still receive expenses by the workspace they belong to, keyed by their Onyx key. */
+function buildOutstandingReportsByPolicyID(reports: OnyxCollection<Report>): OutstandingReportsByPolicyIDDerivedValue {
+    const outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue = {};
+    if (!reports) {
+        return outstandingReportsByPolicyID;
+    }
+
+    for (const reportKey of Object.keys(reports)) {
+        const report = reports[reportKey];
+        if (!report) {
+            continue;
+        }
+        // An open or submitted expense report on a workspace can still receive expenses, unless it is being deleted.
+        if (
+            isExpenseReport(report) &&
+            report.policyID &&
+            report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            (report.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) <= CONST.REPORT.STATE_NUM.SUBMITTED
+        ) {
+            const reportsForPolicy = outstandingReportsByPolicyID[report.policyID] ?? {};
+            reportsForPolicy[reportKey] = report;
+            outstandingReportsByPolicyID[report.policyID] = reportsForPolicy;
+        }
+    }
+
+    return outstandingReportsByPolicyID;
+}
+
 /**
  * Get outstanding expense reports for a given policy ID
  * @param policyID - The policy ID to filter reports by
@@ -14775,6 +14803,7 @@ export {
     getReportFieldsByPolicyID,
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
+    buildOutstandingReportsByPolicyID,
     getOutstandingReportsForUser,
     isReportOutstanding,
     isReportTotalPending,
