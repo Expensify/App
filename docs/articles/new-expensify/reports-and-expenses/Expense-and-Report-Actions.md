@@ -151,7 +151,7 @@ Because invited members can comment, the message field appears at the bottom of 
 | **Download** | Any report | All roles | Downloads a PDF copy |
 | **Print** | Any report except Draft | All roles | Opens print view |
 | **Reject** | Submitted reports | Approver | Sends report back for changes |
-| **Invite member** | Draft and Outstanding reports | All roles | Starts an invite; selecting **Invite to chat only** on the whisper lets that member view and comment on the report |
+| **Invite to chat only** | After you mention a non-member in a report comment | All roles | Adds that person to the report so they can view and comment on it |
 | **View details** | Any report | All roles | Opens report details |
 | **Cancel payment** | Before payment processing | Payer | Cancels a pending payment |
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
@@ -216,9 +216,11 @@ Only workspace admins can bypass approvers. Some settings may prevent self-appro
 
 ## How do I invite a member to an expense report?
 
-1. Select **Invite member**, choose the people you want to add, then select **Invite**.
-2. A whisper appears in the room letting you know the person isn’t a member of it.
+1. Open the report and write a comment that mentions the person, using `@` followed by their email address.
+2. Send the comment. A message only you can see appears, letting you know the person isn’t a member of the room.
 3. Select **Invite to chat only**.
+
+The person is added to the report’s **Members** list and can comment on it.
 
 ## Can a member I invite to a report comment on it?
 
