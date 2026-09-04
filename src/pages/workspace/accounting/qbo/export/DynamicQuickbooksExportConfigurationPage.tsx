@@ -55,6 +55,13 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
         [qboConfig?.nonReimbursableExpensesExportDestination],
     );
 
+    const shouldShowCreditCardVendorMenuItem = useMemo(
+        () =>
+            qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD ||
+            qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+        [qboConfig?.nonReimbursableExpensesExportDestination],
+    );
+
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path);
     const goBack = () => goBackFromExportConnection(shouldShowVendorMenuItems, backTo, dynamicBackPath);
 
@@ -101,8 +108,9 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
             subscribedSettings: [
                 CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
-                ...(shouldShowVendorMenuItems ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR] : []),
-                ...(shouldShowVendorMenuItems && qboConfig?.autoCreateVendor ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
+                // The Default vendor row is now always visible on the company card page for whichever export destination is active, so subscribe to the matching vendor key unconditionally. `autoCreateVendor` is no longer edited from this flow. It lives on the Advanced page and is subscribed there.
+                ...(shouldShowVendorMenuItems ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
+                ...(shouldShowCreditCardVendorMenuItem ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR] : []),
             ],
         },
         {
