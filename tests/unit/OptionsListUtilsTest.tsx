@@ -6423,6 +6423,13 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getReportOption', () => {
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+            jest.clearAllMocks();
+        });
+
         it('should return option with correct workspace name when policy is provided', async () => {
             const reportID = '101';
             const testPolicyID = 'policy123';
@@ -6453,9 +6460,16 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option.text).toBe('Test Workspace');
@@ -6487,9 +6501,16 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportOption({reportID}, undefined, undefined, selfPersonalDetails, undefined, undefined, undefined, ownerAccountID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant: {reportID},
+                privateIsArchived: undefined,
+                policy: undefined,
+                personalDetails: selfPersonalDetails,
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: ownerAccountID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
@@ -6544,9 +6565,16 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass the real personalDetails so the submits-to subtitle resolves to a name
-            const option = getReportOption(participant, undefined, policy, personalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy,
+                personalDetails,
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option.text).toBe('Test Workspace with Submit');
@@ -6570,7 +6598,17 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, report, CONST.DEFAULT_NUMBER_ID, {translate: translateLocal, dateFnsLocale: undefined});
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: report,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
+            });
 
             expect(option.isDisabled).toBe(true);
         });
@@ -6611,9 +6649,16 @@ describe('OptionsListUtils', () => {
                 isSelfDM: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, personalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails,
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             // The option.isSelfDM is set by createOption based on the report type
@@ -6649,9 +6694,16 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option.isInvoiceRoom).toBe(true);
@@ -6694,9 +6746,16 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: !!reportNameValuePair?.private_isArchived,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option.text).toBe(POLICY.name);
@@ -6740,9 +6799,16 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, {}, draftReport, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: !!reportNameValuePair?.private_isArchived,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: {},
+                reportDraft: draftReport,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option.isDisabled).toBe(true);
@@ -6762,9 +6828,16 @@ describe('OptionsListUtils', () => {
             const participant: Participant = {reportID, selected: false};
 
             // Pass reportDraft = undefined → not a draft, should NOT be disabled
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option.isDisabled).toBeFalsy();
@@ -6781,9 +6854,16 @@ describe('OptionsListUtils', () => {
             const participant: Participant = {reportID, selected: false};
 
             // Pass reportDraft explicitly → should be disabled regardless of Onyx state
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, draftReport, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: draftReport,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option.isDisabled).toBe(true);
@@ -6804,9 +6884,16 @@ describe('OptionsListUtils', () => {
             const participant: Participant = {reportID, selected: false};
 
             // Callers are responsible for passing reportDraft explicitly — undefined means not disabled
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option.isDisabled).toBeFalsy();
@@ -6993,9 +7080,16 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option.isSelected).toBe(true);
@@ -7017,9 +7111,16 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, undefined, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: undefined,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option).toBeDefined();
@@ -7042,9 +7143,16 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option).toBeDefined();
@@ -7081,9 +7189,16 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: testPersonalDetails,
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option).toBeDefined();
@@ -7146,9 +7261,16 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy,
+                personalDetails: testPersonalDetails,
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option).toBeDefined();
@@ -7174,9 +7296,16 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass empty personalDetails
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option).toBeDefined();
@@ -7199,9 +7328,16 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass undefined personalDetails
-            const option = getReportOption(participant, undefined, POLICY, undefined, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: undefined,
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option).toBeDefined();
@@ -7252,9 +7388,16 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: testPersonalDetails,
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option).toBeDefined();
@@ -7277,9 +7420,16 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, {}, conciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option).toBeDefined();
@@ -7299,9 +7449,16 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option).toBeDefined();
@@ -7339,9 +7496,16 @@ describe('OptionsListUtils', () => {
 
             // Passing conciergeReportID matching the reportID identifies this as the Concierge chat,
             // which affects getMovedTransactionMessage to use CONST.CONCIERGE_DISPLAY_NAME ('Concierge')
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, conciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const option = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: testPersonalDetails,
+                conciergeReportID,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             expect(option).toBeDefined();
@@ -7362,13 +7526,27 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const optionWithConcierge = getReportOption(participant, undefined, POLICY, {}, differentConciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const optionWithConcierge = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: differentConciergeReportID,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
-            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
-                translate: translateLocal,
-                dateFnsLocale: undefined,
+            const optionWithoutConcierge = getReportOption({
+                participant,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                localize: {translate: translateLocal, dateFnsLocale: undefined},
             });
 
             // Both should produce the same result since the IDs don't match

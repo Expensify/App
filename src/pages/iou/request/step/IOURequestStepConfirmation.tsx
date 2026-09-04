@@ -312,17 +312,17 @@ function IOURequestStepConfirmationContent({
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption(
+                    : getReportOption({
                           participant,
                           privateIsArchived,
-                          participantPolicy,
+                          policy: participantPolicy,
                           personalDetails,
                           conciergeReportID,
                           reportAttributesDerived,
-                          participantReportDraft,
-                          currentUserPersonalDetails.accountID,
-                          {translate, dateFnsLocale},
-                      );
+                          reportDraft: participantReportDraft,
+                          currentUserAccountID: currentUserPersonalDetails.accountID,
+                          localize: {translate, dateFnsLocale},
+                      });
             }) ?? [],
         [
             dateFnsLocale,
