@@ -107,7 +107,8 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
 
     const isTableItemInSearch: IsItemInSearchCallback<DomainAdminsTableRowData> = (item, searchValue) => {
         if (item.rowType === 'groupHeader') {
-            return false;
+            const groupRows = tableData.filter((row): row is DomainAdminRequestRowData | DomainAdminRowData => row.rowType !== 'groupHeader' && row.groupOrder === item.groupOrder);
+            return tokenizedSearch(groupRows, searchValue, (option) => [option.name, option.email]).length > 0;
         }
 
         const results = tokenizedSearch([item], searchValue, (option) => [option.name, option.email]);
