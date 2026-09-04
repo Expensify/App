@@ -20,7 +20,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
-import {startSplitBill} from '@libs/actions/IOU/Split';
+import {resolveOptimisticSplitChatReportID, startSplitBill} from '@libs/actions/IOU/Split';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable, getExistingTransactionID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
@@ -225,6 +225,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             splitReceipt.source = firstReceiptFile.source;
             splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
 
+            const {optimisticSplitChatReportID, chatReportID: splitChatReportID} = resolveOptimisticSplitChatReportID(reportID, participants, currentUserPersonalDetails.accountID);
             const splitBaseParams = {
                 participants,
                 currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -252,8 +253,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                     startSplitBill({
                         getCurrencyDecimals,
                         ...splitBaseParams,
-                        shouldHandleNavigation: overrides.shouldHandleNavigation,
-                        shouldDeferForSearch: false,
+                        optimisticSplitChatReportID,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,
@@ -262,7 +262,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         transactionID: getExistingTransactionID(linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID,
                         isFromGlobalCreate,
                         backToReport,
-                        optimisticChatReportID: chatReportID,
+                        optimisticChatReportID: splitChatReportID,
                         linkedTrackedExpenseReportAction,
                         isLookingAroundUser,
                         isSelfDMDestination,

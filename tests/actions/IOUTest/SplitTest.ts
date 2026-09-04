@@ -242,6 +242,12 @@ beforeAll(() => {
     return waitForBatchedUpdates();
 });
 
+// startSplitBill no longer returns the id, so find the one split transaction it wrote. Onyx is cleared per test.
+async function getScanSplitTransaction(): Promise<OnyxEntry<Transaction>> {
+    const transactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+    return Object.values(transactions ?? {}).find((transaction) => transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID);
+}
+
 beforeEach(async () => {
     jest.clearAllTimers();
     mockFetch = createGlobalFetchMock();
@@ -1170,7 +1176,7 @@ describe('split expense', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         // Start a scan split bill
-        const {splitTransactionID} = startSplitBill({
+        startSplitBill({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
@@ -1193,7 +1199,8 @@ describe('split expense', () => {
 
         await waitForBatchedUpdates();
 
-        let splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+        let splitTransaction = await getScanSplitTransaction();
+        const splitTransactionID = splitTransaction?.transactionID;
 
         // Then the description should be parsed correctly
         expect(splitTransaction?.comment?.comment).toBe('<h1>test</h1>');
@@ -1659,6 +1666,111 @@ describe('split expense', () => {
 });
 
 describe('startSplitBill', () => {
+    it('builds the split chat under the UI-provided optimisticSplitChatReportID when no chat exists yet', async () => {
+        const brandNewParticipantAccountID = 987321;
+        const participants: IOUParticipant[] = [{accountID: brandNewParticipantAccountID, login: 'brand-new-scan@test.com'}];
+        const optimisticSplitChatReportID = 'optimistic-scan-split-chat';
+
+        startSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: '',
+            receipt: {},
+            category: undefined,
+            tag: undefined,
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            optimisticSplitChatReportID,
+            policyRecentlyUsedTags: undefined,
+            quickAction: {},
+            policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags: {},
+            delegateAccountID: undefined,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+
+        const splitChatReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticSplitChatReportID}`);
+        expect(splitChatReport?.reportID).toBe(optimisticSplitChatReportID);
+    });
+
+    it('builds the group split chat under the UI-provided optimisticSplitChatReportID for multiple participants', async () => {
+        const participants: IOUParticipant[] = [
+            {accountID: 987322, login: 'brand-new-group-1@test.com'},
+            {accountID: 987323, login: 'brand-new-group-2@test.com'},
+        ];
+        const optimisticSplitChatReportID = 'optimistic-scan-group-chat';
+
+        startSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: '',
+            receipt: {},
+            category: undefined,
+            tag: undefined,
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            optimisticSplitChatReportID,
+            policyRecentlyUsedTags: undefined,
+            quickAction: {},
+            policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags: {},
+            delegateAccountID: undefined,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+
+        const splitChatReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticSplitChatReportID}`);
+        expect(splitChatReport?.reportID).toBe(optimisticSplitChatReportID);
+        expect(splitChatReport?.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+    });
+
+    it('keeps every scan when several receipts are split into one new group chat', async () => {
+        const participants: IOUParticipant[] = [
+            {accountID: 987400, login: 'multi-scan-1@test.com'},
+            {accountID: 987401, login: 'multi-scan-2@test.com'},
+        ];
+        const optimisticSplitChatReportID = 'optimistic-multi-scan-chat';
+        const baseParams = {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            receipt: {},
+            category: undefined,
+            tag: undefined,
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            optimisticSplitChatReportID,
+            policyRecentlyUsedTags: undefined,
+            quickAction: {},
+            policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags: {},
+            delegateAccountID: undefined,
+            formatPhoneNumber,
+        };
+
+        // Fire back-to-back like the scan loop, before the first write lands. Awaiting between would mask the overwrite.
+        startSplitBill({...baseParams, comment: 'first scan'});
+        startSplitBill({...baseParams, comment: 'second scan'});
+        await waitForBatchedUpdates();
+
+        const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticSplitChatReportID}`);
+        const actions = Object.values(reportActions ?? {});
+        const splitActions = actions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
+        const createdActions = actions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED));
+
+        expect(splitActions).toHaveLength(2);
+        expect(createdActions).toHaveLength(1);
+    });
+
     it('should update the policyRecentlyUsedTags when tag is provided', async () => {
         // Given a policy recently used tags
         const policyID = 'A';
@@ -1713,7 +1825,7 @@ describe('startSplitBill', () => {
         expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
     });
 
-    it('should return splitTransactionID and create the transaction in Onyx with correct values', async () => {
+    it('creates the split transaction in Onyx with correct values', async () => {
         // Given a participant
         const policyID = 'A';
         const testComment = 'Test split comment';
@@ -1724,7 +1836,7 @@ describe('startSplitBill', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         // When starting a split bill
-        const {splitTransactionID} = startSplitBill({
+        startSplitBill({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -1746,13 +1858,10 @@ describe('startSplitBill', () => {
 
         await waitForBatchedUpdates();
 
-        // Then the returned splitTransactionID should be defined
-        expect(splitTransactionID).toBeDefined();
-
-        // And the transaction should be created in Onyx with correct values
-        const createdTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+        // Then the transaction should be created in Onyx with correct values
+        const createdTransaction = await getScanSplitTransaction();
         expect(createdTransaction).toBeDefined();
-        expect(createdTransaction?.transactionID).toBe(splitTransactionID);
+        expect(createdTransaction?.transactionID).toBeDefined();
         expect(createdTransaction?.comment?.comment).toBe(testComment);
         expect(createdTransaction?.category).toBe(testCategory);
         expect(createdTransaction?.currency).toBe(testCurrency);
@@ -1774,7 +1883,7 @@ describe('startSplitBill', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         // When starting a split bill
-        const {splitTransactionID} = startSplitBill({
+        startSplitBill({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -1795,8 +1904,6 @@ describe('startSplitBill', () => {
         });
 
         await waitForBatchedUpdates();
-
-        expect(splitTransactionID).toBeDefined();
 
         // Then NVP_QUICK_ACTION_GLOBAL_CREATE should be updated with SPLIT_SCAN action
         const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -10266,7 +10373,7 @@ describe('startSplitBill delegateAccountID forwarding', () => {
         const participants: IOUParticipant[] = [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}];
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
-        const {splitTransactionID} = startSplitBill({
+        startSplitBill({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: RORY_EMAIL,
@@ -10294,7 +10401,6 @@ describe('startSplitBill delegateAccountID forwarding', () => {
             (action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         );
 
-        expect(splitTransactionID).toBeTruthy();
         expect(splitIOUAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
     });
 });

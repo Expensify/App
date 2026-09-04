@@ -1,5 +1,4 @@
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
-import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
 import DistanceField from '@components/MoneyRequestConfirmationList/sections/DistanceField';
 import MerchantField from '@components/MoneyRequestConfirmationList/sections/MerchantField';
@@ -8,13 +7,13 @@ import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFi
 import {useDetailsFields} from '@components/MoneyRequestConfirmationListFooter/DetailsFieldsContext';
 import type {AmountDisplay, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+
+import ConfirmationAmountField from './ConfirmationAmountField';
 
 type TransactionDetailsFieldsProps = {
     /** Active policy (read by Amount/Description/Rate/Merchant) */
@@ -41,7 +40,7 @@ type TransactionDetailsFieldsProps = {
  * footer variant of its own.
  */
 function TransactionDetailsFields({policy, amountDisplay, distanceData, requiredFlags, errorState, isParticipantPickerVisible}: TransactionDetailsFieldsProps) {
-    const {fieldVisibility, isCompactMode, iouCurrencyCode, shouldNavigateToUpgradePath, shouldSelectPolicy} = useDetailsFields();
+    const {fieldVisibility, isCompactMode, shouldNavigateToUpgradePath, shouldSelectPolicy} = useDetailsFields();
     const {
         action,
         iouType,
@@ -56,24 +55,16 @@ function TransactionDetailsFields({policy, amountDisplay, distanceData, required
         isOdometerDistanceRequest,
         isGPSDistanceRequest,
     } = useConfirmationFields();
-    const shouldAutoFocusAmountField = !canUseTouchScreen();
-
     return (
         <>
             {!isCompactMode && fieldVisibility.amount && (
-                <AmountField
-                    amount={amountDisplay.amount}
-                    formattedAmount={amountDisplay.formattedAmount}
-                    distanceRateCurrency={distanceData.distanceRateCurrency}
-                    iouCurrencyCode={iouCurrencyCode}
+                <ConfirmationAmountField
+                    policy={policy}
+                    amountDisplay={amountDisplay}
+                    errorState={errorState}
                     isDistanceRequest={fieldVisibility.distance}
                     shouldShowTimeRequestFields={fieldVisibility.time}
-                    shouldDisplayFieldError={errorState.shouldDisplayFieldError}
-                    formError={errorState.formError}
-                    policy={policy}
-                    clearFormErrors={errorState.clearFormErrors}
-                    setFormError={errorState.setFormError}
-                    autoFocus={shouldAutoFocusAmountField}
+                    distanceRateCurrency={distanceData.distanceRateCurrency}
                     isParticipantPickerVisible={isParticipantPickerVisible}
                 />
             )}

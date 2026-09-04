@@ -12,7 +12,6 @@ import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as Localize from '@libs/Localize';
-import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -46,7 +45,7 @@ import {
 } from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {addOptimization, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -200,8 +199,7 @@ type StartSplitBilActionParams = {
     taxAmount: number;
     taxValue?: string;
     shouldPlaySound?: boolean;
-    shouldHandleNavigation?: boolean;
-    shouldDeferForSearch?: boolean;
+    optimisticSplitChatReportID?: string;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -510,20 +508,25 @@ function startSplitBill({
     taxAmount = 0,
     taxValue,
     shouldPlaySound = true,
+    optimisticSplitChatReportID,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     quickAction,
     policyRecentlyUsedCurrencies,
     participantsPolicyTags,
-    shouldHandleNavigation = true,
-    shouldDeferForSearch = false,
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
-    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
+    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(
+        existingSplitChatReportID,
+        participants,
+        participantAccountIDs,
+        currentUserAccountID,
+        optimisticSplitChatReportID,
+    );
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
     const parsedComment = getParsedComment(comment);
 
@@ -877,20 +880,13 @@ function startSplitBill({
             API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
         },
         {
-            shouldDeferForSearch,
+            shouldDeferForSearch: false,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
 
-    if (shouldHandleNavigation) {
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, splitChatReport.reportID);
-        Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
-    }
     notifyNewAction(splitChatReport.reportID, undefined, true);
-
-    // Return the split transactionID for testing purpose
-    return {splitTransactionID: splitTransaction.transactionID};
 }
 
 /** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
@@ -1396,6 +1392,25 @@ function setIndividualShare(transactionID: string, participantAccountID: number,
     });
 }
 
+/*
+ * getAllReports lags Onyx by a tick, so within one synchronous split burst a later scan cannot see the new chat
+ * an earlier scan just minted. Track the ids minted this tick so later scans add to that chat, not recreate it.
+ */
+const splitChatReportIDsCreatedThisTick = new Set<string>();
+let isSplitChatLedgerResetScheduled = false;
+
+function rememberSplitChatReportCreatedThisTick(reportID: string) {
+    splitChatReportIDsCreatedThisTick.add(reportID);
+    if (isSplitChatLedgerResetScheduled) {
+        return;
+    }
+    isSplitChatLedgerResetScheduled = true;
+    queueMicrotask(() => {
+        splitChatReportIDsCreatedThisTick.clear();
+        isSplitChatLedgerResetScheduled = false;
+    });
+}
+
 function findExistingSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
     const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
@@ -1433,26 +1448,31 @@ function getOrCreateOptimisticSplitChatReport(
         return {existingSplitChatReport, splitChatReport: existingSplitChatReport};
     }
 
-    // Create a Group Chat if we have multiple participants
-    if (participants.length > 1) {
-        const splitChatReport = buildOptimisticChatReport({
-            participantList: [...participantAccountIDs, currentUserAccountID],
-            reportName: '',
-            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-            currentUserAccountID,
-            optimisticReportID: optimisticSplitChatReportID,
-        });
+    // Create a Group Chat if we have multiple participants, otherwise a new 1:1 chat report.
+    const splitChatReport =
+        participants.length > 1
+            ? buildOptimisticChatReport({
+                  participantList: [...participantAccountIDs, currentUserAccountID],
+                  reportName: '',
+                  chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                  notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                  currentUserAccountID,
+                  optimisticReportID: optimisticSplitChatReportID,
+              })
+            : buildOptimisticChatReport({
+                  participantList: participantAccountIDs,
+                  currentUserAccountID,
+                  optimisticReportID: optimisticSplitChatReportID,
+              });
 
-        return {existingSplitChatReport: null, splitChatReport};
+    // Already minted by an earlier scan this tick, so add to it instead of recreating it.
+    if (optimisticSplitChatReportID && splitChatReportIDsCreatedThisTick.has(optimisticSplitChatReportID)) {
+        return {existingSplitChatReport: splitChatReport, splitChatReport};
     }
 
-    // Otherwise, create a new 1:1 chat report
-    const splitChatReport = buildOptimisticChatReport({
-        participantList: participantAccountIDs,
-        currentUserAccountID,
-        optimisticReportID: optimisticSplitChatReportID,
-    });
+    if (optimisticSplitChatReportID) {
+        rememberSplitChatReportCreatedThisTick(optimisticSplitChatReportID);
+    }
     return {existingSplitChatReport: null, splitChatReport};
 }
 

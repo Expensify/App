@@ -17,10 +17,12 @@ import TimeFooter from './variants/TimeFooter';
 function MoneyRequestConfirmationListFooter(props: MoneyRequestConfirmationListFooterProps) {
     const {action, isPerDiemRequest, isTimeRequest} = useConfirmationFields();
 
-    if (isPerDiemRequest && action !== CONST.IOU.ACTION.SUBMIT) {
+    // Per diem is selected by type, not action: DefaultFooter has no per-diem section, so per diem must always use its own footer.
+    if (isPerDiemRequest) {
         return <PerDiemFooter {...props} />;
     }
 
+    // Time only needs its own footer on create. Other actions fall back to DefaultFooter, which renders time fields too.
     if (isTimeRequest && action === CONST.IOU.ACTION.CREATE) {
         return <TimeFooter {...props} />;
     }

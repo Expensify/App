@@ -1,4 +1,3 @@
-import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
 import {useDetailsFields} from '@components/MoneyRequestConfirmationListFooter/DetailsFieldsContext';
@@ -9,6 +8,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+
+import ConfirmationAmountField from './ConfirmationAmountField';
 
 type TimeDetailsFieldsProps = {
     /** Active policy */
@@ -25,19 +26,17 @@ type TimeDetailsFieldsProps = {
 };
 
 function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorState}: TimeDetailsFieldsProps) {
-    const {fieldVisibility, iouCurrencyCode} = useDetailsFields();
+    const {fieldVisibility} = useDetailsFields();
 
     return (
         <>
             {fieldVisibility.amount && (
-                <AmountField
-                    amount={amountDisplay.amount}
-                    formattedAmount={amountDisplay.formattedAmount}
-                    iouCurrencyCode={iouCurrencyCode}
+                <ConfirmationAmountField
+                    policy={policy}
+                    amountDisplay={amountDisplay}
+                    errorState={errorState}
                     isDistanceRequest={false}
                     shouldShowTimeRequestFields
-                    policy={policy}
-                    {...errorState}
                 />
             )}
 
