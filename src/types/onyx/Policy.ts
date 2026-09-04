@@ -3373,7 +3373,6 @@ export type {
     ExpenseRule,
     CodingRule,
     CodingRuleFilter,
-    CodingRuleTax,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,

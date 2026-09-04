@@ -361,7 +361,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
             return;
         }
 
-        const {rules, skippedDuplicateCount, invalidCategoryNames} = parsedRules;
+        const {rules: parsedMerchantRules, skippedDuplicateCount, invalidCategoryNames} = parsedRules;
 
         setIsImportingRules(true);
         // When every row was skipped (duplicate rules and/or unknown categories), skip the API call and confirm that nothing was added
@@ -375,7 +375,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                       pendingMessageKeyParams: {count: invalidCategoryNames.size},
                   }),
               }
-            : await importMerchantRulesSpreadsheet(policyID, rules, invalidCategoryNames.size);
+            : await importMerchantRulesSpreadsheet(policyID, parsedMerchantRules, invalidCategoryNames.size);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImportingRules(false);
