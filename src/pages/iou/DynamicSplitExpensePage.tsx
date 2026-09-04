@@ -94,7 +94,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
-    const {splitReportID: reportID, transactionID, splitExpenseTransactionID} = route.params;
+    const {splitReportID: reportID, originalTransactionID: transactionID, splitExpenseTransactionID} = route.params;
 
     // The search variant is a separate dynamic route, so the suffix to strip depends on which screen is rendered.
     const dynamicRouteSuffix =
@@ -465,7 +465,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
         const isApproved = isReportApproved({report: currentItemReport});
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
-        const isCancelled = currentItemReport?.isCancelledIOU;
         const percentage = adjustedPercentages.at(index) ?? 0;
 
         const date = DateUtils.formatWithUTCTimeZone(
@@ -475,9 +474,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         );
         previewHeaderText.unshift({text: date}, dotSeparator);
 
-        if (isCancelled) {
-            previewHeaderText.push(dotSeparator, {text: translate('iou.canceled')});
-        } else if (isApproved) {
+        if (isApproved) {
             previewHeaderText.push(dotSeparator, {text: translate('iou.approved')});
         } else if (isSettled) {
             previewHeaderText.push(dotSeparator, {text: translate('iou.settledExpensify')});
@@ -608,7 +605,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         KeyboardUtils.dismiss({
             afterTransition: () => {
                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
-                Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, item.transactionID)));
             },
         });
     };

@@ -20,6 +20,8 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isPolicyOwner,
+    isSubmitPolicy,
     isWorkspaceProvisionedForTravel,
 } from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
@@ -33,6 +35,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
+import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
@@ -65,6 +68,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const intent = useOnboardingIntent();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -96,17 +100,37 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return {shouldShowSection: true, items: builtItems};
     };
 
-    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && intent !== CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+    // "Submit expenses to my employer" writes EMPLOYER when the user picks it themselves and SUBMIT when they were
+    // invited to someone else's workspace. Only the former should see this section, which the ownership gate below enforces.
+    const isSubmitIntent = intent === CONST.ONBOARDING_CHOICES.EMPLOYER || intent === CONST.ONBOARDING_CHOICES.SUBMIT;
+
+    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && intent !== CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !isSubmitIntent) {
         return emptyResult;
     }
 
-    if (!isWithinGettingStartedPeriod(firstDayFreeTrial)) {
+    // Submit is a free plan, so nvp_private_firstDayFreeTrial is only ever written if the user later upgrades, and by then the
+    // workspace is a paid one that the isSubmitPolicy gate below excludes. nvp_private_firstPolicyCreatedDate is no good
+    // either: it points at the account's very first workspace, which can be an older one the user has since deleted, so a
+    // brand-new Submit workspace would inherit an expired window. Anchor on the Submit workspace's own creation time, which
+    // createWorkspace also writes optimistically so the section still renders while the user is offline.
+    if (!isWithinGettingStartedPeriod(isSubmitIntent ? policy?.created : firstDayFreeTrial)) {
         return emptyResult;
     }
 
-    // When there is no active paid workspace to run onboarding against (e.g. the user just deleted their only
+    const hasUsableWorkspace = !!activePolicyID && !!policy && !isPendingDeletePolicy(policy);
+
+    // These steps describe a Submit workspace, and the one for this intent is auto-created by useAutoCreateSubmitWorkspace, so
+    // there is no "Create a workspace" step to offer. That step would also send the user to WORKSPACE_CONFIRMATION, which
+    // creates a paid workspace, and completing it would make the section disappear rather than advance. Hide instead. This
+    // also covers the user who already owns an editable Team or Corporate workspace, for whom useAutoCreateSubmitWorkspace
+    // deliberately creates nothing, so these steps would otherwise run against a workspace they do not describe.
+    if (isSubmitIntent && (!hasUsableWorkspace || !isSubmitPolicy(policy))) {
+        return emptyResult;
+    }
+
+    // When there is no active workspace to run onboarding against (e.g. the user just deleted their only
     // workspace), keep the section visible with a single actionable step to create one instead of hiding it.
-    if (!activePolicyID || !policy || isPendingDeletePolicy(policy) || !isPaidGroupPolicy(policy)) {
+    if (!isSubmitIntent && (!hasUsableWorkspace || !isPaidGroupPolicy(policy))) {
         return {
             shouldShowSection: true,
             items: [
@@ -121,8 +145,44 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         };
     }
 
-    if (!isPolicyAdmin(policy)) {
+    // Both guards above already return when there is no usable workspace. This repeats the check so TypeScript narrows
+    // activePolicyID and policy for the rest of the hook.
+    if (!activePolicyID || !policy) {
         return emptyResult;
+    }
+
+    // Submit workspaces use a flat role model. `getRoleForCallerOnNewPolicy` hands even the creator the `editor` role, and
+    // `updateWorkspaceMembersRole` refuses to change it, so `isPolicyAdmin` is never true for them. Gate the Submit intent on
+    // ownership instead: true for the workspace auto-created during onboarding, false for members invited to someone else's.
+    if (isSubmitIntent ? !isPolicyOwner(policy, currentUserAccountID) : !isPolicyAdmin(policy)) {
+        return emptyResult;
+    }
+
+    // The Submit intent has exactly two to-dos and no "Create a workspace" step, because the workspace already exists here.
+    if (isSubmitIntent) {
+        const submitItems: GettingStartedItem[] = [];
+
+        // Only surface the categories step while the Categories feature is enabled. Disabling it from the
+        // More features menu hides this step, and re-enabling it brings the step back.
+        if (policy.areCategoriesEnabled) {
+            submitItems.push({
+                key: 'customizeExpenseCategories',
+                label: translate('homePage.gettingStartedSection.customizeExpenseCategories'),
+                subText: translate('homePage.gettingStartedSection.customizeExpenseCategoriesSubText'),
+                isComplete: hasCustomCategories(policyCategories),
+                route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+            });
+        }
+
+        submitItems.push({
+            key: 'linkPersonalCard',
+            label: translate('homePage.gettingStartedSection.linkPersonalCard'),
+            subText: translate('homePage.gettingStartedSection.linkPersonalCardSubText'),
+            isComplete: Object.keys(personalCards).length > 0,
+            route: ROUTES.SETTINGS_WALLET,
+        });
+
+        return buildResult(submitItems);
     }
 
     const items: GettingStartedItem[] = [];

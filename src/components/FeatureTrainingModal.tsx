@@ -1,8 +1,6 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
@@ -10,27 +8,51 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ReactNode} from 'react';
 import type {ViewStyle} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
 
-import type {FeatureTrainingContentProps} from './FeatureTrainingContent';
-
-import FeatureTrainingContent from './FeatureTrainingContent';
+import FeatureTraining from './FeatureTraining';
 import Modal from './Modal';
 
 const MODAL_PADDING = variables.spacing2;
 
-type FeatureTrainingModalProps = FeatureTrainingContentProps & {
-    /** Styles for the modal inner container */
+type FeatureTrainingModalProps = {
+    /** Called when the user confirms the tutorial */
+    onConfirm?: (willShowAgain: boolean) => void;
+
+    /** Called when the modal closes */
+    onClose?: () => void;
+
+    /** Whether the modal should close after confirm */
+    shouldCloseOnConfirm?: boolean;
+
+    /** Whether the modal content should render inside a ScrollView */
+    shouldUseScrollView?: boolean;
+
+    /** Modal content width */
+    width?: number;
+
+    /** Style for the modal inner container */
     modalInnerContainerStyle?: ViewStyle;
+
+    /** Composed feature training content */
+    children?: ReactNode;
 };
 
-function FeatureTrainingModal({modalInnerContainerStyle, onConfirm, onClose, shouldUseScrollView: shouldUseScrollViewProp = false, ...contentProps}: FeatureTrainingModalProps) {
+function FeatureTrainingModal({
+    modalInnerContainerStyle,
+    onConfirm,
+    onClose,
+    shouldCloseOnConfirm = true,
+    shouldUseScrollView: shouldUseScrollViewProp = false,
+    width,
+    children,
+}: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeModeUtil(windowWidth, windowHeight);
+    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const pendingCloseRef = useRef(false);
 
@@ -91,12 +113,20 @@ function FeatureTrainingModal({modalInnerContainerStyle, onConfirm, onClose, sho
             shouldDisableBottomSafeAreaPadding={shouldUseScrollView}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
         >
-            <FeatureTrainingContent
-                {...contentProps}
+            <FeatureTraining
                 shouldUseScrollView={shouldUseScrollViewProp}
-                onConfirm={onConfirm}
+                onConfirm={(willShowAgain) => {
+                    onConfirm?.(willShowAgain);
+                    if (!shouldCloseOnConfirm) {
+                        return;
+                    }
+                    closeModal();
+                }}
                 onClose={closeModal}
-            />
+                width={width}
+            >
+                {children}
+            </FeatureTraining>
         </Modal>
     );
 }

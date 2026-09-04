@@ -158,7 +158,7 @@ function openPersonalBankAccountSetupView({
 
         if (!isUserValidated) {
             // This flow always adds a personal deposit account, so the purpose screen is skipped once the account is validated.
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true)));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, shouldSetUpUSBankAccount)));
             return;
         }
         if (shouldSetUpUSBankAccount) {
@@ -1725,6 +1725,13 @@ function shareBankAccountAndSetPayer(bankAccountID: number, shareeAccountID: num
 }
 
 /**
+ * Get the current user's bank accounts outside of a React context
+ */
+function getBankAccountList() {
+    return bankAccountList;
+}
+
+/**
  * Get bank account from bankAccountID
  */
 function getBankAccountFromID(bankAccountID: number | undefined) {
@@ -1925,6 +1932,7 @@ export {
     clearPersonalBankAccountErrors,
     clearReimbursementAccountSendReminderForCorpaySignerInformation,
     getBankAccountFromID,
+    getBankAccountList,
     openBankAccountSharePage,
     clearShareBankAccountErrors,
     updatePersonalBankAccountInfo,

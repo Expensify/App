@@ -76,8 +76,21 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Text} = jest.requireActual<{Text: typeof ReactNativeText}>('react-native');
-    return ({pressableTestID, brickRoadIndicator}: {pressableTestID: string; brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) =>
-        ReactMock.createElement(Text, {testID: pressableTestID}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`);
+    return ({
+        pressableTestID,
+        brickRoadIndicator,
+        furtherDetails,
+    }: {
+        pressableTestID: string;
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+        furtherDetails?: string;
+    }) =>
+        ReactMock.createElement(
+            ReactMock.Fragment,
+            null,
+            ReactMock.createElement(Text, {testID: pressableTestID}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`),
+            furtherDetails ? ReactMock.createElement(Text, {testID: `${pressableTestID}-further-details`}, furtherDetails) : null,
+        );
 });
 
 describe('ProfilePage contact method indicator', () => {
@@ -253,6 +266,39 @@ describe('ProfilePage - agent account', () => {
         expect(screen.queryByTestId('pronouns-menu-item')).toBeNull();
         expect(screen.queryByTestId('timezone-menu-item')).toBeNull();
         expect(screen.getByText('Private')).toBeDefined();
+    });
+
+    it('names the workspace that calculates commuter exclusions from the home address', async () => {
+        await setupUser('user@expensify.com');
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                id: '1',
+                name: 'Boulder Development',
+                commuterExclusions: {method: 'homeAndOffice'},
+            });
+        });
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('address-menu-item-further-details')).toHaveTextContent('Boulder Development uses this address for commuter exclusions.');
+    });
+
+    it('does not mention commuter exclusions when no workspace calculates them from the home address', async () => {
+        await setupUser('user@expensify.com');
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                id: '1',
+                name: 'Boulder Development',
+                commuterExclusions: {method: 'fixedDistance', fixedDistance: 1, fixedDistanceUnit: 'mi'},
+            });
+        });
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('address-menu-item')).toBeDefined();
+        expect(screen.queryByTestId('address-menu-item-further-details')).toBeNull();
     });
 
     it('shows contact methods, pronouns, timezone and private section for non-agent account', async () => {
