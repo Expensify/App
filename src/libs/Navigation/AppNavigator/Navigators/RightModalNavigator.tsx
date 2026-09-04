@@ -271,7 +271,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         onContainerRef={setContainerNodeFromRef}
                         style={[
                             styles.pAbsolute,
-                            styles.overflowHidden,
+                            // The docked frame must not clip — its cards draw their own border/shadow that overflows the
+                            // frame edges. Narrow/native full-bleed and the right-anchored floating card still clip.
+                            !useCenteredReportModal && styles.overflowHidden,
                             // Floating card for every RHP on wide layout (skinny, wide, super-wide). Narrow/native full-bleed.
                             frameCardStyle,
                             animatedWidthStyle,

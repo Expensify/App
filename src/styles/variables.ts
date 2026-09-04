@@ -123,6 +123,9 @@ export default {
     superWideRHPLeftMargin: 360,
     // Floating RHP card experiment (wide layout / web+desktop only): inset from the screen edges.
     rhpFloatingCardMargin: 12,
+    // Border radius and inset margin for the fully-rounded, inset bottom-docked modal (create expense menu experiment).
+    bottomDockedInsetBorderRadius: 24,
+    bottomDockedInsetMargin: 8,
     // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
     rhpWidth: 440,
     // Right (detail) pane width of the wide/super-wide expense views. Decoupled from rhpWidth so the expense

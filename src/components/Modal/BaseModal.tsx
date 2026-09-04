@@ -100,7 +100,9 @@ function BaseModal({
 
     // This prop does not have a default value, because React Compiler throws an internal error if this is provided as a default value.
     const shouldApplySidePanelOffset = shouldApplySidePanelOffsetProp ?? type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
-    const isModalCovering = shouldTreatModalAsCovering ?? (type !== CONST.MODAL.MODAL_TYPE.POPOVER && type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
+    const isModalCovering =
+        shouldTreatModalAsCovering ??
+        (type !== CONST.MODAL.MODAL_TYPE.POPOVER && type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED_INSET);
     const sidePanelAnimatedStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
@@ -159,7 +161,10 @@ function BaseModal({
         if (isVisible) {
             shouldCallHideModalOnUnmount.current = true;
             setModalCovering(coveringModalID, isModalCovering);
-            willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
+            willAlertModalBecomeVisible(
+                true,
+                type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED_INSET,
+            );
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             if (onClose) {
                 removeOnCloseListener = setCloseModal(onClose);
@@ -222,7 +227,7 @@ function BaseModal({
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
     useEffect(() => {
-        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || !canUseTouchScreen || !isSmallScreenWidth) {
+        if ((type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED_INSET) || !canUseTouchScreen || !isSmallScreenWidth) {
             return;
         }
         const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
@@ -308,10 +313,11 @@ function BaseModal({
 
     const dragArea = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ? undefined : false;
 
-    const isBottomDockedModalInLandscapeMode = type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && isInLandscapeMode;
+    const isBottomDockedModalInLandscapeMode = (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED_INSET) && isInLandscapeMode;
 
     const shouldWrapChildrenInScrollView = shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode && isBottomDockedModalInLandscapeMode;
-    const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
+    const shouldShowBottomDockedDismissButton =
+        isSmallScreenWidth && (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED_INSET) && !!(onBackdropPress ?? onClose);
     // `bottomDockedDismissButtonRef.current` can be `null` by the time focus-trap reads `initialFocus` (the read is
     // deferred via setTimeout) — e.g. the sheet was dismissed quickly, or a layout change flipped `shouldShowBottomDockedDismissButton`
     // and unmounted the button. focus-trap throws on a `null` (vs `false`) initial focus, so coerce it to `false` ("no initial focus").

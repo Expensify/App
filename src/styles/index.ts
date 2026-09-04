@@ -1267,6 +1267,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.bordersBold,
         },
 
+        // Search router popover: keep the base shadow, then layer wider/lighter brand-tinted shadows behind it so the
+        // popover reads as clearly separated from the background.
+        searchRouterPopoverShadow: {
+            boxShadow: `${theme.shadow}, 0px 0px 1px 0px rgba(2,18,4,0.072), 0px 8px 16px 4px rgba(2,18,4,0.036), 0px 18px 40px 8px rgba(2,18,4,0.027)`,
+        },
+
         /**
          * Matches the border and padding of editableCell so column headers stay
          * visually aligned with their editable cells.

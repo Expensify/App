@@ -35,6 +35,9 @@ type PopoverProps = BaseModalProps &
         /** Whether we want to show the popover on the right side of the screen */
         fromSidebarMediumScreen?: boolean;
 
+        /** On narrow layout, render the bottom-docked modal as a fully-rounded, inset floating card above the home bar */
+        shouldUseInsetBottomDocked?: boolean;
+
         /** Whether we should close when browser navigation change. This doesn't affect native platform */
         shouldCloseWhenBrowserNavigationChanged?: boolean;
 

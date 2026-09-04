@@ -40,7 +40,10 @@ function Popover(props: PopoverProps) {
         animationOut = 'fadeOut',
         shouldCloseWhenBrowserNavigationChanged = true,
         enableEdgeToEdgeBottomSafeAreaPadding,
+        shouldUseInsetBottomDocked,
     } = props;
+
+    const narrowModalType = shouldUseInsetBottomDocked ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED_INSET : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED;
 
     // We need to use isSmallScreenWidth to apply the correct modal type and popoverAnchorPosition
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -150,7 +153,7 @@ function Popover(props: PopoverProps) {
             {...props}
             onClose={onCloseWithPopoverContext}
             shouldHandleNavigationBack={props.shouldHandleNavigationBack}
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
+            type={isSmallScreenWidth ? narrowModalType : CONST.MODAL.MODAL_TYPE.POPOVER}
             popoverAnchorPosition={isSmallScreenWidth ? undefined : anchorPosition}
             fullscreen={shouldUseNarrowLayout ? true : fullscreen}
             animationInTiming={disableAnimation && !shouldUseNarrowLayout ? DISABLED_ANIMATION_DURATION : animationInTiming}

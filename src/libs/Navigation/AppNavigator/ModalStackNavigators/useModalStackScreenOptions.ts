@@ -58,6 +58,9 @@ function useWideModalStackScreenOptions() {
                 } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
+                        // The slide interpolator clips its card container; override so the skinny card's border/shadow can
+                        // overflow the container edges instead of being cut off.
+                        containerStyle: {overflow: 'visible'},
                     });
                 }
             }

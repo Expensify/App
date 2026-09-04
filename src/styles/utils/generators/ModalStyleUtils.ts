@@ -67,7 +67,6 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         popoverAnchorPosition = {},
         innerContainerStyle = {},
         outerStyle = {},
-        shouldUseModalPaddingStyle = true,
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
         enableEdgeToEdgeBottomSafeAreaPadding = false,
         shouldDisplayBelowModals = false,
@@ -233,35 +232,37 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddBottomSafeAreaPadding = false;
                 break;
             case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
+            case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED_INSET:
+                // Bottom-docked modals float: fully rounded, inset 8px on every side, and lifted above the safe area so they
+                // sit on top of the home bar (the safe area is added as margin below the card, not padding inside it).
+                // The horizontal and top insets are padding on the outer modal so the card's width:100% can never exceed
+                // the viewport (avoids off-screen overflow for content-measured popovers).
                 modalStyle = {
                     ...modalStyle,
                     alignItems: 'center',
                     justifyContent: 'flex-end',
                     height: '100%',
+                    paddingHorizontal: variables.bottomDockedInsetMargin,
+                    paddingTop: variables.bottomDockedInsetMargin,
                     zIndex: shouldDisplayBelowModals ? variables.modalLowestZIndex : variables.modalBaseZIndex,
                 };
                 modalContainerStyle = {
                     width: '100%',
-                    borderTopLeftRadius: variables.componentBorderRadiusLarge,
-                    borderTopRightRadius: variables.componentBorderRadiusLarge,
+                    // Explicit numeric marginBottom so getModalPaddingStyles adds the safe area to it (instead of replacing it).
+                    marginBottom: variables.bottomDockedInsetMargin,
+                    borderRadius: variables.bottomDockedInsetBorderRadius,
+                    borderWidth: 1,
+                    borderColor: theme.border,
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,
-                    // Workaround for Safari not supporting interactive-widget=resizes-content, sets max height of a container modal.
-                    // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
-                    // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
                     ...(isMobile() ? {maxHeight: `${windowDimensions.windowHeight}px`, height: 'fit-content'} : {}),
                 };
 
-                if (shouldUseModalPaddingStyle) {
-                    modalContainerStyle.paddingTop = variables.componentBorderRadiusLarge;
-
-                    if (!enableEdgeToEdgeBottomSafeAreaPadding) {
-                        modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
-                    }
-                }
-
-                shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding && !safeAreaOptions?.shouldDisableBottomSafeAreaPadding;
+                // Push the card above the home bar: the bottom safe area is added to the 8px bottom margin (below the
+                // card), never as padding inside it. On mobile web there is no home bar, so the margin stays 8px.
+                shouldAddBottomSafeAreaPadding = false;
+                shouldAddBottomSafeAreaMargin = true;
                 shouldAddTopSafeAreaMargin = !!safeAreaOptions?.modalOverlapsWithTopSafeArea;
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
