@@ -32,6 +32,7 @@ import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<ConnectExistingBankAccountNavigatorParamList, typeof SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT>;
 
@@ -42,7 +43,6 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -56,11 +56,12 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
     const [isSelectingBankAccount, setIsSelectingBankAccount] = useState(false);
 
-    const handleAddBankAccountPress = () => {
+    const handleAddBankAccountPress = async () => {
         // When changing the bank account we prepare a fresh setup (clearing the current account without disconnecting it).
         // We keep the policyID in the route so the newly connected account still links to the workspace's Workflows > Payments.
         // We must not set the loading flag here: during the change flow the page skips fetchData, so nothing would reset it.
         if (isChangingBankAccount) {
+            const reimbursementAccount = await Onyx.get(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
             prepareNewBankAccountSetup(policyCurrency, reimbursementAccount);
         } else {
             setReimbursementAccountLoading(true);

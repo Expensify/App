@@ -127,7 +127,7 @@ type PaymentMethodListProps = {
     shouldShowBankAccountSections?: boolean;
 
     /** Function to be called when the user presses the add bank account button */
-    onAddBankAccountPress?: () => void;
+    onAddBankAccountPress?: () => void | Promise<void>;
 
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;

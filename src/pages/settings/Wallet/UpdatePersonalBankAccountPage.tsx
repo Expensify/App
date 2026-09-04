@@ -32,6 +32,7 @@ import type {BankAccountList} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 
 const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 
@@ -106,8 +107,6 @@ function UpdatePersonalBankAccountPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [homeAddressDraft] = useOnyx(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT);
     const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -142,10 +141,15 @@ function UpdatePersonalBankAccountPage() {
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
     };
 
-    const submitPersonalInfo = (finishData?: unknown) => {
+    const submitPersonalInfo = async (finishData?: unknown) => {
         if (!personalBankAccount?.bankAccountID || personalBankAccount?.isLoading) {
             return;
         }
+
+        const [privatePersonalDetails, personalBankAccountDraft] = await Promise.all([
+            Onyx.get(ONYXKEYS.PRIVATE_PERSONAL_DETAILS),
+            Onyx.get(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT),
+        ]);
 
         // AddressStep forwards its form values via finishData so prefilled fields (e.g. auto-filled zip) aren't lost.
         const submittedAddress = finishData as SubmittedAddress | undefined;

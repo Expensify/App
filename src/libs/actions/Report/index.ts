@@ -263,7 +263,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {PartialDeep, ValueOf} from 'type-fest';
+import type {PartialDeep, ReadonlyDeep, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 import {Str} from 'expensify-common';
@@ -404,7 +404,7 @@ type PregeneratedResponseParams = {
 };
 
 type AddCommentParams = {
-    report: OnyxEntry<Report>;
+    report: ReadonlyDeep<OnyxEntry<Report>>;
     notifyReportID: string;
     ancestors: Ancestor[];
     text: string;
@@ -421,7 +421,7 @@ type AddCommentParams = {
 };
 
 type AddActionsParams = {
-    report: OnyxEntry<Report>;
+    report: ReadonlyDeep<OnyxEntry<Report>>;
     notifyReportID: string | string[];
     ancestors: Ancestor[];
     timezoneParam: Timezone;
@@ -3325,7 +3325,7 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
 
 /** Deletes a comment from the report, basically sets it as empty string */
 function deleteReportComment(
-    report: OnyxEntry<Report>,
+    report: ReadonlyDeep<OnyxEntry<Report>>,
     reportAction: ReportAction,
     originalReportActions: OnyxEntry<ReportActions>,
     reportActions: OnyxEntry<ReportActions>,

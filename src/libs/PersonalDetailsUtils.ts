@@ -10,7 +10,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {SetNonNullable} from 'type-fest';
+import type {ReadonlyDeep, SetNonNullable} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -424,7 +424,7 @@ function getStreetLines(street = '') {
  * @param privatePersonalDetails - details object
  * @returns - current address object
  */
-function getCurrentAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Address | undefined {
+function getCurrentAddress(privatePersonalDetails: ReadonlyDeep<OnyxEntry<PrivatePersonalDetails>>): ReadonlyDeep<Address> | undefined {
     const {addresses} = privatePersonalDetails ?? {};
     const currentAddress = addresses?.find((address) => address.current);
     return currentAddress ?? addresses?.[addresses.length - 1];

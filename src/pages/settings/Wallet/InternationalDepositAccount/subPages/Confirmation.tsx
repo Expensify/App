@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 
 import React, {useCallback, useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 
 const STEP_INDEXES = CONST.CORPAY_FIELDS.INDEXES.MAPPING;
 
@@ -47,7 +48,6 @@ function TermsAndConditionsLabel() {
 function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {isOffline} = useNetwork();
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -64,7 +64,8 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         return formValues[fieldName];
     };
 
-    const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
+    const getDataAndGoToNextStep = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
+        const corpayFields = await Onyx.get(ONYXKEYS.CORPAY_FIELDS);
         createCorpayBankAccountForWalletFlow({...formValues, ...values}, corpayFields?.classification ?? '', corpayFields?.destinationCountry ?? '', corpayFields?.preferredMethod ?? '');
     };
 

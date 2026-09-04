@@ -88,10 +88,10 @@ import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
 import {originalTransactionIDSelector} from '@selectors/Transaction';
 import {getUnixTime} from 'date-fns';
-import lodashClone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
 import {getAllTransactions} from './IOU';
@@ -101,7 +101,7 @@ type SaveWaypointProps = {
     index: string;
     waypoint: RecentWaypoint | null;
     isDraft?: boolean;
-    recentWaypointsList?: RecentWaypoint[];
+    recentWaypointsList?: ReadonlyDeep<RecentWaypoint[]>;
     isSplitDraftTransaction?: boolean;
 };
 
@@ -158,7 +158,7 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
     }
     const recentWaypointAlreadyExists = recentWaypointsList.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
     if (!recentWaypointAlreadyExists && waypoint !== null) {
-        const clonedWaypoints = lodashClone(recentWaypointsList);
+        const clonedWaypoints = [...recentWaypointsList];
         const updatedWaypoint = {...waypoint, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         clonedWaypoints.unshift(updatedWaypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER));

@@ -23,7 +23,7 @@ import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {ReadonlyDeep, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
@@ -664,7 +664,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
  * Get eligible business bank accounts for the workspace reimbursement workflow
  */
 function getEligibleExistingBusinessBankAccounts(
-    bankAccountList: BankAccountList | undefined,
+    bankAccountList: ReadonlyDeep<BankAccountList> | undefined,
     policyCurrency: string | undefined,
     shouldIncludePartiallySetup?: boolean,
     excludeBankAccountID?: number,

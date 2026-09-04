@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-unsafe-onyx-read -- this suite asserts on Search snapshot keys directly, and no SearchScopeProvider exists in a test to redirect them */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
@@ -32,7 +33,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
 import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
@@ -2205,8 +2205,8 @@ describe('Transaction', () => {
             saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const updatedRecentWaypoints = await Onyx.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
             expect(transaction?.comment?.waypoints?.[`waypoint${index}`]).toEqual(waypoint);
             expect(updatedRecentWaypoints?.[0]?.address).toBe('123 Main St');
@@ -2224,7 +2224,7 @@ describe('Transaction', () => {
             saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
             await waitForBatchedUpdates();
 
-            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+            const updatedRecentWaypoints = await Onyx.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
             expect(updatedRecentWaypoints?.length ?? 0).toBe(0);
         });
 
@@ -2240,7 +2240,7 @@ describe('Transaction', () => {
             saveWaypoint({transactionID, index, waypoint, isDraft: true, recentWaypointsList});
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(transaction?.amount).toBe(CONST.IOU.DEFAULT_AMOUNT);
         });
 
@@ -2273,7 +2273,7 @@ describe('Transaction', () => {
             saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.errorFields?.route ?? null).toBeNull();
             expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
@@ -2302,7 +2302,7 @@ describe('Transaction', () => {
             saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList: []});
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
 
             // The route distance belongs to the old waypoints, so it must not survive to be distance-matched
@@ -2341,7 +2341,7 @@ describe('Transaction', () => {
             await removeWaypoint(existingTransaction, '1');
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
             expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
         });
@@ -2382,7 +2382,7 @@ describe('Transaction', () => {
             await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, transactionState);
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${keyPrefix}${transactionID}`);
+            const transaction = await Onyx.get(`${keyPrefix}${transactionID}`);
             expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
             expect(transaction?.comment?.customUnit?.quantity).toBe(20);
             expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(ROUTE1_DISTANCE_METERS);
@@ -2396,7 +2396,7 @@ describe('Transaction', () => {
             await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBeCloseTo(ROUTE1_DISTANCE_METERS, 1);
 
             expect(TransactionUtils.hasManualDistanceOverride(transaction)).toBe(false);
@@ -2411,7 +2411,7 @@ describe('Transaction', () => {
             await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.customUnit?.quantity).toBe(20);
         });
 
@@ -2423,7 +2423,7 @@ describe('Transaction', () => {
             await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.customUnit?.quantity).toBe(32.19);
         });
 
@@ -2435,7 +2435,7 @@ describe('Transaction', () => {
             await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, undefined, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
             expect(transaction?.comment?.customUnit?.quantity).toBe(10);
             expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(ROUTE0_DISTANCE_METERS);
@@ -2449,7 +2449,7 @@ describe('Transaction', () => {
             await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, undefined);
             await waitForBatchedUpdates();
 
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
             expect(transaction?.comment?.customUnit?.quantity).toBe(10);
         });
@@ -2593,12 +2593,12 @@ describe('Transaction', () => {
             await waitForBatchedUpdates();
 
             // Then the RTER violation should be removed optimistically
-            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const optimisticViolations = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
 
             expect(optimisticViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
 
             // And a dismissed violation report action should be added
-            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+            const reportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
 
             const reportActionValues = Object.values(reportActions ?? {});
             expect(reportActionValues.length).toBe(1);
@@ -2608,10 +2608,10 @@ describe('Transaction', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
-            const finalViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const finalViolations = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             expect(finalViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
 
-            const finalReportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+            const finalReportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
             const finalReportActionValues = Object.values(finalReportActions ?? {});
             expect(finalReportActionValues.length).toBe(1);
             expect(finalReportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
@@ -2638,12 +2638,12 @@ describe('Transaction', () => {
             await waitForBatchedUpdates();
 
             // Then the RTER violation should be restored to original state
-            const failureViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const failureViolations = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
 
             expect(failureViolations).toEqual(mockViolations);
 
             // And the dismissed violation report action should be removed
-            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+            const reportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
 
             expect(Object.keys(reportActions ?? {}).length).toBe(0);
         });
@@ -2664,7 +2664,7 @@ describe('Transaction', () => {
             await waitForBatchedUpdates();
 
             // Then the violations should remain empty after filtering out RTER
-            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const optimisticViolations = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
 
             expect(optimisticViolations).toEqual([]);
 
@@ -2703,7 +2703,7 @@ describe('Transaction', () => {
             });
 
             // And a dismissed violation report action should be added
-            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+            const reportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
 
             const reportActionValues = Object.values(reportActions ?? {});
             expect(reportActionValues.length).toBe(1);
@@ -2763,10 +2763,10 @@ describe('Transaction', () => {
             });
             await waitForBatchedUpdates();
 
-            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const optimisticViolations = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             expect(optimisticViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
 
-            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
+            const reportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
             const reportActionValues = Object.values(reportActions ?? {});
             expect(reportActionValues.length).toBe(1);
             expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
@@ -2777,10 +2777,10 @@ describe('Transaction', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
-            const finalViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const finalViolations = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             expect(finalViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
 
-            const finalReportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
+            const finalReportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
             const finalReportActionValues = Object.values(finalReportActions ?? {});
             // The optimistic dismissed violation report action is removed on successful API response to avoid duplicates
             expect(finalReportActionValues.length).toBe(0);
@@ -2833,10 +2833,10 @@ describe('Transaction', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
-            const failureViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const failureViolations = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             expect(failureViolations).toEqual(mockViolations);
 
-            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
+            const reportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
             expect(Object.keys(reportActions ?? {}).length).toBe(0);
         });
 
@@ -2947,7 +2947,7 @@ describe('Transaction', () => {
             });
             await waitForBatchedUpdates();
 
-            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const optimisticViolations = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             expect(optimisticViolations).toEqual([]);
 
             await mockFetch.resume();
@@ -3009,7 +3009,7 @@ describe('Transaction', () => {
                     expect(result.current[0]).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
                 });
 
-                const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
+                const reportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
                 const reportActionValues = Object.values(reportActions ?? {});
                 expect(reportActionValues.length).toBe(1);
                 expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);

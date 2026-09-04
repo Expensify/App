@@ -38,7 +38,7 @@ type UseSubPageProps<TProps extends SubPageProps, TPageName extends string = str
     onPageChange?: () => void;
 
     /** called on last sub page */
-    onFinished: (data?: unknown) => void;
+    onFinished: (data?: unknown) => void | Promise<void>;
 
     /** index of the page to start from (used when no subPage param in URL) */
     startFrom?: number;

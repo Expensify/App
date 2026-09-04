@@ -10,6 +10,7 @@ import type {SageIntacctConnectionsConfig} from '@src/types/onyx/Policy';
 import type {AnyOnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -23,7 +24,7 @@ const writeSpy = jest.spyOn(API, 'write');
 const MOCK_POLICY_ID = 'MOCK_POLICY_ID';
 const MOCK_ONYX_ERROR = {key: 'error'};
 
-type SageIntacctConfigMerge = NullishDeep<SageIntacctConnectionsConfig>;
+type SageIntacctConfigMerge = ReadonlyDeep<NullishDeep<SageIntacctConnectionsConfig>>;
 
 function getSageIntacctConfig(update?: OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>): SageIntacctConfigMerge | undefined {
     if (!update || !update.value || typeof update.value !== 'object' || !('connections' in update.value)) {

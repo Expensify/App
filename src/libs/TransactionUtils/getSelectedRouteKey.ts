@@ -1,10 +1,12 @@
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 
+import type {ReadonlyDeep} from 'type-fest';
+
 // Kept in its own file to avoid circular dependencies. `comment.selectedRouteKey` is frontend-only —
 // only the selected route's distance survives a save, echoed as `comment.customUnit.routeDistanceMeters`
 // (route distance, not displayed), so a saved pick is recovered by matching it.
-function getSelectedRouteKey(transaction: OnyxInputOrEntry<Transaction>): string {
+function getSelectedRouteKey(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>>): string {
     const routes = transaction?.routes;
 
     // A local pick wins over the BE value: it is the user's pending, not-yet-saved intent. The existence check

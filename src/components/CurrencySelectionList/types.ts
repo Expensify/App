@@ -16,7 +16,7 @@ type CurrencySelectionListProps = Partial<SelectionListWithSectionsProps<Currenc
     recentlyUsedCurrencies?: string[];
 
     /** Callback to fire when a currency is selected */
-    onSelect: (item: CurrencyListItem) => void;
+    onSelect: (item: CurrencyListItem) => void | Promise<void>;
 
     /** The array of selected currencies. This prop should be used when multiple currencies can be selected */
     selectedCurrencies?: string[];
