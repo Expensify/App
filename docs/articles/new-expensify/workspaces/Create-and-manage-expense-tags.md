@@ -157,12 +157,27 @@ When importing multi-level Tags, enable **These are independent tags** to import
 
 ## How to add or edit a tag GL code
 
-Workspaces on the Control plan can assign a GL code to each tag for exporting purposes. Tag GL codes are not visible to members.
+Workspaces on the Control plan can assign a GL code to each tag for exporting purposes. By default, tag GL codes are not visible to members, but you can choose to show them in the tag picker.
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
 2. Select **Tags**.
 3. Select a tag to open its detail panel.
 4. Select the **GL Code** field, enter or update the code, then select **Save**.
+
+---
+
+## How to show tag GL codes when selecting a tag
+
+By default, tag GL codes are hidden from members. Workspace Admins on the Control plan can turn on a setting that displays each tag's GL code in the tag picker, so members can see and search by GL code when selecting a tag on an expense.
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
+2. Select **Tags**.
+3. In the top-right corner, select **Settings**.
+4. Turn on **Show GL codes when selecting a tag**.
+
+Once enabled, each tag displays its GL code as a second line beneath the tag name in the tag picker, and members can search for a tag by its GL code.
+
+**Note:** This setting only appears when GL codes are enabled for the workspace.
 
 ---
 
@@ -228,4 +243,4 @@ Multi-level tags are available on Control workspaces only. If your Control works
 
 ## Can members see Tag GL codes?
 
-No. Tag GL codes are visible only to Workspace Admins. If members need that information, include the GL code in the tag name (for example: `1001 - Marketing`).
+By default, no. Tag GL codes are visible only to Workspace Admins. However, a Workspace Admin can turn on **Show GL codes when selecting a tag** in **Tags** > **Settings** to display each tag's GL code in the tag picker for members. If that setting is off, you can still include the GL code in the tag name (for example: `1001 - Marketing`).
