@@ -101,7 +101,7 @@ function ImageWithLoading({
                     <Image
                         {...rest}
                         source={{uri: previewUri}}
-                        style={[styles.w100, styles.h100, style]}
+                        style={[styles.pAbsolute, styles.w100, styles.h100, style]}
                         resizeMode={resizeMode}
                         onLoad={(e) => {
                             setIsThumbnailLoading(false);
