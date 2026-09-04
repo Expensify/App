@@ -200,21 +200,23 @@ describe('MapView utils', () => {
     });
 
     describe('getMapboxWorldview', () => {
-        it('returns the country when Mapbox defines a worldview for it', () => {
+        it('passes country codes Mapbox defines a worldview for through unchanged', () => {
             expect(utils.getMapboxWorldview('US')).toBe('US');
             expect(utils.getMapboxWorldview('CN')).toBe('CN');
             expect(utils.getMapboxWorldview('IN')).toBe('IN');
             expect(utils.getMapboxWorldview('JP')).toBe('JP');
         });
 
-        it('returns undefined for countries that share the default worldview', () => {
-            expect(utils.getMapboxWorldview('DE')).toBeUndefined();
-            expect(utils.getMapboxWorldview('AU')).toBeUndefined();
+        it('passes countries without a dedicated worldview through so Mapbox falls back to the style default', () => {
+            expect(utils.getMapboxWorldview('DE')).toBe('DE');
+            expect(utils.getMapboxWorldview('AU')).toBe('AU');
         });
 
-        it('returns undefined when the country is unknown or empty', () => {
+        it('drops anything that is not a country code, which Mapbox would reject', () => {
             expect(utils.getMapboxWorldview(undefined)).toBeUndefined();
             expect(utils.getMapboxWorldview('')).toBeUndefined();
+            expect(utils.getMapboxWorldview('USA')).toBeUndefined();
+            expect(utils.getMapboxWorldview('us')).toBeUndefined();
         });
     });
 });

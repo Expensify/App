@@ -20,20 +20,18 @@ function getMapboxLanguage(locale: Locale | undefined): string | undefined {
     return LOCALE_TO_MAPBOX_LANGUAGE[locale] ?? locale;
 }
 
-// cspell:ignore tileset
-/**
- * Worldviews the Mapbox Streets tileset behind our map style ships boundaries for.
- * A worldview decides which side of a disputed border is drawn, so Mapbox only defines one for the
- * handful of countries that dispute borders; every other country shares Mapbox's default worldview.
- */
-const MAPBOX_WORLDVIEWS = new Set<string>(['CN', 'IN', 'JP', 'US']);
+/** A worldview is an ISO 3166-1 alpha-2 country code, so anything that isn't two letters can't be one. */
+const ISO_ALPHA_2_COUNTRY = /^[A-Z]{2}$/;
 
 /**
  * Maps the user's country to the Mapbox worldview used to draw disputed borders.
- * Returns undefined for countries Mapbox has no dedicated worldview for, which leaves the style's default in place.
+ * Mapbox only defines a worldview for the handful of countries that dispute borders and falls back to the
+ * style's default for every other country code, so the country is passed straight through rather than
+ * matched against a list that would go stale as Mapbox adds worldviews. Anything that isn't a country code
+ * is dropped, because Mapbox raises an error for codes it can't parse.
  */
 function getMapboxWorldview(country: string | undefined): string | undefined {
-    if (!country || !MAPBOX_WORLDVIEWS.has(country)) {
+    if (!country || !ISO_ALPHA_2_COUNTRY.test(country)) {
         return undefined;
     }
     return country;
