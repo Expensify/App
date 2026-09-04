@@ -256,6 +256,12 @@ type SubmittedTransactionViolation = {
     name: string;
 };
 
+/** Model of the transaction violations snapshot captured on a report action */
+type SubmittedViolationsSnapshot = {
+    /** Violations keyed by transaction ID */
+    transactions: Record<string, SubmittedTransactionViolation[]>;
+};
+
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
     /** The login of the admin (used in admin-submit) */
@@ -292,10 +298,13 @@ type OriginalMessageSubmitted = {
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 
     /** Snapshot of transaction violations present when the report was submitted */
-    violations?: {
-        /** Violations keyed by transaction ID */
-        transactions: Record<string, SubmittedTransactionViolation[]>;
-    };
+    violations?: SubmittedViolationsSnapshot;
+};
+
+/** Model of the add-expense-on-submitted report action, which only carries the violations snapshot of the added expense */
+type OriginalMessageAddExpenseOnSubmitted = {
+    /** Snapshot of the transaction violations present when the expense was added to the submitted report */
+    violations?: SubmittedViolationsSnapshot;
 };
 
 /** Model of `created` report action */
@@ -1811,6 +1820,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED]: OriginalMessageSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED]: OriginalMessageSubmitted;
+    [CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED]: OriginalMessageAddExpenseOnSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;
