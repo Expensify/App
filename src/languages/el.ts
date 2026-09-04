@@ -465,8 +465,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Κανένα',
         unstableInternetConnection: 'Η σύνδεση στο διαδίκτυο είναι ασταθής. Ελέγξτε το δίκτυό σας και προσπαθήστε ξανά.',
         enableGlobalReimbursements: 'Ενεργοποίηση διεθνών αποζημιώσεων',
-        corpayPayModalTitle: 'Pay report',
-        corpayPayModalPrompt: 'This submitter has a non-USD bank account. Enable global reimbursement to pay the report, or ask them to add a USD bank account.',
+        corpayPayModalTitle: 'Πληρωμή αναφοράς',
+        corpayPayModalPrompt:
+            'Αυτός ο υποβάλλων έχει τραπεζικό λογαριασμό που δεν είναι σε USD. Ενεργοποιήστε τις διεθνείς αποζημιώσεις για να πληρώσετε την αναφορά, ή ζητήστε του να προσθέσει τραπεζικό λογαριασμό σε USD.',
         purchaseAmount: 'Ποσό αγοράς',
         originalAmount: 'Αρχικό ποσό',
         frequency: 'Συχνότητα',

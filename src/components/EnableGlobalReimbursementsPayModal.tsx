@@ -1,4 +1,5 @@
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
@@ -35,7 +36,7 @@ function EnableGlobalReimbursementsPayModal() {
             shouldShowCancelButton: true,
         }).then((result) => {
             isModalOpenRef.current = false;
-            if (result.action === 'CONFIRM') {
+            if (result.action === ModalActions.CONFIRM) {
                 // Guard against a missing or malformed bankAccountID from the backend so the business page receives a
                 // real bank account and can resolve its country. Also mirror WalletPage's account-lock guard so a
                 // locked account sees the locked-account modal instead of walking into the business form.

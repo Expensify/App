@@ -1,3 +1,4 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,6 +17,10 @@ import type Middleware from './types';
  */
 const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response<TKey> | void>, request: Request<TKey> | PaginatedRequest<TKey>) =>
     responsePromise.then((response) => {
+        if (request?.command !== WRITE_COMMANDS.PAY_MONEY_REQUEST && request?.command !== WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET) {
+            return response;
+        }
+
         const onyxData = response?.onyxData ?? [];
         const hasCorpayPayModal = onyxData.some((update) => update.key === ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL);
 

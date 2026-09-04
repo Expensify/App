@@ -465,8 +465,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Aucun',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
         enableGlobalReimbursements: 'Activer les remboursements globaux',
-        corpayPayModalTitle: 'Pay report',
-        corpayPayModalPrompt: 'This submitter has a non-USD bank account. Enable global reimbursement to pay the report, or ask them to add a USD bank account.',
+        corpayPayModalTitle: 'Payer la note de frais',
+        corpayPayModalPrompt:
+            "Cette personne a un compte bancaire qui n'est pas en USD. Activez les remboursements globaux pour payer la note de frais, ou demandez-lui d'ajouter un compte bancaire en USD.",
         purchaseAmount: "Montant de l'achat",
         originalAmount: 'Montant initial',
         frequency: 'Fréquence',
