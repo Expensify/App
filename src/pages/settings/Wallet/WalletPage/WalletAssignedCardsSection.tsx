@@ -7,7 +7,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -36,7 +35,6 @@ function WalletAssignedCardsSection() {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Table']);
     const illustrations = useMemoizedLazyIllustrations(['VerticalCreditCards']);
     const personalCardList = useBankLinkedPersonalCards();
@@ -94,7 +92,7 @@ function WalletAssignedCardsSection() {
                     threeDotsMenuItems={cardThreeDotsMenuItems}
                     style={[styles.mt5, [sectionRowStyle]]}
                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                    shouldShowConnectionStatus={isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS)}
+                    shouldShowConnectionStatus
                 />
                 <View style={sectionRowStyle}>
                     <MenuItem

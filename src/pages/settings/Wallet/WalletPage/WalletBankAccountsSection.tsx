@@ -2,13 +2,11 @@ import Section from '@components/Section';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -25,7 +23,6 @@ function WalletBankAccountsSection() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const walletIllustration = useWalletSectionIllustration();
     const {onBankAccountRowPress, onAddBankAccountPress} = useBankAccountRowPress(bankAccountList, allPolicies);
     const {threeDotsMenuItems, onThreeDotsMenuPress} = useBankAccountThreeDotsMenu(bankAccountList, allPolicies);
@@ -48,7 +45,7 @@ function WalletBankAccountsSection() {
                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 shouldShowBankAccountSections
-                shouldShowConnectionStatus={isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS)}
+                shouldShowConnectionStatus
                 threeDotsMenuItems={threeDotsMenuItems}
             />
         </Section>
