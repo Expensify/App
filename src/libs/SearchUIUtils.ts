@@ -139,9 +139,11 @@ import {
 import {
     getIOUActionForReportID,
     getOriginalMessage,
+    isApprovedAction,
     isCreatedAction,
     isDeletedAction,
     isExportedToIntegrationAction,
+    isForwardedAction,
     isHoldAction,
     isMoneyRequestAction,
     isReportActionVisible,
@@ -5368,15 +5370,15 @@ function getSubmittedViolationDisplayName(violationName: string, translate: Loca
 }
 
 /**
- * Collects a transaction's submitted violations from its report's submit actions.
- * A report can be submitted more than once, so this aggregates across every submit action,
+ * Collects a transaction's violations from its report's submit, approve/forward actions.
+ * A report can be submitted and approved more than once, so this aggregates across every such action,
  * dedupes by violation name, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
  * Itemized receipt required supersedes receipt required (same rule as `filterReceiptViolations`),
  * so both are never shown together for a single expense.
  */
-function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
+function getViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
     if (!reportActions?.length || !transactionID) {
         return undefined;
     }
@@ -5385,7 +5387,7 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
     for (const action of reportActions) {
         // An expense added to a report that was already awaiting approval is not in that report's submit snapshot,
         // so its violations live on their own add-expense-on-submitted action instead.
-        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isAddExpenseOnSubmittedAction(action)) {
+        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isAddExpenseOnSubmittedAction(action) && !isApprovedAction(action) && !isForwardedAction(action)) {
             continue;
         }
 
@@ -6743,7 +6745,7 @@ function getColumnsToShow({
 
         if (!isExpenseReportView && !Array.isArray(data)) {
             const reportActions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {});
-            if (getSubmittedViolationsForTransaction(reportActions, transaction.transactionID)) {
+            if (getViolationsForTransaction(reportActions, transaction.transactionID)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS] = true;
             }
         }
@@ -7273,7 +7275,7 @@ export {
     getColumnsToShow,
     insertColumnBeforeTotalAmount,
     getHasOptions,
-    getSubmittedViolationsForTransaction,
+    getViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,
