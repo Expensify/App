@@ -34,6 +34,7 @@ const BABEL_PACKAGES = [
     '@callstack/repack',
     // codegenNativeComponent in shipped JS:
     '@expensify/react-native-live-markdown',
+    '@fullstory/react-native',
     '@sentry/react-native',
     '@shopify/react-native-skia',
     'lottie-react-native',
