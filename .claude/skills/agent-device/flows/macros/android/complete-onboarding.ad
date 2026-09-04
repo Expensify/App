@@ -7,7 +7,9 @@ context platform=android
 # @param  LAST_NAME Last name to enter on onboarding profile step.
 
 press "id=\"onboardingPrivateEmailSkipButton\" || role=\"button\" label=\"Skip\" || label=\"Skip\""
+wait "label=\"Something else\""
 press "role=\"button\" label=\"Something else\" || label=\"Something else\""
+wait "label=\"First name\" editable=true"
 fill "role=\"textfield\" label=\"First name\" editable=true || label=\"First name\" editable=true" "${FIRST_NAME}"
 fill "role=\"textfield\" label=\"Last name\" editable=true || label=\"Last name\" editable=true" "${LAST_NAME}"
 press "role=\"button\" label=\"Continue\" || label=\"Continue\""
