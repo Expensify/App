@@ -9732,6 +9732,10 @@ ${reportName}`,
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Παρακαλούμε επιλέξτε ημερομηνίες και για το Από και για το Έως',
         },
+        mergeReports: {
+            title: 'Συγχώνευση αναφορών',
+            description: 'Επιλέξτε την αναφορά που θέλετε να κρατήσετε. Όλες οι δαπάνες θα μετακινηθούν σε αυτήν και οι άλλες αναφορές θα διαγραφούν.',
+        },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
         mySavedSearch: 'Οι δαπάνες μου',
         expensifyCardStatementPDF: {

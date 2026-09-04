@@ -9462,6 +9462,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             topMerchants: 'Topverkopers',
             violationsBySubmitter: 'Overtredingen door indiener',
         },
+        mergeReports: {
+            title: 'Rapporten samenvoegen',
+            description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
+        },
     },
     genericErrorPage: {
         title: 'Oeps, er is iets misgegaan!',

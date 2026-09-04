@@ -9462,6 +9462,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             topMerchants: 'Principais estabelecimentos',
             violationsBySubmitter: 'Violações por quem enviou',
         },
+        mergeReports: {
+            title: 'Mesclar relatórios',
+            description: 'Selecione o relatório que você quer manter. Todas as despesas serão movidas para ele e os outros relatórios serão excluídos.',
+        },
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',

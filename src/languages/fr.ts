@@ -9562,6 +9562,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             topMerchants: 'Meilleurs commerçants',
             violationsBySubmitter: 'Infractions par déclarant',
         },
+        mergeReports: {
+            title: 'Fusionner des notes de frais',
+            description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
+        },
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',

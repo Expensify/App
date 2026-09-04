@@ -9535,6 +9535,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             topMerchants: 'Top-Händler',
             violationsBySubmitter: 'Verstöße durch Einreichende',
         },
+        mergeReports: {
+            title: 'Berichte zusammenführen',
+            description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
+        },
     },
     genericErrorPage: {
         title: 'Ups, da ist etwas schiefgelaufen!',

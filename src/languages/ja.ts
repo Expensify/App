@@ -9357,6 +9357,7 @@ ${reportName}`,
             topMerchants: '上位加盟店',
             violationsBySubmitter: '申請者による違反',
         },
+        mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
