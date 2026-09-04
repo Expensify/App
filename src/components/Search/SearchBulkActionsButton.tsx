@@ -104,10 +104,19 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         allReports,
         searchData,
     } = useSearchBulkActions({queryJSON});
-    const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
-    const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`);
+    // Resolve the policy from the report that is actually being paid. selectedPolicyIDs is ordered and filtered
+    // independently of currentSelectedReportID, so on a selection spanning workspaces its first entry can belong to a
+    // different workspace than this report, which would send the KYC wall and the add-bank-account flow to the wrong
+    // workspace. Fall back to the first selected policy only when the report itself yields nothing.
+    const currentSelectedPolicyID =
+        selectedIOUReport?.policyID ??
+        searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`]?.policyID ??
+        selectedReports.find((report) => report.reportID === currentSelectedReportID)?.policyID ??
+        Object.values(selectedTransactions).find((transaction) => transaction.reportID === currentSelectedReportID)?.policyID ??
+        selectedPolicyIDs?.at(0);
+    const currentPolicy = usePolicy(currentSelectedPolicyID);
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const pendingPaymentAdditionalDataRef = useRef<BulkPaySelectionData | undefined>(undefined);
 
