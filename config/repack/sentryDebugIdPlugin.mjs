@@ -13,6 +13,7 @@ import {randomUUID} from 'node:crypto';
 const PLUGIN_NAME = 'SentryDebugIdPlugin';
 
 /** Mirrors the snippet `@sentry/bundler-plugin-core` injects, so the SDK reports the id at runtime. */
+// cspell:ignore dbid
 function debugIdSnippet(debugId) {
     return `;{try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{};var n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="${debugId}",e._sentryDebugIdIdentifier="sentry-dbid-${debugId}")}catch(e){}}\n`;
 }
