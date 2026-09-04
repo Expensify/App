@@ -1,7 +1,7 @@
 ---
 title: Manage Personal Cards
 description: Learn how to view, manage, and fix broken connections for personal credit cards in New Expensify.
-keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, cards, card details, broken connection, fix card]
+keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, cards, card details, broken connection, fix card, temporary bank issue, can't auto-match receipt, try again later]
 internalScope: Audience is members with personal credit cards already connected to their account. Covers viewing and managing existing personal cards in the Wallet, including reimbursable settings and fixing broken card connections. Does not cover connecting new personal cards or company card programs.
 ---
 
@@ -113,6 +113,18 @@ You can tap the hyperlinked text in the violation to go directly to the **Card d
 
 ---
 
+## How to tell whether a receipt matching message needs action
+
+Not every receipt matching message means your card connection is broken. The wording tells you whether you need to do something:
+
+- **“Can't auto-match receipt due to a temporary bank issue. Please try again later.”** — Your bank returned a response Expensify couldn't use this time. Nothing is broken and no action is needed. Expensify retries automatically, and the message clears once the transaction imports.
+- **“Can't auto-match receipt due to broken card connection.”** — The card connection needs attention. Follow the steps above to fix the card connection, or select **Fix the card** in the message to go straight to the **Card details** page.
+- **“Can't auto-match receipt because your bank connection needs re-authentication.”** — Your bank needs you to log in again. Select **Reconnect** in the message, or follow the steps above to fix the card connection.
+
+If a message asking you to try again later stays on an expense for more than a few days, contact Concierge with the cardholder email and the last four digits of the card.
+
+---
+
 # FAQ
 
 
@@ -127,6 +139,10 @@ Yes. The **Transaction start date** can be set to a past or future date. If you 
 ## Why don't I see my personal card in the Wallet?
 
 Personal cards appear in the Wallet only if they were previously connected to your account in Expensify Classic. If your card doesn't show up, it means it wasn't connected before and isn't available to manage yet.
+
+## Why does an expense say the receipt can't be auto-matched due to a temporary bank issue?
+
+Your bank returned a response Expensify couldn't use when it tried to import the transaction. This is temporary, your card connection isn't broken, and you don't need to fix anything. Expensify retries automatically, and the message clears once the transaction imports and merges with the receipt.
 
 ## Why do I see a broken connection violation on my expenses?
 
