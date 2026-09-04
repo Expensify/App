@@ -25,6 +25,8 @@ const buildForm = (overrides: Partial<MerchantRuleForm> = {}): MerchantRuleForm 
         matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
         merchant: '',
         category: '',
+        categoriesToMatch: [],
+        ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT,
         tag: '',
         tax: '',
         vendorID: '',
