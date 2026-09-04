@@ -276,8 +276,10 @@ function useSearchSelectorBase({
         };
     })();
 
-    const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
+    // Trim before deriving the phone/email search value, otherwise a leading/trailing space makes Str.isValidEmail fail
+    // and the "invite user" option disappears for logins that don't have an account yet.
     const trimmedSearchInput = debouncedSearchTerm.trim();
+    const computedSearchTerm = getSearchValueForPhoneOrEmail(trimmedSearchInput, countryCode);
 
     const {options: baseOptions, hasMore} = (() => {
         if (!areOptionsInitialized) {

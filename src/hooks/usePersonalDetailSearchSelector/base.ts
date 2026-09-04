@@ -218,6 +218,10 @@ function usePersonalDetailSearchSelectorBase({
         return options;
     })();
 
+    // Trim before matching, otherwise a leading/trailing space makes Str.isValidEmail fail in getUserToInviteOption
+    // and the "invite user" option disappears for logins that don't have an account yet.
+    const trimmedSearchTerm = debouncedSearchTerm.trim();
+
     const optionsList = !areOptionsInitialized
         ? defaultListOptions
         : getValidOptions(transformedOptions, currentUserEmail, formatPhoneNumber, countryCode, loginList, {
@@ -226,7 +230,7 @@ function usePersonalDetailSearchSelectorBase({
               includeSelectedOptions: shouldKeepSelectedInAvailableOptions,
               includeRecentReports,
               recentAttendees,
-              searchString: debouncedSearchTerm,
+              searchString: trimmedSearchTerm,
               maxElements,
               recentMaxElements: maxRecentReportsToShow,
               includeUserToInvite,
