@@ -15,13 +15,14 @@ import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
-import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import {openPolicyWorkflowsPage, setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -83,6 +84,7 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name;
 
     const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
@@ -115,6 +117,17 @@ function WorkspaceInviteMessageComponent({
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
+
+    // Under the `MULTIPLE_APPROVERS` beta the approval workflows live in the `RULE` collection, which is only
+    // fetched by the Workflows page. Reaching the invite flow through Members would otherwise derive the Approver
+    // row from a collection that was never loaded, hiding the row and inviting without the chosen approver.
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    useEffect(() => {
+        if (!isMultipleApproversBetaEnabled || !policyID) {
+            return;
+        }
+        openPolicyWorkflowsPage(policyID);
+    }, [isMultipleApproversBetaEnabled, policyID]);
 
     // Derive whether a custom approval workflow exists instead of trusting `policy.approvalMode`: that flag is
     // written optimistically by several paths and drifts from the real workflow structure, so it can say ADVANCED

@@ -16,7 +16,6 @@ import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibil
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -33,15 +32,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {filterRulesForPolicy, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type Rule from '@src/types/onyx/Rule';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
@@ -113,12 +109,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Plus']);
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
 
     const isSmartLimitEnabled = policy?.areApprovalsLockedByExpensifyCard ?? false;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const accountManagerReportID = account?.accountManagerReportID;
@@ -133,10 +127,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
 
-    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
-    const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID), [policyID]);
-    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
-    const {approvalWorkflows, availableMembers, usedApproverEmails, isAdvanceApproval} = useApprovalWorkflows(policy, policyID);
+    const {filteredApprovalWorkflows, availableMembers, usedApproverEmails, isAdvanceApproval, rulesCollection, personalDetails} = useApprovalWorkflows(policy, policyID);
 
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
 
@@ -214,14 +205,6 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
-
-    const filteredApprovalWorkflows =
-        isMultipleApproversBetaEnabled ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
-        isHRAdvancedModeEnabled
-            ? approvalWorkflows
-            : approvalWorkflows.filter((workflow) => workflow.isDefault);
 
     const everyoneText = translate('workspace.common.everyone');
 
