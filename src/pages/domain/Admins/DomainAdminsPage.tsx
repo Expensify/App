@@ -31,6 +31,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetails} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {
@@ -45,6 +47,21 @@ import React from 'react';
 import {View} from 'react-native';
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
+
+/** Whether a pending admin/requester row should still be shown, given its personal details, pending action, and errors. */
+function shouldShowPendingRow(
+    details: PersonalDetails | null | undefined,
+    pendingAction: OnyxCommon.PendingAction | undefined,
+    errors: OnyxCommon.Errors | undefined,
+    isOffline: boolean,
+): boolean {
+    if (!details?.login && !details?.displayName) {
+        return false;
+    }
+
+    const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return isOffline || !isPendingDelete || !isEmptyObject(errors);
+}
 
 function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {domainAccountID} = route.params;
@@ -88,15 +105,10 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const admins: DomainAdminRowData[] = (adminAccountIDs ?? [])
         .filter((accountID) => {
             const details = personalDetails?.[accountID];
-            if (!details?.login && !details?.displayName) {
-                return false;
-            }
-
             const pendingAction = domainPendingAction?.[accountID]?.pendingAction;
             const errors = domainErrors?.adminErrors?.[accountID]?.errors;
-            const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-            return isOffline || !isPendingDelete || !isEmptyObject(errors);
+            return shouldShowPendingRow(details, pendingAction, errors, isOffline);
         })
         .map((accountID) => {
             const details = personalDetails?.[accountID];
@@ -125,20 +137,16 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         ? (requesterAccountIDs ?? [])
               .filter((accountID) => {
                   const details = personalDetails?.[accountID];
-                  if (!details?.login && !details?.displayName) {
-                      return false;
-                  }
-
                   const pendingAction = adminshipRequesterPendingAction?.[accountID]?.pendingAction;
                   const errors = domainErrors?.adminshipRequesterErrors?.[accountID]?.errors;
-                  const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-                  return isOffline || !isPendingDelete || !isEmptyObject(errors);
+                  return shouldShowPendingRow(details, pendingAction, errors, isOffline);
               })
               .map((accountID) => {
                   const details = personalDetails?.[accountID];
                   const login = details?.login ?? '';
                   const errors = domainErrors?.adminshipRequesterErrors?.[accountID]?.errors;
+                  const pendingAction = adminshipRequesterPendingAction?.[accountID]?.pendingAction;
 
                   return {
                       keyForList: `request-${accountID}`,
@@ -148,7 +156,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                       name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
                       email: formatPhoneNumber(login),
                       errors: getLatestError(errors),
-                      pendingAction: adminshipRequesterPendingAction?.[accountID]?.pendingAction,
+                      pendingAction,
                       approve: () => approveDomainAdminshipRequest(domainAccountID, accountID, login, domainName ?? ''),
                       deny: () => declineDomainAdminshipRequest(domainAccountID, accountID),
                       dismissError: () => clearAdminshipRequesterError(domainAccountID, accountID),
