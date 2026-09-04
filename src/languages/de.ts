@@ -10895,6 +10895,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         notVerified: 'Nicht verifiziert',
         retry: 'Wiederholen',
         requestSent: 'Anfrage gesendet',
+        requestAccessError: 'Wir konnten deine Anfrage nicht senden. Bitte versuche es erneut.',
         verifyDomain: {
             title: 'Domain bestätigen',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10955,13 +10956,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             setMetadataGenericError: 'SAML-Metadaten konnten nicht festgelegt werden',
         },
         accessRestricted: {
-            title: 'Zugriff eingeschränkt',
-            subtitle: (domainName: string) =>
-                `Bitte bestätigen Sie sich als autorisierte/r Firmenadministrator/in für <strong>${domainName}</strong>, wenn Sie die Kontrolle über Folgendes benötigen:`,
-            companyCardManagement: 'Firmenkartenverwaltung',
-            accountCreationAndDeletion: 'Kontoerstellung und -löschung',
-            workspaceCreation: 'Bereichserstellung',
-            samlSSO: 'SAML-SSO',
+            headerTitle: 'Zugriff eingeschränkt',
+            title: 'Verifizierung erforderlich',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Bitte bestätige dich als autorisierte/r Firmenadministrator/in für <strong>${domainName}</strong> oder fordere Zugriff von bestehenden Administratoren an.</centered-text></muted-text>`,
+            requestAdminAccess: 'Admin-Zugriff anfordern',
+            verifyYourself: 'Verifiziere dich',
         },
         addDomain: {
             title: 'Domain hinzufügen',
@@ -10975,7 +10975,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             title: 'Domain bereits eingerichtet. Zugriff anfragen?',
             description: 'Jemand hat diese Domain bereits in Expensify eingerichtet. Möchtest du Administratorzugriff anfragen?',
             requestAccess: 'Admin-Zugriff anfragen',
-            requestAccessError: 'Wir konnten deine Anfrage nicht senden. Bitte versuche es erneut.',
         },
         domainAdded: {
             title: 'Domain hinzugefügt',

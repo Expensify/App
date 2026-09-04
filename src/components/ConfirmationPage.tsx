@@ -65,6 +65,12 @@ type ConfirmationPageProps = {
     /** Whether we should show a secondary confirmation button */
     shouldShowSecondaryButton?: boolean;
 
+    /** Whether the secondary confirmation button should be disabled */
+    isSecondaryButtonDisabled?: boolean;
+
+    /** Whether the secondary confirmation button should show a loading spinner */
+    isSecondaryButtonLoading?: boolean;
+
     /** Additional style for the heading */
     headingStyle?: TextStyle;
 
@@ -105,6 +111,8 @@ function ConfirmationPage({
     secondaryButtonText = '',
     onSecondaryButtonPress = () => {},
     shouldShowSecondaryButton = false,
+    isSecondaryButtonDisabled = false,
+    isSecondaryButtonLoading = false,
     headingStyle,
     illustrationStyle,
     descriptionStyle,
@@ -175,6 +183,8 @@ function ConfirmationPage({
                             size={CONST.BUTTON_SIZE.LARGE}
                             testID="confirmation-secondary-button"
                             style={styles.mt3}
+                            isDisabled={isSecondaryButtonDisabled}
+                            isLoading={isSecondaryButtonLoading}
                             onPress={onSecondaryButtonPress}
                         >
                             <Button.Text>{secondaryButtonText}</Button.Text>
