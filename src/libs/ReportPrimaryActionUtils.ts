@@ -7,7 +7,7 @@ import type {ValueOf} from 'type-fest';
 
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    canMemberWrite,
+    canAdminPayReport,
     getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,
@@ -230,14 +230,7 @@ function isPrimaryPayAction({
         return false;
     }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
-
-    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
-    const canPayReport =
-        isReportPayer ||
-        (canNonPayerAdminPay &&
-            isGroupPolicy(policy) &&
-            policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
-            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+    const canPayReport = isReportPayer || (!!canNonPayerAdminPay && canAdminPayReport(policy, currentUserLogin));
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -522,6 +515,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
+            canNonPayerAdminPay: true,
         }) && allExpensesHeld;
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
 
