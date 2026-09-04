@@ -1249,6 +1249,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     allTransactionViolations: transactionsViolations,
                     bankAccountList,
                     delegateAccountID,
+                    hash,
                 });
             }
         }
