@@ -22,7 +22,10 @@ function MenuItemChevron() {
     const {isHovered} = useMenuItemInteraction();
 
     return (
-        <View style={[styles.menuItemChevron, isDisabled && styles.cursorDisabled, !isHovered && styles.opacitySemiTransparent]}>
+        <View
+            style={[styles.menuItemChevron, isDisabled && styles.cursorDisabled, !isHovered && styles.opacitySemiTransparent]}
+            testID="menu-item-chevron"
+        >
             <Icon
                 src={icons.ArrowRight}
                 fill={theme.icon}
