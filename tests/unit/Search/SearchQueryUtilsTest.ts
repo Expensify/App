@@ -24,7 +24,7 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
-    queryHasSubmittedViolationFilter,
+    queryHasViolationSnapshotFilter,
     getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
