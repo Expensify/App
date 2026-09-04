@@ -5,14 +5,16 @@ const esbuild = require('esbuild');
 const {transformSync} = require('oxc-transform-react');
 
 const babelJest = require('babel-jest');
-const BaseReactCompilerConfig = require('../config/babel/reactCompilerConfig');
+const BaseReactCompilerConfig = require('./reactCompilerConfig');
 
 const babelTransformer = babelJest.createTransformer();
 
 const NODE_MODULES_RE = /[/\\]node_modules[/\\]/;
 const TESTS_RE = /[/\\]tests[/\\]/;
+const JEST_SETUP_RE = /[/\\]jest[/\\]/;
+const MOCKS_RE = /[/\\]__mocks__[/\\]/;
 
-const TRANSFORMER_VERSION = '1';
+const TRANSFORMER_VERSION = '2';
 
 function getLang(filename) {
     const ext = path.extname(filename).slice(1);
@@ -26,11 +28,11 @@ function getLang(filename) {
 }
 
 function shouldUseOxc(filename) {
-    return !NODE_MODULES_RE.test(filename);
+    return !NODE_MODULES_RE.test(filename) && !TESTS_RE.test(filename) && !JEST_SETUP_RE.test(filename) && !MOCKS_RE.test(filename);
 }
 
 function shouldRunReactCompiler(filename) {
-    return !TESTS_RE.test(filename) && !NODE_MODULES_RE.test(filename);
+    return shouldUseOxc(filename);
 }
 
 function processWithOxc(sourceText, sourcePath) {
@@ -64,20 +66,11 @@ function processWithOxc(sourceText, sourcePath) {
 module.exports = {
     canInstrument: false,
     getCacheKey(sourceText, sourcePath, transformOptions) {
-        const useOxc = shouldUseOxc(sourcePath);
-        if (!useOxc) {
+        if (!shouldUseOxc(sourcePath)) {
             return babelTransformer.getCacheKey(sourceText, sourcePath, transformOptions);
         }
 
-        return crypto
-            .createHash('sha1')
-            .update(TRANSFORMER_VERSION)
-            .update(sourceText)
-            .update('\0', 'utf8')
-            .update(sourcePath)
-            .update(shouldRunReactCompiler(sourcePath) ? 'compiler' : 'plain')
-            .update(fs.readFileSync(__filename))
-            .digest('hex');
+        return crypto.createHash('sha1').update(TRANSFORMER_VERSION).update(sourceText).update('\0', 'utf8').update(sourcePath).update(fs.readFileSync(__filename)).digest('hex');
     },
     process(sourceText, sourcePath, transformOptions) {
         if (shouldUseOxc(sourcePath)) {

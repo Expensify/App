@@ -9,8 +9,8 @@ type OxcTransformer = {
     process: (sourceText: string, sourcePath: string, transformOptions: unknown) => TransformResult;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Jest transformers are CJS and tsconfig.bun.json does not type-check jest/
-const oxcTransformer = createRequire(import.meta.url)('../../jest/oxcTransformer') as OxcTransformer;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Jest transformers are CJS and tsconfig.bun.json does not type-check config/babel/
+const oxcTransformer = createRequire(import.meta.url)('../../config/babel/oxcJestTransformer') as OxcTransformer;
 
 const transformOptions = {
     config: {cwd: process.cwd(), rootDir: process.cwd(), cache: false},
@@ -48,15 +48,15 @@ describe('oxcTransformer', () => {
         expect(result.code).toContain('jsxDEV');
     });
 
-    it('does not run React Compiler on tests/', () => {
+    it('leaves test files on babel-jest so jest.mock is hoisted', () => {
         const source = `
-            export function Hello({name}: {name: string}) {
-                return <div>{name.toUpperCase()}</div>;
-            }
+            import foo from './foo';
+            jest.mock('./foo');
+            export const x = 1;
         `;
         const result = oxcTransformer.process(source, path.resolve('tests/perf-test/Hello.perf-test.tsx'), transformOptions);
-        expect(result.code).not.toMatch(/compiler-runtime|_c\(/);
-        expect(result.code).toContain('jsxDEV');
+        expect(result.code).toContain('_getJestObj().mock("./foo")');
+        expect(result.code.indexOf('_getJestObj().mock')).toBeLessThan(result.code.indexOf('exports.x'));
     });
 
     it('falls back to babel-jest for Flow in node_modules', () => {
