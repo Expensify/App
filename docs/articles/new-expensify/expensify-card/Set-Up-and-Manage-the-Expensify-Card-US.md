@@ -45,7 +45,7 @@ Link a U.S. business bank account to pay the card balance:
 2. Click **Issue new card**
 3. Choose an existing account or [add a new bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account) as the settlement account.
 
-If you already have an Expensify Card feed on another workspace, you can select that existing feed instead of connecting a new bank account. This links the same card feed to the current workspace, so you can manage cards across multiple workspaces with a single settlement account.
+If you already have an Expensify Card feed on another workspace, you can select that existing feed instead of connecting a new bank account. This links the same card feed to the current workspace, so you can manage cards across multiple workspaces with a single settlement account. Linking an existing feed works even when the current workspace uses a currency other than USD — the currency requirement only applies when enrolling a brand-new card program.
 
 ![Click the issue card button]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_02.png){:width="100%"}
 
@@ -193,6 +193,10 @@ You’ll need a U.S. business bank account registered to a U.S.-incorporated bus
 ## Can I use Expensify Cards across multiple workspaces?
 
 Yes. You can link a single Expensify Card feed to multiple workspaces using the same settlement account. When issuing cards on a new workspace, select an existing feed that is already connected to another workspace. Each workspace shows only its own members in the card list, but all workspaces share the same card feed and settlement account.
+
+## Can I link an existing card feed to a workspace that isn't set to USD?
+
+Yes. Linking an existing Expensify Card feed to another workspace is not restricted by that workspace's currency, so you can link a USD feed to a workspace set to any currency. Enrolling a brand-new card program still requires a supported workspace currency — USD in the US, or GBP or EUR in the UK and EU. If you don't have a feed to link and the workspace uses an unsupported currency, update the workspace to a supported currency first.
 
 ## Can an employee have multiple cards?
 

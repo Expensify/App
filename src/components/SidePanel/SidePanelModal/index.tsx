@@ -27,7 +27,7 @@ import type SidePanelModalProps from './types';
 function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}: SidePanelModalProps) {
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {paddingTop, paddingBottom} = useSafeAreaPaddings();
+    const {paddingTop, paddingBottom, paddingLeft, paddingRight} = useSafeAreaPaddings();
 
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
     const uniqueModalId = ComposerFocusManager.getId();
@@ -85,7 +85,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
                                 styles.sidePanelContent,
                                 styles.sidePanelContentWidth(shouldUseNarrowLayout),
                                 styles.sidePanelContentBorderWidth(isExtraLargeScreenWidth),
-                                {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom},
+                                {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom, paddingLeft, paddingRight},
                             ]}
                         >
                             {children}
