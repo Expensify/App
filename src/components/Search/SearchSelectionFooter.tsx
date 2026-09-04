@@ -60,15 +60,16 @@ function getTransactionCount(transactionKeys: string[], transactions: SelectedTr
     }, 0);
 }
 
-function getTransactionTotal(transactions: SelectedTransactionInfo[]): number {
-    return transactions.reduce((total, transaction) => total - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0);
-}
-
 // The live default-currency figure a row contributes to the footer total (also what the footer falls back to before a
 // conversion arrives). The footer stamps each conversion against this value and compares it on every render, so an
 // inline edit that moves it is detected and the cached conversion is fetched again.
+// Sources are expense-signed (the negation of the displayed amount), so callers sum them with `total - source`.
 function getEntrySource(entry: SelectedTransactionInfo): number {
-    return entry.groupAmount ?? -Math.abs(entry.amount);
+    return entry.groupAmount ?? -entry.displayAmount;
+}
+
+function getTransactionTotal(transactions: SelectedTransactionInfo[]): number {
+    return transactions.reduce((total, transaction) => total - getEntrySource(transaction), 0);
 }
 
 // Every selected row needs a fresh cached conversion for the target currency before the selected total can be shown
@@ -482,7 +483,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                             convertedAmount = convertedTransactions?.[transaction.transaction.transactionID]?.[selectedCurrency];
                         }
                     }
-                    return acc - (convertedAmount ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
+                    return acc - (convertedAmount ?? getEntrySource(transaction));
                 }, 0);
             }
 
@@ -500,7 +501,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                       } else if (transactionID) {
                           convertedAmount = convertedTransactions?.[transactionID]?.[selectedCurrency];
                       }
-                      return total - (convertedAmount ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
+                      return total - (convertedAmount ?? getEntrySource(transaction));
                   }, 0)
                 : 0;
             return {

@@ -285,6 +285,7 @@ import {
     hasViolation,
     hasWarningTypeViolation,
     isManagedCardTransaction as isCardTransactionTransactionUtils,
+    isDeletedTransaction,
     isDemoTransaction,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -5074,6 +5075,20 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     return fields.filter(Boolean) as PolicyReportField[];
 }
 
+function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
+    return isEmptyObject(report) ? isGroupPolicyPolicyUtils(policy) : isExpenseReport(report);
+}
+
+/**
+ * Returns a transaction's amount with the sign it is displayed with. A transaction on an expense report, on a group
+ * policy with no report of its own, unreported, or deleted is stored with the opposite sign, so its stored amount is
+ * negated. Any other transaction returns its magnitude.
+ */
+function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
+    const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
+}
+
 /**
  * Gets transaction created, amount, currency, comment, and waypoints (for distance expense)
  * into a flat object. Used for displaying transactions and sending them in API commands
@@ -5093,7 +5108,7 @@ function getTransactionDetails(
     }
 
     const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
-    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || (isEmptyObject(report) && isGroupPolicyPolicyUtils(policy));
+    const isFromExpenseReport = isTransactionFromExpenseReport(report, policy);
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat, dateFnsLocale),
@@ -14579,6 +14594,7 @@ export {
     isTeachersUniteReport,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
+    getTransactionDisplayAmount,
     getTransactionReportName,
     getDisplayedReportID,
     getTransactionsWithReceipts,

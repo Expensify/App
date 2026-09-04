@@ -69,8 +69,11 @@ type SelectedTransactionInfo = {
     /** The policyID tied to the report the transaction is reported on */
     policyID: string | undefined;
 
-    /** The transaction amount */
+    /** The transaction amount, in the raw stored sign convention */
     amount: number;
+
+    /** The signed amount the row displays */
+    displayAmount: number;
 
     /** The transaction currency */
     currency: string;
