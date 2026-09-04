@@ -906,5 +906,5 @@ export default React.memo(
         prevProps.restoreFocusType === nextProps.restoreFocusType &&
         prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
-export type {PopoverMenuItem, PopoverMenuProps, PopoverMenuSearchInputOptions};
+export type {PopoverMenuItem, PopoverMenuProps};
 export {getItemKey, buildKeyPathFromIndexPath, resolveIndexPathByKeyPath};

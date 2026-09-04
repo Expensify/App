@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import AccountSwitcher from '@components/AccountSwitcher';
 import ComposeProviders from '@components/ComposeProviders';
@@ -206,9 +206,13 @@ describe('AccountSwitcher', () => {
         fireEvent.press(screen.getByText(SWITCH_BUTTON_TEXT));
         await waitForBatchedUpdatesWithAct();
 
+        jest.useFakeTimers();
         fireEvent.changeText(renderResult.UNSAFE_getByType(RNTextInput), 'delegator-11@example.com');
-        await waitFor(() => expect(screen.queryByText(DELEGATOR_EMAIL)).toBeNull());
-        expect(screen.getByText('delegator-11@example.com')).toBeOnTheScreen();
+        act(() => jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME));
+        jest.useRealTimers();
+
+        expect(screen.queryByTestId(`PopoverMenuItem-${DELEGATOR_DISPLAY_NAME}`)).toBeNull();
+        expect(screen.getByTestId('PopoverMenuItem-Delegator User 11')).toBeOnTheScreen();
 
         fireEvent.press(screen.getByText(SWITCH_BUTTON_TEXT));
         await waitForBatchedUpdatesWithAct();
