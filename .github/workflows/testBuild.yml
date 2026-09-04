@@ -66,9 +66,7 @@ jobs:
       # Fall back to App main when nothing is resolved (test builds default to the latest NewDot).
       APP_REF: ${{ needs.resolveRefs.outputs.APP_REF || 'main' }}
       APP_PR_NUMBER: ${{ needs.resolveRefs.outputs.APP_PR_NUMBER }}
-      # Empty means the pinned submodule commit, which keeps the Rock fingerprint a function of the App commit
-      # alone and therefore shared with the builds `testBuildOnPush.yml` seeds the cache from. MOBILE_EXPENSIFY_MAIN
-      # opts out for the rare case that needs unpinned OldDot.
+      # Empty means the pinned submodule commit, so the fingerprint matches the builds `testBuildOnPush.yml` seeds the cache from.
       MOBILE_EXPENSIFY_REF: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF || (inputs.MOBILE_EXPENSIFY_MAIN && 'main' || '') }}
       MOBILE_EXPENSIFY_PR: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_PR }}
       BUILD_WEB: ${{ inputs.WEB && 'true' || 'false' }}
