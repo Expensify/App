@@ -6,6 +6,8 @@ import {SwcJsMinimizerRspackPlugin} from '@rspack/core';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+import SentryDebugIdPlugin from './sentryDebugIdPlugin.mjs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // This file lives in config/repack; the project root is two levels up.
@@ -190,9 +192,13 @@ export default Repack.defineRspackConfig((env) => {
                 }),
             ],
         },
-        plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), new ReanimatedPlugin({unstable_disableTransform: true}), process.env.RSDOCTOR && new RsdoctorRspackPlugin()].filter(
-            Boolean,
-        ),
+        plugins: [
+            !isDev && new SentryDebugIdPlugin(),
+            new Repack.RepackPlugin(),
+            new ExpoModulesPlugin(),
+            new ReanimatedPlugin({unstable_disableTransform: true}),
+            process.env.RSDOCTOR && new RsdoctorRspackPlugin(),
+        ].filter(Boolean),
         ignoreWarnings: [
             // React Compiler bailouts on rule-violating components, silenced the same way as web.
             /oxc-react-compiler-loader:/,
