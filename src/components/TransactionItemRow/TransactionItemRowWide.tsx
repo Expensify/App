@@ -26,7 +26,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {isTaxCodeCustomized, getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
-import {getSubmittedViolationsForTransaction} from '@libs/SearchUIUtils';
+import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,
@@ -215,7 +215,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
                     >
-                        <TextCell text={getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID, translate)} />
+                        <TextCell text={getViolationsForTransaction(reportActions, transactionItem.transactionID, translate)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
