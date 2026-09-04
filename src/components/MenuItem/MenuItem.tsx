@@ -750,7 +750,7 @@ function MenuItem({
         return Parser.replace(helperText, {shouldEscapeText});
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
-    const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && /<[^>]+>/.test(title);
+    const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.hasHTMLTags(title);
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
