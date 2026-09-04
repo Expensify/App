@@ -1161,6 +1161,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Ziehen Sie Ihre Tabelle hierher und legen Sie sie ab oder wählen Sie unten eine Datei aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Erfahren Sie mehr</a> über unterstützte Dateiformate.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Wähle eine Tabellenkalkulationsdatei zum Importieren aus. Unterstützte Formate: .csv, .txt, .xls und .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Wählen Sie eine Tabellenkalkulationsdatei zum Importieren aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Weitere Informationen</a> zu unterstützten Dateiformaten.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Ziehen Sie Ihre Tabelle oder Ihren Kontoauszug hierher und legen Sie sie ab oder wählen Sie unten eine Datei aus. Unterstützte Formate: .csv, .txt, .xls, .xlsx, .ofx und .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Wähle eine Tabellenkalkulations- oder Kontoauszugsdatei zum Importieren aus. Unterstützte Formate: .csv, .txt, .xls, .xlsx, .ofx und .qfx.</muted-link>',
         fileContainsHeader: 'Datei enthält Spaltenüberschriften',
         column: (name: string) => `Spalte ${name}`,
         fieldNotMapped: (fieldName: string) => `Ups! Ein erforderliches Feld („${fieldName}“) wurde nicht zugeordnet. Bitte überprüfe es und versuche es erneut.`,

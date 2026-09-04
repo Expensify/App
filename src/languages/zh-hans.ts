@@ -1110,6 +1110,8 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>将电子表格拖放到此处，或在下方选择一个文件。<a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">了解更多</a>支持的文件格式。</muted-link>`,
         chooseSpreadsheet: '<muted-link>选择要导入的电子表格文件。支持的格式：.csv、.txt、.xls 和 .xlsx。</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>选择要导入的电子表格文件。<a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">了解更多</a>关于支持的文件格式。</muted-link>`,
+        dragAndDropTransactions: '<muted-link>将您的电子表格或银行对账单拖放到此处，或在下方选择一个文件。支持的格式：.csv、.txt、.xls、.xlsx、.ofx 和 .qfx。</muted-link>',
+        chooseSpreadsheetTransactions: '<muted-link>选择要导入的电子表格或银行对账单文件。支持的格式：.csv、.txt、.xls、.xlsx、.ofx 和 .qfx。</muted-link>',
         fileContainsHeader: '文件包含列标题',
         column: (name: string) => `列 ${name}`,
         fieldNotMapped: (fieldName: string) => `哎呀！有一个必填字段（“${fieldName}”）尚未映射。请检查后重试。`,

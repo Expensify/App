@@ -1160,6 +1160,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Arrastra y suelta un archivo de hoja de cálculo aquí, o elige un archivo a continuación. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Aprende más</a> sobre los formatos de archivo soportados.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Elige un archivo de hoja de cálculo para importar. Los formatos soportados son .csv, .txt, .xls y .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Elige un archivo de hoja de cálculo para importar. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Aprende más</a> sobre los formatos de archivo soportados.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Arrastra y suelta tu hoja de cálculo o extracto bancario aquí, o elige un archivo a continuación. Los formatos soportados son .csv, .txt, .xls, .xlsx, .ofx y .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Elige un archivo de hoja de cálculo o extracto bancario para importar. Los formatos soportados son .csv, .txt, .xls, .xlsx, .ofx y .qfx.</muted-link>',
         fileContainsHeader: 'El archivo contiene encabezados',
         column: (name) => `Columna ${name}`,
         fieldNotMapped: (fieldName) => `¡Vaya! Un campo obligatorio ("${fieldName}") no ha sido mapeado. Por favor, revisa e inténtalo de nuevo.`,

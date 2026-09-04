@@ -1160,6 +1160,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Sleep je spreadsheet hierheen of kies hieronder een bestand. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Meer informatie</a> over ondersteunde bestandsindelingen.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Selecteer een spreadsheetbestand om te importeren. Ondersteunde formaten: .csv, .txt, .xls en .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Selecteer een spreadsheetbestand om te importeren. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Meer informatie</a> over ondersteunde bestandsindelingen.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Sleep je spreadsheet of bankafschrift hierheen of kies hieronder een bestand. Ondersteunde indelingen: .csv, .txt, .xls, .xlsx, .ofx en .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Selecteer een spreadsheet- of bankafschriftbestand om te importeren. Ondersteunde formaten: .csv, .txt, .xls, .xlsx, .ofx en .qfx.</muted-link>',
         fileContainsHeader: 'Bestand bevat kolomkoppen',
         column: (name: string) => `Kolom ${name}`,
         fieldNotMapped: (fieldName: string) => `Oeps! Een vereist veld ("${fieldName}") is niet toegewezen. Controleer het en probeer het opnieuw.`,

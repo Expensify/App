@@ -1165,6 +1165,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Glissez-déposez votre feuille de calcul ici ou choisissez un fichier ci-dessous. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">En savoir plus</a> sur les formats de fichier pris en charge.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Sélectionnez un fichier de feuille de calcul à importer. Formats pris en charge : .csv, .txt, .xls et .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Sélectionnez un fichier de feuille de calcul à importer. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">En savoir plus</a> sur les formats de fichiers pris en charge.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Faites glisser et déposez votre feuille de calcul ou votre relevé bancaire ici, ou choisissez un fichier ci-dessous. Formats pris en charge : .csv, .txt, .xls, .xlsx, .ofx et .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Sélectionnez un fichier de feuille de calcul ou de relevé bancaire à importer. Formats pris en charge : .csv, .txt, .xls, .xlsx, .ofx et .qfx.</muted-link>',
         fileContainsHeader: 'Le fichier contient des en-têtes de colonnes',
         column: (name: string) => `Colonne ${name}`,
         fieldNotMapped: (fieldName: string) => `Oups ! Un champ obligatoire (« ${fieldName} ») n’a pas été associé. Veuillez examiner et réessayer.`,

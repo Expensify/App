@@ -1246,6 +1246,9 @@ const translations = {
         dragAndDropMultiLevelTag: `<muted-link>Drag and drop your spreadsheet here, or choose a file below. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Learn more</a> about supported file formats.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Select a spreadsheet file to import. Supported formats: .csv, .txt, .xls, and .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Select a spreadsheet file to import. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Learn more</a> about supported file formats.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Drag and drop your spreadsheet or bank statement here, or choose a file below. Supported formats: .csv, .txt, .xls, .xlsx, .ofx, and .qfx.</muted-link>',
+        chooseSpreadsheetTransactions: '<muted-link>Select a spreadsheet or bank statement file to import. Supported formats: .csv, .txt, .xls, .xlsx, .ofx, and .qfx.</muted-link>',
         fileContainsHeader: 'File contains column headers',
         column: (name: string) => `Column ${name}`,
         fieldNotMapped: (fieldName: string) => `Oops! A required field ("${fieldName}") hasn't been mapped. Please review and try again.`,
