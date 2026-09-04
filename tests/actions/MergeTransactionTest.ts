@@ -1476,6 +1476,7 @@ describe('getTransactionsForMerging', () => {
             isOffline: true,
             targetTransaction,
             transactions: {},
+            reportTransactions: [],
             policy: undefined,
             report: undefined,
             currentUserLogin: undefined,

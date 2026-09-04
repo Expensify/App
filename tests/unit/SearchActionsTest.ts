@@ -8,6 +8,7 @@ import {
     openSearch,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
+    rejectMoneyRequestsOnSearch,
 } from '@libs/actions/Search';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -18,10 +19,14 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ExportTemplate, Policy, Report} from '@src/types/onyx';
+import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 
 const translateForTest: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
@@ -31,6 +36,10 @@ jest.mock('@libs/fileDownload');
 jest.mock('@libs/Network/enhanceParameters', () => ({
     __esModule: true,
     default: (_: string, params: Record<string, unknown>) => params,
+}));
+jest.mock('@libs/actions/IOU/RejectMoneyRequest', () => ({
+    rejectMoneyRequest: jest.fn(),
+    prepareRejectMoneyRequestData: jest.fn(),
 }));
 
 const mockWrite = jest.mocked(write);
@@ -166,11 +175,114 @@ describe('exportSearchItemsToCSV', () => {
             },
             jest.fn(),
             translateForTest,
+            undefined,
         );
 
         expect(appendSpy).toHaveBeenCalledWith('excludedTransactionIDList', 'tx2');
         expect(mockFileDownload).toHaveBeenCalled();
         appendSpy.mockRestore();
+    });
+
+    it('includes the report in reportIDList when all of its transactions are selected', () => {
+        const appendSpy = jest.spyOn(FormData.prototype, 'append');
+        const transaction = {...createRandomTransaction(1), transactionID: 'tx1', reportID: 'report1'};
+        const allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue = {
+            report1: {transactions: {[transaction.transactionID]: transaction}, violations: {}},
+        };
+
+        exportSearchItemsToCSV(
+            {
+                jsonQuery: '{}',
+                reportIDList: ['report1'],
+                transactionIDList: ['tx1'],
+                isBasicExport: true,
+                exportColumnLabels: '{}',
+                exportName: 'Basic export',
+            },
+            jest.fn(),
+            translateForTest,
+            allReportsTransactionsAndViolations,
+        );
+
+        expect(appendSpy).toHaveBeenCalledWith('reportIDList', 'report1');
+        appendSpy.mockRestore();
+    });
+
+    it('excludes the report from reportIDList when one of its transactions is not selected', () => {
+        const appendSpy = jest.spyOn(FormData.prototype, 'append');
+        const includedTransaction = {...createRandomTransaction(1), transactionID: 'tx1', reportID: 'report1'};
+        const excludedTransaction = {...createRandomTransaction(2), transactionID: 'tx2', reportID: 'report1'};
+        const allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue = {
+            report1: {
+                transactions: {[includedTransaction.transactionID]: includedTransaction, [excludedTransaction.transactionID]: excludedTransaction},
+                violations: {},
+            },
+        };
+
+        exportSearchItemsToCSV(
+            {
+                jsonQuery: '{}',
+                reportIDList: ['report1'],
+                transactionIDList: ['tx1'],
+                isBasicExport: true,
+                exportColumnLabels: '{}',
+                exportName: 'Basic export',
+            },
+            jest.fn(),
+            translateForTest,
+            allReportsTransactionsAndViolations,
+        );
+
+        expect(appendSpy).toHaveBeenCalledWith('reportIDList', '');
+        appendSpy.mockRestore();
+    });
+});
+
+describe('rejectMoneyRequestsOnSearch', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    const reportID = 'report1';
+    const chatReportID = 'chat1';
+    const baseReport: Report = {...createRandomReport(1), reportID, chatReportID, transactionCount: 2};
+
+    function reject(allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined) {
+        return rejectMoneyRequestsOnSearch({
+            hash: 123,
+            selectedTransactions: {tx1: {reportID}},
+            comment: 'rejecting',
+            allPolicies: {},
+            allReports: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: baseReport},
+            currentUserAccountIDParam: 1,
+            currentUserLogin: 'test@example.com',
+            betas: [],
+            delegateAccountID: undefined,
+            getCurrencyDecimals: jest.fn(() => 2),
+            allReportsTransactionsAndViolations,
+        });
+    }
+
+    it('treats a pending-delete transaction as already gone when checking if all expenses are selected', () => {
+        // The report's transactionCount (2) still counts the pending-delete transaction, so without subtracting it
+        // the single selected transaction would look like a partial selection instead of the full report.
+        const pendingDeleteTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'tx2',
+            reportID,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        };
+        const allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue = {
+            [reportID]: {transactions: {[pendingDeleteTransaction.transactionID]: pendingDeleteTransaction}, violations: {}},
+        };
+
+        const urlToNavigateBack = reject(allReportsTransactionsAndViolations);
+
+        expect(urlToNavigateBack).toBe(ROUTES.REPORT_WITH_ID.getRoute(chatReportID));
+    });
+
+    it('does not treat the selection as complete when the pending-delete transaction is unknown', () => {
+        const urlToNavigateBack = reject(undefined);
+
+        expect(urlToNavigateBack).toBeUndefined();
     });
 });
 
