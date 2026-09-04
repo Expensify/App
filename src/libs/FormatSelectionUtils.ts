@@ -1,3 +1,5 @@
+import CONST from '@src/CONST';
+
 import type {MarkdownType} from '@expensify/react-native-live-markdown';
 
 import {parseExpensiMark} from '@expensify/react-native-live-markdown';
@@ -23,7 +25,7 @@ function applyFormatting(text: string, selectionStart: number, selectionEnd: num
 }
 
 function findMatchingFormat(text: string, selectionStart: number, selectionEnd: number, formatRule: FormatRule): Match | null {
-    const markdownRanges = parseExpensiMark(text);
+    const markdownRanges = parseExpensiMark(text, CONST.MAX_MARKUP_LENGTH);
     for (const range of markdownRanges) {
         if (range?.type === formatRule.markdownType && range.start != null && range.length != null) {
             const rangeEnd = range.start + range.length;
