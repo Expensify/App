@@ -175,7 +175,10 @@ describe('actions/Workflow', () => {
 
     describe('selectApprovalWorkflowForEdit', () => {
         it('should store the original members so a fast edit can work out who was removed', async () => {
-            const members = [{email: employee1Email, displayName: 'Employee 1'}, {email: employee2Email, displayName: 'Employee 2'}];
+            const members = [
+                {email: employee1Email, displayName: 'Employee 1'},
+                {email: employee2Email, displayName: 'Employee 2'},
+            ];
 
             selectApprovalWorkflowForEdit({
                 workflow: {members, approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
