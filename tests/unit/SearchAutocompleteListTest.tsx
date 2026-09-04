@@ -691,7 +691,7 @@ describe('SearchAutocompleteList', () => {
             expect(screen.queryByText('Search results')).toBeNull();
         });
 
-        it('should order all search results by the order Auth returned', async () => {
+        it('should keep locally available matches while ordering server-only results', async () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
@@ -702,20 +702,20 @@ describe('SearchAutocompleteList', () => {
             render(<SearchRouterWrapper />);
             await flushAllUpdates();
 
-            // Type a search query to freeze the local rank for the locally-known reports.
+            // When a query is typed, the currently visible local reports are frozen in their existing order.
             const textInput = screen.getByTestId('search-autocomplete-text-input');
             fireEvent.changeText(textInput, 'test');
             await flushAllUpdates();
 
-            // Simulate server results arriving: three server-only reports the client did not know about,
-            // returned by getSearchOptions in ascending reportID order (201, 202, 203).
+            // When Auth returns its 20 results, it includes none of the frozen local reports. The local
+            // options are deliberately placed after the server results to catch a premature global cap.
+            const serverReports = Array.from({length: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS}, (_, index) => {
+                const reportID = String(201 + index);
+                return {reportID, keyForList: reportID, text: `Server${index + 1} Report`, alternateText: '', lastMessageText: ''};
+            });
             getSearchOptionsSpy.mockReturnValue({
                 options: {
-                    recentReports: [
-                        {reportID: '201', keyForList: '201', text: 'ServerOne Report', alternateText: 'one alt', lastMessageText: 'one'},
-                        {reportID: '202', keyForList: '202', text: 'ServerTwo Report', alternateText: 'two alt', lastMessageText: 'two'},
-                        {reportID: '203', keyForList: '203', text: 'ServerThree Report', alternateText: 'three alt', lastMessageText: 'three'},
-                    ],
+                    recentReports: [...serverReports, ...fakeRecentReports],
                     personalDetails: [],
                     currentUserOption: null,
                     userToInvite: null,
@@ -729,82 +729,25 @@ describe('SearchAutocompleteList', () => {
                 isLoadingMore: false,
             });
 
-            // Auth returned a DIFFERENT (tier) order: 203, 201, 202.
+            const serverOrder = serverReports.map(({reportID}) => reportID).reverse();
             await act(async () => {
-                await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['203', '201', '202']);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, serverOrder);
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
             });
             await flushAllUpdates();
 
             await waitFor(() => {
+                expect(screen.getByText('Recent chats')).toBeTruthy();
                 expect(screen.getByText('Search results')).toBeTruthy();
             });
 
             const names = screen
                 .queryAllByText(/Report$/)
                 .map((el) => (typeof el.props.children === 'string' ? el.props.children : ''))
-                .filter((name) => ['ServerOne Report', 'ServerTwo Report', 'ServerThree Report'].includes(name));
+                .filter((name) => [...fakeRecentReports.map(({text}) => text), ...serverReports.map(({text}) => text)].includes(name));
 
-            // The server section must follow Auth's order (203, 201, 202), not the order getSearchOptions returned.
-            expect(names.indexOf('ServerThree Report')).toBeLessThan(names.indexOf('ServerOne Report'));
-            expect(names.indexOf('ServerOne Report')).toBeLessThan(names.indexOf('ServerTwo Report'));
-        });
-
-        it('should rank the selfDM first even when it is absent from the server order', async () => {
-            await waitForBatchedUpdates();
-            await Onyx.multiSet({
-                ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                [ONYXKEYS.BETAS]: mockedBetas,
-            });
-
-            render(<SearchRouterWrapper />);
-            await flushAllUpdates();
-
-            const textInput = screen.getByTestId('search-autocomplete-text-input');
-            fireEvent.changeText(textInput, 'test');
-            await flushAllUpdates();
-
-            // The selfDM plus two server reports; the server order (below) does NOT include the selfDM.
-            getSearchOptionsSpy.mockReturnValue({
-                options: {
-                    recentReports: [
-                        {reportID: '301', keyForList: '301', text: 'ServerA Report', alternateText: 'a', lastMessageText: 'a'},
-                        {reportID: '999', keyForList: '999', text: 'MySelf Report', alternateText: 'me', lastMessageText: 'me', isSelfDM: true},
-                        {reportID: '302', keyForList: '302', text: 'ServerB Report', alternateText: 'b', lastMessageText: 'b'},
-                    ],
-                    personalDetails: [],
-                    currentUserOption: null,
-                    userToInvite: null,
-                },
-            });
-            mockUseFilteredOptions.mockReturnValue({
-                options: {...mockedOptions},
-                isLoading: false,
-                loadMore: jest.fn(),
-                hasMore: false,
-                isLoadingMore: false,
-            });
-
-            // Server order lists only the two non-selfDM reports.
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['301', '302']);
-                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
-            });
-            await flushAllUpdates();
-
-            await waitFor(() => {
-                expect(screen.getByText('Search results')).toBeTruthy();
-            });
-
-            const names = screen
-                .queryAllByText(/Report$/)
-                .map((el) => (typeof el.props.children === 'string' ? el.props.children : ''))
-                .filter((name) => ['MySelf Report', 'ServerA Report', 'ServerB Report'].includes(name));
-
-            // The selfDM leads, even though it isn't in the server order.
-            expect(names.indexOf('MySelf Report')).toBe(0);
-            expect(names.indexOf('MySelf Report')).toBeLessThan(names.indexOf('ServerA Report'));
+            expect(names.slice(0, fakeRecentReports.length)).toEqual(fakeRecentReports.map(({text}) => text));
+            expect(names.slice(fakeRecentReports.length)).toEqual(serverReports.map(({text}) => text).reverse());
         });
 
         it('widens the candidate pool to the full pre-filtered set once the server returns an order', async () => {

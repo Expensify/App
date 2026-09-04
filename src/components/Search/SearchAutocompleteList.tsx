@@ -471,7 +471,7 @@ function SearchAutocompleteList({
             reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
         }
 
-        return reportOptions.slice(0, 20);
+        return searchResultReportIDs && searchResultReportIDs.length > 0 ? reportOptions : reportOptions.slice(0, 20);
     }, [
         autocompleteQueryValue,
         hasActiveSearchResults,
@@ -610,11 +610,12 @@ function SearchAutocompleteList({
             // Active search: keep locally available rows fixed while server-only rows arrive separately.
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
+            const serverResultReportIDs = new Set(searchResultReportIDs);
             for (const item of nextStyledRecentReports) {
                 const stableKey = getStableRankKey(item);
                 if (stableKey && frozenLocalRank.has(stableKey)) {
                     localRows.push(item);
-                } else {
+                } else if (searchResultReportIDs === undefined || !item.reportID || serverResultReportIDs.has(item.reportID)) {
                     serverRows.push(item);
                 }
             }
@@ -681,6 +682,7 @@ function SearchAutocompleteList({
         recentSearchesData,
         searchOptions,
         searchQueryItems,
+        searchResultReportIDs,
         styles,
         translate,
         isLoadingOptions,
