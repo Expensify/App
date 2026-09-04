@@ -4767,6 +4767,7 @@ ${amount} pour ${merchant} - ${date}`,
             travelInvoicingVendor: 'Fournisseur de voyages',
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
+            recruiting: 'Recrutement',
             rooms: 'Salons',
             findDomain: 'Trouver un domaine',
             cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
@@ -8460,43 +8461,26 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         hr: {
             title: 'RH',
-            connections: 'Connexions',
             connectionsSubtitle:
                 'Connectez votre système RH pour synchroniser les données des employé·es, faire correspondre automatiquement les remboursements aux bonnes personnes et garder les dépenses de votre équipe exactes, sans travail manuel.',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
-            connect: 'Connecter',
-            syncNow: 'Synchroniser maintenant',
-            disconnect: 'Déconnecter',
-            disconnectTitle: (providerName: string) => `Déconnecter ${providerName}`,
-            disconnectPrompt: (providerName: string) => `Êtes-vous sûr de vouloir déconnecter ${providerName} ?`,
             alreadyConnectedTitle: 'Impossible de se connecter à plusieurs plateformes RH',
             alreadyConnectedPrompt: 'Vous devez déconnecter votre plateforme RH actuelle avant d’en connecter une autre.',
-            lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
-            syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
             connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
-            approvalMode: "Mode d'approbation",
             providerApprovalMode: (providerName: string) => `Mode d'approbation ${providerName}`,
-            finalApprover: 'Approbateur final',
             providerFinalApprover: (providerName: string) => `Approbateur final ${providerName}`,
-            notSet: 'Non défini',
+            syncing: 'Synchronisation des employés',
+            syncingModalTitle: 'Votre connexion est en cours de synchronisation',
+            syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             approvalModeDescription: (providerName: string) => `Les membres et les responsables sont configurés pour se synchroniser avec ${providerName}.`,
             approvalModeWarningTitle: 'Changer le mode d’approbation ?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
             approvalModeWarningConfirm: 'Modifier le mode d’approbation',
-            approvalModes: {
-                basic: {
-                    label: 'Approbation simple',
-                    description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.',
-                },
-                manager: {
-                    label: 'Approbation du responsable',
-                    description: (providerName: string) => `Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans ${providerName}.`,
-                },
-                custom: {
-                    label: 'Approbation personnalisée',
-                    description: 'Je configurerai manuellement les circuits de validation dans Expensify.',
-                },
+            approvalModeDescriptions: {
+                basic: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.',
+                manager: (providerName: string) => `Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans ${providerName}.`,
+                custom: 'Je configurerai manuellement les circuits de validation dans Expensify.',
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -8536,22 +8520,50 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             zenefits: {
                 title: 'TriNet',
             },
-            syncingModalTitle: 'Votre connexion est en cours de synchronisation',
-            syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
-            syncing: 'Synchronisation des employés',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Terminer la configuration',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
                 groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
             },
+        },
+        recruiting: {
+            title: 'Recrutement',
+            connectionsSubtitle:
+                'Connectez votre système de recrutement pour synchroniser les données des candidats, faire correspondre automatiquement les remboursements aux bonnes personnes et maintenir des dépenses d’équipe exactes sans travail manuel.',
+            alreadyConnectedTitle: 'Impossible de se connecter à plusieurs plateformes ATS',
+            alreadyConnectedPrompt: 'Vous devez déconnecter votre ATS actuel avant d’en connecter un autre.',
+            syncing: 'Synchronisation des candidats',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer des candidats.</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>Vous ne voyez pas votre ATS ici ? <a href="#">Demandez à Concierge</a> et nous pourrons l’ajouter.</muted-text-label>`,
+            importSettings: 'Paramètres d’importation',
+            defaultApprover: 'Approbateur par défaut',
+            approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
+        },
+        merge: {
+            connections: 'Connexions',
+            connect: 'Connecter',
+            findIntegration: 'Rechercher une intégration',
+            syncNow: 'Synchroniser maintenant',
+            disconnect: 'Déconnecter',
+            disconnectTitle: (providerName: string) => `Déconnecter ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Êtes-vous sûr de vouloir déconnecter ${providerName} ?`,
+            lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
             notSync: 'Non synchronisé',
+            syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
             authenticationError: (providerName: string) => `Connexion à ${providerName} impossible en raison d'une connexion expirée.`,
             reconnect: 'Reconnect',
             reconnectLink: 'Reconnectez-vous.',
-            findIntegration: 'Rechercher une intégration',
-        },
-        merge: {
+            notSet: 'Non défini',
+            completeSetup: 'Terminer la configuration',
+            approvalMode: "Mode d'approbation",
+            finalApprover: 'Approbateur final',
+            approvalModes: {
+                basic: 'Approbation simple',
+                manager: 'Approbation du responsable',
+                custom: 'Approbation personnalisée',
+                advanced: 'Approbation avancée',
+            },
             syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
         },
         emptyDomain: {
