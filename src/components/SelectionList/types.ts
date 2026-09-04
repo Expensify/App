@@ -305,6 +305,20 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
      * Defaults to large for backwards compatibility.
      */
     confirmButtonSize?: 'large' | 'medium' | 'small';
+
+    /**
+     * Whether a custom footer confirm control can handle a plain Enter key on the current platform.
+     * Defaults to `true` — footers built with an unconditional `<Button.KeyboardShortcut />` are Enter-capable everywhere.
+     * Pass `false` when the footer is intentionally unable to handle Enter on a platform.
+     */
+    isFooterConfirmEnterKeyEnabled?: boolean;
+
+    /**
+     * Whether a custom footer confirm control is currently rendered and enabled.
+     * Defaults to inferring the state from the rendered rows. Pass the authoritative state when the footer's
+     * enabled state depends on selection that may not be reflected in the currently rendered rows.
+     */
+    isFooterConfirmEnabled?: boolean;
 };
 
 type SelectionListHandle<TItem extends ListItem> = {
