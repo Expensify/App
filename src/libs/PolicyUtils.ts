@@ -1901,22 +1901,18 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
 }
 
 /**
- * True when this node is a single comparison like `from = alice@expensify.com` rather than a boolean node
- * combining two children. Both shapes are `{operator, left, right}`, so the giveaway is `left`: a comparison
- * points at a field name, a boolean node points at another node.
+ * True when this node is a single comparison instead of a combination of two children.
  */
 function isApprovalWorkflowComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): node is ApprovalWorkflowFilterComparison {
     return typeof node.left === 'string';
 }
 
-/** Match an email-valued comparison (`from`, `to`) against the email the report actually has. */
 function matchesApprovalWorkflowEmailComparison(node: ApprovalWorkflowFilterComparison, email: string | undefined): boolean {
     const expectedEmails = (Array.isArray(node.right) ? node.right : [node.right]).map((value) => String(value).toLowerCase());
     const isMatch = !!email && expectedEmails.includes(email.toLowerCase());
     return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? !isMatch : isMatch;
 }
 
-/** Match an `amount` comparison against the report total. */
 function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterComparison, amount: number): boolean {
     const expectedAmount = typeof node.right === 'number' ? node.right : Number(node.right);
     if (Number.isNaN(expectedAmount)) {
@@ -1952,33 +1948,27 @@ function evaluateApprovalWorkflowFilter(node: ApprovalWorkflowFilter | ApprovalW
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
             return matchesApprovalWorkflowEmailComparison(node, context.submitterEmail);
 
-        // A report with no current approver has not been approved by anybody yet, so a rule gated on who
+        // A report with no current approver has not been approved by anybody yet, so a rule based on who
         // approved it last cannot apply.
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
             return !!context.currentApproverEmail && matchesApprovalWorkflowEmailComparison(node, context.currentApproverEmail);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
             return matchesApprovalWorkflowAmountComparison(node, Math.abs(context.reportTotal));
 
-        // An unknown field is a rule this client does not understand, so it must not match.
         default:
             return false;
     }
 }
 
 /**
- * True when every condition in the rule's filter tree holds for `context`. The Auth backend evaluates the same
- * tree as a SQL query against the report, so the two must agree on which reports a rule covers.
+ * True when every condition in the rule's filter tree is true for `context`.
  */
 function evaluateApprovalWorkflowRule(rule: ApprovalWorkflowRule, context: ApprovalWorkflowContext): boolean {
     return evaluateApprovalWorkflowFilter(rule.filters, context);
 }
 
 /**
- * Ask the policy's approval workflow rules where the report goes next. Reports with no current approver are
- * matched against `ReportSubmit` rules, reports already sitting with an approver against `ReportApprove` rules.
- *
- * Returns undefined when no rule covers this report, so callers fall back to the legacy `employeeList`
- * submitsTo/forwardsTo chain.
+ * Check the policy's approval workflow rules to determine where the report goes next.
  */
 function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWorkflowContext): ApprovalWorkflowRuleMatch | undefined {
     if (!policy?.id || !context.submitterEmail) {
@@ -1987,7 +1977,7 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
 
     const trigger = context.currentApproverEmail ? CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE : CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT;
 
-    // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches.
+    // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches (which should not happen).
     const ruleKeys = Object.keys(allRules ?? {}).sort();
     for (const ruleKey of ruleKeys) {
         const rule = allRules?.[ruleKey];
