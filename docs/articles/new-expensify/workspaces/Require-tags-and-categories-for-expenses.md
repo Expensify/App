@@ -36,6 +36,23 @@ When this setting is turned on, expenses must include a **tag** or **category** 
 
 ---
 
+## How to require independent multi-level tags per level
+
+For independent multi-level tags, the **Members must tag all expenses** toggle does not appear in **Settings**. Instead, set the requirement separately for each tag level, the same way it works in Expensify Classic.
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Tags**.
+4. Select a tag level to open its list.
+5. Toggle on **Required** at the top of the list.
+6. Repeat for each tag level you want to require.
+
+Single-level tags and dependent multi-level tags still use the workspace-wide **Members must tag all expenses** toggle in **Settings**.
+
+To learn how independent and dependent tags differ, see [Create and manage expense tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags).
+
+---
+
 # Default Spend Categories
 
 Expensify can automatically assign categories based on the merchant's MCC (Merchant Category Code). For example, airline expenses can default to a "Flights" category. Expensify also learns how you categorize expenses by merchant and applies those preferences going forward. You can always update or override a category, and Expensify will learn your changes over time.
