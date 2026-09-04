@@ -39,6 +39,7 @@ jobs:
       contents: read
       pull-requests: read
       issues: write
+      statuses: write
     env:
       PR_NUMBER: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.number, github.event.issue.number) }}
       ACTOR: ${{ case(github.event_name == 'pull_request_target', github.event.pull_request.user.login, github.event.comment.user.login) }}
@@ -60,8 +61,20 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Add review in progress reaction
+      - name: Setup Claude review toolkit
         if: steps.gate.outputs.IS_AUTHORIZED == 'true'
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@096f415ac7bb77cae9189d1061350563def00a99
+
+      - name: Check for an existing review of this commit
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
+        id: skip
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+        run: shouldSkipReview.sh "$PR_NUMBER" "ai-review-completed/codex"
+
+      - name: Add review in progress reaction
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
         env:
           PR_NUMBER: ${{ env.PR_NUMBER }}
@@ -87,7 +100,7 @@ jobs:
             });
 
       - name: Build Codex prompt from PR diff
-        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -119,7 +132,7 @@ jobs:
           } > prompt.txt
 
       - name: Run Codex review
-        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
+        if: steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
         id: codex
         uses: openai/codex-action@e0fdf01220eb9a88167c4898839d273e3f2609d1 # v1
         with:
@@ -156,8 +169,15 @@ jobs:
               body,
             });
 
+      - name: Record review completion
+        if: steps.codex.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ steps.skip.outputs.head_sha }}
+        run: recordReviewComplete.sh "$HEAD_SHA" "ai-review-completed/codex" "Reviewed at this commit - comment /codex-review to re-run"
+
       - name: Remove review in progress reaction
-        if: always() && steps.gate.outputs.IS_AUTHORIZED == 'true'
+        if: always() && steps.gate.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
         env:
           PR_NUMBER: ${{ env.PR_NUMBER }}
