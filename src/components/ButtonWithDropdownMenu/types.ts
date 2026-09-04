@@ -118,6 +118,9 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
 
+    /** Whether the popover menu should flip to the opposite side of the button when it doesn't fit, instead of being clamped to the window edge */
+    shouldSwitchPositionIfOverflow?: boolean;
+
     /* ref for the button */
     buttonRef?: RefObject<View | null>;
 
@@ -172,11 +175,17 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
 
+    /** Used to apply styles specifically to the header text */
+    headerTextStyles?: StyleProp<TextStyle>;
+
     /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
     /** Reference to the outer element */
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
+
+    /** Whether to put the header text after the back button */
+    shouldPutHeaderTextAfterBackButton?: boolean;
 };
 
 type ButtonWithDropdownMenuRef = {

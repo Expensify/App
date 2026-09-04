@@ -1,6 +1,5 @@
 import {act, render} from '@testing-library/react-native';
 
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {ReportPreviewActionsContext, ReportPreviewDataContext, ReportPreviewHoldMenuContext} from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext';
 import ReportPreviewHoldMenu from '@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewHoldMenu';
 
@@ -20,7 +19,6 @@ const SELECTED_BANK_ACCOUNT_ID = 9999;
 
 type CapturedHoldMenuProps = {
     isVisible?: boolean;
-    requestType?: string;
     paymentType?: PaymentMethodType;
     methodID?: number;
     nonHeldAmount?: string;
@@ -42,7 +40,6 @@ const heldTransaction: Transaction = {...createRandomTransaction(1), comment: {.
 const nonHeldTransaction: Transaction = {...createRandomTransaction(2), comment: {...createRandomTransaction(2).comment, hold: undefined}};
 
 const defaultHoldMenuState = {
-    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY as ActionHandledType,
     paymentType: CONST.IOU.PAYMENT_TYPE.VBBA as PaymentMethodType,
     canPay: true,
     methodID: SELECTED_BANK_ACCOUNT_ID,
@@ -112,11 +109,10 @@ describe('ReportPreviewHoldMenu', () => {
         expect(mockHoldMenuPropsHolder.current).toBeUndefined();
     });
 
-    it('forwards the request type, payment type and selected bank account from the context state', () => {
+    it('forwards the payment type and selected bank account from the context state', () => {
         renderHoldMenu();
 
         expect(mockHoldMenuPropsHolder.current?.isVisible).toBe(true);
-        expect(mockHoldMenuPropsHolder.current?.requestType).toBe(CONST.IOU.REPORT_ACTION_TYPE.PAY);
         expect(mockHoldMenuPropsHolder.current?.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.VBBA);
         expect(mockHoldMenuPropsHolder.current?.methodID).toBe(SELECTED_BANK_ACCOUNT_ID);
     });
@@ -134,17 +130,6 @@ describe('ReportPreviewHoldMenu', () => {
 
         expect(mockHoldMenuPropsHolder.current?.hasNonHeldExpenses).toBe(false);
         expect(mockHoldMenuPropsHolder.current?.nonHeldAmount).toBeUndefined();
-    });
-
-    it('starts the approved animation when confirming an approval', () => {
-        renderHoldMenu({holdMenu: {...defaultHoldMenuState, requestType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE}});
-
-        act(() => {
-            mockHoldMenuPropsHolder.current?.onConfirm?.(true);
-        });
-
-        expect(mockActionsValue.startApprovedAnimation).toHaveBeenCalled();
-        expect(mockActionsValue.startAnimation).not.toHaveBeenCalled();
     });
 
     it('starts the paid animation when confirming a payment', () => {
