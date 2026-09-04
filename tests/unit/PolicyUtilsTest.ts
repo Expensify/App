@@ -7,6 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
+    canAccessPolicyBankAccount,
     canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -14,6 +15,7 @@ import {
     canMemberWrite,
     canSendInvoiceFromWorkspace,
     findVendorByID,
+    getAccessiblePolicyBankAccount,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -60,6 +62,7 @@ import {
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isArchivedPolicy,
+    isMaxExpenseAmountSet,
     isMergeHRCompleteSetupNeededSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
@@ -1083,6 +1086,80 @@ describe('PolicyUtils', () => {
                     expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover2AccountID);
                 });
             });
+        });
+    });
+    describe('getSubmitReportManagerAccountID', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return undefined for an advanced policy where the submitter is missing from the employee list, even if the report has a valid managerID', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                // The submitter isn't in the employee list, which is the case for reports migrated from Expensify Classic.
+                employeeList: {},
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                // The stale Classic-era manager stamped on the migrated report.
+                managerID: categoryApprover1AccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBeUndefined();
+        });
+        it('should return the known approver accountID when the policy route is reliable', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                employeeList,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                managerID: categoryApprover1AccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBe(adminAccountID);
+        });
+        it('should return undefined instead of a generated accountID when the approver is missing from personal details', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: 'user',
+                        submitsTo: 'unknown@test.com',
+                    },
+                    // The approver is still a policy member, so the submit-to route stays put instead of falling back to the default approver.
+                    'unknown@test.com': {
+                        email: 'unknown@test.com',
+                        role: 'user',
+                    },
+                },
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+                managerID: categoryApprover1AccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBeUndefined();
         });
     });
     describe('shouldShowPolicy', () => {
@@ -4268,7 +4345,7 @@ describe('PolicyUtils', () => {
         };
         const buildMergeHRPolicy = (seed: number, mergeHR: MergeHRTestConnection): Policy => Object.assign(createRandomPolicy(seed), {connections: {merge_hris: mergeHR}});
         const mergeHRBase = {
-            lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+            lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
             data: {groups: [{id: 'g1', name: 'Engineering'}]},
         };
 
@@ -4282,7 +4359,7 @@ describe('PolicyUtils', () => {
         });
 
         it('returns false when sync is not done', () => {
-            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING}});
+            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING}});
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
         });
 
@@ -4300,6 +4377,24 @@ describe('PolicyUtils', () => {
             const policy = buildMergeHRPolicy(5, mergeHRBase);
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
         });
+    });
+});
+
+describe('isMaxExpenseAmountSet', () => {
+    it('returns false when the amount was never set', () => {
+        expect(isMaxExpenseAmountSet(undefined)).toBe(false);
+    });
+
+    it('returns false when the amount is explicitly disabled', () => {
+        expect(isMaxExpenseAmountSet(CONST.DISABLED_MAX_EXPENSE_VALUE)).toBe(false);
+    });
+
+    it('returns true for an explicit 0, which means the receipt is always required', () => {
+        expect(isMaxExpenseAmountSet(0)).toBe(true);
+    });
+
+    it('returns true for a positive amount', () => {
+        expect(isMaxExpenseAmountSet(5000)).toBe(true);
     });
 });
 
@@ -4478,6 +4573,104 @@ describe('getDefaultWorkspacePlanType', () => {
         },
     ])('returns $expected when $description', ({policies, expected}) => {
         expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
+    });
+});
+
+describe('canAccessPolicyBankAccount', () => {
+    const PAYER_EMAIL = 'payer@test.com';
+    const NON_PAYER_ADMIN_EMAIL = 'admin@test.com';
+    const POLICY_BANK_ACCOUNT_ID = 1111;
+
+    const policyWithBankAccount: Policy = {
+        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+        role: CONST.POLICY.ROLE.ADMIN,
+        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+        reimburser: PAYER_EMAIL,
+        achAccount: {
+            bankAccountID: POLICY_BANK_ACCOUNT_ID,
+            accountNumber: 'XXXXXX1111',
+            routingNumber: '123456789',
+            addressName: 'Test bank account',
+            bankName: 'Test bank',
+            reimburser: PAYER_EMAIL,
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+        },
+        employeeList: {
+            [PAYER_EMAIL]: {email: PAYER_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            [NON_PAYER_ADMIN_EMAIL]: {email: NON_PAYER_ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+        },
+    };
+
+    const bankAccountListWithPolicyAccount = {
+        [POLICY_BANK_ACCOUNT_ID]: {methodID: POLICY_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+    };
+
+    // The designated payer is the case that produced the original bug: the workspace account was advertised on their Pay
+    // button but never shared with them, so the backend debited a different account.
+    it('returns false for the designated payer when the workspace account is missing from their bank account list', () => {
+        expect(canAccessPolicyBankAccount(policyWithBankAccount, {})).toBe(false);
+    });
+
+    it('returns true for the designated payer when the workspace account is in their bank account list', () => {
+        expect(canAccessPolicyBankAccount(policyWithBankAccount, bankAccountListWithPolicyAccount)).toBe(true);
+    });
+
+    it('returns false when the bank account list only holds other accounts', () => {
+        const otherAccountID = POLICY_BANK_ACCOUNT_ID + 1;
+        expect(
+            canAccessPolicyBankAccount(policyWithBankAccount, {
+                [otherAccountID]: {methodID: otherAccountID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+            }),
+        ).toBe(false);
+    });
+
+    it('returns false when the workspace has no connected bank account', () => {
+        expect(canAccessPolicyBankAccount({...policyWithBankAccount, achAccount: undefined}, bankAccountListWithPolicyAccount)).toBe(false);
+    });
+
+    it('returns false when there is no policy', () => {
+        expect(canAccessPolicyBankAccount(undefined, bankAccountListWithPolicyAccount)).toBe(false);
+    });
+});
+
+describe('getAccessiblePolicyBankAccount', () => {
+    const POLICY_BANK_ACCOUNT_ID = 1111;
+
+    // `achAccount.accountNumber` is deliberately a different account's number than the one `bankAccountID` resolves to.
+    // The two really do fall out of sync, and reading the number off `achAccount` is what makes a Pay button name an
+    // account other than the one the payment debits.
+    const policyWithStaleAccountNumber: Policy = {
+        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+        achAccount: {
+            bankAccountID: POLICY_BANK_ACCOUNT_ID,
+            accountNumber: 'XXXXXX9999',
+            routingNumber: '123456789',
+            addressName: 'Test bank account',
+            bankName: 'Test bank',
+            reimburser: 'payer@test.com',
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+        },
+    };
+
+    const bankAccountList = {
+        [POLICY_BANK_ACCOUNT_ID]: {
+            methodID: POLICY_BANK_ACCOUNT_ID,
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            accountData: {accountNumber: 'XXXXXX1234'},
+        },
+    };
+
+    it('resolves the account number through the bank account list rather than the stale one on achAccount', () => {
+        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, bankAccountList)?.accountData?.accountNumber).toBe('XXXXXX1234');
+    });
+
+    it('returns undefined when the workspace account is not shared with the user', () => {
+        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, {})).toBeUndefined();
+    });
+
+    it('returns undefined when the workspace has no connected bank account', () => {
+        expect(getAccessiblePolicyBankAccount({...policyWithStaleAccountNumber, achAccount: undefined}, bankAccountList)).toBeUndefined();
     });
 });
 

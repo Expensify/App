@@ -10,6 +10,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
+import TravelBillingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelBillingContinuousReconciliationSection';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -60,6 +61,12 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
                     brickRoadIndicator={areSettingsInErrorFields(payableAccountSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
+            <TravelBillingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+                isAutoSyncEnabled={!!config?.autoSync?.enabled}
+                isPayableAccountSet={!!config?.export?.travelInvoicingPayableAccountID}
+            />
         </ConnectionLayout>
     );
 }
