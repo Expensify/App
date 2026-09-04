@@ -8282,6 +8282,7 @@ const CONST = {
     RULES: {
         SCOPE: {
             POLICY: 'policy',
+            ACCOUNT: 'account',
         },
         APPROVAL_WORKFLOW: {
             TRIGGER: {
@@ -8292,6 +8293,27 @@ const CONST = {
                 FORWARD_TO: 'ForwardTo',
                 APPROVE_REPORT: 'ApproveReport',
             },
+        },
+        EXPENSE_DEFAULT: {
+            TRIGGER: {
+                CREATE_TRANSACTION: 'CreateTransaction',
+            },
+            ACTION: {
+                SET: 'Set',
+            },
+            /** Expense fields a `Set` action can write to */
+            FIELD: {
+                BILLABLE: 'billable',
+                CATEGORY: 'category',
+                COMMENT: 'comment',
+                MERCHANT: 'merchant',
+                REIMBURSABLE: 'reimbursable',
+                TAG: 'tag',
+                TAX: 'tax',
+                VENDOR_ID: 'vendorID',
+            },
+            /** Every expense default rule is created with the same priority, per the rules engine spec */
+            PRIORITY: 10000,
         },
     },
 
