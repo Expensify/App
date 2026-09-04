@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 
 import useLocalize from '@hooks/useLocalize';
 import useTransactionViolations from '@hooks/useTransactionViolations';

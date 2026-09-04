@@ -96,9 +96,6 @@
 "../../src/components/AvatarSelector.tsx"	"no-restricted-syntax"	2
 "../../src/components/AvatarWithImagePicker.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/BookTravelButton.tsx"	"no-restricted-imports"	1
-"../../src/components/Button/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/Button/validateSubmitShortcut/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/ButtonComposed/Button.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/CategoryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Charts/BarChart/BarChartContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1389,7 +1386,6 @@
 "../../tests/actions/TransactionTest.ts"	"no-restricted-imports"	1
 "../../tests/ui/MoneyRequestReportPreview.test.tsx"	"no-restricted-imports"	1
 "../../tests/ui/WorkspaceMoreFeaturesPageTest.tsx"	"no-restricted-imports"	1
-"../../tests/ui/components/Button.tsx"	"no-restricted-imports"	1
 "../../tests/unit/FormulaTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/HomePage/YourSpendSection/useYourSpendDataTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/IOUUtilsTest.ts"	"no-restricted-imports"	1

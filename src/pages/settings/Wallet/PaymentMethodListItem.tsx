@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 import Hoverable from '@components/Hoverable';

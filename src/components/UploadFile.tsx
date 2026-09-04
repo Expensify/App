@@ -15,7 +15,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AttachmentPicker from './AttachmentPicker';
-import Button from './ButtonComposed';
+import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';

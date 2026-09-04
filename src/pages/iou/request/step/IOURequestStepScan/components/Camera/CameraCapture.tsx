@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';

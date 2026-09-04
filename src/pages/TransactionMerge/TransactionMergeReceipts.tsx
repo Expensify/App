@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RadioButton from '@components/RadioButton';
 import ReportActionItemImage from '@components/ReportActionItem/ReportActionItemImage';

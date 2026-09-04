@@ -23,7 +23,7 @@ import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
 import FilePicker from './FilePicker';

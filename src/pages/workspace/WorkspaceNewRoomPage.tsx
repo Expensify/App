@@ -1,5 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';

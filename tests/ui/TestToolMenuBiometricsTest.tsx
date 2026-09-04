@@ -136,16 +136,6 @@ jest.mock('@src/CONFIG', () => ({
     },
 }));
 
-jest.mock('@components/Button', () => {
-    const RN = require('react-native');
-    const ReactModule = require('react');
-    function MockButton({text, onPress}: {text: string; onPress?: () => void}) {
-        return ReactModule.createElement(RN.TouchableOpacity, {onPress}, ReactModule.createElement(RN.Text, null, text));
-    }
-    MockButton.displayName = 'Button';
-    return MockButton;
-});
-
 jest.mock('@components/Switch', () => {
     function MockSwitch() {
         return null;

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';

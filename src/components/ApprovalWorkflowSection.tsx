@@ -15,7 +15,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';

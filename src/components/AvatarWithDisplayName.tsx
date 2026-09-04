@@ -54,7 +54,6 @@ import type DisplayNamesProps from './DisplayNames/types';
 import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 
 import ReportAvatar from './Avatar/connected/ReportAvatar';
-import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import Icon from './Icon';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -315,7 +314,7 @@ function AvatarWithDisplayName({
                                 sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.SHOW_ACTOR_DETAILS}
                                 onPress={showActorDetails}
                                 accessibilityLabel={title}
-                                role={getButtonRole(true)}
+                                role={CONST.ROLE.BUTTON}
                             >
                                 {multipleAvatars}
                             </PressableWithoutFeedback>

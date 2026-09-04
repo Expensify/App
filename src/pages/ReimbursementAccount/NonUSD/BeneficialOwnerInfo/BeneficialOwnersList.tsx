@@ -1,11 +1,11 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +34,6 @@ type BeneficialOwnersListProps = {
 function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: BeneficialOwnersListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -82,18 +81,17 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
                         messages={{error}}
                     />
                 )}
-                <Button
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
-                    isDisabled={isOffline}
                     style={styles.w100}
                     onPress={() => {
                         handleConfirmation({anyIndividualOwn25PercentOrMore: true});
                     }}
                 >
                     <Button.Text>{translate('common.confirm')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             </View>
         </ScrollView>
     );

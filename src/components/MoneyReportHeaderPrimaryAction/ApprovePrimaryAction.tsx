@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 
 import useLocalize from '@hooks/useLocalize';

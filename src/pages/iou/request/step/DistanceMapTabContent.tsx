@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';

@@ -21,7 +21,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Text from './Text';
 import TextLink from './TextLink';
 

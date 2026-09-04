@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';

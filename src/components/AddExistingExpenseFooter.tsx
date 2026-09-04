@@ -25,7 +25,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
 

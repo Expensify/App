@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,7 +11,6 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
@@ -54,7 +54,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const cardID = route.params.cardID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -222,8 +221,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                             onClose={clearAssignCardErrors}
                             errorRowStyles={styles.mv2}
                         >
-                            <Button
-                                isDisabled={isOffline}
+                            <ButtonDisabledWhenOffline
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 isLoading={assignCard?.isAssigning}
@@ -232,7 +230,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                                 testID={CONST.ASSIGN_CARD_BUTTON_TEST_ID}
                             >
                                 <Button.Text>{translate('workspace.companyCards.assignCard')}</Button.Text>
-                            </Button>
+                            </ButtonDisabledWhenOffline>
                         </OfflineWithFeedback>
                     </View>
                 </ScrollView>

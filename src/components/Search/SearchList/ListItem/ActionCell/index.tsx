@@ -1,5 +1,5 @@
-import Button from '@components/ButtonComposed';
-import LinkButton from '@components/ButtonComposed/composed/LinkButton';
+import Button from '@components/Button';
+import LinkButton from '@components/Button/composed/LinkButton';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';

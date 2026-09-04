@@ -1,4 +1,4 @@
-import LinkButton from '@components/ButtonComposed/composed/LinkButton';
+import LinkButton from '@components/Button/composed/LinkButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import type FlatListRefType from '@components/FlashList/types';

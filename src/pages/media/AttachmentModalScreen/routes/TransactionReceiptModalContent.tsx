@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';

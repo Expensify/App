@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import Text from '@components/Text';
@@ -179,7 +179,6 @@ function ConfirmationFieldList({
                         <Button
                             onPress={() => compactState.setShowMoreFields(true)}
                             size={CONST.BUTTON_SIZE.SMALL}
-                            // pl3 + Button.Text's built-in ph1 = 16; right stays 8 from the SMALL default, as legacy Button
                             innerStyles={[styles.hoveredComponentBG, styles.pv2, styles.pl3]}
                         >
                             <Button.Text>{translate('common.showMore')}</Button.Text>

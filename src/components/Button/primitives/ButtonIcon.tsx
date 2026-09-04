@@ -1,4 +1,4 @@
-import {useButtonContext} from '@components/ButtonComposed/context';
+import {useButtonContext} from '@components/Button/context';
 import Icon from '@components/Icon';
 
 import useTheme from '@hooks/useTheme';
@@ -53,4 +53,3 @@ function ButtonIcon({src, style, hoverFill, fill, accessibilityLabel}: ButtonIco
 }
 
 export default ButtonIcon;
-export type {ButtonIconProps};

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';

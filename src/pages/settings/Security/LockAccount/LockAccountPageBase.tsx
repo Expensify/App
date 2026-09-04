@@ -1,11 +1,11 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LockAccountOnyxKey} from '@userActions/User';
@@ -41,7 +41,6 @@ function LockAccountPageBase({
 }: BaseLockAccountComponentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const [isLoading, setIsLoading] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -74,17 +73,16 @@ function LockAccountPageBase({
     };
 
     const lockAccountButton = (
-        <Button
+        <ButtonDisabledWhenOffline
             variant={CONST.BUTTON_VARIANT.DANGER}
             isLoading={isLoading}
-            isDisabled={isOffline}
             size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
             onPress={handleReportSuspiciousActivity}
         >
             <Button.KeyboardShortcut />
             <Button.Text>{lockButtonText ?? translate('lockAccountPage.reportSuspiciousActivity')}</Button.Text>
-        </Button>
+        </ButtonDisabledWhenOffline>
     );
 
     return (

@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -421,8 +422,7 @@ function BaseValidateCodeForm({
                     </Button>
                 )}
                 {!hideSubmitButton && (
-                    <Button
-                        isDisabled={isOffline}
+                    <ButtonDisabledWhenOffline
                         onPress={validateAndSubmitForm}
                         style={[shouldShowSkipButton ? styles.mt3 : styles.mt4]}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -432,7 +432,7 @@ function BaseValidateCodeForm({
                         sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.VERIFY}
                     >
                         <Button.Text>{submitButtonText ?? translate('common.verify')}</Button.Text>
-                    </Button>
+                    </ButtonDisabledWhenOffline>
                 )}
             </OfflineWithFeedback>
         </>

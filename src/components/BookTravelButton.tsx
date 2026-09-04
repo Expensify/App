@@ -31,7 +31,7 @@ import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import RenderHTML from './RenderHTML';
 

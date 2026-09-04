@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 
 import BlockingView from './BlockingViews/BlockingView';
-import Button from './ButtonComposed';
+import Button from './Button';
 
 type OnboardingMergingAccountBlockedViewProps = {
     // Work email to display in the subtitle

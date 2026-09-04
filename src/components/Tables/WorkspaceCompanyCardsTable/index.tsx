@@ -1,5 +1,6 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
 import Table, {composeTableListHeader} from '@components/Table';
@@ -458,12 +459,9 @@ function WorkspaceCompanyCardsTable({
                             titleStyles={[styles.mb2, styles.mt8]}
                             subtitleStyle={styles.textSupporting}
                         />
-                        <Button
-                            isDisabled={isOffline}
-                            onPress={feedErrorReloadAction}
-                        >
+                        <ButtonDisabledWhenOffline onPress={feedErrorReloadAction}>
                             <Button.Text>{translate('common.tryAgain')}</Button.Text>
-                        </Button>
+                        </ButtonDisabledWhenOffline>
                     </View>
                 </ScrollView>
             )}

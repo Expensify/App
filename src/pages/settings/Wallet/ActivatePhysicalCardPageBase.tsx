@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
@@ -6,7 +7,6 @@ import ValidateCodeInput from '@components/ValidateCodeInput';
 import type {ValidateCodeInputHandle} from '@components/ValidateCodeInput';
 
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -43,7 +43,6 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const cardList = useNonPersonalCardList() ?? getEmptyObject<CardList>();
 
     const [formError, setFormError] = useState('');
@@ -134,9 +133,8 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
                     ref={activateCardCodeInputRef}
                 />
             </View>
-            <Button
+            <ButtonDisabledWhenOffline
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
-                isDisabled={isOffline}
                 isLoading={inactiveCard?.isLoading}
                 size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.p5, styles.mtAuto]}
@@ -144,7 +142,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
             >
                 <Button.KeyboardShortcut />
                 <Button.Text>{translate('activateCardPage.activatePhysicalCard')}</Button.Text>
-            </Button>
+            </ButtonDisabledWhenOffline>
         </IllustratedHeaderPageLayout>
     );
 }

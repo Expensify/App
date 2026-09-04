@@ -1,7 +1,7 @@
 import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import MultiGestureIcon from '@components/Attachments/MultiGestureIcon';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';

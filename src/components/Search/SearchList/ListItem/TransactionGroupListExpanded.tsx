@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import LinkButton from '@components/ButtonComposed/composed/LinkButton';
+import LinkButton from '@components/Button/composed/LinkButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';

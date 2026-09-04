@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';

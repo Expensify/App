@@ -1,5 +1,5 @@
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';

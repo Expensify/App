@@ -1,5 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import type {TableRow} from '@components/Table';
 import Table from '@components/Table';
