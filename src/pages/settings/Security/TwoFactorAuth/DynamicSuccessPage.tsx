@@ -118,8 +118,6 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         if (dynamicForwardPath) {
             const policyID = route.params?.policyID;
             if (policyID) {
-                // This path bypasses ConnectToXeroFlow, so it has to mark the connections stale itself — otherwise
-                // users who set up 2FA as part of connecting Xero keep the pre-connection policy.connections copy.
                 markPolicyConnectionsAsStale(policyID);
                 // Open Xero setup the same way ConnectToXeroFlow does per platform: on web open the link inline in a
                 // new browser tab (within this button's gesture), on native navigate to the in-app WebView setup

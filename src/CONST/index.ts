@@ -4479,9 +4479,6 @@ const CONST = {
                 INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
             },
             INTUIT_ENTERPRISE_SUITE_SCOPE: 'app-foundations.custom-dimensions.read',
-            // How long after an external accounting setup handoff NewDot keeps re-reading the policy's
-            // connection config on focus. The setup runs outside NewDot and the sync it starts is
-            // asynchronous, so the client has to keep looking for a while rather than refreshing once.
             REFRESH_AFTER_SETUP_WINDOW_MS: 15 * 60 * 1000,
             NAME: {
                 // Here we will add other connections names when we add support for them

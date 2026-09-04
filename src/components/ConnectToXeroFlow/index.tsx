@@ -28,8 +28,6 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             setIsRequire2FAModalOpen(true);
             return;
         }
-        // The connection this produces is created outside NewDot, so the lazily-fetched policy.connections copy
-        // this client already holds can't see it. Mark it stale before handing off so it gets re-read on return.
         markPolicyConnectionsAsStale(policyID);
         // On web the setup opens OldDot in a new browser tab. Open it inline here (within the connect click's
         // user-gesture window) instead of navigating to a setup screen, otherwise the popup blocker stops the tab.
