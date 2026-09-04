@@ -11,18 +11,16 @@ import {deepEqual} from 'fast-equals';
 import clone from 'lodash/clone';
 
 /**
- * Only the server can assign an agent's real accountID (its login is derived from it), so CreateAgent's success
- * response maps the client's optimistic accountID to the real one on OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING. Requests
- * queued offline after creating the agent (UpdateAgentName, DeleteAgent, ...) still reference the optimistic
- * accountID and would 404, so this middleware rewrites them to the real accountID when that mapping arrives.
+ * Only the server can assign an agent's real accountID, so CreateAgent's success response maps the optimistic
+ * accountID to the real one on OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING. Queued requests that still use the optimistic
+ * accountID would 404, so this middleware rewrites them when the mapping arrives.
  *
- * Only the requests queued behind the one that produced the mapping are rewritten. The CreateAgent itself is left
- * untouched: it has already succeeded, and if the app closes or the queue retries before it is removed, resending it
- * with the real accountID in place of the optimistic one would create a second agent.
+ * The CreateAgent request itself is never rewritten: it already succeeded, and a retry sent with the real
+ * accountID would create a second agent.
  */
 
-// deepReplaceKeysAndValues only rewrites strings, but the optimistic accountID is also sent as a number
-// (e.g. the agentAccountID parameter of the agent update commands), so those occurrences need this extra pass.
+// deepReplaceKeysAndValues only rewrites strings; this extra pass covers the accountID sent as a number
+// (e.g. the agentAccountID parameter).
 function replaceNumberValues(target: unknown, oldVal: number, newVal: number): unknown {
     if (target === oldVal) {
         return newVal;
@@ -54,8 +52,8 @@ function replaceNumbersInRecord(target: object, oldVal: number, newVal: number):
 // Mirrors the OnyxDataBase fields of the Request type.
 const REQUEST_ONYX_DATA_FIELDS = ['successData', 'failureData', 'finallyData', 'optimisticData', 'queueFlushedData'] as const;
 
-// The stored Onyx updates must be rewritten too: replaceOptimisticAgentWithActualAgent clears the optimistic keys
-// once the mapping arrives, so a queued request succeeding later with stale updates would resurrect data under them.
+// Stored Onyx updates are rewritten too, or a request succeeding later would resurrect data under the optimistic
+// keys that replaceOptimisticAgentWithActualAgent clears.
 function rewriteOnyxUpdates(
     updates: AnyOnyxUpdate[] | undefined,
     optimisticAccountIDKey: string,
@@ -93,18 +91,16 @@ function rewriteRequest(request: AnyRequest, optimisticAccountIDKey: string, rea
     return requestClone;
 }
 
-// generateReportID() draws from [0, 2^53) with no minimum length, so a genuine optimistic accountID this short is
-// possible (about 1 in 9 million) and is left for the server to reject. That is accepted so a short key can never act
-// as a broad substring pattern; 10 digits also exceeds real accountIDs and the small integers request data commonly holds.
+// A short key could match unrelated numbers as substrings; 10 digits exceeds real accountIDs and the small
+// integers request data usually holds. A genuine optimistic ID this short (~1 in 9 million) is left to the server.
 const MIN_OPTIMISTIC_ACCOUNT_ID_DIGITS = 10;
 
 function isValidAgentAccountID(accountID: number): boolean {
     return Number.isSafeInteger(accountID) && accountID > 0;
 }
 
-// The key is used as a substring pattern across every queued request, so a malformed one such as "1" or ""
-// (Number("") is 0) would corrupt the whole offline queue in one pass. Requiring the canonical decimal form also
-// guarantees the string and number passes target the same ID.
+// The key is used as a substring pattern across the whole queue, so a malformed key like "1" or "" would corrupt
+// it in one pass. The canonical decimal form also keeps the string and number passes on the same ID.
 function isValidAgentAccountIDMappingEntry(optimisticAccountIDKey: string, realAccountID: number): boolean {
     if (!/^\d+$/.test(optimisticAccountIDKey) || optimisticAccountIDKey.length < MIN_OPTIMISTIC_ACCOUNT_ID_DIGITS) {
         return false;
@@ -142,16 +138,14 @@ const replaceOptimisticAgentAccountID: Middleware = (requestResponse) =>
                 const optimisticAccountID = Number(optimisticAccountIDKey);
                 const realAccountIDString = String(realAccountID);
 
-                // A queued write's response is only flushed to Onyx once the whole sequential queue drains, so
-                // replaceOptimisticAgentWithActualAgent may observe this mapping much later than this middleware
-                // does. Registering it here immediately lets resolveAgentAccountID() translate the accountID of any
-                // agent action fired in that window, which would otherwise be enqueued with the optimistic ID after
-                // the sweep below and reach the server as an unknown account.
+                // The mapping only reaches replaceOptimisticAgentWithActualAgent once the queue drains and the
+                // response is flushed to Onyx. Registering it here lets agent actions fired before then already
+                // resolve the real accountID instead of enqueueing the optimistic one after the sweep below.
                 registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
 
-                // The sequential queue moves the request being processed out of the persisted list before its response
-                // reaches this middleware, so only the requests queued behind it are visited here. Each update() re-persists
-                // the whole queue, so requests that don't reference the optimistic agent are left alone.
+                // The request that produced the mapping is no longer in the persisted list here, so only the
+                // requests queued behind it are rewritten. update() re-persists the queue, so unchanged requests
+                // are skipped.
                 for (const [index, persistedRequest] of getAll().entries()) {
                     const rewrittenRequest = rewriteRequest(persistedRequest, optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID);
                     if (deepEqual(rewrittenRequest, persistedRequest)) {
