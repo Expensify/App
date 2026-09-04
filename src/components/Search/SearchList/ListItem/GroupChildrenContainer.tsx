@@ -13,6 +13,7 @@ import GroupChildrenContent from './GroupChildrenContent';
 import {useGroupCheckboxState} from './useGroupChildren';
 
 type GroupChildrenContainerProps = GroupChildrenContentProps & {
+    isFirstItem?: boolean;
     isLastItem?: boolean;
 };
 
@@ -28,12 +29,14 @@ function GroupChildrenContainer({
     onLongPressRow,
     nonPersonalAndWorkspaceCards,
     onUndelete,
+    isFirstItem = false,
     isLastItem,
     newTransactionID,
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false, item.keyForList);
+    const hasBorder = !isFirstItem;
+    const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, isExpanded && hasBorder, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
     const {isSelectAllChecked} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: item.transactions});
 
@@ -59,6 +62,7 @@ function GroupChildrenContainer({
                 {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG},
                 animatedHighlightStyle,
                 isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+                hasBorder && styles.tableBorder,
             ]}
         >
             <Animated.View style={animatedStyle}>
