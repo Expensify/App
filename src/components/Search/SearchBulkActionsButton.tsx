@@ -104,10 +104,15 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         allReports,
         searchData,
     } = useSearchBulkActions({queryJSON});
-    const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
-    const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`);
+    const currentSelectedPolicyID =
+        selectedIOUReport?.policyID ??
+        searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`]?.policyID ??
+        selectedReports.find((report) => report.reportID === currentSelectedReportID)?.policyID ??
+        Object.values(selectedTransactions).find((transaction) => transaction.reportID === currentSelectedReportID)?.policyID ??
+        selectedPolicyIDs?.at(0);
+    const currentPolicy = usePolicy(currentSelectedPolicyID);
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const pendingPaymentAdditionalDataRef = useRef<BulkPaySelectionData | undefined>(undefined);
 

@@ -7,7 +7,7 @@ import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
-import {getLastPolicyPaymentMethod} from '@libs/actions/Search';
+import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
@@ -39,6 +39,7 @@ jest.mock('@libs/actions/Search', () => {
         exportSearchItemsToCSV: jest.fn(),
         queueExportSearchItemsToCSV: jest.fn(),
         queueExportSearchWithTemplate: jest.fn(),
+        queueBulkPayReports: jest.fn(),
         getSearchApproveOnyxData: jest.fn(() => ({})),
         getSearchPayOnyxData: jest.fn(() => ({})),
         bulkDeleteReports: jest.fn(),
@@ -245,6 +246,21 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
     };
 }
 
+function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedReports {
+    return {
+        reportID: '1',
+        policyID: 'policy1',
+        chatReportID: undefined,
+        total: 100,
+        action: CONST.SEARCH.ACTION_TYPES.PAY,
+        canPay: true,
+        canApprove: false,
+        canSubmit: false,
+        canChangeApprover: false,
+        ...overrides,
+    };
+}
+
 function getPayOptionFromResult(options: Array<DropdownOption<SearchHeaderOptionValue>>): DropdownOption<SearchHeaderOptionValue> | undefined {
     return options.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.PAY);
 }
@@ -321,6 +337,85 @@ describe('useSearchBulkActions - Pay option', () => {
         expect(payMoneyRequest).not.toHaveBeenCalled();
     });
 
+    it('queues a server-side bulk payment instead of paying per report when all matching items are selected', async () => {
+        // Given "Select all" is checked, so the selection can span more reports than are loaded on the current page
+        mockAreAllMatchingItemsSelected = true;
+        // Mark as paid is the only option offered in this mode
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user selects the Pay option
+        const payOption = getPayOptionFromResult(result.current.headerButtonsOptions);
+        await act(async () => {
+            await payOption?.onSelected?.();
+        });
+
+        // Then the payment is handed to the backend via the search query (which covers every page), not looped per loaded report
+        expect(queueBulkPayReports).toHaveBeenCalledTimes(1);
+        expect(queueBulkPayReports).toHaveBeenCalledWith(expect.any(String));
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('keeps the Pay option under Select all when getPayOption rejects the loaded page', async () => {
+        // Given "Select all" with at least one payable report loaded, but getPayOption rejecting the selection.
+        // getPayOption compares getReportType() across the payable subset, which reads live Onyx and returns
+        // undefined for reports the viewer never opened, so it says "no" for reasons that don't apply to the
+        // full query the backend will re-resolve.
+        mockAreAllMatchingItemsSelected = true;
+        mockShouldEnableBulkPayOption = false;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockSelectedReports = [makeSelectedReport({canPay: true}), makeSelectedReport({reportID: '2', canPay: false})];
+
+        // When the bulk actions hook computes the header dropdown options
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        // Then Pay is still offered, because eligibility for a select-all is decided server-side from the query
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+    });
+
+    it('keeps the Pay option under Select all when a loaded transaction is held', async () => {
+        // Given "Select all" where one expense on the loaded page is held. The hold says nothing about the
+        // reports on the pages that were never loaded, so it must not drop Pay for the whole query.
+        mockAreAllMatchingItemsSelected = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({isHeld: true})};
+        mockSelectedReports = [makeSelectedReport({canPay: true})];
+
+        // When the bulk actions hook computes the header dropdown options
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        // Then Pay is still offered
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+    });
+
+    it('hides the Pay option under Select all when no loaded report is payable', async () => {
+        // Given "Select all" where every report on the loaded page is view-only. That is the one honest signal
+        // the loaded page gives us that the query has nothing to pay.
+        mockAreAllMatchingItemsSelected = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockSelectedReports = [makeSelectedReport({canPay: false}), makeSelectedReport({reportID: '2', canPay: false})];
+
+        // When the bulk actions hook computes the header dropdown options
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions).toBeDefined();
+        });
+
+        // Then Pay is hidden
+        expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
+    });
+
     it('hides the Pay option when bulk pay is not enabled', async () => {
         // Given a selection for which bulk pay is not enabled (getPayOption rejected it)
         mockShouldEnableBulkPayOption = false;
@@ -333,6 +428,40 @@ describe('useSearchBulkActions - Pay option', () => {
         });
 
         // Then the Pay option should be hidden because offering it would let the user attempt a payment that cannot succeed
+        expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
+    });
+
+    it('keeps the Pay option when a held expense sits in a report that is not being paid', async () => {
+        // Given "Select all on this page" over a mixed page: report 1 is payable, report 2 is view-only and holds a
+        // held expense. Bulk pay only settles report 1, so report 2's hold must not decide the whole selection.
+        mockSelectedReports = [makeSelectedReport({reportID: '1', canPay: true}), makeSelectedReport({reportID: '2', canPay: false})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({reportID: '1'}),
+            tx2: makeSelectedTransaction({reportID: '2', isHeld: true, action: CONST.SEARCH.ACTION_TYPES.VIEW}),
+        };
+
+        // When the bulk actions hook computes the header dropdown options
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        // Then Pay is still offered, because the hold is scoped to the reports that will actually be paid
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+    });
+
+    it('hides the Pay option when a held expense sits in a report that is being paid', async () => {
+        // Given a selection whose only payable report contains a held expense
+        mockSelectedReports = [makeSelectedReport({reportID: '1', canPay: true})];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: '1', isHeld: true})};
+
+        // When the bulk actions hook computes the header dropdown options
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions).toBeDefined();
+        });
+
+        // Then Pay is hidden, because the hold blocks the payment the user would be making
         expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
 });
@@ -430,6 +559,43 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
             false,
             expect.objectContaining({reportID: '1', isItemInvoice: true}),
         );
+    });
+
+    it('pays only the payable reports when the selection also contains one the viewer cannot settle', async () => {
+        // Given a selection of two reports where only the first one can be paid, e.g. the second is still awaiting approval
+        mockSelectedReports = [
+            {
+                reportID: '1',
+                policyID: 'policy1',
+                chatReportID: '2',
+                total: 100,
+                action: CONST.SEARCH.ACTION_TYPES.PAY,
+                canPay: true,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+            },
+            {
+                reportID: '3',
+                policyID: 'policy1',
+                chatReportID: '4',
+                total: 100,
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+            },
+        ];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {reportID: '3', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '4', policyID: 'policy1'});
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then only the payable report is paid: the ineligible one is left out of the run entirely rather than
+        // being paid alongside it or aborting the whole bulk payment
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '1'})}));
     });
 
     it('skips a report when the chat is not loaded and no chatReportID is available', async () => {

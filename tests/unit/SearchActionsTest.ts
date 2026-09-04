@@ -1,10 +1,12 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {
     exportSearchItemsToCSV,
     getChatReportWithFallback,
     getExportTemplates,
     getFooterConvertedAmounts,
+    getPayOption,
     openSearch,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -21,8 +23,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy, Report} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const translateForTest: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
@@ -370,5 +375,121 @@ describe('getChatReportWithFallback', () => {
 
     it('returns no chat report when the chat is not loaded and there is no fallback chatReportID', () => {
         expect(getChatReportWithFallback(undefined, undefined, 'policyB')).toEqual({chatReport: undefined, isFallbackChatReport: false});
+    });
+});
+
+describe('getPayOption', () => {
+    function makeSelectedReport(reportID: string, canPay: boolean): SelectedReports {
+        return {
+            reportID,
+            policyID: 'policy1',
+            chatReportID: 'chat1',
+            total: 100,
+            action: canPay ? CONST.SEARCH.ACTION_TYPES.PAY : CONST.SEARCH.ACTION_TYPES.VIEW,
+            canPay,
+            canApprove: false,
+            canSubmit: false,
+            canChangeApprover: false,
+        };
+    }
+
+    function getShouldEnableBulkPayOption(selectedReports: SelectedReports[]) {
+        return getPayOption(
+            selectedReports,
+            {},
+            undefined,
+            selectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined),
+            undefined,
+        ).shouldEnableBulkPayOption;
+    }
+
+    it('enables bulk pay when every selected report is payable', () => {
+        expect(getShouldEnableBulkPayOption([makeSelectedReport('1', true), makeSelectedReport('2', true)])).toBe(true);
+    });
+
+    it('keeps bulk pay enabled when only some of the selected reports are payable', () => {
+        // Given a selection mixing two payable reports with one the viewer cannot settle (it only offers View)
+
+        // When the bulk pay eligibility is computed
+        const shouldEnableBulkPayOption = getShouldEnableBulkPayOption([makeSelectedReport('1', true), makeSelectedReport('2', true), makeSelectedReport('3', false)]);
+
+        // Then bulk pay stays available because it degrades to the payable subset instead of dropping the whole Pay
+        // group — the ineligible report is skipped at payment time rather than hiding Pay and Mark as paid for all three
+        expect(shouldEnableBulkPayOption).toBe(true);
+    });
+
+    it('disables bulk pay when no selected report is payable', () => {
+        expect(getShouldEnableBulkPayOption([makeSelectedReport('1', false), makeSelectedReport('2', false)])).toBe(false);
+    });
+
+    it('keeps transaction selections all-or-nothing', () => {
+        // Given a transaction-level selection where one transaction cannot be paid. Individual transactions are not
+        // paid one by one, so unlike whole reports there is no payable subset to degrade to.
+        function makeSelectedTransaction(reportID: string, action: SelectedTransactions[string]['action']): SelectedTransactions[string] {
+            return {
+                isSelected: true,
+                canReject: false,
+                canHold: false,
+                canSplit: false,
+                hasBeenSplit: false,
+                canChangeReport: false,
+                isHeld: false,
+                canUnhold: false,
+                action,
+                reportID,
+                policyID: 'policy1',
+                amount: 100,
+                currency: 'USD',
+                isFromOneTransactionReport: false,
+            };
+        }
+        const selectedTransactions: SelectedTransactions = {
+            tx1: makeSelectedTransaction('1', CONST.SEARCH.ACTION_TYPES.PAY),
+            tx2: makeSelectedTransaction('2', CONST.SEARCH.ACTION_TYPES.VIEW),
+        };
+
+        // When the bulk pay eligibility is computed
+
+        // Then bulk pay is unavailable, as it was before whole-report selections learned to degrade
+        expect(getPayOption([], selectedTransactions, undefined, [], undefined).shouldEnableBulkPayOption).toBe(false);
+    });
+
+    it('enables bulk pay when a payable report is not loaded into Onyx but the selection knows its type', async () => {
+        // Given a whole-page selection of two payable expense reports where only the first has ever been opened, so
+        // only it exists in the Onyx report collection. Selecting a page routinely mixes opened and unopened reports.
+        Onyx.init({keys: ONYXKEYS});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE});
+        await waitForBatchedUpdates();
+
+        const selectedReports = [
+            {...makeSelectedReport('1', true), type: CONST.REPORT.TYPE.EXPENSE},
+            {...makeSelectedReport('2', true), type: CONST.REPORT.TYPE.EXPENSE},
+        ];
+
+        // When the bulk pay eligibility is computed
+        const shouldEnableBulkPayOption = getShouldEnableBulkPayOption(selectedReports);
+
+        // Then bulk pay is enabled, because the report type comes from the search snapshot carried on the selection
+        // rather than from live Onyx, which reports undefined for the report the viewer has never opened
+        expect(shouldEnableBulkPayOption).toBe(true);
+
+        await Onyx.clear();
+    });
+
+    it('disables bulk pay when the payable reports are of different types', async () => {
+        // Given a payable subset mixing an expense report with an IOU report. Bulk pay resolves one payment method
+        // for the whole group, so mixed types genuinely cannot be paid together.
+        Onyx.init({keys: ONYXKEYS});
+        await Onyx.clear();
+
+        const selectedReports = [
+            {...makeSelectedReport('1', true), type: CONST.REPORT.TYPE.EXPENSE},
+            {...makeSelectedReport('2', true), type: CONST.REPORT.TYPE.IOU},
+        ];
+
+        // When the bulk pay eligibility is computed
+
+        // Then bulk pay stays disabled — scoping the type lookup to the snapshot must not drop the check itself
+        expect(getShouldEnableBulkPayOption(selectedReports)).toBe(false);
     });
 });

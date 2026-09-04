@@ -1961,6 +1961,14 @@ function queueExportSearchWithTemplate(
     return exportID;
 }
 
+/**
+ * Queues a manual bulk payment for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkPayReports(jsonQuery: string) {
+    write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery});
+}
+
 /** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
 type ExportTemplateGroups = {
     /** Custom templates (custom integrations + account/policy in-app templates) */
@@ -2096,18 +2104,20 @@ function getPayOption(
 ) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
-    const firstReport = selectedReports.at(0);
+    const payableReports = selectedReports.filter((report) => report.canPay);
+    const firstPayableReport = payableReports.at(0);
+    const getSelectedReportType = (report: SelectedReports | undefined) => report?.type ?? getReportType(report?.reportID);
     const hasLastPaymentMethod =
         selectedReports.length > 0
-            ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
+            ? payableReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
             : transactionKeys.every((transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, personalPolicyID, lastPaymentMethods));
 
     const shouldShowBulkPayOption =
         selectedReports.length > 0
-            ? selectedReports.every(
+            ? payableReports.length > 0 &&
+              payableReports.every(
                   (report) =>
-                      report.canPay &&
-                      getReportType(report.reportID) === getReportType(firstReport?.reportID) &&
+                      getSelectedReportType(report) === getSelectedReportType(firstPayableReport) &&
                       shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
@@ -2383,6 +2393,7 @@ export {
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
+    queueBulkPayReports,
     updateAdvancedFilters,
     setSearchContext,
     deleteSavedSearch,
