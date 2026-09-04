@@ -14,7 +14,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -71,6 +71,39 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const isDeleting = useRef(false);
     const {isLoading, startWithLoading} = usePressLoading();
 
+    const getApprovalWorkflowData = () => {
+        if (!policy || !personalDetails) {
+            return {};
+        }
+
+        const firstApprover = route.params.firstApproverEmail;
+        const conversionParams = {
+            policy,
+            personalDetails,
+            firstApprover,
+            localeCompare,
+            currentUserLogin,
+            rules: getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID),
+        };
+        const result = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)
+            ? convertApprovalWorkflowRulesToWorkflows(conversionParams)
+            : convertPolicyEmployeesToApprovalWorkflows(conversionParams);
+
+        const memberEmail = route.params.memberEmail;
+        const currentApprovalWorkflow =
+            (memberEmail ? result.approvalWorkflows.find((workflow) => workflow.members.some((member) => member.email === memberEmail)) : undefined) ??
+            result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover);
+
+        return {
+            defaultWorkflowMembers: result.availableMembers,
+            usedApproverEmails: result.usedApproverEmails,
+            currentApprovalWorkflow,
+            defaultApprovalWorkflow: result.approvalWorkflows.find((workflow) => workflow.isDefault),
+        };
+    };
+
+    const {currentApprovalWorkflow, defaultApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = getApprovalWorkflowData();
+
     const updateApprovalWorkflowCallback = () => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
             return;
@@ -112,7 +145,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         Navigation.dismissModal({
             afterTransition: () => {
                 // Remove the approval workflow using the initial data as it could be already edited
-                const didRemoveRules = useRulesBackend && removeApprovalWorkflowRules(initialApprovalWorkflow, policy, rulesCollection);
+                const didRemoveRules = useRulesBackend && removeApprovalWorkflowRules(initialApprovalWorkflow, policy, rulesCollection, defaultApprovalWorkflow);
                 if (didRemoveRules) {
                     return;
                 }
@@ -122,37 +155,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         });
     };
 
-    const getApprovalWorkflowData = () => {
-        if (!policy || !personalDetails) {
-            return {};
-        }
-
-        const firstApprover = route.params.firstApproverEmail;
-        const conversionParams = {
-            policy,
-            personalDetails,
-            firstApprover,
-            localeCompare,
-            currentUserLogin,
-            rules: getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID),
-        };
-        const result = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)
-            ? convertApprovalWorkflowRulesToWorkflows(conversionParams)
-            : convertPolicyEmployeesToApprovalWorkflows(conversionParams);
-
-        const memberEmail = route.params.memberEmail;
-        const currentApprovalWorkflow =
-            (memberEmail ? result.approvalWorkflows.find((workflow) => workflow.members.some((member) => member.email === memberEmail)) : undefined) ??
-            result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover);
-
-        return {
-            defaultWorkflowMembers: result.availableMembers,
-            usedApproverEmails: result.usedApproverEmails,
-            currentApprovalWorkflow,
-        };
-    };
-
-    const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = getApprovalWorkflowData();
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
 
     const shouldShowNotFoundView =
@@ -238,7 +240,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                         prompt: translate('workflowsEditApprovalsPage.deletePrompt'),
                                         confirmText: translate('common.delete'),
                                         cancelText: translate('common.cancel'),
-                                        danger: true,
+                                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                     });
                                     if (result.action !== ModalActions.CONFIRM) {
                                         return;
