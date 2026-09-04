@@ -12,6 +12,7 @@ type LinkToOptions = {
     // To explicitly set the action type to replace.
     forceReplace?: boolean;
     // Prevents a directly opened split destination from adding its sidebar as an intermediate Back destination.
+    // Maps to the `shouldSkipInitialSidebar` route param read by SplitRouter
     skipInitialSplitNavigatorSidebar?: boolean;
     // Callback to execute after the navigation transition animation completes.
     afterTransition?: () => void;
