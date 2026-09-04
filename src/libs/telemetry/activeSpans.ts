@@ -123,10 +123,24 @@ function getSpanByPrefix(prefix: string) {
     }
 }
 
+function getUniqueSpanByPrefix(prefix: string) {
+    let uniqueSpan: Span | undefined;
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (!spanID.startsWith(prefix)) {
+            continue;
+        }
+        if (uniqueSpan) {
+            return undefined;
+        }
+        uniqueSpan = entry.span;
+    }
+    return uniqueSpan;
+}
+
 function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue | undefined>) {
     const span = getSpan(spanId);
     span?.setAttributes(attributes);
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, getSpanByPrefix, getSpanID, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, getSpanByPrefix, getUniqueSpanByPrefix, getSpanID, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};

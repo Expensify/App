@@ -19,6 +19,8 @@ function getSpan() {
 
 function getSpanByPrefix() {}
 
+function getUniqueSpanByPrefix() {}
+
 function getSpanID() {
     return undefined;
 }
@@ -31,4 +33,4 @@ function cancelAllSpans() {}
 
 function cancelSpansByPrefix() {}
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, getSpanByPrefix, getSpanID, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, getSpanByPrefix, getUniqueSpanByPrefix, getSpanID, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};

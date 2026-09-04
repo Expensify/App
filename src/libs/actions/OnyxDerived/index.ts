@@ -1,6 +1,6 @@
 import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
-import {endSpan, getSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, getSpanByPrefix, getUniqueSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
 import detectOnyxDerivedLoop from '@libs/telemetry/detectOnyxDerivedLoop';
 
 import CONST from '@src/CONST';
@@ -116,7 +116,8 @@ function init() {
                 const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
                 // No-splash flows end ManualAppStartup before the startup response lands, so without this fallback onlyIfParent drops every recompute it triggers.
                 const startupSpan = getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP) ?? getSpanByPrefix(CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY);
-                const parentSpan = startupSpan ?? getSpanByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE);
+                // A recompute can be triggered by several sends at once, so with more than one in flight there is no correct parent to pick.
+                const parentSpan = startupSpan ?? getUniqueSpanByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE);
                 startSpan(spanId, {
                     name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,

@@ -1,4 +1,4 @@
-import {cancelAllSpans, cancelSpansByPrefix, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelAllSpans, cancelSpansByPrefix, getSpan, getUniqueSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
 
 import * as Sentry from '@sentry/react-native';
 
@@ -61,5 +61,27 @@ describe('cancelSpansByPrefix', () => {
 
         expect(getEndOrder()).not.toContain('OtherParent');
         expect(getSpan('OtherParent_1')).toBeDefined();
+    });
+});
+
+describe('getUniqueSpanByPrefix', () => {
+    it('returns the only span matching the prefix', () => {
+        startSpan('ManualSendMessageVisible_1', {name: 'send-message-visible'});
+        startSpan('ManualOther_1', {name: 'other'});
+
+        expect(getUniqueSpanByPrefix('ManualSendMessageVisible')).toBe(getSpan('ManualSendMessageVisible_1'));
+    });
+
+    it('returns nothing when several spans match, so an ambiguous parent is never picked', () => {
+        startSpan('ManualSendMessageVisible_1', {name: 'send-message-visible'});
+        startSpan('ManualSendMessageVisible_2', {name: 'send-message-visible'});
+
+        expect(getUniqueSpanByPrefix('ManualSendMessageVisible')).toBeUndefined();
+    });
+
+    it('returns nothing when no span matches', () => {
+        startSpan('ManualOther_1', {name: 'other'});
+
+        expect(getUniqueSpanByPrefix('ManualSendMessageVisible')).toBeUndefined();
     });
 });
