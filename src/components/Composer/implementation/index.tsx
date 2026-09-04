@@ -274,7 +274,15 @@ function Composer({
         };
     }, []);
 
+    const lastAppliedComposerFullSizeRef = useRef(isComposerFullSize);
+
     useEffect(() => {
+        // An Activity reveal re-runs this effect with an unchanged prop, and restoring again would move the scroll offset the user chose.
+        if (lastAppliedComposerFullSizeRef.current === isComposerFullSize) {
+            return;
+        }
+        lastAppliedComposerFullSizeRef.current = isComposerFullSize;
+
         if (!textInputRef.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
