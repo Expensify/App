@@ -2870,6 +2870,80 @@ describe('actions/Duplicate', () => {
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
+        // Makes the freshly-created duplicate report addable (current user is submitter + paid group policy),
+        // so getMoneyRequestInformation reuses it via the existing-report branch — matching the real flow — and
+        // exercises the currency-aware optimistic total seeding.
+        const setUpAddablePolicy = async (outputCurrency: string): Promise<Policy> => {
+            const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), outputCurrency, autoReporting: false, role: CONST.POLICY.ROLE.ADMIN};
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+            return policy;
+        };
+
+        it('should seed the optimistic totals when duplicating a report whose transactions are in a different currency than the report', async () => {
+            // Repro: workspace default currency is non-USD, so the duplicate report is created in that currency
+            // while its copied transactions keep their own (USD) currency. Without seeding, the per-transaction
+            // accumulation in getMoneyRequestInformation is skipped (currency mismatch) and the totals stay at 0.
+            const reportCurrency = CONST.CURRENCY.GBP;
+            const gbpPolicy = await setUpAddablePolicy(reportCurrency);
+
+            // amount is the USD value (stored negative); convertedAmount is the report-currency (GBP) value.
+            const reimbursableTx = createCashTransaction('fx1', {currency: CONST.CURRENCY.USD, amount: -500, convertedAmount: -400, reimbursable: true});
+            const nonReimbursableTx = createCashTransaction('fx2', {currency: CONST.CURRENCY.USD, amount: -1000, convertedAmount: -800, reimbursable: false});
+
+            const sourceReport: Report = {
+                ...createRandomReport(500),
+                reportID: 'sourceReportFx',
+                policyID: gbpPolicy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: reportCurrency,
+            };
+
+            duplicateReport(getDefaultParams([reimbursableTx, nonReimbursableTx], {sourceReport, targetPolicy: gbpPolicy}));
+            await waitForBatchedUpdates();
+
+            // The created report is reused for every copied transaction, so its optimistic totals live under the
+            // reportID passed to CREATE_APP_REPORT.
+            const createReportCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_APP_REPORT));
+            const newReportID = (createReportCall?.[1] as {reportID?: string} | undefined)?.reportID;
+            const newReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`);
+
+            // Expense report totals are stored as negative values: -(400 + 800) GBP.
+            expect(newReport?.total).toBe(-1200);
+            expect(newReport?.nonReimbursableTotal).toBe(-800);
+            expect(newReport?.currency).toBe(reportCurrency);
+            // The preview reads the reimbursable/non-reimbursable buckets, so they must be seeded too (not left at 0).
+            expect(newReport?.reimbursableTotal).toBe(-400);
+        });
+
+        it('should not seed optimistic totals when duplicating across workspaces with a different currency', async () => {
+            // Cross-workspace duplicates are left for the server response to reconcile (the stored convertedAmount is
+            // computed for the source workspace currency, so it is not valid for a different target currency).
+            const usdPolicy = await setUpAddablePolicy(CONST.CURRENCY.USD);
+            const tx = createCashTransaction('cross1', {currency: CONST.CURRENCY.USD, amount: -500, convertedAmount: -400, reimbursable: true});
+
+            const sourceReport: Report = {
+                ...createRandomReport(501),
+                reportID: 'sourceReportCross',
+                // Different policy => cross-workspace, and a non-USD source currency that won't match the USD target.
+                policyID: 'someOtherPolicyID',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.GBP,
+            };
+
+            duplicateReport(getDefaultParams([tx], {sourceReport, targetPolicy: usdPolicy}));
+            await waitForBatchedUpdates();
+
+            const createReportCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_APP_REPORT));
+            const newReportID = (createReportCall?.[1] as {reportID?: string} | undefined)?.reportID;
+            const newReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`);
+
+            // The USD transaction matches the USD target report currency, so the normal same-currency accumulation
+            // applies and the seed is intentionally skipped: total is -500 (from the single copied transaction).
+            expect(newReport?.total).toBe(-500);
+        });
+
         it('should filter out credit card import transactions', async () => {
             const cashTx = createCashTransaction('cash1');
             const cardTx = createCashTransaction('card1', {
