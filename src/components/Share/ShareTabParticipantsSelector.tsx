@@ -28,7 +28,7 @@ type ShareTabParticipantsSelectorProps = {
 };
 
 function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTabParticipantsSelectorProps) {
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
 
@@ -39,17 +39,15 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: () => null});
+    const [, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: () => null});
     const [amountOwed, amountOwedMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds, userBillingGracePeriodEndsMetadata] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
-    const isDefaultDestinationReady = !isLoadingOnyxValue(
-        activePolicyIDMetadata,
-        policiesMetadata,
-        amountOwedMetadata,
-        userBillingGracePeriodEndsMetadata,
-        ownerBillingGracePeriodEndMetadata,
-    );
+    const isPersonalDetailsReady = !!currentUserAccountID && currentUserAccountID !== CONST.DEFAULT_NUMBER_ID && !!currentUserLogin;
+    const isDestinationReady =
+        isPersonalDetailsReady &&
+        !isLoadingOnyxValue(activePolicyIDMetadata, policiesMetadata, reportsMetadata, amountOwedMetadata, userBillingGracePeriodEndsMetadata, ownerBillingGracePeriodEndMetadata);
 
     const canUseDefaultPolicy =
         isSubmitFlow &&
@@ -63,7 +61,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
         isSubmitFlow && isRestrictedToPreferredPolicy && preferredPolicyID ? getPolicyExpenseChat(currentUserAccountID, preferredPolicyID)?.reportID : undefined;
     const defaultExpenseChatReportID = canUseDefaultPolicy ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id)?.reportID : undefined;
     const autoNavigateReportID = lockedExpenseChatReportID ?? defaultExpenseChatReportID;
-    const shouldWaitForDefaultDestination = isSubmitFlow && !isRestrictedToPreferredPolicy && !isDefaultDestinationReady;
+    const shouldWaitForDestination = isSubmitFlow && (isLoadingSecurityGroup || !isDestinationReady);
 
     // Synchronous one-shot guard for the auto-navigation effect. A ref (rather than the render state below) is used so
     // the guard flips immediately: clearing the draft transaction mutates draftTransactionIDs, which re-runs the effect
@@ -88,18 +86,18 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     // Commit to the participant picker once the destination inputs resolve without a valid destination. This keeps
     // later Onyx updates from redirecting the user after they begin selecting a participant.
     useEffect(() => {
-        if (!isSubmitFlow || isLoadingSecurityGroup || shouldWaitForDefaultDestination || autoNavigateReportID || hasResolvedDestinationRef.current) {
+        if (!isSubmitFlow || shouldWaitForDestination || autoNavigateReportID || hasResolvedDestinationRef.current) {
             return;
         }
         hasResolvedDestinationRef.current = true;
-    }, [autoNavigateReportID, isLoadingSecurityGroup, isSubmitFlow, shouldWaitForDefaultDestination]);
+    }, [autoNavigateReportID, isSubmitFlow, shouldWaitForDestination]);
 
     // One-shot: auto-navigate the user straight to the resolved workspace's confirmation. The ref guard keeps this from re-running if
     // locked report resolves. The hasAutoNavigatedRef guard keeps this from re-running (and re-navigating) if
     // draftTransactionIDs later changes, while still keeping every captured value in the dependency array so we clear
     // the up-to-date drafts at navigation time and no dependency lint has to be suppressed.
     useEffect(() => {
-        if (!autoNavigateReportID || hasResolvedDestinationRef.current || isLoadingSecurityGroup || shouldWaitForDefaultDestination) {
+        if (!autoNavigateReportID || hasResolvedDestinationRef.current || shouldWaitForDestination) {
             return;
         }
         hasResolvedDestinationRef.current = true;
@@ -123,13 +121,13 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
         Navigation.navigate(detailsPageRouteObject.getRoute(autoNavigateReportID.toString()), {
             afterTransition: () => setHasAutoNavigatedToReport(true),
         });
-    }, [autoNavigateReportID, draftTransactionIDs, detailsPageRouteObject, isLoadingSecurityGroup, shouldWaitForDefaultDestination]);
+    }, [autoNavigateReportID, draftTransactionIDs, detailsPageRouteObject, shouldWaitForDestination]);
 
     // Render null only until the auto-navigation has run, to avoid flashing the full picker while we route the
     // restricted user to the locked workspace. Afterwards we fall through to the picker so that backing out of the
     // details page shows a usable screen (still limited to the locked workspace by the option-list filter) instead of
     // a blank tab.
-    if ((isSubmitFlow && (isLoadingSecurityGroup || shouldWaitForDefaultDestination)) || (autoNavigateReportID && !hasAutoNavigatedToReport)) {
+    if ((isSubmitFlow && shouldWaitForDestination) || (autoNavigateReportID && !hasAutoNavigatedToReport)) {
         return null;
     }
 
