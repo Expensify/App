@@ -40,6 +40,7 @@ Use these core rules to create your searches:
 - Combine fields for **AND** conditions: `amount>50 status:approved`.
 - Use `-` to exclude results: `-has:receipt`.
 - Use quotes for exact phrases: `description:"team lunch"`.
+- Wrap a value in quotes when the value itself contains a space or a comma, so it is read as one value instead of two OR conditions: `workspace:"Acme, Inc"`.
 - Relative dates are supported: `date:this-week`.
 - Start typing after `:` to see autocomplete suggestions.
 
@@ -52,11 +53,11 @@ Use these operators to refine results across different types:
 | **Syntax**       | **Description**                                                               | **Example**                  |
 |------------------|-------------------------------------------------------------------------------|------------------------------|
 | `type:`          | Filter by object type (`expense`, `chat`, `trip`, `task`)       | `type:expense`               |
-| `workspace:`     | Filter by workspace name (wrap in quotes if the name has spaces)             | `workspace:"Acme Inc."`      |
+| `workspace:`     | Filter by workspace name (wrap in quotes if the name has spaces or commas)   | `workspace:"Acme, Inc"`      |
 | `from:`          | Filter by sender (email, phone, display name, or `me`)          | `from:alice@acme.com`        |
 | `to:`            | Filter by recipient (email, phone, display name, or `me`)       | `to:me`                      |
 
-**Note:** Quotes are required when filtering by names with spaces, such as `workspace:"Sales Team"`.
+**Note:** Quotes are required when filtering by names that contain spaces or commas, such as `workspace:"Sales Team"` or `workspace:"Acme, Inc"`. Because commas separate **OR** conditions, an unquoted name with a comma is read as two separate values instead of one.
 
 ---
 
@@ -77,6 +78,7 @@ You can use the following operators to filter expenses:
 - `attendee:` – expense attendees (email, phone, display name, or `me`), e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
 - `bank-account:` – settlement bank account an expense was reimbursed from. Start typing after the colon to choose from your bank accounts, each shown as the bank name and last four digits (e.g. `Chase xx1234`). Available only when you have at least one bank account.
+- `paid-by:` – the member who paid the expense's report, by email or phone number, e.g. `paid-by:admin@company.com`. Returns nothing for expenses that have not been paid
 
 **Example queries:**
 - `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
@@ -99,6 +101,7 @@ You can use the following operators to filter reports:
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
 - `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`
+- `paid-by:` – the member who paid the report, by email or phone number, e.g. `paid-by:admin@company.com`. Returns nothing for reports that have not been paid
 - `action:` – blocking report action, e.g. `action:approve`
 - `submitter-user-id:` – Custom field 1 value set for the report submitter
 - `submitter-payroll-id:` – Custom field 2 value set for the report submitter
@@ -232,11 +235,4 @@ If the search operator isn’t recognized, the system will ignore it and return 
 
 ## Do I need to use quotes for everything?
 
-Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
-
-## How do I find all messages from a specific person?
-
-You have two options:
-
-- Enter `type:chat from:` followed by the person's email, phone, or display name in the search bar (for example, `type:chat from:alice@acme.com`).
-- Open the person's profile and select **View user history** (or **View agent history** for an agent). This opens the **Search** page filtered to that person's messages.
+Only use quotes for values that include spaces, commas, or exact phrases, like `description:"client lunch"`, `workspace:"Acme, Inc"`, or `in:"#general"`.
