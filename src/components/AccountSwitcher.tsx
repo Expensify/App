@@ -260,41 +260,62 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
+    // On mobile the account header stacks vertically and centers, mirroring a user's Details view.
+    const displayNameStyle = shouldUseNarrowLayout ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge];
+
     return (
         <>
-            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]}>
-                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]}>
+            <View
+                style={
+                    shouldUseNarrowLayout
+                        ? [styles.alignItemsCenter, styles.gap4, styles.w100]
+                        : [styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]
+                }
+            >
+                <View
+                    style={
+                        shouldUseNarrowLayout
+                            ? [styles.alignItemsCenter, styles.gap3, styles.w100]
+                            : [styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]
+                    }
+                >
                     <UserAvatar
-                        size={CONST.AVATAR_SIZE.DEFAULT}
+                        size={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT}
                         accountID={currentUserPersonalDetails.accountID}
                         source={currentUserPersonalDetails.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     />
-                    <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
+                    <View
+                        style={
+                            shouldUseNarrowLayout
+                                ? [styles.alignItemsCenter, styles.gap1, styles.w100]
+                                : [styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]
+                        }
+                    >
                         {doesDisplayNameContainEmojis ? (
                             <Text numberOfLines={1}>
                                 <TextWithEmojiFragment
                                     message={displayName}
-                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                    style={displayNameStyle}
                                 />
                             </Text>
                         ) : (
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                style={displayNameStyle}
                             >
                                 {formatPhoneNumber(displayName)}
                             </Text>
                         )}
                         <Text
                             numberOfLines={1}
-                            style={[styles.colorMuted, styles.fontSizeLabel]}
+                            style={[styles.colorMuted, styles.fontSizeLabel, shouldUseNarrowLayout && styles.textAlignCenter]}
                         >
                             {Str.removeSMSDomain(currentUserPersonalDetails.login ?? '')}
                         </Text>
                         {!!isDebugModeEnabled && (
                             <Text
-                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
+                                style={[styles.textLabelSupporting, styles.mt1, styles.w100, shouldUseNarrowLayout && styles.textAlignCenter]}
                                 numberOfLines={1}
                             >
                                 AccountID: {accountID}

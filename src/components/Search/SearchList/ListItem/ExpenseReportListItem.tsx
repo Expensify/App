@@ -492,7 +492,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
+                isLargeScreenWidth ? styles.mh5 : styles.mh3,
                 animatedHighlightStyle,
                 isPendingDelete && styles.cursorDisabled,
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],

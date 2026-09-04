@@ -156,7 +156,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                             subscriptionPlan={subscriptionPlan}
                             isFromComparisonModal={isFromComparisonModal}
                             isSelected={isSelected}
-                            style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                            style={shouldUseNarrowLayout ? styles.ph6 : styles.ph8}
                             closeComparisonModal={closeComparisonModal}
                         />
                     </View>

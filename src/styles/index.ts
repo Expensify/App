@@ -720,9 +720,14 @@ const staticStyles = (theme: ThemeColors) =>
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
             backgroundColor: theme.appBG,
+        },
+
+        // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
+        // spot, so applying it to all of them would stack one shadow per bar. The token's upward offset exceeds
+        // half its blur, keeping the shadow clear of the bar's bottom edge and out of the iOS safe area below it.
+        navigationTabBarTopShadow: {
+            boxShadow: theme.shadowTop,
         },
 
         navigationTabBarItem: {
@@ -2747,13 +2752,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tableTopRadius: {
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            borderTopLeftRadius: variables.componentBorderRadiusCard,
+            borderTopRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBottomRadius: {
-            borderBottomLeftRadius: variables.componentBorderRadius,
-            borderBottomRightRadius: variables.componentBorderRadius,
+            borderBottomLeftRadius: variables.componentBorderRadiusCard,
+            borderBottomRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBorder: {
@@ -2895,6 +2900,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarHeight: {
             height: variables.contentHeaderHeight,
+        },
+
+        headerBarHeightNarrow: {
+            height: variables.contentHeaderHeightNarrow,
         },
 
         imageViewContainer: {
@@ -3154,8 +3163,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
@@ -3175,7 +3182,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...textVariants.textStrong,
         },
 
         borderedContentCard: {
@@ -4128,7 +4135,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardSectionContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCard,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -4138,7 +4145,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCard,
             overflow: 'hidden',
         },
 
@@ -4179,9 +4186,9 @@ const staticStyles = (theme: ThemeColors) =>
             // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
             // vertical footprint to the title line-height so every card header keeps the same height. The matching
             // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
-            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+            marginTop: (variables.fontSizeNormalHeight - variables.componentSizeNormal) / 2,
+            marginBottom: (variables.fontSizeNormalHeight - variables.componentSizeNormal) / 2,
+            marginRight: (variables.fontSizeNormalHeight - variables.componentSizeNormal) / 2,
         },
 
         widgetItemSubtitle: {
@@ -4234,13 +4241,6 @@ const staticStyles = (theme: ThemeColors) =>
         quickCreationActionsBarButtonText: {
             fontSize: variables.fontSizeSmall,
             lineHeight: 14,
-        },
-
-        homePageContentContainer: {
-            flexGrow: 1,
-            paddingTop: 0,
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -5015,11 +5015,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         bankIconContainer: {
-            height: variables.cardIconWidth,
-            width: variables.cardIconWidth,
+            height: variables.bankIconContainerSize,
+            width: variables.bankIconContainerSize,
             borderRadius: 8,
             overflow: 'hidden',
             alignSelf: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         staticHeaderImage: {
@@ -5473,7 +5475,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Extra 2 to account for the borders
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
-        searchPageInputNarrowTouchableWrapper: {height: 46},
+        // 44 matches the h11 height the search input above every other table uses on mobile.
+        searchPageInputNarrowTouchableWrapper: {height: 44},
 
         // Compact search inputs that appear above lists/popovers. Matches the smaller
         // "above the table" search input heights (34 on web/desktop, 46 on mobile).
@@ -7239,9 +7242,7 @@ const plainStyles = (theme: ThemeColors) =>
 
         getWidgetContainerTitleStyle: (color: string) =>
             ({
-                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-                fontSize: 17,
-                lineHeight: variables.widgetHeaderTitleLineHeight,
+                ...textVariants.textStrong,
                 color,
             }) satisfies TextStyle,
 
@@ -7249,9 +7250,9 @@ const plainStyles = (theme: ThemeColors) =>
             ({
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginBottom: 20,
-                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
-                marginTop: shouldUseNarrowLayout ? 20 : 32,
+                marginBottom: 12,
+                marginHorizontal: shouldUseNarrowLayout ? 24 : 32,
+                marginTop: shouldUseNarrowLayout ? 24 : 32,
             }) satisfies ViewStyle,
 
         // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
@@ -7282,20 +7283,25 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
-        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
+        widgetItemIconContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+        } satisfies ViewStyle,
+
+        homePageContentContainer: (shouldUseNarrowLayout: boolean) =>
             ({
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: variables.componentBorderRadiusNormal,
-                width: variables.componentSizeNormal,
-                height: variables.componentSizeNormal,
-                backgroundColor,
+                flexGrow: 1,
+                paddingTop: 4,
+                paddingHorizontal: shouldUseNarrowLayout ? 12 : 20,
+                paddingBottom: 20,
             }) satisfies ViewStyle,
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
-                gap: 20,
+                gap: shouldUseNarrowLayout ? 12 : 20,
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',

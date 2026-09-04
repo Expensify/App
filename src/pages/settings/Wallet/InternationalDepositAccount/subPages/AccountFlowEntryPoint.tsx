@@ -117,14 +117,14 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             disabled={!!isPlaidDisabled}
                             onPress={handleConnectPlaid}
                             shouldShowRightIcon
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn6 : styles.mhn8}
                         />
                         <MenuItem
                             title={translate('bankAccount.connectManually')}
                             icon={expensifyIcons.Connect}
                             onPress={handleConnectManually}
                             shouldShowRightIcon
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn6 : styles.mhn8}
                         />
                     </View>
                 </Section>

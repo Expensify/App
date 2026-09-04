@@ -78,8 +78,9 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
                 submitSearch(textInputValue);
             }}
             containerStyles={[shouldUseNarrowLayout ? styles.flex1 : undefined]}
-            textInputContainerStyles={[styles.pb0, shouldUseNarrowLayout ? styles.ph3 : styles.ph2]}
-            inputStyle={[styles.w100, styles.lineHeightUndefined, shouldUseNarrowLayout ? undefined : styles.fontSizeLabel]}
+            // On mobile this matches the search input above every other table (see TableSearchBar).
+            textInputContainerStyles={shouldUseNarrowLayout ? [styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2] : [styles.pb0, styles.ph2]}
+            inputStyle={shouldUseNarrowLayout ? [styles.w100, styles.textLabel] : [styles.w100, styles.lineHeightUndefined, styles.fontSizeLabel]}
             touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.searchPageInputNarrowTouchableWrapper : styles.searchPageInputWideTouchableWrapper}
             clearButtonStyle={shouldUseNarrowLayout ? undefined : styles.mh0}
             clearButtonIconSize={shouldUseNarrowLayout ? undefined : variables.iconSizeSmall}

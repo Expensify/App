@@ -5,8 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 
 import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscriptionPayment';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -18,10 +16,7 @@ function FixFailedBilling() {
     return (
         <BaseWidgetItem
             icon={icons.CreditCard}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
             title={translate('homePage.timeSensitiveSection.fixFailedBilling.title')}
-            subtitle={translate('homePage.timeSensitiveSection.fixFailedBilling.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={navigateToSubscriptionPayment}
             buttonVariant={CONST.BUTTON_VARIANT.DANGER}

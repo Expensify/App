@@ -3,7 +3,6 @@ import ExpensifyCardIcon from '@assets/images/expensify-card-icon.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -18,16 +17,12 @@ type ActivateCardProps = {
 };
 
 function ActivateCard({card}: ActivateCardProps) {
-    const theme = useTheme();
     const {translate} = useLocalize();
 
     return (
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
-            iconBackgroundColor={theme.widgetIconBG}
-            iconFill={theme.widgetIconFill}
             title={translate('homePage.timeSensitiveSection.activateCard.title')}
-            subtitle={translate('homePage.timeSensitiveSection.activateCard.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.activateCard.cta')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(card.cardID)))}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}

@@ -73,7 +73,7 @@ function DiscoverSection() {
                 onPress={handlePress}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('homePage.discoverSection.title')}
-                style={[shouldUseNarrowLayout ? styles.mh5 : styles.mh8, styles.mb5]}
+                style={[shouldUseNarrowLayout ? styles.mh6 : styles.mh8, styles.mb5]}
                 sentryLabel={CONST.SENTRY_LABEL.DISCOVER_SECTION.TEST_DRIVE}
             >
                 <View style={[styles.br2, styles.overflowHidden]}>
@@ -91,7 +91,7 @@ function DiscoverSection() {
                 description={translate('homePage.discoverSection.menuItemDescription')}
                 onPress={handlePress}
                 style={shouldUseNarrowLayout ? styles.mb2 : styles.mb5}
-                wrapperStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                wrapperStyle={shouldUseNarrowLayout ? styles.ph6 : styles.ph8}
                 numberOfLinesTitle={MAX_NUMBER_OF_LINES_TITLE}
                 hasSubMenuItems
                 viewMode={CONST.OPTION_MODE.COMPACT}

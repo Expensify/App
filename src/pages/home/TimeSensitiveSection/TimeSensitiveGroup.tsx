@@ -2,7 +2,6 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
@@ -19,13 +18,12 @@ type TimeSensitiveGroupProps = {
 };
 
 /**
- * Renders the "Time sensitive" heading and item rows as a group inside another card (the Home "For you" card).
+ * Renders the "Time sensitive" label and its item rows as a group inside another card.
  * Returns null when there are no items so the group leaves no trace. It's the card owner's job to keep the card
  * visible whenever this group has content.
  */
 function TimeSensitiveGroup({items}: TimeSensitiveGroupProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isExpanded, setIsExpanded] = useState(false);
@@ -42,10 +40,10 @@ function TimeSensitiveGroup({items}: TimeSensitiveGroupProps) {
 
     return (
         <>
-            <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.mt4, styles.mb2]}>
-                <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate('homePage.timeSensitiveSection.title')}</Text>
+            <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
+                <Text style={styles.textLabelSupporting}>{translate('homePage.timeSensitiveSection.title')}</Text>
             </View>
-            <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
+            <View style={[styles.getForYouSectionContainerStyle(shouldUseNarrowLayout), styles.mb0]}>
                 {visibleItems}
                 {hiddenCount > 0 && (
                     <HomeSectionExpandToggle

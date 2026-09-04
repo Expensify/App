@@ -102,7 +102,7 @@ function CardRow({cardRow, wrapperStyle}: CardRowProps) {
                         </View>
                     </View>
                 }
-                leftComponent={<View style={[styles.justifyContentCenter, styles.h10]}>{leftIcon}</View>}
+                leftComponent={<View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.h10, {width: variables.bankIconContainerSize}]}>{leftIcon}</View>}
                 wrapperStyle={wrapperStyle}
                 hasSubMenuItems
                 shouldCheckActionAllowedOnPress={false}

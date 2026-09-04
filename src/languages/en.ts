@@ -1001,7 +1001,7 @@ const translations = {
         tooltip: 'Get started here!',
     },
     homePage: {
-        forYou: 'For you',
+        forYou: 'To-dos',
         conciergePrompt: {
             goodMorning: ({name}: {name?: string}) => (name ? `Good morning, ${name}.` : 'Good morning.'),
             goodAfternoon: ({name}: {name?: string}) => (name ? `Good afternoon, ${name}.` : 'Good afternoon.'),

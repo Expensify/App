@@ -84,7 +84,7 @@ function FreeTrialSection() {
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
             >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph6 : styles.ph8]}>
                     <Icon
                         src={illustrations.TreasureChest}
                         width={ILLUSTRATION_SIZE}

@@ -236,7 +236,7 @@ function ProfilePage() {
                             childrenStyles={styles.pt5}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
+                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100, shouldUseNarrowLayout && styles.alignItemsCenter]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
                                     <AvatarSkeleton size={CONST.AVATAR_SIZE.XXXX_LARGE} />
                                 ) : (
@@ -257,7 +257,7 @@ function ProfilePage() {
                                                     />
                                                 }
                                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
-                                                avatarStyle={styles.alignSelfStart}
+                                                avatarStyle={shouldUseNarrowLayout ? styles.alignSelfCenter : styles.alignSelfStart}
                                                 pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                                 editIconStyle={styles.profilePageAvatar}
                                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}

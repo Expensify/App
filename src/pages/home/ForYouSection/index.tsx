@@ -7,7 +7,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 
@@ -17,8 +16,6 @@ import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
 import TimeSensitiveGroup from '@pages/home/TimeSensitiveSection/TimeSensitiveGroup';
 import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
-
-import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,8 +27,8 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
+import ConciergeCloudsBackdrop from './ConciergeCloudsBackdrop';
 import ConciergePromptBox from './ConciergePromptBox';
-import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
 import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
@@ -44,7 +41,6 @@ type ForYouSectionProps = {
 
 function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForYouSectionProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -109,8 +105,6 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
                     key: 'reviewExpenses',
                     count: flaggedExpensesCount,
                     icon: icons.ReceiptSearch,
-                    iconBackgroundColor: colors.tangerine100,
-                    iconFill: colors.tangerine500,
                     translationKey: 'homePage.forYouSection.reviewExpenses' as const,
                     handler: reviewExpenses,
                     buttonVariant: CONST.BUTTON_VARIANT.DANGER,
@@ -172,12 +166,10 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
 
     const renderTodoItems = () => (
         <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-            {todoItems.map(({key, count, icon, iconBackgroundColor, iconFill, translationKey, handler, buttonVariant}) => (
+            {todoItems.map(({key, count, icon, translationKey, handler, buttonVariant}) => (
                 <BaseWidgetItem
                     key={key}
                     icon={icon}
-                    iconBackgroundColor={iconBackgroundColor ?? theme.widgetIconBG}
-                    iconFill={iconFill ?? theme.widgetIconFill}
                     title={translate(translationKey, {count})}
                     ctaText={translate('homePage.forYouSection.begin')}
                     onCtaPress={handler}
@@ -200,7 +192,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
             return <ForYouSkeleton />;
         }
 
-        return hasAnyTodos ? renderTodoItems() : <EmptyState />;
+        return hasAnyTodos ? renderTodoItems() : null;
     };
 
     const hideForYou = shouldHideForYouSection({
@@ -213,13 +205,14 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
         isOnboardingStatusKnown,
     });
 
-    const willOnlyShowConciergePromptBox = timeSensitiveItems.length === 0 && hideForYou;
+    // The card always renders so the Concierge input stays on the home page. `hideForYou` only gates the to-do group
+    // below the time-sensitive one. With neither, the card is just the box.
+    const hasTodoContent = !hideForYou && (isInitialLoad || hasAnyTodos);
+    const hasSectionContent = timeSensitiveItems.length > 0 || hasTodoContent;
 
-    // The card always renders so the Concierge input stays on the home page. `hideForYou` only gates the "For you"
-    // heading and todos or empty-state below it. When hidden with no time-sensitive content, the card is just the box.
     return (
         <WidgetContainer
-            containerStyles={willOnlyShowConciergePromptBox ? [styles.pb3] : undefined}
+            backgroundContent={shouldUseNarrowLayout ? <ConciergeCloudsBackdrop /> : undefined}
             titleContent={
                 <ConciergePromptBox
                     isMenuVisible={isConciergeMenuVisible}
@@ -228,13 +221,17 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
             }
         >
             <TimeSensitiveGroup items={timeSensitiveItems} />
-            {!hideForYou && (
+            {hasTodoContent && (
                 <>
-                    <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.mt4, styles.mb2]}>
-                        <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate('homePage.forYou')}</Text>
+                    <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
+                        <Text style={styles.textLabelSupporting}>{translate('homePage.forYou')}</Text>
                     </View>
                     {renderContent()}
                 </>
+            )}
+            {!hasSectionContent && (
+                // Stands in for the groups so the card keeps some breathing room under the Concierge box.
+                <View style={styles.pb3} />
             )}
         </WidgetContainer>
     );
