@@ -176,6 +176,40 @@ function sanitizeSearchValue(str: string) {
     return escaped;
 }
 
+function sanitizeSearchValuePreservingEscapes(str: string) {
+    let escaped = '';
+
+    for (let index = 0; index < str.length; index++) {
+        const char = str.at(index) ?? '';
+        if (char !== '\\') {
+            escaped += /["“”]/.test(char) ? `\\${char}` : char;
+            continue;
+        }
+
+        let nextIndex = index;
+        while (str.at(nextIndex) === '\\') {
+            nextIndex++;
+        }
+
+        const backslashCount = nextIndex - index;
+        const nextChar = str.at(nextIndex);
+        if (nextChar && /["“”]/.test(nextChar)) {
+            escaped += `${'\\'.repeat(backslashCount + (backslashCount % 2 === 0 ? 1 : 0))}${nextChar}`;
+            index = nextIndex;
+            continue;
+        }
+
+        escaped += '\\'.repeat(backslashCount + (backslashCount % 2));
+        index = nextIndex - 1;
+    }
+
+    if (escaped.includes(' ') || escaped.includes(`\xA0`) || escaped.includes(',')) {
+        return `"${escaped}"`;
+    }
+
+    return escaped;
+}
+
 const syntaxKeyPattern = `-?(?:${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(?:-[^\\s:><=]+)+)`;
 const syntaxOperatorPattern = '\\*?:|[<>]=?|=';
 const syntaxValuePattern = '"(?:\\\\.|[^"\\\\])*"|[^\\s]+';
@@ -184,7 +218,7 @@ const syntaxSpanRegex = new RegExp(`(^|\\s)(${syntaxKeyPattern})\\s*(${syntaxOpe
 function quoteSyntaxSpans(segment: string) {
     return segment.replace(syntaxSpanRegex, (match: string, prefix: string) => {
         const syntaxValue = match.slice(prefix.length).trim();
-        const sanitizedSyntaxValue = sanitizeSearchValue(syntaxValue);
+        const sanitizedSyntaxValue = sanitizeSearchValuePreservingEscapes(syntaxValue);
         return `${prefix}${sanitizedSyntaxValue.startsWith('"') ? sanitizedSyntaxValue : `"${sanitizedSyntaxValue}"`}`;
     });
 }
@@ -307,7 +341,7 @@ function escapeKeyword(keywords: string) {
                 return quotedSyntax;
             }
 
-            return hasUnescapedQuote(q) ? sanitizeSearchValue(q) : q;
+            return hasUnescapedQuote(q) || q.includes('\\') ? sanitizeSearchValuePreservingEscapes(q) : q;
         })
         .filter(Boolean)
         .join(' ');

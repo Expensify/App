@@ -3694,6 +3694,26 @@ describe('SearchQueryUtils', () => {
             expect(trailingBackslashKeywordFilter?.filters.map((filter) => filter.value)).toEqual(['back\\']);
         });
 
+        it('should preserve backslashes in filter-like keyword text across submissions', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            const keyword = String.raw`description:C:\Temp`;
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.at(0)?.value).toBe(keyword);
+
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+            expect(displayedKeyword).toBe(String.raw`description:C:\\Temp`);
+
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedQueryJSON = buildSearchQueryJSON(resubmittedResult ?? '');
+            const resubmittedKeywordFilter = resubmittedQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+        });
+
         it('should escape input that uses a comparison operator with a filter key', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
