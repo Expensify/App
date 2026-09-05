@@ -464,6 +464,8 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'なし',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認して、もう一度お試しください。',
         enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
+        corpayPayModalTitle: 'レポートを支払う',
+        corpayPayModalPrompt: 'この提出者は非USDの銀行口座を使用しています。レポートを支払うにはグローバル払い戻しを有効にするか、USDの銀行口座を追加するよう依頼してください。',
         purchaseAmount: '購入金額',
         originalAmount: '元の金額',
         frequency: '頻度',

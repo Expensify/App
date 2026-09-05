@@ -1,5 +1,6 @@
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
+import EnableGlobalReimbursementsPayModal from '@components/EnableGlobalReimbursementsPayModal';
 import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager';
 import GPSInProgressModal from '@components/GPSInProgressModal';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
@@ -398,6 +399,7 @@ function AuthScreens() {
                     <GPSTripStateChecker />
                     <GPSInProgressModal />
                     <OpenAppFailureModal />
+                    <EnableGlobalReimbursementsPayModal />
                     <PriorityModeController />
                 </ComposeProviders>
             </DelegatorConnectGuard>

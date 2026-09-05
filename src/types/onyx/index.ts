@@ -51,6 +51,7 @@ import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
+import type CorpayPayModal from './CorpayPayModal';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -419,6 +420,7 @@ export type {
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
+    CorpayPayModal,
     SidePanel,
     SidePanelContext,
     LastPaymentMethodType,

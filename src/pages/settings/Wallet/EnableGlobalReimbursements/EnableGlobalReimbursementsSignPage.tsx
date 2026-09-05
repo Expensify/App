@@ -1,5 +1,6 @@
 import DocusignFullStep from '@components/SubStepForms/DocusignFullStep';
 
+import useEnableGlobalReimbursementsNavigation from '@hooks/useEnableGlobalReimbursementsNavigation';
 import useOnyx from '@hooks/useOnyx';
 
 import {clearEnableGlobalReimbursementsForUSDBankAccount, enableGlobalReimbursementsForUSDBankAccount} from '@libs/actions/BankAccounts';
@@ -9,15 +10,18 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
 import React, {useEffect} from 'react';
 
-type EnableGlobalReimbursementsSignPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN>;
+type EnableGlobalReimbursementsSignPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN | typeof SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN
+>;
 
 function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsSignPageProps) {
+    const {getAgreementsRoute, isDynamic} = useEnableGlobalReimbursementsNavigation();
     const bankAccountID = route.params?.bankAccountID;
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
     const currency = bankAccount?.bankCurrency ?? '';
@@ -27,7 +31,12 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
     const defaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM] ?? [];
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
+        const agreementsRoute = getAgreementsRoute(Number(bankAccountID));
+        if (isDynamic) {
+            Navigation.navigate(agreementsRoute, {forceReplace: true});
+            return;
+        }
+        Navigation.goBack(agreementsRoute);
     };
 
     const onSubmit = () => {

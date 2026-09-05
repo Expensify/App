@@ -1,5 +1,6 @@
 import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
 
+import useEnableGlobalReimbursementsNavigation from '@hooks/useEnableGlobalReimbursementsNavigation';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -8,13 +9,15 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
 import React from 'react';
 
-type EnableGlobalReimbursementsAgreementsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS>;
+type EnableGlobalReimbursementsAgreementsPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS | typeof SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS
+>;
 
 const inputIDs = {
     provideTruthfulInformation: INPUT_IDS.PROVIDE_TRUTHFUL_INFORMATION,
@@ -24,6 +27,7 @@ const inputIDs = {
 };
 
 function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimbursementsAgreementsPageProps) {
+    const {getBusinessRoute, getSignRoute, isDynamic} = useEnableGlobalReimbursementsNavigation();
     const bankAccountID = route.params?.bankAccountID;
     const [currency = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]?.bankCurrency});
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
@@ -34,12 +38,22 @@ function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimburse
         }),
     ) as Record<keyof typeof inputIDs, boolean>;
 
+    const persistedRouteParams = {
+        bankCountry: route.params?.bankCountry,
+        bankCurrency: route.params?.bankCurrency,
+    };
+
     const goBack = () => {
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(Number(bankAccountID), CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.CONFIRM));
+        const confirmRoute = getBusinessRoute(Number(bankAccountID), CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.CONFIRM, undefined, persistedRouteParams);
+        if (isDynamic) {
+            Navigation.navigate(confirmRoute, {forceReplace: true});
+            return;
+        }
+        Navigation.goBack(confirmRoute);
     };
 
     const goToSignPage = () => {
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.getRoute(Number(bankAccountID)));
+        Navigation.navigate(getSignRoute(Number(bankAccountID)), isDynamic ? {forceReplace: true} : undefined);
     };
 
     return (
