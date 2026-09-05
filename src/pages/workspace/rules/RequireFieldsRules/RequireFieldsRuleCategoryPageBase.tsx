@@ -2,14 +2,13 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
-import {useFocusEffect} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -47,28 +45,21 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
     const styles = useThemeStyles();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
-
-    const fetchPolicyCategories = () => {
-        if (!areCategoriesEnabled || policyCategories !== undefined) {
-            return;
-        }
-        openPolicyCategoriesPage(policyID);
-    };
-
-    const {isOffline} = useNetwork({onReconnect: fetchPolicyCategories});
-
-    useFocusEffect(() => {
-        fetchPolicyCategories();
-    });
-
-    // Only spin while a fetch can actually resolve. Offline there's nothing to wait for, so fall through to the
-    // picker (empty list + offline indicator) instead of a spinner that never goes away. The reconnect callback
-    // fetches and flips this back on once we're online.
-    const arePolicyCategoriesLoading = areCategoriesEnabled && policyCategories === undefined && !isOffline;
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
+
+    const {
+        categories,
+        policyCategories,
+        areCategoriesEnabled,
+        isLoading: arePolicyCategoriesLoading,
+    } = usePolicyCategoryPickerCategories({
+        policyID,
+        // Keep the currently selected / route category available, but don't offer other
+        // categories that already have field requirements (avoids silent overwrite).
+        isEligible: (category) => category.name === categoryName || category.name === selectedCategoryName || !categoryHasAnyRequireFieldsRule(category),
+    });
+
     const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
     const selectedCategoryItem = selectedCategoryName
         ? {
@@ -77,29 +68,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
           }
         : undefined;
 
-    const categoryItems = Object.values(policyCategories ?? {})
-        .filter((category) => {
-            if (!category.enabled) {
-                return false;
-            }
-
-            // Match the rules table: keep pending-delete categories visible while offline.
-            if (!isOffline && category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return false;
-            }
-
-            // Keep the currently selected / route category available, but don't offer other
-            // categories that already have field requirements (avoids silent overwrite).
-            if (category.name === categoryName || category.name === selectedCategoryName) {
-                return true;
-            }
-
-            return !categoryHasAnyRequireFieldsRule(category);
-        })
-        .map((category) => {
-            const decodedCategoryName = getDecodedCategoryName(category.name);
-            return {name: decodedCategoryName, value: category.name};
-        });
+    const categoryItems = categories.map((category) => ({name: getDecodedCategoryName(category.name), value: category.name}));
 
     const backToRoute = () =>
         getRequireFieldsRuleBackToRoute({

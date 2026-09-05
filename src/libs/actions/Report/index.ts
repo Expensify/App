@@ -396,8 +396,8 @@ type OpenReportActionParams = {
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
 
-    /** This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411 */
-    conciergeChat?: OnyxEntry<Report>;
+    /** The Concierge chat report used to build the guided setup onboarding data */
+    conciergeChat: OnyxEntry<Report>;
 };
 
 type PregeneratedResponseParams = {
@@ -465,10 +465,9 @@ type MergeReportsProps = {
     policyCategories?: OnyxEntry<PolicyCategories>;
     policyTagList: OnyxEntry<PolicyTagLists>;
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
-    allReports: OnyxCollection<Report>;
+    allReports?: OnyxCollection<Report>;
     allReportsTransactions?: Record<string, Transaction[]>;
-    sourceReportActions: Record<string, OnyxEntry<ReportActions>>;
-    sourceParentReportActions: Record<string, OnyxEntry<ReportAction>>;
+    allReportActions?: Record<string, OnyxEntry<ReportActions>>;
     hash?: number;
     bankAccountList: OnyxEntry<BankAccountList>;
     isTrackIntentUser: boolean | undefined;
@@ -2131,18 +2130,31 @@ function pruneReportActionPagesToNewestWindow(reportID: string | undefined, sort
  * @param introSelected The intro selected data for guided setup
  * @param avatar The avatar file to upload for the group chat (optional)
  */
-function createGroupChat(
-    reportID: string,
-    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
-    newReportObject: OptimisticChatReport,
-    currentUserLogin: string,
-    introSelected: OnyxEntry<IntroSelected>,
-    isSelfTourViewed: boolean,
-    hasCompletedGuidedSetupFlow: boolean,
-    betas: OnyxEntry<Beta[]>,
-    currentUserAccountID: number,
-    avatar?: File | CustomRNImageManipulatorResult,
-) {
+type CreateGroupChatParams = {
+    reportID: string;
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>;
+    newReportObject: OptimisticChatReport;
+    currentUserLogin: string;
+    introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean;
+    hasCompletedGuidedSetupFlow: boolean;
+    conciergeChat: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    avatar?: File | CustomRNImageManipulatorResult;
+};
+
+function createGroupChat({
+    reportID,
+    participantsPersonalDetails,
+    newReportObject,
+    currentUserLogin,
+    introSelected,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    conciergeChat,
+    currentUserAccountID,
+    avatar,
+}: CreateGroupChatParams) {
     const participantLoginList = Object.values(participantsPersonalDetails ?? {})
         .map((participant) => participant?.login)
         .filter((login): login is string => !!login);
@@ -2328,8 +2340,7 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    // Deferred: thread the real conciergeChat when the createGroupChat cascade is migrated (https://github.com/Expensify/App/issues/66411)
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, undefined, isSelfTourViewed, hasCompletedGuidedSetupFlow);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, conciergeChat, isSelfTourViewed, hasCompletedGuidedSetupFlow);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2668,7 +2679,7 @@ type NavigateToAndCreateGroupChatParams = {
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean;
     hasCompletedGuidedSetupFlow: boolean;
-    betas: OnyxEntry<Beta[]>;
+    conciergeChat: OnyxEntry<Report>;
     currentUserAccountID: number;
     avatarUri?: string;
     avatarFile?: File | CustomRNImageManipulatorResult | undefined;
@@ -2683,7 +2694,7 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
+        conciergeChat,
         currentUserAccountID,
         avatarUri,
         avatarFile,
@@ -2695,18 +2706,18 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-    createGroupChat(
-        newChat.reportID,
+    createGroupChat({
+        reportID: newChat.reportID,
         participantsPersonalDetails,
-        newChat,
+        newReportObject: newChat,
         currentUserLogin,
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
+        conciergeChat,
         currentUserAccountID,
-        avatarFile,
-    );
+        avatar: avatarFile,
+    });
 
     navigateToReport(newChat.reportID, {afterTransition: clearGroupChat});
 }
@@ -8532,8 +8543,7 @@ function mergeReports({
     allReportsTransactions,
     bankAccountList,
     allReports: allReportsParam,
-    sourceReportActions,
-    sourceParentReportActions,
+    allReportActions = {},
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
@@ -8623,7 +8633,7 @@ function mergeReports({
         });
 
         // Mark comments on the source report as deleted
-        const reportActions = sourceReportActions[sourceReportID];
+        const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`];
         deleteOptimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`,
@@ -8640,7 +8650,7 @@ function mergeReports({
         const parentReportID = sourceReport.parentReportID;
         const parentReportActionID = sourceReport.parentReportActionID;
         if (parentReportID && parentReportActionID) {
-            const parentReportAction = sourceParentReportActions[sourceReportID];
+            const parentReportAction = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID];
             const {
                 optimisticData: parentOptimisticData,
                 successData: parentSuccessData,
@@ -8669,6 +8679,14 @@ function mergeReports({
     if (hash) {
         const optimisticSnapshotData: SearchResultDataType = {};
         const failureSnapshotData: SearchResultDataType = {};
+        for (const transaction of transactionsToMove) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+                ...transaction,
+                reportID: destinationReportID,
+            };
+
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        }
         for (const sourceReportID of sourceReportIDs) {
             const sourceReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
             if (sourceReport) {
@@ -8711,8 +8729,8 @@ function mergeReports({
     }
 
     const parameters: MergeReportsParams = {
-        destinationReportID,
-        sourceReportIDs,
+        reportID: destinationReportID,
+        sourceReportIDList: sourceReportIDs,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
     };
 

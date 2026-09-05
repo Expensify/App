@@ -1353,6 +1353,7 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,
@@ -1545,6 +1546,7 @@ describe('mergeTransactionRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: undefined,

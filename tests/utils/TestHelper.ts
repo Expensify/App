@@ -4,6 +4,7 @@ import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
+import registerMiddlewares from '@libs/Middleware/register';
 import {format as formatNumber} from '@libs/NumberFormatUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -32,6 +33,10 @@ import createMock from './createMock';
 import {isObject} from './typeGuards';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
+
+// Every test that imports this module can make an API call without first calling setupApp(), so middlewares
+// must be registered here too. Idempotent, so this doesn't conflict with the appSetup() call inside setupApp().
+registerMiddlewares();
 
 type MockFetch = jest.Mock<ReturnType<typeof fetch>, Parameters<typeof fetch>> & {
     pause: () => void;
@@ -93,7 +98,6 @@ function setupApp(initialUrl = `https://new.expensify.com/${ROUTES.INBOX}`) {
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
         });
     });
 }

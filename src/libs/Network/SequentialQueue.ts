@@ -74,6 +74,70 @@ function setIsReadyPromisePending() {
     isReadyPromisePending = true;
 }
 
+// A deferred write (API.writeWhenReady) isn't on the queue yet, so nothing else holds the gate for it.
+let deferredWriteClaims = 0;
+let deferredWritesLanded: Promise<void> = Promise.resolve();
+let resolveDeferredWritesLanded: (() => void) | undefined;
+// Bumped by resetQueue() so claims it wiped can't decrement a later one's count.
+let deferredWriteGeneration = 0;
+let pendingNetworkStateChange: Promise<void> | undefined;
+let unsubscribePendingNetworkStateChange: (() => void) | undefined;
+
+/** One shared wake-up for every READ parked on the gate, rather than a subscription per caller. */
+function whenNetworkStateChanges(): Promise<void> {
+    pendingNetworkStateChange ??= new Promise<void>((resolve) => {
+        const unsubscribe = subscribeToNetworkState(() => {
+            unsubscribe();
+            unsubscribePendingNetworkStateChange = undefined;
+            pendingNetworkStateChange = undefined;
+            resolve();
+        });
+        unsubscribePendingNetworkStateChange = unsubscribe;
+    });
+
+    return pendingNetworkStateChange;
+}
+
+/**
+ * Sole writer of the count, so deferredWritesLanded is pending exactly while claims are outstanding -
+ * resolving it early would spin waitForIdle().
+ */
+function setDeferredWriteClaims(count: number) {
+    if (count > 0 && deferredWriteClaims === 0) {
+        deferredWritesLanded = new Promise<void>((resolve) => {
+            resolveDeferredWritesLanded = resolve;
+        });
+    }
+
+    deferredWriteClaims = Math.max(0, count);
+
+    if (deferredWriteClaims === 0) {
+        resolveDeferredWritesLanded?.();
+        resolveDeferredWritesLanded = undefined;
+        deferredWritesLanded = Promise.resolve();
+    }
+}
+
+/**
+ * Holds the read gate for a write that hasn't been pushed yet. Returns a callback to run once the write
+ * has reached the queue - or definitely won't - after which the queue's own gate takes over.
+ */
+function claimReadGateForDeferredWrite(): () => void {
+    const generation = deferredWriteGeneration;
+    setDeferredWriteClaims(deferredWriteClaims + 1);
+    Log.info('[SequentialQueue] Deferred write claimed the read gate', false, {claims: deferredWriteClaims});
+
+    let hasSettled = false;
+    return () => {
+        if (hasSettled || generation !== deferredWriteGeneration) {
+            return;
+        }
+        hasSettled = true;
+        setDeferredWriteClaims(deferredWriteClaims - 1);
+        Log.info('[SequentialQueue] Deferred write released the read gate', false, {claims: deferredWriteClaims});
+    };
+}
+
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
@@ -842,9 +906,19 @@ function getCurrentRequest(): Promise<void> {
 }
 
 /**
- * Returns a promise that resolves when the sequential queue is done processing all persisted write requests.
+ * Resolves when the queue is done processing all persisted write requests, deferred writes included.
+ * Skipped while offline, where the queue can't run and push()/flush() open the gate for the same reason.
  */
-function waitForIdle(): Promise<unknown> {
+async function waitForIdle(): Promise<unknown> {
+    while (deferredWriteClaims > 0 && !isOfflineNetwork()) {
+        Log.info('[SequentialQueue] READ is waiting on a deferred write', false, {claims: deferredWriteClaims});
+        // The waits are deliberately sequential, each one re-checks the claim count and the
+        // network, so going offline releases READs and coming back re-parks them.
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.race([deferredWritesLanded, whenNetworkStateChanges()]);
+    }
+
+    // Read after the wait, the deferred write's push() has re-closed the gate by now.
     return isReadyPromise;
 }
 
@@ -861,9 +935,15 @@ function resetQueue(): void {
     isReadyPromise = Promise.resolve();
     isReadyPromisePending = false;
     resolveIsReadyPromise = undefined;
+    deferredWriteGeneration += 1;
+    setDeferredWriteClaims(0);
+    unsubscribePendingNetworkStateChange?.();
+    unsubscribePendingNetworkStateChange = undefined;
+    pendingNetworkStateChange = undefined;
 }
 
 export {
+    claimReadGateForDeferredWrite,
     flush,
     getCurrentRequest,
     isPaused,
