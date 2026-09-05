@@ -2229,6 +2229,72 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.getRenamedAction(translateLocal, reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
         });
     });
+    describe('getChangedApproverActionMessage', () => {
+        const buildReassignApproverAction = (originalMessage: Record<string, unknown>) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER,
+                reportActionID: 'reassign-approver-1',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage,
+            }) as ReportAction;
+
+        it('names the workflow update for a reassignment a workflow change made', () => {
+            const reportAction = buildReassignApproverAction({newApproverID: 2, previousApproverID: 3, actorAccountID: 1, reasoning: 'admin@test.com changed the approval workflow'});
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('reassigned the approver to <mention-user accountID="2"/> via a workflow update');
+        });
+
+        it('returns an empty message when the new approver is missing', () => {
+            const reportAction = buildReassignApproverAction({previousApproverID: 3});
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('');
+        });
+
+        it('names the mentioned approver for a reroute an admin asked for', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                reportActionID: 'reroute-1',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 3},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('changed the approver to <mention-user accountID="2"/>');
+        });
+
+        it('names the skipped approver for a reroute that reassigned approval', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                reportActionID: 'reroute-2',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 3, isReassignment: true},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe(
+                'reassigned approval to <mention-user accountID="2"/>, skipped <mention-user accountID="3"/>',
+            );
+        });
+
+        it('omits the skipped approver for a reassignment on a report that had no approver', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                reportActionID: 'reroute-3',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 0, isReassignment: true},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('reassigned approval to <mention-user accountID="2"/>');
+        });
+
+        it('falls back to the actor for a take control action with no mentioned accounts', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: 'take-control-1',
+                actorAccountID: 4,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('changed the approver to <mention-user accountID="4"/>');
+        });
+    });
     describe('getCardIssuedMessage', () => {
         const mockVirtualCardIssuedAction: ReportAction = {
             actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,

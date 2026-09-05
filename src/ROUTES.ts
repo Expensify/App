@@ -2556,6 +2556,10 @@ const ROUTES = {
         route: 'r/:reportID/change-approver/add',
         getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
     },
+    REPORT_CHANGE_APPROVER_REASSIGN_APPROVER: {
+        route: 'r/:reportID/change-approver/reassign',
+        getRoute: (reportID: string) => `r/${reportID}/change-approver/reassign` as const,
+    },
     REPORT_SETTINGS_COLUMNS: {
         route: 'r/:reportID/settings/columns',
         getRoute: (reportID: string) => `r/${reportID}/settings/columns` as const,

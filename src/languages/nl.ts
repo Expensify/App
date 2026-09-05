@@ -1782,11 +1782,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Kies een optie om de fiatteur voor dit rapport te wijzigen. (Werk je <a href="${workflowSettingLink}">werkruimteninstellingen</a> bij om dit permanent voor alle rapporten te wijzigen.)`,
             changedApproverMessage: (managerID: number) => `heeft de goedkeurder gewijzigd naar <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `heeft de goedkeurder opnieuw toegewezen aan <mention-user accountID="${managerID}"/> via een workflow-update`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `heeft de goedkeuring opnieuw toegewezen aan <mention-user accountID="${newApproverID}"/>, <mention-user accountID="${previousApproverID}"/> overgeslagen`
+                    : `heeft de goedkeuring opnieuw toegewezen aan <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Goedkeurder toevoegen',
                 addApproverSubtitle: 'Voeg een extra fiatteur toe aan de bestaande workflow.',
                 bypassApprovers: 'Fiatteurs overslaan',
                 bypassApproversSubtitle: 'Wijs jezelf aan als laatste fiatteur en sla alle resterende fiatteurs over.',
+                reassignApprover: 'Fiatteur opnieuw toewijzen',
+                reassignApproverSubtitle: 'Sla de huidige fiatteur over en wijs een nieuwe fiatteur aan.',
+                reassignApproverPageHeader: 'Kies een vervangende fiatteur en volg daarna de rest van de goedkeuringsworkflow.',
             },
             addApprover: {
                 subtitle: 'Kies een extra fiatteur voor dit rapport voordat we het door de rest van de fiatteringsworkflow sturen.',

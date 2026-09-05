@@ -1786,11 +1786,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Scegli un'opzione per cambiare l'approvatore di questo report. (Aggiorna le <a href="${workflowSettingLink}">impostazioni dello spazio di lavoro</a> per cambiarlo in modo permanente per tutti i report.)`,
             changedApproverMessage: (managerID: number) => `ha cambiato l’approvatore in <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ha riassegnato l'approvatore a <mention-user accountID="${managerID}"/> tramite un aggiornamento del flusso di lavoro`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `ha riassegnato l'approvazione a <mention-user accountID="${newApproverID}"/>, ha saltato <mention-user accountID="${previousApproverID}"/>`
+                    : `ha riassegnato l'approvazione a <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Aggiungi approvatore',
                 addApproverSubtitle: 'Aggiungi un ulteriore approvatore al flusso di approvazione esistente.',
                 bypassApprovers: 'Ignora approvatori',
                 bypassApproversSubtitle: 'Impostati come approvatore finale e salta tutti gli approvatori rimanenti.',
+                reassignApprover: 'Riassegna approvatore',
+                reassignApproverSubtitle: 'Salta l’approvatore attuale e assegna un nuovo approvatore.',
+                reassignApproverPageHeader: 'Scegli un approvatore sostitutivo e poi segui il resto del flusso di approvazione.',
             },
             addApprover: {
                 subtitle: 'Scegli un approvatore aggiuntivo per questo report prima che venga instradato attraverso il resto del flusso di approvazione.',

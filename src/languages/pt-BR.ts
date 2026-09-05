@@ -1781,11 +1781,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Escolha uma opção para alterar o aprovador deste relatório. (Atualize as <a href="${workflowSettingLink}">configurações do espaço de trabalho</a> para alterar isso permanentemente para todos os relatórios.)`,
             changedApproverMessage: (managerID: number) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `reatribuiu o aprovador para <mention-user accountID="${managerID}"/> por meio de uma atualização do fluxo de trabalho`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `reatribuiu a aprovação para <mention-user accountID="${newApproverID}"/>, ignorou <mention-user accountID="${previousApproverID}"/>`
+                    : `reatribuiu a aprovação para <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Adicionar aprovador',
                 addApproverSubtitle: 'Adicione um aprovador adicional ao fluxo de aprovação existente.',
                 bypassApprovers: 'Ignorar aprovadores',
                 bypassApproversSubtitle: 'Atribua a si mesmo como aprovador final e ignore quaisquer aprovadores restantes.',
+                reassignApprover: 'Reatribuir aprovador',
+                reassignApproverSubtitle: 'Ignore o aprovador atual e atribua um novo aprovador.',
+                reassignApproverPageHeader: 'Escolha um aprovador substituto e depois siga o restante do fluxo de aprovação.',
             },
             addApprover: {
                 subtitle: 'Escolha um aprovador adicional para este relatório antes de seguirmos pelo restante do fluxo de aprovação.',

@@ -1842,6 +1842,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Επιλέξτε μια επιλογή για να αλλάξετε τον εγκριτή για αυτήν την αναφορά. (Ενημερώστε τις <a href="${workflowSettingLink}">ρυθμίσεις χώρου εργασίας</a> σας για να το αλλάξετε μόνιμα για όλες τις αναφορές.)`,
             changedApproverMessage: (managerID: number) => `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `ανέθεσε εκ νέου την έγκριση στον/στην <mention-user accountID="${newApproverID}"/>, παρέκαμψε τον/την <mention-user accountID="${previousApproverID}"/>`
+                    : `ανέθεσε εκ νέου την έγκριση στον/στην <mention-user accountID="${newApproverID}"/>`,
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
                 `Η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για εσάς (τον/την αναπληρωτή/τριά τους για διακοπές), επειδή δεν είστε μέλος της πολιτικής αυτής της αναφοράς`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
@@ -1859,6 +1863,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 addApproverSubtitle: 'Προσθέστε έναν επιπλέον εγκρίνοντα στην υπάρχουσα ροή έγκρισης.',
                 bypassApprovers: 'Παράκαμψη εγκριτών',
                 bypassApproversSubtitle: 'Ορίστε τον εαυτό σας ως τελικό εγκρίνοντα και παρακάμψτε τυχόν υπόλοιπους εγκρίνοντες.',
+                reassignApprover: 'Επανανάθεση εγκρίνοντα',
+                reassignApproverSubtitle: 'Παρακάμψτε τον τρέχοντα εγκρίνοντα και ορίστε νέο εγκρίνοντα.',
+                reassignApproverPageHeader: 'Επιλέξτε έναν αντικαταστάτη εγκρίνοντα και στη συνέχεια ακολουθήστε την υπόλοιπη ροή έγκρισης.',
             },
             addApprover: {
                 subtitle: 'Επιλέξτε έναν επιπλέον εγκρίνωντα για αυτήν την αναφορά πριν τη διοχετεύσουμε στο υπόλοιπο στάδιο έγκρισης.',

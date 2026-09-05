@@ -1719,11 +1719,18 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
             changedApproverMessage: (managerID: number) => `已将审批人更改为 <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `已通过工作流更新将审批人重新分配给 <mention-user accountID="${managerID}"/>`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `已将审批重新分配给 <mention-user accountID="${newApproverID}"/>，跳过了 <mention-user accountID="${previousApproverID}"/>`
+                    : `已将审批重新分配给 <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: '添加审批人',
                 addApproverSubtitle: '向现有工作流程添加额外审批人。',
                 bypassApprovers: '跳过审批人',
                 bypassApproversSubtitle: '将自己设为最终批准人并跳过所有剩余批准人。',
+                reassignApprover: '重新指派审批人',
+                reassignApproverSubtitle: '跳过当前审批人并指派新的审批人。',
+                reassignApproverPageHeader: '选择一位替代审批人，然后按剩余的审批流程进行。',
             },
             addApprover: {
                 subtitle: '在将此报表提交到其余审批流程之前，请选择一位额外的审批人。',

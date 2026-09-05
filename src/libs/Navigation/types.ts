@@ -3446,6 +3446,9 @@ type ReportChangeApproverParamList = {
     [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: {
         reportID: string;
     };
+    [SCREENS.REPORT_CHANGE_APPROVER.REASSIGN_APPROVER]: {
+        reportID: string;
+    };
 };
 
 type TestToolsModalModalNavigatorParamList = {

@@ -41,6 +41,7 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 const APPROVER_TYPE = {
     ADD_APPROVER: 'addApprover',
     BYPASS_APPROVER: 'bypassApprover',
+    REASSIGN_APPROVER: 'reassignApprover',
 } as const;
 
 type ApproverType = ValueOf<typeof APPROVER_TYPE>;
@@ -60,12 +61,31 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const hasAutoAppliedRef = useRef(false);
-    const hasNavigatedToAddApproverRef = useRef(false);
+    const hasNavigatedAwayRef = useRef(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
 
     const goBack = () => {
         Navigation.goBack(backPath);
     };
+
+    const shouldNativeToUpgradePage = useCallback(
+        (selectedApproverOption: ApproverType) => {
+            if (policy && !isControlPolicy(policy)) {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_UPGRADE.getRoute(
+                        policy.id,
+                        CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias,
+                        selectedApproverOption === APPROVER_TYPE.ADD_APPROVER
+                            ? ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID)
+                            : ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(report.reportID),
+                    ),
+                );
+                return true;
+            }
+            return false;
+        },
+        [policy, report.reportID],
+    );
 
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
@@ -73,23 +93,36 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             return;
         }
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
-            hasNavigatedToAddApproverRef.current = true;
-            if (policy && !isControlPolicy(policy)) {
-                Navigation.navigate(
-                    ROUTES.WORKSPACE_UPGRADE.getRoute(
-                        policy.id,
-                        CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias,
-                        ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID),
-                    ),
-                );
+            hasNavigatedAwayRef.current = true;
+            if (shouldNativeToUpgradePage(selectedApproverType)) {
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
+        if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
+            hasNavigatedAwayRef.current = true;
+            if (shouldNativeToUpgradePage(selectedApproverType)) {
+                return;
+            }
+            Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(report.reportID));
+            return;
+        }
+
         assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
         Navigation.dismissToPreviousRHP();
-    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber]);
+    }, [
+        selectedApproverType,
+        report,
+        currentUserDetails.accountID,
+        currentUserDetails.email,
+        policy,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
+        formatPhoneNumber,
+        shouldNativeToUpgradePage,
+    ]);
 
     const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [
@@ -111,6 +144,15 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             });
         }
 
+        if (isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy) && isPolicyAdmin(policy)) {
+            data.push({
+                text: translate('iou.changeApprover.actions.reassignApprover'),
+                keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
+                isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
+            });
+        }
+
         return data;
     }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
 
@@ -120,7 +162,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             return;
         }
 
-        if (!hasAutoAppliedRef.current && approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList && !hasNavigatedToAddApproverRef.current) {
+        if (!hasAutoAppliedRef.current && approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList && !hasNavigatedAwayRef.current) {
             hasAutoAppliedRef.current = true;
             changeApprover();
         }
