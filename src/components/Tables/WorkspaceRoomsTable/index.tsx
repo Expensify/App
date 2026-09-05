@@ -1,4 +1,5 @@
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import ActivityIndicator from '@components/ActivityIndicator';
+import type {ActiveSorting, CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -9,11 +10,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 import type {WorkspaceRoomRowData} from './WorkspaceRoomsTableRow';
 
@@ -31,18 +34,33 @@ type WorkspaceRoomsTableProps = {
     /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
     highlightedReportID?: string;
 
+    /** Callback when the active search string changes */
+    onSearchStringChange?: (searchString: string) => void;
+
+    /** Callback when scrolling to the bottom of the list */
+    onEndReached?: () => void;
+
+    /** Threshold for the end-reached callback */
+    onEndReachedThreshold?: number;
+
+    /** Callback when the active sorting configuration changes */
+    onSortingChange?: (sorting: ActiveSorting<WorkspaceRoomsTableColumnKey>) => void;
+
     /** Content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerComponent}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onEndReachedThreshold, onSortingChange, headerComponent}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
-    const [isPolicyRoomDataLoaded] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED, {
+    const [roomsMetadata] = useOnyx(ONYXKEYS.POLICY_ROOMS_METADATA, {
         selector: (value) => value?.[policyID],
     });
+
+    // A page beyond the first one is loading, so the rows already on screen stay and the footer reports the progress.
+    const isLoadingMoreRooms = !!roomsMetadata?.isLoading && (roomsMetadata?.pageNumber ?? 1) > 1;
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -101,7 +119,16 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerCompon
         />
     );
 
-    if (!isPolicyRoomDataLoaded) {
+    const listFooterComponent = isLoadingMoreRooms ? (
+        <View style={[styles.pv3, styles.alignItemsCenter]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                extraLoadingContext={{context: 'WorkspaceRoomsTable.loadMore'}}
+            />
+        </View>
+    ) : undefined;
+
+    if (!roomsMetadata?.isLoaded) {
         // The page header stays visible above the loading skeleton so the layout doesn't jump once the table renders.
         return (
             <>
@@ -124,6 +151,11 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerCompon
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
+            onSearchStringChange={onSearchStringChange}
+            onSortingChange={onSortingChange}
+            onEndReached={onEndReached}
+            onEndReachedThreshold={onEndReachedThreshold}
+            ListFooterComponent={listFooterComponent}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />

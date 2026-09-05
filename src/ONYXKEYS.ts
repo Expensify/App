@@ -804,8 +804,8 @@ const ONYXKEYS = {
     /** Persisted draft for the new-agent avatar selection flow */
     AGENT_NEW_AVATAR_DRAFT: 'agentNewAvatarDraft',
 
-    /** Set when the rooms page has finished loading for the first time */
-    ARE_POLICY_ROOMS_LOADED: 'arePolicyRoomsLoaded',
+    /** Pagination state of the workspace rooms page, keyed by policyID */
+    POLICY_ROOMS_METADATA: 'policyRoomsMetadata',
 
     /**
      * Determines whether billing is required when the user downgrades their plan.
@@ -1717,7 +1717,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.ARE_AGENTS_LOADED]: boolean;
     [ONYXKEYS.AGENT_NEW_AVATAR_DRAFT]: OnyxTypes.AgentNewAvatarDraft;
-    [ONYXKEYS.ARE_POLICY_ROOMS_LOADED]: Record<string, boolean>;
+    [ONYXKEYS.POLICY_ROOMS_METADATA]: Record<string, OnyxTypes.PolicyRoomsMetadata>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.NVP_HOME_SELECTED_INSIGHT]:
