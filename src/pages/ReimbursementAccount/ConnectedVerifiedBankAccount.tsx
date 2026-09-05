@@ -1,8 +1,11 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -13,17 +16,19 @@ import useChangeBankAccount from '@hooks/useChangeBankAccount';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
 
+import CONST from '@src/CONST';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type ConnectedVerifiedBankAccountProps = {
     /** Bank account currently in setup */
@@ -50,8 +55,8 @@ function ConnectedVerifiedBankAccount({
     isNonUSDWorkspace,
 }: ConnectedVerifiedBankAccountProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: reimbursementAccount?.achData?.bankName, styles});
 
@@ -98,35 +103,42 @@ function ConnectedVerifiedBankAccount({
                         shouldShowErrorMessages
                         onClose={resetReimbursementAccount}
                     >
-                        <MenuItem
-                            title={bankAccountOwnerName}
-                            description={formattedBankAccountNumber}
-                            icon={icon}
-                            iconStyles={iconStyles}
-                            iconWidth={iconSize}
-                            iconHeight={iconSize}
-                            interactive={false}
-                            displayInDefaultIconColor
-                            wrapperStyle={[styles.ph0, styles.mv3, styles.h13]}
-                        />
+                        <View style={[styles.mt3, styles.justifyContentCenter, styles.mhn5]}>
+                            <MenuItem.Root>
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(CONST.AVATAR_SIZE.DEFAULT)]}>
+                                            <Icon
+                                                src={icon}
+                                                width={iconSize}
+                                                height={iconSize}
+                                            />
+                                        </View>
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{bankAccountOwnerName ?? ''}</MenuItem.Title>
+                                        <MenuItem.Description>{formattedBankAccountNumber}</MenuItem.Description>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </View>
                         <Text style={[styles.mv3]}>{translate('workspace.bankAccount.accountDescriptionWithCards')}</Text>
-                        {shouldShowChangeBankAccount && (
-                            <MenuItem
-                                title={translate('workspace.bankAccount.changeBankAccount')}
-                                icon={icons.Bank}
-                                onPress={handleChangeBankAccount}
-                                shouldShowRightIcon
-                                outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                disabled={!!pendingAction || !isEmptyObject(errors)}
+                        <View style={styles.mhn5}>
+                            {shouldShowChangeBankAccount && (
+                                <MenuItemNavigation
+                                    title={translate('workspace.bankAccount.changeBankAccount')}
+                                    icon={icons.Bank}
+                                    onPress={handleChangeBankAccount}
+                                    isDisabled={!!pendingAction || !isEmptyObject(errors)}
+                                />
+                            )}
+                            <MenuItemAction
+                                title={translate('workspace.bankAccount.disconnectBankAccount')}
+                                icon={icons.Close}
+                                onPress={requestResetBankAccount}
+                                isDisabled={!!pendingAction || !isEmptyObject(errors)}
                             />
-                        )}
-                        <MenuItem
-                            title={translate('workspace.bankAccount.disconnectBankAccount')}
-                            icon={icons.Close}
-                            onPress={requestResetBankAccount}
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                            disabled={!!pendingAction || !isEmptyObject(errors)}
-                        />
+                        </View>
                     </OfflineWithFeedback>
                 </Section>
             </ScrollView>
