@@ -116,24 +116,25 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
-    const participants = getMoneyRequestParticipantOptions(
-        currentUserPersonalDetails.accountID,
+    const participants = getMoneyRequestParticipantOptions({
+        currentUserAccountID: currentUserPersonalDetails.accountID,
         report,
         policy,
         personalDetails,
         conciergeReportID,
-        isArchived,
+        privateIsArchived: isArchived,
         reportAttributesDerived,
         reportDraft,
         translate,
+        convertToDisplayString,
         dateFnsLocale,
-    );
+    });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     // Whether this expense's sole destination is the current user's self-DM. Forwarded to the cleanup helpers so the
