@@ -17,7 +17,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isMobileSafari} from '@libs/Browser';
+import {isIPadInDesktopMode, isMobile, isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
@@ -205,6 +205,8 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
+const isMobileBrowser = isMobile() || isIPadInDesktopMode();
 
 /**
  * This component holds the value and selection state.
@@ -396,7 +398,7 @@ function ComposerWithSuggestions({
     }, [text]);
 
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!text) && areAllModalsHidden() && isFocused;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || (!!text && !isMobileBrowser)) && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
     const valueRef = useRef(initialText);
