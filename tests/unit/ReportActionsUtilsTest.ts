@@ -420,6 +420,40 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.getSortedReportActions(input, true);
             expect(result).toStrictEqual(expectedOutput.reverse());
         });
+
+        it('sorts the synthetic DEW routed action directly after its parent action despite the identical created time', () => {
+            const submittedAction = {
+                created: '2026-08-18 10:17:00.000',
+                reportActionID: '2962390724708756',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                originalMessage: {
+                    amount: 3381,
+                    currency: 'USD',
+                    workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                    to: 'approver@expensify.com',
+                    message: 'report routed',
+                },
+            };
+            const laterComment = {
+                created: '2026-08-18 14:07:41.000',
+                reportActionID: '1609646094152486',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            };
+
+            const withRoutedAction = ReportActionsUtils.withDEWRoutedActionsArray([laterComment, submittedAction]);
+            const routedAction = withRoutedAction.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
+            expect(routedAction?.created).toBe(submittedAction.created);
+
+            const ascending = ReportActionsUtils.getSortedReportActions(withRoutedAction).map((action) => action.reportActionID);
+            expect(ascending).toStrictEqual([submittedAction.reportActionID, `${submittedAction.reportActionID}DEW`, laterComment.reportActionID]);
+
+            const descending = ReportActionsUtils.getSortedReportActions(withRoutedAction, true).map((action) => action.reportActionID);
+            expect(descending).toStrictEqual([laterComment.reportActionID, `${submittedAction.reportActionID}DEW`, submittedAction.reportActionID]);
+        });
     });
 
     describe('isIOUActionMatchingTransactionList', () => {

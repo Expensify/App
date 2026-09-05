@@ -1364,6 +1364,7 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>, isOffline: b
     if (!reportAction) {
         return true;
     }
+
     return !isOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -1621,7 +1622,11 @@ function getDynamicExternalWorkflowRoutedAction(
     const originalMessage = getOriginalMessage(reportAction);
     return {
         reportActionID: `${reportAction.reportActionID}DEW`,
-        created: DateUtils.addMillisecondsFromDateTime(reportAction.created, 1),
+        // Reuse the parent action's created so this synthetic action never counts as newer than the
+        // read watermark stamped at the parent action's timestamp. getSortedReportActions breaks the
+        // created tie by reportActionID, and `${id}DEW` sorts right after `${id}`, so the routed
+        // message still renders directly below its parent action.
+        created: reportAction.created,
         actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
         message: [{html: 'DYNAMIC_EXTERNAL_WORKFLOW', type: 'COMMENT', text: ''}],
