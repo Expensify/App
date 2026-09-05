@@ -911,6 +911,7 @@ function duplicateExpenseTransaction({
             },
             report: undefined,
             isDraftPolicy: false,
+            isDraftChatReport: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
             conciergeChat,

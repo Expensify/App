@@ -228,6 +228,7 @@ describe('actions/Transaction', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                isDraftChatReport: false,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,

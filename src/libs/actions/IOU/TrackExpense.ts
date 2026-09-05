@@ -52,7 +52,6 @@ import {
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
     getReportTransactions,
-    isDraftReport,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -206,8 +205,7 @@ type GetTrackExpenseInformationParams = {
     delegateAccountID: number | undefined;
     /** Policy type for the workspace created from a draft report (e.g. submit2026 for the "Submit to my employer" flow). Defaults to a team workspace. */
     policyType?: CreatableWorkspaceType;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
-    isDraftChatReport?: boolean;
+    isDraftChatReport: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -1018,12 +1016,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         );
     }
 
-    // Check if the report is a draft
-    const isDraftReportLocal = isDraftChatReport ?? isDraftReport(chatReport?.reportID);
-
     let createdWorkspaceParams: CreateWorkspaceParams | undefined;
 
-    if (isDraftReportLocal) {
+    if (isDraftChatReport) {
         const workspaceData = buildPolicyData({
             policyOwnerEmail: undefined,
             makeMeAdmin: policy?.makeMeAdmin,
