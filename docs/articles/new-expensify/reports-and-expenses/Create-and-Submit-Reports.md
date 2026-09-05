@@ -1,7 +1,7 @@
 ---
 title: Create-and-Submit-Reports.md
 description: Learn how to use New Expensify’s report-first flow to create, edit, submit, and retract expense reports.
-keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report]
+keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report, rejected report, this report was rejected, resubmit rejected report]
 internalScope: Audience is members and Workspace Admins. Covers creating, submitting, editing, and retracting expense reports, including admin-created reports. Does not cover approvals, reimbursements, or exports.
 ---
 
@@ -192,6 +192,10 @@ When you submit a report that has a mix of held and unheld expenses, the held ex
 ## Why can’t I submit a report when all expenses are on hold?
 
 If every expense on the report is on hold, you’ll see the message **Unable to submit report**. Take at least one expense off hold, then submit the report again.
+
+## How do I know if my report was rejected?
+
+If an approver rejects your report back to you, the report moves to Draft and the message **This report was rejected.** appears on the report preview in your workspace chat and on the report row under **Spend > Reports**. The approver's reason is posted as a comment on the report. Fix the issues, then submit the report again — the message clears once you resubmit. Rejected reports are never resubmitted automatically, even when Submissions is enabled. [Learn more about how approvers reject reports](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
 
 ## Can I remove an expense after submitting?
 
