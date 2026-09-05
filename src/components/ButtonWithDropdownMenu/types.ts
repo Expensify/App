@@ -1,4 +1,5 @@
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {SwitchProps} from '@components/Switch';
 
 import type {ButtonVariant} from '@styles/utils/types';
 
@@ -56,6 +57,15 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     shouldShowLoadingSpinnerIcon?: boolean;
     /** Whether to render a divider before this option */
     addSeparatorBefore?: boolean;
+
+    /** When set, renders a Switch on the right of the option as an inline toggle row. The menu builds the Switch from this data so no JSX is threaded through the option config. */
+    switchProps?: SwitchProps;
+
+    /** Whether to show the default right chevron icon (e.g. for a row that opens another page) */
+    shouldShowRightIcon?: boolean;
+
+    /** Style for the row that holds the title and the Switch (e.g. to vertically center a toggle against wrapped text) */
+    innerContainerStyle?: StyleProp<ViewStyle>;
     /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     /** Whether selecting this option should bypass the delete confirmation modal */

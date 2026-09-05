@@ -2,6 +2,7 @@ import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import InlineIcon from '@components/Icon/InlineIcon';
 import PopoverMenu from '@components/PopoverMenu';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -348,6 +349,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     containerStyles={containerStyles}
                     menuItems={options.map((item, index) => ({
                         ...item,
+                        // Build the Switch here from typed data so callers pass `switchProps` instead of threading JSX through the option config.
+                        ...(item.switchProps ? {shouldShowRightComponent: true, rightComponent: <Switch {...item.switchProps} />} : {}),
                         onSelected: item.onSelected
                             ? () => {
                                   item.onSelected?.();

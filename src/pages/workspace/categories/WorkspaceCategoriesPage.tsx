@@ -47,7 +47,14 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import {close} from '@userActions/Modal';
-import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+import {
+    clearCategoryErrors,
+    deleteWorkspaceCategories,
+    downloadCategoriesCSV,
+    openPolicyCategoriesPage,
+    setPolicyShowCategoryGLCodes,
+    setWorkspaceCategoryEnabled,
+} from '@userActions/Policy/Category';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -365,8 +372,29 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        // Under the revamp the other settings moved to Rules, so this is only worth showing for the GL codes toggle.
-        if (canWriteCategories && (!isRulesRevampEnabled || !!policy?.glCodes)) {
+        // Under the revamp the Settings page is gone, so its remaining GL codes toggle is surfaced directly in this
+        // menu instead of behind a dedicated Settings page.
+        if (isRulesRevampEnabled) {
+            if (canWriteCategories && !!policy?.glCodes) {
+                menuItems.push({
+                    text: translate('workspace.categories.showCategoryGLCodes'),
+                    value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+                    // The row itself is inert. Only the Switch handles the toggle so the menu stays open.
+                    interactive: false,
+                    shouldCloseModalOnSelect: false,
+                    numberOfLinesTitle: 0,
+                    innerContainerStyle: styles.alignItemsStart,
+                    titleStyle: [styles.textLabel, styles.fontWeightNormal],
+                    pendingAction: policy?.pendingFields?.showCategoryGLCodes,
+                    switchProps: {
+                        isOn: policy?.showCategoryGLCodes ?? false,
+                        accessibilityLabel: translate('workspace.categories.showCategoryGLCodes'),
+                        onToggle: (value: boolean) => setPolicyShowCategoryGLCodes(policyId, value),
+                        disabled: !policy?.areCategoriesEnabled,
+                    },
+                });
+            }
+        } else if (canWriteCategories) {
             menuItems.push({
                 icon: icons.Gear,
                 text: translate('common.settings'),
@@ -380,6 +408,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: navigateToImportSpreadsheet,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+                // Group the GL codes toggle apart from the spreadsheet actions under the revamp.
+                addSeparatorBefore: isRulesRevampEnabled,
             });
         }
         if (hasVisibleCategories) {
@@ -416,11 +446,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         canWriteCategories,
         isRulesRevampEnabled,
         policy?.glCodes,
+        policy?.showCategoryGLCodes,
+        policy?.areCategoriesEnabled,
+        policy?.pendingFields?.showCategoryGLCodes,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,
         isOffline,
         policyId,
+        styles.alignItemsStart,
+        styles.textLabel,
+        styles.fontWeightNormal,
     ]);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();

@@ -525,7 +525,9 @@ function BasePopoverMenu({
                         shouldShowRightIcon={!!item.rightIcon}
                         brickRoadIndicator={item.brickRoadIndicator}
                         onFocus={() => {
-                            if (!shouldUpdateFocusedIndex) {
+                            // Inert rows (e.g. an inline toggle row whose only control is a Switch) shouldn't become the
+                            // focused/highlighted item. Otherwise focus bubbling from the inner control leaves the row highlighted.
+                            if (!shouldUpdateFocusedIndex || item.interactive === false) {
                                 return;
                             }
                             setFocusedIndex(menuIndex);
