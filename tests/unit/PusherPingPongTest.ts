@@ -8,6 +8,7 @@ import Pusher from '@libs/Pusher';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
+import {formatPhoneNumber} from 'tests/utils/TestHelper';
 
 jest.mock('@libs/API');
 const mockAPI = jest.mocked(API);
@@ -41,7 +42,7 @@ describe('Pusher PINGPONG', () => {
         // The automock returns undefined, and pingPusher chains a .catch on the returned promise
         mockAPI.makeRequestWithSideEffects.mockResolvedValue(undefined);
 
-        subscribeToUserEvents(123, 'test@example.com', () => undefined);
+        subscribeToUserEvents(123, 'test@example.com', () => undefined, formatPhoneNumber);
     });
 
     afterAll(() => {

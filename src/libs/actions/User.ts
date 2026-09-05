@@ -688,6 +688,7 @@ function triggerNotifications<TKey extends OnyxKey>(
     currentUserAccountID: number,
     currentUserEmail: string,
     topmostOneTransactionThreadReportID: string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     for (const update of onyxUpdates) {
@@ -701,7 +702,7 @@ function triggerNotifications<TKey extends OnyxKey>(
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentUserEmail
-                showReportActionNotification(reportID, action, topmostOneTransactionThreadReportID, currentUserAccountID, currentUserEmail, reportAttributes);
+                showReportActionNotification(reportID, action, topmostOneTransactionThreadReportID, currentUserAccountID, currentUserEmail, formatPhoneNumber, reportAttributes);
             }
         }
     }
@@ -891,6 +892,7 @@ function subscribeToUserEvents(
     currentUserAccountID: number,
     currentUserEmail: string,
     getTopmostOneTransactionThreadReportID: () => string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
@@ -949,7 +951,7 @@ function subscribeToUserEvents(
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), getReportAttributes?.());
+                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getTopmostOneTransactionThreadReportID(), formatPhoneNumber, getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all

@@ -617,6 +617,7 @@ function getLastMessageTextForReport({
             movedToReport,
             policyTags,
             currentUserLogin: currentUserLogin ?? '',
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
         // Strip HTML tags for plain text display in options list
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);

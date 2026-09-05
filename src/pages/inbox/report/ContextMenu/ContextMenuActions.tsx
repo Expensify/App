@@ -1056,6 +1056,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         movedToReport,
                         policyTags,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                        formatPhoneNumber,
                     });
                     // Convert HTML to markdown for clipboard copy to preserve links and formatting
                     const modifyExpenseMessage = Parser.htmlToMarkdown(modifyExpenseMessageWithHTML);
