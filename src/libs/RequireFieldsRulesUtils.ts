@@ -661,7 +661,7 @@ function createRequireFieldsTableItem({
     const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const decodedCategoryName = getDecodedCategoryName(categoryName);
     const conditionText = translate('workspace.rules.requireFieldsTable.conditionCategoryIs', decodedCategoryName);
-    const typeLabel = translate('workspace.rules.requireFieldsRule.title');
+    const typeLabel = translate('workspace.rules.requireFieldsTable.typeLabel');
     const ruleDescriptions = getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency, isPendingDelete);
     const ruleDescription = formatRequireFieldsRuleDescriptions(ruleDescriptions);
 
@@ -672,7 +672,9 @@ function createRequireFieldsTableItem({
         typeLabel,
         conditionText,
         ruleDescription,
-        searchTokens: [decodedCategoryName, ruleDescription, typeLabel, ...ruleDescriptions],
+        // The Type column reads "Require" now, but the rules are still called field requirements everywhere else, so
+        // the old name stays searchable rather than making admins learn the column's shorthand to find a row.
+        searchTokens: [decodedCategoryName, ruleDescription, typeLabel, translate('workspace.rules.requireFieldsRule.title'), ...ruleDescriptions],
         pendingAction,
         disabled: isPendingDelete,
         action: () => {
