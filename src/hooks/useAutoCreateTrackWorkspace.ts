@@ -18,6 +18,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {useCallback, useMemo} from 'react';
 
+import useDelegateAccountID from './useDelegateAccountID';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -62,6 +63,7 @@ function useAutoCreateTrackWorkspace() {
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const {isBetaEnabled} = usePermissions();
+    const delegateAccountID = useDelegateAccountID();
 
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
 
@@ -96,6 +98,7 @@ function useAutoCreateTrackWorkspace() {
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
                       personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
+                      delegateAccountID,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -116,6 +119,7 @@ function useAutoCreateTrackWorkspace() {
                     isSelfTourViewed,
                     conciergeChat,
                     selfDMReport,
+                    delegateAccountID,
                 });
 
                 if (isSidePanelReportSupported) {
@@ -170,6 +174,7 @@ function useAutoCreateTrackWorkspace() {
             mergedAccountConciergeReportID,
             conciergeChat,
             selfDMReport,
+            delegateAccountID,
         ],
     );
 

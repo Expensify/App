@@ -1634,6 +1634,9 @@ function getGuidedSetupDataForOpenReport(
         isSelfTourViewed,
         wasInvited: isPendingInviteOnboarding && isOnboardingCompleted,
         currentUserAccountID,
+        // delegateAccountID will be threaded in PR 16 together with the other openReport params.
+        // buildOptimisticAddCommentReportAction falls back to the module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        delegateAccountID: undefined,
     });
 
     if (!onboardingData) {
@@ -5918,6 +5921,8 @@ type CompleteOnboardingProps = {
     selfDMReport?: OnyxEntry<Report>;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
     shouldSkipConciergeOnboarding?: boolean;
+    /** AccountID of the delegate acting on behalf of the current user */
+    delegateAccountID: number | undefined;
 };
 
 async function completeOnboarding({
@@ -5943,6 +5948,7 @@ async function completeOnboarding({
     adminsChatReport,
     selfDMReport,
     shouldSkipConciergeOnboarding,
+    delegateAccountID,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -5960,6 +5966,7 @@ async function completeOnboarding({
         adminsChatReport,
         selfDMReport,
         shouldSkipConciergeOnboarding,
+        delegateAccountID,
     });
     if (!onboardingData) {
         return;

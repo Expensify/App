@@ -2,6 +2,7 @@ import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -91,6 +92,7 @@ function KYCWall({
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
     const localCurrency = currentUserDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -226,7 +228,17 @@ function KYCWall({
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
-                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat, adminsChatReportID, policyID);
+                    completePaymentOnboarding(
+                        CONST.PAYMENT_SELECTED.BBA,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        currentUserAccountID,
+                        conciergeChat,
+                        delegateAccountID,
+                        adminsChatReportID,
+                        policyID,
+                    );
                     const workspaceReportRoute = workspaceChatReportID ? ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID) : undefined;
 
                     setNavigationActionToMicrotaskQueue(() => {
@@ -290,6 +302,7 @@ function KYCWall({
             conciergeChat,
             localCurrency,
             getCurrencyDecimals,
+            delegateAccountID,
         ],
     );
 

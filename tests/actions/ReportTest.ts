@@ -3059,6 +3059,7 @@ describe('actions/Report', () => {
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3096,6 +3097,7 @@ describe('actions/Report', () => {
                 selectedInterestedFeatures,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3130,6 +3132,7 @@ describe('actions/Report', () => {
                 userReportedIntegrationName: 'Acme Books',
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3164,6 +3167,7 @@ describe('actions/Report', () => {
                 userReportedIntegration: 'other',
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3206,6 +3210,7 @@ describe('actions/Report', () => {
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
                 conciergeChat,
+                delegateAccountID: undefined,
             });
 
             // The onboarding optimistic data should target the existing Concierge chat
@@ -3253,6 +3258,7 @@ describe('actions/Report', () => {
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
                 conciergeChat,
+                delegateAccountID: undefined,
             });
 
             // The existing self-DM should be reused, so no new self-DM is created
@@ -3285,6 +3291,7 @@ describe('actions/Report', () => {
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
                 conciergeChat,
+                delegateAccountID: undefined,
             });
 
             // A new self-DM is created and added to the optimistic data

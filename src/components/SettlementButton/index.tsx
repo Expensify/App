@@ -404,6 +404,7 @@ function SettlementButton({
                     isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
                     policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                    delegateAccountID,
                 }).policyID;
             };
 

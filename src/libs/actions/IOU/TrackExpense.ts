@@ -1044,6 +1044,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             hasActiveAdminPolicies: undefined,
             betas,
             isSelfTourViewed,
+            delegateAccountID,
         });
         createdWorkspaceParams = workspaceData.params;
         onyxData.optimisticData?.push(...(workspaceData.optimisticData ?? []));
@@ -1903,6 +1904,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       companySize: undefined,
                       isSelfTourViewed,
                       conciergeChat,
+                      delegateAccountID,
                   })?.guidedSetupData
                 : undefined;
 

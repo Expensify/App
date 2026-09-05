@@ -18,6 +18,7 @@ import {useState} from 'react';
 
 import useActivePolicy from './useActivePolicy';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
@@ -39,6 +40,7 @@ function useCompleteOnboarding() {
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
@@ -98,6 +100,7 @@ function useCompleteOnboarding() {
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
                       conciergeChat,
+                      delegateAccountID,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -122,6 +125,7 @@ function useCompleteOnboarding() {
                 isSelfTourViewed,
                 conciergeChat,
                 adminsChatReport,
+                delegateAccountID,
             });
             const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
 

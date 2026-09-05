@@ -179,6 +179,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
@@ -192,6 +193,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: true,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
@@ -205,6 +207,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: true,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -228,6 +231,7 @@ describe('GoogleTagManagerTest', () => {
             hasActiveAdminPolicies: false,
             engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -251,6 +255,7 @@ describe('GoogleTagManagerTest', () => {
             hasActiveAdminPolicies: false,
             engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdatesWithAct();
 

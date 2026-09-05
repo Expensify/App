@@ -15,6 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {useCallback, useMemo} from 'react';
 
+import useDelegateAccountID from './useDelegateAccountID';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 
@@ -43,6 +44,7 @@ function useAutoCreateSubmitWorkspace() {
         lastWorkspaceNumber,
         shouldUseNarrowLayout,
     } = useOnboardingWorkspaceCreationState();
+    const delegateAccountID = useDelegateAccountID();
 
     const groupPolicySelector = useMemo(
         () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isGroupPolicy(policy) && canEditWorkspaceSettings(policy)),
@@ -86,6 +88,7 @@ function useAutoCreateSubmitWorkspace() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      delegateAccountID,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -105,6 +108,7 @@ function useAutoCreateSubmitWorkspace() {
                         // #admins room, so a Concierge DM checklist on top of that is a competing second onboarding
                         // experience. Without a new workspace there is no #admins welcome, so the checklist stays.
                         shouldSkipConciergeOnboarding: shouldCreateWorkspace,
+                        delegateAccountID,
                     });
                 } catch (error) {
                     // Swallow onboarding completion failures so a network error doesn't block workspace
@@ -148,6 +152,7 @@ function useAutoCreateSubmitWorkspace() {
             hasActiveAdminPolicies,
             shouldUseNarrowLayout,
             conciergeChat,
+            delegateAccountID,
         ],
     );
 
