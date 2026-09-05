@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
 description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination, start an action from Search, book travel]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation and action suggestions. Does not explain the detailed behavior of the Home tab sections, or how to complete each action Search can start.
 ---
 
 # Navigating New Expensify 
@@ -208,6 +208,20 @@ You can also use keyboard shortcuts on web to jump directly to specific items:
 
 ---
 
+## How to start an action using Search
+
+**Search** also suggests actions you can start, so you don’t have to open the **➕ Create** button first.
+
+1. Select **Search** (the magnifying glass icon).
+2. Type the name of the action, such as **create expense** or **book travel**. You can also type **go** or **go to** before the name.
+3. Select the action to start it.
+
+Actions that can appear include **Create expense**, **Create report**, **Track distance**, **Start chat**, **Send invoice**, **Book travel**, and **New workspace**.
+
+Which actions appear depends on your account and your active workspace. For example, **Book travel** appears only when Expensify Travel is enabled on your active workspace. [Learn how to enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
+
+---
+
 # FAQ
 
 ## Where are navigation tabs located in Expensify?
@@ -217,6 +231,14 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 ## Can I use Search to move between sections of Expensify?
 
 Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+
+## Can I start an action from Search instead of the Create button?
+
+Yes. Select **Search** (the magnifying glass icon) and type the name of the action, such as **create expense** or **book travel**, then select the result. The same actions are still available from the **➕ Create** button.
+
+## Why don’t I see Book travel in Search?
+
+**Book travel** appears only when Expensify Travel is enabled on your active workspace. Ask a Workspace Admin to enable it on that workspace, or switch your active workspace to one that already has Expensify Travel enabled.
 
 ## Where do I manage workspace settings?
 
