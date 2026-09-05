@@ -3402,6 +3402,7 @@ ${amount} για ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) => `Δεν ήταν δυνατή η προσθήκη του ${workEmail}. Δοκιμάστε ξανά αργότερα στις ρυθμίσεις ή συνομιλήστε με το Concierge για καθοδήγηση.`,
             workAccountClosedSubtitle:
                 'Ο επαγγελματικός λογαριασμός που σχετίζεται με αυτό το email είναι κλειστός. Παρακαλούμε επικοινωνήστε με τον διαχειριστή της εταιρείας σας για να τον επανενεργοποιήσει ή εγγραφείτε με διαφορετικό email.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} είναι ένα στοιχείο σύνδεσης ελεγχόμενο από τομέα για έναν υπάρχοντα λογαριασμό Expensify.`,
         },
         tasks: {
             testDriveAdminTask: {

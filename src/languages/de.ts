@@ -3348,6 +3348,7 @@ ${amount} für ${merchant} – ${date}`,
                 `Wir konnten ${workEmail} nicht hinzufügen. Bitte versuche es später in den Einstellungen erneut oder chatte mit Concierge, um Unterstützung zu erhalten.`,
             workAccountClosedSubtitle:
                 'Das Arbeitskonto, das mit dieser E-Mail-Adresse verknüpft ist, wurde geschlossen. Bitte wenden Sie sich an Ihre Unternehmensadministratorin bzw. Ihren Unternehmensadministrator, um es zu reaktivieren, oder registrieren Sie sich mit einer anderen E-Mail-Adresse.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} ist ein domänengesteuerter Login für ein bestehendes Expensify-Konto.`,
         },
         tasks: {
             testDriveAdminTask: {
