@@ -32,7 +32,7 @@ function getDynamicBasePathFromNavigationPath(path: string | undefined): Route {
         }
     }
 
-    return pathWithoutLeadingSlash;
+    return pathWithoutLeadingSlash as Route;
 }
 
 function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: Route): boolean {
