@@ -1920,7 +1920,7 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
 /**
  * Check if category is being analyzed (manual request creation or auto-categorization grace period)
  */
-function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
+function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): boolean {
     if (!transaction) {
         return false;
     }
@@ -1941,7 +1941,7 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
     }
 
     // Invoice expense is not auto-categorized
-    if (isInvoiceReport(transaction.reportID)) {
+    if (isInvoiceReport(report)) {
         return false;
     }
 
@@ -2255,7 +2255,7 @@ function shouldShowViolation(
         return isAttendeeTrackingEnabledForPolicy(policy);
     }
 
-    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
+    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction, iouReport)) {
         return false;
     }
 

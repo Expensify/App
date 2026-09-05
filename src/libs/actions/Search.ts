@@ -58,7 +58,6 @@ import {
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
-    isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
@@ -81,6 +80,7 @@ import type {
     IntroSelected,
     LastPaymentMethod,
     LastPaymentMethodType,
+    OnyxInputOrEntry,
     Policy,
     Report,
     ReportAction,
@@ -500,16 +500,16 @@ function getLastPolicyPaymentMethod(
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
 
-function getReportType(reportID?: string) {
-    if (isIOUReportUtil(reportID)) {
+function getReportType(report: OnyxInputOrEntry<Report> | SelectedReports) {
+    if (isIOUReportUtil(report?.reportID)) {
         return CONST.REPORT.TYPE.IOU;
     }
 
-    if (isInvoiceReport(reportID)) {
+    if (report?.type === CONST.REPORT.TYPE.INVOICE) {
         return CONST.REPORT.TYPE.INVOICE;
     }
 
-    if (isExpenseReport(reportID)) {
+    if (isExpenseReport(report?.reportID)) {
         return CONST.REPORT.TYPE.EXPENSE;
     }
 
@@ -624,12 +624,11 @@ function getPayActionCallback({
     conciergeChat,
     getCurrencyDecimals,
 }: GetPayActionCallbackParams) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
-
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
         return;
     }
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -2101,13 +2100,13 @@ function getPayOption(
             ? selectedReports.every(
                   (report) =>
                       report.canPay &&
-                      getReportType(report.reportID) === getReportType(firstReport?.reportID) &&
+                      getReportType(report) === getReportType(firstReport) &&
                       shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
                   (transactionIDKey) =>
                       selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                      getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID),
+                      getReportType(selectedTransactions[transactionIDKey].report) === getReportType(firstTransaction?.report),
               );
 
     return {

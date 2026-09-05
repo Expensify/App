@@ -2431,6 +2431,44 @@ describe('TransactionUtils', () => {
                 TransactionUtils.hasNoticeTypeViolation(transaction, visibleNoticeViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, processingReport, CURRENT_USER_EMAIL, policy, true),
             ).toBe(true);
         });
+
+        it('should not hide missing category violation for invoice report even when category is being analyzed', () => {
+            const invoiceReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            const policy: Policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: invoiceReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.shouldShowViolation(invoiceReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY, 'test@example.com', CURRENT_USER_ID, true, transaction)).toBe(true);
+        });
+
+        it('should hide missing category violation for expense report when category is being analyzed', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const policy: Policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: expenseReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.shouldShowViolation(expenseReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY, 'test@example.com', CURRENT_USER_ID, true, transaction)).toBe(false);
+        });
     });
 
     describe('getReportOwnerAsAttendee', () => {
@@ -2820,7 +2858,7 @@ describe('TransactionUtils', () => {
 
     describe('isCategoryBeingAnalyzed', () => {
         it('should return false for undefined transaction', () => {
-            expect(TransactionUtils.isCategoryBeingAnalyzed(undefined)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(undefined, undefined)).toBe(false);
         });
 
         it('should return false when category is not missing', () => {
@@ -2828,7 +2866,7 @@ describe('TransactionUtils', () => {
                 category: 'Food',
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false for partial transactions (empty merchant and zero amount)', () => {
@@ -2839,7 +2877,7 @@ describe('TransactionUtils', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return true when pendingAction is ADD and category is missing', () => {
@@ -2850,7 +2888,7 @@ describe('TransactionUtils', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
         });
 
         it('should return true when within auto-categorization grace period', () => {
@@ -2867,7 +2905,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
         });
 
         it('should return false when auto-categorization grace period has passed', () => {
@@ -2885,7 +2923,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false when pendingAutoCategorizationTime is invalid', () => {
@@ -2899,7 +2937,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false when category is Uncategorized but no pending action or auto-categorization', () => {
@@ -2910,7 +2948,7 @@ describe('TransactionUtils', () => {
                 pendingAction: undefined,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false for unreported expenses', () => {
@@ -2922,25 +2960,41 @@ describe('TransactionUtils', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
-        it('should return false for invoice expenses', async () => {
-            const invoiceReportID = 'invoice123';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
-                reportID: invoiceReportID,
-                type: CONST.REPORT.TYPE.INVOICE,
-            });
+        it('should return true for expense report with pendingAction ADD', () => {
+            const expenseReport = {
+                reportID: 'expense123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
 
             const transaction = generateTransaction({
                 category: '',
                 merchant: 'Some Merchant',
                 amount: 100,
-                reportID: invoiceReportID,
+                reportID: expenseReport.reportID,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, expenseReport)).toBe(true);
+        });
+
+        it('should return false for invoice expenses', () => {
+            const invoiceReport = {
+                reportID: 'invoice123',
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: invoiceReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, invoiceReport)).toBe(false);
         });
     });
 

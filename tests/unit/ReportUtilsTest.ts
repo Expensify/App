@@ -184,6 +184,7 @@ import {
     isDeprecatedGroupDM,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
+    isInvoiceReport,
     isJoinRequestInAdminRoom,
     isMoneyRequestReportEligibleForMerge,
     isOneOnOneChat,
@@ -24282,6 +24283,34 @@ describe('hasNonReimbursableTransactions', () => {
 
     it('returns false for an empty transaction list', () => {
         expect(hasNonReimbursableTransactions(undefined, [])).toBe(false);
+    });
+});
+
+describe('isInvoiceReport', () => {
+    it('returns true for invoice reports passed as object', () => {
+        const invoiceReport = {
+            ...LHNTestUtils.getFakeReport(),
+            type: CONST.REPORT.TYPE.INVOICE,
+        };
+        expect(isInvoiceReport(invoiceReport)).toBe(true);
+    });
+
+    it('returns false for non-invoice reports passed as object', () => {
+        const expenseReport = {
+            ...LHNTestUtils.getFakeReport(),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        expect(isInvoiceReport(expenseReport)).toBe(false);
+    });
+
+    it('returns false for null/undefined', () => {
+        expect(isInvoiceReport(null)).toBe(false);
+        expect(isInvoiceReport(undefined)).toBe(false);
+    });
+
+    it('returns false for a report with no type', () => {
+        const report = LHNTestUtils.getFakeReport();
+        expect(isInvoiceReport(report)).toBe(false);
     });
 });
 
