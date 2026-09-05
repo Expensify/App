@@ -3,7 +3,7 @@ import type {Beta, IntroSelected, PersonalDetailsList, Report, ReportAction, Tra
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from './actions/Report';
-import {getIOUActionForReportID} from './ReportActionsUtils';
+import {getIOUActionForReportID, isSentMoneyReportAction} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportOrDraftReport} from './ReportUtils';
 import {isExpenseUnreported} from './TransactionUtils';
 
@@ -55,6 +55,13 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         return expense.reportAction?.childReportID ?? getIOUActionForReportID(findSelfDMReportID(), transaction.transactionID)?.childReportID ?? reportID;
     }
 
+    // A sent-money (pay) action's childReportID is the "marked as paid" system message thread, not the expense.
+    // Opening the paid expense should land on its report, so send these to the parent report rather than the
+    // pay action's thread. Mirrors how the Search page navigates single-transaction reports to the report itself.
+    if (isSentMoneyReportAction(expense.reportAction)) {
+        return reportID;
+    }
+
     // Prefer the transaction thread resolved from the Search snapshot. The main reportActions_ collection
     // may be empty (e.g. right after clearing Onyx) so getIOUActionForReportID can fail and incorrectly
     // fall back to the whole parent expense report; the snapshot already carries the correct childReportID.
@@ -65,7 +72,9 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
     // Prefer the live action from the main collection (it may carry a newer childReportID), fall back to the
     // snapshot action carried on the descriptor so a snapshot-only expense can still resolve/create its thread.
     const iouAction = getIOUActionForReportID(reportID, transaction.transactionID) ?? expense.reportAction;
-    if (!iouAction) {
+    // The live action can be a sent-money (pay) action too. An optimistic or offline expense is absent from the
+    // snapshot, so expense.reportAction is undefined and the guard above never sees it. Re-apply it here.
+    if (!iouAction || isSentMoneyReportAction(iouAction)) {
         return reportID;
     }
     if (iouAction.childReportID) {
