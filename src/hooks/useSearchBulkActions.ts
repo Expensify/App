@@ -46,6 +46,7 @@ import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
@@ -90,6 +91,7 @@ import {
 } from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
+import StringUtils from '@libs/StringUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getDeleteConfirmationPrompt,
@@ -105,8 +107,6 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -2332,22 +2332,38 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               .map((id) => selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
                               .filter((t): t is NonNullable<typeof t> => !!t);
 
-                    if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
-                        showPendingCardTransactionsBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
-                        return;
+                    // hasOnlyPendingCardTransactions and hasOnlyHeldExpenses are per-report predicates, so
+                    // evaluate them per selected report.
+                    const transactionsByReportID = new Map<string, Transaction[]>();
+                    for (const transaction of allSelectedTransactionsList) {
+                        if (!transaction.reportID) {
+                            continue;
+                        }
+                        const reportTransactions = transactionsByReportID.get(transaction.reportID);
+                        if (reportTransactions) {
+                            reportTransactions.push(transaction);
+                        } else {
+                            transactionsByReportID.set(transaction.reportID, [transaction]);
+                        }
                     }
 
-                    if (hasOnlyHeldExpenses(allSelectedTransactionsList)) {
-                        showHeldExpensesBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
-                        return;
+                    const blockedReportIDs = new Set<string>();
+                    for (const [reportID, reportTransactions] of transactionsByReportID) {
+                        if (hasOnlyPendingCardTransactions(reportTransactions) || hasOnlyHeldExpenses(reportTransactions)) {
+                            blockedReportIDs.add(reportID);
+                        }
                     }
+                    const areAllSelectedReportsBlocked = blockedReportIDs.size > 0 && blockedReportIDs.size === transactionsByReportID.size;
 
                     const selectedReportForSubmit = selectedReports.at(0);
                     const reportIDForSubmit = selectedReportForSubmit?.reportID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).find((id): id is string => !!id);
                     const policyIDForSubmit = selectedReportForSubmit?.policyID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.policyID).find((id): id is string => !!id);
                     const policyForSubmit = policyIDForSubmit ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForSubmit}`] : undefined;
 
-                    if (policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
+                    // The Submit option only appears for a submit-type workspace when exactly one report is selected, and that
+                    // report picks its manager in a popover. Skip the popover when the report is blocked so it falls through to
+                    // the modal below showing that the report could not be submitted.
+                    if (!areAllSelectedReportsBlocked && policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
                         const snapshotReport = getReportOrDraftReport(
                             reportIDForSubmit,
                             undefined,
@@ -2382,6 +2398,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     for (const item of itemList) {
+                        if (item.reportID && blockedReportIDs.has(item.reportID)) {
+                            continue;
+                        }
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
                             submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals);
@@ -2389,6 +2408,33 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
                         }
                     }
+
+                    // Blocked reports are skipped rather than aborting the whole action, so list the ones that could not
+                    // be submitted. Take the name from the Search snapshot and normalize it the same way the rows do,
+                    // so the modal shows exactly what the user sees in the list.
+                    if (blockedReportIDs.size > 0) {
+                        const blockedReportNames: string[] = [];
+                        for (const reportID of blockedReportIDs) {
+                            const reportName = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+                            if (reportName) {
+                                blockedReportNames.push(StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportName)));
+                            }
+                        }
+                        showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
+                            title: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneTitle' : 'iou.error.reportsNotSubmittedTitle'),
+                            subtitle: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneDescription' : 'iou.error.reportsNotSubmittedDescription'),
+                            prompt: blockedReportNames.join('\n'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                            shouldEnablePromptScroll: true,
+                        });
+
+                        // Nothing was submitted, so there is no report change for the search to pick up.
+                        if (areAllSelectedReportsBlocked) {
+                            return;
+                        }
+                    }
+
                     // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
                     // context (which still offers Submit) until the snapshot is refetched, the same way approving and
                     // paying from Search already do.

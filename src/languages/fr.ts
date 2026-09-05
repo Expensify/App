@@ -1622,6 +1622,10 @@ const translations: TranslationDeepObject<typeof en> = {
             allExpensesOnHoldDescription: 'Vous ne pouvez pas soumettre cette note de frais, car toutes les dépenses sont en attente. Supprimez le blocage pour soumettre.',
             allExpensesOnHoldMarkAsDoneDescription:
                 'Vous ne pouvez pas marquer cette note de frais comme terminée, car toutes les dépenses sont en attente. Supprimez le blocage pour continuer.',
+            reportsNotSubmittedTitle: 'Soumettre les notes de frais',
+            reportsNotMarkedAsDoneTitle: 'Marquer les notes de frais comme terminées',
+            reportsNotSubmittedDescription: 'Ces notes de frais n’ont pas pu être soumises. Vérifiez qu’aucune dépense n’est bloquée ou en attente, puis réessayez.',
+            reportsNotMarkedAsDoneDescription: 'Ces notes de frais n’ont pas pu être marquées comme terminées. Vérifiez qu’aucune dépense n’est bloquée ou en attente, puis réessayez.',
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
             failedToSaveOdometerDraft: 'Impossible d’enregistrer votre brouillon de compteur kilométrique. Veuillez réessayer.',
         },
