@@ -371,7 +371,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             backHistory(() => {
                 onRouterClose();
                 setSearchContext(true);
-                const updatedQueryJSON = buildSearchQueryJSON(queryString);
+                const updatedQueryJSON = buildSearchQueryJSON(updatedQuery);
                 if (currentSearchHash !== updatedQueryJSON?.hash) {
                     resetSearchKey(true, updatedQueryJSON);
                 }
