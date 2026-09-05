@@ -1195,6 +1195,8 @@ const translations = {
             setupRules: 'Set up spend rules',
             customizeSpendCategories: 'Customize spend categories',
             customizeSpendCategoriesSubText: 'Organize and classify expenses',
+            customizeExpenseCategories: 'Customize your expense categories',
+            customizeExpenseCategoriesSubText: 'Add your company’s categories to code your expenses',
             createExpense: 'Create an expense',
             createExpenseSubText: 'Scan, drag and drop, or manually enter an expense using the + button',
             linkPersonalCard: 'Link personal card',
@@ -1356,6 +1358,7 @@ const translations = {
         addAdditionalReceipt: 'Add additional receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
+        pageCount: ({pageCount}: {pageCount: number}) => `Page 1 of ${pageCount}`,
         addAReceipt: {
             phrase1: 'Add a receipt',
             phrase2: 'or drag and drop one here',
@@ -5111,7 +5114,6 @@ const translations = {
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Use this account when exporting invoices to ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Set how company card purchases export to ${integrationName}.`,
             vendor: 'Vendor',
-            defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Set how out-of-pocket expenses export to ${integrationName}.`,
             exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
@@ -5273,8 +5275,6 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
-            defaultSupplier: 'Default supplier',
-            defaultSupplierDescription: 'Set a default supplier that will apply to all credit card transactions upon export.',
             noSuppliersFound: 'No suppliers found',
             noSuppliersFoundDescription: 'Please add the supplier in Xero and sync the connection again.',
             accountingMethods: {
@@ -6704,6 +6704,7 @@ const translations = {
             subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information.",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
+            cannotDisableImportedReportFields: 'Report fields imported from your accounting connection cannot be disabled.',
             importedFromAccountingSoftware: 'The report fields below are imported from your',
             textType: 'Text',
             dateType: 'Date',
@@ -7380,11 +7381,14 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
+            // fallbackVendorName is the vendor the integration auto-creates when nothing matches. Only integrations
+            // that actually create one pass it. The rest get the first sentence alone, because telling a Xero admin
+            // their expenses will export as "Credit Card Misc." describes a fallback Xero doesn't have.
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `Expenses that don't auto-match will default to this vendor.`
-                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Choose a default vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',
@@ -7558,12 +7562,12 @@ const translations = {
                 summaryDisabled: 'No commute exclusion',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
                 summaryHomeAndOffice: 'Use home and office locations',
-                optionDisabledTitle: 'Do not exclude commutes',
+                optionDisabledTitle: 'Do not exclude commute',
                 optionDisabledHelp: 'No commute is removed from claims.',
-                optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
-                optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
-                optionHomeAndOfficeTitle: 'Calculate by home and office',
-                optionHomeAndOfficeHelp: 'Use member’s home address, work arrangement, and office assignment to calculate commute exclusions.',
+                optionFixedDistanceTitle: 'Remove fixed distance',
+                optionFixedDistanceHelp: 'Subtracts the same distance from every claim.',
+                optionHomeAndOfficeTitle: 'Exclude usual commute',
+                optionHomeAndOfficeHelp: "Subtracts each member's regular commute based on their home, work arrangement, and office.",
                 distanceLabel: 'Distance',
                 workspaceAddressRequired: {
                     title: 'Not so fast...',
@@ -8251,6 +8255,22 @@ const translations = {
                 expenseDefaultsSubtitle: 'Update fields without submitter doing anything',
                 ifAnyExpenseMatches: 'If any expense matches:',
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
+                confirmErrorCategory: 'Please select a category',
+                confirmErrorCategoryTax: 'Please select a tax rate',
+                confirmErrorCondition: 'Please enter a merchant',
+                confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
+                turnOnTaxesFirstTitle: 'Turn on taxes first',
+                turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
+                categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
+                categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
+            },
+            expenseDefaultType: {
+                title: 'Apply expense defaults',
+                subtitle: 'What should this rule match on?',
+                merchant: 'Merchant',
+                merchantDescription: 'Update fields on expenses from a specific merchant',
+                category: 'Category',
+                categoryDescription: 'Set a default tax rate for a specific category',
             },
             newRule: {
                 title: 'New rule',
@@ -8259,12 +8279,12 @@ const translations = {
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
                 flagForReviewDescription: 'Notify approvers when expenses exceed category limits',
-                requireFields: 'Field requirements',
+                requireFields: 'Set field requirements',
                 requireFieldsDescription: 'Require specific expense fields or waive requiring them.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
-                createAgentRule: 'Agent rule',
-                createAgentRuleDescription: 'Describe flexible rules that run when you need.',
+                createAgentRule: 'Describe agent rule',
+                createAgentRuleDescription: 'Create flexible rules that run when you need.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -8273,6 +8293,7 @@ const translations = {
                 findRule: 'Find rule',
                 rename: 'Rename',
                 update: 'Update',
+                categoryIs: (category: string) => `Category is "${category}"`,
                 merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
             },
@@ -8283,6 +8304,7 @@ const translations = {
             },
             requireFieldsTable: {
                 tableColumnType: 'Type',
+                typeLabel: 'Require',
                 tableColumnCondition: 'Condition',
                 tableColumnRule: 'Rule',
                 findRule: 'Find rule',
@@ -8304,6 +8326,11 @@ const translations = {
             categoriesDisabledEmptyState: {
                 title: 'Categories are not enabled',
                 subtitle: 'Enable categories to gain more control of your spend.',
+            },
+            taxesDisabledEmptyState: {
+                title: 'Taxes are not enabled',
+                subtitle: 'Enable taxes to document and reclaim eligible taxes.',
+                cta: 'Enable taxes',
             },
             requireFieldsRule: {
                 title: 'Field requirements',
@@ -9640,6 +9667,10 @@ const translations = {
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
+        },
+        mergeReports: {
+            title: 'Merge reports',
+            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
         },
     },
     genericErrorPage: {

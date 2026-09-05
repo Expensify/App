@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 
 type NavigationSuggestionSourceItem = SearchQueryItem & {
     matchTerms?: string[];
+    sortText?: string;
 };
 
 const MAX_NAVIGATION_SUGGESTIONS = 8;
@@ -59,6 +60,11 @@ function sortNavigationSuggestionItems<T extends NavigationSuggestionSourceItem>
             return textComparison;
         }
 
+        const sortTextComparison = localeCompare(toMatchKey(firstItem.sortText), toMatchKey(secondItem.sortText));
+        if (sortTextComparison !== 0) {
+            return sortTextComparison;
+        }
+
         return localeCompare(firstItem.keyForList ?? '', secondItem.keyForList ?? '');
     });
 }
@@ -85,7 +91,7 @@ function buildNavigationSuggestions(query: string, sources: NavigationSuggestion
                 isNavigationIntentOnly ||
                 (shouldMatchExactDestination ? matchesNavigationQueryExactly(matchQuery, ...(item.matchTerms ?? [])) : matchesNavigationQuery(matchQuery, ...(item.matchTerms ?? []))),
         )
-        .map(({matchTerms, ...item}) => ({
+        .map(({matchTerms, sortText, ...item}) => ({
             ...item,
             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
         }))
