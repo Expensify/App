@@ -194,4 +194,44 @@ describe('processPickedAssetsSequentially', () => {
         expect(result).toHaveLength(1);
         expect(showGeneralAlert).not.toHaveBeenCalled();
     });
+    it('derives fileName from the uri and defaults type when the picker omits them', async () => {
+        const result = await processPickedAssetsSequentially([{uri: 'file:///scan.pdf'}], showGeneralAlert, translate);
+
+        expect(result?.at(0)?.fileName).toBe('scan.pdf');
+        expect(result?.at(0)?.type).toBe('image/jpeg');
+    });
+
+    it('releases the rendered image and skips the asset when saving fails', async () => {
+        mockSaveAsync.mockRejectedValue(new Error('encode failed'));
+
+        const result = await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+
+        expect(result).toBeUndefined();
+        expect(mockImageRelease).toHaveBeenCalledTimes(1);
+        expect(mockRelease).toHaveBeenCalledTimes(1);
+        expect(showGeneralAlert).toHaveBeenCalledWith('attachmentPicker.errorWhileConvertingHeic');
+    });
+
+    it('returns the successful assets and still alerts when some fail', async () => {
+        mockRenderAsync
+            .mockResolvedValueOnce({
+                saveAsync: () => mockSaveAsync() as unknown,
+                release: () => {
+                    mockImageRelease();
+                },
+            })
+            .mockRejectedValueOnce(new Error('decode failed'))
+            .mockResolvedValueOnce({
+                saveAsync: () => mockSaveAsync() as unknown,
+                release: () => {
+                    mockImageRelease();
+                },
+            });
+
+        const result = await processPickedAssetsSequentially(buildHeicAssets(3), showGeneralAlert, translate);
+
+        expect(result).toHaveLength(2);
+        expect(showGeneralAlert).toHaveBeenCalledTimes(1);
+        expect(showGeneralAlert).toHaveBeenCalledWith('attachmentPicker.errorWhileConvertingHeic');
+    });
 });
