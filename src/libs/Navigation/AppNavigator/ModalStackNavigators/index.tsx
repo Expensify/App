@@ -77,6 +77,15 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: {
         animationTypeForReplace: 'push',
     },
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
+        animationTypeForReplace: 'push',
+    },
     [SCREENS.SEARCH.DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
         animation: Animations.NONE,
     },
@@ -461,6 +470,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsAgreementsPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsSignPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsAgreementsPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsSignPage').default,
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ShareBankAccount/ShareBankAccount').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVPage').default,

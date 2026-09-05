@@ -213,11 +213,30 @@ type SettingsNavigatorParamList = {
         bankAccountID: string;
         subPage: string;
         action?: 'edit';
+        bankCountry?: string;
+        bankCurrency?: string;
     };
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: {
         bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
     };
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
+        bankAccountID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: {
+        bankAccountID: string;
+        subPage: string;
+        action?: 'edit';
+        bankCountry?: string;
+        bankCurrency?: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: {
+        bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
         bankAccountID: string;
     };
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
