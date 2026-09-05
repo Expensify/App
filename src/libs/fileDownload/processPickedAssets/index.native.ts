@@ -42,6 +42,11 @@ function releaseQuietly(releasable: {release: () => void}) {
  *
  * The native context and the rendered bitmap are released as soon as they are no longer needed rather
  * than waiting for the garbage collector, which has no visibility into the native memory they retain.
+ *
+ * This repeats the manipulate/render/save sequence from `heicConverter` rather than calling it, because
+ * that helper decides what to convert from the `.heic`/`.heif` extension. react-native-image-picker
+ * relabels the extension without transcoding, so this path has to detect HEIC from the file signature
+ * instead and cannot go through `convertHeicImage`.
  */
 async function convertHeicToJpeg(uri: string): Promise<Asset | undefined> {
     const imageManipulatorContext = ImageManipulator.manipulate(uri);
