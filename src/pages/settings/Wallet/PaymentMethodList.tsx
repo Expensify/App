@@ -317,7 +317,7 @@ function PaymentMethodList({
                 }
 
                 const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
-                // The grace period only stops us from prompting the user (the RBR and the time-sensitive task); the status
+                // The grace period only stops us from prompting the user (the RBR and the time-sensitive task). The status
                 // itself stays truthful, so a long-broken card still reads as Inactive with a message it can be fixed from.
                 const isCardBroken = isCardConnectionBroken(card);
                 const isCardInactiveState = isCardInactive(card);
