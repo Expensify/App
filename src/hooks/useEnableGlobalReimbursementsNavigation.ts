@@ -1,14 +1,13 @@
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
-import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isDynamicRouteScreen from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteScreen';
+import {getDynamicBasePathFromNavigationPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import type {State} from '@libs/Navigation/types';
 
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
@@ -19,28 +18,9 @@ type EnableGlobalReimbursementsRouteParams = {
     bankCurrency?: string;
 };
 
-const ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS: DynamicRouteSuffix[] = [
-    DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path,
-    DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.path,
-    DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.path,
-];
-
-function getDynamicBasePathFromNavigationPath(path: string | undefined): Route {
-    if (!path) {
-        return ROUTES.HOME;
-    }
-
-    const pathWithoutLeadingSlash = path.replaceAll(/^\/+/g, '');
-    for (const pattern of ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS) {
-        const match = findAllMatchingDynamicSuffixes(pathWithoutLeadingSlash).find((suffixMatch) => suffixMatch.pattern === pattern);
-        if (match) {
-            return getPathWithoutDynamicSuffix(match.pathUsedForMatching, match.actualSuffix, match.pattern);
-        }
-    }
-
-    return pathWithoutLeadingSlash as Route;
-}
-
+/**
+ * Builds Enable Global Reimbursements routes for the wallet settings flow or as dynamic suffixes on search and report screens.
+ */
 function useEnableGlobalReimbursementsNavigation() {
     const route = useRoute();
     const isDynamic = isDynamicRouteScreen(route.name as Screen);

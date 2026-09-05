@@ -2,8 +2,14 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isDynamicRouteSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteSuffix';
+import {
+    getDynamicBasePathFromNavigationPath,
+    getEnableGlobalReimbursementsBusinessNavigationRoute,
+    shouldUseDynamicEnableGlobalReimbursementsBase,
+} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 const BUSINESS_PATTERN = DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path;
 
@@ -48,5 +54,22 @@ describe('Enable global reimbursements dynamic routes', () => {
 
         expect(typeRoute).toBe('search/view/6546028296902751/enable-global-reimbursements/business/9053192/type?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense&bankCountry=US&bankCurrency=USD');
         expect(typeRoute.match(/enable-global-reimbursements/g)?.length).toBe(1);
+    });
+
+    it('uses search base path captured at signal time for pay modal navigation', () => {
+        const signalPath = 'search/view/6546028296902751?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense';
+        const route = getEnableGlobalReimbursementsBusinessNavigationRoute(9053192, 'registration-number', {bankCountry: 'US', bankCurrency: 'USD'}, signalPath);
+
+        expect(route).toBe(
+            'search/view/6546028296902751/enable-global-reimbursements/business/9053192/registration-number?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense&bankCountry=US&bankCurrency=USD',
+        );
+    });
+
+    it('falls back to wallet settings route for unsupported entry screens', () => {
+        expect(shouldUseDynamicEnableGlobalReimbursementsBase('settings/preferences' as Route)).toBe(false);
+
+        const route = getEnableGlobalReimbursementsBusinessNavigationRoute(9053192, 'registration-number', {bankCountry: 'US', bankCurrency: 'USD'}, 'settings/preferences');
+
+        expect(route).toBe('settings/wallet/9053192/enable-global-reimbursements/business/registration-number?bankCountry=US&bankCurrency=USD');
     });
 });

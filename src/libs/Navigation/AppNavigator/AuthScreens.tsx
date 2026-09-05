@@ -171,7 +171,6 @@ function AuthScreens() {
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
-            <EnableGlobalReimbursementsPayModal />
             <ExportDownloadStatusManager />
             <DelegatorConnectGuard>
                 <ComposeProviders
@@ -400,6 +399,7 @@ function AuthScreens() {
                     <GPSTripStateChecker />
                     <GPSInProgressModal />
                     <OpenAppFailureModal />
+                    <EnableGlobalReimbursementsPayModal />
                     <PriorityModeController />
                 </ComposeProviders>
             </DelegatorConnectGuard>
