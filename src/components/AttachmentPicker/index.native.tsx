@@ -11,9 +11,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
 import fileURIToPath from '@libs/fileURIToPath';
-import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getPickerCaptureSource, logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 
@@ -27,7 +27,6 @@ import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerRes
 
 import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
@@ -72,27 +71,6 @@ type Item = {
     /** Function to call when the user clicks the item */
     pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
 };
-
-/**
- * Ensures asset has proper fileName and type properties
- */
-const processAssetWithFallbacks = (asset: Asset): Asset => {
-    // Generate fallback name: extract from URI if available, otherwise use timestamped default
-    const fallbackName = asset.uri
-        ? asset.uri
-              .substring(asset.uri.lastIndexOf('/') + 1)
-              .split('?')
-              .at(0)
-        : `image_${Date.now()}.jpeg`;
-    const fileName = asset.fileName ?? fallbackName;
-    return {
-        ...asset,
-        fileName,
-        // Default to JPEG if no type specified
-        type: asset.type ?? 'image/jpeg',
-    };
-};
-
 /**
  * Return imagePickerOptions based on the type
  */
@@ -225,68 +203,7 @@ function AttachmentPicker({
                         return resolve();
                     }
 
-                    const processedAssets: Asset[] = [];
-                    let processedCount = 0;
-
-                    const checkAllProcessed = () => {
-                        processedCount++;
-                        if (processedCount === assets.length) {
-                            resolve(processedAssets.length > 0 ? processedAssets : undefined);
-                        }
-                    };
-
-                    for (const asset of assets) {
-                        if (!asset.uri) {
-                            checkAllProcessed();
-                            continue;
-                        }
-
-                        if (asset.type?.startsWith('image')) {
-                            verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES})
-                                .then((isHEIC) => {
-                                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                                    if (isHEIC && asset.uri) {
-                                        ImageManipulator.manipulate(asset.uri)
-                                            .renderAsync()
-                                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                            .then((manipulationResult) => {
-                                                const uri = manipulationResult.uri;
-                                                const convertedAsset = {
-                                                    uri,
-                                                    name: uri
-                                                        .substring(uri.lastIndexOf('/') + 1)
-                                                        .split('?')
-                                                        .at(0),
-                                                    type: 'image/jpeg',
-                                                    width: manipulationResult.width,
-                                                    height: manipulationResult.height,
-                                                };
-                                                processedAssets.push(convertedAsset);
-                                                checkAllProcessed();
-                                            })
-                                            .catch((error: Error) => {
-                                                Log.warn('Failed to convert HEIC image, skipping asset', {error: error.message});
-                                                showGeneralAlert(translate('attachmentPicker.errorWhileConvertingHeic'));
-                                                checkAllProcessed();
-                                            });
-                                    } else {
-                                        // Ensure the asset has proper fileName and type for non-HEIC images
-                                        const processedAsset = processAssetWithFallbacks(asset);
-                                        processedAssets.push(processedAsset);
-                                        checkAllProcessed();
-                                    }
-                                })
-                                .catch((error: Error) => {
-                                    showGeneralAlert(error.message ?? 'An unknown error occurred');
-                                    checkAllProcessed();
-                                });
-                        } else {
-                            // Ensure the asset has proper fileName and type
-                            const processedAsset = processAssetWithFallbacks(asset);
-                            processedAssets.push(processedAsset);
-                            checkAllProcessed();
-                        }
-                    }
+                    processPickedAssetsSequentially(assets, showGeneralAlert, translate).then(resolve).catch(reject);
                 });
             }),
         [fileLimit, showGeneralAlert, translate, type],
