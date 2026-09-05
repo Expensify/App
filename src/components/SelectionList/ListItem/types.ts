@@ -420,7 +420,10 @@ type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SpendRuleListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Element rendered before the text column. Falls back to `item.leftElement` when omitted. */
+    leftElement?: ReactNode;
+};
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -450,7 +453,7 @@ type TravelDomainListItemProps<TItem extends ListItem> = SelectableListItemProps
     }
 >;
 
-type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+type UserSelectionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 export type {
     SpendRuleListItemType,

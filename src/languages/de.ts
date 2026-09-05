@@ -474,7 +474,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet ...',
         domains: 'Domains',
-        actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
         duplicateExpense: 'Doppelte Ausgabe',
@@ -1080,6 +1079,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Lade deine:n Steuerberater:in ein',
             customizeSpendCategories: 'Ausgabenkategorien anpassen',
             customizeSpendCategoriesSubText: 'Ausgaben organisieren und klassifizieren',
+            customizeExpenseCategories: 'Passen Sie Ihre Ausgabenkategorien an',
+            customizeExpenseCategoriesSubText: 'Fügen Sie die Kategorien Ihres Unternehmens hinzu, um Ihre Ausgaben zu kodieren',
             createExpense: 'Ausgabe erstellen',
             createExpenseSubText: 'Scannen Sie eine Ausgabe, ziehen Sie sie per Drag &amp; Drop herein oder geben Sie sie manuell über die + Schaltfläche ein',
             linkPersonalCard: 'Persönliche Karte verknüpfen',
@@ -1277,6 +1278,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Beleg hinzufügen',
             phrase2: 'oder ziehe eine hierher und lege sie ab',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Seite 1 von ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -3774,11 +3776,6 @@ ${amount} für ${merchant} – ${date}`,
         thisBankAccount: 'Dieses Bankkonto wird für Geschäftszahlungen in deinem Workspace verwendet',
         accountNumber: 'Kontonummer',
         routingNumber: 'Routing-Nummer',
-        internationalBankAccountDetails: 'Internationale Bankkontodaten',
-        internationalBankAccountDetailsTitle: 'Wie lauten deine internationalen Kontodaten?',
-        internationalBankAccountDetailsSubtitle: 'Einer deiner Arbeitsbereiche benötigt internationale Kontodaten, um Erstattungen zu verarbeiten',
-        iban: 'IBAN',
-        swiftBicCode: 'SWIFT/BIC-Code',
         chooseAnAccountBelow: 'Wähle unten ein Konto aus',
         addBankAccount: 'Bankkonto hinzufügen',
         chooseAnAccount: 'Konto auswählen',
@@ -3829,8 +3826,6 @@ ${amount} für ${merchant} – ${date}`,
             restrictedBusiness: 'Bitte bestätigen Sie, dass das Unternehmen nicht auf der Liste der eingeschränkten Unternehmen steht.',
             routingNumber: 'Bitte geben Sie eine gültige Bankleitzahl ein',
             accountNumber: 'Bitte eine gültige Kontonummer eingeben',
-            iban: 'Bitte gib eine gültige IBAN ein',
-            swiftCode: 'Bitte gib einen gültigen SWIFT/BIC-Code ein',
             routingAndAccountNumberCannotBeSame: 'Bankleitzahl und Kontonummer dürfen nicht identisch sein',
             companyType: 'Bitte wähle einen gültigen Unternehmenstyp aus',
             tooManyAttempts:
@@ -4998,7 +4993,6 @@ ${amount} für ${merchant} – ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Verwenden Sie dieses Konto beim Exportieren von Rechnungen nach ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Legen Sie fest, wie Unternehmenskartenkäufe nach ${integrationName} exportiert werden.`,
             vendor: 'Lieferant',
-            defaultVendorDescription: 'Legen Sie einen Standardanbieter fest, der beim Export auf alle Kreditkartentransaktionen angewendet wird.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Legen Sie fest, wie Auslagen in ${integrationName} exportiert werden.`,
             exportCheckDescription: 'Wir erstellen für jeden Expensify-Bericht einen Einzelpostenscheck und senden ihn von dem unten stehenden Bankkonto.',
             exportJournalEntryDescription: 'Wir erstellen für jeden Expensify-Bericht einen detaillierten Buchungssatz und buchen ihn auf das untenstehende Konto.',
@@ -5167,8 +5161,6 @@ ${amount} für ${merchant} – ${date}`,
             },
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie das Konto in Xero hinzu und synchronisieren Sie die Verbindung erneut',
-            defaultSupplier: 'Standardlieferant',
-            defaultSupplierDescription: 'Legen Sie einen Standardsupplier fest, der beim Export auf alle Kreditkartentransaktionen angewendet wird.',
             noSuppliersFound: 'Keine Lieferanten gefunden',
             noSuppliersFoundDescription: 'Bitte fügen Sie den Lieferanten in Xero hinzu und synchronisieren Sie die Verbindung erneut.',
             accountingMethods: {
@@ -6211,6 +6203,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             finishSetup: 'Einrichtung abschließen',
             chooseBankAccount: 'Bankkonto auswählen',
             chooseExistingBank: 'Wählen Sie ein bestehendes Geschäftskonto aus, um den Saldo Ihrer Expensify Karte zu bezahlen, oder fügen Sie ein neues Bankkonto hinzu',
+            chooseExistingBankForTravelBilling: 'Wählen Sie ein vorhandenes Geschäftskonto, um Ihre konsolidierte Reiseabrechnung zu bezahlen, oder fügen Sie ein neues Bankkonto hinzu',
             accountEndingIn: 'Konto mit Endziffern',
             addNewBankAccount: 'Neues Bankkonto hinzufügen',
             settlementAccount: 'Verrechnungskonto',
@@ -6283,7 +6276,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             deleteFailureMessage: 'Beim Löschen der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             categoryName: 'Kategoriename',
             requiresCategory: 'Mitglieder müssen alle Ausgaben kategorisieren',
-            autoCategorizeNewExpenses: 'Neue Ausgaben automatisch kategorisieren',
             showCategoryGLCodes: 'Sachkonten beim Kategorisieren von Ausgaben anzeigen',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle Ausgaben müssen kategorisiert werden, um nach ${connectionName} exportiert zu werden.`,
             subtitle: 'Verschaffe dir einen besseren Überblick darüber, wofür Geld ausgegeben wird. Verwende unsere Standardkategorien oder füge eigene hinzu.',
@@ -6618,6 +6610,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             subtitle: 'Berichtsfelder gelten für alle Ausgaben und können hilfreich sein, wenn du nach zusätzlichen Informationen fragen möchtest.',
             disableReportFields: 'Berichtsfelder deaktivieren',
             disableReportFieldsConfirmation: 'Bist du sicher? Text- und Datumsfelder werden gelöscht und Listen werden deaktiviert.',
+            cannotDisableImportedReportFields: 'Berichtsfelder, die aus Ihrer Buchhaltungsverbindung importiert wurden, können nicht deaktiviert werden.',
             importedFromAccountingSoftware: 'Die folgenden Berichtsfelder werden importiert aus Ihrem',
             textType: 'Text',
             dateType: 'Datum',
@@ -7285,11 +7278,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             exportCompanyCard: 'Firmenkartenausgaben exportieren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standardanbieter',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
-                    ? `Spesen, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Anbieter zugeordnet.`
-                    : `Ausgaben, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Lieferanten zugeordnet. Andernfalls werden sie als „Credit Card Misc.“ exportiert.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Wählen Sie einen Standard-${connectionName}-Lieferanten für Ausgaben, die nicht automatisch zugeordnet werden.`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
+                    ? `Ausgaben, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Lieferanten zugeordnet.`
+                    : `Ausgaben, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Lieferanten zugeordnet. Andernfalls werden sie als „${fallbackVendorName}.“ exportiert.`,
+            defaultVendorSelectHeader: `Wählen Sie einen Standardanbieter für Ausgaben, die nicht automatisch zugeordnet werden.`,
             defaultAccount: 'Standardkonto',
             autoSync: 'Automatische Synchronisierung',
             autoSyncDescription: 'NetSuite und Expensify automatisch jeden Tag synchronisieren. Finalisierte Berichte in Echtzeit exportieren',
@@ -7310,6 +7303,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     `Stellen Sie sicher, dass dieses Konto mit Ihrem Konsolidierten Reiseabrechnungs-Abrechnungskonto (endet auf ${lastFourPAN}) übereinstimmt, damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             },
             syncTravelInvoicingSettlements: 'Konsolidierte Reiseabrechnungs-Abrechnungen synchronisieren',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Zum Aktivieren legen Sie ein Konto für Ihre Exporte fest.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',
@@ -7366,14 +7361,14 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 title: 'Arbeitswege ausschließen',
                 summaryDisabled: 'Kein Ausschluss von Pendelstrecken',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `${distance} ${unit} pro Abrechnung ausschließen`,
-                optionDisabledTitle: 'Pendelfahrten nicht ausschließen',
+                optionDisabledTitle: 'Pendlerpauschale nicht ausschließen',
                 optionDisabledHelp: 'Keine Pendelfahrt wird von Anträgen abgezogen.',
-                optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
-                optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
+                optionFixedDistanceTitle: 'Feste Entfernung entfernen',
+                optionFixedDistanceHelp: 'Subtrahiert die gleiche Entfernung von jeder Forderung.',
                 distanceLabel: 'Entfernung',
                 summaryHomeAndOffice: 'Standort für Zuhause und Büro verwenden',
-                optionHomeAndOfficeTitle: 'Nach Wohnsitz und Büro berechnen',
-                optionHomeAndOfficeHelp: 'Verwenden Sie die Privatadresse, die Arbeitsregelung und die Bürozuweisung der betreffenden Person, um Pendlerausschlüsse zu berechnen.',
+                optionHomeAndOfficeTitle: 'Übliche Pendelstrecke ausschließen',
+                optionHomeAndOfficeHelp: 'Zieht für jedes Mitglied den regulären Arbeitsweg auf Basis von Wohnort, Arbeitsmodell und Büro ab.',
                 workspaceAddressRequired: {
                     title: 'Nicht so schnell …',
                     promptStart: 'Sie können die Einstellung „Nach Zuhause und Büro berechnen“ erst aktivieren, nachdem Sie zunächst einen Bürostandort hinzugefügt haben in',
@@ -8015,6 +8010,14 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 thenApplyFollowingDefaults: 'Wenden Sie dann die folgenden Standardwerte an:',
                 vendorUnavailable: 'Anbieter nicht verfügbar',
                 supplierUnavailable: 'Lieferant nicht verfügbar',
+                confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus',
+                confirmErrorCategoryTax: 'Bitte wählen Sie einen Steuersatz aus',
+                confirmErrorCondition: 'Bitte geben Sie einen Händler ein',
+                confirmErrorConditionAndDefault: 'Geben Sie einen Händler ein und wenden Sie mindestens eine Standardeinstellung an',
+                turnOnTaxesFirstTitle: 'Schalten Sie zuerst Steuern ein',
+                turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen Standardsteuersatz fest. Aktivieren Sie Steuern in Ihren Workspace-Einstellungen, um sie zu verwenden.',
+                categoryRulesApplyGoingForwardTitle: 'Kategorienregeln gelten ab jetzt',
+                categoryRulesApplyGoingForwardPrompt: 'Ein Standardsatz für Steuern gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
             },
             categoryRules: {
                 title: 'Kategorienregeln',
@@ -8314,10 +8317,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 applyExpenseDefaultsDescription: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
                 flagForReview: 'Zur Überprüfung markieren',
                 flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
-                requireFields: 'Feldanforderungen',
+                requireFields: 'Feldanforderungen festlegen',
                 requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
-                createAgentRule: 'Agentenregel',
-                createAgentRuleDescription: 'Beschreiben Sie flexible Regeln, die bei Bedarf ausgeführt werden.',
+                createAgentRule: 'Agentenregel beschreiben',
+                createAgentRuleDescription: 'Erstellen Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -8328,6 +8331,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 update: 'Aktualisieren',
                 merchantIs: (merchant: string) => `Händler ist „${merchant}“`,
                 merchantTypeIs: (merchantType: string) => `Händlertyp ist „${merchantType}"`,
+                categoryIs: (category: string) => `Kategorie ist „${category}“`,
             },
             merchantTypeRule: {merchantType: 'Händlerart', saveRule: 'Regel speichern', confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.'},
             requireFieldsTable: {
@@ -8344,6 +8348,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 requireReceipt: 'Beleg erforderlich',
                 doNotRequireReceipt: 'Beleg nicht erforderlich',
                 doNotRequireItemizedReceipt: 'Keine detaillierte Quittung erforderlich',
+                typeLabel: 'Erforderlich',
             },
             requireFieldsEmptyState: {
                 title: 'Fehlende Details frühzeitig erfassen',
@@ -8396,6 +8401,19 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cta: 'KI-Regel hinzufügen',
             },
             categoriesDisabledEmptyState: {title: 'Kategorien sind nicht aktiviert', subtitle: 'Aktivieren Sie Kategorien, um Ihre Ausgaben besser zu kontrollieren.'},
+            expenseDefaultType: {
+                title: 'Standardspesen übernehmen',
+                subtitle: 'Worauf soll diese Regel angewendet werden?',
+                merchant: 'Händler',
+                merchantDescription: 'Felder bei Ausgaben eines bestimmten Händlers aktualisieren',
+                category: 'Kategorie',
+                categoryDescription: 'Legen Sie einen Standardsteuersatz für eine bestimmte Kategorie fest',
+            },
+            taxesDisabledEmptyState: {
+                title: 'Steuern sind nicht aktiviert',
+                subtitle: 'Aktivieren Sie Steuern, um anfallende Steuern zu dokumentieren und zurückzufordern.',
+                cta: 'Steuern aktivieren',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -9517,6 +9535,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             topMerchants: 'Top-Händler',
             violationsBySubmitter: 'Verstöße durch Einreichende',
         },
+        mergeReports: {
+            title: 'Berichte zusammenführen',
+            description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
+        },
     },
     genericErrorPage: {
         title: 'Ups, da ist etwas schiefgelaufen!',
@@ -10144,40 +10166,46 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Beleg kann wegen unterbrochener Bankverbindung nicht automatisch zugeordnet werden.';
+                return 'Beleg kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Beleg kann aufgrund eines vorübergehenden Bankproblems nicht automatisch zugeordnet werden. Bitte versuchen Sie es später noch einmal.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Beleg kann nicht automatisch zugeordnet werden, da deine Bankverbindung erneut authentifiziert werden muss.';
+                        return 'Beleg kann nicht automatisch zugeordnet werden, da Ihre Bankverbindung erneut authentifiziert werden muss.';
                     }
                     return isMarkAsCash
-                        ? `Beleg kann nicht automatisch zugeordnet werden, da deine Bankverbindung erneut authentifiziert werden muss. Markiere ihn als Barzahlung, um ihn zu ignorieren, oder <a href="${connectionLink}">verbinde dich erneut</a>, um den Beleg zuzuordnen.`
-                        : `Beleg kann nicht automatisch zugeordnet werden, da deine Bankverbindung erneut authentifiziert werden muss. <a href="${connectionLink}">Erneut verbinden</a>, um den Beleg zuzuordnen.`;
+                        ? `Quittung kann nicht automatisch zugeordnet werden, da Ihre Bankverbindung erneut authentifiziert werden muss. Markieren Sie sie als Barzahlung, um dies zu ignorieren, oder <a href="${connectionLink}">verbinden Sie die Bank erneut</a>, um die Quittung zuzuordnen.`
+                        : `Beleg kann nicht automatisch zugeordnet werden, da Ihre Bankverbindung erneut authentifiziert werden muss. <a href="${connectionLink}">Erneut verbinden</a>, um den Beleg zuzuordnen.`;
                 }
                 return isAdmin
                     ? `Bankverbindung muss erneut authentifiziert werden. <a href="${companyCardPageURL}">Erneut verbinden, um Beleg zuzuordnen</a>`
-                    : 'Bankverbindung muss erneut authentifiziert werden. Bitte eine:n Admin bitten, die Verbindung wiederherzustellen, um den Beleg abzugleichen.';
+                    : 'Die Bankverbindung muss erneut authentifiziert werden. Bitten Sie eine Adminperson, die Verbindung wiederherzustellen, um den Beleg abzugleichen.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Beleg kann wegen unterbrochener Bankverbindung nicht automatisch zugeordnet werden.';
+                    return 'Beleg kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
                 }
                 return isMarkAsCash
-                    ? `Beleg kann wegen einer unterbrochenen Kartenverbindung nicht automatisch zugeordnet werden. Markiere ihn als Barzahlung, um ihn zu ignorieren, oder <a href="${connectionLink}">repariere die Karte</a>, um den Beleg zuzuordnen.`
-                    : `Quittung kann aufgrund einer unterbrochenen Kartenverbindung nicht automatisch zugeordnet werden. <a href="${connectionLink}">Karte reparieren</a>, um die Quittung zuzuordnen.`;
+                    ? `Beleg kann wegen unterbrochener Kartenverbindung nicht automatisch zugeordnet werden. Markieren Sie ihn als Barzahlung, um ihn zu ignorieren, oder <a href="${connectionLink}">reparieren Sie die Karte</a>, um den Beleg zuzuordnen.`
+                    : `Beleg kann aufgrund einer unterbrochenen Kartenverbindung nicht automatisch zugeordnet werden. <a href="${connectionLink}">Karte reparieren</a>, um den Beleg zuzuordnen.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Bankverbindung unterbrochen. <a href="${companyCardPageURL}">Erneut verbinden, um Beleg zuzuordnen</a>`
-                    : 'Bankverbindung unterbrochen. Bitte eine:n Admin bitten, die Verbindung wiederherzustellen, um den Beleg abzugleichen.';
+                    : 'Bankverbindung unterbrochen. Bitten Sie eine Adminperson, die Verbindung wiederherzustellen, um den Beleg abzugleichen.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Bitte ${member} darum, es als Barzahlung zu markieren, oder warte 7 Tage und versuche es dann erneut` : 'Wartet auf Abgleich mit Kartentransaktion.';
+                return isAdmin
+                    ? `Bitten Sie ${member}, dies als Barzahlung zu markieren, oder warten Sie 7 Tage und versuchen Sie es erneut`
+                    : 'Warten auf Zusammenführung mit Kartentransaktion.';
             }
             return '';
         },
         brokenConnection530Error: 'Beleg ausstehend wegen unterbrochener Bankverbindung',
+        brokenConnection531Error: 'Beleg kann aufgrund eines vorübergehenden Bankproblems nicht automatisch zugeordnet werden. Bitte versuchen Sie es später noch einmal.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Beleg ausstehend wegen unterbrochener Bankverbindung. Bitte in <a href="${workspaceCompanyCardRoute}">Firmenkarten</a> beheben.</muted-text-label>`,
         memberBrokenConnectionError: 'Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung. Bitte wende dich an eine Workspace-Admin, um das Problem zu beheben.',
