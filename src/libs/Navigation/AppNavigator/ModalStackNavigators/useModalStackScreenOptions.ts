@@ -42,24 +42,24 @@ function useWideModalStackScreenOptions() {
             let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
 
             if (!isSmallScreenWidth) {
-                // Report and expense RHPs are centered modals — fade them in place instead of sliding from the right.
-                const fadeInterpolator: StackCardStyleInterpolator = (props) => modalCardStyleInterpolator({props, enter: {kind: 'fade'}});
+                // All RHP levels use the same slide-and-fade entrance. Each bucket only overrides the card's
+                // layout (position/size); the slide interpolator clips its card container, so every bucket sets
+                // overflow: 'visible' to let the card's border/shadow overflow instead of being cut off.
                 if (superWideRHPRouteKeys.includes(route.key)) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(fadeInterpolator, {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
                         // left edge stays put instead of being pushed off-screen. See https://github.com/Expensify/App/issues/99035
                         cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelOffset.current)),
+                        containerStyle: {overflow: 'visible'},
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(fadeInterpolator, {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: styles.wideRHPCenteredCardInterpolatorStyles,
+                        containerStyle: {overflow: 'visible'},
                     });
-                    // Skinny RHP right-docked above a wide/super-wide RHP: keep the default slide-in animation.
                 } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
-                        // The slide interpolator clips its card container; override so the skinny card's border/shadow can
-                        // overflow the container edges instead of being cut off.
                         containerStyle: {overflow: 'visible'},
                     });
                 }
