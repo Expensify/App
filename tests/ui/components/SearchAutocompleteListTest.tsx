@@ -102,6 +102,7 @@ describe('SearchAutocompleteList', () => {
             loadAll: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
+            getReportByID: jest.fn(),
         });
         jest.mocked(combineOrderingOfReportsAndPersonalDetails).mockReturnValue({recentReports: [], personalDetails: []});
     });
@@ -233,6 +234,7 @@ describe('SearchAutocompleteList', () => {
             loadAll: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
+            getReportByID: jest.fn(),
         });
         mockCombineOrdering.mockReturnValue({recentReports: [dmAsReport, aliceTaskReport, brandNewServerReport], personalDetails: []});
 

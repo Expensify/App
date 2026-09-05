@@ -233,6 +233,12 @@ type GetValidReportsConfig = {
     shouldAlwaysIncludeDM?: boolean;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
+    /**
+     * Resolves a single report by ID so the option builders can read an option's parent chat report without the
+     * module-level `Onyx.connect()` cache. Callers pass a resolver backed by the same reports snapshot the option
+     * list was built from (see `useFilteredOptions`), which keeps both derived from one consistent snapshot.
+     */
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<

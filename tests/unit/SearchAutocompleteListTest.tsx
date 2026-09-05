@@ -179,6 +179,12 @@ const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedRepo
     conciergeReportID: undefined,
     isSearching: true,
 });
+// Mirrors useFilteredOptions: resolves a report from the same reports snapshot the options were built from.
+const createGetReportByID =
+    (reports: Record<string, Report>) =>
+    (reportID: string | undefined): Report | undefined =>
+        reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED = {addSafeAreaPadding: true};
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED = {addSafeAreaPadding: false};
 
@@ -240,6 +246,7 @@ describe('SearchAutocompleteList', () => {
             loadMore: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
+            getReportByID: createGetReportByID(mockedReports),
         });
     });
 
@@ -467,6 +474,10 @@ describe('SearchAutocompleteList', () => {
             loadMore: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
+            getReportByID: createGetReportByID({
+                [`${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}`]: adminsReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]: threadReport,
+            }),
         });
 
         render(<SearchRouterWrapper />);
@@ -556,6 +567,10 @@ describe('SearchAutocompleteList', () => {
             loadMore: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
+            getReportByID: createGetReportByID({
+                [`${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}`]: adminsReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]: threadReport,
+            }),
         });
 
         render(<SearchRouterWrapper />);
@@ -736,6 +751,7 @@ describe('SearchAutocompleteList', () => {
                 loadMore: jest.fn(),
                 hasMore: false,
                 isLoadingMore: false,
+                getReportByID: createGetReportByID(mockedReports),
             });
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);

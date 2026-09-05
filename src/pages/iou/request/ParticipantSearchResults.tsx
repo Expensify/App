@@ -320,11 +320,11 @@ function ParticipantSearchResults({
             allPolicies,
             translate,
             dateFnsLocale,
+            getReportByID,
             personalDetails,
             true,
             undefined,
             reportAttributesDerived,
-            getReportByID,
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
