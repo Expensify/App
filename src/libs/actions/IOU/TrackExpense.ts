@@ -1025,7 +1025,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
 
     if (isDraftReportLocal) {
         const workspaceData = buildPolicyData({
-            policyOwnerEmail: undefined,
+            policyOwner: undefined,
             makeMeAdmin: policy?.makeMeAdmin,
             policyName: policy?.name ?? defaultWorkspaceName ?? '',
             policyID: policy?.id,

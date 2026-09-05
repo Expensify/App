@@ -77,9 +77,9 @@ function useCompleteOnboarding() {
 
             const {adminsChatReportID, policyID} = shouldCreateWorkspace
                 ? createWorkspace({
-                      policyOwnerEmail: undefined,
+                      policyOwner: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                      policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                       currency: currentUserPersonalDetails?.localCurrencyCode ?? '',

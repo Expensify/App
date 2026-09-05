@@ -99,6 +99,8 @@ const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmails
 
 const displayNameSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.displayName;
 
+const accountIDSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.accountID;
+
 export {
     avatarStyleColorSelector,
     personalDetailsSelector,
@@ -114,4 +116,5 @@ export {
     createDisplayDetailsByAccountIDsSelector,
     newAccountIDsAndLoginsSelector,
     displayNameSelector,
+    accountIDSelector,
 };
