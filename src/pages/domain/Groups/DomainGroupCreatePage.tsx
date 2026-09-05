@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useIsDomainUsingCard from '@hooks/useIsDomainUsingCard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -61,8 +62,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
         selector: defaultSecurityGroupIDSelector,
     });
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector()});
-    const [domainCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
-    const isDomainUsingExpensifyCard = !!domainCardSettings;
+    const {isDomainUsingCard, isLoading: isCardEligibilityLoading} = useIsDomainUsingCard(domainAccountID);
 
     const firstAdminPolicy = Object.values(adminPolicies ?? {})
         .sort((a, b) => localeCompare(a?.created ?? '', b?.created ?? ''))
@@ -216,8 +216,12 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}
                         switchAccessibilityLabel={translate('domain.groups.expensifyCardPreferredWorkspace')}
                         isActive={expensifyCardPreferredWorkspace}
-                        disabled={!preferredWorkspace || !isDomainUsingExpensifyCard}
+                        disabled={!preferredWorkspace || !isDomainUsingCard}
                         disabledAction={() => {
+                            // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
+                            if (isCardEligibilityLoading) {
+                                return;
+                            }
                             showConfirmModal({
                                 title: translate('workspace.distanceRates.oopsNotSoFast'),
                                 prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),
