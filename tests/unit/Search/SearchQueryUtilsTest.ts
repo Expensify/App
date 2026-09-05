@@ -3658,6 +3658,18 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('"type: status:" foo');
         });
 
+        it('should preserve a trailing keyword after consecutive incomplete filter names', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('merchant: description: coffee', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['merchant: description:', 'coffee']);
+            expect(displayedKeyword).toBe('"merchant: description:" coffee');
+        });
+
         it('should preserve syntax with a quoted multi-word value as keyword text', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:expense');
 
