@@ -187,14 +187,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', displayName, policyOwnerDisplayName);
 
-    if (isTechnicalContact) {
+    if (isReimburser) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptReimburser', {
+            memberName: displayName,
+        });
+    } else if (isTechnicalContact) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptTechContact', {
             memberName: displayName,
             workspaceOwner: policyOwnerDisplayName,
-        });
-    } else if (isReimburser) {
-        confirmModalPrompt = translate('workspace.people.removeMemberPromptReimburser', {
-            memberName: displayName,
         });
     } else if (isUserExporter) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptExporter', {
