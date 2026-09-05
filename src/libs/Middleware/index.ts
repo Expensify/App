@@ -2,6 +2,7 @@ import FailureTracking from './FailureTracking';
 import FraudMonitoring from './FraudMonitoring';
 import GlobalReimbursementPayError from './GlobalReimbursementPayError';
 import handleDeletedAccount from './HandleDeletedAccount';
+import HandleMovedScanFailedExpenses from './HandleMovedScanFailedExpenses';
 import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
 import LoadPostDataForOpenOrReconnect from './LoadPostDataForOpenOrReconnect';
 import LoadTest from './LoadTest';
@@ -14,6 +15,7 @@ import SentryServerTiming from './SentryServerTiming';
 import SupportalPermission from './SupportalPermission';
 
 export {
+    HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,
     LoadTest,
     Logging,

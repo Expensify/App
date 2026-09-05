@@ -1255,7 +1255,14 @@ const DYNAMIC_ROUTES = {
     },
     EXPENSIFY_CARD_DETAILS: {
         path: 'expensify-card-details/:cardID/:policyID',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.DYNAMIC_PROFILE],
+        entryScreens: [
+            SCREENS.WORKSPACE.EXPENSIFY_CARD,
+            SCREENS.REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.DYNAMIC_PROFILE,
+        ],
         getRoute: (cardID: string, policyID: string) => `expensify-card-details/${cardID}/${policyID}` as const,
     },
     EXPENSIFY_CARD_LIMIT_TYPE: {
