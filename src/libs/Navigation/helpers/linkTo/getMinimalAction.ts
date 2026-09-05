@@ -1,4 +1,10 @@
-import type {State} from '@navigation/types';
+import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
+import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+
+import type {NavigationRoute, State} from '@navigation/types';
+
+import CONST from '@src/CONST';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
@@ -9,6 +15,71 @@ type MinimalAction = {
     action: Writable<NavigationAction>;
     targetState: State | undefined;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isNamedActionPayload(payload: unknown): payload is ActionPayload & {name: string} {
+    return isRecord(payload) && typeof payload.name === 'string';
+}
+
+function getSplitScopeComparisonValues(currentRoute: NavigationRoute, payload: unknown) {
+    if (!isNamedActionPayload(payload)) {
+        return;
+    }
+
+    if (!isSplitNavigatorName(currentRoute.name) || currentRoute.name !== payload.name || !currentRoute.state) {
+        return;
+    }
+
+    const sidebarScreen = SPLIT_TO_SIDEBAR[currentRoute.name];
+    const scopeParams = getParamsFromRoute(sidebarScreen);
+    const sidebarRoute = currentRoute.state.routes.find((route) => route.name === sidebarScreen);
+    const currentParams: unknown = sidebarRoute?.params;
+    const targetParams = payload.params?.params;
+    if (!scopeParams.length || !isRecord(currentParams) || !isRecord(targetParams)) {
+        return;
+    }
+
+    return {scopeParams, currentParams, targetParams};
+}
+
+function getComparableScopeValue(value: unknown): string | undefined {
+    if (typeof value !== 'string' && typeof value !== 'number') {
+        return;
+    }
+
+    return String(value);
+}
+
+function hasDifferentSplitScope(currentRoute: NavigationRoute, payload: ActionPayload): boolean {
+    const scopeComparisonValues = getSplitScopeComparisonValues(currentRoute, payload);
+    if (!scopeComparisonValues) {
+        return false;
+    }
+
+    const {scopeParams, currentParams, targetParams} = scopeComparisonValues;
+    return scopeParams.some((param) => {
+        const currentValue = getComparableScopeValue(currentParams[param]);
+        const targetValue = getComparableScopeValue(targetParams[param]);
+        return currentValue !== undefined && targetValue !== undefined && currentValue !== targetValue;
+    });
+}
+
+function hasMatchingSplitScope(currentRoute: NavigationRoute, payload: unknown): boolean {
+    const scopeComparisonValues = getSplitScopeComparisonValues(currentRoute, payload);
+    if (!scopeComparisonValues) {
+        return false;
+    }
+
+    const {scopeParams, currentParams, targetParams} = scopeComparisonValues;
+    return scopeParams.every((param) => {
+        const currentValue = getComparableScopeValue(currentParams[param]);
+        const targetValue = getComparableScopeValue(targetParams[param]);
+        return currentValue !== undefined && currentValue === targetValue;
+    });
+}
 
 /**
  * Motivation for this function is described in NAVIGATION.md
@@ -22,15 +93,23 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
     let currentState: State | undefined = state;
     let currentTargetKey: string | undefined;
 
-    while (currentAction.payload && 'name' in currentAction.payload && currentState?.routes[currentState.index ?? -1].name === currentAction.payload.name) {
-        if (!currentState?.routes[currentState.index ?? -1].state) {
+    while (isNamedActionPayload(currentAction.payload) && currentState) {
+        const currentRoute: NavigationRoute | undefined = currentState.routes.at(currentState.index ?? -1);
+        if (!currentRoute || currentRoute.name !== currentAction.payload.name) {
             break;
         }
 
-        currentState = currentState?.routes[currentState.index ?? -1].state;
-        currentTargetKey = currentState?.key;
+        const payload = currentAction.payload;
+        const isDifferentSplitScope = hasDifferentSplitScope(currentRoute, payload);
+        if (!currentRoute.state || isDifferentSplitScope) {
+            if (isDifferentSplitScope && currentAction.type !== CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
+                currentAction = {...currentAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH};
+            }
+            break;
+        }
 
-        const payload = currentAction.payload as ActionPayload;
+        currentState = currentRoute.state;
+        currentTargetKey = currentState?.key;
 
         // Creating new smaller action
         currentAction = {
@@ -46,4 +125,5 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
     return {action: currentAction, targetState: currentState};
 }
 
+export {hasMatchingSplitScope};
 export default getMinimalAction;

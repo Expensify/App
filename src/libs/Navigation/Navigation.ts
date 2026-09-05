@@ -7,7 +7,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
-import {shallowCompare} from '@libs/ObjectUtils';
+import {isRecord, shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import variables from '@styles/variables';
@@ -57,7 +57,7 @@ import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
-import getMinimalAction from './helpers/linkTo/getMinimalAction';
+import getMinimalAction, {hasMatchingSplitScope} from './helpers/linkTo/getMinimalAction';
 import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
@@ -70,6 +70,29 @@ type FocusedScreen = {
     name: string;
     params?: Record<string, unknown>;
 };
+
+type NestedActionTarget = {
+    screen: string;
+    params: unknown;
+    path?: string;
+};
+
+function getNestedActionTarget(payload: unknown): NestedActionTarget | undefined {
+    if (!isRecord(payload)) {
+        return;
+    }
+
+    const nestedParams = payload.params;
+    if (!isRecord(nestedParams) || typeof nestedParams.screen !== 'string') {
+        return;
+    }
+
+    return {
+        screen: nestedParams.screen,
+        params: nestedParams.params,
+        path: typeof nestedParams.path === 'string' ? nestedParams.path : undefined,
+    };
+}
 
 // Modality is module-load (must catch the first interaction); focus-return runs under NavigationRoot (needs navigationRef + a teardown point).
 setupHadTabNavigation();
@@ -469,8 +492,16 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     }
 
     const {action: minimalAction, targetState} = getMinimalAction(action, rootState);
+    const minimalActionPayload = minimalAction.payload;
+    const isScopedSplitPush =
+        minimalAction.type === CONST.NAVIGATION.ACTION_TYPE.PUSH &&
+        !!minimalActionPayload &&
+        typeof minimalActionPayload === 'object' &&
+        'name' in minimalActionPayload &&
+        typeof minimalActionPayload.name === 'string' &&
+        isSplitNavigatorName(minimalActionPayload.name);
 
-    if (minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || !targetState) {
+    if ((minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && !isScopedSplitPush) || !targetState) {
         Log.hmmm('[Navigation] Unable to go up. Minimal action type is wrong.');
         return false;
     }
@@ -509,13 +540,51 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         return true;
     }
 
-    const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
+    const indexOfBackToRoute = targetState.routes.findLastIndex((route) =>
+        isScopedSplitPush ? hasMatchingSplitScope(route, minimalActionPayload) : doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams),
+    );
     const distanceToPop = targetState.routes.length - indexOfBackToRoute - 1;
 
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
     if (indexOfBackToRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
         const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
         dispatch(replaceAction);
+        return true;
+    }
+
+    if (isScopedSplitPush) {
+        const matchingSplitState = targetState.routes.at(indexOfBackToRoute)?.state;
+        const nestedTarget = getNestedActionTarget(minimalActionPayload);
+        if (!matchingSplitState?.key || !nestedTarget) {
+            Log.hmmm('[Navigation] Unable to go up. Scoped split target is missing nested state.');
+            return false;
+        }
+
+        const nestedAction: Writable<NavigationAction> = {
+            type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+            payload: {
+                name: nestedTarget.screen,
+                params: nestedTarget.params,
+                path: nestedTarget.path,
+            },
+            target: matchingSplitState.key,
+        };
+        const indexOfNestedBackToRoute = matchingSplitState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, nestedAction, compareParams));
+        const nestedDistanceToPop = matchingSplitState.routes.length - indexOfNestedBackToRoute - 1;
+
+        dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
+
+        if (!compareParams) {
+            dispatch({...nestedAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
+            return true;
+        }
+        if (indexOfNestedBackToRoute === -1) {
+            dispatch({...nestedAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE});
+            return true;
+        }
+        if (nestedDistanceToPop > 0) {
+            dispatch({...StackActions.pop(nestedDistanceToPop), target: matchingSplitState.key});
+        }
         return true;
     }
 
