@@ -1,3 +1,6 @@
+/**
+ * Route helpers for Enable Global Reimbursements in wallet settings or on search and report screens.
+ */
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
@@ -5,9 +8,6 @@ import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesU
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 
-/**
- * Route helpers for Enable Global Reimbursements in wallet settings or on search and report screens.
- */
 type EnableGlobalReimbursementsRouteParams = {
     bankCountry?: string;
     bankCurrency?: string;

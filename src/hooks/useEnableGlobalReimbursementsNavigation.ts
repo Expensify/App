@@ -1,3 +1,6 @@
+/**
+ * Resolves Enable Global Reimbursements routes for the static settings/wallet flow and the dynamic report/search flow.
+ */
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -18,9 +21,6 @@ type EnableGlobalReimbursementsRouteParams = {
     bankCurrency?: string;
 };
 
-/**
- * Builds Enable Global Reimbursements routes for the wallet settings flow or as dynamic suffixes on search and report screens.
- */
 function useEnableGlobalReimbursementsNavigation() {
     const route = useRoute();
     const isDynamic = isDynamicRouteScreen(route.name as Screen);
