@@ -460,3 +460,80 @@ describe('getUpdateMoneyRequestParams — distance rate change with pending wayp
         expect(params.reportActionID).toBeUndefined();
     });
 });
+
+describe('getUpdateMoneyRequestParams — receipt page count', () => {
+    const WAYPOINTS = {
+        waypoint0: {address: '123 Start St', lat: 40.7128, lng: -74.006, keyForList: 'start'},
+        waypoint1: {address: '456 End Ave', lat: 41.5, lng: -73.5, keyForList: 'stop'},
+    };
+
+    function buildTransactionWithMultiPagePDF(iouRequestType: Transaction['iouRequestType'], waypoints?: typeof WAYPOINTS): Transaction {
+        return {
+            transactionID: TRANSACTION_ID,
+            reportID: IOU_REPORT_ID,
+            amount: 1000,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: '10.00 mi @ $1.00 / mi',
+            iouRequestType,
+            comment: {...(waypoints ? {waypoints} : {})},
+            receipt: {source: 'https://example.com/receipt.pdf', filename: 'receipt.pdf', pageCount: 3},
+        } as Transaction;
+    }
+
+    function getOptimisticPageCountForDistanceChange() {
+        const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
+            transactionID: TRANSACTION_ID,
+            transactionThreadReport,
+            iouReport,
+            delegateAccountID: undefined,
+            transactionChanges: {distance: 20},
+            policy: undefined,
+            policyTagList: undefined,
+            reportPolicyTags: undefined,
+            policyCategories: undefined,
+            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+            currentUserEmailParam: RORY_EMAIL,
+            isASAPSubmitBetaEnabled: false,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+        });
+
+        const optimisticTransaction: unknown = onyxData.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`)?.value;
+        if (!isRecord(optimisticTransaction) || !isRecord(optimisticTransaction.receipt)) {
+            throw new Error('Expected an optimistic transaction with a receipt');
+        }
+        return optimisticTransaction.receipt.pageCount;
+    }
+
+    it('clears the page count when the map receipt is about to be regenerated', async () => {
+        // Given a map distance expense whose receipt is a 3-page PDF
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, buildTransactionWithMultiPagePDF(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, WAYPOINTS));
+        await waitForBatchedUpdates();
+
+        // When the distance changes
+        // Then the stale count is cleared so the badge cannot outlive the receipt it described
+        expect(getOptimisticPageCountForDistanceChange()).toBeNull();
+    });
+
+    it('clears the page count for a manual distance expense that carries waypoints', async () => {
+        // Given a manual distance expense that still has waypoints, so its receipt is a generated map
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, buildTransactionWithMultiPagePDF(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, WAYPOINTS));
+        await waitForBatchedUpdates();
+
+        // When the distance changes
+        expect(getOptimisticPageCountForDistanceChange()).toBeNull();
+    });
+
+    it('keeps the page count for an odometer expense, whose receipt is uploaded', async () => {
+        // Given an odometer distance expense whose 3-page PDF was uploaded by the user
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, buildTransactionWithMultiPagePDF(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER));
+        await waitForBatchedUpdates();
+
+        // When the distance changes
+        // Then the count survives, because nothing regenerates that receipt
+        expect(getOptimisticPageCountForDistanceChange()).toBe(3);
+    });
+});

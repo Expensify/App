@@ -5,9 +5,6 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 
 import CONST from '@src/CONST';
 
@@ -44,12 +41,10 @@ type CenteredModalLayoutProps = {
 
 function CenteredModalLayout({children, width, height, onBackdropPress, contentStyle, addBottomSafeAreaPadding = true}: CenteredModalLayoutProps) {
     const styles = useThemeStyles();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const shouldDockToBottom = !onboardingIsMediumOrLargerScreenWidth;
 
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
     const safeAreaHorizontalPadding = useSafeAreaHorizontalPadding();
     const safeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode && shouldDockToBottom,

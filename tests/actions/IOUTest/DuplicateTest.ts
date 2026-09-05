@@ -551,6 +551,7 @@ describe('actions/Duplicate', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: transactionThreadReport1.reportID,
                 introSelected: undefined,
@@ -562,6 +563,7 @@ describe('actions/Duplicate', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: transactionThreadReport2.reportID,
                 introSelected: undefined,
