@@ -527,6 +527,9 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     searchTransactions: (pageSize?: number) => void;
     onLongPress: (transaction: TransactionListItemType) => void;
     hideSearchTableHeader?: boolean;
+
+    /** Sync key that ties these rows' horizontal scroll to the group's column header, which lives in a sibling row. */
+    syncScrollKey?: string;
 };
 
 const GROUP_ITEM_TYPES = {

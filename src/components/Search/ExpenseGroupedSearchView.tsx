@@ -2,6 +2,7 @@ import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/typ
 
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getPlatform from '@libs/getPlatform';
 import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
@@ -116,6 +117,10 @@ function ExpenseGroupedSearchView({
 }: ExpenseGroupedSearchViewProps) {
     const {type, groupBy} = queryJSON;
     const {isLargeScreenWidth} = useResponsiveLayout();
+
+    // Read once for the whole list and handed to each GroupHeader, rather than each of them subscribing on its own:
+    // a group header is a recycled row, and it already pays for a useWindowDimensions inside useResponsiveLayout.
+    const {windowWidth} = useWindowDimensions();
 
     // Wide web layouts split each group into a sticky header row plus an expandable children-container row.
     // Computed here (not from the shared hook) because the split list feeds back into the hook as `listData`.
@@ -237,6 +242,7 @@ function ExpenseGroupedSearchView({
                     userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                     ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                     visibleColumns={visibleColumns}
+                    windowWidth={windowWidth}
                 />
             );
         }
