@@ -4513,6 +4513,15 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
         },
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/fx-expense-account',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/fx-expense-account` as const;
+        },
+    },
     POLICY_ACCOUNTING_CERTINIA_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/certinia/prerequisites/:subPage?/:isSandbox?',
         getRoute: (policyID: string, subPage?: string, isSandbox?: boolean) => {

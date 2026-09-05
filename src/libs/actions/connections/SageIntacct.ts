@@ -941,6 +941,23 @@ function updateSageIntacctSyncReimbursementAccountID(policyID: string | undefine
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
+function updateSageIntacctFxExpenseAccount(policyID: string | undefined, expenseAccountID: string, oldExpenseAccountID?: string) {
+    if (!policyID || expenseAccountID === oldExpenseAccountID) {
+        return;
+    }
+
+    const parameters = {
+        policyID,
+        settingValue: JSON.stringify(expenseAccountID),
+    };
+
+    API.write(
+        WRITE_COMMANDS.UPDATE_SAGE_INTACCT_FX_EXPENSE_ACCOUNT,
+        parameters,
+        prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT, expenseAccountID, oldExpenseAccountID),
+    );
+}
+
 function updateSageIntacctEntity(policyID: string | undefined, entity: string, oldEntity: string) {
     if (!policyID) {
         return;
@@ -995,6 +1012,7 @@ export {
     updateSageIntacctApprovalMode,
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
+    updateSageIntacctFxExpenseAccount,
     updateSageIntacctEntity,
     updateSageIntacctAccountingMethod,
     changeMappingsValueFromDefaultToTag,

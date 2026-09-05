@@ -661,6 +661,7 @@ const SCREENS = {
             DYNAMIC_SAGE_INTACCT_AUTO_SYNC: 'Dynamic_Policy_Accounting_Sage_Intacct_Auto_Sync',
             DYNAMIC_SAGE_INTACCT_ACCOUNTING_METHOD: 'Dynamic_Policy_Accounting_Sage_Intacct_Accounting_Method',
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
+            SAGE_INTACCT_FX_EXPENSE_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Fx_Expense_Account',
             CERTINIA_PREREQUISITES: 'Policy_Accounting_Certinia_Prerequisites',
             CERTINIA_EXISTING_CONNECTIONS: 'Policy_Accounting_Certinia_Existing_Connections',
             CERTINIA_IMPORT: 'Policy_Accounting_Certinia_Import',

@@ -5027,6 +5027,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自掏腰包的报销在支付时会导出',
                 },
             },
+            fxExpenseAccount: 'Sage Intacct 货币转换手续费科目',
+            fxExpenseAccountDescription: '当您公司承担境外付款的货币兑换成本时，我们会在 Sage Intacct 中将该成本作为一条日记账分录记入此科目。',
         },
         certinia: {
             title: 'Certinia',

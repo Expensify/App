@@ -5210,6 +5210,9 @@ ${amount} voor ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd zodra ze zijn betaald',
                 },
             },
+            fxExpenseAccount: 'Sage Intacct rekening voor kosten valutaconversie',
+            fxExpenseAccountDescription:
+                'Wanneer je bedrijf de kosten voor valutaconversie dekt voor een betaling in het buitenland, boeken we die kosten in Sage Intacct op deze rekening als een memoriaalboeking.',
         },
         certinia: {
             title: 'Certinia',

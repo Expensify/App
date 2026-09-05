@@ -9,7 +9,7 @@ import usePermissions from './usePermissions';
 function useIsGlobalReimbursementFXEnabled(): boolean {
     const {isBetaEnabled} = usePermissions();
 
-    return isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS) && isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX);
+    return isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX);
 }
 
 export default useIsGlobalReimbursementFXEnabled;
