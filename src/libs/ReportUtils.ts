@@ -51,6 +51,7 @@ import type {
     Transaction,
     TransactionViolation,
     TransactionViolations,
+    ViolationName,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
@@ -1067,14 +1068,6 @@ const FALLBACK_TITLE_FIELD: PolicyReportField = {
     isTax: false,
 };
 
-let conciergeReportIDOnyxConnect: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
-    callback: (value) => {
-        conciergeReportIDOnyxConnect = value;
-    },
-});
-
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -1308,7 +1301,7 @@ function getReportOrDraftReport(
 }
 
 /**
- * This function is being migrated to remove `deprecatedReportsTransactions`.
+ * @deprecated This function is being migrated and will be removed later.
  * If you need to use this function, you must explicitly pass the `allReportsTransactions` parameter
  * instead of relying on the default value. In React components, prefer using the `useReportTransactions` hook.
  */
@@ -5100,7 +5093,7 @@ function getTransactionDetails(
     }
 
     const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
-    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isGroupPolicyPolicyUtils(policy);
+    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || (isEmptyObject(report) && isGroupPolicyPolicyUtils(policy));
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat, dateFnsLocale),
@@ -9884,7 +9877,10 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
             const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
-            const excludedNoticeNamesForLHN = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
+            // A submitted `companyCardRequired` is not actionable by the submitter, so it must not drive the RBR. It is
+            // excluded by name because the back end owns its type.
+            const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.COMPANY_CARD_REQUIRED] : [];
+            const excludedNoticeNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 
             return (
                 !isInvoiceReport(potentialReport) &&
@@ -9895,62 +9891,57 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                     deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     policy,
                     transactions,
+                    excludedViolationNamesForLHN,
                 ) &&
-                (hasViolations(
-                    potentialReport.reportID,
+                hasViolationOfAnyTypeForRBRInLHN(
                     transactionViolations,
                     deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin,
-                    true,
                     transactions,
                     potentialReport,
-                    // This path only runs for reports the current user submitted, so the report owner is the current user.
-                    currentUserLogin,
                     policy,
-                ) ||
-                    hasWarningTypeViolations(
-                        potentialReport.reportID,
-                        transactionViolations,
-                        deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                        currentUserLogin,
-                        true,
-                        transactions,
-                        potentialReport,
-                        // This path only runs for reports the current user submitted, so the report owner is the current user.
-                        currentUserLogin,
-                        policy,
-                    ) ||
-                    hasNoticeTypeViolationsForRBRInLHN(
-                        transactionViolations,
-                        deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                        currentUserLogin,
-                        transactions,
-                        potentialReport,
-                        policy,
-                        excludedNoticeNamesForLHN,
-                    ))
+                    excludedViolationNamesForLHN,
+                    excludedNoticeNamesForLHN,
+                )
             );
         });
     return violatingReport ? violatingReport.reportID : null;
 }
 
-function hasNoticeTypeViolationsForRBRInLHN(
+/**
+ * Whether any transaction on the report carries a violation that should drive the LHN RBR, checking all three violation
+ * types. Names in `excludedViolationNames` are dropped from every type check, so the exclusion holds regardless of which
+ * bucket the back end assigns the violation to. Names in `excludedNoticeNames` are dropped from the notice check only.
+ * Apart from the name filtering this is the same decision the three separate `hasViolations` /
+ * `hasWarningTypeViolations` / `hasNoticeTypeViolationsForRBRInLHN` calls used to make, folded into a single pass over
+ * the report transactions.
+ */
+function hasViolationOfAnyTypeForRBRInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     reportTransactions: Transaction[],
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    excludedViolationNames: string[],
+    excludedViolationNames: ViolationName[],
+    excludedNoticeNames: ViolationName[],
 ): boolean {
     return reportTransactions.some((transaction) => {
         const rawViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
         if (!rawViolations?.length) {
             return false;
         }
-        const filteredViolations = excludedViolationNames.length > 0 ? rawViolations.filter((violation) => !excludedViolationNames.includes(violation.name)) : rawViolations;
+        const violations = excludedViolationNames.length > 0 ? rawViolations.filter((violation) => !excludedViolationNames.includes(violation.name)) : rawViolations;
+        if (!violations.length) {
+            return false;
+        }
+        const noticeViolations = excludedNoticeNames.length > 0 ? violations.filter((violation) => !excludedNoticeNames.includes(violation.name)) : violations;
         // This path only runs for reports the current user submitted, so the report owner is the current user.
-        return hasNoticeTypeViolation(transaction, filteredViolations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true);
+        return (
+            hasViolation(transaction, violations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true) ||
+            hasWarningTypeViolation(transaction, violations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true) ||
+            hasNoticeTypeViolation(transaction, noticeViolations, currentUserEmailParam, currentUserAccountIDParam, report, currentUserEmailParam, policy, true)
+        );
     });
 }
 
@@ -12575,8 +12566,8 @@ type PrepareOnboardingOnyxDataParams = {
     isSelfTourViewed?: boolean;
     // TODO: should be required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     currentUserEmail?: string;
-    /** The concierge chat report, looked up by conciergeReportID. Falls back to getChatByParticipants using the deprecated module-level Onyx data while the refactor is in progress. */
-    conciergeChat?: OnyxEntry<Report>;
+    /** The concierge chat report, looked up by conciergeReportID */
+    conciergeChat: OnyxEntry<Report>;
     /** The admins chat report, looked up by adminsChatReportID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
     adminsChatReport?: OnyxEntry<Report>;
     /** The self-DM report, looked up by ONYXKEYS.SELF_DM_REPORT_ID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
@@ -12600,7 +12591,7 @@ function prepareOnboardingOnyxData({
     onboardingPurposeSelected,
     isSelfTourViewed,
     currentUserEmail,
-    conciergeChat: conciergeChatParam,
+    conciergeChat,
     adminsChatReport: adminsChatReportParam,
     selfDMReport: selfDMReportParam,
     currentUserAccountID,
@@ -12620,10 +12611,6 @@ function prepareOnboardingOnyxData({
     // Server picks the inboxAdminsBespoke variant at response time, so optimistic writes here would be stale.
     const shouldDeferOptimisticTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     const adminsChatReport = adminsChatReportParam ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
-    const conciergeChat =
-        conciergeChatParam ??
-        getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], deprecatedAllReports, false) ??
-        (conciergeReportIDOnyxConnect ? {reportID: conciergeReportIDOnyxConnect} : undefined);
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS})
         : conciergeChat;
