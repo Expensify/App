@@ -18,16 +18,13 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
-import type {Policy} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type FieldsInitialListValuePageProps = {
-    policy: OnyxEntry<Policy>;
     policyID: string;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
     backPath: Route;
@@ -35,7 +32,7 @@ type FieldsInitialListValuePageProps = {
     testID: string;
 };
 
-function FieldsInitialListValuePage({policy, policyID, featureName, backPath, subtitleKey, testID}: FieldsInitialListValuePageProps) {
+function FieldsInitialListValuePage({policyID, featureName, backPath, subtitleKey, testID}: FieldsInitialListValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [formDraft, formDraftMetadata] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);

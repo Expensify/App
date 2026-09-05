@@ -26,7 +26,6 @@ function DynamicReportFieldsInitialListValuePage({
 
     return (
         <FieldsInitialListValuePage
-            policy={policy}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
             backPath={backPath}

@@ -18,7 +18,6 @@ type DynamicInvoiceFieldsInitialListValuePageProps = WithPolicyAndFullscreenLoad
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_INVOICE_FIELDS_INITIAL_LIST_VALUE>;
 
 function DynamicInvoiceFieldsInitialListValuePage({
-    policy,
     route: {
         params: {policyID},
     },
@@ -27,7 +26,6 @@ function DynamicInvoiceFieldsInitialListValuePage({
 
     return (
         <FieldsInitialListValuePage
-            policy={policy}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
             backPath={backPath}
