@@ -17,6 +17,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect} from 'react';
@@ -57,7 +58,7 @@ function ConfirmDelegateValidateCodePage({route}: ConfirmDelegateValidateCodePag
             onClose={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role))}
             validateError={validateLoginError}
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.ADD_DELEGATE, reasonTargetEmail: login})}
             handleSubmitForm={(validateCode) => addDelegate({email: login, role, validateCode, delegatedAccess: account?.delegatedAccess})}
             descriptionPrimary={translate('delegate.enterSecurityCode', account?.primaryLogin ?? session?.email ?? '')}
         />
