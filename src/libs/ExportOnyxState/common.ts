@@ -143,6 +143,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['id', 'type', 'role', 'outputCurrency', 'areCategoriesEnabled', 'areTagsEnabled'],
         maskList: ['name', 'avatar'],
     },
+    // Vendor names can reveal a workspace's suppliers, so keep the collection structure but mask names in exports.
+    [ONYXKEYS.COLLECTION.POLICY_VENDORS]: {
+        allowList: ['externalID', 'enabled', 'origin'],
+        maskList: ['name'],
+    },
     [ONYXKEYS.USER_WALLET]: {
         allowList: ['currentBalance', 'availableBalance', 'tierName'],
         maskList: [],

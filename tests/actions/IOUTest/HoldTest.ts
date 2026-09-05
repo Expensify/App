@@ -746,6 +746,59 @@ describe('actions/IOU/Hold', () => {
                 });
         });
 
+        test('should restore the transaction thread parent on rollback, so the thread does not point at a report that is gone', () => {
+            const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildScenario({
+                total: 300,
+                nonReimbursableTotal: 50,
+                unheldTotal: 200,
+                unheldNonReimbursableTotal: 30,
+                heldAmount: 100,
+            });
+            const threadReportID = '424242';
+            const heldActions = actionCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] ?? {};
+            const heldAction = Object.values(heldActions).at(0);
+            const heldActionID = heldAction?.reportActionID;
+            if (heldAction) {
+                heldAction.childReportID = threadReportID;
+            }
+            const threadReport = createMock<Report>({
+                reportID: threadReportID,
+                parentReportID: iouReport.reportID,
+                parentReportActionID: heldActionID,
+                chatReportID: iouReport.reportID,
+            });
+            const threadKey = `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`;
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, [threadKey]: threadReport, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        delegateAccountID: undefined,
+                        betas: [],
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    });
+                    const move = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.REPORT);
+                    const rollback = result.failureData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.REPORT);
+                    const movedThread = Object.entries(move?.value ?? {}).find(([key]) => key === threadKey)?.[1];
+                    const restoredThread = Object.entries(rollback?.value ?? {}).find(([key]) => key === threadKey)?.[1];
+
+                    expect(movedThread).toEqual({
+                        parentReportActionID: expect.any(String),
+                        parentReportID: result.optimisticHoldReportID,
+                        chatReportID: result.optimisticHoldReportID,
+                    });
+                    expect(restoredThread).toEqual({
+                        parentReportActionID: heldActionID,
+                        parentReportID: iouReport.reportID,
+                        chatReportID: iouReport.reportID,
+                    });
+                });
+        });
+
         test('should not push a totals update when no held transactions exist', () => {
             const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildScenario({
                 total: 300,
@@ -809,6 +862,221 @@ describe('actions/IOU/Hold', () => {
                         );
                     });
                     expect(totalsUpdates).toEqual([]);
+                });
+        });
+
+        const buildScanFailedTransaction = (reportID: string, amount: number) => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {amount, currency: 'USD', reportID},
+            });
+            return {
+                ...transaction,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+            };
+        };
+
+        const buildScanFailedScenario = (iouReportOverrides: Partial<Report>, scanFailedAmount: number, validAmount: number) => {
+            const baseIouReport = buildOptimisticIOUReport(1, 2, iouReportOverrides.total ?? 0, '99', 'USD', getCurrencyDecimalsLocal);
+            const iouReport: Report = {
+                ...baseIouReport,
+                ...iouReportOverrides,
+            };
+            const chatReport: Report = {
+                reportID: '99',
+                iouReportID: iouReport.reportID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                lastVisibleActionCreated: '2026-01-01 00:00:00.000',
+            } as Report;
+
+            const scanFailedTransaction = buildScanFailedTransaction(iouReport.reportID, scanFailedAmount);
+            const validTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: validAmount, currency: 'USD', reportID: iouReport.reportID, merchant: 'Valid merchant'},
+            });
+
+            const buildIouAction = (transactionID: string, amount: number) =>
+                buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount,
+                    currency: 'USD',
+                    comment: '',
+                    participants: [],
+                    transactionID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                });
+            const scanFailedIouAction = buildIouAction(scanFailedTransaction.transactionID, scanFailedTransaction.amount);
+            const validIouAction = buildIouAction(validTransaction.transactionID, validTransaction.amount);
+
+            const reportCollection: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`]: chatReport,
+            };
+            const transactionCollection: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`]: scanFailedTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${validTransaction.transactionID}`]: validTransaction,
+            };
+            const actionCollection: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {
+                    [scanFailedIouAction.reportActionID]: scanFailedIouAction,
+                    [validIouAction.reportActionID]: validIouAction,
+                },
+            };
+
+            return {chatReport, iouReport, scanFailedTransaction, validTransaction, reportCollection, transactionCollection, actionCollection};
+        };
+
+        // The backend only moves a scan-failed expense out when it has neither a merchant nor an amount, so the moved
+        // expense contributes nothing to either report's totals.
+        const buildMixedExpenseReportScenario = (scanFailedAmount = 0) =>
+            buildScanFailedScenario(
+                {
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    total: -3000,
+                    nonReimbursableTotal: 0,
+                    reimbursableTotal: -3000,
+                    unheldTotal: -3000,
+                    unheldNonReimbursableTotal: 0,
+                    unheldReimbursableTotal: -3000,
+                },
+                scanFailedAmount,
+                -3000,
+            );
+
+        test('should move only the scan-failed transactions and leave the totals of the report they came from untouched', () => {
+            const {chatReport, iouReport, scanFailedTransaction, validTransaction, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        shouldMoveHeldTransactions: false,
+                        shouldMoveScanFailedTransactions: true,
+                    });
+
+                    const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
+                    expect(transactionUpdate?.value).toEqual({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`]: {reportID: result.optimisticHoldReportID},
+                    });
+                    expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${validTransaction.transactionID}`);
+
+                    const newReportUpdate = result.optimisticData.find(
+                        (entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`,
+                    );
+                    expect(newReportUpdate?.value).toEqual(
+                        expect.objectContaining({
+                            // The expense-report sign flip turns the empty total into -0
+                            total: -0,
+                            unheldTotal: 0,
+                            unheldNonReimbursableTotal: 0,
+                            unheldReimbursableTotal: 0,
+                        }),
+                    );
+
+                    const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                    expect(totalsUpdate).toBeUndefined();
+                });
+        });
+
+        test('should keep the optimistic report in successData, so a user viewing it is never dropped onto a removed report', () => {
+            const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        shouldMoveHeldTransactions: false,
+                        shouldMoveScanFailedTransactions: true,
+                    });
+
+                    // The backend answers with a report of its own, so the optimistic one still has to go — but only once
+                    // that report is known, which is what the HandleMovedScanFailedExpenses middleware reconciles.
+                    expect(result.successData).not.toEqual(
+                        expect.arrayContaining([
+                            expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`, value: null}),
+                            expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticHoldReportID}`, value: null}),
+                        ]),
+                    );
+                });
+        });
+
+        test('should keep the optimistic report on success when only held transactions are moved', () => {
+            const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    });
+
+                    expect(result.successData).not.toEqual(
+                        expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`, value: null})]),
+                    );
+                });
+        });
+
+        test('should not move scan-failed transactions when shouldMoveScanFailedTransactions is disabled', () => {
+            const {chatReport, iouReport, scanFailedTransaction, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    });
+
+                    const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
+                    expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
+                });
+        });
+
+        test('should not move a scan-failed transaction that has an amount, because the backend leaves it in the report', () => {
+            const {chatReport, iouReport, scanFailedTransaction, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario(-5000);
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        shouldMoveHeldTransactions: false,
+                        shouldMoveScanFailedTransactions: true,
+                    });
+
+                    const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
+                    expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
                 });
         });
     });

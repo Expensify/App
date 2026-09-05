@@ -5342,7 +5342,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
-        menuItemChevron: {
+        menuItemTrailingIcon: {
             ...pointerEventsAuto,
             ...flex.justifyContentCenter,
             ...flex.alignItemsEnd,
