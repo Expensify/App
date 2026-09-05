@@ -41,9 +41,13 @@ const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responseP
                 continue;
             }
 
+            if (typeof update.value !== 'object' || update.value === null) {
+                continue;
+            }
+
             // Drop the optimistic PAY action instead of merging an error onto it.
             update.value = {
-                ...(update.value as Record<string, unknown>),
+                ...update.value,
                 [reportActionID]: null,
             };
         }

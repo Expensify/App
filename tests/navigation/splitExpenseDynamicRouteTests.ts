@@ -6,7 +6,6 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {State} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 

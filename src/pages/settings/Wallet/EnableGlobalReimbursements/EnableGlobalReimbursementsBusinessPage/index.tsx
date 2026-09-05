@@ -22,7 +22,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo} from 'react';
 
 import type {BusinessInfoSubPageProps} from './types';
 
@@ -50,8 +50,32 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
     const bankAccountID = route.params?.bankAccountID;
     const [corpayPayModal] = useOnyx(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL);
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
-    const [country, setCountry] = useState<Country>(() => (route.params?.bankCountry ?? '') as Country);
-    const [currency, setCurrency] = useState(() => route.params?.bankCurrency ?? '');
+
+    const modalMatchesAccount = corpayPayModal?.bankAccountID === Number(bankAccountID);
+    const {countryCode, currency} = useMemo(() => {
+        const routeCountry = route.params?.bankCountry;
+        const routeCurrency = route.params?.bankCurrency;
+
+        if (routeCountry || routeCurrency) {
+            return {
+                countryCode: routeCountry ?? bankAccount?.bankCountry ?? '',
+                currency: routeCurrency ?? bankAccount?.bankCurrency ?? '',
+            };
+        }
+
+        if (modalMatchesAccount && corpayPayModal) {
+            return {
+                countryCode: corpayPayModal.bankCountry ?? '',
+                currency: corpayPayModal.bankCurrency ?? '',
+            };
+        }
+
+        return {
+            countryCode: bankAccount?.bankCountry ?? '',
+            currency: bankAccount?.bankCurrency ?? '',
+        };
+    }, [bankAccount?.bankCountry, bankAccount?.bankCurrency, corpayPayModal, modalMatchesAccount, route.params?.bankCountry, route.params?.bankCurrency]);
+    const country = countryCode as Country;
 
     const persistedRouteParams = useMemo(
         () => ({
@@ -68,30 +92,10 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
     const buildBusinessRoute = (subPage: string, action?: 'edit') => getBusinessRoute(Number(bankAccountID), subPage, action, persistedRouteParams);
 
     useEffect(() => {
-        if (route.params?.bankCountry) {
-            setCountry(route.params.bankCountry as Country);
-        }
-        if (route.params?.bankCurrency) {
-            setCurrency(route.params.bankCurrency);
-        }
-
-        const modalMatchesAccount = corpayPayModal?.bankAccountID === Number(bankAccountID);
         if (modalMatchesAccount && corpayPayModal) {
-            if (!route.params?.bankCountry) {
-                setCountry(corpayPayModal.bankCountry as Country);
-            }
-            if (!route.params?.bankCurrency) {
-                setCurrency(corpayPayModal.bankCurrency);
-            }
             clearCorpayPayModal();
-            return;
         }
-
-        if (!route.params?.bankCountry && bankAccount) {
-            setCountry(bankAccount.bankCountry as Country);
-            setCurrency(bankAccount.bankCurrency ?? '');
-        }
-    }, [corpayPayModal, bankAccount, bankAccountID, route.params?.bankCountry, route.params?.bankCurrency]);
+    }, [corpayPayModal, modalMatchesAccount]);
 
     const goToAgreementsPage = () => {
         Navigation.navigate(getAgreementsRoute(Number(bankAccountID), persistedRouteParams), isDynamic ? {forceReplace: true} : undefined);

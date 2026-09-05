@@ -16,7 +16,6 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect} from 'react';

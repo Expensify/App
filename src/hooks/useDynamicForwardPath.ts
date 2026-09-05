@@ -7,7 +7,7 @@ import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {State} from '@libs/Navigation/types';
 
-import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -29,7 +29,7 @@ import useRootNavigationState from './useRootNavigationState';
  *   static `Route`, or another `DynamicRouteSuffix` - in which case it's appended onto the resolved
  *   base path (the target has no standalone URL of its own).
  */
-const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route | DynamicRouteSuffix>> = {
+const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route>> = {
     [DYNAMIC_ROUTES.VERIFY_ACCOUNT.path]: {
         [SCREENS.SETTINGS.WALLET.ROOT]: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
         [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS]: DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.path,

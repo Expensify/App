@@ -15,7 +15,6 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';

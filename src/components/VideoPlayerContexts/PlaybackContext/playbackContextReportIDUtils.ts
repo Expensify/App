@@ -6,7 +6,6 @@ import getStateFromPath from '@navigation/helpers/getStateFromPath';
 import Navigation from '@navigation/Navigation';
 import type {ReportDetailsNavigatorParamList} from '@navigation/types';
 
-import type {Route as ActiveRoute} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
