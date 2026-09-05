@@ -4917,6 +4917,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 xeroInvoiceCollectionAccount: 'Xero 发票收款账户',
                 xeroBillPaymentAccountDescription: '选择从哪里支付账单，我们会在 Xero 中创建相应的付款。',
                 invoiceAccountSelectorDescription: '选择接收发票付款的账户，我们会在 Xero 中创建这笔付款。',
+                xeroFxExpenseAccount: 'Xero 货币转换手续费科目',
+                fxExpenseAccountDescription: '当您的公司承担境外付款的货币兑换成本时，我们会在 Xero 中将该成本记入此科目，作为一笔“支出款项”交易。',
             },
             exportDate: {
                 label: '采购账单日期',

@@ -4,6 +4,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -29,11 +30,12 @@ import React, {useMemo} from 'react';
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
 
     const policyID = policy?.id;
     const xeroConfig = policy?.connections?.xero?.config;
     const {pendingFields, errorFields, sync} = xeroConfig ?? {};
-    const {bankAccounts} = policy?.connections?.xero?.data ?? {};
+    const {bankAccounts, expenseAccounts} = policy?.connections?.xero?.data ?? {};
     const {invoiceCollectionsAccountID, reimbursementAccountID} = sync ?? {};
     const accountingMethod = xeroConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
 
@@ -51,6 +53,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID);
     const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID);
+    const selectedFxExpenseAccountName = (expenseAccounts ?? []).find((account) => account.id === xeroConfig?.fxExpenseAccount)?.name;
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 
@@ -116,6 +119,19 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             brickRoadIndicator={areSettingsInErrorFields([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
+                    {isGlobalReimbursementFXEnabled && (
+                        <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={selectedFxExpenseAccountName}
+                                description={translate('workspace.xero.advancedConfig.xeroFxExpenseAccount')}
+                                key={translate('workspace.xero.advancedConfig.xeroFxExpenseAccount')}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR.getRoute(policyID))}
+                                brickRoadIndicator={areSettingsInErrorFields([CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], pendingFields)}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon

@@ -727,6 +727,9 @@ type XeroConnectionData = {
     /** Collection of bank accounts */
     bankAccounts: Account[];
 
+    /** Profit and loss accounts, the only ones a currency conversion cost can be charged to. Undefined until Integration-Server has synced them for the workspace. */
+    expenseAccounts?: Account[];
+
     /** Supplier contacts keyed by their Xero contact ID. Undefined until Integration-Server has synced suppliers for the workspace. */
     contacts?: Record<string, XeroContact>;
 
@@ -860,6 +863,9 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Default supplier contact used as a fallback when a non-reimbursable card transaction has no contact set. */
         defaultVendor?: string;
+
+        /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
+        fxExpenseAccount?: string;
 
         /** TODO: Will be handled in another issue */
         errors?: OnyxCommon.Errors;
