@@ -75,6 +75,14 @@ function TableSearchBar({label}: TableSearchBarProps) {
         listRef.current?.scrollToOffset({offset: 0, animated: false});
     }, [isEmptyResult, listRef]);
 
+    useLayoutEffect(() => {
+        if (!isTextInputFocused(inputRef)) {
+            return;
+        }
+
+        listRef.current?.scrollToOffset({offset: 0, animated: false});
+    }, [activeSearchString, listRef]);
+
     const handleSearchStringChange = (text: string) => {
         updateSearchString(text);
         onSearchStringChange?.(text);
