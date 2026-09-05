@@ -53,7 +53,6 @@ const tsRuleTester = new RuleTester({
 describe('no-raw-typography', () => {
     ruleTester.run(ruleModule.name, ruleModule, {
         valid: [
-            'const style = {fontSize: variables.fontSizeNormal};',
             'const style = {fontSize: fontScale.text, lineHeight: lineHeightScale.text};',
             'const style = {...textVariants.h1, color: theme.heading};',
             'const style = {lineHeight: undefined};',
@@ -61,10 +60,47 @@ describe('no-raw-typography', () => {
             'const style = {[fontSize]: 17};',
             'const style = {fontWeight: 700, height: 20, size: 17};',
             'const jsx = <Text variant="body">hi</Text>;',
-            'const jsx = <Text fontSize={variables.fontSizeNormal}>hi</Text>;',
             'const jsx = <Icon width={16} height={16} />;',
+            'const style = StyleUtils.getFontSizeStyle(fontScale.h2);',
+            // `variables` is only the escape hatch for typography names — unrelated keys are untouched.
+            'const style = {fontSize: variables.iconSizeNormal};',
+            'const style = {padding: variables.fontSizeNormal};',
+            'const width = getWidth(variables.fontSizeNormal);',
+            // The styles layer opts out of the named-reference check while it finishes migrating.
+            {
+                code: 'const style = {fontSize: variables.fontSizeNormal};',
+                options: [{allowVariablesReferences: true}],
+            },
+            {
+                code: 'const style = StyleUtils.getFontSizeStyle(variables.fontSizeNormal);',
+                options: [{allowVariablesReferences: true}],
+            },
         ],
         invalid: [
+            {
+                code: 'const style = {fontSize: variables.fontSizeNormal};',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
+            {
+                code: 'const style = {lineHeight: variables.lineHeightXLarge};',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
+            {
+                code: 'const jsx = <Text fontSize={variables.fontSizeNormal}>hi</Text>;',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
+            {
+                code: 'const style = StyleUtils.getFontSizeStyle(variables.fontSizeNormal);',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
+            {
+                code: 'const style = getLineHeightStyle(variables.lineHeightXLarge);',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
+            {
+                code: 'const style = getFontSizeStyle(17);',
+                errors: [{messageId: 'rawTypography'}],
+            },
             {
                 code: 'const style = {fontSize: 17};',
                 errors: [{messageId: 'rawTypography'}],
@@ -105,8 +141,18 @@ describe('no-raw-typography', () => {
     });
 
     tsRuleTester.run(`${ruleModule.name} (TS assertions)`, ruleModule, {
-        valid: ['const style = {fontSize: variables.fontSizeNormal as number};'],
+        valid: [
+            'const style = {fontSize: fontScale.text as number};',
+            {
+                code: 'const style = {fontSize: variables.fontSizeNormal as number};',
+                options: [{allowVariablesReferences: true}],
+            },
+        ],
         invalid: [
+            {
+                code: 'const style = {fontSize: variables.fontSizeNormal as number};',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
             {
                 code: 'const style = {fontSize: 17 as const};',
                 errors: [{messageId: 'rawTypography'}],

@@ -40,7 +40,7 @@ import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/Tra
 
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import type {TranslationPaths} from '@src/languages/types';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
@@ -132,7 +132,7 @@ function MoneyReportView({
     const subAmountTextStyles: StyleProp<TextStyle> = [
         styles.taskTitleMenuItem,
         styles.alignSelfCenter,
-        StyleUtils.getFontSizeStyle(variables.fontSizeH1),
+        StyleUtils.getFontSizeStyle(fontScale.h2),
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
