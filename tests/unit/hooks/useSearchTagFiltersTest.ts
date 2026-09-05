@@ -107,7 +107,7 @@ describe('useSearchTagFilters', () => {
         expect(mockClearSearchTagFiltersState).toHaveBeenCalledTimes(1);
     });
 
-    it('refetches on remount after leaving the filter so pagination can continue', async () => {
+    it('re-fetches on remount after leaving the filter so pagination can continue', async () => {
         setPartialTagFilterState('');
         mockOpenSearchTagFiltersPage.mockResolvedValueOnce({hasMore: true, nextCursor: 'cursor-1'});
 
@@ -184,7 +184,7 @@ describe('useSearchTagFilters', () => {
         expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', 'marketing');
     });
 
-    it('refetches when clearing a server search that only cached partial results', async () => {
+    it('re-fetches when clearing a server search that only cached partial results', async () => {
         setPartialTagFilterState('');
 
         const {result, rerender} = renderHook(() => useSearchTagFilters(POLICY_ID));
