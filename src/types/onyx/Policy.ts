@@ -2274,9 +2274,7 @@ type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     DualEntryCodingOfflineFeedbackKeys | DualEntryExportOfflineFeedbackKeys | keyof DualEntryAutoSync | keyof DualEntrySync
 >;
 
-// s77rt here
-
-type CampfireEntity = {
+type CampfireSubsidiary = {
     /** Unique identifier of the account. */
     id: string;
 
@@ -2403,8 +2401,8 @@ type CampfireTaxRate = {
  * Connection data retrieved from Campfire.
  */
 type CampfireConnectionData = {
-    /** Collection of eligible entities in Campfire. */
-    entities?: CampfireEntity[];
+    /** Collection of eligible subsidiaries in Campfire. */
+    subsidiaries?: CampfireSubsidiary[];
 
     /** Accounts available in Campfire. */
     accounts?: CampfireAccount[];
@@ -3724,4 +3722,5 @@ export type {
     DualEntryAutoSync,
     DualEntrySync,
     CampfireConnectionsConfig,
+    CampfireSubsidiary,
 };
