@@ -37,7 +37,7 @@ type VictoryChartCartesianProps = {
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
 function VictoryChartCartesian({explicitSize, headless, onRenderArgs}: VictoryChartCartesianProps) {
-    const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
+    const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles, pixelScale} = useVictoryChartContext();
     const theme = useTheme();
     const timezone = useCurrentTimezone();
     const designWidth = getChartDesignWidth(explicitSize, chartContentStyles.width);
@@ -68,7 +68,7 @@ function VictoryChartCartesian({explicitSize, headless, onRenderArgs}: VictoryCh
             {...getChartLayoutModeProps(explicitSize, headless)}
             renderOutside={(renderArgs) => {
                 const overlayContent = (
-                    <VictoryChartRenderArgsProvider value={renderArgs}>
+                    <VictoryChartRenderArgsProvider value={{...renderArgs, pixelScale}}>
                         {labelItems.map((labelItem) => (
                             <VictoryChartLabel
                                 key={`label-${labelItem.x}-${labelItem.y}-${timezone}`}
@@ -102,7 +102,7 @@ function VictoryChartCartesian({explicitSize, headless, onRenderArgs}: VictoryCh
                 onRenderArgs?.(renderArgs);
 
                 return (
-                    <VictoryChartRenderArgsProvider value={renderArgs}>
+                    <VictoryChartRenderArgsProvider value={{...renderArgs, pixelScale}}>
                         {tnode.children.map((child) => (
                             <VictoryChartSeries
                                 key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}

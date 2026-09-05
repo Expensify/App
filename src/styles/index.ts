@@ -6608,9 +6608,6 @@ const staticStyles = (theme: ThemeColors) =>
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
-        chartExpandedContent: {
-            transformOrigin: 'top left',
-        },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
         },

@@ -1077,6 +1077,17 @@ function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
 }
 
 /**
+ * Scales a view about its top-left corner, e.g. to display high-resolution content
+ * at a smaller size inside a clipping box without re-rendering it.
+ */
+function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle {
+    return {
+        transform: [{scale: scaleValue}],
+        transformOrigin: 'top left',
+    };
+}
+
+/**
  * Returns a style object with a rotation transformation applied based on the provided direction prop.
  *
  * @param direction - The direction of the rotation (CONST.DIRECTION.LEFT or CONST.DIRECTION.RIGHT).
@@ -1456,6 +1467,7 @@ const staticStyleUtils = {
     getEmojiPickerStyle,
     getEmojiReactionBubbleTextStyle,
     getTransformScaleStyle,
+    getTopLeftTransformScaleStyle,
     getCodeFontSize,
     getFontSizeStyle,
     getLineHeightStyle,
