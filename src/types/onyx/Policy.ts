@@ -2274,6 +2274,314 @@ type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     DualEntryCodingOfflineFeedbackKeys | DualEntryExportOfflineFeedbackKeys | keyof DualEntryAutoSync | keyof DualEntrySync
 >;
 
+/**
+ * A subsidiary (entity) configured in Campfire.
+ */
+type CampfireSubsidiary = {
+    /** Unique identifier of the account. */
+    id: string;
+
+    /** Name of the account. */
+    name: string;
+
+    /** Currency associated with the account. */
+    currency: string;
+};
+
+/**
+ * Available account types.
+ */
+type CampfireAccountType = ValueOf<typeof CONST.CAMPFIRE_ACCOUNT_TYPE>;
+
+/**
+ * Available account subtypes.
+ */
+type CampfireAccountSubType = ValueOf<typeof CONST.CAMPFIRE_ACCOUNT_SUBTYPE>;
+
+/**
+ * Account retrieved from Campfire.
+ */
+type CampfireAccount = {
+    /** Unique identifier of the account. */
+    id: string;
+
+    /** Account number. */
+    number?: string;
+
+    /** Name of the account. */
+    name: string;
+
+    /** Type of the account. */
+    accountType: CampfireAccountType;
+
+    /** Subtype of the account. */
+    accountSubtype: CampfireAccountSubType;
+
+    /** Currency associated with the account. */
+    currency?: string;
+
+    /** Whether the account is active. */
+    isActive: boolean;
+};
+
+/**
+ * Field retrieved from Campfire.
+ */
+type CampfireField = {
+    /** Unique identifier of the account. */
+    id: string;
+
+    /** Name of the field. */
+    name: string;
+};
+
+/**
+ * Available vendor types.
+ */
+type CampfireVendorType = ValueOf<typeof CONST.CAMPFIRE_VENDOR_TYPE>;
+
+/**
+ * Vendor retrieved from Campfire.
+ */
+type CampfireVendor = {
+    /** Unique identifier of the vendor. */
+    id: string;
+
+    /** Name of the vendor. */
+    name: string;
+
+    /** Email address associated with the vendor. */
+    email?: string;
+
+    /** Type of the vendor. */
+    vendorType: CampfireVendorType;
+
+    /** Whether the vendor is active. */
+    isActive: boolean;
+};
+
+/**
+ * Tax rate line retrieved from Campfire.
+ */
+type CampfireTaxRateLine = {
+    /** Value of the tax rate. */
+    rate: string;
+
+    /** Tax account ID. */
+    taxAccountID?: string;
+
+    /** Whether to use expense account itself instead of taxAccountID */
+    useExpenseAccount: boolean;
+};
+
+/**
+ * Tax rate retrieved from Campfire.
+ */
+type CampfireTaxRate = {
+    /** Unique identifier of the tax rate. */
+    id: string;
+
+    /** Name of the tax rate. */
+    name: string;
+
+    /** Value of the tax rate. */
+    rate: string;
+
+    /** Code used to identify the tax rate. */
+    code?: string;
+
+    /**
+     *  A rate is made of lines, and each line says where its share of the tax goes:
+     *  a named tax account, or the expense account itself when useExpenseAccount is set.
+     */
+    lines: CampfireTaxRateLine[];
+};
+
+/**
+ * Connection data retrieved from Campfire.
+ */
+type CampfireConnectionData = {
+    /** Collection of eligible subsidiaries in Campfire. */
+    subsidiaries?: CampfireSubsidiary[];
+
+    /** Accounts available in Campfire. */
+    accounts?: CampfireAccount[];
+
+    /** Custom dimension groups available in Campfire. */
+    fields?: CampfireField[];
+
+    /** Vendors available in Campfire. */
+    vendors?: CampfireVendor[];
+
+    /** Mapping of settlement identifiers to their corresponding journal entry identifiers. */
+    settlementJournalEntryIDs?: Record<string, string>;
+
+    /** Mapping of travel settlement identifiers to their corresponding journal entry identifiers. */
+    travelSettlementJournalEntryIDs?: Record<string, string>;
+
+    /** Entry identifier from which settlement synchronization should start. */
+    settlementSyncStartEntryID?: number;
+
+    /** Entry identifier from which travel settlement synchronization should start. */
+    travelSettlementSyncStartEntryID?: number;
+
+    /** Tax rates available in Campfire. */
+    taxRates?: CampfireTaxRate[];
+};
+
+/**
+ * Coding configuration used when exporting data to Campfire.
+ */
+type CampfireCoding = {
+    /**
+     * Mapping of Campfire field IDs to their configured mapping behavior.
+     */
+    fieldMappings?: Record<string, ValueOf<typeof CONST.CAMPFIRE_MAPPING_VALUE>>;
+
+    /** Whether tax rates should be synchronized from Campfire. */
+    syncTaxRates: boolean;
+};
+
+/** Offline feedback key for field mapping */
+type CampfireCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `CampfireCoding`
+ */
+type CampfireCodingOfflineFeedbackKeys = keyof Omit<CampfireCoding, 'fieldMappings'> | CampfireCodingFieldMappingsOfflineFeedbackKey;
+
+/**
+ * Available dates that can be used as the export date.
+ */
+type CampfireExportDate = ValueOf<typeof CONST.CAMPFIRE_EXPORT_DATE>;
+
+/**
+ * Export strategy for reimbursable expenses.
+ */
+type CampfireExportReimbursable = ValueOf<typeof CONST.CAMPFIRE_EXPORT_REIMBURSABLE>;
+
+/**
+ * Export strategy for company card expenses.
+ */
+type CampfireExportNonReimbursable = ValueOf<typeof CONST.CAMPFIRE_EXPORT_NON_REIMBURSABLE>;
+
+/**
+ * Export configuration for sending accounting data to Campfire.
+ */
+type CampfireExport = {
+    /** Identifier of the export implementation to use. */
+    exporter: string;
+
+    /** Date source used when generating exported transactions. */
+    exportDate: CampfireExportDate;
+
+    /** Export behavior for reimbursable expenses. */
+    reimbursable: CampfireExportReimbursable;
+
+    /** Export behavior for company card expenses. */
+    nonReimbursable: CampfireExportNonReimbursable;
+
+    /** Account used when exporting company card expenses. */
+    creditCardAccountID: string;
+
+    /**
+     * Whether card transactions should be exported to multiple
+     * accounts based on card program mappings.
+     */
+    exportToMultipleAccounts: boolean;
+
+    /**
+     * Mapping of card program identifiers to account codes.
+     */
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
+
+    /** Default vendor used when exporting transactions. */
+    defaultVendorID: string;
+
+    /** Payable account used when exporting travel billings. */
+    travelInvoicingPayableAccountID: string;
+
+    /** Accounting method used during export. */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+};
+
+/** Offline feedback key for card program account */
+type CampfireExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `CampfireExport`
+ */
+type CampfireExportOfflineFeedbackKeys = keyof Omit<CampfireExport, 'cardProgramAccounts'> | CampfireExportCardProgramAccountsOfflineFeedbackKey;
+
+/**
+ * Automatic synchronization settings for Campfire.
+ */
+type CampfireAutoSync = {
+    /** Whether automatic synchronization is enabled. */
+    enabled: boolean;
+
+    /** Unique identifier of the automatic synchronization job. */
+    jobID?: string | null;
+};
+
+/**
+ * Synchronization settings for importing and updating data in Campfire.
+ */
+type CampfireSync = {
+    /** Whether reimbursed expense reports should be synchronized. */
+    syncReimbursedReports: boolean;
+
+    /** Account code used for bill payment transactions. */
+    billPaymentAccountID: string;
+
+    /** Whether Expensify Card settlement transactions should be synchronized. */
+    syncExpensifyCardSettlements: boolean;
+
+    /** Bank account used for Expensify Card settlements. */
+    settlementsBankAccountID: string;
+
+    /** Whether travel billing settlement transactions should be synchronized. */
+    syncTravelInvoicingSettlements: boolean;
+
+    /** Bank account used for travel billing settlements. */
+    travelInvoicingSettlementsBankAccountID: string;
+};
+
+/**
+ * Connection config for Campfire.
+ */
+type CampfireConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** The internalID of the selected company in Campfire */
+        subsidiaryID: string;
+
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
+
+        /** Whether to enable a new Expense Category into Expensify */
+        enableNewCategories: boolean;
+
+        /** Coding settings */
+        coding?: CampfireCoding;
+
+        /** Export settings */
+        export?: CampfireExport;
+
+        /** Auto-sync settings */
+        autoSync?: CampfireAutoSync;
+
+        /** Sync settings */
+        sync?: CampfireSync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    CampfireCodingOfflineFeedbackKeys | CampfireExportOfflineFeedbackKeys | keyof CampfireAutoSync | keyof CampfireSync
+>;
+
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
@@ -2552,6 +2860,9 @@ type Connections = {
 
     /** DualEntry integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: Connection<DualEntryConnectionData, DualEntryConnectionsConfig>;
+
+    /** Campfire integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: Connection<CampfireConnectionData, CampfireConnectionsConfig>;
 
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
@@ -3410,4 +3721,6 @@ export type {
     DualEntryExport,
     DualEntryAutoSync,
     DualEntrySync,
+    CampfireConnectionsConfig,
+    CampfireSubsidiary,
 };

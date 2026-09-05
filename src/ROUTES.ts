@@ -4778,6 +4778,18 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-invoicing-payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/travel-invoicing-payable-account` as const,
     },
+    POLICY_ACCOUNTING_CAMPFIRE_SETUP: {
+        route: 'workspaces/:policyID/accounting/campfire/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/setup` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/campfire/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_SUBSIDIARY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/campfire/subsidiary-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/subsidiary-selector` as const,
+    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,

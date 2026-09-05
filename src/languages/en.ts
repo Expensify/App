@@ -6079,6 +6079,16 @@ const translations = {
                 label: 'Travel Invoicing payable account',
             },
         },
+        campfire: {
+            campfireSetup: 'Campfire setup',
+            enterCredentials: 'Enter your Campfire API key',
+            howToFindAPIKey:
+                '<strong>Finding your API key.</strong><ol><li>Log in to Campfire</li><li>Navigate to Settings -> API Keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
+            noSubsidiariesFound: 'No subsidiaries found',
+            noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -7123,6 +7133,7 @@ const translations = {
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
             dualEntry: 'DualEntry',
+            campfire: 'Campfire',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -7144,6 +7155,8 @@ const translations = {
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7365,6 +7378,18 @@ const translations = {
                         case 'dualEntrySyncCardSettlements':
                             return 'Syncing card settlements';
                         case 'dualEntrySyncTravelSettlements':
+                            return 'Syncing travel settlements';
+                        case 'campfireSyncTitle':
+                            return 'Syncing Campfire data';
+                        case 'campfireSyncConnection':
+                            return 'Initializing connection to Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Loading data';
+                        case 'campfireSyncPayments':
+                            return 'Syncing vendor payments';
+                        case 'campfireSyncCardSettlements':
+                            return 'Syncing card settlements';
+                        case 'campfireSyncTravelSettlements':
                             return 'Syncing travel settlements';
                         default: {
                             return `Translation missing for stage: ${stage}`;
@@ -7803,6 +7828,12 @@ const translations = {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + DualEntry integration. Align expense coding dimensions and tax sync with your DualEntry setup for clearer financial visibility.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our DualEntry integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                title: 'Campfire',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Campfire integration. Align expense coding dimensions and tax sync with your Campfire setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Campfire integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',

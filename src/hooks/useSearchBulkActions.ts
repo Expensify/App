@@ -553,6 +553,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
         'GustoSquare',
         'Pencil',
         'Workflows',
