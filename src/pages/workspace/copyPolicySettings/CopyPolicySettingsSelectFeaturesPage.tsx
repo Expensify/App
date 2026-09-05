@@ -305,7 +305,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         setCopyPolicySettingsData({parts}).then(() => {
             // Copying Control-only settings onto a Collect (Team) target requires upgrading it first,
             // so insert the upgrade step before Confirm; otherwise skip straight to Confirm.
-            const nextRoute = shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts)
+            const nextRoute = shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts, sourcePolicy)
                 ? ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID)
                 : ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID);
             Navigation.navigate(nextRoute);

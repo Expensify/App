@@ -1475,7 +1475,11 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
         return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED,
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }

@@ -848,6 +848,31 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
                             path: ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.route,
                         },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_INVOICE_FIELDS_INITIAL_LIST_VALUE]: DYNAMIC_ROUTES.WORKSPACE_INVOICE_FIELDS_INITIAL_LIST_VALUE.path,
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_LIST_VALUES.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_TYPE_SELECTOR]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_TYPE_SELECTOR.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_ADD_VALUE]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_ADD_VALUE.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_VALUE_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_VALUE_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_EDIT_VALUE.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_EDIT_INITIAL_VALUE.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
                         },

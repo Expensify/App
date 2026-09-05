@@ -22,6 +22,7 @@ import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
+    getReportFieldFromReportNameValuePairs,
     getReportFieldKey,
     getTitleFieldWithFallback,
     hasViolations as hasViolationsReportUtils,
@@ -30,6 +31,7 @@ import {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
+    isReportFieldTargetMatchingReport,
 } from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -53,13 +55,16 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const fieldKey = getReportFieldKey(route.params.fieldID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.path);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const derivedReportName = useDerivedReportNameByReportID(reportID);
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
 
     const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
-    let reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
-    let policyField = policy?.fieldList?.[fieldKey] ?? reportField;
+    const reportFieldFromNVP = getReportFieldFromReportNameValuePairs(reportNameValuePairs, fieldKey) ?? getReportFieldFromReportNameValuePairs(reportNameValuePairs, route.params.fieldID);
+    let reportField =
+        reportFieldFromNVP ?? report?.fieldList?.[fieldKey] ?? report?.fieldList?.[route.params.fieldID] ?? policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[route.params.fieldID];
+    let policyField = policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[route.params.fieldID] ?? reportField;
 
     // If the title field is missing, use fallback so that it can still be edited and matches the OldDot behavior.
     if (isTitleField && !reportField && !policyField) {
@@ -80,11 +85,12 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
-    const reportFieldsEnabled = ((isGroupPolicyExpenseReport(report, policy?.type) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
+    const isReportFieldsFeatureEnabled = report?.type === CONST.REPORT.TYPE.INVOICE ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
+    const reportFieldsEnabled = ((isGroupPolicyExpenseReport(report, policy?.type) || isInvoiceReport(report)) && !!isReportFieldsFeatureEnabled) || isReportFieldTitle;
     const hasOtherViolations =
         report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
 
-    if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
+    if (!reportFieldsEnabled || !reportField || !policyField || !report || !isReportFieldTargetMatchingReport(report, reportField) || isDisabled) {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
