@@ -187,6 +187,15 @@ function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
 }
 
 /**
+ * Check if the navigation action pushes the user out of the onboarding flow.
+ * Only NAVIGATE/PUSH can do this; GO_BACK, POP, SET_PARAMS and DISMISS_MODAL stay inside it.
+ */
+function isNavigatingAwayFromOnboardingFlow(action: NavigationAction): boolean {
+    const isNavigateOrPush = action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
+    return isNavigateOrPush && !isNavigatingToOnboardingFlow(action);
+}
+
+/**
  * Check if the navigation action is targeting an onboarding screen.
  * This handles REPLACE actions that target the OnboardingModalNavigator directly.
  */
@@ -260,6 +269,12 @@ const OnboardingGuard: NavigationGuard = {
         // triggers further actions, creating an infinite navigation loop (APP-7FR).
         const isOnboardingFocused = state.routes[state.index]?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
         if (isOnboardingFocused) {
+            // A deep link that arrives while the app is warm reaches the root router as NAVIGATE/PUSH,
+            // so shouldPreventReset never sees it. Block those unless they target onboarding itself.
+            // BLOCK is not REDIRECT, so the APP-7FR loop protection above is preserved.
+            if (isNavigatingAwayFromOnboardingFlow(action)) {
+                return {type: 'BLOCK', reason: 'Cannot navigate away from onboarding before it is completed'};
+            }
             return {type: 'ALLOW'};
         }
 
