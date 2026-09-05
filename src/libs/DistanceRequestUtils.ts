@@ -415,14 +415,32 @@ function getTransactionCommuterExclusionData({
     // policy setting only when there is no stored exclusion (i.e. a brand-new expense being created).
     const storedCommuterExclusion = storedCustomUnit?.commuterExclusion;
     let commuterExclusion: number;
+    let commuterExclusionMethod: NonNullable<TransactionCustomUnit['commuterExclusionMethod']>;
     if (typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0) {
         const storedExclusionInRequestUnit = convertDistanceUnit(
             convertToDistanceInMeters(storedCommuterExclusion, storedCustomUnit?.distanceUnit ?? requestDistanceUnit),
             requestDistanceUnit,
         );
         commuterExclusion = Math.max(0, Math.min(storedExclusionInRequestUnit, routeDistance));
+        commuterExclusionMethod = storedCustomUnit?.commuterExclusionMethod ?? CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
+    } else if (policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
+        // How much of a trip is the member's commute is decided against their home address and the workspace
+        // address, which takes geocoding the backend does and the app can't, so the verdict rides along on the
+        // route response.
+        const preview = transaction?.commuterExclusionPreview;
+        if (!preview?.hasExclusion || preview.policyID !== policy.id) {
+            commuterExclusion = 0;
+        } else if (preview.isWholeTripExcluded) {
+            // The route distance here is the one to exclude, rather than the backend's copy of it, so the trip
+            // still comes out at nothing reimbursable when the member picked a different alternate route.
+            commuterExclusion = routeDistance;
+        } else {
+            commuterExclusion = Math.min(routeDistance, convertDistanceUnit(preview.commuteDistanceMeters, requestDistanceUnit));
+        }
+        commuterExclusionMethod = CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     } else {
         commuterExclusion = getPolicyCommuterExclusionForDistance(policy, routeDistance, requestDistanceUnit);
+        commuterExclusionMethod = CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
     }
 
     if (commuterExclusion <= 0) {
@@ -459,7 +477,7 @@ function getTransactionCommuterExclusionData({
             ...(routeDistanceInMeters !== undefined && {routeDistanceMeters: routeDistanceInMeters}),
             commuterExclusion,
             reimbursableDistance,
-            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+            commuterExclusionMethod,
         },
     };
 }

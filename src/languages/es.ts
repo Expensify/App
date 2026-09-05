@@ -8800,7 +8800,14 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}) => `añadió "${prohibitedExpense}" a los gastos prohibidos`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
         commuterExclusions: {
-            changedToFixedDistance: 'cambió la exclusión de desplazamientos a una distancia fija por solicitud',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
+                `cambió la exclusión de desplazamientos a una distancia fija por solicitud (previamente ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `cambió la exclusión de desplazamientos a calcular por casa y oficina (previamente ${previousMethod})`,
+            previousMethod: {
+                disabled: 'no excluir desplazamientos',
+                fixedDistance: 'distancia fija por solicitud',
+                homeAndOffice: 'casa y oficina',
+            },
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `establecer exclusión de distancia fija en ${formattedDistance} por reclamación`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `cambió la exclusión de distancia fija a ${formattedNewDistance} por reclamación (previamente ${formattedOldDistance})`,

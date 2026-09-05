@@ -61,6 +61,7 @@ import {
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
+    getUpdatedCommuterExclusionsMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
@@ -4217,6 +4218,38 @@ describe('ReportActionsUtils', () => {
 
             const result = getUpdatedAutoHarvestingMessage(translateLocal, action);
             expect(result).toBe('disabled submissions');
+        });
+    });
+
+    describe('getUpdatedCommuterExclusionsMessage', () => {
+        const buildMethodChangeAction = (newValue: string, oldValue?: string) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    updatedField: CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD,
+                    newValue,
+                    ...(oldValue ? {oldValue} : {}),
+                },
+                message: [],
+            }) as ReportAction;
+
+        it.each([
+            [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, undefined, 'changed exclude commutes to calculate by home and office (previously do not exclude commutes)'],
+            [
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                'changed exclude commutes to calculate by home and office (previously fixed distance per claim)',
+            ],
+            [
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                'changed exclude commutes to a fixed distance per claim (previously home and office)',
+            ],
+            [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, undefined, 'changed exclude commutes to a fixed distance per claim (previously do not exclude commutes)'],
+        ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
+            expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
         });
     });
 

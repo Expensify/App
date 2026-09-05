@@ -8936,7 +8936,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `adicionou "${prohibitedExpense}" às despesas proibidas`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removeu "${prohibitedExpense}" das despesas proibidas`,
         commuterExclusions: {
-            changedToFixedDistance: 'alterou a exclusão de deslocamentos para uma distância fixa por solicitação',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `alterou a exclusão de deslocamentos para uma distância fixa por solicitação (antes ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `alterou a exclusão de deslocamentos para cálculo por casa e escritório (antes ${previousMethod})`,
+            previousMethod: {
+                disabled: 'não excluir deslocamentos',
+                fixedDistance: 'distância fixa por solicitação',
+                homeAndOffice: 'casa e escritório',
+            },
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `definir exclusão de distância fixa para ${formattedDistance} por solicitação`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `alterou a exclusão de distância fixa para ${formattedNewDistance} por reembolso (antes ${formattedOldDistance})`,

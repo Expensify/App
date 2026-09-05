@@ -1146,6 +1146,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusionPreview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routeDistanceMeters: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1288,6 +1289,13 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'string',
             );
+        case 'commuterExclusionPreview':
+            return validateObject<ObjectElement<Transaction, 'commuterExclusionPreview'>>(value, {
+                policyID: 'string',
+                hasExclusion: 'boolean',
+                isWholeTripExcluded: 'boolean',
+                commuteDistanceMeters: 'number',
+            });
         case 'mccGroup':
             return validateConstantEnum(value, CONST.MCC_GROUPS);
         case 'modifiedMCCGroup':

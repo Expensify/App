@@ -8615,7 +8615,13 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已将“${prohibitedExpense}”添加到禁止报销的费用中`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已从禁用报销类别中移除“${prohibitedExpense}”`,
         commuterExclusions: {
-            changedToFixedDistance: '已将“排除通勤”更改为“每次报销按固定距离计算”',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `已将“排除通勤”更改为“每次报销按固定距离计算”（之前为${previousMethod}）`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `已将“排除通勤”更改为“按住址和办公地点计算”（之前为${previousMethod}）`,
+            previousMethod: {
+                disabled: '不排除通勤',
+                fixedDistance: '每次报销按固定距离计算',
+                homeAndOffice: '住址和办公地点',
+            },
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `将每次报销的固定距离排除设置为 ${formattedDistance}`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `已将固定距离免除调整为每笔报销 ${formattedNewDistance}（之前为 ${formattedOldDistance}）`,

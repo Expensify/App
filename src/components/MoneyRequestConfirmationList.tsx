@@ -290,6 +290,7 @@ function MoneyRequestConfirmationList({
             policyForMovingExpenses,
             isMovingTransactionFromTrackExpense,
             isDistanceRequest,
+            isPolicyExpenseChat,
             iouAmount,
             iouCurrencyCode,
         });
@@ -583,7 +584,9 @@ function MoneyRequestConfirmationList({
                     selectedParticipants={selectedParticipantsProp}
                     distanceData={{
                         distance,
-                        hasRoute,
+                        // The distance field reads this to decide whether it has a figure worth showing, so a
+                        // pending route (or a commuter exclusion still being decided) reads as not having one.
+                        hasRoute: hasRoute && !isDistanceRequestWithPendingRoute,
                         unit,
                         distanceRateName: mileageRate.name,
                         distanceRateCurrency: currency,

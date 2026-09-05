@@ -2,6 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useDistanceRequestState from '@components/MoneyRequestConfirmationList/hooks/useDistanceRequestState';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import createMock from '../../utils/createMock';
@@ -40,11 +41,37 @@ const baseParams: Params = {
     policyForMovingExpenses: undefined,
     isMovingTransactionFromTrackExpense: false,
     isDistanceRequest: true,
+    isPolicyExpenseChat: false,
     iouAmount: 0,
     iouCurrencyCode: 'USD',
 };
 
 describe('useDistanceRequestState', () => {
+    // A home and office exclusion is decided server-side, so the confirmation screen waits for the verdict rather
+    // than showing an undeducted amount. The cases that can never receive one must not wait forever.
+    it.each([
+        ['waits while the verdict for this workspace has not arrived yet', {}, true, true],
+        [
+            'stops waiting once the verdict for this workspace arrives',
+            {commuterExclusionPreview: {policyID: 'policy1', hasExclusion: false, isWholeTripExcluded: false, commuteDistanceMeters: 0}},
+            true,
+            false,
+        ],
+        ['stops waiting when the route errored, so no verdict can arrive', {errorFields: {route: {error: 'oops'}}}, true, false],
+        ['does not wait for a personal expense, which no workspace exclusion governs', {}, false, false],
+    ])('%s', (_caseName, transactionOverrides, isPolicyExpenseChat, expected) => {
+        const {result} = renderHook(() =>
+            useDistanceRequestState({
+                ...baseParams,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {customUnit: {routeDistanceMeters: 10}}, ...transactionOverrides}),
+                policy: createMock<OnyxTypes.Policy>({id: 'policy1', commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE}}),
+                isPolicyExpenseChat,
+            }),
+        );
+
+        expect(result.current.isDistanceRequestWithPendingRoute).toBe(expected);
+    });
+
     it('shouldCalculateDistanceAmount is true on initial mount when iouAmount is 0', () => {
         const {result} = renderHook(() => useDistanceRequestState(baseParams));
         expect(result.current.shouldCalculateDistanceAmount).toBe(true);
