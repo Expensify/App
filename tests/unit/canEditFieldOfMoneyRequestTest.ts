@@ -539,6 +539,135 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
         });
 
+        describe('receipt on an approved expense', () => {
+            const APPROVED_POLICY_ID = '55';
+            const APPROVED_REPORT_ID = '66';
+            const APPROVED_TRANSACTION_ID = '77';
+            const EXPENSE_AMOUNT = 500;
+
+            const approvedReportAction = {
+                ...createRandomReportAction(9),
+                reportID: APPROVED_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: APPROVED_TRANSACTION_ID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount: EXPENSE_AMOUNT,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const approvedTransaction = {
+                ...createRandomTransaction(Number(APPROVED_TRANSACTION_ID)),
+                transactionID: APPROVED_TRANSACTION_ID,
+                reportID: APPROVED_REPORT_ID,
+                amount: EXPENSE_AMOUNT,
+            };
+
+            const memberPolicy: Policy = {
+                ...createRandomPolicy(Number(APPROVED_POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+                id: APPROVED_POLICY_ID,
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            const adminPolicy: Policy = {...memberPolicy, role: CONST.POLICY.ROLE.ADMIN};
+
+            const approvedReport = {
+                ...createExpenseReport(Number(APPROVED_REPORT_ID)),
+                policyID: APPROVED_POLICY_ID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+
+            const setUpOnyx = async (reportPolicy: Policy, report = approvedReport, reportAction = approvedReportAction) => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [reportPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${APPROVED_TRANSACTION_ID}`]: approvedTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${APPROVED_REPORT_ID}`]: report,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+                return reportAction;
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return true for an admin replacing a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: approvedTransaction});
+
+                expect(canEditReceipt).toBe(true);
+            });
+
+            it('should return false for the non-admin submitter replacing a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(memberPolicy);
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: approvedTransaction});
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should return false for a non-admin manager replacing a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(memberPolicy, {
+                    ...approvedReport,
+                    ownerAccountID: secondUserAccountID,
+                    managerID: currentUserAccountID,
+                });
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: approvedTransaction});
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should return false for an admin deleting a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: approvedTransaction,
+                });
+
+                expect(canDeleteReceipt).toBe(false);
+            });
+
+            it('should return false for an admin replacing a receipt on a reimbursed report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy, {
+                    ...approvedReport,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                });
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: approvedTransaction});
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should keep the other restricted fields locked for an admin on an approved report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                const restrictedFields = [
+                    CONST.EDIT_REQUEST_FIELD.AMOUNT,
+                    CONST.EDIT_REQUEST_FIELD.CURRENCY,
+                    CONST.EDIT_REQUEST_FIELD.MERCHANT,
+                    CONST.EDIT_REQUEST_FIELD.DATE,
+                    CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+                    CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                ];
+
+                for (const fieldToEdit of restrictedFields) {
+                    expect(canEditFieldOfMoneyRequest({reportAction, fieldToEdit, transaction: approvedTransaction})).toBe(false);
+                }
+            });
+        });
+
         describe('legacy unreported expense (no report action)', () => {
             const LEGACY_TRANSACTION_ID = '777';
             const LEGACY_CUSTOM_UNIT_ID = 'legacyPerDiemUnit';

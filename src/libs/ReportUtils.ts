@@ -5481,7 +5481,16 @@ function canEditFieldOfMoneyRequest({
         return false;
     }
 
-    if (isSettled(moneyRequestReport) || isReportApproved({report: moneyRequestReport})) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    const reportPolicy = policy ?? getPolicy(moneyRequestReport?.policyID);
+    // Moving an expense to another report weighs these two on their own rather than as part of the combined check.
+    const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
+
+    // Admins can add or replace a receipt on an approved expense so a missing receipt can still be provided after approval.
+    const isAdminChangingReceiptOnApprovedReport = isAdmin && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && !isDeleteAction && !isSettled(moneyRequestReport);
+
+    if (!isAdminChangingReceiptOnApprovedReport && (isSettled(moneyRequestReport) || isReportApproved({report: moneyRequestReport}))) {
         return false;
     }
 
@@ -5493,13 +5502,8 @@ function canEditFieldOfMoneyRequest({
         return false;
     }
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    const reportPolicy = policy ?? getPolicy(moneyRequestReport?.policyID);
     const canEditExpense = canCurrentUserEditExpense(reportAction, moneyRequestReport, reportPolicy);
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
-    // Moving an expense to another report weighs these two on their own rather than as part of the combined check.
-    const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
         return canEditExpense;

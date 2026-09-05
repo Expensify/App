@@ -12,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isChatRoom, isGroupChat, isInvoiceReport, isReportApproved, isSettled, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {isChatRoom, isGroupChat, isInvoiceReport, isSettled, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,9 +78,10 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
 
     const hasReceipt = hasReceiptTransactionUtils(transaction);
 
-    const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
+    const isSettledReport = isSettled(report) || isSettled(parentReport);
     const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
-    const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
+    // Approved reports are not excluded here because shouldAddOrReplaceReceipt already limits them to admins.
+    const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledReport;
     const shouldDisplayDualDropZone = canModifyReceipt || hasMoneyRequestOptions;
 
     if (shouldDisplayDualDropZone) {
