@@ -32,7 +32,11 @@ const throttledToggle = throttle(
         const backTo = getBackToParam();
 
         if (currentRoute.includes(ROUTES.TEST_TOOLS_MODAL.route)) {
-            if (backTo) {
+            // A normal modal pop preserves the underlying navigation state, including split navigator history.
+            // Only use backTo when Test Tools was opened directly and there is no route to return to.
+            if (navigationRef.current?.canGoBack()) {
+                Navigation.goBack();
+            } else if (backTo) {
                 Navigation.goBack(backTo);
             } else {
                 Navigation.goBack();
