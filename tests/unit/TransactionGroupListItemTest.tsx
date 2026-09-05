@@ -42,6 +42,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
     getSuggestedSearchesVisibility: jest.fn(() => ({topSpendersPolicyIDs: []})),
+    isTodoSearch: jest.fn(() => false),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
 }));
 

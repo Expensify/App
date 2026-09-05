@@ -14,13 +14,14 @@ import type {PopoverComponentProps} from './FilterPopupButton';
 import BasePopup from './BasePopup';
 
 type ListPopupProps = Pick<ListFilterContentProps, 'baseFilterKey'> & {
+    isDefault: boolean;
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     label: string;
     closeOverlay: PopoverComponentProps['closeOverlay'];
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function ListPopup({baseFilterKey, values, label, updateFilterForm, closeOverlay}: ListPopupProps) {
+function ListPopup({baseFilterKey, isDefault, values, label, updateFilterForm, closeOverlay}: ListPopupProps) {
     const {isNegated: initialIsNegated, value: initialValue} = getFilterNegatableValue(baseFilterKey, values);
     const [value, setValue] = useState(initialValue);
     const [isNegated, setIsNegated] = useState(initialIsNegated);
@@ -34,6 +35,7 @@ function ListPopup({baseFilterKey, values, label, updateFilterForm, closeOverlay
         <BasePopup
             label={label}
             onApply={applyChanges}
+            showActionButtons={!isDefault || !!value?.length}
             applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
         >
             <ListFilterContent

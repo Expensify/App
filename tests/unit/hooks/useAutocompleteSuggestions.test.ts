@@ -5,6 +5,7 @@ import useNetwork from '@hooks/useNetwork';
 
 import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
 import {getSearchOptions} from '@libs/OptionsListUtils';
+import type * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +48,7 @@ jest.mock('@libs/SearchAutocompleteUtils', () => ({
         {taxRateName: 'VAT 20%', taxRateIds: ['vat20']},
         {taxRateName: 'GST 10%', taxRateIds: ['gst10']},
     ]),
+    CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
 }));
 
 jest.mock('@libs/OptionsListUtils', () => ({

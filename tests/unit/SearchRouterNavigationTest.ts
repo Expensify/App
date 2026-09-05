@@ -23,6 +23,7 @@ import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navig
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
@@ -42,15 +43,9 @@ import {isValidElement} from 'react';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 
-type MockSearchTypeMenuSectionsResult = {
-    typeMenuSections: SearchTypeMenuSection[];
-    activeItemIndex: number;
-    activeKey: string | undefined;
-};
-
 type GetWorkspaceMenuItems = typeof getWorkspaceMenuItems;
 
-const mockUseSearchTypeMenuSections = jest.fn<MockSearchTypeMenuSectionsResult, [queryParams: unknown, isScreenFocused: boolean]>();
+const mockUseSearchTypeMenuSections = jest.fn<SearchTypeMenuSection[], [queryParams: unknown, isScreenFocused: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
 const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
 const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
@@ -63,6 +58,8 @@ const currentUserAccountID = 1;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
+    useSearchQueryContext: () => ({}),
+    useSearchQueryActions: () => ({}),
 }));
 
 jest.mock('@components/Search/SearchRouter/useCreateNavigationSuggestions', () => ({
@@ -556,7 +553,7 @@ describe('Domain Search Router navigation source', () => {
             Building: mockIcon,
             Gear: mockIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({typeMenuSections: [], activeItemIndex: -1, activeKey: undefined});
+        mockUseSearchTypeMenuSections.mockReturnValue([]);
 
         const {result} = renderHook(() => useNavigationSuggestions('members'));
 
@@ -745,16 +742,12 @@ describe('Workspace Search Router navigation source', () => {
             ReceiptMultiple: mockIcon,
             Gear: mockIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({
-            typeMenuSections: [
-                {
-                    translationPath: 'search.tabs.expenseReports',
-                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
-                },
-            ],
-            activeItemIndex: -1,
-            activeKey: undefined,
-        });
+        mockUseSearchTypeMenuSections.mockReturnValue([
+            {
+                translationPath: 'search.tabs.expenseReports',
+                menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+            },
+        ]);
         mockUseSettingsNavigationMenuData.mockReturnValue({
             accountMenuItemsData: {
                 sectionTranslationKey: 'initialSettingsPage.account',
@@ -837,7 +830,7 @@ describe('Spend Search Router navigation source', () => {
         expect(items.map((item) => item.matchTerms)).toEqual([['Reports'], ['Expenses']]);
 
         items.at(0)?.action?.();
-        expect(onSelect).toHaveBeenCalledWith(reportsQuery);
+        expect(onSelect).toHaveBeenCalledWith(CONST.SEARCH.SEARCH_KEYS.REPORTS, reportsQuery);
     });
 
     it('does not use the right-side Spend context as a matching term', () => {
@@ -873,13 +866,53 @@ describe('Spend Search Router navigation source', () => {
         const clearSelectedTransactions = jest.fn();
         const searchQuery = 'type:expense sortBy:date sortOrder:desc';
 
-        navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions);
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, undefined, 0, clearSelectedTransactions, jest.fn());
 
         expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
         expect(setSearchContext).toHaveBeenCalledWith(false);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
         expect(clearSelectedTransactions.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0) ?? 0);
         expect(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0);
+    });
+
+    it('marks the search key as pending when the resolved query hash differs from the current hash', () => {
+        const setCurrentSearchKey = jest.fn();
+        const searchQuery = 'type:expense sortBy:date sortOrder:desc';
+        const differentHash = (buildSearchQueryJSON(searchQuery)?.hash ?? 0) + 1;
+
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, undefined, differentHash, jest.fn(), setCurrentSearchKey);
+
+        expect(setCurrentSearchKey).toHaveBeenCalledWith(CONST.SEARCH.SEARCH_KEYS.EXPENSES, true);
+    });
+
+    it('marks the search key as non-pending when the resolved query hash matches the current hash', () => {
+        const setCurrentSearchKey = jest.fn();
+        const searchQuery = 'type:expense sortBy:date sortOrder:desc';
+        const sameHash = buildSearchQueryJSON(searchQuery)?.hash ?? 0;
+
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, undefined, sameHash, jest.fn(), setCurrentSearchKey);
+
+        expect(setCurrentSearchKey).toHaveBeenCalledWith(CONST.SEARCH.SEARCH_KEYS.EXPENSES, false);
+    });
+
+    it('navigates with the last query when it is still valid for the default query', () => {
+        const searchQuery = 'type:expense sortBy:date sortOrder:desc';
+        // The last query adds a filter but keeps the default query's type and (empty) filter keys, so it stays valid.
+        const lastSearchQuery = 'type:expense sortBy:date sortOrder:desc merchant:test';
+
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, 0, jest.fn(), jest.fn());
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: lastSearchQuery}));
+    });
+
+    it('falls back to the default query when the last query drops one of its filters', () => {
+        const searchQuery = 'type:expense merchant:Amazon';
+        // The last query drops the default's merchant filter, so it is no longer valid and the default is used.
+        const lastSearchQuery = 'type:expense category:Food';
+
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, 0, jest.fn(), jest.fn());
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
     });
 
     it('composes Spend suggestions from the menu hook with icons, context, exclusions, and approval gating', () => {
@@ -894,26 +927,22 @@ describe('Spend Search Router navigation source', () => {
             Gear: mockIcon,
             Document: reportsIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({
-            typeMenuSections: [
-                {
-                    translationPath: 'search.tabs.expenseReports',
-                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
-                },
-                {
-                    translationPath: 'search.savedSearchesMenuItemTitle',
-                    menuItems: [createSpendMenuItem(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}1`, 'search.tabs.reports', 'Receipt', 'saved-search-query')],
-                },
-            ],
-            activeItemIndex: -1,
-            activeKey: undefined,
-        });
+        mockUseSearchTypeMenuSections.mockReturnValue([
+            {
+                translationPath: 'search.tabs.expenseReports',
+                menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+            },
+            {
+                translationPath: 'search.savedSearchesMenuItemTitle',
+                menuItems: [createSpendMenuItem(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}1`, 'search.tabs.reports', 'Receipt', 'saved-search-query')],
+            },
+        ]);
 
         const {result, rerender} = renderHook(({shouldWatchForApprovals}) => useNavigationSuggestions('reports', shouldWatchForApprovals), {
             initialProps: {shouldWatchForApprovals: false},
         });
 
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(undefined, false);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(false, undefined);
         expect(result.current).toHaveLength(1);
         expect(result.current.at(0)).toMatchObject({
             text: 'Go to Reports',
@@ -930,7 +959,7 @@ describe('Spend Search Router navigation source', () => {
         expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, iconSize: variables.fontSizeLabel, showTooltip: false});
 
         rerender({shouldWatchForApprovals: true});
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(undefined, true);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true, undefined);
     });
 
     it('keeps Create rows reachable when top-level and Spend sources are present', () => {
@@ -942,16 +971,12 @@ describe('Spend Search Router navigation source', () => {
             Building: mockIcon,
             Gear: mockIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({
-            typeMenuSections: [
-                {
-                    translationPath: 'search.tabs.expenseReports',
-                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
-                },
-            ],
-            activeItemIndex: -1,
-            activeKey: undefined,
-        });
+        mockUseSearchTypeMenuSections.mockReturnValue([
+            {
+                translationPath: 'search.tabs.expenseReports',
+                menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+            },
+        ]);
         mockUseCreateNavigationSuggestions.mockReturnValue(
             CreateNavigationSuggestions.buildCreateNavigationItems([{visible: true, text: 'Create expense', icon: mockIcon, action: jest.fn(), keyForList: 'create_expense'}]),
         );
@@ -1041,7 +1066,7 @@ describe('Account Search Router navigation source', () => {
             Building: mockIcon,
             Gear: accountContextIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({typeMenuSections: [], activeItemIndex: -1, activeKey: undefined});
+        mockUseSearchTypeMenuSections.mockReturnValue([]);
         mockUseSettingsNavigationMenuData.mockReturnValue({
             accountMenuItemsData: {
                 sectionTranslationKey: 'initialSettingsPage.account',

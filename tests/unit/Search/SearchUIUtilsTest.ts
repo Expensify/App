@@ -17,7 +17,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SearchColumnType, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchFilterKey, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 
 import Navigation from '@navigation/Navigation';
 
@@ -13334,6 +13334,53 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isTextFilterKey('')).toBe(false);
         });
     });
+
+    describe('searchKeyToSavedSearchID', () => {
+        it('strips the prefix to recover the saved search ID', () => {
+            expect(SearchUIUtils.searchKeyToSavedSearchID(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`)).toBe('12345');
+        });
+
+        it('returns undefined for a non saved-search key', () => {
+            expect(SearchUIUtils.searchKeyToSavedSearchID(CONST.SEARCH.SEARCH_KEYS.EXPENSES)).toBeUndefined();
+        });
+
+        it('returns undefined when the key is undefined', () => {
+            expect(SearchUIUtils.searchKeyToSavedSearchID(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('savedSearchIDToSearchKey', () => {
+        it('prefixes a saved search ID to build a search key', () => {
+            expect(SearchUIUtils.savedSearchIDToSearchKey('12345')).toBe(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`);
+        });
+    });
+
+    describe('mapFiltersFormToLabelValueList', () => {
+        const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
+
+        it('places default filters before non-default filters', () => {
+            const form = {
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'hotel',
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: 'Amazon',
+            };
+            const defaultKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(
+                form,
+                defaultKeys,
+                new Set(),
+                translateLocal,
+                undefined,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+                (filterKey, isDefault) => ({isDefault}),
+            );
+
+            expect(result.map((filter) => filter.key)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]);
+            expect(result.at(0)?.isDefault).toBe(true);
+            expect(result.at(1)?.isDefault).toBe(false);
+        });
+    });
 });
 
 describe('getCardDescriptionForSearchTable', () => {
@@ -13511,6 +13558,54 @@ describe('splitGroupsIntoPairs', () => {
         const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs([leaf]);
         expect(splitData).toEqual([leaf]);
         expect(stickyHeaderIndices).toEqual([]);
+    });
+});
+
+describe('getLastSearchQuery', () => {
+    const submitKey = CONST.SEARCH.SEARCH_KEYS.SUBMIT;
+    const savedSearchKey = SearchUIUtils.savedSearchIDToSearchKey('100');
+    const submitQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`;
+    const savedSearchQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`;
+
+    const searchFilters: OnyxTypes.SearchFilters = {
+        [submitKey]: {query: submitQuery, timestamp: '2026-08-21 00:00:00.000'},
+        [savedSearchKey]: {query: savedSearchQuery, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} exported:false`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} feed:Expensify`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} reimbursable:true`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} reimbursable:false`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} posted:2026-08`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:from`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:category`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:merchant`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:month`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: {
+            query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:${CONST.SEARCH.GROUP_BY.FROM} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`,
+            timestamp: '2026-08-21 00:00:00.000',
+        },
+        // Legacy string format, kept for the assertions below.
+        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`,
+        [CONST.SEARCH.SEARCH_KEYS.PAY]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Uber`,
+    };
+
+    it('returns the query of the filter stored for the search key', () => {
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, submitKey)).toBe(submitQuery);
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, savedSearchKey)).toBe(savedSearchQuery);
+    });
+
+    it('returns undefined for a filter stored in the legacy string format', () => {
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.APPROVE)).toBeUndefined();
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.PAY)).toBeUndefined();
+    });
+
+    it('returns undefined when the search key has no filter', () => {
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, SearchUIUtils.savedSearchIDToSearchKey('200'))).toBeUndefined();
+    });
+
+    it('returns undefined when there are no filters at all', () => {
+        expect(SearchUIUtils.getLastSearchQuery(undefined, submitKey)).toBeUndefined();
     });
 });
 

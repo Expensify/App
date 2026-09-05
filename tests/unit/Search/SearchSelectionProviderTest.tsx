@@ -25,6 +25,8 @@ const queryContextValue: SearchQueryContextValue = {
     currentSimilarSearchHash: 1,
     currentSearchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
     currentSearchQueryJSON: expenseQueryJSON,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
     suggestedSearches: getEmptyObject<SearchQueryContextValue['suggestedSearches']>(),
     shouldResetSearchQuery: false,
 };

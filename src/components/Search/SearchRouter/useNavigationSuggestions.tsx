@@ -3,7 +3,7 @@
  */
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
-import {useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -24,8 +24,8 @@ import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateT
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import {SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
-import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import {getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import type {SearchKey, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import navigationRef from '@navigation/navigationRef';
 
@@ -112,7 +112,7 @@ type BuildSpendNavigationItemsParams = {
     rightElement: ReactNode;
     getItemText: (item: SearchTypeMenuItem) => string;
     getDestinationText: (destination: string) => string;
-    onSelect: (searchQuery: string) => void;
+    onSelect: (searchKey: SearchKey, searchQuery: string) => void;
 };
 
 type BuildWorkspaceNavigationItemsParams = {
@@ -257,7 +257,7 @@ function buildSpendNavigationItems({sections, icons, rightElement, getItemText, 
                 return {
                     text: getDestinationText(itemText),
                     singleIcon: icons[item.icon],
-                    action: () => onSelect(item.searchQuery),
+                    action: () => onSelect(item.key, item.searchQuery),
                     keyForList: `spend_${item.key}`,
                     rightElement,
                     matchTerms: [itemText],
@@ -373,13 +373,16 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const createItems = useCreateNavigationSuggestions(query);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {typeMenuSections} = useSearchTypeMenuSections(undefined, shouldWatchForApprovals);
+    const typeMenuSections = useSearchTypeMenuSections(shouldWatchForApprovals);
+    const {currentSearchHash} = useSearchQueryContext();
+    const {setCurrentSearchKey} = useSearchQueryActions();
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
     const topLevelItems = buildTopLevelNavigationItems({
@@ -410,7 +413,8 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         ),
         getItemText: (item) => translate(item.translationPath),
         getDestinationText: (destination) => getGoToText(translate, destination),
-        onSelect: (searchQuery) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions),
+        onSelect: (searchKey, searchQuery) =>
+            navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), currentSearchHash, clearSelectedTransactions, setCurrentSearchKey),
     });
 
     const workspaceItems = buildWorkspaceNavigationItems({

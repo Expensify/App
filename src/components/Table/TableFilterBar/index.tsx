@@ -1,5 +1,5 @@
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import SearchFiltersClearButton from '@components/Search/SearchPageHeader/SearchFiltersClearButton';
+import SearchFiltersResetButton from '@components/Search/SearchPageHeader/SearchFiltersResetButton';
 import {useTableContext} from '@components/Table/TableContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -69,7 +69,7 @@ export default function TableFilterBar({label, shouldShowClearFiltersButton, chi
                     onClosePress={filter.onClosePress}
                 />
             ))}
-            {!!shouldShowClearFiltersButton && <SearchFiltersClearButton onPress={clearAllFilters} />}
+            {!!shouldShowClearFiltersButton && <SearchFiltersResetButton onPress={clearAllFilters} />}
         </View>
     );
 
