@@ -32,7 +32,7 @@ After your business bank account is approved:
 When you see the three test amounts post to your bank account: 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Wallet**.
-2. In the **Bank accounts** section, click the business bank account with the **Action required** badge. 
+2. In the **Bank accounts** section, find the business bank account with the **Pending** badge and the message **Please confirm test transactions**, then click **Confirm**.
 3. In the **Validate your bank account** section that appears, enter each transaction amount. 
 4. Click **Validate**.
 
@@ -40,9 +40,15 @@ Once the values are confirmed, your business bank account is fully connected and
 
 ---
 
-![Account > Wallet > bank account with a callout on the Action required badge]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_02.png){:width="100%"}
+![Account > Wallet > bank account with a callout on the Pending badge]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_02.png){:width="100%"}
 
-![Account > Wallet > bank account with an Action required badge > expose validation pane]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_03.png){:width="100%"}
+![Account > Wallet > bank account with a Pending badge > expose validation pane]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_03.png){:width="100%"}
+
+<!-- SCREENSHOT:
+Suggestion: Replace ExpensifyHelp-BetterBusinessBankAccount_02.png and _03.png with captures showing the Pending badge and the Please confirm test transactions message
+Location: Replacing the two images above
+Purpose: The current images still show the retired Action required badge, so members looking for that badge won't find it in the product
+-->
 
 ---
 
@@ -97,7 +103,7 @@ If you have confirmed all of the above and validation still fails, contact Conci
 
 ## The Fix or Unlock button is missing
 
-If your bank account shows a **Locked** badge but you do not see a **Fix** or **Unlock account** option:
+A locked bank account shows a **Locked** badge with the message **This account requires attention** and an **Unlock** button. If you do not see that button:
 
 1. Check **Settings > Wallet** in the **Bank accounts** section and click the locked bank account.
 2. If no option appears there, check **Workspaces > [Workspace Name] > Workflows** in the **Payments** section.
