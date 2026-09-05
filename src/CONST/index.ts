@@ -562,6 +562,7 @@ const CONST = {
         BILLCOM: 'Bill.com',
         ZENEFITS: 'Zenefits',
         DUALENTRY: 'DualEntry',
+        CAMPFIRE: 'Campfire',
     },
 
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
@@ -1057,6 +1058,7 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         DUALENTRY: 'dualEntry',
+        CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
@@ -3753,6 +3755,62 @@ const CONST = {
         OTHER_CURRENT_LIABILITY: 'other_current_liability',
     },
 
+    CAMPFIRE_CONFIG: {
+        SUBSIDIARY_ID: 'subsidiaryID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        DEFAULT_VENDORID: 'defaultVendorID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_SYNC: 'autoSync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        BILL_PAYMENT_ACCOUNT_ID: 'billPaymentAccountID',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
+    },
+
+    CAMPFIRE_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
+    },
+
+    CAMPFIRE_EXPORT_REIMBURSABLE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    CAMPFIRE_EXPORT_NON_REIMBURSABLE: {
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+    },
+
+    CAMPFIRE_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    CAMPFIRE_ACCOUNT_TYPE: {
+        OPERATING_EXPENSES: 'OPERATING_EXPENSES',
+        LIABILITY: 'LIABILITY',
+        ASSET: 'ASSET',
+    },
+
+    CAMPFIRE_ACCOUNT_SUBTYPE: {
+        EXPENSE: 'EXPENSE',
+        LONG_TERM_LIABILITY: 'LONG_TERM_LIABILITY',
+        CREDIT_CARD: 'CREDIT_CARD',
+        BANK: 'BANK',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
@@ -4512,6 +4570,7 @@ const CONST = {
                 CERTINIA: 'financialforce',
                 RILLET: 'rillet',
                 DUALENTRY: 'dualEntry',
+                CAMPFIRE: 'campfire',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -4530,6 +4589,7 @@ const CONST = {
                 CERTINIA: 'certinia',
                 RILLET: 'rillet',
                 DUALENTRY: 'dualentry',
+                CAMPFIRE: 'campfire',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
@@ -4544,6 +4604,7 @@ const CONST = {
                 financialforce: 'Certinia',
                 rillet: 'Rillet',
                 dualEntry: 'DualEntry',
+                campfire: 'Campfire',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -4555,7 +4616,17 @@ const CONST = {
                 other: 'Other',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
-                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.DUALENTRY] as const;
+                return [
+                    this.NAME.QBO,
+                    this.NAME.QBD,
+                    this.NAME.XERO,
+                    this.NAME.NETSUITE,
+                    this.NAME.SAGE_INTACCT,
+                    this.NAME.CERTINIA,
+                    this.NAME.RILLET,
+                    this.NAME.DUALENTRY,
+                    this.NAME.CAMPFIRE,
+                ] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
@@ -4569,6 +4640,7 @@ const CONST = {
                     [this.NAME.CERTINIA]: 'financialforce',
                     [this.NAME.RILLET]: 'rillet',
                     [this.NAME.DUALENTRY]: 'dualentry',
+                    [this.NAME.CAMPFIRE]: 'campfire',
                 } as const;
             },
             get HR_CONNECTION_NAMES() {
@@ -4681,6 +4753,12 @@ const CONST = {
                 DUALENTRY_SYNC_PAYMENTS: 'dualEntrySyncPayments',
                 DUALENTRY_SYNC_CARD_SETTLEMENTS: 'dualEntrySyncCardSettlements',
                 DUALENTRY_SYNC_TRAVEL_SETTLEMENTS: 'dualEntrySyncTravelSettlements',
+                CAMPFIRE_SYNC_TITLE: 'campfireSyncTitle',
+                CAMPFIRE_SYNC_CONNECTION: 'campfireSyncConnection',
+                CAMPFIRE_SYNC_IMPORT_DATA: 'campfireSyncImportData',
+                CAMPFIRE_SYNC_PAYMENTS: 'campfireSyncPayments',
+                CAMPFIRE_SYNC_CARD_SETTLEMENTS: 'campfireSyncCardSettlements',
+                CAMPFIRE_SYNC_TRAVEL_SETTLEMENTS: 'campfireSyncTravelSettlements',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -5163,6 +5241,11 @@ const CONST = {
              * Name of Card NVP for DualEntry custom export accounts
              */
             NVP_DUALENTRY_EXPORT_ACCOUNT: 'dualentry_export_account',
+
+            /**
+             * Name of Card NVP for Campfire custom export accounts
+             */
+            NVP_CAMPFIRE_EXPORT_ACCOUNT: 'campfire_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -5215,6 +5298,11 @@ const CONST = {
              * Name of Card NVP for DualEntry custom export accounts
              */
             NVP_DUALENTRY_EXPORT_ACCOUNT_POLICY_ID: 'dualentry_export_account_policy_id',
+
+            /**
+             * Name of Card NVP for Campfire custom export accounts
+             */
+            NVP_CAMPFIRE_EXPORT_ACCOUNT_POLICY_ID: 'campfire_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -8075,6 +8163,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DUALENTRY}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DUALENTRY}.description` as const,
                 icon: 'DualEntrySquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                id: this.POLICY.CONNECTIONS.NAME.CAMPFIRE,
+                alias: 'campfire',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.campfire,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.description` as const,
+                icon: 'CampfireSquare',
             },
             approvals: {
                 id: 'approvals' as const,
