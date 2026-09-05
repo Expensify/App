@@ -12,10 +12,9 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
-import {isReportFieldTargetValid, validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
+import {isReportFieldImportedFromIntegration, isReportFieldTargetValid, validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -97,7 +96,7 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
             policyID={policyID}
             featureName={featureName}
             policyFeature={policyFeature}
-            shouldBeBlocked={hasAccountingConnections(policy)}
+            shouldBeBlocked={isReportFieldImportedFromIntegration(reportField)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

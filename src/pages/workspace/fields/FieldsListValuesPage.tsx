@@ -29,10 +29,9 @@ import {
     updateReportFieldListValueEnabled as updateReportFieldListValueEnabledReportField,
 } from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
-import {isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
+import {isReportFieldImportedFromIntegration, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -73,8 +72,8 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const {showConfirmModal} = useConfirmModal();
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
-    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
     const expectedTarget = isInvoicePage ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
     const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
     const listInputSubtitleKey = isInvoicePage ? 'workspace.invoiceFields.listInputSubtitle' : 'workspace.reportFields.listInputSubtitle';
@@ -195,7 +194,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         if (canWrite && (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedKeys.length > 0)) {
-            if (selectedKeys.length > 0 && !hasAccountingConnections) {
+            if (selectedKeys.length > 0 && !isImportedReportField) {
                 options.push({
                     icon: icons.Trashcan,
                     text: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
@@ -316,7 +315,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
             );
         }
 
-        if (canWrite && !hasAccountingConnections) {
+        if (canWrite && !isImportedReportField) {
             return (
                 <Button
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}

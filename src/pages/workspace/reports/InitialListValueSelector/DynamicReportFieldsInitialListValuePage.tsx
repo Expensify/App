@@ -18,7 +18,6 @@ type DynamicReportFieldsInitialListValuePageProps = WithPolicyAndFullscreenLoadi
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE>;
 
 function DynamicReportFieldsInitialListValuePage({
-    policy,
     route: {
         params: {policyID},
     },

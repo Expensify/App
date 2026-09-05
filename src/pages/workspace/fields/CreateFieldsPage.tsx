@@ -15,7 +15,6 @@ import {setDraftValues} from '@libs/actions/FormActions';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections} from '@libs/PolicyUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {getReportFieldsForTarget, getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
 
@@ -161,7 +160,6 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={featureName}
-            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

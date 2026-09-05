@@ -12,7 +12,6 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 
@@ -77,7 +76,6 @@ function FieldsEditValuePage({policy, policyID, valueIndex, featureName, policyF
             policyID={policyID}
             featureName={featureName}
             policyFeature={policyFeature}
-            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

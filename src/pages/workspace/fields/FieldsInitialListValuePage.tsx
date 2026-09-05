@@ -9,7 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ReportFieldsInitialListValuePicker from '@pages/workspace/reports/InitialListValueSelector/ReportFieldsInitialListValuePicker';
@@ -65,7 +64,6 @@ function FieldsInitialListValuePage({policy, policyID, featureName, backPath, su
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={featureName}
-            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 style={styles.pb0}

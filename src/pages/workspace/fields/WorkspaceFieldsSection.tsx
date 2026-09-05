@@ -16,9 +16,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
+import {getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -63,6 +63,7 @@ type WorkspaceFieldsSectionProps = {
     importedFromAccountingSoftwareKey: TranslationPaths;
     disableTitleKey: TranslationPaths;
     disablePromptKey: TranslationPaths;
+    cannotDisableImportedFieldsPromptKey?: TranslationPaths;
     addFieldKey: TranslationPaths;
     createRoute: Route;
     getSettingsRoute: (policyID: string, fieldID: string) => Route;
@@ -90,6 +91,7 @@ function WorkspaceFieldsSection({
     importedFromAccountingSoftwareKey,
     disableTitleKey,
     disablePromptKey,
+    cannotDisableImportedFieldsPromptKey = 'workspace.reportFields.cannotDisableImportedReportFields',
     addFieldKey,
     createRoute,
     getSettingsRoute,
@@ -113,8 +115,8 @@ function WorkspaceFieldsSection({
     const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
-    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const fieldList = policy?.fieldList;
+    const hasImportedField = useMemo(() => Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field)), [fieldFilter, fieldList]);
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const fetchFields = useCallback(() => {
@@ -195,22 +197,16 @@ function WorkspaceFieldsSection({
 
     const isLoading = !isOffline && policy === undefined;
 
-    const onDisabledOrganizeSwitchPress = () => {
-        if (!hasAccountingConnections) {
+    const showImportedFieldsLockedModal = () => {
+        if (!hasImportedField) {
             return;
         }
 
         showConfirmModal({
-            title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
-            prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
-            confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
-            cancelText: translate('common.cancel'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            title: translate(disableTitleKey),
+            prompt: translate(cannotDisableImportedFieldsPromptKey),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
         });
     };
 
@@ -252,8 +248,8 @@ function WorkspaceFieldsSection({
 
                     enableFields(policyID, true);
                 }}
-                disabled={hasAccountingConnections || !canWrite}
-                disabledAction={withReadOnlyFallback(onDisabledOrganizeSwitchPress)}
+                disabled={!canWrite || (isEnabled && hasImportedField)}
+                disabledAction={withReadOnlyFallback(showImportedFieldsLockedModal)}
                 showLockIcon={!canWrite}
                 subMenuItems={
                     isEnabled && (
@@ -268,7 +264,7 @@ function WorkspaceFieldsSection({
                                     />
                                 )}
                             </View>
-                            {!hasAccountingConnections && canWrite && (
+                            {canWrite && (
                                 <MenuItem
                                     onPress={() => {
                                         setInitialCreateReportFieldsForm();

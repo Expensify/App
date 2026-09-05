@@ -16,10 +16,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {deleteReportFieldsListValue, removeReportFieldListValue, setReportFieldsListValueEnabled, updateReportFieldListValueEnabled} from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections as hasAccountingConnectionsUtil} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
-import {isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
+import {isReportFieldImportedFromIntegration, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -72,9 +71,9 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
         return [reportFieldValue, reportFieldDisabledValue];
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
-    const hasAccountingConnections = hasAccountingConnectionsUtil(policy);
-    const oldValueName = usePrevious(currentValueName);
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
+    const oldValueName = usePrevious(currentValueName);
     const expectedTarget = isInvoicePage ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
     const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
     const shouldUseInvoiceRoutes = isInvoicePage;
@@ -171,7 +170,7 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                         interactive={canWrite && !reportFieldID}
                         onPress={navigateToEditValue}
                     />
-                    {canWrite && !hasAccountingConnections && (
+                    {canWrite && !isImportedReportField && (
                         <MenuItemAction
                             icon={icons.Trashcan}
                             title={translate('common.delete')}

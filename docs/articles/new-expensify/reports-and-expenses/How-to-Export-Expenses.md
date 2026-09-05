@@ -84,6 +84,10 @@ Yes. Select **Export current view** to download a CSV that matches the columns c
 
 If all selected expenses are deleted, only the **Basic export** template is available. Other export templates require a report, and deleted expenses are not associated with any report.
 
+## What happens if I refresh the page while my receipts are preparing?
+
+Your download keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Select **Download file** once it shows **Your file is ready!**.
+
 ## Why don't I see Download receipts for my selected expenses?
 
 **Download receipts** only appears when at least one selected expense has a receipt attached. If none of the selected expenses have receipts, the option is hidden.

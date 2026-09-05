@@ -3,13 +3,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {ReportFieldItemType} from '@pages/workspace/reports/ReportFieldTypePicker';
@@ -49,7 +47,6 @@ function getDefaultInitialValueForReportFieldType(type: PolicyReportFieldType): 
 function FieldsTypeSelectorPage({policyID, currentType, featureName, createRoute, subtitleKey, testID}: FieldsTypeSelectorPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const selectType = (item: ReportFieldItemType) => {
         if (item.value !== currentType) {
@@ -66,7 +63,6 @@ function FieldsTypeSelectorPage({policyID, currentType, featureName, createRoute
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={featureName}
-            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

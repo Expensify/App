@@ -11,10 +11,9 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
-import {getReportFieldInitialValue, getReportFieldTypeTranslationKey, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
+import {getReportFieldInitialValue, getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -65,13 +64,14 @@ function FieldsSettingsPage({
     const {showConfirmModal} = useConfirmModal();
     const {canWrite} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
-    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportFieldKey = getReportFieldKey(reportFieldID);
     const reportField = policy?.fieldList?.[reportFieldKey] ?? null;
 
     if (!reportField || !isReportFieldTargetValid(reportField, expectedTarget)) {
         return <NotFoundPage />;
     }
+
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
 
     const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
@@ -153,7 +153,7 @@ function FieldsSettingsPage({
                             onPress={() => Navigation.navigate(getInitialValueRoute(policyID, reportFieldID))}
                         />
                     )}
-                    {canWrite && !hasAccountingConnections && (
+                    {canWrite && !isImportedReportField && (
                         <View style={styles.flexGrow1}>
                             <MenuItemAction
                                 icon={icons.Trashcan}
