@@ -925,7 +925,7 @@ function duplicateExpenseTransaction({
             transactionParams: {
                 ...(params.transactionParams ?? {}),
                 validWaypoints: waypoints,
-                ...(isDistanceRequest(transaction) && {distanceRequestType: duplicateRequestType}),
+                ...(isGPSDistanceRequest(transaction) && {distanceRequestType: duplicateRequestType}),
             },
             report: undefined,
             isDraftPolicy: false,
