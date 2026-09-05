@@ -669,6 +669,8 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
+                        shouldAllowParticipantEdit={iouType === CONST.IOU.TYPE.SUBMIT}
+                        onOpenParticipantPicker={() => Navigation.goBack()}
                         iouType={iouType}
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}
