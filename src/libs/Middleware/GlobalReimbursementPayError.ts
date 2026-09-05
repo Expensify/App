@@ -53,7 +53,7 @@ const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responseP
                     ...(widened.value as Record<string, unknown>),
                     [reportActionID]: null,
                 },
-            };
+            } as (typeof request.failureData)[number];
         });
 
         Log.info('GlobalReimbursementPayError: replaced optimistic PAY action-error with action-null for corpayPayModal', false, {iouReportID, reportActionID});

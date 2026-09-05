@@ -27,52 +27,53 @@ function EnableGlobalReimbursementsPayModal() {
     const navigationPathAtSignalRef = useRef<string | undefined>(undefined);
 
     const showCorpayPayModal = useEffectEvent(async (modalData: CorpayPayModal) => {
-        if (isModalOpenRef.current) {
-            pendingModalDataRef.current = modalData;
-            return;
-        }
+        let nextModalData: CorpayPayModal | null = modalData;
 
-        isModalOpenRef.current = true;
-        navigationPathAtSignalRef.current = Navigation.getActiveRoute();
-        const result = await showConfirmModal({
-            title: translate('common.corpayPayModalTitle'),
-            prompt: translate('common.corpayPayModalPrompt'),
-            confirmText: translate('common.enableGlobalReimbursements'),
-            cancelText: translate('common.cancel'),
-            shouldShowCancelButton: true,
-        });
-        isModalOpenRef.current = false;
+        while (nextModalData) {
+            if (isModalOpenRef.current) {
+                pendingModalDataRef.current = nextModalData;
+                return;
+            }
 
-        if (result.action === ModalActions.CONFIRM) {
-            const {bankAccountID, bankCountry, bankCurrency} = modalData;
-            if (typeof bankAccountID !== 'number' || Number.isNaN(bankAccountID)) {
-                clearCorpayPayModal();
-            } else if (isAccountLocked) {
-                showLockedAccountModal();
-                clearCorpayPayModal();
+            isModalOpenRef.current = true;
+            navigationPathAtSignalRef.current = Navigation.getActiveRoute();
+            const result = await showConfirmModal({
+                title: translate('common.corpayPayModalTitle'),
+                prompt: translate('common.corpayPayModalPrompt'),
+                confirmText: translate('common.enableGlobalReimbursements'),
+                cancelText: translate('common.cancel'),
+                shouldShowCancelButton: true,
+            });
+            isModalOpenRef.current = false;
+
+            if (result.action === ModalActions.CONFIRM) {
+                const {bankAccountID, bankCountry, bankCurrency} = nextModalData;
+                if (typeof bankAccountID !== 'number' || Number.isNaN(bankAccountID)) {
+                    clearCorpayPayModal();
+                } else if (isAccountLocked) {
+                    showLockedAccountModal();
+                    clearCorpayPayModal();
+                } else {
+                    Navigation.navigate(
+                        getEnableGlobalReimbursementsBusinessNavigationRoute(
+                            bankAccountID,
+                            CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
+                            {
+                                bankCountry,
+                                bankCurrency,
+                            },
+                            navigationPathAtSignalRef.current,
+                        ),
+                        {skipMatchingFullScreenRoute: true},
+                    );
+                    clearCorpayPayModal();
+                }
             } else {
-                Navigation.navigate(
-                    getEnableGlobalReimbursementsBusinessNavigationRoute(
-                        bankAccountID,
-                        CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
-                        {
-                            bankCountry,
-                            bankCurrency,
-                        },
-                        navigationPathAtSignalRef.current,
-                    ),
-                    {skipMatchingFullScreenRoute: true},
-                );
                 clearCorpayPayModal();
             }
-        } else {
-            clearCorpayPayModal();
-        }
 
-        const pendingModalData = pendingModalDataRef.current;
-        if (pendingModalData) {
+            nextModalData = pendingModalDataRef.current;
             pendingModalDataRef.current = null;
-            showCorpayPayModal(pendingModalData);
         }
     });
 

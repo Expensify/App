@@ -14,7 +14,7 @@ import type {Route} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import {useMemo, useRef} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 
 type EnableGlobalReimbursementsRouteParams = {
     bankCountry?: string;
@@ -25,15 +25,16 @@ function useEnableGlobalReimbursementsNavigation() {
     const route = useRoute();
     const isDynamic = isDynamicRouteScreen(route.name as Screen);
     const navigationPath = useRootNavigationState((state) => (state ? getPathFromState(state as State) : undefined));
-    const stableBasePathRef = useRef<Route | null>(null);
-
     const resolvedBasePath = useMemo(() => getDynamicBasePathFromNavigationPath(navigationPath), [navigationPath]);
+    const [stableBasePath, setStableBasePath] = useState<Route | null>(null);
 
-    if (isDynamic && resolvedBasePath && !resolvedBasePath.includes('enable-global-reimbursements')) {
-        stableBasePathRef.current ??= resolvedBasePath;
-    }
+    useEffect(() => {
+        if (isDynamic && resolvedBasePath && !resolvedBasePath.includes('enable-global-reimbursements')) {
+            setStableBasePath((current) => current ?? resolvedBasePath);
+        }
+    }, [isDynamic, resolvedBasePath]);
 
-    const dynamicBasePath = stableBasePathRef.current ?? resolvedBasePath;
+    const dynamicBasePath = stableBasePath ?? resolvedBasePath;
 
     return useMemo(() => {
         const getBusinessRoute = (bankAccountID: number | string, subPage: string, action?: 'edit', params?: EnableGlobalReimbursementsRouteParams): Route => {
