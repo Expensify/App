@@ -1134,6 +1134,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         condensedBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
+            // It is needed to unset the lineHeight inherited from badgeText. Otherwise the 9px glyph is
+            // laid out inside a 16px line box, which native resolves asymmetrically and renders the text
+            // too high. Unsetting it lets the text center on its own font metrics.
+            lineHeight: undefined,
         },
 
         badgeDefaultText: {
@@ -4824,7 +4828,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         tabSelectorBadge: {
             minWidth: 18,
-            height: 16,
+            minHeight: 16,
             marginLeft: 8,
             justifyContent: 'center',
         },
