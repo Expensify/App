@@ -30,7 +30,7 @@ jest.mock('@hooks/useKeyboardShortcut', () =>
 // ──────────────────────────────────────────────────────────────────────────────
 
 /**
- * Renders ButtonKeyboardShortcut inside a real Button (which owns ButtonContext) and a NavigationContainer.
+ * Renders ButtonKeyboardShortcut inside a real Button (which owns the Button state/actions contexts) and a NavigationContainer.
  * NavigationContainer is required because the component calls useIsFocused().
  * isPressOnEnterActive=true is the default here so the shortcut is active
  * even without a focused screen, keeping individual tests simple.

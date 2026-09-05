@@ -12,6 +12,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import type {StartWithLoading} from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
@@ -39,6 +40,7 @@ import type {Route} from '@src/ROUTES';
 import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
+import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useState} from 'react';
@@ -158,7 +160,7 @@ function SearchEditMultiplePage() {
 
     const [isSaving, setIsSaving] = useState(false);
 
-    const save = () => {
+    const save = (event?: GestureResponderEvent | KeyboardEvent, startWithLoading?: StartWithLoading) => {
         if (!draftTransaction || isSaving) {
             return;
         }
@@ -202,9 +204,7 @@ function SearchEditMultiplePage() {
 
         setIsSaving(true);
 
-        // Defer the bulk edit loop so the loading spinner has a chance to paint
-        // before the synchronous Onyx writes block the JS thread.
-        requestAnimationFrame(() => {
+        const applyChanges = () => {
             updateMultipleMoneyRequests({
                 transactionIDs: selectedTransactionIDs,
                 changes,
@@ -231,7 +231,13 @@ function SearchEditMultiplePage() {
             clearSelectedTransactions();
 
             Navigation.dismissToPreviousRHP();
-        });
+        };
+
+        if (!startWithLoading) {
+            applyChanges();
+            return;
+        }
+        return startWithLoading(applyChanges);
     };
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;

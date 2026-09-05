@@ -288,8 +288,11 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
     /** Whether to show the confirm button */
     showButton?: boolean;
 
-    /** Called when the button is pressed */
-    onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: TItem) => void;
+    /** Confirms the current selection */
+    onConfirm?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+
+    /** Confirms one row instead of the selection, for lists where confirming acts on a single item. Falls back to `onConfirm` */
+    onConfirmFocusedOption?: (option: TItem) => void;
 
     /** Custom style for the button */
     style?: StyleProp<ViewStyle>;
