@@ -7968,12 +7968,14 @@ const CONST = {
                 title: 'workspace.upgrade.reportFields.title' as const,
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             policyPreventMemberChangingTitle: {
                 id: 'policyPreventMemberChangingTitle' as const,
                 alias: 'policy-prevent-member-changing-title',
                 name: undefined,
                 icon: undefined,
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             preventSelfApproval: {
                 id: 'preventSelfApproval' as const,
@@ -8017,6 +8019,7 @@ const CONST = {
                 title: 'workspace.upgrade.multiLevelTags.title' as const,
                 description: 'workspace.upgrade.multiLevelTags.description' as const,
                 icon: 'Tag',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
 
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
@@ -8083,6 +8086,7 @@ const CONST = {
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             multiApprovalLevels: {
                 id: 'multiApprovalLevels' as const,
@@ -8091,6 +8095,7 @@ const CONST = {
                 title: `workspace.upgrade.multiApprovalLevels.title` as const,
                 description: `workspace.upgrade.multiApprovalLevels.description` as const,
                 icon: 'AdvancedApprovalsSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             glCodes: {
                 id: 'glCodes' as const,
@@ -8099,6 +8104,7 @@ const CONST = {
                 title: 'workspace.upgrade.glCodes.title' as const,
                 description: 'workspace.upgrade.glCodes.description' as const,
                 icon: 'Tag',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             glAndPayrollCodes: {
                 id: 'glAndPayrollCodes' as const,
@@ -8107,6 +8113,7 @@ const CONST = {
                 title: 'workspace.upgrade.glAndPayrollCodes.title' as const,
                 description: 'workspace.upgrade.glAndPayrollCodes.description' as const,
                 icon: 'FolderOpen',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             taxCodes: {
                 id: 'taxCodes' as const,
@@ -8115,6 +8122,7 @@ const CONST = {
                 title: 'workspace.upgrade.taxCodes.title' as const,
                 description: 'workspace.upgrade.taxCodes.description' as const,
                 icon: 'Coins',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             companyCards: {
                 id: 'companyCards' as const,

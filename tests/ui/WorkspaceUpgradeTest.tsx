@@ -146,6 +146,48 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdates();
     });
 
+    it('should upgrade a Submit workspace to Corporate when unlocking Report fields', async () => {
+        const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {
+            policyID: policy.id,
+            featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias,
+        });
+
+        fireEvent.press(screen.getByTestId('upgrade-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPGRADE_SUBMIT, 0, {policyID: policy.id, targetType: CONST.POLICY.TYPE.CORPORATE});
+
+        unmount();
+        await waitForBatchedUpdates();
+    });
+
+    it('should upgrade a Submit workspace to Corporate when unlocking GL codes', async () => {
+        const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {
+            policyID: policy.id,
+            featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
+        });
+
+        fireEvent.press(screen.getByTestId('upgrade-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPGRADE_SUBMIT, 0, {policyID: policy.id, targetType: CONST.POLICY.TYPE.CORPORATE});
+
+        unmount();
+        await waitForBatchedUpdates();
+    });
+
     it('should show Collect pricing and upgrade a Submit workspace when unlocking a Collect-tier feature', async () => {
         const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
 

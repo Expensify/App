@@ -115,11 +115,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : isUpgradingFromSubmitPolicy));
     }, [policyID, policy?.type, isUpgradingFromSubmitPolicy]);
 
-    const feature = featureNameAlias
-        ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-              .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-              .find((f) => f.alias === featureNameAlias)
-        : undefined;
+    const upgradeFeatureByAlias = featureNameAlias ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((mappingEntry) => mappingEntry.alias === featureNameAlias) : undefined;
+
+    const feature = upgradeFeatureByAlias?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id ? undefined : upgradeFeatureByAlias;
 
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
@@ -207,7 +205,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (isUpgradingFromSubmitPolicy) {
-            const targetType = upgradePlanType ?? (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
+            const requiredPlan = upgradeFeatureByAlias && 'requiredPlan' in upgradeFeatureByAlias ? upgradeFeatureByAlias.requiredPlan : undefined;
+            const targetType = upgradePlanType ?? requiredPlan ?? CONST.POLICY.TYPE.TEAM;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
         }
