@@ -50,6 +50,28 @@ import {View} from 'react-native';
 
 type ReportFieldsListValuesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
 
+type ReportFieldsListValuesTableHeaderProps = {
+    /** Action buttons rendered above the list subtitle when they need a separate row */
+    headerButtons: React.ReactNode;
+
+    /** Whether to render the action buttons above the list subtitle */
+    shouldDisplayButtonsInSeparateLine: boolean;
+};
+
+function ReportFieldsListValuesTableHeader({headerButtons, shouldDisplayButtonsInSeparateLine}: ReportFieldsListValuesTableHeaderProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    return (
+        <>
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+            <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
+            </View>
+        </>
+    );
+}
+
 function ReportFieldsListValuesPage({
     policy,
     route: {
@@ -322,6 +344,12 @@ function ReportFieldsListValuesPage({
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const headerButtons = getHeaderButtons();
+    const tableHeaderComponent = (
+        <ReportFieldsListValuesTableHeader
+            headerButtons={headerButtons}
+            shouldDisplayButtonsInSeparateLine={shouldDisplayButtonsInSeparateLine}
+        />
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -349,14 +377,11 @@ function ReportFieldsListValuesPage({
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
-                </View>
                 <WorkspaceReportFieldListValuesTable
                     listValues={listValueRows}
                     selectionEnabled={canWriteReportFields}
                     selectedKeys={selectedKeys}
+                    headerComponent={tableHeaderComponent}
                     onRowSelectionChange={setSelectedKeys}
                 />
             </ScreenWrapper>
