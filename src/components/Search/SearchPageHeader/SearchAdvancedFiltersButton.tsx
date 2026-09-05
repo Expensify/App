@@ -93,7 +93,12 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
               </Button>
           );
 
-    const filtersPopup = () => <SearchAdvancedFiltersPopup queryJSON={queryJSON} />;
+    const filtersPopup = ({closeOverlay}: {closeOverlay: () => void}) => (
+        <SearchAdvancedFiltersPopup
+            queryJSON={queryJSON}
+            closeOverlay={closeOverlay}
+        />
+    );
 
     return (
         <FilterPopupButton

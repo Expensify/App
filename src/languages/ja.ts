@@ -9274,6 +9274,12 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
+            describeSearch: {
+                title: '検索内容を入力してください',
+                inputLabel: '検索結果',
+                description: '「先月 50 ドルを超える食事」のように、探している内容を平易な英語で入力してください。',
+                buttonText: '適用',
+            },
             filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
         },
         display: {

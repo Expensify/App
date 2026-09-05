@@ -3360,6 +3360,7 @@ type SearchFullscreenNavigatorParamList = {
 
 type SearchAdvancedFiltersParamList = {
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
+    [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIBE_RHP]: Record<string, never>;
     [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: {
         filterKey: string;
     };

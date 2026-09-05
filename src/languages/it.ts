@@ -9403,6 +9403,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Paga',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esporta',
             },
+            describeSearch: {
+                title: 'Descrivi la tua ricerca',
+                inputLabel: 'La tua ricerca',
+                description: 'Usa un inglese semplice per descrivere cosa stai cercando, ad esempio: "pasti oltre i 50 $ del mese scorso".',
+                buttonText: 'Applica',
+            },
             filterType: {label: 'Tipo di filtro', has: {positive: 'ha', negative: 'non ha'}, is: {positive: 'è', negative: 'non è'}},
         },
         display: {

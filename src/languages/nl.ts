@@ -9370,6 +9370,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Betalen',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporteren',
             },
+            describeSearch: {
+                title: 'Beschrijf je zoekopdracht',
+                inputLabel: 'Je zoekopdracht',
+                description: 'Gebruik eenvoudig Engels om te beschrijven wat je zoekt, zoals: "meals over $50 last month."',
+                buttonText: 'Toepassen',
+            },
             filterType: {label: 'Filtertype', has: {positive: 'heeft', negative: 'heeft niet'}, is: {positive: 'is', negative: 'is niet'}},
         },
         display: {

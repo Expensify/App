@@ -9370,6 +9370,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagar',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
+            describeSearch: {
+                title: 'Descreva sua busca',
+                inputLabel: 'Sua pesquisa',
+                description: 'Use inglês simples para descrever o que você está procurando, como "refeições acima de US$ 50 no mês passado".',
+                buttonText: 'Aplicar',
+            },
             filterType: {label: 'Tipo de filtro', has: {positive: 'tem', negative: 'não tem'}, is: {positive: 'é', negative: 'não é'}},
         },
         display: {
