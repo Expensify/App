@@ -53,8 +53,13 @@ type SentryProject = {
 };
 
 type ReleaseRow = {
+    dist: string | null;
     release: string | null;
 } & Record<typeof COUNT_UNIQUE_USER_FIELD, number | string | undefined>;
+
+type ReleaseDistribution = Pick<ReleaseRow, 'dist' | 'release'> & {
+    release: string;
+};
 
 type EventsTableResponse = {
     data?: ReleaseRow[];
@@ -92,13 +97,13 @@ function parseThreshold(version: string): Version {
     };
 }
 
-function parseReleaseVersion(release: string | null | undefined, prefix: string): Version | null {
+function parseReleaseVersion({release, dist}: Pick<ReleaseRow, 'dist' | 'release'>, prefix: string): Version | null {
     if (!release || !release.startsWith(prefix)) {
         return null;
     }
 
     const suffix = release.slice(prefix.length);
-    return parseThreshold(suffix);
+    return parseThreshold(dist ? `${suffix}-${dist}` : suffix);
 }
 
 function isOlderThan(version: Version, threshold: Version): boolean {
@@ -276,15 +281,26 @@ async function countUniqueUsers({options, projectId, query}: {options: ScriptOpt
     return typeof value === 'number' ? value : Number(value ?? 0);
 }
 
-function buildReleaseFilter(releases: string[]): string | null {
+function buildReleaseFilter(releases: ReleaseDistribution[]): string | null {
     if (releases.length === 0) {
         return null;
     }
 
-    return `release:[${releases.join(',')}]`;
+    const filters = releases.map(({release, dist}) => (dist ? `(release:${release} AND dist:${dist})` : `release:${release}`));
+    return filters.length === 1 ? (filters.at(0) ?? null) : `(${filters.join(' OR ')})`;
 }
 
-async function countUniqueUsersOnReleases({options, projectId, baseQuery, releases}: {options: ScriptOptions; projectId: string; baseQuery: string; releases: string[]}): Promise<number> {
+async function countUniqueUsersOnReleases({
+    options,
+    projectId,
+    baseQuery,
+    releases,
+}: {
+    options: ScriptOptions;
+    projectId: string;
+    baseQuery: string;
+    releases: ReleaseDistribution[];
+}): Promise<number> {
     if (releases.length === 0) {
         return 0;
     }
@@ -300,7 +316,7 @@ async function countUniqueUsersOnReleases({options, projectId, baseQuery, releas
         }
     }
 
-    const chunks: string[][] = [];
+    const chunks: ReleaseDistribution[][] = [];
     for (let i = 0; i < releases.length; i += OR_QUERY_CHUNK_SIZE) {
         chunks.push(releases.slice(i, i + OR_QUERY_CHUNK_SIZE));
     }
@@ -316,21 +332,21 @@ async function countUniqueUsersOnReleases({options, projectId, baseQuery, releas
     return total;
 }
 
-function collectOlderReleases({releaseRows, options, threshold}: {releaseRows: ReleaseRow[]; options: ScriptOptions; threshold: Version}): string[] {
-    const older = new Set<string>();
+function collectOlderReleases({releaseRows, options, threshold}: {releaseRows: ReleaseRow[]; options: ScriptOptions; threshold: Version}): ReleaseDistribution[] {
+    const older = new Map<string, ReleaseDistribution>();
 
     for (const row of releaseRows) {
-        const version = parseReleaseVersion(row.release, options.prefix);
+        const version = parseReleaseVersion(row, options.prefix);
         if (version && isOlderThan(version, threshold) && row.release) {
-            older.add(row.release);
+            older.set(`${row.release}\u0000${row.dist ?? ''}`, {release: row.release, dist: row.dist});
         }
     }
 
-    return [...older].sort((left, right) => {
+    return [...older.values()].sort((left, right) => {
         const leftVersion = parseReleaseVersion(left, options.prefix);
         const rightVersion = parseReleaseVersion(right, options.prefix);
         if (!leftVersion || !rightVersion) {
-            return left.localeCompare(right);
+            return left.release.localeCompare(right.release);
         }
 
         if (leftVersion.major !== rightVersion.major) {
@@ -433,7 +449,7 @@ async function main(): Promise<void> {
         queryEventsTable({
             options,
             projectId,
-            fields: ['release', COUNT_UNIQUE_USER_FIELD],
+            fields: ['release', 'dist', COUNT_UNIQUE_USER_FIELD],
             query: baseQuery,
             sort: `-${COUNT_UNIQUE_USER_FIELD}`,
         }),
@@ -467,7 +483,7 @@ async function main(): Promise<void> {
         uniqueUsersOnOlderReleases: usersOnOlderReleases,
         percentOnOlderReleases: Number(percent.toFixed(2)),
         olderReleaseCount: olderReleases.length,
-        olderReleases,
+        olderReleases: olderReleases.map(({release, dist}) => (dist ? `${release}-${dist}` : release)),
         releaseRowsInWindow: releaseRows.length,
         metric: 'Users with ≥1 error on a release strictly older than threshold / users with ≥1 error in window',
         caveats: [
@@ -493,12 +509,13 @@ async function main(): Promise<void> {
     console.log('Metric: users with at least one error on an older release / all users with errors in window.');
     console.log('Top older releases in window (from per-release breakdown):');
     for (const row of releaseRows) {
-        const version = parseReleaseVersion(row.release, options.prefix);
-        if (!version || !isOlderThan(version, threshold)) {
+        const version = parseReleaseVersion(row, options.prefix);
+        if (!version || !row.release || !isOlderThan(version, threshold)) {
             continue;
         }
 
-        console.log(`  ${row.release}: ${Number(row[COUNT_UNIQUE_USER_FIELD]).toLocaleString()} users`);
+        const release = row.dist ? `${row.release}-${row.dist}` : row.release;
+        console.log(`  ${release}: ${Number(row[COUNT_UNIQUE_USER_FIELD]).toLocaleString()} users`);
     }
     console.log('');
     console.log(`Sentry Discover: ${options.region.replace(/\/$/, '')}/organizations/${options.org}/explore/discover/`);

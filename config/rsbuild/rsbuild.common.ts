@@ -14,9 +14,11 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
-// Relative on purpose: module aliases are not resolved when this config is evaluated.
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
+// Relative on purpose: module aliases are not resolved when this config is evaluated.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import getAppVersion from '../../src/libs/VersionUtils.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -333,10 +335,12 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
     const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
     const sentryWebpackPlugin = isDevelopment ? undefined : (await import('@sentry/webpack-plugin')).sentryWebpackPlugin;
+    const {semanticVersion, buildNumber} = getAppVersion(process.env.npm_package_version ?? '');
+    const releaseName = `${process.env.npm_package_name}@${semanticVersion}`;
 
     if (!isDevelopment) {
-        const releaseName = `${process.env.npm_package_name}@${process.env.npm_package_version}`;
         console.debug(`[SENTRY ${platform.toUpperCase()}] Release: ${releaseName}`);
+        console.debug(`[SENTRY ${platform.toUpperCase()}] Dist: ${buildNumber ?? 'none'}`);
         console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${'./dist/**/*.{js,map}'}`);
     }
 
@@ -567,7 +571,8 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   org: 'expensify',
                                   project: 'app',
                                   release: {
-                                      name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+                                      name: releaseName,
+                                      dist: buildNumber,
                                       create: true,
                                       setCommits: {auto: true},
                                   },
