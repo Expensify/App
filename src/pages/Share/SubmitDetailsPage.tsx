@@ -669,6 +669,8 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
+                        // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.
+                        onOpenParticipantPicker={() => {}}
                         iouType={iouType}
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}

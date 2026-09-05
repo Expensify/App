@@ -1520,7 +1520,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
             mockSelectedPolicy = undefined;
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
             await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Source policy'), id: SOURCE_POLICY_ID});
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`, {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE, 'Destination policy'),
@@ -1697,9 +1696,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
         beforeEach(async () => {
             mockSelectedParticipants = [];
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
-            });
         });
 
         /**

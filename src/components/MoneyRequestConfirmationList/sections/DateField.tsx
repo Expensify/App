@@ -35,7 +35,6 @@ type DateFieldProps = {
     shouldDisplayFieldError: boolean;
     didConfirm: boolean;
     isReadOnly: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
     formError: string;
     clearFormErrors: (errors: string[]) => void;
     transactionID: string | undefined;
@@ -45,19 +44,7 @@ type DateFieldProps = {
     reportActionID: string | undefined;
 };
 
-function DateField({
-    shouldDisplayFieldError,
-    didConfirm,
-    isReadOnly,
-    isNewManualExpenseFlowEnabled,
-    formError,
-    clearFormErrors,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-}: DateFieldProps) {
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, clearFormErrors, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
@@ -121,7 +108,7 @@ function DateField({
         }
     };
 
-    if (isNewManualExpenseFlowEnabled && !isReadOnly) {
+    if (!isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mb2]}>
                 <DatePicker

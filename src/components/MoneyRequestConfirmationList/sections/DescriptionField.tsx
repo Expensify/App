@@ -38,8 +38,7 @@ type DescriptionFieldProps = {
 };
 
 function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
-    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isNewManualExpenseFlowEnabled, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} =
-        useConfirmationFields();
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -99,7 +98,7 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <MentionReportContext.Provider value={mentionReportContextValue}>
-                        {isNewManualExpenseFlowEnabled && !isReadOnly ? (
+                        {!isReadOnly ? (
                             <View
                                 ref={fieldContainerRef}
                                 style={[styles.mh4, styles.mv2]}

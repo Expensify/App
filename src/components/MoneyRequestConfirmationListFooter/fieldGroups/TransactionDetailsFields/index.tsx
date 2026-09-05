@@ -42,20 +42,8 @@ type TransactionDetailsFieldsProps = {
  */
 function TransactionDetailsFields({policy, amountDisplay, distanceData, requiredFlags, errorState, isParticipantPickerVisible}: TransactionDetailsFieldsProps) {
     const {fieldVisibility, isCompactMode, iouCurrencyCode, shouldNavigateToUpgradePath, shouldSelectPolicy} = useDetailsFields();
-    const {
-        action,
-        iouType,
-        transactionID,
-        reportID,
-        reportActionID,
-        isReadOnly,
-        didConfirm,
-        isNewManualExpenseFlowEnabled,
-        isPolicyExpenseChat,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-        isGPSDistanceRequest,
-    } = useConfirmationFields();
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isPolicyExpenseChat, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest} =
+        useConfirmationFields();
     const shouldAutoFocusAmountField = !canUseTouchScreen();
 
     return (
@@ -81,7 +69,6 @@ function TransactionDetailsFields({policy, amountDisplay, distanceData, required
             {!isCompactMode && fieldVisibility.merchant && (
                 <MerchantField
                     isMerchantRequired={requiredFlags.isMerchantRequired}
-                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                     isReadOnly={isReadOnly}
                     didConfirm={didConfirm}
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
