@@ -53,13 +53,13 @@ const combinePathAndSuffix = (basePath: string, suffixWithQuery: string): Route 
 
     if (!normalizedBasePath) {
         Log.warn('[createDynamicRoute.ts] Path is undefined or empty, returning suffix only', {basePath, suffixWithQuery});
-        return suffixWithQuery;
+        return suffixWithQuery as Route;
     }
 
     const combinedPath = normalizedBasePath === '/' ? `/${suffixPath}` : `${normalizedBasePath}/${suffixPath}`;
     const mergedQuery = mergeQueryStrings(baseQuery, suffixQuery);
 
-    return `${combinedPath}${mergedQuery}`;
+    return `${combinedPath}${mergedQuery}` as Route;
 };
 
 /** Adds dynamic route name (with optional query params) to the current URL and returns it

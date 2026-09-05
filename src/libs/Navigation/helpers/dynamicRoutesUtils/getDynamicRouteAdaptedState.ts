@@ -93,7 +93,7 @@ function getDynamicRouteAdaptedState(state: PartialState<NavigationState>, focus
             if (!candidateBasePath || candidateBasePath === currentPath) {
                 continue;
             }
-            const candidateBaseState = getStateFromPath(candidateBasePath);
+            const candidateBaseState = getStateFromPath(candidateBasePath as Route);
             const lastRoute = candidateBaseState?.routes?.at(-1);
 
             if (!candidateBaseState || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {

@@ -278,7 +278,7 @@ function Expensify() {
         // which can crash with "Unable to find node on an unmounted component" when the card unmounts mid-transition.
         // Defer the restore by one frame so the card is not mounted-then-unmounted mid-animation.
         const restoreAnimationFrame = requestAnimationFrame(() => {
-            Navigation.navigate(lastRoute);
+            Navigation.navigate(lastRoute as Route);
         });
         return () => cancelAnimationFrame(restoreAnimationFrame);
         // Disabling this rule because we only want it to run on the first render.
@@ -310,8 +310,6 @@ function Expensify() {
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
-                    // Onyx stores string | undefined; NavigationRoot expects Route. ! is blocked by no-non-null-assertion.
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style -- see comment above
                     lastVisitedPath={lastVisitedPath as Route}
                     initialUrl={initialUrl ?? null}
                 />

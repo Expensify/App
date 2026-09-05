@@ -119,7 +119,7 @@ function getOnboardingRoute(): Route {
         onboardingInitialPath,
         onboardingValues: onboarding,
         isAccountValidated: !!account?.validated,
-    });
+    }) as Route;
 }
 
 function isRequiredTwoFactorSetupExceptionActive(): boolean {

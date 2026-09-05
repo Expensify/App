@@ -227,7 +227,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             }
             const nonPendingCount = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
             if (nonPendingCount === selectedTransactionIDs.length) {
-                const backToRoute = (route.params as {backTo?: Route} | undefined)?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+                const backToRoute = ((route.params as {backTo?: Route} | undefined)?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined)) as
+                    | Route
+                    | undefined;
                 handleDeleteTransactionsWithNavigation(backToRoute);
             } else {
                 handleDeleteTransactions();

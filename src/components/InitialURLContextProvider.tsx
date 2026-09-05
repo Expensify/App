@@ -42,7 +42,7 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
             if (!initURL) {
                 return;
             }
-            setInitialURL(initURL);
+            setInitialURL(initURL as Route);
         });
     }, []);
 

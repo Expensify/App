@@ -71,8 +71,8 @@ function getValidModalBasePath(): string {
     try {
         // getActiveRoute returns a plain string, while getStateFromPath expects a Route. Any string returned by
         // getActiveRoute is a valid route path, and getStateFromPath safely handles paths it cannot parse.
-
-        const focusedRouteName = findFocusedRouteWithOnyxTabGuard(getStateFromPath(activeRoute) ?? {})?.name;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const focusedRouteName = findFocusedRouteWithOnyxTabGuard(getStateFromPath(activeRoute as Route) ?? {})?.name;
         if (focusedRouteName && SUBMIT_PLAN_WELCOME_ENTRY_SCREENS.has(focusedRouteName)) {
             return activeRoute;
         }

@@ -29,7 +29,7 @@ import useRootNavigationState from './useRootNavigationState';
  *   static `Route`, or another `DynamicRouteSuffix` - in which case it's appended onto the resolved
  *   base path (the target has no standalone URL of its own).
  */
-const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route>> = {
+const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route | DynamicRouteSuffix>> = {
     [DYNAMIC_ROUTES.VERIFY_ACCOUNT.path]: {
         [SCREENS.SETTINGS.WALLET.ROOT]: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
         [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS]: DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.path,
@@ -91,11 +91,7 @@ function useDynamicForwardPath(dynamicRouteSuffix: DynamicRouteSuffix): Route | 
         return undefined;
     }
 
-    if (isDynamicRouteSuffix(mappedRoute)) {
-        return createDynamicRoute(mappedRoute, basePath);
-    }
-
-    return mappedRoute;
+    return isDynamicRouteSuffix(mappedRoute) ? createDynamicRoute(mappedRoute, basePath) : mappedRoute;
 }
 
 export default useDynamicForwardPath;
