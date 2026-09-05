@@ -82,8 +82,8 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
             const lastSavedSearchQuery = getLastSearchQuery(searchFilters, savedSearchIDToSearchKey(id));
 
             return (
-                (savedSearchQuery ? buildSearchQueryJSON(savedSearchQuery)?.similarSearchHash === queryJSON?.similarSearchHash : false) ||
-                (lastSavedSearchQuery ? buildSearchQueryJSON(lastSavedSearchQuery)?.similarSearchHash === queryJSON?.similarSearchHash : false)
+                (savedSearchQuery ? buildSearchQueryJSON(savedSearchQuery)?.hash === queryJSON?.hash : false) ||
+                (lastSavedSearchQuery ? buildSearchQueryJSON(lastSavedSearchQuery)?.hash === queryJSON?.hash : false)
             );
         });
 
