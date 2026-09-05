@@ -1,16 +1,12 @@
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+import useFindLastAccessedReport from '@hooks/useFindLastAccessedReport';
 
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {findLastAccessedReport} from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -27,20 +23,16 @@ type ReportScreenRoute =
 function ReportRouteParamHandler() {
     const route = useRoute<ReportScreenRoute>();
     const navigation = useNavigation();
-    const {isBetaEnabled} = usePermissions();
-    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const shouldResolveReportID = !route.params.reportID;
-    const ignoreDomainRooms = !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const shouldOpenOnAdminRoom = 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom;
-    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
 
     // Subscribing to the reports collection (instead of relying on the module-scoped copy inside ReportUtils)
     // makes this handler re-run once the reports finish loading, so a route that was created without a reportID
     // recovers instead of staying stuck on the loading skeleton. Resolving inside the selector keeps that cheap:
     // the route only re-renders when the resolved ID changes, and once one is set nothing is computed at all.
-    const [lastAccessedReportID, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) =>
-            shouldResolveReportID ? findLastAccessedReport(ignoreDomainRooms, guideAccountIDs, shouldOpenOnAdminRoom, undefined, reportNameValuePairs, reports)?.reportID : undefined,
+    const {lastAccessedReport, reportsMetadata, reportNameValuePairsMetadata} = useFindLastAccessedReport({
+        enabled: shouldResolveReportID,
+        openOnAdminRoom: shouldOpenOnAdminRoom,
     });
 
     useFocusEffect(() => {
@@ -64,6 +56,7 @@ function ReportRouteParamHandler() {
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
+        const lastAccessedReportID = lastAccessedReport?.reportID;
         if (!lastAccessedReportID) {
             return;
         }
