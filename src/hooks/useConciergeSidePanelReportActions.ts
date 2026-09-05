@@ -1,12 +1,28 @@
 import DateUtils from '@libs/DateUtils';
-import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isCurrentUserPendingAddAction, isDeletedParentAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useCallback, useLayoutEffect, useMemo, useState} from 'react';
+
+/**
+ * A task posted into the chat still needs this user's attention when its parent action is an OPEN task assigned to
+ * them. Scoped to the current user and to non-canceled tasks so it matches the `hasOutstandingChildTask` flag it
+ * replaces: `deleteTask` only marks the parent action deleted, it leaves `childStateNum`/`childStatusNum` at OPEN.
+ */
+function isOpenChildTaskAction(action: OnyxTypes.ReportAction, currentUserAccountID: number): boolean {
+    return (
+        action.childType === CONST.REPORT.TYPE.TASK &&
+        action.childManagerAccountID === currentUserAccountID &&
+        action.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
+        action.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN &&
+        !isDeletedParentAction(action)
+    );
+}
 
 type UseConciergeSidePanelReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -108,7 +124,16 @@ function useConciergeSidePanelReportActions({
         return visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime);
     }, [isConciergeMainDM, isConciergeHiddenHistory, visibleReportActions, sessionStartTime]);
 
-    const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasUserSentMessage && !showFullHistory && !hasMessagesInSession;
+    // Main DM only: a still-open task is pinned into the session view, so the welcome state must stand down —
+    // otherwise `filterActions` returns early with just the greeting and the pinned task never renders.
+    const hasOpenChildTask = useMemo(() => {
+        if (!isConciergeMainDM || !isConciergeHiddenHistory) {
+            return false;
+        }
+        return visibleReportActions.some((action) => isOpenChildTaskAction(action, currentUserAccountID));
+    }, [isConciergeMainDM, isConciergeHiddenHistory, visibleReportActions, currentUserAccountID]);
+
+    const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasUserSentMessage && !showFullHistory && !hasMessagesInSession && !hasOpenChildTask;
     const showConciergeGreeting = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !showFullHistory && (!isConciergeMainDM || !hadMessagesAtSessionStart);
 
     const conciergeGreetingAction = useMemo(() => {
@@ -144,7 +169,16 @@ function useConciergeSidePanelReportActions({
                 return false;
             }
             if (isConciergeMainDM) {
-                return isCreatedAction(action) || isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime;
+                // A still-OPEN child task (e.g. an unfinished onboarding task) stays pinned even though it predates
+                // the session, so collapsing read history behind "Show history" never buries a task the user still
+                // has to act on. This replaces the blanket `hasOutstandingChildTask` bypass that used to force the
+                // entire history open, which is what suppressed the "Show history" button altogether.
+                return (
+                    isCreatedAction(action) ||
+                    isCurrentUserPendingAddAction(action, currentUserAccountID) ||
+                    isOpenChildTaskAction(action, currentUserAccountID) ||
+                    action.created >= sessionStartTime
+                );
             }
             if (!firstUserMessageCreated) {
                 return false;

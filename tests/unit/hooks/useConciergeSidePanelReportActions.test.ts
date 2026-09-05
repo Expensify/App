@@ -129,3 +129,133 @@ describe('useConciergeSidePanelReportActions (clock-skew reply visibility)', () 
         expect(visibleIDs).not.toContain('21');
     });
 });
+
+describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () => {
+    const SESSION_START = toDBTime(CLIENT_OPEN_MS);
+
+    /** Builds the parent action of a task, carrying the child* fields the backend stamps on it. */
+    function buildTaskAction(
+        reportActionID: string,
+        stateNum: ReportAction['childStateNum'],
+        statusNum: ReportAction['childStatusNum'],
+        overrides: Partial<ReportAction> = {},
+    ): ReportAction {
+        return buildAction(reportActionID, {
+            actorAccountID: CONCIERGE_ACCOUNT_ID,
+            created: toDBTime(CLIENT_OPEN_MS - 3_400_000),
+            childType: CONST.REPORT.TYPE.TASK,
+            childReportID: `task-${reportActionID}`,
+            childManagerAccountID: CURRENT_USER_ACCOUNT_ID,
+            childStateNum: stateNum,
+            childStatusNum: statusNum,
+            ...overrides,
+        });
+    }
+
+    /**
+     * @param hasSessionActivity when false, nothing has happened in this session yet — the fresh-session welcome
+     * state, where `filterActions` returns early before the session filter runs.
+     */
+    function renderMainDM(taskAction: ReportAction, hasSessionActivity = true) {
+        const createdAction = buildAction('10', {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: toDBTime(CLIENT_OPEN_MS - 7_200_000)});
+        const preSessionUser = buildAction('11', {created: toDBTime(CLIENT_OPEN_MS - 3_600_000)});
+        const preSessionConcierge = buildAction('12', {actorAccountID: CONCIERGE_ACCOUNT_ID, created: toDBTime(CLIENT_OPEN_MS - 3_500_000)});
+        const inSessionUser = buildAction('20', {created: toDBTime(CLIENT_OPEN_MS + 1000)});
+        const reportActions = [createdAction, preSessionUser, preSessionConcierge, taskAction, ...(hasSessionActivity ? [inSessionUser] : [])];
+
+        // `hasOutstandingChildTask` no longer reaches this hook as `showFullHistory` — the pin below is what keeps
+        // the task reachable, so the rest of the read history can stay collapsed behind "Show history".
+        const report: Report = {...createRandomReport(Number(REPORT_ID)), reportID: REPORT_ID, lastReadTime: SESSION_START, hasOutstandingChildTask: true};
+
+        return renderHook(() =>
+            useConciergeSidePanelReportActions({
+                report,
+                reportActions,
+                visibleReportActions: reportActions,
+                isConciergeHiddenHistory: true,
+                hasUserSentMessage: hasSessionActivity,
+                hasOlderActions: false,
+                sessionStartTime: SESSION_START,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                greetingText: 'Hi there, how can I help?',
+                loadOlderChats: jest.fn(),
+                isConciergeMainDM: true,
+                showFullHistory: false,
+                hadMessagesAtSessionStart: hasSessionActivity,
+            }),
+        );
+    }
+
+    it('keeps a still-open child task visible while the rest of the read history stays hidden', () => {
+        // Given a pre-session task that the user has not completed yet
+        const {result} = renderMainDM(buildTaskAction('30', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN));
+
+        // When the main DM filters the session's actions
+        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+
+        // Then the task stays pinned, the read history stays hidden, and "Show history" is still offered.
+        expect(visibleIDs).toContain('30');
+        expect(visibleIDs).toContain('20');
+        expect(visibleIDs).not.toContain('11');
+        expect(visibleIDs).not.toContain('12');
+        expect(result.current.showFullHistory).toBe(false);
+        expect(result.current.hasPreviousMessages).toBe(true);
+    });
+
+    it('keeps a still-open child task visible in the fresh-session welcome state', () => {
+        // Given the DM is opened with nothing sent yet — the welcome state, which used to return early with just the
+        // greeting and drop the pinned task
+        const {result} = renderMainDM(buildTaskAction('30', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN), false);
+
+        // When the main DM filters the session's actions
+        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+
+        // Then the welcome state stands down so the task renders, while the read history stays hidden.
+        expect(result.current.showConciergeSidePanelWelcome).toBe(false);
+        expect(visibleIDs).toContain('30');
+        expect(visibleIDs).not.toContain('11');
+        expect(visibleIDs).not.toContain('12');
+    });
+
+    it('does not pin an open child task assigned to someone else', () => {
+        // Given an open task whose assignee is another account — `hasOutstandingChildTask` never covered these
+        const {result} = renderMainDM(buildTaskAction('30', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN, {childManagerAccountID: CONCIERGE_ACCOUNT_ID}), false);
+
+        // When the main DM filters the session's actions
+        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+
+        // Then it is ordinary read history: not pinned, and the welcome state still applies.
+        expect(visibleIDs).not.toContain('30');
+        expect(result.current.showConciergeSidePanelWelcome).toBe(true);
+    });
+
+    it('does not pin a canceled task whose parent action is still optimistically OPEN', () => {
+        // Given a canceled task: `deleteTask` marks the parent action deleted but leaves childStateNum/childStatusNum
+        // at OPEN until the server responds, so the state/status pair alone is not enough to trust
+        const canceledTask = buildTaskAction('30', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN, {
+            message: [{type: 'COMMENT', html: '', text: '', isDeletedParentAction: true}],
+            childVisibleActionCount: 1,
+        });
+        const {result} = renderMainDM(canceledTask, false);
+
+        // When the main DM filters the session's actions
+        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+
+        // Then the canceled task is not pinned and the welcome state still applies.
+        expect(visibleIDs).not.toContain('30');
+        expect(result.current.showConciergeSidePanelWelcome).toBe(true);
+    });
+
+    it('hides a completed child task along with the rest of the read history', () => {
+        // Given a pre-session task that has already been completed
+        const {result} = renderMainDM(buildTaskAction('30', CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED));
+
+        // When the main DM filters the session's actions
+        const visibleIDs = result.current.filteredReportActions.map((action) => action.reportActionID);
+
+        // Then it is treated as ordinary read history and collapses behind "Show history".
+        expect(visibleIDs).not.toContain('30');
+        expect(visibleIDs).not.toContain('11');
+        expect(visibleIDs).toContain('20');
+    });
+});
