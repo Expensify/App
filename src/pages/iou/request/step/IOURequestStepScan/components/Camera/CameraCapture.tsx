@@ -12,21 +12,21 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWebCamera from '@hooks/useWebCamera';
 
-import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import HapticFeedback from '@libs/HapticFeedback';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
-import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
-import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import {calculateCropRect} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {LayoutRectangle} from 'react-native';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -35,6 +35,62 @@ import Animated, {useAnimatedStyle, useSharedValue, withSequence, withTiming} fr
 import type {CameraProps} from './types';
 
 const BLINK_DURATION_MS = 80;
+const CAPTURE_JPEG_QUALITY = 0.92;
+
+/**
+ * Crop the current video frame to the viewfinder aspect ratio and encode it once as JPEG.
+ **/
+
+function cropVideoFrameToFile(video: HTMLVideoElement, viewfinderLayout: LayoutRectangle | null | undefined): Promise<{file: File; uri: string} | null> {
+    return new Promise((resolve) => {
+        try {
+            const sourceWidth = video.videoWidth;
+            const sourceHeight = video.videoHeight;
+            const viewfinderWidth = viewfinderLayout?.width ?? NaN;
+            const viewfinderHeight = viewfinderLayout?.height ?? NaN;
+
+            // Some browsers center-crop the viewfinder inside the video element (due to object-position: center),
+            // while others let it overflow and crop from the top. We align the captured frame the same way.
+            const shouldAlignTop = (video.getBoundingClientRect?.()?.height ?? NaN) > viewfinderHeight;
+            const crop =
+                viewfinderWidth && viewfinderHeight
+                    ? calculateCropRect(sourceWidth, sourceHeight, viewfinderWidth, viewfinderHeight, shouldAlignTop)
+                    : {originX: 0, originY: 0, width: sourceWidth, height: sourceHeight};
+
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(crop.width);
+            canvas.height = Math.round(crop.height);
+            const context = canvas.getContext('2d');
+
+            if (!context) {
+                resolve(null);
+                return;
+            }
+
+            context.drawImage(video, crop.originX, crop.originY, crop.width, crop.height, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(
+                (blob) => {
+                    if (!blob || blob.size === 0) {
+                        resolve(null);
+                        return;
+                    }
+
+                    const uri = URL.createObjectURL(blob);
+                    const file = new File([blob], `receipt_${Date.now()}.jpg`, {type: 'image/jpeg'});
+                    file.uri = uri;
+                    resolve({file, uri});
+                },
+                'image/jpeg',
+                CAPTURE_JPEG_QUALITY,
+            );
+        } catch {
+            // drawImage/toBlob can throw (e.g. a media/security error). Resolve null so the caller
+            // cancels the spans rather than getting an unhandled rejection.
+            resolve(null);
+        }
+    });
+}
 
 /**
  * CameraCapture — mobile web capture variant.
@@ -102,38 +158,30 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
             attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.WEB},
         });
 
-        const imageBase64 = cameraRef.current.getScreenshot();
-
-        if (imageBase64 === null) {
+        const cancelCaptureSpans = () => {
             cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+        };
+
+        const video = cameraRef.current.video;
+        if (!video?.videoWidth || !video.videoHeight) {
+            cancelCaptureSpans();
             return;
         }
 
         showBlink();
 
-        const originalFileName = `receipt_${Date.now()}.png`;
-        const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
+        cropVideoFrameToFile(video, viewfinderLayoutRef.current).then((result) => {
+            if (!result) {
+                cancelCaptureSpans();
+                return;
+            }
 
-        if (originalFile.size === 0) {
-            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
-            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
-            return;
-        }
-
-        const imageObject: ImageObject = {file: originalFile, filename: originalFile.name, source: URL.createObjectURL(originalFile)};
-        // Some browsers center-crop the viewfinder inside the video element (due to object-position: center),
-        // while other browsers let the video element overflow and the container crops it from the top.
-        // We crop and align the result image the same way.
-        const videoHeight = cameraRef.current.video?.getBoundingClientRect?.()?.height ?? NaN;
-        const viewFinderHeight = viewfinderLayoutRef.current?.height ?? NaN;
-        const shouldAlignTop = videoHeight > viewFinderHeight;
-        cropImageToAspectRatio(imageObject, viewfinderLayoutRef.current?.width, viewfinderLayoutRef.current?.height, shouldAlignTop).then(({file, source}) => {
             endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             if (!isMultiScanEnabled) {
                 startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.WEB);
             }
-            onCapture(file, source);
+            onCapture(result.file, result.uri);
         });
     };
 
@@ -195,14 +243,10 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                                     display: cameraPermissionState !== 'granted' ? 'none' : 'block',
                                 }}
                                 ref={cameraRef}
-                                screenshotFormat="image/png"
                                 videoConstraints={videoConstraints}
-                                forceScreenshotSourceSize
                                 audio={false}
                                 disablePictureInPicture={false}
-                                imageSmoothing={false}
                                 mirrored={false}
-                                screenshotQuality={0}
                             />
                             {canUseMultiScan ? (
                                 <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
