@@ -613,8 +613,8 @@ function shouldDuplicateAsManualDistance(transaction: OnyxTypes.Transaction, sho
  */
 function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, transactionDetails: ReturnType<typeof getTransactionDetails>, shouldDuplicateSelfDMExpense = false) {
     const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
-    const duplicateAsManualDistance = shouldDuplicateAsManualDistance(transaction, shouldDuplicateSelfDMExpense);
-    const shouldKeepWaypoints = !isExpenseSplit(transaction) && !duplicateAsManualDistance;
+    const isManualDistanceDuplicate = shouldDuplicateAsManualDistance(transaction, shouldDuplicateSelfDMExpense);
+    const shouldKeepWaypoints = !isExpenseSplit(transaction) && !isManualDistanceDuplicate;
     const waypoints = shouldKeepWaypoints ? (transactionDetails?.waypoints as WaypointCollection | undefined) : undefined;
 
     const transactionParams = {
@@ -647,7 +647,7 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         unit: transaction.comment?.units?.unit,
     };
 
-    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || duplicateAsManualDistance)) {
+    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || isManualDistanceDuplicate)) {
         // Completed GPS expenses store their measured distance in customUnit.quantity; duplicating as manual uses that saved value because the raw GPS track is no longer available.
         transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
     }
