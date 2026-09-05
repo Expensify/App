@@ -38,6 +38,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
     ]);
 
     let isExportedToStandardTemplate = false;
@@ -51,6 +52,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     let isExportedToCertinia = false;
     let isExportedToRillet = false;
     let isExportedToDualEntry = false;
+    let isExportedToCampfire = false;
     let isExportedToBillCom = false;
     let isExportedToZenefits = false;
 
@@ -82,6 +84,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.CERTINIA;
             isExportedToRillet = isExportedToRillet || label === CONST.EXPORT_LABELS.RILLET;
             isExportedToDualEntry = isExportedToDualEntry || label === CONST.EXPORT_LABELS.DUALENTRY;
+            isExportedToCampfire = isExportedToCampfire || label === CONST.EXPORT_LABELS.CAMPFIRE;
             isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT || label === CONST.EXPORT_LABELS.SAGE_INTACCT;
         }
     }
@@ -95,6 +98,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
         isExportedToCertinia && {name: 'CertiniaSquare', src: icons.CertiniaSquare},
         isExportedToRillet && {name: 'RilletSquare', src: icons.RilletSquare},
         isExportedToDualEntry && {name: 'DualEntrySquare', src: icons.DualEntrySquare},
+        isExportedToCampfire && {name: 'CampfireSquare', src: icons.CampfireSquare},
         isExportedToBillCom && {name: 'BillComSquare', src: icons.BillComSquare},
         isExportedToZenefits && {name: 'ZenefitsSquare', src: icons.ZenefitsSquare},
     ].filter((icon): icon is {name: string; src: IconAsset} => !!icon);

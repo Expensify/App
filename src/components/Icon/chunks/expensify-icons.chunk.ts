@@ -137,6 +137,7 @@ import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
+import CampfireSquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
@@ -589,6 +590,7 @@ const Expensicons = {
     TreasureChestGreenWithSparkle,
     UserShield,
     Compass,
+    CampfireSquare,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

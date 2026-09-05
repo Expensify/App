@@ -58,6 +58,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
         'GustoSquare',
     ]);
 
