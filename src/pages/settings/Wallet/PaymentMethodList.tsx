@@ -325,6 +325,7 @@ function PaymentMethodList({
                     isCardBroken,
                     shouldShowRBR,
                     isCardInactive: isCardInactiveState,
+                    isExpensifyCard: isExpensifyCard(card),
                     isPersonalCard: isUserPersonalCard,
                     isAdminForCardPolicy,
                     doesCardNeedReauthentication: doesCardConnectionNeedReauthentication(card),
