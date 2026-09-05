@@ -4,7 +4,7 @@
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isDynamicRouteScreen from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteScreen';
-import {getDynamicBasePathFromNavigationPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
+import {getDynamicBasePathFromNavigationPath, getEnableGlobalReimbursementsRootBackPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import type {State} from '@libs/Navigation/types';
 
@@ -27,7 +27,7 @@ function useEnableGlobalReimbursementsNavigation() {
     const isDynamic = isDynamicRouteScreen(route.name as Screen); // eslint-disable-line @typescript-eslint/no-unsafe-type-assertion -- route.name is string at runtime
     const navigationPath = useRootNavigationState((state) => (state ? getPathFromState(state as State) : undefined));
     const resolvedBasePath = useMemo(() => getDynamicBasePathFromNavigationPath(navigationPath), [navigationPath]);
-    const [stableBasePath, setStableBasePath] = useState<Route | null>(null);
+    const [stableBasePath, setStableBasePath] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isDynamic || !resolvedBasePath || resolvedBasePath.includes('enable-global-reimbursements')) {
@@ -64,7 +64,7 @@ function useEnableGlobalReimbursementsNavigation() {
 
         const getRootBackPath = (): Route => {
             if (isDynamic) {
-                return dynamicBasePath;
+                return getEnableGlobalReimbursementsRootBackPath(dynamicBasePath);
             }
             return ROUTES.SETTINGS_WALLET;
         };

@@ -19,7 +19,7 @@ const ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS: DynamicRouteSuffix[] = [
     DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.path,
 ];
 
-function getDynamicBasePathFromNavigationPath(path: string | undefined): Route {
+function getDynamicBasePathFromNavigationPath(path: string | undefined): string {
     if (!path) {
         return ROUTES.HOME;
     }
@@ -32,10 +32,15 @@ function getDynamicBasePathFromNavigationPath(path: string | undefined): Route {
         }
     }
 
-    return pathWithoutLeadingSlash as Route;
+    return pathWithoutLeadingSlash;
 }
 
-function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: Route): boolean {
+function getEnableGlobalReimbursementsRootBackPath(dynamicBasePath: string): Route {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- runtime path from getPathFromState; caller must validate with shouldUseDynamicEnableGlobalReimbursementsBase first
+    return dynamicBasePath as Route;
+}
+
+function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: string): boolean {
     const pathWithoutQuery = basePath.split('?').at(0) ?? '';
 
     if (!pathWithoutQuery || pathWithoutQuery.includes('enable-global-reimbursements')) {
@@ -60,4 +65,9 @@ function getEnableGlobalReimbursementsBusinessNavigationRoute(
     return ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(bankAccountID, subPage, undefined, params);
 }
 
-export {getDynamicBasePathFromNavigationPath, getEnableGlobalReimbursementsBusinessNavigationRoute, shouldUseDynamicEnableGlobalReimbursementsBase};
+export {
+    getDynamicBasePathFromNavigationPath,
+    getEnableGlobalReimbursementsBusinessNavigationRoute,
+    getEnableGlobalReimbursementsRootBackPath,
+    shouldUseDynamicEnableGlobalReimbursementsBase,
+};

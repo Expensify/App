@@ -5,7 +5,6 @@ import isDynamicRouteSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/is
 import {getEnableGlobalReimbursementsBusinessNavigationRoute, shouldUseDynamicEnableGlobalReimbursementsBase} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 
 const BUSINESS_PATTERN = DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path;
 
@@ -68,7 +67,7 @@ describe('Enable global reimbursements dynamic routes', () => {
     });
 
     it('falls back to wallet settings route for unsupported entry screens', () => {
-        expect(shouldUseDynamicEnableGlobalReimbursementsBase('settings/preferences' as Route)).toBe(false);
+        expect(shouldUseDynamicEnableGlobalReimbursementsBase('settings/preferences')).toBe(false);
 
         const route = getEnableGlobalReimbursementsBusinessNavigationRoute(9053192, 'registration-number', {bankCountry: 'US', bankCurrency: 'USD'}, 'settings/preferences');
 
