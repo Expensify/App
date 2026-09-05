@@ -1,6 +1,6 @@
 import {ReportSubmitToPopoverHost, SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
-import type {SearchParams} from '@components/Search/types';
+import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -22,6 +22,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {hasFilterBarsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
@@ -74,6 +75,13 @@ function SearchPage({route}: SearchPageProps) {
 
     const [isSorting, setIsSorting] = useState(false);
 
+    // Opening a search no longer remounts this page, so a flag left set would render the previous query's rows under
+    // the new query. Adjusted during rendering because searchResults below consumes it in this same render.
+    const previousQueryHash = usePrevious(currentSearchQueryJSON?.hash);
+    if (isSorting && previousQueryHash !== currentSearchQueryJSON?.hash) {
+        setIsSorting(false);
+    }
+
     const isCurrentSearchResolved = isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
     let searchResults: SearchResults | undefined;
     if (isCurrentSearchResolved && currentSearchResults?.search && currentSearchResults.data === undefined) {
@@ -111,6 +119,45 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(false);
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
+    const [lastResolvedSearch, setLastResolvedSearch] = useState<{queryJSON: SearchQueryJSON; searchResults: SearchResults} | undefined>(undefined);
+
+    // Keying the results area on the requested query would mount it with no data, since a filter builds a query that
+    // has never been cached. isCurrentSearchResolved, not a hash comparison: a response folds sort defaults into its own hash.
+    const isSearchResolvedForCurrentQuery = isCurrentSearchResolved && !!searchResults && !!currentSearchQueryJSON;
+    if (isSearchResolvedForCurrentQuery && currentSearchQueryJSON && searchResults && lastResolvedSearch?.searchResults !== searchResults) {
+        setLastResolvedSearch({queryJSON: currentSearchQueryJSON, searchResults});
+    }
+
+    // A slow query would otherwise hold the previous results up indefinitely, and the wide layout has no loading bar.
+    // Keyed by hash rather than reset on resolve, so the effect below never has to call setState synchronously.
+    const [staleHoldTimedOutHash, setStaleHoldTimedOutHash] = useState<number | undefined>(undefined);
+    const currentQueryHash = currentSearchQueryJSON?.hash;
+
+    useEffect(() => {
+        if (isSearchResolvedForCurrentQuery || currentQueryHash === undefined) {
+            return;
+        }
+
+        const timeoutID = setTimeout(() => setStaleHoldTimedOutHash(currentQueryHash), CONST.SEARCH.ANIMATION.MAX_STALE_HOLD_DURATION);
+        return () => clearTimeout(timeoutID);
+    }, [isSearchResolvedForCurrentQuery, currentQueryHash]);
+
+    // Leaving the hash marked would skip the hold for good, so a filter toggled off and back on would go straight to
+    // the skeleton. Adjusted during rendering rather than in the effect above, which must not call setState synchronously.
+    if (isSearchResolvedForCurrentQuery && staleHoldTimedOutHash === currentQueryHash) {
+        setStaleHoldTimedOutHash(undefined);
+    }
+
+    const hasStaleHoldTimedOut = staleHoldTimedOutHash !== undefined && staleHoldTimedOutHash === currentQueryHash;
+
+    // A sidebar item or saved search asks for a different search, so its results area starts from the skeleton rather
+    // than showing rows from the query the user just left. Sidebar items are the suggested searches, so they resolve a
+    // currentSearchKey; saved searches carry a name. A filter refinement matches neither.
+    const isDifferentSearch = !!currentSearchKey || !!route.params.name;
+    const shouldHoldLastResolvedSearch = !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && !hasStaleHoldTimedOut && !isDifferentSearch;
+    const contentQueryJSON = shouldHoldLastResolvedSearch ? lastResolvedSearch.queryJSON : currentSearchQueryJSON;
+    const contentSearchResults = shouldHoldLastResolvedSearch ? lastResolvedSearch.searchResults : searchResults;
+
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {
             searchInServer(value);
@@ -143,6 +190,8 @@ function SearchPage({route}: SearchPageProps) {
                         <SearchPageNarrow
                             queryJSON={currentSearchQueryJSON}
                             searchResults={searchResults}
+                            contentQueryJSON={contentQueryJSON}
+                            contentSearchResults={contentSearchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             onSortPressedCallback={onSortPressedCallback}
                             searchOverlayContent={searchOverlayContent}
@@ -154,6 +203,8 @@ function SearchPage({route}: SearchPageProps) {
                         <SearchPageWide
                             queryJSON={currentSearchQueryJSON}
                             searchResults={searchResults}
+                            contentQueryJSON={contentQueryJSON}
+                            contentSearchResults={contentSearchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             handleSearchAction={handleSearchAction}
                             onSortPressedCallback={onSortPressedCallback}

@@ -7872,7 +7872,11 @@ const CONST = {
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
-            FADE_DURATION: 200,
+            FADE_DURATION: 150,
+
+            // How long the results area keeps showing the previous query's results while a new query loads. Past this
+            // a slow query gives them up for the skeleton, so the wait is visible.
+            MAX_STALE_HOLD_DURATION: 500,
         },
         TODO_BADGE_MAX_COUNT: 50,
         TOP_SEARCH_LIMIT: 10,

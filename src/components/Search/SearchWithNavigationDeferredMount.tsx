@@ -12,7 +12,8 @@ import CONST from '@src/CONST';
 
 import type {ComponentProps} from 'react';
 
-import React from 'react';
+import React, {useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 import Search from './index';
 
@@ -30,7 +31,15 @@ function handleSkeletonLayout() {
     }
 }
 
-function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>) {
+type SearchWithNavigationDeferredMountProps = ComponentProps<typeof Search> & {
+    /** True when this mount replaces results already on screen, which renders the placeholder invisibly. */
+    isReplacingContent?: boolean;
+};
+
+function SearchWithNavigationDeferredMount({isReplacingContent = false, ...props}: SearchWithNavigationDeferredMountProps) {
+    // Captured once: the prop is derived from usePrevious, so it flips back on the render after the query changes,
+    // while this placeholder can still be showing. Reading it live makes the skeleton appear partway through hydrate.
+    const [isReplacingContentAtMount] = useState(isReplacingContent);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
@@ -39,11 +48,15 @@ function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>)
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                <SearchRowSkeleton
-                    shouldAnimate
-                    onLayout={handleSkeletonLayout}
-                    containerStyle={containerStyle}
-                />
+                // Rendered invisibly rather than skipped when it replaces results already on screen: its onLayout still
+                // ends the navigate-to-Search spans, and the deferred mount still yields to the press.
+                <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
+                    <SearchRowSkeleton
+                        shouldAnimate
+                        onLayout={handleSkeletonLayout}
+                        containerStyle={containerStyle}
+                    />
+                </View>
             }
         >
             <Search {...props} />
