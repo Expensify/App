@@ -2210,9 +2210,13 @@ function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, repo
         });
     }
 
-    return status.value.some((expenseStatus) => {
-        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report, transactionItemReportID) : false;
-    });
+    // Invalid statuses should be treated as if there were no status filter, mirroring backend behaviour.
+    const validStatuses = status.value.filter(isValidExpenseStatus);
+    if (validStatuses.length === 0) {
+        return true;
+    }
+
+    return validStatuses.some((expenseStatus) => expenseStatusActionMapping[expenseStatus](report, transactionItemReportID));
 }
 
 /**
