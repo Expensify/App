@@ -125,7 +125,11 @@ type StepConfirmationParams = MoneyRequestNavigatorParamList[typeof SCREENS.MONE
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> &
     WithFullTransactionOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> & {
         shouldHideHeader?: boolean;
+
+        /** Reports changes to the numeric digits of the inline amount field (new manual expense flow) */
         onAmountChange?: (digits: string) => void;
+
+        /** Reports whether the inline amount is negative (new manual expense flow) */
         onNegativeChange?: (isNegative: boolean) => void;
     };
 
