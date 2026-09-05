@@ -55,8 +55,8 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const defaultCardFeedID = defaultCardFeed?.id;
     // Only policy IDs are needed so Top Spenders matches the type menu hash; card feeds aren't used for that eligibility.
-    const topSpendersPolicyIDs = useMemo(() => getSuggestedSearchesVisibility(email, {}, policies, undefined).topSpendersPolicyIDs, [email, policies]);
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID ?? defaultExpensifyCardID, undefined, topSpendersPolicyIDs, activeExpensifyCardFeedID);
+    const {topSpendersPolicyIDs, shouldShowExpensifyCard} = useMemo(() => getSuggestedSearchesVisibility(email, {}, policies, undefined), [email, policies]);
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID ?? defaultExpensifyCardID, shouldShowExpensifyCard, topSpendersPolicyIDs, activeExpensifyCardFeedID);
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
