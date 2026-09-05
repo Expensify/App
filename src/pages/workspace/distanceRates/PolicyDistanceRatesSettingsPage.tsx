@@ -21,7 +21,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getGovernmentRateCountryPhraseTranslationKey, isCommuterExclusionEnabled, isCurrencySupportedForAutoUpdate, isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
+import {getCommuterExclusionsSummary, getGovernmentRateCountryPhraseTranslationKey, isCommuterExclusionEnabled, isCurrencySupportedForAutoUpdate, isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 
@@ -45,26 +45,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CommuterExclusions, CustomUnit} from '@src/types/onyx/Policy';
+import type {CustomUnit} from '@src/types/onyx/Policy';
 
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
-
-function getCommuterExclusionsSummary(commuterExclusions: CommuterExclusions | undefined, defaultUnit: string | undefined, translate: ReturnType<typeof useLocalize>['translate']): string {
-    if (commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
-        return translate('workspace.distanceRates.commuterExclusions.summaryHomeAndOffice');
-    }
-    if (commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && commuterExclusions?.fixedDistance != null) {
-        return translate('workspace.distanceRates.commuterExclusions.summaryFixedDistance', {
-            distance: commuterExclusions.fixedDistance,
-            unit: commuterExclusions.fixedDistanceUnit ?? defaultUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-        });
-    }
-    return translate('workspace.distanceRates.commuterExclusions.summaryDisabled');
-}
 
 function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPageProps) {
     const policyID = route.params.policyID;

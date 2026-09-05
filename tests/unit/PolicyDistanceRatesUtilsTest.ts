@@ -1,4 +1,5 @@
 import {
+    getCommuterExclusionsSummary,
     getDistanceExpenseTypeForPolicy,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
@@ -159,6 +160,60 @@ describe('PolicyDistanceRatesUtils', () => {
 
         it('should return undefined for an unsupported currency', () => {
             expect(getGovernmentRateCountryPhraseTranslationKey('NZD')).toBeUndefined();
+        });
+    });
+
+    describe('getCommuterExclusionsSummary', () => {
+        it('should convert fixed-distance commuter exclusions to the current workspace unit', () => {
+            expect(
+                getCommuterExclusionsSummary(
+                    {
+                        method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                        fixedDistance: 2,
+                        fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                    CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    translateLocal,
+                ),
+            ).toBe('Exclude 1.24 mi per claim');
+        });
+
+        it('should keep the fixed-distance commuter exclusion value when units already match', () => {
+            expect(
+                getCommuterExclusionsSummary(
+                    {
+                        method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                        fixedDistance: 2,
+                        fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                    CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    translateLocal,
+                ),
+            ).toBe('Exclude 2 km per claim');
+        });
+
+        it('should fall back to the stored commuter exclusion unit while the workspace unit is unavailable', () => {
+            expect(
+                getCommuterExclusionsSummary(
+                    {
+                        method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                        fixedDistance: 10,
+                        fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    undefined,
+                    translateLocal,
+                ),
+            ).toBe('Exclude 10 mi per claim');
+        });
+
+        it('should return the home and office summary for home and office exclusions', () => {
+            expect(getCommuterExclusionsSummary({method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE}, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, translateLocal)).toBe(
+                'Use home and office locations',
+            );
+        });
+
+        it('should return the disabled summary when commuter exclusions are unset', () => {
+            expect(getCommuterExclusionsSummary(undefined, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, translateLocal)).toBe('No commute exclusion');
         });
     });
 

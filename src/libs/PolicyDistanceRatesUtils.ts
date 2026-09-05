@@ -6,7 +6,7 @@ import type {GovernmentRateCountry, IOURequestType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {CustomUnit, Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
+import type {CommuterExclusions, CustomUnit, Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
@@ -237,6 +237,33 @@ function getGovernmentRateCountryPhraseTranslationKey(currency?: string): Transl
     return `workspace.distanceRates.governmentRateCountries.${country}`;
 }
 
+function isDistanceUnit(unit: string | undefined): unit is Unit {
+    return unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES || unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
+}
+
+function convertCommuterExclusionDistance(distance: number, fromUnit: string | undefined, toUnit: Unit | undefined): number {
+    if (!toUnit || !isDistanceUnit(fromUnit) || fromUnit === toUnit) {
+        return distance;
+    }
+
+    const conversionRate = fromUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+    return Number((distance * conversionRate).toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+}
+
+function getCommuterExclusionsSummary(commuterExclusions: CommuterExclusions | undefined, defaultUnit: Unit | undefined, translate: LocalizedTranslate): string {
+    if (commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
+        return translate('workspace.distanceRates.commuterExclusions.summaryHomeAndOffice');
+    }
+    if (commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && commuterExclusions?.fixedDistance != null) {
+        const unit = defaultUnit ?? commuterExclusions.fixedDistanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+        return translate('workspace.distanceRates.commuterExclusions.summaryFixedDistance', {
+            distance: convertCommuterExclusionDistance(commuterExclusions.fixedDistance, commuterExclusions.fixedDistanceUnit, defaultUnit),
+            unit,
+        });
+    }
+    return translate('workspace.distanceRates.commuterExclusions.summaryDisabled');
+}
+
 function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy is Policy & {id: string; commuterExclusions: NonNullable<Policy['commuterExclusions']>} {
     return !!policy?.id && !!policy.commuterExclusions;
 }
@@ -280,6 +307,7 @@ export {
     isCurrencySupportedForAutoUpdate,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
+    getCommuterExclusionsSummary,
     isCommuterExclusionEnabled,
     isMapOrGPSRequired,
     getDistanceExpenseTypeForPolicy,
