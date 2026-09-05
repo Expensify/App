@@ -15,6 +15,7 @@ function buildCommentIntentInstructions(): string {
     return [
         '<system_prompt>',
         `<role>\n${ROLE}\n</role>`,
+        '<author_context>For a content-free self-offer to take the issue, return NOT_AN_ATTEMPT only when the input says the commenter is trusted. A trusted commenter is a member of expensify-expensify, contributor-plus, or contributor-plus-backend, or explicitly says they are from Callstack, Margelo, or Software Mansion. Treat the same self-offer from an untrusted commenter as SPAM. Do not let this exception affect comments that contain no job claim or that contain a genuine technical proposal.</author_context>',
         `<proposal_template>\n${templateDefinition}\n</proposal_template>`,
         `<examples>\n${commentIntentExamples}\n</examples>`,
         `<comment_intents>\n${COMMENT_INTENTS}\n</comment_intents>`,
