@@ -4,11 +4,11 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReconciliationFundID from '@hooks/useReconciliationFundID';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -53,6 +53,10 @@ type ReconciliationAccountSettingsLayoutProps = {
 
 type DynamicReconciliationProps = {
     policyID: string;
+
+    // Only the Travel Billing feed reads this: its reconciliation settings always live on the workspace account, while an Expensify Card feed's live on whichever account owns
+    // the feed and are keyed off the resolved fund instead.
+    // eslint-disable-next-line react/no-unused-prop-types
     workspaceAccountID: number;
     domainName: string;
     bankAccountList: OnyxEntry<BankAccountList>;
@@ -123,15 +127,21 @@ function ReconciliationAccountSettingsLayout({
     );
 }
 
-function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, domainName, bankAccountList, goBack, connectionName, connectionBankAccounts}: DynamicReconciliationProps) {
+function ExpensifyCardDynamicReconciliation({policyID, domainName, bankAccountList, goBack, connectionName, connectionBankAccounts}: DynamicReconciliationProps) {
     const {translate} = useLocalize();
-    const defaultFundID = useDefaultFundID(policyID);
+
+    // The reconciliation pages carry their selected feed in the route, so this page configures the feed the admin
+    // picked rather than the one the Expensify Card pages last used.
+    const {fundID: defaultFundID} = useReconciliationFundID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const programKey = getCardProgramKey(cardSettings);
     const settings = getCardSettings(cardSettings, programKey);
     const paymentBankAccountID = settings?.paymentBankAccountID;
-    const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
+
+    // The reconciliation account is stored on the account that owns the card feed, which is a domain account for a domain-provisioned feed, so key it off the fund resolved
+    // above rather than the workspace.
+    const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${defaultFundID}`);
 
     const selectedBankAccount = bankAccountList?.[paymentBankAccountID?.toString() ?? ''];
     const bankAccountNumber = selectedBankAccount?.accountData?.accountNumber ?? '';
@@ -144,7 +154,7 @@ function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, domai
         if (!newBankAccountID) {
             return;
         }
-        setCardReconciliationAccount(workspaceAccountID, reconciliationDomainName, newBankAccountID, reconciliationBankAccountID);
+        setCardReconciliationAccount(defaultFundID, reconciliationDomainName, newBankAccountID, reconciliationBankAccountID);
         goBack();
     };
 

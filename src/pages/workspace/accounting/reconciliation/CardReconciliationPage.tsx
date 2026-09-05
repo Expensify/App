@@ -1,3 +1,5 @@
+import CardFeedIcon from '@components/CardFeedIcon';
+import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -6,14 +8,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useEnvironment from '@hooks/useEnvironment';
-import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReconciliationFundID from '@hooks/useReconciliationFundID';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {getAccountingIntegrationDisplayName, getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getCardSettings, getConnectionBankAccountsForReconciliation, isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -25,13 +29,14 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
+import variables from '@styles/variables';
+
 import {toggleContinuousReconciliation} from '@userActions/Card';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -43,44 +48,30 @@ type CardReconciliationPageProps = WithPolicyConnectionsProps & PlatformStackScr
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 
-type FullySetUpCardSetting = {
-    key: string;
-    cardSetting: ExpensifyCardSettings;
-};
-
 function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const policyID = policy?.id;
-    const allCardSettings = useExpensifyCardFeeds(policyID);
     const {environmentURL} = useEnvironment();
 
-    const fullySetUpCardSetting = useMemo(() => {
-        const entries = Object.entries(allCardSettings ?? {});
-        const initialValue: FullySetUpCardSetting = {
-            key: '',
-            cardSetting: {
-                monthlySettlementDate: new Date(),
-                isMonthlySettlementAllowed: false,
-                paymentBankAccountID: CONST.DEFAULT_NUMBER_ID,
-            },
-        };
+    // Continuous Reconciliation is configured per card feed, and this workspace can sit on more than one: its own
+    // workspace-provisioned feed plus any domain or other-workspace feed that lists it as preferred or linked. The
+    // candidates are the feeds the admin may configure from here; the selected one comes from the route, defaulting to
+    // the feed useDefaultFundID resolves.
+    const {candidates, fundID: effectiveDomainID} = useReconciliationFundID(policyID);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${effectiveDomainID}`);
 
-        return entries.reduce<FullySetUpCardSetting>((acc, [key, cardSetting]) => {
-            if (cardSetting && isExpensifyCardFullySetUp(policy, cardSetting)) {
-                return {
-                    key,
-                    cardSetting,
-                };
-            }
-            return acc;
-        }, initialValue);
-    }, [allCardSettings, policy]);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const selectedFeedName = getExpensifyCardFeedDescription(cardSettings, policies, domains, effectiveDomainID, cardList);
 
-    const domainID = fullySetUpCardSetting.key.split('_').at(-1);
-    const effectiveDomainID = Number(domainID ?? workspaceAccountID);
+    // Hide the selector only when the sole candidate is this workspace's own feed, where naming it would tell the admin
+    // nothing they do not already know. Any other case shows it, including a single feed owned by a domain or another
+    // workspace: the selector names the feed the toggle applies to, so that ambiguity needs no separate message.
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const shouldShowFeedSelector = candidates.length > 1 || candidates.at(0)?.fundID !== workspaceAccountID;
 
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {
         selector: isExpensifyCardContinuousReconciliationEnabledSelector,
@@ -89,13 +80,13 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
     const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${effectiveDomainID}`);
 
-    const resolvedCardSettings = getCardSettings(fullySetUpCardSetting.cardSetting);
+    const resolvedCardSettings = getCardSettings(cardSettings);
     const paymentBankAccountID = resolvedCardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {connection} = route.params;
     const connectionName = getConnectionNameFromRouteParam(connection) as AccountingConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
-    const shouldShow = !!resolvedCardSettings?.paymentBankAccountID;
+    const shouldShow = isExpensifyCardFullySetUp(policy, cardSettings);
 
     const connectionBankAccounts = getConnectionBankAccountsForReconciliation(policy?.connections, connectionName);
     const bankAccountTitle = connectionBankAccounts.find((account) => account.id === reconciliationBankAccountID)?.name ?? '';
@@ -156,6 +147,28 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                     contentContainerStyle={styles.pb5}
                     addBottomSafeAreaPadding
                 >
+                    {shouldShowFeedSelector && (
+                        <View style={[styles.ph5, styles.pb3]}>
+                            <FeedSelector
+                                onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_SELECT_FEED.path))}
+                                CardFeedIcon={
+                                    <CardFeedIcon
+                                        isExpensifyCardFeed
+                                        iconProps={{
+                                            height: variables.cardIconHeight,
+                                            width: variables.cardIconWidth,
+                                            additionalStyles: styles.cardIcon,
+                                        }}
+                                    />
+                                }
+                                feedName={translate('workspace.common.expensifyCard')}
+                                supportingText={selectedFeedName}
+                            />
+                            <View style={[styles.renderHTML, styles.pt3]}>
+                                <RenderHTML html={translate('workspace.accounting.continuousReconciliationFeedSelection')} />
+                            </View>
+                        </View>
+                    )}
                     <ToggleSettingOptionRow
                         key={translate('workspace.accounting.continuousReconciliation')}
                         title={translate('workspace.accounting.continuousReconciliation')}
