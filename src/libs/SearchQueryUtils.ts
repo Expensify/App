@@ -202,7 +202,13 @@ function isCompleteQuotedValue(str: string) {
 }
 
 function hasUnescapedQuote(str: string) {
-    return [...str].some((char, index) => char === '"' && !isEscaped(str, index));
+    for (let index = 0; index < str.length; index++) {
+        if (str.at(index) === '"' && !isEscaped(str, index)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function tokenizeKeywordSegments(keywords: string) {

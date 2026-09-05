@@ -2437,6 +2437,7 @@ describe('SearchQueryUtils', () => {
 
         test.each([
             ['a straight quote', 'A"B'],
+            ['a straight quote after an astral character', '😀"B'],
             ['a curly quote', 'A“B'],
             ['a backslash', 'A\\B'],
         ])('round-trips a bare keyword containing %s', (_label, keyword) => {
