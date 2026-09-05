@@ -125,6 +125,15 @@ type StepConfirmationParams = MoneyRequestNavigatorParamList[typeof SCREENS.MONE
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> &
     WithFullTransactionOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> & {
         shouldHideHeader?: boolean;
+
+        /** Reports changes to the numeric digits of the inline amount field (new manual expense flow) */
+        onAmountChange?: (digits: string) => void;
+
+        /** Reports whether the inline amount is negative (new manual expense flow) */
+        onNegativeChange?: (isNegative: boolean) => void;
+
+        /** Suppresses the parent discard prompt when the embedded confirmation starts a successful submit */
+        suppressDiscardPrompt?: () => void;
     };
 
 function IOURequestStepConfirmationContent({
@@ -135,6 +144,9 @@ function IOURequestStepConfirmationContent({
     isLoadingTransaction,
     shouldHideHeader = false,
     navigation,
+    onAmountChange,
+    onNegativeChange,
+    suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const params = route.params;
@@ -1013,7 +1025,10 @@ function IOURequestStepConfirmationContent({
                                         setManuallyOpenedParticipantPickerForTransactionID(activeTransactionID);
                                     }}
                                     onToggleBillable={setBillable}
-                                    onConfirm={onConfirm}
+                                    onConfirm={() => {
+                                        suppressDiscardPrompt?.();
+                                        onConfirm();
+                                    }}
                                     onSendMoney={handleSendMoney}
                                     showRemoveExpenseConfirmModal={() => {
                                         confirmRemoveCurrentTransaction();
@@ -1040,6 +1055,8 @@ function IOURequestStepConfirmationContent({
                                     isReceiptEditable
                                     isTimeRequest={isTimeRequest}
                                     shouldHideToSection={shouldHideToSection}
+                                    onAmountChange={onAmountChange}
+                                    onNegativeChange={onNegativeChange}
                                 />
                             )}
                         </SubmitExpenseOrchestrator>

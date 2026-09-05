@@ -73,6 +73,12 @@ type ProviderProps = {
     /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty */
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 
+    /** Reports changes to the numeric digits of the inline amount field (new manual expense flow) */
+    onAmountChange?: (digits: string) => void;
+
+    /** Reports whether the inline amount is negative (new manual expense flow) */
+    onNegativeChange?: (isNegative: boolean) => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -99,6 +105,8 @@ function Provider({
     scrollFocusedInputIntoView,
     onSubmitForm,
     onTaxAmountEmptyChange,
+    onAmountChange,
+    onNegativeChange,
     children,
 }: ProviderProps) {
     const value = {
@@ -123,6 +131,8 @@ function Provider({
         scrollFocusedInputIntoView,
         onSubmitForm,
         onTaxAmountEmptyChange,
+        onAmountChange,
+        onNegativeChange,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }
