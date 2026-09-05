@@ -146,6 +146,7 @@ import {
     isMoneyRequestAction,
     isReportActionVisible,
     isResolvedActionableWhisper,
+    isAddExpenseOnSubmittedAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
@@ -2209,9 +2210,13 @@ function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, repo
         });
     }
 
-    return status.value.some((expenseStatus) => {
-        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report, transactionItemReportID) : false;
-    });
+    // Invalid statuses should be treated as if there were no status filter, mirroring backend behaviour.
+    const validStatuses = status.value.filter(isValidExpenseStatus);
+    if (validStatuses.length === 0) {
+        return true;
+    }
+
+    return validStatuses.some((expenseStatus) => expenseStatusActionMapping[expenseStatus](report, transactionItemReportID));
 }
 
 /**
@@ -5377,7 +5382,9 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
 
     const violationNames = new Set<string>();
     for (const action of reportActions) {
-        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action)) {
+        // An expense added to a report that was already awaiting approval is not in that report's submit snapshot,
+        // so its violations live on their own add-expense-on-submitted action instead.
+        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isAddExpenseOnSubmittedAction(action)) {
             continue;
         }
 

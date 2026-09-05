@@ -32,6 +32,7 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
 import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -899,7 +900,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isCardIssuedAction(parentReportAction)) {
-        return getCardIssuedMessage({reportAction: parentReportAction, translate, currentUserAccountID});
+        return getCardIssuedMessage({reportAction: parentReportAction, translate, currentUserAccountID, buildDynamicRoute: createDynamicRoute});
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
         return getAddedCardFeedMessage(translate, parentReportAction);

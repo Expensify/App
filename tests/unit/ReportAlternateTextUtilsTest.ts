@@ -37,14 +37,7 @@ import {
     getWelcomeMessage,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
-import {
-    formatReportLastMessageText,
-    getMovedActionMessage,
-    getMovedTransactionMessage,
-    getReportPreviewReportActionMessage,
-    getReportTransactions,
-    parseMovedTransactionReportIDs,
-} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewReportActionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
 import {isScanning} from '@libs/TransactionUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -2015,7 +2008,7 @@ describe('ReportAlternateTextUtils', () => {
 
                 currentUserLogin: CURRENT_USER_LOGIN,
             });
-            const transactions = getReportTransactions(report.reportID);
+            const transactions = [scannedTransaction];
             const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
             expect(result).toBe(
                 translateLocal('iou.receiptScanning', {
