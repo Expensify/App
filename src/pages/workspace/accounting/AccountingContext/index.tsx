@@ -47,12 +47,14 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
     ]);
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
     const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
     const hasReusablePoliciesConnectedToDualEntry = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, policyID);
+    const hasReusablePoliciesConnectedToCampfire = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE, policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
 
@@ -76,6 +78,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                     certinia: hasReusablePoliciesConnectedToCertinia,
                     rillet: hasReusablePoliciesConnectedToRillet,
                     dualEntry: hasReusablePoliciesConnectedToDualEntry,
+                    campfire: hasReusablePoliciesConnectedToCampfire,
                 },
                 undefined,
                 undefined,
@@ -109,6 +112,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             hasReusablePoliciesConnectedToCertinia,
             hasReusablePoliciesConnectedToRillet,
             hasReusablePoliciesConnectedToDualEntry,
+            hasReusablePoliciesConnectedToCampfire,
             accountingIcons,
             cardFeeds,
             cardLists,
@@ -158,6 +162,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 certinia: hasReusablePoliciesConnectedToCertinia,
                 rillet: hasReusablePoliciesConnectedToRillet,
                 dualEntry: hasReusablePoliciesConnectedToDualEntry,
+                campfire: hasReusablePoliciesConnectedToCampfire,
             },
             policy,
             activeIntegration.key,
