@@ -40,6 +40,7 @@ Use these core rules to create your searches:
 - Combine fields for **AND** conditions: `amount>50 status:approved`.
 - Use `-` to exclude results: `-has:receipt`.
 - Use quotes for exact phrases: `description:"team lunch"`.
+- Wrap a value in quotes when the value itself contains a space or a comma, so it is read as one value instead of two OR conditions: `workspace:"Acme, Inc"`.
 - Relative dates are supported: `date:this-week`.
 - Start typing after `:` to see autocomplete suggestions.
 
@@ -52,11 +53,11 @@ Use these operators to refine results across different types:
 | **Syntax**       | **Description**                                                               | **Example**                  |
 |------------------|-------------------------------------------------------------------------------|------------------------------|
 | `type:`          | Filter by object type (`expense`, `chat`, `trip`, `task`)       | `type:expense`               |
-| `workspace:`     | Filter by workspace name (wrap in quotes if the name has spaces)             | `workspace:"Acme Inc."`      |
+| `workspace:`     | Filter by workspace name (wrap in quotes if the name has spaces or commas)   | `workspace:"Acme, Inc"`      |
 | `from:`          | Filter by sender (email, phone, display name, or `me`)          | `from:alice@acme.com`        |
 | `to:`            | Filter by recipient (email, phone, display name, or `me`)       | `to:me`                      |
 
-**Note:** Quotes are required when filtering by names with spaces, such as `workspace:"Sales Team"`.
+**Note:** Quotes are required when filtering by names that contain spaces or commas, such as `workspace:"Sales Team"` or `workspace:"Acme, Inc"`. Because commas separate **OR** conditions, an unquoted name with a comma is read as two separate values instead of one.
 
 ---
 
@@ -246,4 +247,4 @@ If the search operator isn’t recognized, the system will ignore it and return 
 
 ## Do I need to use quotes for everything?
 
-Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
+Only use quotes for values that include spaces, commas, or exact phrases, like `description:"client lunch"`, `workspace:"Acme, Inc"`, or `in:"#general"`.

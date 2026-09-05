@@ -1,6 +1,7 @@
 import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
@@ -2262,6 +2263,7 @@ describe('ReportActionsUtils', () => {
                     expensifyCard: undefined,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
@@ -2275,6 +2277,7 @@ describe('ReportActionsUtils', () => {
                     expensifyCard: activeExpensifyCard,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toBe(
@@ -2314,6 +2317,7 @@ describe('ReportActionsUtils', () => {
                     companyCard: mockCompanyCard,
                     translate: translateLocal,
                     currentUserAccountID: 456,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toContain(`<a href='https://dev.new.expensify.com:8082/settings/wallet'>`);
@@ -2326,6 +2330,7 @@ describe('ReportActionsUtils', () => {
                     companyCard: mockCompanyCard,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).not.toContain('<a href=');
@@ -4563,6 +4568,107 @@ describe('ReportActionsUtils', () => {
             };
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "$0.55" (previously "$0.50")');
+        });
+
+        it('should return the tax reclaimable portion as a percentage of the rate', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.5,
+                    newValue: 0.7,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "70%" (previously "50%")');
+        });
+
+        it('should keep two decimal places on a fractional tax reclaimable percentage', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.075,
+                    newValue: 0.1234,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "12.34%" (previously "7.5%")');
+        });
+
+        it('should round a repeating tax reclaimable fraction to two decimal places', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 1 / 3,
+                    newValue: 0.123456,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "12.35%" (previously "33.33%")');
+        });
+
+        it('should treat a previous tax reclaimable portion of zero as a change', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0,
+                    newValue: 0.7,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "70%" (previously "0%")');
+        });
+
+        it('should return the correct message when the whole rate is reclaimable', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.5,
+                    newValue: 1,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "100%" (previously "50%")');
+        });
+
+        it('should return the correct message when a tax reclaimable portion is added', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    newValue: 0.7,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('added a tax reclaimable portion of "70%" to the distance rate "Default Rate"');
         });
 
         it('should return the correct message when a start date is set on a rate without dates', () => {
