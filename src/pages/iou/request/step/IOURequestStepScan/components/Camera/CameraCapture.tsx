@@ -112,7 +112,7 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
 
         showBlink();
 
-        const originalFileName = `receipt_${Date.now()}.png`;
+        const originalFileName = `receipt_${Date.now()}.jpg`;
         const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
 
         if (originalFile.size === 0) {
@@ -195,14 +195,14 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                                     display: cameraPermissionState !== 'granted' ? 'none' : 'block',
                                 }}
                                 ref={cameraRef}
-                                screenshotFormat="image/png"
+                                screenshotFormat={CONST.IMAGE_FILE_FORMAT.JPEG}
                                 videoConstraints={videoConstraints}
                                 forceScreenshotSourceSize
                                 audio={false}
                                 disablePictureInPicture={false}
                                 imageSmoothing={false}
                                 mirrored={false}
-                                screenshotQuality={0}
+                                screenshotQuality={0.92}
                             />
                             {canUseMultiScan ? (
                                 <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
