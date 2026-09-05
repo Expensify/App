@@ -29,7 +29,6 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
-import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -215,8 +214,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [member?.pendingAction, prevMember]);
 
     // Function to remove a member and close the modal
-    const removeMemberAndCloseModal = () => {
-        removeMembers(policy, [memberLogin], {[memberLogin]: accountID});
+    const removeMemberAndCloseModal = (approvalWorkflowUpdates: Array<ReturnType<typeof updateWorkflowDataOnApproverRemoval>[number]> = []) => {
+        removeMembers(policy, [memberLogin], {[memberLogin]: accountID}, approvalWorkflowUpdates);
         const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         const remainingEmployeeCount = previousEmployeesCount - 1;
         if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
@@ -242,18 +241,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             ownerDetails,
         });
 
-        for (const workflow of updatedWorkflows) {
-            if (workflow?.removeApprovalWorkflow) {
-                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-
-                removeApprovalWorkflowAction(updatedWorkflow, policy);
-            } else {
-                updateApprovalWorkflow(workflow, [], [], policy);
-            }
-        }
-
         // Remove the member and close the modal
-        removeMemberAndCloseModal();
+        removeMemberAndCloseModal(updatedWorkflows);
     };
 
     const showRemoveMemberModal = async () => {
