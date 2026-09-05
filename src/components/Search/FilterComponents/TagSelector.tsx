@@ -1,15 +1,16 @@
 import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTagFilters from '@hooks/useSearchTagFilters';
 
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -26,7 +27,9 @@ type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 
 function TagSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicyTags = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const policyIDs = policyID?.value?.length
         ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies)
               .map((policy) => policy.id)
@@ -34,31 +37,46 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
         : '';
     const {searchResults, isSearching, isLoadingMore, hasMore, loadMore, searchTags, isInitialLoading, searchQuery} = useSearchTagFilters(policyIDs);
 
+    const hasSearchResults = !!searchResults && Object.keys(searchResults).length > 0;
+    const shouldUseOfflineFallback = isOffline && !hasSearchResults;
+
     const tagItems: Array<MultiSelectItem<string>> = [];
     const emptyTagItem = {text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string};
     const seenTagNames = new Set<string>();
     const lowerSearchQuery = searchQuery.toLowerCase();
 
-    // Preserve backend order - new items append at end for infinite scroll.
-    // When offline the API is skipped, so cached results are filtered locally by the search query.
-    for (const policyTags of Object.values(searchResults ?? {})) {
-        for (const tag of Object.values(policyTags ?? {})) {
-            if (seenTagNames.has(tag.tagName)) {
-                continue;
+    const addTagName = (tagName: string) => {
+        if (seenTagNames.has(tagName)) {
+            return;
+        }
+        if (lowerSearchQuery && !tagName.toLowerCase().includes(lowerSearchQuery)) {
+            return;
+        }
+        seenTagNames.add(tagName);
+        tagItems.push({text: getCleanedTagName(tagName), value: tagName});
+    };
+
+    if (shouldUseOfflineFallback) {
+        // Fall back to synced workspace tag data when the paginated search cache is empty offline.
+        const policyTagsLists = getAllPolicyValues(policyID?.value?.length ? policyID : undefined, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTags);
+        for (const policyTagsList of policyTagsLists) {
+            for (const tagName of getTagNamesFromTagsLists(policyTagsList)) {
+                addTagName(tagName);
             }
-            if (lowerSearchQuery && !tag.tagName.toLowerCase().includes(lowerSearchQuery)) {
-                continue;
+        }
+    } else {
+        // Preserve backend order - new items append at end for infinite scroll.
+        // When offline the API is skipped, so cached results are filtered locally by the search query.
+        for (const policyTags of Object.values(searchResults ?? {})) {
+            for (const tag of Object.values(policyTags ?? {})) {
+                addTagName(tag.tagName);
             }
-            seenTagNames.add(tag.tagName);
-            tagItems.push({text: getCleanedTagName(tag.tagName), value: tag.tagName});
         }
     }
 
-    const shouldShowEmptyTagOption =
-        !isSearching &&
-        !isInitialLoading &&
-        (!hasMore || seenTagNames.size <= CONST.SEARCH.TAG_FILTER_PAGE_SIZE) &&
-        (!searchQuery || emptyTagItem.text.toLowerCase().includes(lowerSearchQuery));
+    const isCompleteTagList = shouldUseOfflineFallback || !hasMore || seenTagNames.size <= CONST.SEARCH.TAG_FILTER_PAGE_SIZE;
+
+    const shouldShowEmptyTagOption = !isSearching && !isInitialLoading && isCompleteTagList && (!searchQuery || emptyTagItem.text.toLowerCase().includes(lowerSearchQuery));
 
     if (shouldShowEmptyTagOption) {
         tagItems.unshift(emptyTagItem);
@@ -83,7 +101,9 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
     }
 
     // Keep search mounted while a query is active or in flight. Clearing results for a new search resets hasMore and tag count.
-    const shouldEnableSearch = hasMore || seenTagNames.size >= CONST.STANDARD_LIST_ITEM_LIMIT || isSearching || !!searchQuery;
+    const shouldEnableSearch = shouldUseOfflineFallback
+        ? seenTagNames.size >= CONST.STANDARD_LIST_ITEM_LIMIT || !!searchQuery
+        : hasMore || seenTagNames.size >= CONST.STANDARD_LIST_ITEM_LIMIT || isSearching || !!searchQuery;
 
     return (
         <MultiSelect
@@ -95,7 +115,7 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
             selectionListStyle={selectionListStyle}
             footer={footer}
             onChange={(tags) => onChange(tags.map((tag) => tag.value))}
-            onEndReached={hasMore ? loadMore : undefined}
+            onEndReached={hasMore && !shouldUseOfflineFallback ? loadMore : undefined}
             onSearchChange={searchTags}
             loading={isInitialLoading}
             isSearching={isSearching}
