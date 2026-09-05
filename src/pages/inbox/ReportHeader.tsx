@@ -58,7 +58,7 @@ function ReportHeader() {
             return;
         }
         if (prioritizeBackTo && backTo) {
-            Navigation.goBack(backTo as Route, options);
+            Navigation.goBack(backTo, options);
             return;
         }
         if (isInNarrowPaneModal) {
@@ -66,7 +66,7 @@ function ReportHeader() {
             return;
         }
         if (backTo) {
-            Navigation.goBack(backTo as Route, options);
+            Navigation.goBack(backTo, options);
             return;
         }
         Navigation.goBack(undefined, options);

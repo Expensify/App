@@ -162,8 +162,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // We know that the options are always defined because we have default options.
     const {forceReplace, skipMatchingFullScreenRoute} = {...defaultLinkToOptions, ...options};
 
-    const normalizedPath = normalizePath(path) as Route;
-    const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;
+    const normalizedPath = normalizePath(path);
+    const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.

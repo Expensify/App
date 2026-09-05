@@ -96,7 +96,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 }
 
                 initialUrlProcessed.current = true;
-                onInitialUrl(url as Route);
+                onInitialUrl(url);
 
                 if (url) {
                     if (conciergeReportID === undefined) {
@@ -146,7 +146,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             // getInitialURL() is empty. Record it so onboarding suppression has a session-sticky signal, the same
             // way the cold path does via onInitialUrl above. Scoped to secure links so other deep links are unaffected.
             if (hasSecureLinkKey(state.url)) {
-                onInitialUrl(state.url as Route);
+                onInitialUrl(state.url);
             }
             openReportFromDeepLink(
                 state.url,

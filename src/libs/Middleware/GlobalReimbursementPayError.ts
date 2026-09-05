@@ -36,25 +36,17 @@ const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responseP
         }
 
         const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`;
-        request.failureData = request.failureData.map((update) => {
-            if (update.key !== actionsKey) {
-                return update;
-            }
-
-            const widened = update as AnyOnyxUpdate;
-            if (!widened.value) {
-                return update;
+        for (const update of request.failureData as AnyOnyxUpdate[]) {
+            if (update.key !== actionsKey || !update.value) {
+                continue;
             }
 
             // Drop the optimistic PAY action instead of merging an error onto it.
-            return {
-                ...update,
-                value: {
-                    ...(widened.value as Record<string, unknown>),
-                    [reportActionID]: null,
-                },
-            } as (typeof request.failureData)[number];
-        });
+            update.value = {
+                ...(update.value as Record<string, unknown>),
+                [reportActionID]: null,
+            };
+        }
 
         Log.info('GlobalReimbursementPayError: replaced optimistic PAY action-error with action-null for corpayPayModal', false, {iouReportID, reportActionID});
 

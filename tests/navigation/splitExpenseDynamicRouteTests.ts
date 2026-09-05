@@ -16,8 +16,7 @@ const TRANSACTION_ID = '1234567890123456';
 const SPLIT_TRANSACTION_ID = '6543210987654321';
 
 function getFocusedRoute(path: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- these URLs are composed at runtime, so they are not entries in the production Route union
-    return findFocusedRouteWithOnyxTabGuard(getStateFromPath(path as Route) as State);
+    return findFocusedRouteWithOnyxTabGuard(getStateFromPath(path) as State);
 }
 
 describe('split expense dynamic routes', () => {

@@ -87,7 +87,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 // remove this screen and navigate to exit route
                 Navigation.goBack(ROUTES.HOME);
                 if (exitTo) {
-                    Navigation.navigate(exitTo as Route);
+                    Navigation.navigate(exitTo);
                 }
             });
         }

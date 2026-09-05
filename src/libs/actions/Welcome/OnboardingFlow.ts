@@ -96,7 +96,7 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
     }
 
     const onboardingPath = startOnboardingFlowParams.resumePath ?? getOnboardingInitialPath(startOnboardingFlowParams);
-    const adaptedState = getAdaptedStateFromPath(onboardingPath as Route, undefined, false);
+    const adaptedState = getAdaptedStateFromPath(onboardingPath, undefined, false);
     const rootStateRouteNamesSet = new Set(rootState.routes.map((route) => route.name));
 
     navigationRef.resetRoot({

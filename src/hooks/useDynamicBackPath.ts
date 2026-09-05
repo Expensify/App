@@ -38,7 +38,7 @@ function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix): Route {
         return getPathWithoutDynamicSuffix(match.pathUsedForMatching, match.actualSuffix, match.pattern);
     }
 
-    return pathWithoutLeadingSlash as Route;
+    return pathWithoutLeadingSlash;
 }
 
 export default useDynamicBackPath;

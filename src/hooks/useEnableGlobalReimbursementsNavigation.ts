@@ -1,7 +1,6 @@
 /**
  * Resolves Enable Global Reimbursements routes for the static settings/wallet flow and the dynamic report/search flow.
  */
-import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isDynamicRouteScreen from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteScreen';
@@ -16,6 +15,8 @@ import type {Screen} from '@src/SCREENS';
 import {useRoute} from '@react-navigation/native';
 import {useEffect, useMemo, useState} from 'react';
 
+import useRootNavigationState from './useRootNavigationState';
+
 type EnableGlobalReimbursementsRouteParams = {
     bankCountry?: string;
     bankCurrency?: string;
@@ -23,15 +24,18 @@ type EnableGlobalReimbursementsRouteParams = {
 
 function useEnableGlobalReimbursementsNavigation() {
     const route = useRoute();
-    const isDynamic = isDynamicRouteScreen(route.name as Screen);
+    const isDynamic = isDynamicRouteScreen(route.name as Screen); // eslint-disable-line @typescript-eslint/no-unsafe-type-assertion -- route.name is string at runtime
     const navigationPath = useRootNavigationState((state) => (state ? getPathFromState(state as State) : undefined));
     const resolvedBasePath = useMemo(() => getDynamicBasePathFromNavigationPath(navigationPath), [navigationPath]);
     const [stableBasePath, setStableBasePath] = useState<Route | null>(null);
 
     useEffect(() => {
-        if (isDynamic && resolvedBasePath && !resolvedBasePath.includes('enable-global-reimbursements')) {
-            setStableBasePath((current) => current ?? resolvedBasePath);
+        if (!isDynamic || !resolvedBasePath || resolvedBasePath.includes('enable-global-reimbursements')) {
+            return;
         }
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- latch entry base path once before navigating deeper into the flow
+        setStableBasePath((current) => current ?? resolvedBasePath);
     }, [isDynamic, resolvedBasePath]);
 
     const dynamicBasePath = stableBasePath ?? resolvedBasePath;

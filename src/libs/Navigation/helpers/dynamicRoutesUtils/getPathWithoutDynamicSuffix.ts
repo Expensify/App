@@ -43,7 +43,7 @@ function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string, pa
         filteredQuery = result || undefined;
     }
 
-    return `${pathWithoutDynamicSuffix}${filteredQuery ? `?${filteredQuery}` : ''}` as Route;
+    return `${pathWithoutDynamicSuffix}${filteredQuery ? `?${filteredQuery}` : ''}`;
 }
 
 export default getPathWithoutDynamicSuffix;

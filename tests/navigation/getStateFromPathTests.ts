@@ -73,8 +73,8 @@ jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute',
 
 function getStateFromSyntheticPath(path: string): ReturnType<typeof getStateFromPath> {
     // These paths are synthetic fixtures for the mocked route configuration, not entries in the production Route union.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Deliberately pass synthetic route paths through the production parser.
-    return getStateFromPath(path as Route);
+
+    return getStateFromPath(path);
 }
 
 type DynamicRoutePath = Parameters<typeof getStateForDynamicRoute>[0];

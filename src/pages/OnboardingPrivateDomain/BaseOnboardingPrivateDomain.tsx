@@ -67,7 +67,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             return;
         }
 
-        const routeToNavigate = (route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+        const routeToNavigate = route.params?.backTo! ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
         Navigation.goBack(routeToNavigate);
     }, [route.params?.backTo, onboardingValues]);
 

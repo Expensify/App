@@ -1,6 +1,3 @@
-import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
-
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,6 +12,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type CorpayPayModal from '@src/types/onyx/CorpayPayModal';
 
 import {useEffect, useEffectEvent, useRef} from 'react';
+
+import {useLockedAccountActions, useLockedAccountState} from './LockedAccountModalProvider';
+import {ModalActions} from './Modal/Global/ModalContext';
 
 function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
@@ -37,6 +37,7 @@ function EnableGlobalReimbursementsPayModal() {
 
             isModalOpenRef.current = true;
             navigationPathAtSignalRef.current = Navigation.getActiveRoute();
+            // eslint-disable-next-line no-await-in-loop -- process queued modal signals one at a time
             const result = await showConfirmModal({
                 title: translate('common.corpayPayModalTitle'),
                 prompt: translate('common.corpayPayModalPrompt'),

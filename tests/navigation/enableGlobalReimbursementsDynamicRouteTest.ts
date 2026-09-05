@@ -2,11 +2,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isDynamicRouteSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteSuffix';
-import {
-    getDynamicBasePathFromNavigationPath,
-    getEnableGlobalReimbursementsBusinessNavigationRoute,
-    shouldUseDynamicEnableGlobalReimbursementsBase,
-} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
+import {getEnableGlobalReimbursementsBusinessNavigationRoute, shouldUseDynamicEnableGlobalReimbursementsBase} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -27,8 +23,11 @@ describe('Enable global reimbursements dynamic routes', () => {
         const matches = findAllMatchingDynamicSuffixes(fullPath);
         const businessMatch = matches.find((m) => m.pattern === BUSINESS_PATTERN);
         expect(businessMatch).toBeDefined();
+        if (!businessMatch) {
+            return;
+        }
 
-        const backPath = getPathWithoutDynamicSuffix(businessMatch!.pathUsedForMatching, businessMatch!.actualSuffix, businessMatch!.pattern);
+        const backPath = getPathWithoutDynamicSuffix(businessMatch.pathUsedForMatching, businessMatch.actualSuffix, businessMatch.pattern);
         expect(backPath).toBe('search/view/6546028296902751');
     });
 
@@ -38,8 +37,11 @@ describe('Enable global reimbursements dynamic routes', () => {
         const matches = findAllMatchingDynamicSuffixes(pathWithBackTo);
         const businessMatch = matches.find((m) => m.pattern === BUSINESS_PATTERN);
         expect(businessMatch).toBeDefined();
+        if (!businessMatch) {
+            return;
+        }
 
-        const backPath = getPathWithoutDynamicSuffix(businessMatch!.pathUsedForMatching, businessMatch!.actualSuffix, businessMatch!.pattern);
+        const backPath = getPathWithoutDynamicSuffix(businessMatch.pathUsedForMatching, businessMatch.actualSuffix, businessMatch.pattern);
         expect(backPath).toBe('search/view/6546028296902751?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense');
     });
 

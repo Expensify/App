@@ -10638,7 +10638,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
         return {reportID: '', isSubReportPageRoute: false};
     }
 
-    const state = getStateFromPath(parsingRoute as Route);
+    const state = getStateFromPath(parsingRoute);
     const focusedRoute = findFocusedRoute(state);
 
     const reportID = focusedRoute?.params && 'reportID' in focusedRoute.params ? (focusedRoute?.params?.reportID as string) : '';

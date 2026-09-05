@@ -11,10 +11,10 @@ function getOnboardingRouteFromScreen(screen: OnboardingScreen, backTo?: string)
     }
 
     if (backTo) {
-        return getUrlWithParams(path, {backTo}) as Route;
+        return getUrlWithParams(path, {backTo});
     }
 
-    return path as Route;
+    return path;
 }
 
 export default getOnboardingRouteFromScreen;

@@ -70,7 +70,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
-                Navigation.navigate(exitTo as Route);
+                Navigation.navigate(exitTo);
             });
         }
         // The only dependencies of the effect are based on props.route

@@ -34,7 +34,7 @@ type SearchRoute = Omit<Route<string>, 'key'> | undefined;
 type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]};
 
 const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteReportID = (url): string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID => {
-    const route = Navigation.getActiveRouteWithoutParams() as ActiveRoute;
+    const route = Navigation.getActiveRouteWithoutParams();
     const focusedRoute = findFocusedRoute(getStateFromPath(route));
     const reportIDFromURLParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID');
 

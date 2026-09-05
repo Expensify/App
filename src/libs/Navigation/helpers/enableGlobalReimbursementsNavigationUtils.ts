@@ -1,12 +1,12 @@
 /**
  * Route helpers for Enable Global Reimbursements in wallet settings or on search and report screens.
  */
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
-import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
-
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
+
+import createDynamicRoute from './dynamicRoutesUtils/createDynamicRoute';
+import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
+import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 
 type EnableGlobalReimbursementsRouteParams = {
     bankCountry?: string;
@@ -32,7 +32,7 @@ function getDynamicBasePathFromNavigationPath(path: string | undefined): Route {
         }
     }
 
-    return pathWithoutLeadingSlash as Route;
+    return pathWithoutLeadingSlash;
 }
 
 function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: Route): boolean {

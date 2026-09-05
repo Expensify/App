@@ -1177,7 +1177,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             Navigation.dismissModal();
         } else {
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-            navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
+            navigateBackOnDeleteTransaction(urlToNavigateBack);
         }
     }, [
         caseID,

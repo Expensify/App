@@ -96,7 +96,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
     // inherit it from the screen underneath. Letting backTo dictate the full-screen route for
     // a dynamic screen would resolve the wrong page.
     if (isRouteWithBackToParam(route) && !isDynamicScreen) {
-        const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
+        const stateForBackTo = getStateFromPath(route.params.backTo);
 
         // This may happen if the backTo url is invalid.
         const lastRoute = stateForBackTo?.routes.at(-1);
@@ -432,7 +432,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
-    const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const state = getStateFromPath(normalizedPath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
     }

@@ -278,7 +278,7 @@ function Expensify() {
         // which can crash with "Unable to find node on an unmounted component" when the card unmounts mid-transition.
         // Defer the restore by one frame so the card is not mounted-then-unmounted mid-animation.
         const restoreAnimationFrame = requestAnimationFrame(() => {
-            Navigation.navigate(lastRoute as Route);
+            Navigation.navigate(lastRoute);
         });
         return () => cancelAnimationFrame(restoreAnimationFrame);
         // Disabling this rule because we only want it to run on the first render.
@@ -310,7 +310,7 @@ function Expensify() {
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
-                    lastVisitedPath={lastVisitedPath as Route}
+                    lastVisitedPath={lastVisitedPath!}
                     initialUrl={initialUrl ?? null}
                 />
             )}

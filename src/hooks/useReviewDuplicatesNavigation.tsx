@@ -53,7 +53,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
                 break;
             default:
                 if (backTo) {
-                    Navigation.goBack(backTo as Route);
+                    Navigation.goBack(backTo);
                     return;
                 }
                 Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(threadReportID)));
