@@ -56,6 +56,7 @@ import {
     hasAppliedCommuterExclusion,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
+    isMapDistanceRequest,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
@@ -108,6 +109,27 @@ function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: nu
             endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
         },
     );
+}
+
+function hasManualMapDistanceOverride(transaction: OnyxEntry<Transaction>): boolean {
+    if (!isMapDistanceRequest(transaction)) {
+        return false;
+    }
+
+    const quantity = transaction?.comment?.customUnit?.quantity;
+    const unit = transaction?.comment?.customUnit?.distanceUnit;
+    if (typeof quantity !== 'number' || !unit) {
+        return false;
+    }
+
+    // Offline the route is still pending, so a quantity can only have come from the Manual tab.
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters ?? transaction?.routes?.route0?.distance;
+    if (typeof routeDistanceMeters !== 'number' || routeDistanceMeters <= 0) {
+        return true;
+    }
+
+    const routeQuantity = DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, unit);
+    return Math.abs(quantity - routeQuantity) > 0.01;
 }
 
 type UseExpenseSubmissionParams = {
@@ -310,10 +332,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Derived values from transaction
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
-    const distanceRequestType = getDistanceRequestType(transaction);
+    const hasManualDistanceOverride = hasManualMapDistanceOverride(transaction);
+    const distanceRequestType = hasManualDistanceOverride ? CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL : getDistanceRequestType(transaction);
 
     const customUnitRateID = getRateID(transaction) ?? '';
-    const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
+    const transactionDistance =
+        isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest || hasManualDistanceOverride ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const transactionDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
     const isModifiedGPSDistanceRequest = isGPSDistanceRequest && gpsDraftDetails?.modifiedDistance != null;
     const originalTransactionDistance =
@@ -761,7 +785,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             logSubmittedReceiptMilestone(item, trackReceipt, lastOptimisticTransactionID, submittedCommand);
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
-            const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
+            const hasItemManualDistanceOverride = hasManualMapDistanceOverride(item);
+            const itemDistance =
+                isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest || hasItemManualDistanceOverride ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
             const itemDistanceUnit = item.comment?.customUnit?.distanceUnit;
             const originalItemDistance =
                 isModifiedGPSDistanceRequest && gpsDraftDetails?.distanceInMeters && itemDistanceUnit
@@ -816,7 +842,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
                     gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
-                    distanceRequestType,
+                    distanceRequestType: hasItemManualDistanceOverride ? CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL : getDistanceRequestType(item),
                     selectedRouteDistance: getSelectedRouteDistance(item),
                 },
                 accountantParams: {

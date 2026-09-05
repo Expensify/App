@@ -6395,6 +6395,7 @@ const CONST = {
         NEW_ROOM: 'room',
         IOU_REQUEST_TYPE: 'iouRequestType',
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
+        DISTANCE_CREATE_TYPE: 'distanceCreateType',
         DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
         RULES_TAB_TYPE: 'rulesTabType',

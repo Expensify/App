@@ -194,6 +194,23 @@ function buildPerDiemTransaction(overrides: Partial<Transaction> = {}): Transact
     });
 }
 
+function buildOverriddenMapDistanceTransaction(): Transaction {
+    return buildTransaction({
+        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+        comment: {
+            customUnit: {
+                quantity: 29,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            },
+            waypoints: {
+                waypoint0: {address: 'San Francisco', lat: 37.7749, lng: -122.4194},
+                waypoint1: {address: 'New York', lat: 40.7128, lng: -74.006},
+            },
+        },
+        routes: {route0: {distance: 2900000, geometry: {coordinates: []}}},
+    });
+}
+
 function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[0]> = {}): Parameters<typeof useExpenseSubmission>[0] {
     const transaction = buildTransaction();
     return {
@@ -466,6 +483,105 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: params.transactions.at(0)}));
+        });
+
+        it('sends the overridden distance and keeps the waypoints when tracking a map distance expense', async () => {
+            const mapDistance = buildOverriddenMapDistanceTransaction();
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockTrackExpenseAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 29,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                        validWaypoints: mapDistance.comment?.waypoints,
+                    }),
+                }),
+            );
+        });
+
+        it('sends the overridden distance when submitting a map distance expense to a workspace', async () => {
+            const mapDistance = buildOverriddenMapDistanceTransaction();
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                        isPolicyExpenseChat: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 29,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                    }),
+                }),
+            );
+        });
+
+        it('sends the manual distance when the map route has not been fetched yet', async () => {
+            const mapDistance = buildTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {quantity: 1, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    waypoints: {
+                        waypoint0: {address: 'Aspen', lat: 39.1911, lng: -106.8175},
+                        waypoint1: {address: 'Breckenridge', lat: 39.4817, lng: -106.0384},
+                    },
+                },
+            });
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                        isPolicyExpenseChat: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 1,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                    }),
+                }),
+            );
         });
 
         // Regression test for #94282: an expense whose sole recipient is the current user must be a self-DM track
