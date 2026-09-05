@@ -7,8 +7,14 @@ import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import splitPathAndQuery from './splitPathAndQuery';
 
 /**
- * Merges two query strings into one. If both contain the same key,
- * the error is thrown.
+ * Merges two query strings into one. When both contain the same key, the suffix value wins
+ * (it is the intended destination of the navigation).
+ *
+ * Sibling dynamic suffixes deliberately share param names (every money-request step declares
+ * `action`, `iouType`, `transactionID` and `reportID`), so a collision is expected and must not be
+ * fatal. A collision on *differing* values is still reported via `Log.alert` (forwarded to Sentry),
+ * logging only the param name because a value can carry private data.
+ *
  * @param baseQuery - The query string of the base path
  * @param suffixQuery - The query string of the suffix
  * @returns The merged query string or an empty string if both are empty
@@ -16,8 +22,8 @@ import splitPathAndQuery from './splitPathAndQuery';
  * @private - Internal helper. Do not export or use outside this file.
  *
  * @example
- * mergeQueryStrings('foo=bar', 'foo=baz') => '?foo=bar&baz=qux'
- * mergeQueryStrings('foo=bar', 'foo=baz') => throws an error
+ * mergeQueryStrings('foo=bar', 'baz=qux') => '?foo=bar&baz=qux'
+ * mergeQueryStrings('action=edit', 'action=create') => '?action=create' (suffix wins, reported to Sentry)
  */
 const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     if (!baseQuery && !suffixQuery) {
@@ -27,8 +33,8 @@ const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     const suffixParams = new URLSearchParams(suffixQuery);
     const suffixParamsEntries = suffixParams.entries();
     for (const [key, value] of suffixParamsEntries) {
-        if (params.has(key)) {
-            throw new Error(`[createDynamicRoute] Query param "${key}" exists in both base path and dynamic suffix. This is not allowed.`);
+        if (params.has(key) && params.get(key) !== value) {
+            Log.alert('[createDynamicRoute] Query param exists in both base path and dynamic suffix with different values; suffix value takes precedence', {key});
         }
         params.set(key, value);
     }
@@ -57,6 +63,9 @@ const combinePathAndSuffix = (basePath: string, suffixWithQuery: string): Route 
 };
 
 /** Adds dynamic route name (with optional query params) to the current URL and returns it
+ *
+ * Without `basePath` this resolves against whatever route is active when it runs, which is only correct at
+ * interaction time. For a route built during render and followed later, use `useScreenBoundDynamicRoute`.
  *
  * @param dynamicRouteSuffixWithParams - The dynamic route suffix with optional query params
  * @param basePath - The base path to use for the dynamic route

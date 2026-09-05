@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
@@ -21,7 +22,6 @@ import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 
-import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -45,6 +45,7 @@ type ConfirmationStepProps = {
 
 function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
     const {translate, formatPhoneNumber} = useLocalize();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -97,10 +98,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
             // Redirect to the validateCode page when there is an error with the user's validateCode authentication
             if (errorMessage.toLowerCase().includes('request a new code')) {
                 clearIssueNewCardError(policyID);
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
+                Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
             }
         }
-    }, [issueNewCard, isSuccessful, policyID]);
+    }, [issueNewCard, isSuccessful, policyID, buildDynamicRoute]);
 
     const handleIssueCard = useCallback(() => {
         if (!policyID) {
@@ -113,9 +114,9 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
             issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', assigneeTimeZone, data);
         } else {
             // Navigate to validateCode page
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
+            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
         }
-    }, [policyID, data, account, defaultFundID, isBetaEnabled, assigneeTimeZone]);
+    }, [policyID, data, account, defaultFundID, isBetaEnabled, assigneeTimeZone, buildDynamicRoute]);
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
