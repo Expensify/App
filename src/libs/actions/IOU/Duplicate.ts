@@ -648,6 +648,7 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
     };
 
     if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || duplicateAsManualDistance)) {
+        // Completed GPS expenses store their measured distance in customUnit.quantity; duplicating as manual uses that saved value because the raw GPS track is no longer available.
         transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
     }
 
