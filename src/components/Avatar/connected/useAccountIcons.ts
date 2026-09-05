@@ -2,8 +2,9 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 
-import {buildUserIcon} from '@libs/UserAvatarUtils';
+import {buildUserIcon, getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
+import CONST from '@src/CONST';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
@@ -30,4 +31,19 @@ function useAccountIcons(accountIDs: number[], invitedEmailsToAccountIDs?: Invit
     );
 }
 
+/**
+ * Like {@link useAccountIcons}, but an account whose personal details haven't loaded gets a default avatar seeded from its
+ * account ID instead of the generic gray fallback. The unknown account (`DEFAULT_NUMBER_ID`) keeps the generic fallback.
+ */
+function useSeededAccountIcons(accountIDs: number[]): Icon[] {
+    const defaultAvatars = useDefaultAvatars();
+    const icons = useAccountIcons(accountIDs);
+
+    return icons.map((icon, index) => {
+        const accountID = accountIDs.at(index) ?? CONST.DEFAULT_NUMBER_ID;
+        return icon.source === defaultAvatars.FallbackAvatar && accountID !== CONST.DEFAULT_NUMBER_ID ? {...icon, source: getDefaultAvatarURL({accountID})} : icon;
+    });
+}
+
 export default useAccountIcons;
+export {useSeededAccountIcons};
