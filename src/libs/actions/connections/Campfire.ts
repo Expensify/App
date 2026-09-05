@@ -8,7 +8,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CampfireConnectionsConfig} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
