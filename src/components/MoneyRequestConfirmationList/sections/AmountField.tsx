@@ -75,6 +75,7 @@ function AmountField({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const hasEnteredValidAmountRef = useRef(false);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
 
@@ -109,14 +110,6 @@ function AmountField({
     const shouldShowEmptyAmount = isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
-
-    useEffect(() => {
-        if (!shouldShowEmptyAmount || amount) {
-            return;
-        }
-
-        onNegativeChange?.(false);
-    }, [shouldShowEmptyAmount, amount, onNegativeChange]);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
     // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
@@ -260,15 +253,26 @@ function AmountField({
     const handleAmountChange = (newAmount: string) => {
         const isNegative = newAmount.startsWith('-');
         const digits = newAmount.replace('-', '').trim();
+        const isInputEmpty = newAmount.trim() === '';
+        const parsedAmount = getBackendAmountFromInput(newAmount);
+        const shouldResetNegativeState = isInputEmpty || (parsedAmount === null && hasEnteredValidAmountRef.current);
 
-        onNegativeChange?.(isNegative);
+        // Reset the parent-owned sign state in the same input event that clears the amount.
+        // A standalone minus sign is dirty, but deleting a previously entered negative amount back to
+        // that sign clears the field and must reset the discard-confirmation state.
+        onNegativeChange?.(shouldResetNegativeState ? false : isNegative);
         onAmountChange?.(digits);
+
+        if (parsedAmount === null && shouldResetNegativeState) {
+            hasEnteredValidAmountRef.current = false;
+        } else if (parsedAmount !== null) {
+            hasEnteredValidAmountRef.current = true;
+        }
 
         if (!transactionID) {
             return;
         }
 
-        const parsedAmount = getBackendAmountFromInput(newAmount);
         if (parsedAmount === null) {
             // User cleared the field — mark amount as unset so the field stays empty
             // and submission is blocked until a value is re-entered.
