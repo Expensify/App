@@ -90,6 +90,8 @@ const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
+const loadDynamicCardAuthenticationPage = () => require<ReactComponentModule>('../../../pages/settings/Subscription/DynamicCardAuthenticationPage').default;
+
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
@@ -370,6 +372,12 @@ function AuthScreens() {
                             name={SCREENS.BANK_CONNECTION_COMPLETE}
                             options={rootNavigatorScreenOptions.fullScreen}
                             component={ConnectionCompletePage}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.DYNAMIC_CARD_AUTHENTICATION}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
+                            getComponent={loadDynamicCardAuthenticationPage}
+                            listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
