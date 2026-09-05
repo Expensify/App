@@ -1,8 +1,12 @@
-import {decorateRangesWithShortMentions, getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
+import {decorateRangesWithShortMentions, getParsedMessageWithShortMentions, parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
+
+import CONST from '@src/CONST';
 
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 
 const TEST_COMPANY_DOMAIN = 'myCompany.com';
+
+jest.unmock('@expensify/react-native-live-markdown');
 
 describe('decorateRangesWithShortMentions', () => {
     test('returns empty list for empty text', () => {
@@ -221,5 +225,15 @@ describe('getParsedMessageWithShortMentions', () => {
     test("returns text with short mention that is followed by special ' char", () => {
         const result = getParsedMessageWithShortMentions({text: `this is @john.doe's mention`, availableMentionLogins, userEmailDomain: TEST_COMPANY_DOMAIN, parserOptions: {}});
         expect(result).toEqual(`this is <mention-user>@john.doe@myCompany.com</mention-user>&#x27;s mention`);
+    });
+});
+
+describe('parseExpensiMarkWithShortMentions', () => {
+    test('parses Markdown up to the App markup limit', () => {
+        const text = `*${'a'.repeat(CONST.MAX_MARKUP_LENGTH - 2)}*`;
+
+        const result = parseExpensiMarkWithShortMentions(text, [], []);
+
+        expect(result).toContainEqual({type: 'bold', start: 1, length: CONST.MAX_MARKUP_LENGTH - 2});
     });
 });
