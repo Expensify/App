@@ -131,6 +131,9 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
 
         /** Reports whether the inline amount is negative (new manual expense flow) */
         onNegativeChange?: (isNegative: boolean) => void;
+
+        /** Suppresses the parent discard prompt when the embedded confirmation starts a successful submit */
+        suppressDiscardPrompt?: () => void;
     };
 
 function IOURequestStepConfirmationContent({
@@ -143,6 +146,7 @@ function IOURequestStepConfirmationContent({
     navigation,
     onAmountChange,
     onNegativeChange,
+    suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const params = route.params;
@@ -1021,7 +1025,10 @@ function IOURequestStepConfirmationContent({
                                         setManuallyOpenedParticipantPickerForTransactionID(activeTransactionID);
                                     }}
                                     onToggleBillable={setBillable}
-                                    onConfirm={onConfirm}
+                                    onConfirm={() => {
+                                        suppressDiscardPrompt?.();
+                                        onConfirm();
+                                    }}
                                     onSendMoney={handleSendMoney}
                                     showRemoveExpenseConfirmModal={() => {
                                         confirmRemoveCurrentTransaction();

@@ -232,7 +232,7 @@ function IOURequestStartPage({
     const hasAmountChanged = typedAmount !== undefined && typedAmount !== '';
     const isEmbeddedDirty = shouldEmbedConfirmation && (hasSignChanged || hasAmountChanged);
 
-    useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => isEmbeddedDirty,
     });
 
@@ -282,6 +282,7 @@ function IOURequestStartPage({
                 shouldHideHeader
                 onAmountChange={setTypedAmount}
                 onNegativeChange={setIsAmountNegative}
+                suppressDiscardPrompt={suppressDiscardPrompt}
             />
         );
     }
