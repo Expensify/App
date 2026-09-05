@@ -1061,11 +1061,19 @@ type OpenSearchTagFiltersPageResponse = {
 function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string}> {
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
-        // Clear stale results immediately so the selected-tags fallback in TagSelector doesn't append
-        // selected tags after stale search results, which would reorder the list before the API responds.
-        Onyx.setCollection(ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS, {});
     }
-    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, {...params, canCancel: true}).then((response) => {
+
+    const optimisticData: AnyOnyxUpdate[] = shouldCancelPendingRequests
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.SET_COLLECTION,
+                  key: ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS,
+                  value: {},
+              },
+          ]
+        : [];
+
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, {...params, canCancel: true}, {optimisticData}).then((response) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchTagFiltersPage response fields are command-specific and not declared on the shared Response type
         const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
         return {

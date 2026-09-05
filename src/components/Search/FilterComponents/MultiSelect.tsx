@@ -101,7 +101,7 @@ function MultiSelect<T extends string>({
     const searchCallback = (term: string) => {
         onSearchChange?.(term);
     };
-    const debouncedOnSearchChange = useDebounce<(term: string) => void>(searchCallback, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
+    const debouncedOnSearchChange = useDebounce(searchCallback, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
 
     const updateSearchTerm = (text: string) => {
         setSearchTerm(text);

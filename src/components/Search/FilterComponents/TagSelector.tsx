@@ -1,11 +1,18 @@
 import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSearchTagFilters from '@hooks/useSearchTagFilters';
 
 import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
 
@@ -19,16 +26,16 @@ type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 
 function TagSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
-    // A negated workspace filter cannot be expressed as an inclusion list, so it falls back to searching every workspace
-    const policyIDs = policyID?.isNegated ? '' : (policyID?.value ?? []).join(',');
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const policyIDs = policyID?.value?.length
+        ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies)
+              .map((policy) => policy.id)
+              .join(',')
+        : '';
     const {searchResults, isSearching, isLoadingMore, hasMore, loadMore, searchTags, isInitialLoading, searchQuery} = useSearchTagFilters(policyIDs);
 
     const tagItems: Array<MultiSelectItem<string>> = [];
     const emptyTagItem = {text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string};
-    // The empty-tag option is client-side only, so it is matched against the applied search query locally
-    if (!searchQuery || emptyTagItem.text.toLowerCase().includes(searchQuery.toLowerCase())) {
-        tagItems.push(emptyTagItem);
-    }
     const seenTagNames = new Set<string>();
     const lowerSearchQuery = searchQuery.toLowerCase();
 
@@ -45,6 +52,16 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
             seenTagNames.add(tag.tagName);
             tagItems.push({text: getCleanedTagName(tag.tagName), value: tag.tagName});
         }
+    }
+
+    const shouldShowEmptyTagOption =
+        !isSearching &&
+        !isInitialLoading &&
+        (!hasMore || seenTagNames.size <= CONST.SEARCH.TAG_FILTER_PAGE_SIZE) &&
+        (!searchQuery || emptyTagItem.text.toLowerCase().includes(lowerSearchQuery));
+
+    if (shouldShowEmptyTagOption) {
+        tagItems.unshift(emptyTagItem);
     }
 
     const selectedTagsItems = value.map((tag) => {
@@ -65,11 +82,14 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
         }
     }
 
+    // Keep search mounted while a query is active or in flight. Clearing results for a new search resets hasMore and tag count.
+    const shouldEnableSearch = hasMore || seenTagNames.size >= CONST.STANDARD_LIST_ITEM_LIMIT || isSearching || !!searchQuery;
+
     return (
         <MultiSelect
             value={selectedTagsItems}
             items={tagItems}
-            isSearchable
+            isSearchable={shouldEnableSearch}
             autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
