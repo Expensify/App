@@ -23,7 +23,7 @@ import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@userActions/Tab');
-jest.mock('@hooks/useDiscardChangesConfirmation');
+jest.mock('@hooks/useDiscardChangesConfirmation', () => () => ({suppressDiscardPrompt: jest.fn()}));
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
     MarkerView: jest.fn(),
