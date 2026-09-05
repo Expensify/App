@@ -151,15 +151,19 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
     });
 }
 
+const NEW_EXPENSIFY_ORIGINS = [CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL, CONST.QA_NEW_EXPENSIFY_URL];
+
 function getInternalNewExpensifyPath(href: string) {
     if (!href) {
         return '';
     }
+
     const attrPath = Url.getPathFromURL(href);
-    return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
-        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find((path) => attrPath.startsWith(path))
-        ? attrPath
-        : '';
+    // The dev server's port varies, so dev is matched by prefix instead of by origin.
+    const hasNewExpensifyOrigin = NEW_EXPENSIFY_ORIGINS.some((origin) => Url.hasSameExpensifyOrigin(href, origin)) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL);
+    const isExternalPath = CONST.PATHS_TO_TREAT_AS_EXTERNAL.some((path) => attrPath.startsWith(path));
+
+    return hasNewExpensifyOrigin && !isExternalPath ? attrPath : '';
 }
 
 function getInternalExpensifyPath(href: string) {

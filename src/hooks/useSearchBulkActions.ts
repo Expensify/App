@@ -47,10 +47,11 @@ import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {canAccessPolicyBankAccount, getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
+    canMergeReports,
     getAllPolicyExpenseChatReportActions,
     getIntegrationIcon,
     getPolicyExpenseChat,
@@ -907,10 +908,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            // Bulk pay funds from the workspace bank account when no account was picked in the menu, so a workspace only
-            // counts here if the workspace account is actually shared with the current user. Anyone else — including a
-            // payer the account was never shared with — has to open the report and pick an account of their own.
-            if (!policy || !canAccessPolicyBankAccount(policy, bankAccountList)) {
+            if (!policy?.achAccount?.bankAccountID) {
                 continue;
             }
 
@@ -918,7 +916,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return result;
-    }, [policies, bankAccountList]);
+    }, [policies]);
 
     const exportSearchData = searchResults?.data;
     const exportSearchType = searchResults?.search.type ?? queryJSON?.type;
@@ -2427,6 +2425,25 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             options.push(payButtonOption);
         }
 
+        const selectedMergeReports = areAllMatchingItemsSelected
+            ? []
+            : selectedReports
+                  .map(({reportID}) => currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])
+                  .filter((report) => !!report?.reportID && report.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        if (
+            selectedMergeReports.length === selectedReports.length &&
+            queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
+            canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID)
+        ) {
+            options.push({
+                icon: expensifyIcons.ArrowCollapse,
+                text: translate('search.mergeReports.title'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE_REPORTS,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => Navigation.navigate(ROUTES.MERGE_REPORTS_SEARCH_RHP.getRoute()),
+            });
+        }
+
         options.push(exportButtonOption);
 
         if (isExpenseReportSearch && selectedReportIDs.length > 0) {
@@ -2843,6 +2860,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
+        currentUserPersonalDetails.accountID,
         delegateAccountID,
         currentSearchQueryJSON,
         currentSearchResults?.search?.isLoading,

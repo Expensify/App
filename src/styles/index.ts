@@ -377,7 +377,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
         customEmojiFont: FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT,
 
-        mentionSuggestionsAvatarContainer: {
+        compactAvatarContainer: {
             width: 24,
             height: 24,
             alignItems: 'center',
@@ -5342,7 +5342,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
-        menuItemChevron: {
+        menuItemTrailingIcon: {
             ...pointerEventsAuto,
             ...flex.justifyContentCenter,
             ...flex.alignItemsEnd,
