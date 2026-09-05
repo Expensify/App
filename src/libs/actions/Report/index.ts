@@ -387,6 +387,9 @@ type OpenReportActionParams = {
     /** Whether the report has report actions or not */
     hasReportActions: boolean | undefined;
 
+    /** Whether report actions are already available optimistically, so initial loading should be considered complete */
+    hasOptimisticReportActions?: boolean;
+
     /** Whether opening the report should update its read state. Set to false when fetching report data without the user actually viewing the conversation */
     shouldMarkAsRead?: boolean;
 
@@ -1682,6 +1685,7 @@ function openReport(params: OpenReportActionParams) {
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         hasReportActions,
+        hasOptimisticReportActions = false,
         shouldMarkAsRead = true,
         conciergeChat,
     } = params;
@@ -1714,7 +1718,8 @@ function openReport(params: OpenReportActionParams) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
             value: {
-                isLoadingInitialReportActions: true,
+                hasOnceLoadedReportActions: hasOptimisticReportActions ? true : undefined,
+                isLoadingInitialReportActions: !hasOptimisticReportActions,
                 isLoadingOlderReportActions: false,
                 hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,
@@ -2429,6 +2434,9 @@ type CreateTransactionThreadReportParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
+    /** Whether the transaction thread actions are fully seeded optimistically */
+    hasOptimisticReportActions?: boolean;
+
     /** The Concierge chat report */
     conciergeChat: OnyxEntry<Report>;
 };
@@ -2446,6 +2454,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         personalDetails,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
+        hasOptimisticReportActions,
         conciergeChat,
     } = params;
 
@@ -2509,6 +2518,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         currentUserAccountID,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
+        hasOptimisticReportActions,
         betas,
         hasReportActions: false,
     });

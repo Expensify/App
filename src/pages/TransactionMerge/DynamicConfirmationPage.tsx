@@ -3,6 +3,7 @@ import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -22,13 +23,14 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
+import {createTransactionThreadReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {buildMergedTransactionData, getTransactionThreadReportID, willReportBecomeOneTransactionReportAfterMerge} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getReportIDForExpense, getTransactionThreadReportID, willReportBecomeOneTransactionReportAfterMerge} from '@libs/MergeTransactionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import {getFilteredReportActionsForReportView, getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getIOUActionForReportID, getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -63,6 +65,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetTransactionPolicy?.id}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -76,12 +79,14 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [targetReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(targetTransaction?.reportID)}`);
     // Reports opened from Search may not be in Onyx yet, so we also read the expenses from the Search snapshot.
     const {currentSearchResults} = useSearchResultsContext();
-    const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
+    const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReportID)}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsLoginSelector(targetTransactionThreadParentReport?.ownerAccountID),
     });
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetTransactionThreadParentReport?.policyID)}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
     });
@@ -92,6 +97,9 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [sourceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceTransaction?.reportID)}`);
     const sourceIOUAction = sourceTransaction ? getIOUActionForTransactionID(Object.values(sourceReportActions ?? {}), sourceTransaction.transactionID) : undefined;
     const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceIOUAction?.childReportID)}`);
+
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`);
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -110,6 +118,40 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
         setIsMergingExpenses(true);
 
+        let targetTransactionThreadReportIDForMerge = targetTransactionThreadReportID;
+        let targetTransactionThreadReportForMerge = targetTransactionThreadReport;
+        let targetTransactionThreadParentReportForMerge = targetTransactionThreadParentReport;
+
+        if (!targetTransactionThreadReportIDForMerge) {
+            // Merges started from Search can have the target's report actions only in the snapshot, so fall back to it.
+            // Without the existing IOU action, createTransactionThreadReport takes openReport's legacy path and builds a
+            // second optimistic action for an expense that already has one.
+            const targetExpenseReportID = getReportIDForExpense(targetTransaction);
+            const targetSnapshotReportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(targetExpenseReportID)}`];
+            const targetIOUAction =
+                getIOUActionForReportID(targetExpenseReportID, targetTransaction.transactionID) ??
+                getIOUActionForTransactionID(Object.values(targetSnapshotReportActions ?? {}), targetTransaction.transactionID);
+            const createdTransactionThreadReport = createTransactionThreadReport({
+                introSelected,
+                currentUserLogin: currentUserEmailParam,
+                currentUserAccountID: currentUserAccountIDParam,
+                betas,
+                iouReport: targetTransactionReport,
+                iouReportAction: targetIOUAction,
+                transaction: targetTransaction,
+                transactionViolations: allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`],
+                personalDetails,
+                conciergeChat,
+                hasOptimisticReportActions: true,
+            });
+
+            if (createdTransactionThreadReport) {
+                targetTransactionThreadReportIDForMerge = createdTransactionThreadReport.reportID;
+                targetTransactionThreadReportForMerge = createdTransactionThreadReport;
+                targetTransactionThreadParentReportForMerge = targetTransactionReport;
+            }
+        }
+
         mergeTransactionRequest({
             getCurrencyDecimals,
             getCurrencySymbol,
@@ -117,8 +159,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
-            targetTransactionThreadReport,
-            targetTransactionThreadParentReport,
+            targetTransactionThreadReport: targetTransactionThreadReportForMerge,
+            targetTransactionThreadParentReport: targetTransactionThreadParentReportForMerge,
             iouReportOwnerLogin,
             allTransactionViolations,
             policy: targetTransactionPolicy,
@@ -138,10 +180,11 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
 
-        const searchReportIDToOpen = targetTransactionThreadReportID ?? reportIDToDismiss;
+        const searchReportIDToOpen = targetTransactionThreadReportIDForMerge ?? reportIDToDismiss;
+        const isSearchTopmost = isSearchTopmostFullScreenRoute();
 
         // In search, dismiss the merge modal and reopen the expense in the RHP.
-        if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
+        if ((isOnSearch || isSearchTopmost) && searchReportIDToOpen) {
             if (targetTransaction.reportID === mergeTransaction.reportID) {
                 // Only keep the RHP underneath if it belongs to the target. A swapped merge (e.g. cash into a
                 // card/split expense) leaves the source's report underneath, so fall through to the full dismiss.
