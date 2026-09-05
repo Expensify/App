@@ -2281,14 +2281,8 @@ type CampfireSubsidiary = {
     /** Name of the account. */
     name: string;
 
-    /** Type of the account. */
-    accountType: string;
-
     /** Currency associated with the account. */
     currency: string;
-
-    /** Parent ID */
-    parentID?: string;
 };
 
 /**
