@@ -185,7 +185,7 @@ function IOURequestStartPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const navigateBack = () => {
+    const cleanupPreInsertedDestination = () => {
         // In the new manual expense beta the confirmation is embedded with its header hidden,
         // so this back button is the only way to abandon the flow. Cancel any active span
         // unconditionally (mirrors IOURequestStepConfirmation.navigateBack). No-op when no
@@ -197,7 +197,6 @@ function IOURequestStartPage({
         // confirmation's unmount cleanup restores the original tab a frame later, briefly flashing the
         // pre-inserted Search/Spend tab. This is a no-op when nothing was pre-inserted.
         Navigation.removePreInsertedFullscreenIfNeeded();
-        Navigation.closeRHPFlow();
     };
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
@@ -207,13 +206,6 @@ function IOURequestStartPage({
     const focusTrapContainerElements = useMemo(() => {
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
-
-    const onBackButtonPress = () => {
-        navigateBack();
-        return true;
-    };
-
-    useAndroidBackButtonHandler(onBackButtonPress);
 
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 
@@ -234,7 +226,27 @@ function IOURequestStartPage({
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => isEmbeddedDirty,
+        onConfirm: cleanupPreInsertedDestination,
     });
+
+    const navigateBack = () => {
+        if (isEmbeddedDirty) {
+            // Let the discard guard decide whether this navigation may proceed. Cleaning up the pre-insert now
+            // would make cancelling the discard prompt destructive.
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        cleanupPreInsertedDestination();
+        Navigation.closeRHPFlow();
+    };
+
+    const onBackButtonPress = () => {
+        navigateBack();
+        return true;
+    };
+
+    useAndroidBackButtonHandler(onBackButtonPress);
 
     // The embedded confirmation renders its body without a ScreenWrapper of its own, so that this page's focus trap
     // stays the sole owner of the header + tab bar + content Tab cycle. Its viewport sizing has to move here with it:
