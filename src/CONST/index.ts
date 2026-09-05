@@ -8710,8 +8710,11 @@ const CONST = {
             /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
             MEASURED_CANDIDATES_PER_COLUMN: 5,
 
-            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
-            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+            /** How narrow a free-text column may be squeezed before the table scrolls instead. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 120,
+
+            /** The width a free-text column is laid out at once the table scrolls, and the widest it is sized to for its own content. */
+            MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
 

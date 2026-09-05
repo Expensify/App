@@ -299,6 +299,37 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
 
+/**
+ * Map every workflow member's email to the first approver of the workflow they belong to.
+ * Members who approve their own expenses are left out, since they sit at the top of their own chain.
+ */
+function getFirstApproverByMemberEmail(approvalWorkflows: ApprovalWorkflow[]): Record<string, Approver> {
+    const firstApproverByMemberEmail: Record<string, Approver> = {};
+
+    for (const workflow of approvalWorkflows) {
+        const firstApprover = workflow.approvers.at(0);
+
+        if (!firstApprover?.email) {
+            continue;
+        }
+
+        for (const member of workflow.members) {
+            if (!member.email || member.email === firstApprover.email) {
+                continue;
+            }
+
+            firstApproverByMemberEmail[member.email] = firstApprover;
+        }
+    }
+
+    return firstApproverByMemberEmail;
+}
+
+/** Whether any approval workflow in the workspace has more than one approver */
+function hasMultiLevelApprovalWorkflow(approvalWorkflows: ApprovalWorkflow[]): boolean {
+    return approvalWorkflows.some((workflow) => workflow.approvers.length > 1);
+}
+
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     /**
      * Approval workflow to convert
@@ -1728,10 +1759,12 @@ export {
     extractSubmitterEmails,
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
+    getFirstApproverByMemberEmail,
     filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
+    hasMultiLevelApprovalWorkflow,
     hasRuleBasedDefaultWorkflow,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
@@ -1744,4 +1777,4 @@ export {
     reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 };
-export type {ApprovalWorkflowRulesDiff};
+export type {ApprovalWorkflowRulesDiff, PolicyConversionResult};

@@ -1,4 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -34,9 +35,19 @@ type WorkspaceMembersTableRowProps = {
 
     /** Whether the custom field 2 column is visible on web screens or not */
     shouldShowCustomField2Column: boolean;
+
+    /** Whether the approver column is visible on web screens or not */
+    shouldShowApproverColumn: boolean;
 };
 
-export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCustomField1Column, shouldShowCustomField2Column, shouldUseNarrowTableLayout}: WorkspaceMembersTableRowProps) {
+export default function WorkspaceMembersTableRow({
+    item,
+    rowIndex,
+    shouldShowCustomField1Column,
+    shouldShowCustomField2Column,
+    shouldShowApproverColumn,
+    shouldUseNarrowTableLayout,
+}: WorkspaceMembersTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -46,7 +57,14 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
-    const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
+    const accessibilityLabel = [
+        item.name,
+        item.email,
+        shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
+        roleLabel,
+    ]
+        .filter(Boolean)
+        .join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
@@ -90,6 +108,28 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             />
                         </View>
                     </View>
+
+                    {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.approverDisplayName && !!item.approverAccountID && (
+                                <>
+                                    <UserAvatar
+                                        source={item.approverAvatar}
+                                        accountID={item.approverAccountID}
+                                        size={CONST.AVATAR_SIZE.XXX_SMALL}
+                                    />
+                                    <TextWithTooltip
+                                        shouldShowTooltip
+                                        numberOfLines={1}
+                                        text={item.approverDisplayName}
+                                    />
+                                </>
+                            )}
+                        </View>
+                    )}
 
                     {!shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
                         <View

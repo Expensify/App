@@ -302,6 +302,66 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should show the approver row with the first approver of the member approval workflow', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+                employeeList: {
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: adminPayerEmail},
+                    [adminPayerEmail]: {email: adminPayerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        const approverItem = await screen.findByTestId('member-approver-menu-item');
+
+        expect(within(approverItem).getByText('AdminPayer User')).toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should keep the approver row tappable and empty for a member with no approver', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        const approverItem = await screen.findByTestId('member-approver-menu-item');
+
+        expect(approverItem).not.toBeDisabled();
+        expect(within(approverItem).queryByText('Owner User')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should hide the approver row when approvals are turned off', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        });
+        expect(screen.queryByTestId('member-approver-menu-item')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should show the not found page when the accountID matches no workspace member', async () => {
         const {unmount} = renderPage({policyID: policy.id, accountID: '999999'});
         await waitForBatchedUpdatesWithAct();
