@@ -11,6 +11,7 @@ const mockRelease = jest.fn();
 const mockImageRelease = jest.fn();
 
 jest.mock('@libs/fileDownload/FileUtils', () => ({
+    getFileName: (url: string) => url.split('/').pop()?.split('?').at(0) ?? '',
     verifyFileFormat: () => mockVerifyFileFormat() as unknown,
 }));
 
