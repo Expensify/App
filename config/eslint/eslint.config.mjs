@@ -690,6 +690,17 @@ const config = defineConfig([
         },
     },
 
+    // The rest of the styles layer composes tokens out of `variables`, so it may still read
+    // `variables.fontSize*`/`variables.lineHeight*` by name while the remaining styles are migrated.
+    // Raw numeric literals stay banned here.
+    {
+        files: ['src/styles/**'],
+        ignores: ['src/styles/typography.ts', 'src/styles/variables.ts'],
+        rules: {
+            'rulesdir/no-raw-typography': ['error', {allowVariablesReferences: true}],
+        },
+    },
+
     // Restrict `computeReportName` imports everywhere except the one file that
     // legitimately consumes it. This block overrides the main `no-restricted-imports`
     // for ts/tsx files, so we re-apply the main `restrictedImportPaths`/`restrictedImportPatterns`
