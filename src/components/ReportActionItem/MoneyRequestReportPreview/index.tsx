@@ -1,12 +1,13 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 
+import useIsReportVisible from '@hooks/useIsReportVisible';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -30,7 +31,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
 
-import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 
 import type {MoneyRequestReportPreviewProps} from './types';
@@ -52,8 +52,7 @@ function MoneyRequestReportPreview({
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayoutIgnoringWideRHP, isSmallScreenWidth} = useResponsiveLayoutOnWideRHP();
     const personalDetailsList = usePersonalDetails();
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
@@ -107,8 +106,8 @@ function MoneyRequestReportPreview({
     );
 
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
-        [StyleUtils, widths, shouldUseNarrowLayout, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayoutIgnoringWideRHP, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
+        [StyleUtils, widths, shouldUseNarrowLayoutIgnoringWideRHP, transactions.length],
     );
     const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
@@ -141,7 +140,6 @@ function MoneyRequestReportPreview({
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
         selector: pendingNewTransactionIDsSelector,
     });
-    const isFocused = useIsFocused();
     // Transactions arrive in batches and `useNewTransactions` would diff each batch as newly added expenses.
     // Withhold the list until every transaction the report claims has arrived.
     const expectedTransactionCount = iouReport?.transactionCount ?? 0;
@@ -154,9 +152,10 @@ function MoneyRequestReportPreview({
         setHasCompletedDelivery(true);
     }
     const transactionsForDiff = isDeliveryComplete || hasCompletedDelivery ? transactions : undefined;
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isFocused);
     // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
-    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    // A modal pane can be covered at any width, so this reads the flag unadjusted for wide RHP.
+    const isReportVisible = useIsReportVisible(shouldUseNarrowLayoutIgnoringWideRHP);
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isReportVisible);
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];

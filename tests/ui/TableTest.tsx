@@ -2427,7 +2427,7 @@ describe('Table', () => {
             isInLandscapeMode: false,
         } as ResponsiveLayoutResult;
 
-        const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+        const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
         const immediateFilterConfig: FilterConfig = {
             status: {
