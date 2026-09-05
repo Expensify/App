@@ -41,16 +41,19 @@ const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responseP
                 return update;
             }
 
-            // Replace the action-error merge with an action-null merge so the orphan optimistic PAY action is
-            // removed instead of being tagged with a red error. Widened to AnyOnyxUpdate (matches the pattern used
-            // by Pagination/HandleUnusedOptimisticID) so the union-typed value can be indexed without an unsafe
-            // narrowing cast. Object.assign avoids member access on the `any` value.
             const widened = update as AnyOnyxUpdate;
-            if (widened.value) {
-                Object.assign(widened.value, {[reportActionID]: null});
+            if (!widened.value) {
+                return update;
             }
 
-            return update;
+            // Drop the optimistic PAY action instead of merging an error onto it.
+            return {
+                ...update,
+                value: {
+                    ...(widened.value as Record<string, unknown>),
+                    [reportActionID]: null,
+                },
+            };
         });
 
         Log.info('GlobalReimbursementPayError: replaced optimistic PAY action-error with action-null for corpayPayModal', false, {iouReportID, reportActionID});
