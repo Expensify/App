@@ -1,4 +1,5 @@
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {SwitchProps} from '@components/Switch';
 
 import type {ButtonVariant} from '@styles/utils/types';
 
@@ -8,7 +9,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ReactNode, RefObject} from 'react';
+import type {RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -57,16 +58,13 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     /** Whether to render a divider before this option */
     addSeparatorBefore?: boolean;
 
-    /** A component rendered on the right side of the option, e.g. a Switch for an inline toggle row */
-    rightComponent?: ReactNode;
-
-    /** Whether to show the rightComponent */
-    shouldShowRightComponent?: boolean;
+    /** When set, renders a Switch on the right of the option as an inline toggle row. The menu builds the Switch from this data so no JSX is threaded through the option config. */
+    switchProps?: SwitchProps;
 
     /** Whether to show the default right chevron icon (e.g. for a row that opens another page) */
     shouldShowRightIcon?: boolean;
 
-    /** Style for the row that holds the title and the rightComponent (e.g. to vertically center a toggle against wrapped text) */
+    /** Style for the row that holds the title and the Switch (e.g. to vertically center a toggle against wrapped text) */
     innerContainerStyle?: StyleProp<ViewStyle>;
     /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;

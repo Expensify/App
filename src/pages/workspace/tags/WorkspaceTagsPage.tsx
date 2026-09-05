@@ -9,7 +9,6 @@ import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSo
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Switch from '@components/Switch';
 import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTable';
 import WorkspaceTagsTable from '@components/Tables/WorkspaceTagsTable';
 import Text from '@components/Text';
@@ -520,23 +519,20 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 menuItems.push({
                     text: translate('workspace.tags.showTagGLCodes'),
                     value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-                    // The row itself is inert; only the Switch handles the toggle so the menu stays open.
+                    // The row itself is inert. Only the Switch handles the toggle so the menu stays open.
                     interactive: false,
-                    shouldShowRightComponent: true,
                     shouldCloseModalOnSelect: false,
                     // Let the label wrap fully and keep the Switch centered against it on narrow screens.
                     numberOfLinesTitle: 0,
                     innerContainerStyle: styles.alignItemsCenter,
                     titleStyle: [styles.textLabel, styles.fontWeightNormal],
                     pendingAction: policy?.pendingFields?.showTagGLCodes,
-                    rightComponent: (
-                        <Switch
-                            isOn={policy?.showTagGLCodes ?? false}
-                            accessibilityLabel={translate('workspace.tags.showTagGLCodes')}
-                            onToggle={(value) => setPolicyShowTagGLCodes(policyID, value, policy?.showTagGLCodes)}
-                            disabled={!policy?.areTagsEnabled}
-                        />
-                    ),
+                    switchProps: {
+                        isOn: policy?.showTagGLCodes ?? false,
+                        accessibilityLabel: translate('workspace.tags.showTagGLCodes'),
+                        onToggle: (value: boolean) => setPolicyShowTagGLCodes(policyID, value, policy?.showTagGLCodes),
+                        disabled: !policy?.areTagsEnabled,
+                    },
                 });
             }
         } else if (shouldShowTagsSettings) {

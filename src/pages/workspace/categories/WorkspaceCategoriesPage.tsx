@@ -9,7 +9,6 @@ import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSo
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Switch from '@components/Switch';
 import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
@@ -380,22 +379,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 menuItems.push({
                     text: translate('workspace.categories.showCategoryGLCodes'),
                     value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-                    // The row itself is inert; only the Switch handles the toggle so the menu stays open.
+                    // The row itself is inert. Only the Switch handles the toggle so the menu stays open.
                     interactive: false,
-                    shouldShowRightComponent: true,
                     shouldCloseModalOnSelect: false,
                     numberOfLinesTitle: 0,
                     innerContainerStyle: styles.alignItemsStart,
                     titleStyle: [styles.textLabel, styles.fontWeightNormal],
                     pendingAction: policy?.pendingFields?.showCategoryGLCodes,
-                    rightComponent: (
-                        <Switch
-                            isOn={policy?.showCategoryGLCodes ?? false}
-                            accessibilityLabel={translate('workspace.categories.showCategoryGLCodes')}
-                            onToggle={(value) => setPolicyShowCategoryGLCodes(policyId, value)}
-                            disabled={!policy?.areCategoriesEnabled}
-                        />
-                    ),
+                    switchProps: {
+                        isOn: policy?.showCategoryGLCodes ?? false,
+                        accessibilityLabel: translate('workspace.categories.showCategoryGLCodes'),
+                        onToggle: (value: boolean) => setPolicyShowCategoryGLCodes(policyId, value),
+                        disabled: !policy?.areCategoriesEnabled,
+                    },
                 });
             }
         } else if (canWriteCategories) {
