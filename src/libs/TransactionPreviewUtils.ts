@@ -43,6 +43,7 @@ import {
     isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
+    isFailedScanAmountPlaceholder,
     isFetchingWaypointsFromServer,
     isMerchantMissing,
     isOnHold,
@@ -341,6 +342,8 @@ function getTransactionPreviewTextAndTranslationPaths({
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
+    } else if (isFailedScanAmountPlaceholder(transaction)) {
+        displayAmountText = {text: ''};
     }
 
     const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? (getOriginalMessage(action) ?? undefined) : undefined;

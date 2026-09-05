@@ -32,6 +32,7 @@ import {
     getTaxValue,
     getUpdatedTransaction,
     isDistanceRequest,
+    isFailedScanAmountPlaceholder,
     isOnHold,
     isSplitChildTransaction,
     shouldShowAttendees,
@@ -128,7 +129,12 @@ function removeUnchangedBulkEditFields(
         const currentValue = currentDetails[field as keyof TransactionDetails];
 
         const hasChanged = field === CONST.EDIT_REQUEST_FIELD.ATTENDEES ? !deepEqual(nextValue, currentValue) : nextValue !== currentValue;
-        if (hasChanged) {
+        // A failed-scan placeholder amount must always be treated as changed so that bulk-confirming the same
+        // displayed value (e.g. re-entering 0) still submits and clears the scan-failure error, mirroring the
+        // no-op bypass already used in IOUAmountSubmission.ts and TotalCell.tsx.
+        const isFailedScanAmountEdit = field === 'amount' && isFailedScanAmountPlaceholder(transaction);
+
+        if (isFailedScanAmountEdit || hasChanged) {
             filteredChanges = {
                 ...filteredChanges,
                 [field]: nextValue,

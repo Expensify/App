@@ -10112,6 +10112,57 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('buildOptimisticModifiedExpenseReportAction failed-scan amount placeholder', () => {
+        const placeholderTransaction = createMock<OnyxTypes.Transaction>({
+            transactionID: '1',
+            reportID: '2',
+            amount: 0,
+            currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+        });
+
+        it('omits oldAmount/oldCurrency when confirming the same placeholder value, matching the backend', () => {
+            // Re-entering 0 to clear the scan error isn't a real change — the backend doesn't persist
+            // oldAmount/oldCurrency in this action's originalMessage either (see #98783), so the optimistic message
+            // must match, rendering "set the amount to X" consistently instead of flipping after a refresh.
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, placeholderTransaction, {amount: 0, currency: 'USD'}, false, undefined, undefined);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.amount).toBe(0);
+            expect(originalMessage?.currency).toBe('USD');
+            expect(originalMessage?.oldAmount).toBeUndefined();
+            expect(originalMessage?.oldCurrency).toBeUndefined();
+        });
+
+        it('still records oldAmount/oldCurrency when the user provides a real amount', () => {
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, placeholderTransaction, {amount: 1550, currency: 'USD'}, false, undefined, undefined);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.amount).toBe(1550);
+            expect(originalMessage?.oldAmount).toBe(0);
+            expect(originalMessage?.currency).toBe('USD');
+            expect(originalMessage?.oldCurrency).toBe('USD');
+        });
+
+        it('still records oldAmount/oldCurrency for a normal (non-scan) transaction confirming the same amount', () => {
+            const manualTransaction = createMock<OnyxTypes.Transaction>({
+                transactionID: '1',
+                reportID: '2',
+                amount: 0,
+                currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            });
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, manualTransaction, {amount: 0, currency: 'USD'}, false, undefined, undefined);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.amount).toBe(0);
+            expect(originalMessage?.oldAmount).toBe(0);
+            expect(originalMessage?.currency).toBe('USD');
+            expect(originalMessage?.oldCurrency).toBe('USD');
+        });
+    });
+
     describe('buildOptimisticIOUReportAction delegateAccountID forwarding', () => {
         const DELEGATE_ACCOUNT_ID = 998;
 

@@ -342,6 +342,34 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when confirming a failed-scan placeholder amount (oldAmount and oldCurrency both absent)', () => {
+            // Matches the actual shape returned by the backend for this edit (see #98783): only amount/currency are
+            // persisted, oldAmount/oldCurrency are never included since there's no real previous value to report.
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns "set the amount" instead of falling back to the generic "changed the expense"', () => {
+                const expectedResult = 'set the amount to $0.00';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the amount is set for the first time and the merchant is also set', () => {
             const reportAction = {
                 ...createRandomReportAction(1),

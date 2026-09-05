@@ -105,7 +105,11 @@ function AmountField({
     // touches it). Once the user explicitly sets an amount – including 0 – isAmountSet becomes true and we show the
     // real value. This avoids showing "$0.00" as a pre-filled default. Scan and other non-manual flows populate
     // amount programmatically and never set isAmountSet.
-    const shouldShowEmptyAmount = isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    // A failed-scan placeholder amount is blanked here too, matching every other amount display, so this inline
+    // input doesn't retain the original "$0.00 with no error" bug when the new manual expense flow is enabled.
+    const shouldShowEmptyAmount =
+        (isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL) ||
+        !!transactionSlice?.isFailedScanAmountPlaceholder;
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
 
