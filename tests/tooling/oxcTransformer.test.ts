@@ -3,7 +3,7 @@ import {describe, expect, it} from 'bun:test';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 
-type TransformResult = {code: string};
+type TransformResult = {code: string; map?: {sources?: string[]}};
 
 type OxcTransformer = {
     process: (sourceText: string, sourcePath: string, transformOptions: unknown) => TransformResult;
@@ -31,10 +31,10 @@ describe('oxcTransformer', () => {
             }
         `;
         const result = oxcTransformer.process(source, path.resolve('src/libs/math.ts'), transformOptions);
-        expect(result.code).toContain('module.exports');
-        expect(result.code).toContain('add: () => add');
+        expect(result.code).toContain('exports.add = add');
         expect(result.code).not.toMatch(/^export /m);
         expect(result.code).not.toContain(': number');
+        expect(result.map?.sources?.some((source) => source.endsWith('math.ts'))).toBe(true);
     });
 
     it('runs React Compiler on app components', () => {
@@ -48,15 +48,28 @@ describe('oxcTransformer', () => {
         expect(result.code).toContain('jsxDEV');
     });
 
-    it('leaves test files on babel-jest so jest.mock is hoisted', () => {
+    it.each(['tests/unit/Hello.test.tsx', 'jest/setup.tsx', '__mocks__/Hello.tsx'])('skips React Compiler on %s', (relativePath) => {
+        const source = `
+            export function Hello({name}: {name: string}) {
+                return <div>{name.toUpperCase()}</div>;
+            }
+        `;
+        const result = oxcTransformer.process(source, path.resolve(relativePath), transformOptions);
+        expect(result.code).not.toMatch(/compiler-runtime|_c\(/);
+        expect(result.code).toContain('jsxDEV');
+    });
+
+    it('hoists jest.mock above require() after CJS conversion', () => {
         const source = `
             import foo from './foo';
             jest.mock('./foo');
-            export const x = 1;
+            export const x = foo;
         `;
         const result = oxcTransformer.process(source, path.resolve('tests/perf-test/Hello.perf-test.tsx'), transformOptions);
         expect(result.code).toContain('_getJestObj().mock("./foo")');
-        expect(result.code.indexOf('_getJestObj().mock')).toBeLessThan(result.code.indexOf('exports.x'));
+        expect(result.code).toMatch(/require\(['"]\.\/foo['"]\)/);
+        expect(result.code.indexOf('_getJestObj().mock')).toBeLessThan(result.code.search(/require\(['"]\.\/foo['"]\)/));
+        expect(result.code).toContain('exports.x');
     });
 
     it('lowers dynamic import() so Jest still owns the module graph', () => {
