@@ -285,13 +285,18 @@ function sanitizeIncompleteQuotedValue(str: string) {
  */
 function escapeKeyword(keywords: string) {
     const segments = tokenizeKeywordSegments(keywords);
+    let skipNextSegment = false;
 
     return segments
         .map((segment, index) => {
-            const q = syntaxWithoutValueRegex.test(segment) && segments.at(index + 1) ? `${segment} ${segments.at(index + 1)}` : segment;
-            if (index > 0 && syntaxWithoutValueRegex.test(segments.at(index - 1) ?? '')) {
+            if (skipNextSegment) {
+                skipNextSegment = false;
                 return '';
             }
+
+            const nextSegment = segments.at(index + 1);
+            const q = syntaxWithoutValueRegex.test(segment) && nextSegment ? `${segment} ${nextSegment}` : segment;
+            skipNextSegment = q !== segment;
 
             if (q.startsWith('"')) {
                 return isCompleteQuotedValue(q) ? q : sanitizeIncompleteQuotedValue(q);

@@ -3650,6 +3650,14 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('"group-by: reports"');
         });
 
+        it('should preserve terms after consecutive incomplete syntax tokens', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type: status: foo', currentQueryJSON) : '';
+
+            expect(result).toContain('"type: status:" foo');
+        });
+
         it('should preserve syntax with a quoted multi-word value as keyword text', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:expense');
 
