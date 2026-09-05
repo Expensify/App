@@ -337,6 +337,7 @@ function startOpenReportSpan(route: Route) {
  * @param route - The route to navigate to.
  * @param options - Optional navigation options.
  * @param options.forceReplace - If true, the navigation action will replace the current route instead of pushing a new one.
+ * @param options.skipInitialSplitNavigatorSidebar - If true, a direct split destination will not add its sidebar as an intermediate Back destination.
  */
 function navigate(route: Route, options?: LinkToOptions) {
     clearSelectedText();

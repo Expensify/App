@@ -46,13 +46,21 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     const isNarrowLayout = getIsNarrowLayout();
     const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
+    const lastRouteParams = lastRoute?.params ?? {};
+    const shouldSkipInitialSidebar = 'shouldSkipInitialSidebar' in lastRouteParams && lastRouteParams.shouldSkipInitialSidebar === true;
 
     const routes = [...state.routes];
     let modified = false;
 
+    if (shouldSkipInitialSidebar) {
+        const params = Object.fromEntries(Object.entries(lastRouteParams).filter(([key]) => key !== 'shouldSkipInitialSidebar'));
+        routes[routes.length - 1] = {...lastRoute, params: isEmptyObject(params) ? undefined : params};
+        modified = true;
+    }
+
     // When initializing the app on a small screen with the center screen as the initial screen, the sidebar must also be split to allow users to swipe back.
     const isInitialRoute = !rootState || rootState.routes.length === 1;
-    const shouldSplitHaveSidebar = isInitialRoute || !isNarrowLayout;
+    const shouldSplitHaveSidebar = (isInitialRoute && !shouldSkipInitialSidebar) || !isNarrowLayout;
 
     // If the screen is wide, there should be at least two screens inside:
     // - sidebarScreen to cover left pane.

@@ -42,7 +42,7 @@ function getActiveWorkspaceSidebarRoute(): {sidebarRouteKey: string; splitStateK
 
 function navigateToWorkspaceSettingsRoute(targetRoute: Route, policyID: string, shouldUseNarrowLayout: boolean, targetScreenName: string) {
     if (shouldUseNarrowLayout) {
-        Navigation.navigate(targetRoute);
+        Navigation.navigate(targetRoute, {skipInitialSplitNavigatorSidebar: true});
         return;
     }
 
