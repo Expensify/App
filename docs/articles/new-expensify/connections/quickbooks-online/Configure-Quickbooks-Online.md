@@ -80,6 +80,7 @@ To manage automation and other connection preferences:
   - If reimbursed via ACH in Expensify, the status will sync to paid in QuickBooks
 - **QuickBooks bill payment account**: Select where payments for expense reports are recorded
 - **QuickBooks invoice collections account**: Select where payments for invoices are recorded
+- **QuickBooks Online currency conversion fee account**: Appears when **Sync reimbursed reports** is enabled. When your company covers the currency conversion cost on a payment made abroad, Expensify posts that cost to this account in QuickBooks Online as a journal entry
 - **Sync Consolidated Travel Billing settlements**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through QuickBooks Online. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
 
 ---
