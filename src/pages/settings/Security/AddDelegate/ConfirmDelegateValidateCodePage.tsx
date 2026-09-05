@@ -59,6 +59,7 @@ function ConfirmDelegateValidateCodePage({route}: ConfirmDelegateValidateCodePag
             validateError={validateLoginError}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.ADD_DELEGATE, reasonTargetEmail: login})}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.ADD_DELEGATE}
             handleSubmitForm={(validateCode) => addDelegate({email: login, role, validateCode, delegatedAccess: account?.delegatedAccess})}
             descriptionPrimary={translate('delegate.enterSecurityCode', account?.primaryLogin ?? session?.email ?? '')}
         />
