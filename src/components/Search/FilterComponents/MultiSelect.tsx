@@ -131,8 +131,8 @@ function MultiSelect<T extends string>({
     }));
 
     const isSearchInProgress = isSearching || isLoading;
-    const displayListData = isSearching ? [] : listData;
-    const headerMessage = isSearchable && displayListData.length === 0 && !isSearchInProgress ? translate('common.noResultsFound') : undefined;
+    const shouldShowSearchSpinner = isSearching && listData.length === 0;
+    const headerMessage = isSearchable && listData.length === 0 && !isSearchInProgress ? translate('common.noResultsFound') : undefined;
 
     const updateSelectedItems = (item: ListItem) => {
         if (item.isSelected) {
@@ -178,7 +178,7 @@ function MultiSelect<T extends string>({
 
     return (
         <ListFilterView
-            itemCount={displayListData.length}
+            itemCount={listData.length}
             itemHeight={itemHeight}
             isSearchable={isSearchable}
             isNegatable={isNegatable}
@@ -195,7 +195,7 @@ function MultiSelect<T extends string>({
                     shouldSingleExecuteRowSelect
                     shouldUpdateFocusedIndex
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-                    data={displayListData}
+                    data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
@@ -203,7 +203,7 @@ function MultiSelect<T extends string>({
                     footerContent={footerContent}
                     onEndReached={onEndReached}
                     listEmptyContent={
-                        isSearching ? (
+                        shouldShowSearchSpinner ? (
                             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv4]}>
                                 <ActivityIndicator
                                     size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
@@ -212,7 +212,7 @@ function MultiSelect<T extends string>({
                             </View>
                         ) : undefined
                     }
-                    shouldShowListEmptyContent={isSearching}
+                    shouldShowListEmptyContent={shouldShowSearchSpinner}
                 />
             )}
         </ListFilterView>

@@ -1,4 +1,4 @@
-import {openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
+import {clearSearchTagFiltersState, openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -66,13 +66,15 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
     // Track if we have cached data to avoid showing loading state on remount
     const hasCachedData = !!searchResults && Object.keys(searchResults).length > 0;
-    const hasCompleteCache = hasCachedData && !hasMore;
+    // Only treat the cache as complete when the empty-query dataset is fully loaded.
+    // A finished server search for a non-empty term can still be a partial result set.
+    const hasCompleteEmptyQueryCache = hasCachedData && !hasMore && searchQuery === '';
 
     // Keep ref updated with latest values for use in stable callbacks
-    const stateRef = useRef({hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteCache, isSearching, isLoadingMore});
+    const stateRef = useRef({hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore});
     useEffect(() => {
-        stateRef.current = {hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteCache, isSearching, isLoadingMore};
-    }, [hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteCache, isSearching, isLoadingMore]);
+        stateRef.current = {hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore};
+    }, [hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore]);
 
     // Incremented on every new search so a cancelled request doesn't clear the loading state of its successor
     const requestSeqRef = useRef(0);
@@ -110,10 +112,10 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             return;
         }
 
-        const {hasCompleteCache: currentHasCompleteCache, hasMore: currentHasMore, nextCursor: currentCursor} = stateRef.current;
+        const {hasCompleteEmptyQueryCache: currentHasCompleteEmptyQueryCache, hasMore: currentHasMore, nextCursor: currentCursor} = stateRef.current;
 
-        // When the full dataset is already cached, filter locally instead of hitting the server on every keystroke.
-        if (currentHasCompleteCache) {
+        // When the full empty-query dataset is already cached, filter locally instead of hitting the server on every keystroke.
+        if (currentHasCompleteEmptyQueryCache) {
             setSearchTagFiltersPagination(currentHasMore, currentCursor, query);
             setHasCompletedSearch(true);
             return;
@@ -142,10 +144,10 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             });
     };
 
-    // Clear persisted pagination when the filter closes so a fresh open does not reuse a stale query.
+    // Clear persisted pagination and cached pages when the filter closes so a fresh open refetches with valid hasMore.
     useEffect(() => {
         return () => {
-            setSearchTagFiltersPagination(false, '', '');
+            clearSearchTagFiltersState();
         };
     }, []);
 
