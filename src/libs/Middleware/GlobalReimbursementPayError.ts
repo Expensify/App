@@ -10,6 +10,10 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './types';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return !!value && typeof value === 'object';
+}
+
 /**
  * Middleware that detects the Corpay pay modal signal sent by the backend when a pay attempt fails because the
  * workspace USD VBBA is not set up on Corpay. The backend sends an Onyx SET on corpayPayModal instead of writing
@@ -41,7 +45,7 @@ const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responseP
                 continue;
             }
 
-            if (typeof update.value !== 'object' || update.value === null) {
+            if (!isRecord(update.value)) {
                 continue;
             }
 
