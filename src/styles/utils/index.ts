@@ -854,6 +854,24 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
 }
 
 /**
+ * Get the vertical space the auto grow height input's ancestors take up inside the input container (borders, padding and the multiline label padding)
+ */
+function getAutoGrowHeightInputVerticalInset(textInputContainerStyles: StyleProp<ViewStyle>, hasMultilineLabelPadding: boolean): number {
+    const flatStyle = StyleSheet.flatten(textInputContainerStyles);
+
+    // Safely extract values only if they are numbers
+    const getNumericValue = (value: string | number | Animated.AnimatedNode | null | undefined): number => (typeof value === 'number' ? value : 0);
+
+    const borderWidth = getNumericValue(flatStyle?.borderWidth);
+    const borderTopWidth = getNumericValue(flatStyle?.borderTopWidth ?? borderWidth);
+    const borderBottomWidth = getNumericValue(flatStyle?.borderBottomWidth ?? borderWidth);
+    const paddingTop = getNumericValue(flatStyle?.paddingTop ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
+    const paddingBottom = getNumericValue(flatStyle?.paddingBottom ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
+
+    return borderTopWidth + borderBottomWidth + paddingTop + paddingBottom + (hasMultilineLabelPadding ? variables.inputPaddingTop : 0);
+}
+
+/**
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
@@ -1431,6 +1449,7 @@ const staticStyleUtils = {
     getPaddingRight,
     getPaddingBottom,
     getVerticalPaddingDiffFromStyle,
+    getAutoGrowHeightInputVerticalInset,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1541,7 +1560,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns auto grow height text input style
      */
-    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number): ViewStyle => {
+    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number, verticalInset: number): ViewStyle => {
         if (textInputHeight > maxHeight) {
             return {
                 ...styles.pr0,
@@ -1552,9 +1571,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return {
             ...styles.pr0,
             ...styles.overflowHidden,
-            // maxHeight is not of the input only but the of the whole input container
-            // which also includes the top padding and bottom border
-            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2,
+            // maxHeight is not of the input only but of the whole input container, so the inset has to be subtracted.
+            // It must match the height the input gets once it flips to overflow: auto, otherwise the box resizes at the
+            // flip and the scroll offset the browser picked while growing stops short of the end of the content.
+            height: maxHeight - verticalInset,
         };
     },
 
