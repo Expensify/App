@@ -132,12 +132,9 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const isCardSettingsLoading = !isOffline && (!expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
     const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings, ruleID === ROUTES.NEW ? undefined : ruleID) : [];
 
-    const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
     const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate, formatPhoneNumber);
 
-    const [inputValue, setInputValue, filteredCards] = useSearchResults(eligibleCards, filterCard, sortCards);
-
-    const listData: ExpensifyCardListItem[] = filteredCards.map((card) => {
+    const fullListData: ExpensifyCardListItem[] = sortCards(eligibleCards).map((card) => {
         const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const cardOwnerPersonalDetails = personalDetails?.[accountID] ?? undefined;
         const cardName = card.nameValuePairs?.cardTitle;
@@ -164,8 +161,12 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         };
     });
 
-    // Pin the frozen initial selection to the top so the pre-selected cards lead the list and stay pinned while searching.
-    const orderedListData = moveInitialSelectionToTop(listData, initialSelectedCardIDs);
+    // Pin the frozen initial selection to the top of the full list before searching, so pre-selected cards stay pinned.
+    const orderedFullListData = moveInitialSelectionToTop(fullListData, initialSelectedCardIDs);
+
+    // Filter the already-pinned list on search (identity sort keeps the pinned order intact).
+    const filterCard = (item: ExpensifyCardListItem, searchInput: string) => filterCardsByPersonalDetails(item.card, searchInput, personalDetails);
+    const [inputValue, setInputValue, listData] = useSearchResults(orderedFullListData, filterCard);
 
     useEffect(() => {
         if (expensifyCardSettings) {
@@ -255,7 +256,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                                   }
                                 : undefined
                         }
-                        data={orderedListData}
+                        data={listData}
                         style={{
                             listHeaderWrapperStyle: [styles.pt5, styles.pb2],
                             listHeaderSelectAllTextStyle: [styles.textLabelSupporting],

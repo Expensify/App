@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import SelectionList from '@components/SelectionList';
 
@@ -11,6 +11,8 @@ import type * as ReactNavigation from '@react-navigation/native';
 import type {PropsWithChildren} from 'react';
 
 import React from 'react';
+
+const mockUseState = React.useState;
 
 const POLICY_ID = 'policy1';
 const RULE_ID = 'rule1';
@@ -68,8 +70,15 @@ jest.mock('@hooks/useLocalize', () =>
         formatPhoneNumber: (value: string) => value,
     })),
 );
-// useSearchResults returns [inputValue, setInputValue, filteredData]; pass the cards through unchanged so the test controls order.
-jest.mock('@hooks/useSearchResults', () => jest.fn((data: unknown[]) => ['', jest.fn(), data]));
+// useSearchResults returns [inputValue, setInputValue, filteredData]; filter the pre-pinned list by value substring,
+// preserving order (matching the real hook's identity-sort behaviour) so the test can exercise the search path.
+jest.mock('@hooks/useSearchResults', () =>
+    jest.fn((data: Array<{value?: string}>) => {
+        const [input, setInput] = mockUseState('');
+        const filtered = input ? data.filter((item) => item.value?.includes(input)) : data;
+        return [input, setInput, filtered];
+    }),
+);
 jest.mock('@hooks/useOnyx', () => {
     const onyxKeys = jest.requireActual<typeof OnyxKeysModule>('@src/ONYXKEYS').default;
     return jest.fn((key: string) => {
@@ -103,6 +112,7 @@ type MockSelectionListProps = {
     data: Array<{value?: string; keyForList?: string}>;
     shouldScrollToFocusedIndexOnMount?: boolean;
     shouldUpdateFocusedIndex?: boolean;
+    textInputOptions?: {onChangeText?: (value: string) => void};
 };
 
 function renderPage() {
@@ -131,6 +141,19 @@ describe('SpendRuleCardPage', () => {
         expect(props?.data.at(0)?.value).not.toBe('1');
         expect(props?.shouldScrollToFocusedIndexOnMount).toBe(false);
         expect(props?.shouldUpdateFocusedIndex).toBe(true);
+    });
+
+    it('keeps a pinned card at the top of the search results', () => {
+        // Pin card 12; searching "2" matches both 2 and 12, and 2 sorts first — so 12 leading proves the pin held.
+        mockSpendRuleForm = {cardIDs: ['12']};
+        renderPage();
+
+        act(() => {
+            getSelectionListProps()?.textInputOptions?.onChangeText?.('2');
+        });
+
+        const props = getSelectionListProps();
+        expect(props?.data.map((card) => card.value)).toEqual(['12', '2']);
     });
 
     it('does not reorder when the card list is under the item-limit threshold', () => {
