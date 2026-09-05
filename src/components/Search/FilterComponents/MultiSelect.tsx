@@ -65,6 +65,9 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
 
     /** Whether a search is in progress (suppresses "No results found" while true) */
     isLoading?: boolean;
+
+    /** Whether a server search is in progress (shows a centered spinner in the list area) */
+    isSearching?: boolean;
 };
 
 function MultiSelect<T extends string>({
@@ -85,6 +88,7 @@ function MultiSelect<T extends string>({
     onSearchChange,
     isLoadingMore,
     isLoading,
+    isSearching,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -126,7 +130,9 @@ function MultiSelect<T extends string>({
         leftElement: item.leftElement,
     }));
 
-    const headerMessage = isSearchable && listData.length === 0 && !isLoading ? translate('common.noResultsFound') : undefined;
+    const isSearchInProgress = isSearching || isLoading;
+    const displayListData = isSearching ? [] : listData;
+    const headerMessage = isSearchable && displayListData.length === 0 && !isSearchInProgress ? translate('common.noResultsFound') : undefined;
 
     const updateSelectedItems = (item: ListItem) => {
         if (item.isSelected) {
@@ -172,7 +178,7 @@ function MultiSelect<T extends string>({
 
     return (
         <ListFilterView
-            itemCount={listData.length}
+            itemCount={displayListData.length}
             itemHeight={itemHeight}
             isSearchable={isSearchable}
             isNegatable={isNegatable}
@@ -189,13 +195,24 @@ function MultiSelect<T extends string>({
                     shouldSingleExecuteRowSelect
                     shouldUpdateFocusedIndex
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-                    data={listData}
+                    data={displayListData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                     footerContent={footerContent}
                     onEndReached={onEndReached}
+                    listEmptyContent={
+                        isSearching ? (
+                            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv4]}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                                    color={theme.spinner}
+                                />
+                            </View>
+                        ) : undefined
+                    }
+                    shouldShowListEmptyContent={isSearching}
                 />
             )}
         </ListFilterView>
