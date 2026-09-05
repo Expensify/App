@@ -69,6 +69,7 @@ function useGroupChatDraftParticipantSync(
                       personalDetails: allPersonalDetails,
                       loginList,
                       currentUserEmail,
+                      currentUserAccountID,
                   });
             if (option) {
                 result.push({...option, isSelected: true});

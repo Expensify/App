@@ -3056,6 +3056,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 sortByReportTypeInSearch: true,
             });
 
@@ -3163,6 +3164,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS_WITH_PERIODS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 sortByReportTypeInSearch: true,
             });
 
@@ -3333,6 +3335,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value and excluded logins list
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             });
 
@@ -3361,6 +3364,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             });
 
@@ -3389,6 +3393,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 maxRecentReportsToShow: 2,
             });
 
@@ -3399,6 +3404,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 0
             const limitToZeroOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 maxRecentReportsToShow: 0,
             });
 
@@ -4072,6 +4078,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a plain text name (not email or phone) without shouldAcceptName
             const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 shouldAcceptName: false,
             });
 
@@ -4096,6 +4103,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a plain text name (not email or phone) with shouldAcceptName
             const filteredOptions = filterAndOrderOptions(options, 'Jeff', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 shouldAcceptName: true,
             });
 
@@ -4139,6 +4147,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 sortByReportTypeInSearch: true,
             });
 
@@ -4166,6 +4175,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
             const filteredOptions = filterAndOrderOptions(options, '.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 maxRecentReportsToShow: 5,
             });
 
@@ -4264,7 +4274,7 @@ describe('OptionsListUtils', () => {
                         CURRENT_USER_EMAIL,
                         CURRENT_USER_ACCOUNT_ID,
                         PERSONAL_DETAILS_WITH_PERIODS,
-                        {dateFnsLocale: undefined, sortByReportTypeInSearch: true},
+                        {dateFnsLocale: undefined, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
                     );
 
                     // Then only one report should be returned
@@ -5945,6 +5955,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 report,
                 privateIsArchived: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             expect(result.reportID).toBe(reportID);
@@ -8250,6 +8261,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(result).toBeNull();
         });
@@ -8262,9 +8274,116 @@ describe('OptionsListUtils', () => {
                 shouldAcceptName: true,
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(result).not.toBeNull();
             expect(result?.login).toBe('Jeff Amazon');
+        });
+
+        it('should return a valid invite option for a new email', () => {
+            const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
+                searchValue: 'newuser@example.com',
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+
+            expect(result).not.toBeNull();
+            expect(result?.login).toBe('newuser@example.com');
+            expect(result?.isOptimisticAccount).toBe(true);
+        });
+
+        it('should return null when searchValue is empty', () => {
+            const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
+                searchValue: '',
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+
+            expect(result).toBeNull();
+        });
+
+        it('should return null when searching for current user email', () => {
+            const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
+                searchValue: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('filterAndOrderOptions with userToInvite', () => {
+        it('should produce userToInvite when searching for a new email with config', () => {
+            const {options} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
+            );
+
+            const filteredOptions = filterAndOrderOptions(options, 'newuser@example.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+
+            expect(filteredOptions.userToInvite).not.toBeNull();
+            expect(filteredOptions.userToInvite?.login).toBe('newuser@example.com');
+            expect(filteredOptions.userToInvite?.isOptimisticAccount).toBe(true);
+        });
+
+        it('should produce userToInvite when searching for a new email without config', () => {
+            const {options} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
+            );
+
+            const filteredOptions = filterAndOrderOptions(options, 'anotheruser@example.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+
+            expect(filteredOptions.userToInvite).not.toBeNull();
+            expect(filteredOptions.userToInvite?.login).toBe('anotheruser@example.com');
+        });
+
+        it('should not produce userToInvite when search matches current user', () => {
+            const {options} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined},
+                translateLocal,
+            );
+
+            const filteredOptions = filterAndOrderOptions(options, CURRENT_USER_EMAIL, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+
+            expect(filteredOptions.userToInvite).toBeNull();
         });
     });
 
@@ -8362,6 +8481,7 @@ describe('OptionsListUtils', () => {
                 searchValue: 'newuser@example.com',
                 loginList: {},
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: PERSONAL_DETAILS,
             });
 

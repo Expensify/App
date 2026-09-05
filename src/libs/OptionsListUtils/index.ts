@@ -1622,6 +1622,7 @@ function getUserToInviteOption({
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
     loginList = {},
     currentUserEmail,
+    currentUserAccountID,
     visibleReportActionsData = {},
 }: GetUserToInviteConfig & {visibleReportActionsData?: VisibleReportActionsDerivedValue; dateFnsLocale: DateFnsLocale | undefined}): SearchOptionData | null {
     if (!searchValue) {
@@ -1665,6 +1666,7 @@ function getUserToInviteOption({
         conciergeReportID: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
+        currentUserAccountID,
     });
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
@@ -2341,13 +2343,14 @@ function getValidOptions(
             loginList,
             currentUserEmail,
             personalDetails,
-            countryCode,
             {
                 dateFnsLocale,
                 excludeLogins: loginsToExclude,
                 shouldAcceptName,
                 searchInputValue,
+                currentUserAccountID,
             },
+            countryCode,
         );
     }
 
@@ -2774,10 +2777,10 @@ function filterUserToInvite(
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    config: FilterUserToInviteConfig,
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-    config?: FilterUserToInviteConfig,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}, dateFnsLocale} = config ?? {};
+    const {canInviteUser = true, excludeLogins = {}, dateFnsLocale, currentUserAccountID} = config;
     if (!canInviteUser) {
         return null;
     }
@@ -2798,7 +2801,6 @@ function filterUserToInvite(
         ...excludeLogins,
     };
     return getUserToInviteOption({
-        dateFnsLocale,
         searchValue,
         personalDetails,
         loginsToExclude,
@@ -2806,6 +2808,8 @@ function filterUserToInvite(
         loginList,
         currentUserEmail,
         ...config,
+        dateFnsLocale,
+        currentUserAccountID,
     });
 }
 
@@ -2843,13 +2847,13 @@ function filterOptions<T extends SearchOptionData>(
         loginList,
         currentUserEmail,
         personalDetailsCollection,
-        countryCode,
         {
             ...config,
-            // `config` is optional, so the required locale has to be set explicitly rather than relying on the spread.
             dateFnsLocale: config?.dateFnsLocale,
             searchInputValue: searchInputValueForInvite,
+            currentUserAccountID,
         },
+        countryCode,
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
 

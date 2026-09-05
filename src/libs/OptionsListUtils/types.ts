@@ -303,6 +303,7 @@ type GetUserToInviteConfig = {
     countryCode?: number;
     loginList: OnyxEntry<Login>;
     currentUserEmail: string;
+    currentUserAccountID: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -347,6 +348,7 @@ type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 
     dateFnsLocale: DateFnsLocale | undefined;
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
+    currentUserAccountID: number;
 };
 
 type OrderOptionsConfig =
