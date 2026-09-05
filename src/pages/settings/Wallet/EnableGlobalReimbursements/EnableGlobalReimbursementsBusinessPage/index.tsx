@@ -92,9 +92,11 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
     const buildBusinessRoute = (subPage: string, action?: 'edit') => getBusinessRoute(Number(bankAccountID), subPage, action, persistedRouteParams);
 
     useEffect(() => {
-        if (modalMatchesAccount && corpayPayModal) {
-            clearCorpayPayModal();
+        if (!modalMatchesAccount || !corpayPayModal) {
+            return;
         }
+
+        clearCorpayPayModal();
     }, [corpayPayModal, modalMatchesAccount]);
 
     const goToAgreementsPage = () => {
