@@ -251,7 +251,7 @@ import React from 'react';
 
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {handleHoldEducationalModal, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -767,33 +767,24 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
 
-            if (closePopover) {
-                hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(
-                        moneyRequestAction,
-                        iouTransaction,
-                        isOffline,
-                        currentUserPersonalDetails?.login ?? '',
-                        currentUserPersonalDetails.accountID,
-                        iouTransactionViolations,
-                        isTrackIntentUser,
-                        delegateAccountID,
-                    ),
+            const performHold = () =>
+                changeMoneyRequestHoldStatus(
+                    moneyRequestAction,
+                    iouTransaction,
+                    isOffline,
+                    currentUserPersonalDetails?.login ?? '',
+                    currentUserPersonalDetails.accountID,
+                    iouTransactionViolations,
+                    isTrackIntentUser,
+                    delegateAccountID,
                 );
+
+            if (closePopover) {
+                hideContextMenu(false, () => handleHoldEducationalModal(performHold));
                 return;
             }
 
-            // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(
-                moneyRequestAction,
-                iouTransaction,
-                isOffline,
-                currentUserPersonalDetails?.login ?? '',
-                currentUserPersonalDetails.accountID,
-                iouTransactionViolations,
-                isTrackIntentUser,
-                delegateAccountID,
-            );
+            handleHoldEducationalModal(performHold);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,

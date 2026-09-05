@@ -1,5 +1,6 @@
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
+import {showHoldEducationalModal, showRejectEducationalModal} from '@components/HoldEducationalModalManager';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
@@ -11,6 +12,7 @@ import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -24,8 +26,11 @@ import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfte
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {getOriginalReportID} from '@libs/ReportUtils';
+import {getOriginalReportID, isCurrentUserSubmitter, isDM} from '@libs/ReportUtils';
 import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
+
+import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
+import {setNameValuePair} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,6 +77,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [originalReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
+    const {isOffline} = useNetwork();
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
     const cursorRelativePosition = useRef({
@@ -489,11 +497,34 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(true);
     };
 
+    const handleHoldEducationalModal = useCallback(
+        (performHold: () => void) => {
+            const isSubmitter = isCurrentUserSubmitter(chatReport);
+            const isChatDM = isDM(chatReport);
+            const isDismissed = false;
+            if (isDismissed || isChatDM) {
+                performHold();
+            } else if (isSubmitter) {
+                showHoldEducationalModal(() => {
+                    setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
+                    performHold();
+                });
+            } else {
+                showRejectEducationalModal(() => {
+                    dismissRejectUseExplanation();
+                    performHold();
+                });
+            }
+        },
+        [chatReport, dismissedHoldUseExplanation, dismissedRejectUseExplanation, isOffline],
+    );
+
     useImperativeHandle(ref, () => ({
         showContextMenu,
         hideContextMenu,
         showDeleteModal,
         hideDeleteModal,
+        handleHoldEducationalModal,
         isActiveReportAction,
         instanceIDRef,
         runAndResetOnPopoverHide,
