@@ -25,7 +25,7 @@ settings.extensions.configure(PatchedArtifactsConfig) { config ->
     config.packageName = getProperty('patchedArtifacts.packageName')
 
     def isHybrid = config.packageName == 'react-hybrid'
-    def resolution = ExpensiUtils.resolveArtifacts(config.packageName, getNewDotRootDir().toString(), isHybrid)
+    def resolution = ExpensiUtils.resolveArtifacts(getNewDotRootDir().toString(), isHybrid)
     config.version = resolution.version
     config.buildFromSource = resolution.buildFromSource
 
