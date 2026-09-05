@@ -4,10 +4,20 @@ import {shouldInitializeFullstory} from '@libs/Fullstory/common';
 import CONST from '@src/CONST';
 import type {Session, UserMetadata} from '@src/types/onyx';
 
+import type * as FullstoryReactNative from '@fullstory/react-native/src/index';
+
 const regularSession: Session = {authToken: 'token', accountID: 1, creationDate: Date.now()};
 const supportSession: Session = {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT, authToken: 'supportToken', accountID: 2, creationDate: Date.now()};
 
 describe('Fullstory', () => {
+    test('reuses the ref wrapper for static annotations', () => {
+        const {applyFSPropertiesWithRef} = jest.requireActual<typeof FullstoryReactNative>('@fullstory/react-native/src/index');
+        const ref = jest.fn();
+
+        expect(applyFSPropertiesWithRef(ref, false)).toBe(applyFSPropertiesWithRef(ref, false));
+        expect(applyFSPropertiesWithRef(ref, true)).not.toBe(applyFSPropertiesWithRef(ref, true));
+    });
+
     describe('shouldInitializeFullstory', () => {
         const productionEnv = CONST.ENVIRONMENT.PRODUCTION;
 

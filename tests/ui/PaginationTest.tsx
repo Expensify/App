@@ -43,6 +43,7 @@ const LIST_CONTENT_SIZE = {
     width: 300,
     height: 600,
 };
+const LIST_END_OFFSET = LIST_CONTENT_SIZE.height - LIST_SIZE.height;
 const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
 
 const REPORT_ID = '1';
@@ -315,7 +316,7 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
 
         // Scrolling here should not trigger a new network request.
-        scrollToOffset(LIST_CONTENT_SIZE.height);
+        scrollToOffset(LIST_END_OFFSET);
         await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
@@ -339,7 +340,7 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
 
         // Scrolling here should trigger a new network request.
-        scrollToOffset(LIST_CONTENT_SIZE.height);
+        scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
@@ -370,8 +371,8 @@ describe('Pagination', () => {
             jest.requireMock<NativeNavigationMock>('@react-navigation/native').triggerTransitionEnd();
         });
         // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
-        // we need to scroll too to trigger `onStartReached` which triggers other updates
-        scrollToOffset(0);
+        // we need to scroll too to trigger `onEndReached` which triggers other updates
+        scrollToOffset(LIST_END_OFFSET);
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
         await waitForNetworkPromises();
@@ -393,9 +394,9 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
 
         // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
-        scrollToOffset(500);
-        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
+        await waitForBatchedUpdatesWithAct();
+        scrollToOffset(LIST_END_OFFSET);
         await waitForBatchedUpdatesWithAct();
 
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
@@ -405,9 +406,9 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
-        scrollToOffset(500);
-        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
+        await waitForBatchedUpdatesWithAct();
+        scrollToOffset(LIST_END_OFFSET);
         await waitForBatchedUpdatesWithAct();
 
         // When there are no newer actions, we don't want to trigger GetNewerActions again.

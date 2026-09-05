@@ -1,7 +1,7 @@
 import type FlatListRefType from '@components/FlashList/types';
+import type {ActionListRef} from '@components/FlashList/types';
 
 import type {ReactNode, RefObject} from 'react';
-import type {FlatList} from 'react-native';
 
 import React, {createContext, useContext, useLayoutEffect, useRef} from 'react';
 
@@ -35,7 +35,7 @@ function useActionListContext() {
  */
 function useActionListRef() {
     const {registerListRef} = useActionListContext();
-    const listRef = useRef<FlatList>(null);
+    const listRef = useRef<ActionListRef>(null);
 
     useLayoutEffect(() => {
         registerListRef(listRef);

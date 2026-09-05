@@ -227,6 +227,32 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(onUnreadActionVisibleLocalMockFn).toHaveBeenCalledTimes(1);
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
         });
+
+        it('tracks an unread marker in a chronological list', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    unreadMarkerReportActionIndex: 5,
+                    isInverted: false,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                }),
+            );
+
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 3, key: 'reportActions_3', isViewable: true, item: {}}], changed: []});
+            });
+            expect(result.current.isFloatingMessageCounterVisible).toBe(true);
+
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 5, key: 'reportActions_5', isViewable: true, item: {}}], changed: []});
+            });
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+            expect(onUnreadActionVisibleMockFn).toHaveBeenCalled();
+        });
     });
 
     describe('action badge above viewport tracking', () => {
@@ -276,6 +302,28 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     ],
                     changed: [],
                 });
+            });
+
+            expect(result.current.isActionBadgeAboveViewport).toBe(true);
+        });
+
+        it('returns isActionBadgeAboveViewport as true for a lower index above a chronological viewport', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: false,
+                    actionBadgeTargetIndex: 1,
+                }),
+            );
+
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 3, key: 'reportActions_3', isViewable: true, item: {}}], changed: []});
             });
 
             expect(result.current.isActionBadgeAboveViewport).toBe(true);

@@ -28,6 +28,56 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 setupMockImages();
 mockFSLibrary();
 
+// LegendList relies on native layout measurements that Jest does not produce. FlatList gives full-app tests
+// a deterministic renderer while preserving the scroll callbacks used by the report list.
+jest.mock('@legendapp/list/react-native', () => {
+    const ReactActual = jest.requireActual<typeof import('react')>('react');
+    const {FlatList} = jest.requireActual<typeof import('react-native')>('react-native');
+    const LegendListActual = jest.requireActual<typeof import('@legendapp/list/react-native')>('@legendapp/list/react-native');
+
+    type MockLegendListProps = Omit<import('react-native').FlatListProps<unknown>, 'data' | 'initialScrollIndex' | 'maintainVisibleContentPosition' | 'onScroll'> & {
+        alignItemsAtEnd?: boolean;
+        data?: ArrayLike<unknown>;
+        initialScrollAtEnd?: boolean;
+        initialScrollIndex?: number | {index: number};
+        maintainScrollAtEnd?: unknown;
+        maintainVisibleContentPosition?: unknown;
+        onScroll?: (event: import('react-native').NativeSyntheticEvent<import('react-native').NativeScrollEvent>) => void;
+    };
+
+    return {
+        ...LegendListActual,
+        LegendList: ReactActual.forwardRef<import('react-native').FlatList<unknown>, MockLegendListProps>(
+            (
+                {
+                    alignItemsAtEnd,
+                    data = [],
+                    initialScrollAtEnd,
+                    initialScrollIndex,
+                    maintainScrollAtEnd,
+                    maintainVisibleContentPosition,
+                    onEndReached,
+                    onEndReachedThreshold = 0,
+                    onScroll,
+                    ...props
+                },
+                ref,
+            ) => {
+                const handleScroll = (event: import('react-native').NativeSyntheticEvent<import('react-native').NativeScrollEvent>) => {
+                    onScroll?.(event);
+                    const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+                    const distanceFromEnd = contentSize.height - layoutMeasurement.height - contentOffset.y;
+                    if (distanceFromEnd <= layoutMeasurement.height * (onEndReachedThreshold ?? 0)) {
+                        onEndReached?.({distanceFromEnd});
+                    }
+                };
+
+                return ReactActual.createElement(FlatList<unknown>, {...props, data, initialNumToRender: data.length, onScroll: handleScroll, ref});
+            },
+        ),
+    };
+});
+
 // Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 Object.assign(global, {TextDecoder, TextEncoder});
 

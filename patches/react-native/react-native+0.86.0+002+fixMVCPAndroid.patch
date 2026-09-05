@@ -35,9 +35,16 @@ index 2bee605..ba26e7b 100644
      for (i in config.minIndexForVisible until contentView.childCount) {
        val child = contentView.getChildAt(i)
  
-@@ -128,27 +135,49 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
+@@ -128,27 +135,57 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
        val position = if (horizontal) child.x + child.width else child.y + child.height
  
++      // Virtualized lists can use a zero-sized, positioned first child as their scroll anchor.
++      // Preserve it instead of choosing the container that holds all rendered items.
++      if (i == config.minIndexForVisible && child.width == 0 && child.height == 0 && position > currentScroll) {
++        firstVisibleView = child
++        break
++      }
++
        // If the child is partially visible or this is the last child, select it as the anchor.
 -      if (position > currentScroll || i == contentView.childCount - 1) {
 -        firstVisibleViewRef = WeakReference(child)
@@ -70,7 +77,8 @@ index 2bee605..ba26e7b 100644
      }
 +    val frame = Rect()
 +    firstVisibleView.getHitRect(frame)
-+    if (frame.width() > 0 || frame.height() > 0) {
++    // Zero-sized anchors have a meaningful position even though they have no area.
++    if (frame.width() > 0 || frame.height() > 0 || frame.left != 0 || frame.top != 0) {
 +        prevFirstVisibleFrame = frame
 +    } else {
 +        prevFirstVisibleFrame = null

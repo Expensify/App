@@ -58,9 +58,10 @@ jest.mock('@hooks/useReportIsArchived', () => ({
     default: () => false,
 }));
 
+const mockScrollToBottom = jest.fn();
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
-    default: () => ({scrollToIndex: jest.fn()}),
+    default: () => ({scrollToBottom: mockScrollToBottom}),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -141,5 +142,18 @@ describe('useEditMessage', () => {
 
         const args = mockShowDeleteModal.mock.calls.at(0);
         expect(args?.[1]?.reportActionID).toBe(props.reportAction?.reportActionID);
+    });
+
+    it('scrolls to the bottom after deleting the newest message draft', () => {
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
+
+        act(() => {
+            hook.result.current.publishDraft('   ');
+        });
+        act(() => {
+            mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
+        });
+
+        expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
 });

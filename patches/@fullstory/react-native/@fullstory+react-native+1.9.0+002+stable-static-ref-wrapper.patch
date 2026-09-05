@@ -1,0 +1,103 @@
+diff --git a/node_modules/@fullstory/react-native/src/index.ts b/node_modules/@fullstory/react-native/src/index.ts
+--- a/node_modules/@fullstory/react-native/src/index.ts
++++ b/node_modules/@fullstory/react-native/src/index.ts
+@@ -118,6 +118,8 @@ type FSNativeElement = ComponentRef<FSComponentType> & {
+   currentProps?: Record<string, unknown>;
+ };
+ 
++const staticRefWrappers = new WeakMap<object, MaybeFSForwardedRef<FSNativeElement>>();
++
+ // Shared wrapper for components without refs (most common case)
+ function sharedRefWrapper(element: FSNativeElement | null) {
+   if (element && isTurboModuleEnabled && Platform.OS === 'ios' && !Platform.isTV) {
+@@ -185,6 +187,13 @@ export function applyFSPropertiesWithRef(
+     return existingRef;
+   }
+ 
++  if (existingRef && !hasDynamicAttributes) {
++    const staticRefWrapper = staticRefWrappers.get(existingRef);
++    if (staticRefWrapper) {
++      return staticRefWrapper;
++    }
++  }
++
+   // Use shared wrapper for null/undefined refs or static attributes
+   if (!existingRef && !hasDynamicAttributes) {
+     return sharedRefWrapper;
+@@ -207,6 +216,10 @@ export function applyFSPropertiesWithRef(
+     configurable: false,
+   });
+ 
++  if (existingRef && !hasDynamicAttributes) {
++    staticRefWrappers.set(existingRef, refWrapper);
++  }
++
+   return refWrapper;
+ }
+ 
+diff --git a/node_modules/@fullstory/react-native/lib/commonjs/index.js b/node_modules/@fullstory/react-native/lib/commonjs/index.js
+--- a/node_modules/@fullstory/react-native/lib/commonjs/index.js
++++ b/node_modules/@fullstory/react-native/lib/commonjs/index.js
+@@ -83,6 +83,7 @@ try {
+   getInternalInstanceHandleFromPublicInstance = require('react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricPublicInstance').getInternalInstanceHandleFromPublicInstance;
+ } catch (e) {}
+ const FS_REF_SYMBOL = exports.FS_REF_SYMBOL = Symbol('fullstory.ref');
++const staticRefWrappers = new WeakMap();
+ // Shared wrapper for components without refs (most common case)
+ function sharedRefWrapper(element) {
+   if (element && _fullstoryInterface.isTurboModuleEnabled && _reactNative.Platform.OS === 'ios' && !_reactNative.Platform.isTV) {
+@@ -136,5 +137,11 @@ function applyFSPropertiesWithRef(existingRef, hasDynamicAttributes = true) {
+     return existingRef;
+   }
++  if (existingRef && !hasDynamicAttributes) {
++    const staticRefWrapper = staticRefWrappers.get(existingRef);
++    if (staticRefWrapper) {
++      return staticRefWrapper;
++    }
++  }
+ 
+   // Use shared wrapper for null/undefined refs or static attributes
+   if (!existingRef && !hasDynamicAttributes) {
+@@ -156,6 +163,9 @@ function applyFSPropertiesWithRef(existingRef, hasDynamicAttributes = true) {
+     writable: false,
+     configurable: false
+   });
++  if (existingRef && !hasDynamicAttributes) {
++    staticRefWrappers.set(existingRef, refWrapper);
++  }
+   return refWrapper;
+ }
+ const FullstoryAPI = {
+diff --git a/node_modules/@fullstory/react-native/lib/module/index.js b/node_modules/@fullstory/react-native/lib/module/index.js
+--- a/node_modules/@fullstory/react-native/lib/module/index.js
++++ b/node_modules/@fullstory/react-native/lib/module/index.js
+@@ -67,6 +67,7 @@ try {
+   getInternalInstanceHandleFromPublicInstance = require('react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricPublicInstance').getInternalInstanceHandleFromPublicInstance;
+ } catch (e) {}
+ export const FS_REF_SYMBOL = Symbol('fullstory.ref');
++const staticRefWrappers = new WeakMap();
+ // Shared wrapper for components without refs (most common case)
+ function sharedRefWrapper(element) {
+   if (element && isTurboModuleEnabled && Platform.OS === 'ios' && !Platform.isTV) {
+@@ -120,5 +121,11 @@ export function applyFSPropertiesWithRef(existingRef, hasDynamicAttributes = tru
+     return existingRef;
+   }
++  if (existingRef && !hasDynamicAttributes) {
++    const staticRefWrapper = staticRefWrappers.get(existingRef);
++    if (staticRefWrapper) {
++      return staticRefWrapper;
++    }
++  }
+ 
+   // Use shared wrapper for null/undefined refs or static attributes
+   if (!existingRef && !hasDynamicAttributes) {
+@@ -140,6 +147,9 @@ export function applyFSPropertiesWithRef(existingRef, hasDynamicAttributes = tru
+     writable: false,
+     configurable: false
+   });
++  if (existingRef && !hasDynamicAttributes) {
++    staticRefWrappers.set(existingRef, refWrapper);
++  }
+   return refWrapper;
+ }
+ const FullstoryAPI = {

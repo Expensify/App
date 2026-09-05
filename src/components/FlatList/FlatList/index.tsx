@@ -245,7 +245,7 @@ function MVCPFlatList<T>({
         };
     }, []);
 
-    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true, inverted: restProps.inverted});
+    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: !!restProps.inverted});
     const handleScroll = useCallback(
         (e: NativeSyntheticEvent<NativeScrollEvent>) => {
             onScrollProp?.(e);

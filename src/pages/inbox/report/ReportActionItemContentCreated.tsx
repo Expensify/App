@@ -103,6 +103,7 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
                     <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                         <View>
                             <MoneyRequestView
+                                key={action?.reportActionID ?? report?.reportID}
                                 transactionThreadReport={report}
                                 parentReportID={report?.parentReportID}
                                 expensePolicy={policy}

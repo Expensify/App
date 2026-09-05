@@ -76,6 +76,7 @@ function MoneyReportContentCreated({report, policy, transaction, transactionThre
                         <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                             <View>
                                 <MoneyRequestView
+                                    key={action?.reportActionID ?? transactionThreadReport?.reportID}
                                     transactionThreadReport={transactionThreadReport}
                                     parentReportID={transactionThreadReport?.parentReportID}
                                     expensePolicy={policy}

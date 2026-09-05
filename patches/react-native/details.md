@@ -9,9 +9,10 @@
 
 ### [react-native+0.86.0+002+fixMVCPAndroid.patch](react-native+0.86.0+002+fixMVCPAndroid.patch)
 
-- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch makes two key improvements:
+- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch:
   1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates
   2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
+  3. Preserves a positioned, zero-sized first child as a scroll anchor. LegendList moves this anchor to compensate for item measurements. Selecting its surrounding container or rejecting its empty frame prevents native scroll compensation and makes the chat jump as estimated rows shrink.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/46247
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/46315 (introduced), https://github.com/Expensify/App/pull/45289 (refactored)
