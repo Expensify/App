@@ -1,6 +1,6 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isGroupedItemArray, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -8,7 +8,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePa
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type MapTransactionItemToSelectedEntryParams = {
@@ -317,6 +317,18 @@ type GroupSelectionParams = {
     areAllMatchingItemsSelected: boolean;
 };
 
+/** Whether clicking a group's checkbox means "deselect": true once any row under it reads as checked. */
+function isGroupSelected({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
+    const selectable = children.filter((child) => !isTransactionPendingDelete(child));
+    if (children.length > 0 && selectable.length === 0) {
+        return false;
+    }
+    if (groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})) {
+        return true;
+    }
+    return selectable.some((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
+}
+
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
 function getGroupCheckboxState({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): {
     isSelectAllChecked: boolean;
@@ -373,4 +385,54 @@ function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTra
     return areAllMatchingItemsSelected || !!(parentGroupKey && selectedTransactions[parentGroupKey]?.isSelected);
 }
 
-export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, getGroupCheckboxState, isRowChecked};
+/** Openness is the gate, not the rows: a closed group still carries the ones it loaded. */
+function resolveGroupChildren(group: TransactionGroupListItemType, openGroupKeys: ReadonlySet<string>): TransactionListItemType[] {
+    return openGroupKeys.has(group.keyForList) ? group.transactions : [];
+}
+
+type ShiftRangeSource = {
+    /** Each group header followed by the rows it carries, in visual order */
+    items: SearchListItem[];
+
+    childrenByGroupKey: Map<string, TransactionListItemType[]>;
+
+    /** So a child's selection is stored and removed under the right parent */
+    groupKeyByChildKey: Map<string, string>;
+};
+
+/** One pass, so what a range spans and who owns each row cannot disagree. Flattens only in group-by views. */
+function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: ReadonlySet<string>, groupsAreHeaders: boolean): ShiftRangeSource {
+    const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
+    const groupKeyByChildKey = new Map<string, string>();
+    if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
+        return {items: sortedData, childrenByGroupKey, groupKeyByChildKey};
+    }
+
+    const items: SearchListItem[] = [];
+    for (const group of sortedData) {
+        items.push(group);
+        if (!group.keyForList) {
+            continue;
+        }
+        const children = resolveGroupChildren(group, openGroupKeys);
+        childrenByGroupKey.set(group.keyForList, children);
+        for (const child of children) {
+            items.push(child);
+            if (child.keyForList) {
+                groupKeyByChildKey.set(child.keyForList, group.keyForList);
+            }
+        }
+    }
+    return {items, childrenByGroupKey, groupKeyByChildKey};
+}
+
+export {
+    mapTransactionItemToSelectedEntry,
+    mapEmptyReportToSelectedEntry,
+    prepareTransactionsList,
+    deriveSelectedReports,
+    buildShiftRangeSource,
+    isGroupSelected,
+    getGroupCheckboxState,
+    isRowChecked,
+};

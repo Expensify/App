@@ -256,6 +256,10 @@ type SearchSelectionActionsValue = {
             reconciledExcludedTransactions?: SelectedTransactions;
         },
     ) => void;
+    /** Read on demand without subscribing, so a handler can anchor from the live selection without re-rendering every row */
+    getSelectedTransactions: () => SelectedTransactions;
+    getExcludedTransactions: () => SelectedTransactions;
+    getAreAllMatchingItemsSelected: () => boolean;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
@@ -277,10 +281,18 @@ type SearchData = TransactionListItemType[] | TransactionGroupListItemType[] | R
  * never re-renders consumers that only need to dispatch.
  */
 type SearchRowSelectionActionsValue = {
-    /** Toggle selection of a single transaction row or a group (report / grouped rows). */
-    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    /** Toggle selection of a single transaction row or a group (report / grouped rows). `shiftKey` extends a range. */
+    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     /** Toggle selection of all currently selectable items. */
     toggleAll: () => void;
+};
+
+/** Lets whoever owns a group's expanded state say whether a shift+click range may reach the rows it renders. */
+type SearchShiftRangeGroupsActions = {
+    addGroupToRange: (groupKey: string) => void;
+    removeGroupFromRange: (groupKey: string) => void;
+    /** Changes when the registry is dropped for a new search, so a group left open across the change reopens */
+    registryGeneration: number | undefined;
 };
 
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
@@ -504,6 +516,7 @@ export type {
     SearchSelectionActionsValue,
     SearchData,
     SearchRowSelectionActionsValue,
+    SearchShiftRangeGroupsActions,
     ASTNode,
     QueryFilter,
     Filter,

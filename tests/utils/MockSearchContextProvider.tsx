@@ -75,6 +75,9 @@ function splitActions(value: SearchActionsContextValue): {
         },
         selection: {
             setSelectedTransactions: value.setSelectedTransactions,
+            getSelectedTransactions: value.getSelectedTransactions,
+            getExcludedTransactions: value.getExcludedTransactions,
+            getAreAllMatchingItemsSelected: value.getAreAllMatchingItemsSelected,
             applySelection: value.applySelection,
             setSelectedReports: value.setSelectedReports,
             setCurrentSelectedTransactionReportID: value.setCurrentSelectedTransactionReportID,
@@ -88,13 +91,20 @@ function splitActions(value: SearchActionsContextValue): {
 function MockSearchContextProvider({state, actions, children}: MockSearchContextProviderProps) {
     const stateSlices = splitState(state);
     const actionsSlices = splitActions(actions);
+    // Answered from the state the checkboxes render from, so the range and the rows cannot read different selections.
+    const selectionActions: SearchSelectionActionsValue = {
+        ...actionsSlices.selection,
+        getSelectedTransactions: actions.getSelectedTransactions ?? (() => stateSlices.selection.selectedTransactions),
+        getExcludedTransactions: actions.getExcludedTransactions ?? (() => stateSlices.selection.excludedTransactions),
+        getAreAllMatchingItemsSelected: actions.getAreAllMatchingItemsSelected ?? (() => stateSlices.selection.areAllMatchingItemsSelected),
+    };
     return (
         <SearchQueryContext value={stateSlices.query}>
             <SearchQueryActionsContext value={actionsSlices.query}>
                 <SearchResultsContext value={stateSlices.results}>
                     <SearchResultsActionsContext value={actionsSlices.results}>
                         <SearchSelectionContext value={stateSlices.selection}>
-                            <SearchSelectionActionsContext value={actionsSlices.selection}>{children}</SearchSelectionActionsContext>
+                            <SearchSelectionActionsContext value={selectionActions}>{children}</SearchSelectionActionsContext>
                         </SearchSelectionContext>
                     </SearchResultsActionsContext>
                 </SearchResultsContext>

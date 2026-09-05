@@ -12,6 +12,7 @@ import type {
     SearchRowSelectionActionsValue,
     SearchSelectionActionsValue,
     SearchSelectionContextValue,
+    SearchShiftRangeGroupsActions,
 } from './types';
 
 // This file holds the bare React.createContext() calls so they can be imported by `@hooks/useOnyx`
@@ -62,6 +63,9 @@ const defaultSearchSelectionContext: SearchSelectionContextValue = {
 
 const defaultSearchSelectionActions: SearchSelectionActionsValue = {
     setSelectedTransactions: () => {},
+    getSelectedTransactions: () => defaultSearchSelectionContext.selectedTransactions,
+    getExcludedTransactions: () => defaultSearchSelectionContext.excludedTransactions,
+    getAreAllMatchingItemsSelected: () => defaultSearchSelectionContext.areAllMatchingItemsSelected,
     applySelection: () => {},
     setSelectedReports: () => {},
     setCurrentSelectedTransactionReportID: () => {},
@@ -75,6 +79,12 @@ const defaultRowSelectionActions: SearchRowSelectionActionsValue = {
     toggleAll: () => {},
 };
 
+const defaultSearchShiftRangeGroupsActions: SearchShiftRangeGroupsActions = {
+    addGroupToRange: () => {},
+    removeGroupFromRange: () => {},
+    registryGeneration: undefined,
+};
+
 const SearchQueryContext = React.createContext<SearchQueryContextValue>(defaultSearchQueryContext);
 const SearchQueryActionsContext = React.createContext<SearchQueryActionsValue>(defaultSearchQueryActions);
 const SearchResultsContext = React.createContext<SearchResultsContextValue>(defaultSearchResultsContext);
@@ -82,6 +92,7 @@ const SearchResultsActionsContext = React.createContext<SearchResultsActionsValu
 const SearchSelectionContext = React.createContext<SearchSelectionContextValue>(defaultSearchSelectionContext);
 const SearchSelectionActionsContext = React.createContext<SearchSelectionActionsValue>(defaultSearchSelectionActions);
 const SearchRowSelectionActionsContext = React.createContext<SearchRowSelectionActionsValue>(defaultRowSelectionActions);
+const SearchShiftRangeGroupsContext = React.createContext<SearchShiftRangeGroupsActions>(defaultSearchShiftRangeGroupsActions);
 
 export {
     EMPTY_TRANSACTIONS_BY_REPORT_ID,
@@ -92,4 +103,5 @@ export {
     SearchSelectionContext,
     SearchSelectionActionsContext,
     SearchRowSelectionActionsContext,
+    SearchShiftRangeGroupsContext,
 };

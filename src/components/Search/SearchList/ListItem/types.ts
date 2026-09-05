@@ -571,7 +571,7 @@ type GroupChildrenContentProps = {
     columns?: SearchColumnType[];
     canSelectMultiple: boolean;
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
