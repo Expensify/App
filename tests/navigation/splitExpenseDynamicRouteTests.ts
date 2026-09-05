@@ -6,6 +6,7 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {State} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -15,7 +16,8 @@ const TRANSACTION_ID = '1234567890123456';
 const SPLIT_TRANSACTION_ID = '6543210987654321';
 
 function getFocusedRoute(path: string) {
-    return findFocusedRouteWithOnyxTabGuard(getStateFromPath(path) as State);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- these URLs are composed at runtime, so they are not entries in the production Route union
+    return findFocusedRouteWithOnyxTabGuard(getStateFromPath(path as Route) as State);
 }
 
 describe('split expense dynamic routes', () => {

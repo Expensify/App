@@ -1,6 +1,8 @@
 import CONST from '@src/CONST';
 
 import 'react-native-url-polyfill/auto';
+import type {Route} from '@src/ROUTES';
+
 import escapeRegExp from 'lodash/escapeRegExp';
 
 function addLeadingForwardSlash(url: string): string {
@@ -48,12 +50,12 @@ function appendParam(url: string, paramName: string, paramValue: string) {
     // If parameter exists, replace it
     if (url.includes(`${paramName}=`)) {
         const regex = new RegExp(`${paramName}=([^&]*)`);
-        return url.replace(regex, `${paramName}=${paramValue}`);
+        return url.replace(regex, `${paramName}=${paramValue}`) as Route;
     }
 
     // If parameter doesn't exist, append it
     const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}${paramName}=${paramValue}`;
+    return `${url}${separator}${paramName}=${paramValue}` as Route;
 }
 
 function hasURL(text: string) {

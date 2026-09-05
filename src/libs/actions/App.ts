@@ -858,7 +858,7 @@ function setUpPoliciesAndNavigate(
 
     const isLoggingInAsNewUser = !!session.email && isLoggingInAsNewUserSessionUtils(currentUrl, session.email);
     const url = new URL(currentUrl);
-    const exitTo = url.searchParams.get('exitTo');
+    const exitTo = url.searchParams.get('exitTo') as Route | null;
 
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links

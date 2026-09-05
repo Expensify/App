@@ -6,6 +6,7 @@ import getStateFromPath from '@navigation/helpers/getStateFromPath';
 import Navigation from '@navigation/Navigation';
 import type {ReportDetailsNavigatorParamList} from '@navigation/types';
 
+import type {Route as ActiveRoute} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
@@ -33,7 +34,7 @@ type SearchRoute = Omit<Route<string>, 'key'> | undefined;
 type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]};
 
 const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteReportID = (url): string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID => {
-    const route = Navigation.getActiveRouteWithoutParams();
+    const route = Navigation.getActiveRouteWithoutParams() as ActiveRoute;
     const focusedRoute = findFocusedRoute(getStateFromPath(route));
     const reportIDFromURLParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID');
 

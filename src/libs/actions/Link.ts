@@ -404,14 +404,14 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen && !focusedSearchReportActionRoute) {
-        const targetWillNavigateToRHP = willRouteNavigateToRHP(routeToNavigate);
+        const targetWillNavigateToRHP = willRouteNavigateToRHP(routeToNavigate as Route);
         if (!targetWillNavigateToRHP) {
             shouldCloseRHP = true;
         } else if (hasSameOrigin) {
             // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
             // user sees only the RHP content update + the underlying tab animate, no close+reopen
             // flicker (issue: https://github.com/Expensify/App/issues/89710).
-            swapBackgroundTabForRHPTarget(currentState, routeToNavigate);
+            swapBackgroundTabForRHPTarget(currentState, routeToNavigate as Route);
         }
     }
 
@@ -441,7 +441,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         if (shouldCloseRHP) {
             Navigation.closeRHPFlow();
         }
-        Navigation.navigate(internalNewExpensifyPath);
+        Navigation.navigate(internalNewExpensifyPath as Route);
         return;
     }
     // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
@@ -630,7 +630,7 @@ function openReportFromDeepLink(
 
                             // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
                             const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                            Navigation.navigate(route, {forceReplace, waitForTransition: true});
+                            Navigation.navigate(route as Route, {forceReplace, waitForTransition: true});
                         };
                         // If we log with deeplink with reportID and data for this report is not available yet,
                         // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens

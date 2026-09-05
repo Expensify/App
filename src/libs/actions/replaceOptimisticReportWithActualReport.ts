@@ -195,7 +195,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                         }
                     } else if (isOptimisticReportInBackground) {
                         // Navigate to the correct backTo route with the preexisting report ID
-                        Navigation.navigate(backTo.replace(`/r/${reportID}`, `/r/${preexistingReportID}`));
+                        Navigation.navigate(backTo.replace(`/r/${reportID}`, `/r/${preexistingReportID}`) as Route);
                     }
                     currCallback();
                 };

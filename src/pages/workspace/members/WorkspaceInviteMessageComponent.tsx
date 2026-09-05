@@ -213,7 +213,7 @@ function WorkspaceInviteMessageComponent({
         if (isWorkflowApprovalExpensesFromRoute) {
             const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
             if (nestedBackTo) {
-                Navigation.goBack(nestedBackTo);
+                Navigation.goBack(nestedBackTo as Routes);
             } else {
                 // forceReplace so the invite page is removed from the stack. Otherwise it stays
                 // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.

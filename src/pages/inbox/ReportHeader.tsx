@@ -15,6 +15,7 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {getReportOfflinePendingActionAndErrors, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
@@ -57,7 +58,7 @@ function ReportHeader() {
             return;
         }
         if (prioritizeBackTo && backTo) {
-            Navigation.goBack(backTo, options);
+            Navigation.goBack(backTo as Route, options);
             return;
         }
         if (isInNarrowPaneModal) {
@@ -65,7 +66,7 @@ function ReportHeader() {
             return;
         }
         if (backTo) {
-            Navigation.goBack(backTo, options);
+            Navigation.goBack(backTo as Route, options);
             return;
         }
         Navigation.goBack(undefined, options);

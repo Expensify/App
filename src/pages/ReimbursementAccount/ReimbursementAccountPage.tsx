@@ -112,7 +112,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const subStepParam = route.params?.subStep;
     const backTo = route.params?.backTo;
     const isChangingBankAccount = !!route.params?.isChangingBankAccount;
-    const isComingFromExpensifyCard = backTo?.includes(CONST.EXPENSIFY_CARD.ROUTE as string);
+    const isComingFromExpensifyCard = (backTo as string)?.includes(CONST.EXPENSIFY_CARD.ROUTE as string);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();

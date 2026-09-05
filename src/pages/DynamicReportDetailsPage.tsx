@@ -131,6 +131,7 @@ import {canActionTask, canModifyTask, deleteTask, reopenTask} from '@userActions
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
@@ -1176,7 +1177,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             Navigation.dismissModal();
         } else {
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-            navigateBackOnDeleteTransaction(urlToNavigateBack);
+            navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
         }
     }, [
         caseID,

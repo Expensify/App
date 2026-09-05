@@ -16,6 +16,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect} from 'react';
@@ -86,7 +87,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 // remove this screen and navigate to exit route
                 Navigation.goBack(ROUTES.HOME);
                 if (exitTo) {
-                    Navigation.navigate(exitTo);
+                    Navigation.navigate(exitTo as Route);
                 }
             });
         }

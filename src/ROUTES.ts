@@ -183,7 +183,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.WALLET.ROOT,
         ],
         getRoute: (bankAccountID: string | number, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) => {
-            const base = `enable-global-reimbursements/business/${bankAccountID}/${subPage}${action ? `/${action}` : ''}`;
+            const base = `enable-global-reimbursements/business/${bankAccountID}/${subPage}${action ? `/${action}` : ''}` as const;
+            if (!params?.bankCountry && !params?.bankCurrency) {
+                return base;
+            }
             return getUrlWithParams(base, {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,
@@ -205,7 +208,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
         ],
         getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) => {
-            const base = `enable-global-reimbursements/agreements/${bankAccountID}`;
+            const base = `enable-global-reimbursements/agreements/${bankAccountID}` as const;
+            if (!params?.bankCountry && !params?.bankCurrency) {
+                return base;
+            }
             return getUrlWithParams(base, {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,
@@ -2373,7 +2379,10 @@ const ROUTES = {
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/business/:subPage/:action?',
         getRoute: (bankAccountID: number | undefined, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) => {
-            const base = `settings/wallet/${bankAccountID}/enable-global-reimbursements/business/${subPage}${action ? `/${action}` : ''}`;
+            const base = `settings/wallet/${bankAccountID}/enable-global-reimbursements/business/${subPage}${action ? `/${action}` : ''}` as const;
+            if (!params?.bankCountry && !params?.bankCurrency) {
+                return base;
+            }
             return getUrlWithParams(base, {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,
@@ -2383,7 +2392,10 @@ const ROUTES = {
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/agreements',
         getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) => {
-            const base = `settings/wallet/${bankAccountID}/enable-global-reimbursements/agreements`;
+            const base = `settings/wallet/${bankAccountID}/enable-global-reimbursements/agreements` as const;
+            if (!params?.bankCountry && !params?.bankCurrency) {
+                return base;
+            }
             return getUrlWithParams(base, {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,

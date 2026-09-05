@@ -2,6 +2,8 @@ import Log from '@libs/Log';
 import getStateForDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 
+import type {Route} from '@src/ROUTES';
+
 import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 
 import createMock from '../utils/createMock';
@@ -71,8 +73,8 @@ jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute',
 
 function getStateFromSyntheticPath(path: string): ReturnType<typeof getStateFromPath> {
     // These paths are synthetic fixtures for the mocked route configuration, not entries in the production Route union.
-
-    return getStateFromPath(path);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Deliberately pass synthetic route paths through the production parser.
+    return getStateFromPath(path as Route);
 }
 
 type DynamicRoutePath = Parameters<typeof getStateForDynamicRoute>[0];

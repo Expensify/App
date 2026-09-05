@@ -3,6 +3,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 import {useEffect, useMemo, useState} from 'react';
 
@@ -52,7 +53,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
                 break;
             default:
                 if (backTo) {
-                    Navigation.goBack(backTo);
+                    Navigation.goBack(backTo as Route);
                     return;
                 }
                 Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(threadReportID)));

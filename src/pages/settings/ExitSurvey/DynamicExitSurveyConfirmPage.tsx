@@ -59,7 +59,7 @@ function DynamicExitSurveyConfirmPage() {
             return parentBackPath;
         }
 
-        return `${parentBackPath.replace(/\/+$/, '')}/${reasonPathSuffix}`;
+        return `${parentBackPath.replace(/\/+$/, '')}/${reasonPathSuffix}` as Route;
     }, [isOffline, exitSurveyResponse, parentBackPath]);
 
     const goToExpensifyClassic = () => {

@@ -19,6 +19,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -54,7 +55,7 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
             return;
         }
         if (backPath && shouldUseBackToParam) {
-            const path = backPath.includes(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path) ? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID) : backPath;
+            const path = (backPath.includes(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path) ? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID) : backPath) as Route;
             Navigation.goBack(path, {compareParams: false});
         } else {
             Navigation.closeRHPFlow();
