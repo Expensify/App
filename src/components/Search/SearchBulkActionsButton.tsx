@@ -129,8 +129,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
             return Object.keys(transactionsToCount).reduce((count, key) => {
                 if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-                    const group = searchData?.[key as keyof typeof searchData] as {count?: number} | undefined;
-                    return count + (group?.count ?? 0);
+                    const group = searchData?.[key as keyof typeof searchData] as {count?: number; isCashBack?: boolean} | undefined;
+                    return count + (group?.isCashBack ? 1 : (group?.count ?? 0));
                 }
                 return count + 1;
             }, 0);

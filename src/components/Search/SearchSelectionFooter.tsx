@@ -202,7 +202,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // Source figures for every loaded group, not just the selected ones. The grouped response caches every group's
     // converted value, so stamping them all lets a later selection of another group reuse the cache instead of
     // re-running the grouped query. Uses the same expense-signed figure as getEntrySource so a stamp always matches
-    // the live source the freshness checks compare against.
+    // the live source the freshness checks compare against, which is why cash back is signed the other way here:
+    // selectionBuilders gives a selected cash back row a positive groupAmount, and a mismatch would never go fresh.
     const loadedGroupSourceByKey = useMemo(() => {
         const data = currentSearchResults?.data;
         if (!isGroupedSearch || !data) {
@@ -215,7 +216,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             }
             const group: unknown = data[key];
             if (group && typeof group === 'object' && 'total' in group && typeof group.total === 'number') {
-                sources[key] = -Math.abs(group.total);
+                const isCashBack = 'isCashBack' in group && group.isCashBack === true;
+                sources[key] = isCashBack ? Math.abs(group.total) : -Math.abs(group.total);
             }
         }
         return sources;

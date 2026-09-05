@@ -18,6 +18,7 @@ import type {
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {ListItem} from '@components/SelectionList/types';
 
 import Navigation from '@navigation/Navigation';
 
@@ -1865,6 +1866,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         state: 8,
         groupedBy: 'withdrawal-id',
         formattedWithdrawalID: '5',
+        settlementStatusRank: 8,
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_5',
@@ -1881,6 +1883,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         state: 8,
         groupedBy: 'withdrawal-id',
         formattedWithdrawalID: '6',
+        settlementStatusRank: 8,
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_30303030',
@@ -1900,6 +1903,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         state: 8,
         groupedBy: 'withdrawal-id',
         formattedWithdrawalID: '5',
+        settlementStatusRank: 8,
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_5',
@@ -1916,6 +1920,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 20,
         groupedBy: 'withdrawal-id',
         formattedWithdrawalID: '6',
+        settlementStatusRank: 8,
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_30303030',
@@ -7728,6 +7733,62 @@ describe('SearchUIUtils', () => {
             expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_large', 'group_small', 'group_domestic']);
         });
 
+        it('should keep cash back rows out of the settlement states when sorting by withdrawal status', () => {
+            const statusGroup = (state: number, isCashBack = false) => ({
+                bankName: CONST.BANK_NAMES.CHASE,
+                entryID,
+                accountNumber,
+                debitPosted: '2025-08-12 17:11:22',
+                count: isCashBack ? 0 : 4,
+                currency: 'USD',
+                total: isCashBack ? -2500 : 40,
+                state,
+                ...(isCashBack ? {isCashBack} : {}),
+            });
+            // Both cash back rows carry state 8, the same state a cleared settlement carries.
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}cashBackA` as const]: statusGroup(8, true),
+                [`${CONST.SEARCH.GROUP_PREFIX}cleared8` as const]: statusGroup(8),
+                [`${CONST.SEARCH.GROUP_PREFIX}cashBackB` as const]: statusGroup(8, true),
+                [`${CONST.SEARCH.GROUP_PREFIX}cleared9` as const]: statusGroup(9),
+                [`${CONST.SEARCH.GROUP_PREFIX}failed` as const]: statusGroup(5),
+                [`${CONST.SEARCH.GROUP_PREFIX}pending` as const]: statusGroup(1),
+            };
+
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionGroupListItemType,
+            );
+
+            const sortGroups = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    [...sections],
+                    localeCompare,
+                    translateLocal,
+                    CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
+                    sortOrder,
+                    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                ).map((group) => group.keyForList);
+
+            expect(sortGroups(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['group_pending', 'group_failed', 'group_cleared8', 'group_cleared9', 'group_cashBackA', 'group_cashBackB']);
+            expect(sortGroups(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_cashBackA', 'group_cashBackB', 'group_cleared9', 'group_cleared8', 'group_failed', 'group_pending']);
+        });
+
         it('should sort expense reports by each conversion amount, leaving the reports that did not convert at the empty end', () => {
             const withConversion = (keyForList: string, debitedAmount?: number, creditedAmount?: number) =>
                 createMock<TransactionReportGroupListItemType>({
@@ -13453,6 +13514,42 @@ describe('getWithdrawalStatusDisplayText', () => {
                 translateLocal,
             ),
         ).toBe('Pending, Cleared, Failed');
+    });
+});
+
+describe('isCashBackWithdrawalGroup', () => {
+    const withdrawalGroup = (overrides: Partial<TransactionWithdrawalIDGroupListItemType> = {}): TransactionWithdrawalIDGroupListItemType => ({
+        groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+        transactions: [],
+        entryID: 88002,
+        count: 0,
+        total: -2500,
+        currency: 'USD',
+        accountNumber: '4321',
+        bankName: CONST.BANK_NAMES.AMERICAN_EXPRESS,
+        debitPosted: '2025-07-20',
+        state: 8,
+        keyForList: 'group_88002',
+        ...overrides,
+    });
+
+    it('returns true for a withdrawal group flagged as cash back', () => {
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup({isCashBack: true}))).toBe(true);
+    });
+
+    it('returns false for a normal settlement withdrawal group', () => {
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup())).toBe(false);
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup({isCashBack: false}))).toBe(false);
+    });
+
+    it('stays false for a group of another type that happens to carry the flag', () => {
+        const cardGroup = {...withdrawalGroup({isCashBack: true}), groupedBy: CONST.SEARCH.GROUP_BY.CARD};
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(cardGroup)).toBe(false);
+    });
+
+    it('stays false for a row that is not a transaction group at all', () => {
+        const plainRow: ListItem = {keyForList: 'not-a-group'};
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(plainRow)).toBe(false);
     });
 });
 

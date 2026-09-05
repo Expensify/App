@@ -438,6 +438,9 @@ type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
 
+        /** Value used for sorting the "withdrawal status" column */
+        settlementStatusRank?: number;
+
         /** Whether any withdrawn date in the current results belongs to a past year */
         shouldShowYearWithdrawn?: boolean;
     };

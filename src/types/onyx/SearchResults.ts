@@ -228,6 +228,9 @@ type SearchWithdrawalIDGroup = {
 
     /** Whether the current user may export this settlement as a statement PDF (set by the backend, which applies the same admin authorization it uses to generate the PDF) */
     canExportStatement?: boolean;
+
+    /** Whether this group is an ACH cash back credit rather than a card settlement withdrawal */
+    isCashBack?: boolean;
 };
 
 /** Model of category grouped search result */

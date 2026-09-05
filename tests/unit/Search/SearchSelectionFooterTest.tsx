@@ -1,7 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
-import type {SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
+import type {SearchGroupBy, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 
@@ -11,6 +11,7 @@ import type {SearchResults} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {makeSettlementGroup} from '../../utils/ExpensifyCardStatementTestUtils';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
@@ -24,7 +25,7 @@ jest.mock('@libs/actions/Search', () => ({
 type MockSearchQueryContext = {
     currentSearchHash: number;
     currentSearchKey: undefined;
-    currentSearchQueryJSON: {hash: number; type: SearchResults['search']['type']} | undefined;
+    currentSearchQueryJSON: {hash: number; type: SearchResults['search']['type']; groupBy?: SearchGroupBy} | undefined;
 };
 
 const mockSearchQueryContext: {current: MockSearchQueryContext} = {
@@ -33,9 +34,10 @@ const mockSearchQueryContext: {current: MockSearchQueryContext} = {
 const mockSelectedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockExcludedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockAreAllMatchingItemsSelected = {current: false};
+const mockCurrentSearchResults: {current: SearchResults | undefined} = {current: undefined};
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => mockSearchQueryContext.current,
-    useSearchResultsContext: () => ({currentSearchResults: undefined}),
+    useSearchResultsContext: () => ({currentSearchResults: mockCurrentSearchResults.current}),
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions.current,
         excludedTransactions: mockExcludedTransactions.current,
@@ -121,6 +123,7 @@ describe('SearchSelectionFooter', () => {
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
         mockExcludedTransactions.current = {};
         mockAreAllMatchingItemsSelected.current = false;
+        mockCurrentSearchResults.current = undefined;
         mockCapturedFooterProps.current = undefined;
         // Clear here rather than in afterEach: Onyx.clear() there re-renders the previous test's still-mounted
         // component (testing-library only unmounts it afterwards), and those renders can record mock calls.
@@ -226,5 +229,55 @@ describe('SearchSelectionFooter', () => {
         // The figures are already in the chosen currency, so no request is made and the snapshot data is used as-is.
         expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
         expect(mockCapturedFooterProps.current?.currency).toBe(PAYMENT_CURRENCY);
+    });
+
+    describe('stamping the loaded groups of a grouped search', () => {
+        const CASH_BACK_KEY = `${CONST.SEARCH.GROUP_PREFIX}cashBack` as const;
+        const SETTLEMENT_KEY = `${CONST.SEARCH.GROUP_PREFIX}settlement` as const;
+
+        const renderGroupedSearch = async () => {
+            mockSearchQueryContext.current = {
+                currentSearchHash: 1,
+                currentSearchKey: undefined,
+                currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE, groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID},
+            };
+            const searchResults = buildSearchResults(undefined, 2);
+            mockCurrentSearchResults.current = {
+                ...searchResults,
+                data: {
+                    [CASH_BACK_KEY]: makeSettlementGroup({total: -2500, isCashBack: true}),
+                    [SETTLEMENT_KEY]: makeSettlementGroup({total: 40000}),
+                },
+            };
+            // Only the settlement is selected, so the cash back row is stamped by the bulk path rather than from its entry.
+            mockSelectedTransactions.current = {[SETTLEMENT_KEY]: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, 'INR', -40000)};
+
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(PAYMENT_CURRENCY);
+                await waitForBatchedUpdates();
+            });
+
+            return jest
+                .mocked(getFooterConvertedAmounts)
+                .mock.calls.map(([args]) => args)
+                .find((args) => !!args.sources?.groups)?.sources?.groups;
+        };
+
+        it('stamps an unselected cash back group with the positive figure its own entry would produce', async () => {
+            const groups = await renderGroupedSearch();
+
+            // selectionBuilders gives a selected cash back row groupAmount: +Math.abs(total), so a negative stamp here
+            // would never match the freshness check and the cached conversion could never be reused.
+            expect(groups?.[CASH_BACK_KEY]).toEqual({[PAYMENT_CURRENCY]: 2500});
+        });
+
+        it('keeps stamping an unselected settlement group expense-negative', async () => {
+            const groups = await renderGroupedSearch();
+
+            expect(groups?.[SETTLEMENT_KEY]).toEqual({[PAYMENT_CURRENCY]: -40000});
+        });
     });
 });
