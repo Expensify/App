@@ -602,8 +602,17 @@ function MoneyRequestReportTransactionList({
         // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
         // Overwriting and then clearing it would drop that carousel when the user navigates back. Row presses
         // still seed the correct siblings lazily via useNavigateToTransactionThread.
-        if (getActiveTransactionIDs().descriptors) {
+        const {ids: activeIDs, descriptors: activeDescriptors} = getActiveTransactionIDs();
+        if (activeDescriptors) {
             return;
+        }
+        // A report preview press seeds these arrows in the carousel's order, which can differ from this list's order.
+        // Keep that seed while it still covers exactly these rows, and re-seed only when the rows themselves change.
+        if (activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
+            const activeIDSet = new Set(activeIDs);
+            if (visualOrderTransactionIDs.every((transactionID) => activeIDSet.has(transactionID))) {
+                return;
+            }
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);
         return () => {

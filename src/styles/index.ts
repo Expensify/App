@@ -4925,6 +4925,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        reportPreviewActionRow: {
+            height: variables.h40,
+        },
+
         reportPreviewBox: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,

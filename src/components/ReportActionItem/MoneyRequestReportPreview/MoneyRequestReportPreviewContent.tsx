@@ -31,6 +31,8 @@ function MoneyRequestReportPreviewContent({
     invoiceReceiverPersonalDetail,
     lastTransactionViolations,
     renderTransactionItem,
+    onOrderedTransactionsChange,
+    onCancelPendingPress,
     onCarouselLayout,
     onWrapperLayout,
     currentWidth,
@@ -57,6 +59,8 @@ function MoneyRequestReportPreviewContent({
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             renderTransactionItem={renderTransactionItem}
+            onOrderedTransactionsChange={onOrderedTransactionsChange}
+            onCancelPendingPress={onCancelPendingPress}
             currentWidth={currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             newTransactionIDs={newTransactionIDs}
