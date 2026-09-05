@@ -74,7 +74,7 @@ Use this guide to understand:
 - Delete Draft reports
 - Duplicate expenses and reports
 - Hold expenses
-- Invite members to their report
+- Invite members to their Draft reports
 
 **Approver**
 - Approve reports
@@ -129,7 +129,7 @@ Use this guide to understand:
 | **Download** | Any report | All roles | Downloads a PDF copy |
 | **Print** | Any report except Draft | All roles | Opens print view |
 | **Reject** | Submitted reports | Approver | Sends report back for changes |
-| **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
+| **Invite member** | Draft reports | Submitter, Workspace Admin | Adds a member to the report so they can see every expense on it |
 | **View details** | Any report | All roles | Opens report details |
 | **Cancel payment** | Before payment processing | Payer | Cancels a pending payment |
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
@@ -194,4 +194,4 @@ Only workspace admins can bypass approvers. Some settings may prevent self-appro
 
 ## How do I invite a member to an expense report?
 
-Open the report, select the header, then select **Members** and choose **Invite**.
+Open the report, click the report header to open **Details**, select **Members**, then click **Invite member**. This is only available on Draft reports, and only for the submitter or a Workspace Admin. [Learn how to invite members to an expense report](/articles/new-expensify/reports-and-expenses/Invite-Members-to-an-Expense-Report).
