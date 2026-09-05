@@ -7050,6 +7050,8 @@ function buildConciergeGreetingReportAction({reportID, greetingText, created}: B
  * @param parentReportAction - Parent report action of the child report
  * @param lastVisibleActionCreated - Last visible action created of the child report
  * @param type - The type of action in the child report
+ * @param commenterAccountID - Account the comment is attributed to in the UI. This is the copilot when acting on behalf of someone else, so the
+ * thread summary avatars match the avatar rendered on the comment itself.
  */
 
 function updateOptimisticParentReportAction(
@@ -7057,6 +7059,7 @@ function updateOptimisticParentReportAction(
     lastVisibleActionCreated: string,
     type: string,
     actionCount = 1,
+    commenterAccountID = deprecatedCurrentUserAccountID,
 ): UpdateOptimisticParentReportAction {
     let childVisibleActionCount = parentReportAction?.childVisibleActionCount ?? 0;
     let childCommenterCount = parentReportAction?.childCommenterCount ?? 0;
@@ -7066,10 +7069,10 @@ function updateOptimisticParentReportAction(
         childVisibleActionCount += actionCount;
         const oldestFourAccountIDs = childOldestFourAccountIDs ? childOldestFourAccountIDs.split(',') : [];
         if (oldestFourAccountIDs.length < 4) {
-            const index = oldestFourAccountIDs.findIndex((accountID) => accountID === deprecatedCurrentUserAccountID?.toString());
+            const index = oldestFourAccountIDs.findIndex((accountID) => accountID === commenterAccountID?.toString());
             if (index === -1) {
                 childCommenterCount += 1;
-                oldestFourAccountIDs.push(deprecatedCurrentUserAccountID?.toString() ?? '');
+                oldestFourAccountIDs.push(commenterAccountID?.toString() ?? '');
             }
         }
         childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
@@ -11855,10 +11858,21 @@ function getAncestors(
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionCreated: string, type: string): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> {
+function getOptimisticDataForAncestors(
+    ancestors: Ancestor[],
+    lastVisibleActionCreated: string,
+    type: string,
+    commenterAccountID?: number,
+): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> {
     let previousActionDeleted = false;
     return ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction}, index) => {
-        const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
+        const updatedReportAction = updateOptimisticParentReportAction(
+            ancestorReportAction,
+            lastVisibleActionCreated,
+            type,
+            previousActionDeleted ? index + 1 : undefined,
+            commenterAccountID,
+        );
         previousActionDeleted = isDeletedAction(ancestorReportAction) && updatedReportAction.childVisibleActionCount === 0;
         return {
             onyxMethod: Onyx.METHOD.MERGE,
