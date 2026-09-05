@@ -1,4 +1,4 @@
-import type {ComposerProps, ComposerRef} from '@components/Composer/types';
+import type {ComposerProps, ComposerRef, CustomSelectionChangeEvent} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 
@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojis, convertEmojiShortcodesToUnicode} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import Parser from '@libs/Parser';
@@ -24,7 +24,7 @@ import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData
 
 import mimeDb from 'mime-db';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -32,8 +32,10 @@ const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 function Composer({
     onClear: onClearProp = () => {},
     onPasteFile = () => {},
+    onSelectionChange = () => {},
     isDisabled = false,
     maxLines,
+    onChangeText = () => {},
     isComposerFullSize = false,
     style,
     // On native layers we like to have the Text Input not focused so the
@@ -42,10 +44,17 @@ function Composer({
     selection,
     value,
     isGroupPolicyReport = false,
+    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
     ref,
     ...props
 }: ComposerProps) {
     const textInputRef = useRef<MarkdownTextInput | null>(null);
+    // Native may still emit the raw text change after paste, so keep the converted value ready for that next change.
+    const pendingPastedTextRef = useRef<{rawText: string; convertedText: string} | null>(null);
+    // Android reports a selection based on the raw shortcode before rendering the converted emoji.
+    const pendingPastedSelectionRef = useRef<{value: string; position: number} | null>(null);
+    const valueRef = useRef(value);
+    const selectionRef = useRef(selection);
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
@@ -55,6 +64,11 @@ function Composer({
 
     // Android keeps the input focused when the keyboard is dismissed with the back button/gesture.
     useBlurOnKeyboardHide(textInputRef);
+
+    useEffect(() => {
+        valueRef.current = value;
+        selectionRef.current = selection;
+    }, [selection, value]);
 
     useEffect(() => {
         if (!textInputRef.current?.setSelection || !selection || isComposerFullSize) {
@@ -107,7 +121,34 @@ function Composer({
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
             const clipboardContent = e.nativeEvent.items.at(0);
+
             if (clipboardContent?.type === 'text/plain') {
+                const currentValue = valueRef.current ?? '';
+                const currentSelection = selectionRef.current;
+                const selectionStart = currentSelection?.start ?? currentValue.length;
+                const selectionEnd = currentSelection?.end ?? selectionStart;
+                const textBeforeSelection = currentValue.slice(0, selectionStart);
+                const textAfterSelection = currentValue.slice(selectionEnd);
+
+                // Native paste only provides plain text, so use the destination text when spacing converted emoji shortcodes.
+                const convertedText = convertEmojiShortcodesToUnicode(clipboardContent.data, preferredSkinTone, {textAfterPaste: textAfterSelection});
+
+                if (convertedText === clipboardContent.data) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                const rawPastedText = `${textBeforeSelection}${clipboardContent.data}${textAfterSelection}`;
+                const convertedPastedText = `${textBeforeSelection}${convertedText}${textAfterSelection}`;
+                const convertedTextEnd = textBeforeSelection.length + convertedText.length;
+                const convertedSelectionPosition = convertedTextEnd + (convertedPastedText.at(convertedTextEnd) === ' ' ? 1 : 0);
+
+                pendingPastedTextRef.current = {rawText: rawPastedText, convertedText: convertedPastedText};
+                if (Platform.OS === 'android') {
+                    pendingPastedSelectionRef.current = {value: convertedPastedText, position: convertedSelectionPosition};
+                }
+                onChangeText(convertedPastedText);
                 return;
             }
             const mimeType = clipboardContent?.type ?? '';
@@ -121,7 +162,52 @@ function Composer({
                 .then((size) => (file = {...file, size}))
                 .finally(() => onPasteFile(file));
         },
-        [onPasteFile],
+        [onChangeText, onPasteFile, preferredSkinTone],
+    );
+
+    const handleChangeText = useCallback(
+        (text: string) => {
+            if (pendingPastedTextRef.current?.rawText === text || pendingPastedTextRef.current?.convertedText === text) {
+                pendingPastedTextRef.current = null;
+                return;
+            }
+
+            pendingPastedTextRef.current = null;
+            pendingPastedSelectionRef.current = null;
+            onChangeText(text);
+        },
+        [onChangeText],
+    );
+
+    const handleSelectionChange = useCallback(
+        (event: CustomSelectionChangeEvent) => {
+            const nativeSelection = event.nativeEvent.selection;
+            const pendingSelection = pendingPastedSelectionRef.current;
+            const shouldCorrectPastedSelection = pendingSelection?.value === valueRef.current;
+            let correctedSelection = nativeSelection;
+
+            if (shouldCorrectPastedSelection && pendingSelection) {
+                correctedSelection = {start: pendingSelection.position, end: pendingSelection.position};
+                pendingPastedSelectionRef.current = null;
+                if (nativeSelection.start !== correctedSelection.start || nativeSelection.end !== correctedSelection.end) {
+                    textInputRef.current?.setSelection(correctedSelection.start, correctedSelection.end);
+                }
+            }
+
+            if (!shouldCorrectPastedSelection) {
+                onSelectionChange(event);
+                return;
+            }
+
+            onSelectionChange({
+                ...event,
+                nativeEvent: {
+                    ...event.nativeEvent,
+                    selection: correctedSelection,
+                },
+            });
+        },
+        [onSelectionChange],
     );
 
     const maxHeightStyle = useMemo(
@@ -148,6 +234,8 @@ function Composer({
             readOnly={isDisabled}
             onPaste={pasteFile}
             onClear={onClear}
+            onChangeText={handleChangeText}
+            onSelectionChange={handleSelectionChange}
             disableFullscreenUI
         />
     );

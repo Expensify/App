@@ -5404,7 +5404,11 @@ const CONST = {
         NON_BREAKING_SPACE: /\u00A0/g,
 
         EMOJI_NAME: /(?<=^|[\s\S]):[\p{L}0-9_+-]+:/gu,
+        SLACK_EMOJI_NAME_WITH_SKIN_TONE: /:([\p{L}0-9_+-]+)::skin-tone-([2-6]):/gu,
+        // Match emoji image filenames from iOS Safari paste, e.g. "1f389@2x.png".
+        EMOJI_IMAGE_ALT: /^([a-f\d]{4,6}(?:-[a-f\d]{4,6})*)(?:@\d+x)?\.(?:png|gif|webp)$/i,
         EMOJI_SUGGESTIONS: /(?<=^|[\s\S]):[\p{L}0-9_+-]{1,40}$/u,
+        STARTS_WITH_UNICODE_LETTER_OR_NUMBER: /^[\p{L}\p{N}]/u,
         LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
 
