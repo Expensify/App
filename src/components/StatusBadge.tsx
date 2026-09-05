@@ -2,7 +2,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -32,15 +32,14 @@ function StatusBadge({text, backgroundColor, textColor, badgeStyles, tooltipText
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
 
-    const bgColor = (backgroundColor ?? theme.transparent) as string;
-    const txtColor = (textColor ?? theme.text) as string;
+    const textColorStyle: TextStyle = {color: textColor ?? theme.text};
 
     const badge = (
         <Badge
             text={text}
             isCondensed
-            badgeStyles={[styles.ml0, styles.borderNone, StyleUtils.getBackgroundColorStyle(bgColor), badgeStyles]}
-            textStyles={StyleUtils.getColorStyle(txtColor)}
+            badgeStyles={[styles.ml0, styles.borderNone, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.transparent), badgeStyles]}
+            textStyles={textColorStyle}
         />
     );
 
