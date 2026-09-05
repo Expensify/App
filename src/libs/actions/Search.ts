@@ -16,17 +16,19 @@ import type {
     ExportSearchWithTemplateParams,
     OpenBulkChangeApproverPageParams,
     OpenSearchPageParams,
+    OpenSearchTagFiltersPageParams,
     QueueExportSearchItemsToCSVParams,
     QueueExportSearchWithTemplateParams,
     ReportExportParams,
     SubmitReportParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
+import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -1041,6 +1043,62 @@ function openSearchCategoryFiltersPage() {
     ];
 
     read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
+}
+
+type OpenSearchTagFiltersPageResponse = {
+    /** Whether more pages of tag filter results are available */
+    hasMore?: boolean;
+
+    /** Pagination cursor to pass for fetching the next page of tag filters */
+    nextCursor?: string;
+};
+
+/**
+ * Fetches a page of tag filter search results from the server.
+ * Returns pagination metadata (hasMore, nextCursor) for infinite scroll.
+ * A new search passes `shouldCancelPendingRequests` so a superseded in-flight request cannot overwrite the fresh results.
+ */
+function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string}> {
+    if (shouldCancelPendingRequests) {
+        HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
+    }
+
+    const optimisticData: AnyOnyxUpdate[] = shouldCancelPendingRequests
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.SET_COLLECTION,
+                  key: ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS,
+                  value: {},
+              },
+          ]
+        : [];
+
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, {...params, canCancel: true}, {optimisticData}).then((response) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchTagFiltersPage response fields are command-specific and not declared on the shared Response type
+        const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
+        return {
+            hasMore: !!tagFiltersResponse?.hasMore,
+            nextCursor: tagFiltersResponse?.nextCursor ?? '',
+        };
+    });
+}
+
+/**
+ * Updates the pagination state for tag filter search.
+ * Stored in RAM-only Onyx key so it survives component remounts but resets on app restart.
+ */
+function setSearchTagFiltersPagination(hasMore: boolean, nextCursor: string, searchQuery: string) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION, {
+        hasMore,
+        nextCursor,
+        searchQuery,
+    });
+}
+
+/** Resets tag filter pagination and cached results when the filter closes. */
+function clearSearchTagFiltersState() {
+    setSearchTagFiltersPagination(false, '', '');
+    Onyx.setCollection(ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS, {});
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -2401,6 +2459,9 @@ export {
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
+    openSearchTagFiltersPage,
+    setSearchTagFiltersPagination,
+    clearSearchTagFiltersState,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,

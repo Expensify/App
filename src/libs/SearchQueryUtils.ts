@@ -1339,11 +1339,9 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
  * Reverse operation of buildQueryStringFromFilterFormValues()
  */
 // Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
-    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList | undefined,
@@ -1479,17 +1477,8 @@ function buildFilterFormValuesFromQuery(
             filtersForm[filterKey] = filterValues.find((currency) => validCurrencies.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-            const uniqueTags = new Set<string>();
-            const tagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags);
-            for (const tagList of tagLists) {
-                for (const policyTagList of Object.values(tagList ?? {})) {
-                    for (const tag of Object.values(policyTagList.tags ?? {})) {
-                        uniqueTags.add(tag.name);
-                    }
-                }
-            }
-            uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((name) => uniqueTags.has(name));
+            // Tag values are kept as-is: with server-side tag pagination the local tag data is never complete, so validating against it would silently drop valid tags
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const uniqueCategories = new Set<string>();

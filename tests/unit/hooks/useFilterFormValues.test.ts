@@ -2,10 +2,10 @@ import {typeOptionsPoliciesSelector} from '@components/Search/FilterComponents/T
 
 import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
 import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
-import {policiesSelector, policyCategoriesSelector, policyTagsSelector} from '@hooks/useFilterFormValues';
+import {policiesSelector, policyCategoriesSelector} from '@hooks/useFilterFormValues';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyReportField, PolicyTagLists} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyReportField} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -15,8 +15,6 @@ const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}1`;
 const POLICY_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY}2`;
 const CATEGORIES_KEY = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`;
 const CATEGORIES_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`;
-const TAGS_KEY = `${ONYXKEYS.COLLECTION.POLICY_TAGS}1`;
-const TAGS_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY_TAGS}2`;
 
 describe('useFilterFormValues selectors', () => {
     describe('policiesSelector', () => {
@@ -87,77 +85,6 @@ describe('useFilterFormValues selectors', () => {
 
             expect(result).toEqual({[CATEGORIES_KEY]: {Food: {name: 'Food'}}});
             expect(result).not.toHaveProperty(CATEGORIES_KEY_2);
-        });
-    });
-
-    describe('policyTagsSelector', () => {
-        it('returns undefined input as-is', () => {
-            expect(policyTagsSelector(undefined)).toBeUndefined();
-        });
-
-        it('extracts only tag names', () => {
-            const tags: OnyxCollection<PolicyTagLists> = {
-                [TAGS_KEY]: createMock<PolicyTagLists>({
-                    Department: {
-                        name: 'Department',
-                        required: true,
-                        tags: {
-                            Engineering: {name: 'Engineering', enabled: true},
-                            Marketing: {name: 'Marketing', enabled: false},
-                        },
-                    },
-                }),
-            };
-
-            const result = policyTagsSelector(tags);
-
-            expect(result?.[TAGS_KEY]).toEqual({
-                Department: {
-                    tags: {
-                        Engineering: {name: 'Engineering'},
-                        Marketing: {name: 'Marketing'},
-                    },
-                },
-            });
-        });
-
-        it('skips undefined collection entries', () => {
-            const tags: OnyxCollection<PolicyTagLists> = {
-                [TAGS_KEY]: createMock<PolicyTagLists>({
-                    Department: {
-                        tags: {
-                            Engineering: {name: 'Engineering'},
-                        },
-                    },
-                }),
-                [TAGS_KEY_2]: undefined,
-            };
-
-            const result = policyTagsSelector(tags);
-
-            expect(result).toEqual({
-                [TAGS_KEY]: {
-                    Department: {tags: {Engineering: {name: 'Engineering'}}},
-                },
-            });
-            expect(result).not.toHaveProperty(TAGS_KEY_2);
-        });
-
-        it('handles tag lists with empty tags object', () => {
-            const tags: OnyxCollection<PolicyTagLists> = {
-                [TAGS_KEY]: createMock<PolicyTagLists>({
-                    Department: {
-                        name: 'Department',
-                        tags: {},
-                    },
-                }),
-            };
-
-            const result = policyTagsSelector(tags);
-
-            expect(result?.[TAGS_KEY]).toEqual({
-                Department: {tags: {}},
-            });
         });
     });
 
