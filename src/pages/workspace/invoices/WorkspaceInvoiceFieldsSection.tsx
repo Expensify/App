@@ -29,7 +29,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
             subtitleKey="workspace.invoiceFields.subtitle"
             importedFromAccountingSoftwareKey="workspace.invoiceFields.importedFromAccountingSoftware"
             disableTitleKey="workspace.invoiceFields.disableInvoiceFields"
-            disablePromptKey="workspace.invoiceFields.disableInvoiceFieldsConfirmation"
+            disablePromptKey="workspace.reportFields.disableReportFieldsConfirmation"
             addFieldKey="workspace.invoiceFields.addField"
             createRoute={ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.getRoute(policyID)}
             getSettingsRoute={ROUTES.WORKSPACE_INVOICE_FIELDS_SETTINGS.getRoute}
