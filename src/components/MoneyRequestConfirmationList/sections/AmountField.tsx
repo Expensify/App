@@ -111,9 +111,11 @@ function AmountField({
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
 
     useEffect(() => {
-        if (shouldShowEmptyAmount && !amount) {
-            onNegativeChange?.(false);
+        if (!shouldShowEmptyAmount || amount) {
+            return;
         }
+
+        onNegativeChange?.(false);
     }, [shouldShowEmptyAmount, amount, onNegativeChange]);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
