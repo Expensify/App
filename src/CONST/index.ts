@@ -3811,6 +3811,12 @@ const CONST = {
         BANK: 'BANK',
     },
 
+    CAMPFIRE_VENDOR_TYPE: {
+        VENDOR: 'vendor',
+        CUSTOMER: 'customer',
+        EMPLOYEE: 'employee',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
