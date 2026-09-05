@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
@@ -17,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource, isTagInPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -25,10 +26,13 @@ import variables from '@styles/variables';
 import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyTagLists} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -50,7 +54,13 @@ type FieldLabels = {
 /**
  * Generates a human-readable description of what a coding rule does
  */
-function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLocalize>['translate'], labels: FieldLabels, policy: Policy | undefined): string {
+function getRuleDescription(
+    rule: CodingRule,
+    translate: ReturnType<typeof useLocalize>['translate'],
+    labels: FieldLabels,
+    policy: Policy | undefined,
+    policyTags: OnyxEntry<PolicyTagLists>,
+): string {
     const actions: string[] = [];
 
     if (rule.merchant) {
@@ -59,7 +69,7 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
     if (rule.category) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.category, getDecodedCategoryName(rule.category)));
     }
-    if (rule.tag) {
+    if (rule.tag && isTagInPolicy(rule.tag, policyTags)) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCommaSeparatedTagNameWithSanitizedColons(rule.tag)));
     }
     if (rule.comment) {
@@ -91,6 +101,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     // Hoist iterator-independent translations to avoid redundant calls in the loop
@@ -174,7 +185,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                         const merchantName = rule.filters?.right ?? '';
                         const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
                         const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
-                        const ruleDescription = getRuleDescription(rule, translate, fieldLabels, policy);
+                        const ruleDescription = getRuleDescription(rule, translate, fieldLabels, policy, policyTags);
 
                         return (
                             <View key={rule.ruleID}>

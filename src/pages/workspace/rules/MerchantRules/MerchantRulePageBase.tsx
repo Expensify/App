@@ -33,7 +33,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getCleanedTagName, getTagLists, getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -518,12 +518,14 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                 ...(hasTags()
                     ? policyTags
                           .filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || getEnabledTags(tags, form?.tag ?? '', orderWeight).length > 0)
-                          .map(({name, orderWeight}) => {
+                          .map(({name, orderWeight, tags}) => {
                               const formTag = formTags.at(orderWeight);
+                              const matchedTag = formTag ? findPolicyTagAtLevel(tags, formTag, formTags.slice(0, orderWeight).join(':')) : undefined;
+                              const isTagAvailable = !!matchedTag && matchedTag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                               return {
                                   key: `tag-${name}-${orderWeight}`,
                                   description: name,
-                                  title: formTag ? getCleanedTagName(formTag) : undefined,
+                                  title: isTagAvailable && formTag ? getCleanedTagName(formTag) : undefined,
                                   onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID, orderWeight)),
                                   icon: getItemIcon(icons.Tag),
                               };
