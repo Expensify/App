@@ -279,19 +279,21 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             break;
 
         // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined) || reimbursableSpend === 0) {
+        case CONST.REPORT.STATUS_NUM.APPROVED: {
+            const isReimbursementDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
 
-            // Self review
+            // The report still needs to be paid whether or not the approver is the one who pays it.
             nextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 actorAccountID: reimburserAccountID,
             };
             break;
+        }
 
         // Clear nextStep
         default:
