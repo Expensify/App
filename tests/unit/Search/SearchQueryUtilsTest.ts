@@ -3660,6 +3660,9 @@ describe('SearchQueryUtils', () => {
 
         it('should preserve a trailing keyword after consecutive incomplete filter names', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
 
             const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('merchant: description: coffee', currentQueryJSON));
             const resultQueryJSON = buildSearchQueryJSON(result ?? '');
@@ -3708,6 +3711,10 @@ describe('SearchQueryUtils', () => {
 
         it('should preserve backslashes in filter-like keyword text across submissions', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
             const keyword = String.raw`description:C:\Temp`;
 
             const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
