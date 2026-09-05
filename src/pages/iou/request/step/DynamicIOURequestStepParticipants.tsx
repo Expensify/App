@@ -78,9 +78,9 @@ function DynamicIOURequestStepParticipants({
     }
 
     // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
-    // The amount step is skipped, so the amount is not known yet here and we include recents for every other case.
-    // The amount-derived restriction (getIsWorkspacesOnlyForTransaction) belongs to the confirmation-page picker,
-    // which is the only participant picker reached once an amount exists.
+    // The amount step is skipped, so we include recents for every other case. This step is still reachable with an amount
+    // set (confirmation's back navigation returns here), but negatives are handled by `shouldExcludeP2P` below - only the
+    // zero-quantity distance case of `getIsWorkspacesOnlyForTransaction` is knowingly dropped here.
     // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
     const isWorkspacesOnly = isWorkspacesOnlyFromRoute || (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction));
 
