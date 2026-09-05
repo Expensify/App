@@ -92,6 +92,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     conciergeReportID,
                     reportAttributesDerived,
                     isTrackIntentUser,
+                    currentUserAccountID,
                 }),
             ),
             isSelected,
@@ -102,7 +103,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         const alternateText = getAlternateText(
             report,
             {},
-            {dateFnsLocale, isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
+            {dateFnsLocale, isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser, currentUserAccountID},
         );
         return {...report, alternateText};
     };
