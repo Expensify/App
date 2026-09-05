@@ -840,6 +840,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                receiptEnqueuedAt: 'number',
                 pageCount: 'number',
             });
         case 'childRecentReceiptTransactionIDs':
@@ -1210,6 +1211,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                receiptEnqueuedAt: 'number',
                 pageCount: 'number',
             });
         case 'taxRate':

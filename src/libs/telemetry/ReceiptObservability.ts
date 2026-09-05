@@ -4,12 +4,14 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
+import {isInDurableFolder} from '@libs/ReceiptStorage/durableFolder';
 
+import type {SignOutReason} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-/** Prefix on every receipt log line so we can filter the logs without parsing free text. */
-const RECEIPT_LOG_PREFIX = '[Receipt]';
+import RECEIPT_LOG_PREFIX from './receiptLogPrefix';
 
 /** Points in the app lifecycle where we snapshot the receipts that are still pending. */
 type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
@@ -24,6 +26,24 @@ type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share';
 function getPickerCaptureSource(): ReceiptCaptureSource {
     return getPlatform() === CONST.PLATFORM.WEB ? 'file' : 'gallery';
 }
+
+/** The receipt as it sits on a persisted request, which is all a snapshot can read once the queue is waiting. */
+type QueuedReceipt = {
+    /** Joins this receipt back to its capture, submit and enqueue log lines. */
+    receiptTraceId?: string;
+
+    /** When the upload reached the write queue. Persisted with the request, so it survives an app restart. */
+    receiptEnqueuedAt?: number;
+
+    /** Where the file was stored. A remote URL once the server has it. */
+    source?: ReceiptSource;
+
+    /** The path on the device that created it, kept so a remote source does not trigger a reload. */
+    localSource?: ReceiptSource;
+
+    /** REPLACE_RECEIPT queues the raw File object, which keeps its local path here rather than on `source`. */
+    uri?: string;
+};
 
 /** Inputs for the enqueued milestone, taken when the receipt request reaches the write queue. */
 type ReceiptEnqueuedParams = {
@@ -53,6 +73,11 @@ const RECEIPT_BEARING_COMMANDS = new Set<string>([
 
 /** When each receipt was enqueued, keyed by transaction id, so a snapshot can report how long it has waited. */
 const enqueuedAtByTransactionID = new Map<string, number>();
+
+/** Receipts already reported by a teardown snapshot, keyed by trace id, so two redirects racing do not double-report. */
+const clearReportedAtByReceipt = new Map<string, number>();
+
+const CLEAR_DEDUPE_MS = 60 * 1000;
 
 /**
  * Upper bound on the enqueue timing map. The snapshot path normally drains it, but a session that never backgrounds
@@ -144,8 +169,9 @@ function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQu
         receiptTraceId,
         transactionID,
         command,
-        isOffline: getIsOffline(),
+        isOffline: String(getIsOffline()),
         persistedQueueLength,
+        platform: getPlatform(),
     });
 }
 
@@ -161,12 +187,14 @@ function logReceiptDropped({
     command,
     source,
     fileName,
+    statError,
 }: {
     receiptTraceId: string | undefined;
     transactionID: string | undefined;
     command: string;
     source: string | undefined;
     fileName: string | undefined;
+    statError: {message: string; code?: string} | undefined;
 }) {
     Log.alert(`${RECEIPT_LOG_PREFIX} dropped`, {
         event: 'dropped',
@@ -175,6 +203,31 @@ function logReceiptDropped({
         command,
         source,
         fileName,
+        statErrorCode: statError?.code,
+        statError: statError?.message,
+    });
+}
+
+function logReceiptGaveUp({
+    receiptTraceId,
+    transactionID,
+    command,
+    errorMessage,
+    errorName,
+}: {
+    receiptTraceId: string | undefined;
+    transactionID: string | undefined;
+    command: string;
+    errorMessage: string | undefined;
+    errorName?: string;
+}) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} gaveUp`, {
+        event: 'gaveUp',
+        receiptTraceId,
+        transactionID,
+        command,
+        errorMessage,
+        errorName,
     });
 }
 
@@ -193,15 +246,40 @@ function logReceiptAdoptFailed({error, captureSource}: {error: unknown; captureS
     });
 }
 
+function getQueuedReceiptPath(receipt: QueuedReceipt): ReceiptSource | undefined {
+    return receipt.localSource ?? receipt.source ?? receipt.uri;
+}
+
+/** One pending receipt, as it will be reported on a snapshot line. */
+type PendingReceiptRow = {
+    /** Joins the row back to the capture log. A row without one cannot be correlated. */
+    receiptTraceId: string | undefined;
+
+    /** Absent for commands that do not carry a transaction id. */
+    transactionID: string | undefined;
+
+    /** The write command holding the receipt, e.g. RequestMoney or ReplaceReceipt. */
+    command: string;
+
+    /** How long the receipt has waited in the queue. Undefined when the enqueue time was never recorded. */
+    msSinceEnqueued: number | undefined;
+
+    /** Whether the stored path points into the receipts folder. A path check, not proof the file is still there. */
+    isSourceInDurableFolder: boolean;
+};
+
 /**
  * Logs one line per receipt still pending in the write queue, tagged with what triggered the snapshot. Stays quiet
  * when nothing is pending, so the normal case makes no noise. Sent right away so it survives a hard app kill from the
  * background.
  */
-function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
+function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignOutReason) {
     const isOffline = getIsOffline();
     const now = Date.now();
+    const isClear = trigger === 'signOut';
     const pendingTransactionIDs = new Set<string>();
+    const reportedKeys = new Set<string>();
+    const rows: PendingReceiptRow[] = [];
 
     // Include the ongoing request. Once processNextRequest moves a receipt into the ongoing slot it is the one
     // actively uploading, but it no longer shows up in getAll. Without this we would skip it here and then drop it
@@ -214,7 +292,7 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
             continue;
         }
 
-        const data = (request.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
+        const data = (request.data ?? {}) as {transactionID?: string; receipt?: QueuedReceipt};
         // Skip when there is no receipt at data.receipt. SplitBill nests it inside the splits JSON, and SendMoney with
         // no attached receipt has no receipt field. A row without a trace id cannot be joined to the capture log, so
         // it would only add noise to the snapshot.
@@ -225,16 +303,43 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
         if (transactionID) {
             pendingTransactionIDs.add(transactionID);
         }
-        const enqueuedAt = transactionID ? enqueuedAtByTransactionID.get(transactionID) : undefined;
 
-        Log.info(`${RECEIPT_LOG_PREFIX} queue snapshot`, true, {
-            event: 'snapshot',
-            trigger,
+        const dedupeKey = data.receipt.receiptTraceId ?? transactionID;
+        if (isClear && dedupeKey) {
+            const reportedAt = clearReportedAtByReceipt.get(dedupeKey);
+            if (reportedAt !== undefined && now - reportedAt < CLEAR_DEDUPE_MS) {
+                continue;
+            }
+            clearReportedAtByReceipt.set(dedupeKey, now);
+            reportedKeys.add(dedupeKey);
+        }
+
+        const enqueuedAt = data.receipt.receiptEnqueuedAt ?? (transactionID ? enqueuedAtByTransactionID.get(transactionID) : undefined);
+
+        rows.push({
             receiptTraceId: data.receipt.receiptTraceId,
             transactionID,
             command: request.command,
             msSinceEnqueued: enqueuedAt !== undefined ? now - enqueuedAt : undefined,
-            isOffline,
+            isSourceInDurableFolder: isInDurableFolder(getQueuedReceiptPath(data.receipt)),
+        });
+    }
+
+    const snapshotID = rand64();
+    for (const row of rows) {
+        Log.info(`${RECEIPT_LOG_PREFIX} queue snapshot`, true, {
+            event: 'snapshot',
+            trigger,
+            reason,
+            snapshotID,
+            pendingReceiptCount: rows.length,
+            receiptTraceId: row.receiptTraceId,
+            transactionID: row.transactionID,
+            command: row.command,
+            msSinceEnqueued: row.msSinceEnqueued,
+            isSourceInDurableFolder: String(row.isSourceInDurableFolder),
+            isOffline: String(isOffline),
+            platform: getPlatform(),
         });
     }
 
@@ -245,6 +350,13 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
         }
         enqueuedAtByTransactionID.delete(transactionID);
     }
+
+    for (const [key, reportedAt] of clearReportedAtByReceipt) {
+        if (reportedKeys.has(key) && now - reportedAt < CLEAR_DEDUPE_MS) {
+            continue;
+        }
+        clearReportedAtByReceipt.delete(key);
+    }
 }
 
 export {
@@ -253,6 +365,7 @@ export {
     logReceiptSubmitted,
     logReceiptEnqueued,
     logReceiptDropped,
+    logReceiptGaveUp,
     logReceiptStatFailed,
     logReceiptAdoptFailed,
     logReceiptQueueSnapshot,

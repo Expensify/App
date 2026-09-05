@@ -271,7 +271,7 @@ describe('AuthScreensInitHandler', () => {
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, false);
+        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
     });
 
     it('calls openApp when didUserLogInDuringSession returns true', async () => {

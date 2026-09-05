@@ -45,7 +45,7 @@ function retryReauthenticate(commandName?: string): Promise<boolean> {
             .catch(() => {
                 setIsAuthenticating(false);
                 Log.hmmm('[Reauthenticate] Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
-                redirectToSignIn('passwordForm.error.fallback');
+                redirectToSignIn(CONST.SIGN_OUT_REASON.REAUTH_FAILED, 'passwordForm.error.fallback');
                 return false;
             });
     });
