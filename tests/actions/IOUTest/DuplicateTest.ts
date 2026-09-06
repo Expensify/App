@@ -3566,6 +3566,34 @@ describe('actions/Duplicate', () => {
             expect(copy?.total).toBe(0);
         });
 
+        it('should total a per diem expense whose rate currency differs from the report currency', async () => {
+            // A per diem rate carries its own currency, so a per diem can sit on a report in another currency. That
+            // expense goes through submitPerDiemExpense rather than requestMoney, so the overrides have to reach it
+            // too, otherwise a report holding only per diems keeps the zero it was seeded with.
+            const copy = await duplicateCrossCurrencyReport([
+                {
+                    currency: 'AUD',
+                    amount: -500,
+                    convertedAmount: -46000,
+                    reimbursable: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                    comment: {
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                            customUnitID: 'unit1',
+                            customUnitRateID: 'rate1',
+                            subRates: [{id: 'sub1', quantity: 1, name: 'Full Day', rate: 500}],
+                            attributes: {dates: {start: '2024-01-01', end: '2024-01-02'}},
+                        },
+                    },
+                },
+            ]);
+
+            expect(copy?.total).toBe(-46000);
+            expect(copy?.reimbursableTotal).toBe(-46000);
+        });
+
         it('should not fabricate a total from a conversion that predates an unsynced amount edit', async () => {
             // Only the server recomputes convertedAmount, so while the edit is pending the stored conversion still
             // describes the amount the expense had before it was edited.
