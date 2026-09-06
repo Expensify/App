@@ -387,6 +387,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     chatReportID: reportIDRef.current,
                     chatReport: report,
                     chatReportActions: reportActions,
+                    transactionThreadReportActions: childReportActions,
                     transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
@@ -554,7 +555,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 prompt={translate('reportActionContextMenu.deleteConfirmation', reportAction)}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
         </>
     );

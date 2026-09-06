@@ -41,7 +41,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -60,6 +60,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         selfDMReportActions,
         delegateAccountID: undefined,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
+        getCurrencySymbol: getCurrencySymbolLocal,
         ...rest,
     });
 }
@@ -101,7 +102,6 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-jest.mock('@libs/API/writeWhenReady');
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
 // to flush the deferred write, so we bypass the deferral by executing the callback immediately.
