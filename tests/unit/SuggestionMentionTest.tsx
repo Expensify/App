@@ -2,7 +2,7 @@ import {act, render, waitFor} from '@testing-library/react-native';
 
 import type {TextSelection} from '@components/Composer/types';
 import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
-import type {Mention} from '@components/MentionSuggestions';
+import type Mention from '@components/MentionSuggestions/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';

@@ -724,6 +724,17 @@ const config = defineConfig([
     },
 
     {
+        files: ['tests/**/*.{ts,tsx}', 'jest/**/*.{ts,tsx}', '__mocks__/**/*.{ts,tsx}', 'src/**/__mocks__/**/*.{ts,tsx}'],
+        ignores: ['tests/tooling/**'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.jest.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
         files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts'],
         languageOptions: {
             parserOptions: {
