@@ -100,14 +100,19 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     // thread holding the linked action is still merged and can be scrolled to.
     const mergedTransactionThreadReportID = thread.transactionThreadReportID ?? (isLinkedActionInMergedTransactionThread ? linkedActionTransactionThreadReportID : undefined);
     const mergedTransactionThreadReportActions = useMemo(() => {
-        if (thread.transactionThreadReportActions) {
-            return thread.transactionThreadReportActions;
-        }
-        if (!isLinkedActionInMergedTransactionThread) {
-            return [];
+        // Key this on the resolved thread ID, not on the actions array: the selector returns a truthy [] when the thread
+        // didn't resolve, which would make the fallback unreachable.
+        if (thread.transactionThreadReportID || !isLinkedActionInMergedTransactionThread) {
+            return thread.transactionThreadReportActions ?? [];
         }
         return getSortedReportActionsForDisplay(linkedActionTransactionThreadActions, true, true, undefined, linkedActionTransactionThreadReportID);
-    }, [thread.transactionThreadReportActions, isLinkedActionInMergedTransactionThread, linkedActionTransactionThreadActions, linkedActionTransactionThreadReportID]);
+    }, [
+        thread.transactionThreadReportID,
+        thread.transactionThreadReportActions,
+        isLinkedActionInMergedTransactionThread,
+        linkedActionTransactionThreadActions,
+        linkedActionTransactionThreadReportID,
+    ]);
 
     const reportActions = useMemo(
         () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, mergedTransactionThreadReportID ?? null, mergedTransactionThreadReportActions) : []),
