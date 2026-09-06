@@ -6,6 +6,7 @@ const {transformSync} = require('oxc-transform-react');
 
 const babelJest = require('babel-jest');
 const BABEL_CORE_VERSION = require('@babel/core/package.json').version;
+const BLOCK_SCOPING_PLUGIN_VERSION = require('@babel/plugin-transform-block-scoping/package.json').version;
 const DYNAMIC_IMPORT_PLUGIN_VERSION = require('@babel/plugin-transform-dynamic-import/package.json').version;
 const CJS_PLUGIN_VERSION = require('@babel/plugin-transform-modules-commonjs/package.json').version;
 const JEST_HOIST_VERSION = require('babel-plugin-jest-hoist/package.json').version;
@@ -30,7 +31,11 @@ const REACT_COMPILER_OPTIONS = {
 };
 
 const CJS_PLUGIN_OPTIONS = {loose: true, strictMode: false};
-const CJS_PLUGINS = ['@babel/plugin-transform-dynamic-import', ['@babel/plugin-transform-modules-commonjs', CJS_PLUGIN_OPTIONS]];
+const CJS_PLUGINS = [
+    '@babel/plugin-transform-block-scoping',
+    '@babel/plugin-transform-dynamic-import',
+    ['@babel/plugin-transform-modules-commonjs', CJS_PLUGIN_OPTIONS],
+];
 const CJS_AND_HOIST_PLUGINS = [...CJS_PLUGINS, 'babel-plugin-jest-hoist'];
 
 function getLang(filename) {
@@ -105,6 +110,7 @@ module.exports = {
             .update(REACT_COMPILER_CONFIG_KEY)
             .update(JSON.stringify(CJS_PLUGIN_OPTIONS))
             .update(BABEL_CORE_VERSION)
+            .update(BLOCK_SCOPING_PLUGIN_VERSION)
             .update(DYNAMIC_IMPORT_PLUGIN_VERSION)
             .update(CJS_PLUGIN_VERSION)
             .update(JEST_HOIST_VERSION)

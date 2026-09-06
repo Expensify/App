@@ -34,7 +34,7 @@ describe('oxcTransformer', () => {
         expect(result.code).toContain('exports.add = add');
         expect(result.code).not.toMatch(/^export /m);
         expect(result.code).not.toContain(': number');
-        expect(result.map?.sources?.some((source) => source.endsWith('math.ts'))).toBe(true);
+        expect(result.map?.sources?.some((mapSource) => mapSource.endsWith('math.ts'))).toBe(true);
     });
 
     it('runs React Compiler on app components', () => {
@@ -57,6 +57,19 @@ describe('oxcTransformer', () => {
         const result = oxcTransformer.process(source, path.resolve(relativePath), transformOptions);
         expect(result.code).not.toMatch(/compiler-runtime|_c\(/);
         expect(result.code).toContain('jsxDEV');
+    });
+
+    it('lowers const in jest.mock factories so circular imports do not TDZ', () => {
+        const source = `
+            const mockedReportID = '1';
+            jest.mock('./foo', () => ({
+                parseReportRouteParams: () => ({reportID: mockedReportID}),
+            }));
+            export const x = mockedReportID;
+        `;
+        const result = oxcTransformer.process(source, path.resolve('tests/unit/Hello.test.ts'), transformOptions);
+        expect(result.code).toMatch(/var mockedReportID/);
+        expect(result.code).not.toMatch(/\bconst mockedReportID\b/);
     });
 
     it('hoists jest.mock above require() after CJS conversion', () => {
