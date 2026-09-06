@@ -8,9 +8,11 @@ import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useTapToFocusGesture} from '@hooks/useNativeCamera';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -19,24 +21,27 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
+import getPlatform from '@libs/getPlatform';
+import type PlatformType from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
+import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Camera, PhotoFile} from 'react-native-vision-camera';
+import type {Camera, CameraRuntimeError, PhotoFile} from 'react-native-vision-camera';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Modal, View} from 'react-native';
+import {Alert, AppState, Modal, Platform, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated from 'react-native-reanimated';
 import {useCameraDevice, useCameraDevices, useCameraFormat, Camera as VisionCamera} from 'react-native-vision-camera';
-
-import getVideoResolutionFormatFilter from './getVideoResolutionFormatFilter';
 
 type CapturedPhoto = {
     uri: string;
@@ -64,8 +69,13 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const insets = useSafeAreaInsets();
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight} = useWindowDimensions();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'CameraFlip', 'Close']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
+
+    const platform = getPlatform(true);
+    const [mutedPlatforms = getEmptyObject<Partial<Record<PlatformType, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const isPlatformMuted = !!mutedPlatforms[platform];
 
     const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
     const [flash, setFlash] = useState(false);
@@ -86,17 +96,20 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const canFlipCamera = useMemo(() => cameraDevices.some((d) => d.position === 'front') && cameraDevices.some((d) => d.position === 'back'), [cameraDevices]);
 
     // Prioritize photoResolution so the format selector picks the configured PHOTO_WIDTH/PHOTO_HEIGHT
-    // format. The live viewfinder renders from the video pipeline, so getVideoResolutionFormatFilter
-    // resolves the platform-specific videoResolution constraint that controls preview quality
-    // (capture uses takePhoto and always renders at the photo resolution).
+    // format. The live viewfinder renders from the video pipeline, so videoResolution controls preview
+    // quality (capture uses takePhoto and always renders at the photo resolution):
+    //  - iOS: match the photo target so the selector doesn't pair the photo size with a low video
+    //    resolution, which would otherwise make the preview blurry/grainy.
+    //  - Android: keep screen dimensions to avoid burning GPU on a higher-than-needed preview surface.
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
-        getVideoResolutionFormatFilter(windowWidth, windowHeight),
+        Platform.OS === 'ios'
+            ? {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}}
+            : {videoResolution: {width: windowHeight, height: windowWidth}},
     ]);
     const hasFlash = !!device?.hasFlash;
-    // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
-    const cameraAspectRatio = useMemo(() => (format ? format.photoHeight / format.photoWidth : undefined), [format]);
+    const cameraAspectRatio = getCameraAspectRatio(format, isInLandscapeMode);
 
     const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(cameraRef, device?.supportsFocus ?? false);
 
@@ -119,31 +132,44 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
         isActiveRef.current = isVisible;
     }, [isVisible]);
 
-    // Refresh permissions when modal becomes visible and auto-request if denied
+    // Refresh permissions when modal becomes visible or when returning from app settings
     useEffect(() => {
         if (!isVisible) {
             return;
         }
 
         let ignore = false;
-        CameraPermission?.getCameraPermissionStatus?.()
-            .then((status: string) => {
-                if (ignore) {
-                    return;
-                }
-                setCameraPermissionStatus(status);
-                if (status === RESULTS.DENIED) {
-                    askForPermissions();
-                }
-            })
-            .catch(() => {
-                if (ignore) {
-                    return;
-                }
-                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
-            });
+        const refreshCameraPermissionStatus = (autoRequest = false) => {
+            CameraPermission?.getCameraPermissionStatus?.()
+                .then((status: string) => {
+                    if (ignore) {
+                        return;
+                    }
+                    setCameraPermissionStatus(status);
+                    if (autoRequest && status === RESULTS.DENIED) {
+                        askForPermissions();
+                    }
+                })
+                .catch(() => {
+                    if (ignore) {
+                        return;
+                    }
+                    setCameraPermissionStatus(RESULTS.UNAVAILABLE);
+                });
+        };
+
+        refreshCameraPermissionStatus(true);
+
+        const subscription = AppState.addEventListener('change', (appState) => {
+            if (appState !== 'active') {
+                return;
+            }
+            refreshCameraPermissionStatus();
+        });
+
         return () => {
             ignore = true;
+            subscription.remove();
         };
     }, [isVisible, askForPermissions]);
 
@@ -162,6 +188,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
         cameraRef.current
             .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
+                enableShutterSound: !isPlatformMuted,
             })
             .then((photo: PhotoFile) => {
                 // Discard capture if the camera was closed while takePhoto was in-flight
@@ -182,12 +209,21 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                 ]);
             })
             .catch((error: Error) => {
+                Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
                 Log.warn('Error capturing photo', {error: error.message});
             })
             .finally(() => {
                 isCapturing.current = false;
             });
-    }, [askForPermissions, cameraPermissionStatus, flash, hasFlash, onCapture]);
+    }, [askForPermissions, cameraPermissionStatus, flash, hasFlash, isPlatformMuted, onCapture, translate]);
+
+    const handleCameraError = useCallback(
+        (error: CameraRuntimeError) => {
+            Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
+            Log.warn('AttachmentCamera runtime error', {code: error.code, message: error.message});
+        },
+        [translate],
+    );
 
     const handleClose = useCallback(() => {
         isCapturing.current = false;
@@ -258,7 +294,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                     {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
                         <View style={[styles.cameraView, styles.alignItemsCenter]}>
                             <GestureDetector gesture={tapGesture}>
-                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, false)}>
+                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isInLandscapeMode)}>
                                     <VisionCamera
                                         ref={cameraRef}
                                         device={device}
@@ -268,6 +304,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                                         photo
                                         isActive={isVisible}
                                         photoQualityBalance="quality"
+                                        onError={handleCameraError}
                                     />
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                 </View>

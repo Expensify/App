@@ -28,7 +28,7 @@ import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerRes
 import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -72,23 +72,21 @@ type LocalCopy = {
     type: string | null;
 };
 
-type Item =
+type Item = {
+    /** The icon associated with the item. */
+    icon: IconAsset;
+    /** The key in the translations file to use for the title */
+    textTranslationKey: TranslationPaths;
+} & (
     | {
-          /** The icon associated with the item. */
-          icon: IconAsset;
-          /** The key in the translations file to use for the title */
-          textTranslationKey: TranslationPaths;
           /** Function to call when the user clicks the item */
           pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
       }
     | {
-          /** The icon associated with the item. */
-          icon: IconAsset;
-          /** The key in the translations file to use for the title */
-          textTranslationKey: TranslationPaths;
           /** Direct action that doesn't go through the promise-based selectItem flow */
           onPress: () => void;
-      };
+      }
+);
 
 /**
  * Ensures asset has proper fileName and type properties
@@ -197,6 +195,16 @@ function AttachmentPicker({
     const onCanceled = useRef<() => void>(() => {});
     const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
+    const modalDismissTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (!modalDismissTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(modalDismissTimeoutRef.current);
+        };
+    }, []);
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -218,9 +226,8 @@ function AttachmentPicker({
      * handleCameraCapture / handleCameraClose handle completion.
      */
     const launchInAppCamera = useCallback(() => {
-        onOpenPicker?.();
         setShowAttachmentCamera(true);
-    }, [onOpenPicker]);
+    }, []);
 
     /**
      * Common image picker handling
@@ -521,6 +528,10 @@ function AttachmentPicker({
     const handleCameraCapture = useCallback(
         (photos: CapturedPhoto[]) => {
             setShowAttachmentCamera(false);
+            if (modalDismissTimeoutRef.current) {
+                clearTimeout(modalDismissTimeoutRef.current);
+                modalDismissTimeoutRef.current = null;
+            }
             const assets: Asset[] = photos.map((photo) => ({
                 uri: photo.uri,
                 fileName: photo.fileName,
@@ -538,6 +549,10 @@ function AttachmentPicker({
 
     const handleCameraClose = useCallback(() => {
         setShowAttachmentCamera(false);
+        if (modalDismissTimeoutRef.current) {
+            clearTimeout(modalDismissTimeoutRef.current);
+            modalDismissTimeoutRef.current = null;
+        }
         onCanceled.current();
         onClosed.current();
         delete onModalHide.current;
@@ -558,6 +573,7 @@ function AttachmentPicker({
                     if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
                         return;
                     }
+
                     showGeneralAlert(error.message);
                     throw error;
                 })
@@ -578,6 +594,11 @@ function AttachmentPicker({
      */
     const selectItem = useCallback(
         (item: Item) => {
+            if (modalDismissTimeoutRef.current) {
+                clearTimeout(modalDismissTimeoutRef.current);
+                modalDismissTimeoutRef.current = null;
+            }
+
             /* Items with onPress (e.g. the in-app camera) handle their own flow and don't go
              * through the promise-based pickAttachment chain. Defer the launch to onModalHide so
              * the camera modal only presents after the popover has fully dismissed. Presenting a
@@ -585,7 +606,8 @@ function AttachmentPicker({
              * caused the "camera doesn't open"/"app loads infinitely" regressions. */
             if ('onPress' in item) {
                 onModalHide.current = () => {
-                    setTimeout(() => {
+                    modalDismissTimeoutRef.current = setTimeout(() => {
+                        modalDismissTimeoutRef.current = null;
                         item.onPress();
                         delete onModalHide.current;
                     }, MODAL_DISMISS_DELAY_MS);
@@ -598,7 +620,8 @@ function AttachmentPicker({
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
             onModalHide.current = () => {
-                setTimeout(() => {
+                modalDismissTimeoutRef.current = setTimeout(() => {
+                    modalDismissTimeoutRef.current = null;
                     item.pickAttachment()
                         .catch((error: Error) => {
                             if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
@@ -650,6 +673,10 @@ function AttachmentPicker({
         <>
             <Popover
                 onClose={() => {
+                    if (modalDismissTimeoutRef.current) {
+                        clearTimeout(modalDismissTimeoutRef.current);
+                        modalDismissTimeoutRef.current = null;
+                    }
                     close();
                     onCanceled.current();
                 }}
@@ -671,11 +698,13 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-            <AttachmentCamera
-                isVisible={showAttachmentCamera}
-                onCapture={handleCameraCapture}
-                onClose={handleCameraClose}
-            />
+            {showAttachmentCamera && (
+                <AttachmentCamera
+                    isVisible={showAttachmentCamera}
+                    onCapture={handleCameraCapture}
+                    onClose={handleCameraClose}
+                />
+            )}
             {renderChildren()}
         </>
     );
