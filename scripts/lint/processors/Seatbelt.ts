@@ -2,10 +2,9 @@ import {file} from 'bun';
 import {rename} from 'node:fs/promises';
 import path from 'node:path';
 
-import type {LintMessage, ProcessorContext, SeatbeltOptions, SeatbeltRuleSet} from '../types';
-
 import TSVUtils from '../../utils/TSVUtils';
 import Processor from '../Processor';
+import {LINT_SEVERITY, type LintMessage, type ProcessorContext, type SeatbeltOptions, type SeatbeltRuleSet} from '../types';
 
 const SEATBELT_NAME = 'eslint-seatbelt';
 const SEATBELT_TSV_RELATIVE = 'config/eslint/eslint.seatbelt.tsv';
@@ -114,7 +113,7 @@ function getMaxErrors(data: Map<string, SeatbeltFileData>, relativeFilename: str
 }
 
 function isCountableError(message: LintMessage): message is LintMessage & {ruleID: string} {
-    return message.severity >= 2 && !!message.ruleID;
+    return message.severity === LINT_SEVERITY.ERROR && !!message.ruleID;
 }
 
 function countRuleIDs(messages: readonly LintMessage[]): Map<string, number> {
@@ -171,7 +170,7 @@ function messageOverMaxErrorCountButIncreaseAllowed(message: LintMessage, errorC
     const increaseCount = errorCount - maxErrorCount;
     return {
         ...message,
-        severity: 1,
+        severity: LINT_SEVERITY.WARNING,
         message: `${message.message}
 [${SEATBELT_NAME}]: SEATBELT_INCREASE: Temporarily allowing ${increaseCount} new ${pluralErrors(increaseCount)} of this type.`.trim(),
     };
@@ -180,7 +179,7 @@ function messageOverMaxErrorCountButIncreaseAllowed(message: LintMessage, errorC
 function messageAtMaxErrorCount(message: LintMessage, errorCount: number): LintMessage {
     return {
         ...message,
-        severity: 1,
+        severity: LINT_SEVERITY.WARNING,
         message: `${message.message}
 [${SEATBELT_NAME}]: This file is temporarily allowed to have ${errorCount} ${pluralErrors(errorCount)} of this type.
 Please tend the garden by fixing if you have the time.`.trim(),
@@ -192,7 +191,7 @@ function messageUnderMaxErrorCount(message: LintMessage, errorCount: number, max
     const fixedMessage = fixed === 1 ? 'one' : `${fixed} errors`;
     return {
         ...message,
-        severity: 1,
+        severity: LINT_SEVERITY.WARNING,
         message: `${message.message}
 [${SEATBELT_NAME}]: This file is temporarily allowed to have ${maxErrorCount} ${pluralErrors(maxErrorCount)} of this type.
 Thank you for fixing ${fixedMessage}, it really helps.`.trim(),
@@ -210,7 +209,7 @@ Try running eslint, then committing ${seatbeltFilename}.`.trim();
 function messageFrozenUnderMaxErrorCount(message: LintMessage, seatbeltFilename: string, errorCount: number, maxErrorCount: number): LintMessage {
     return {
         ...message,
-        severity: 1,
+        severity: LINT_SEVERITY.WARNING,
         message: `${message.message}\n${messageFrozenUnderMaxErrorCountText(seatbeltFilename, errorCount, maxErrorCount)}`,
     };
 }
@@ -371,7 +370,7 @@ function frozenRemovedRuleMessages(filename: string, seatbeltFile: string, remov
             ruleID,
             column: 0,
             line: 1,
-            severity: 2 as const,
+            severity: LINT_SEVERITY.ERROR,
             message: messageFrozenUnderMaxErrorCountText(seatbeltFile, 0, maxErrorCount),
         };
     });

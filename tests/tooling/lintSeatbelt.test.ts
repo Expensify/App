@@ -4,9 +4,8 @@ import {mkdtemp, rm, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 
-import type {LintMessage, SeatbeltOptions} from '../../scripts/lint/types';
-
 import {applySeatbelt, canonicalizeMessages, parseSeatbeltTSV, serializeSeatbeltTSV, transformMessages} from '../../scripts/lint/processors/Seatbelt';
+import {LINT_SEVERITY, type LintMessage, type SeatbeltOptions} from '../../scripts/lint/types';
 
 function makeOptions(overrides: Partial<SeatbeltOptions> = {}): SeatbeltOptions {
     return {
@@ -27,7 +26,7 @@ function makeMessage(ruleID: string, overrides: Partial<LintMessage> = {}): Lint
     return {
         filePath: '/tmp/src/file.ts',
         ruleID,
-        severity: 2,
+        severity: LINT_SEVERITY.ERROR,
         message: `Original: ${ruleID}`,
         line: 1,
         column: 1,
@@ -57,7 +56,7 @@ describe('transformMessages', () => {
         const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t2\n`);
         const result = transformMessages(makeOptions(), data, '/tmp/src/file.ts', [makeMessage('no-console'), makeMessage('no-console', {line: 2})]);
         expect(result).toHaveLength(2);
-        expect(result.at(0)?.severity).toBe(1);
+        expect(result.at(0)?.severity).toBe(LINT_SEVERITY.WARNING);
         expect(result.at(0)?.message).toContain('tend the garden');
     });
 
@@ -68,17 +67,17 @@ describe('transformMessages', () => {
             makeMessage('no-console', {line: 2}),
             makeMessage('no-console', {line: 3}),
         ]);
-        expect(result.filter((message) => message.severity === 2)).toHaveLength(2);
-        expect(result.filter((message) => message.severity === 1)).toHaveLength(1);
+        expect(result.filter((message) => message.severity === LINT_SEVERITY.ERROR)).toHaveLength(2);
+        expect(result.filter((message) => message.severity === LINT_SEVERITY.WARNING)).toHaveLength(1);
         expect(result.at(-1)?.message).toContain('Remove');
     });
 
     it('demotes the first N overflow occurrences, not an arbitrary subset', () => {
         const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t1\n`);
         const result = transformMessages(makeOptions(), data, '/tmp/src/file.ts', [makeMessage('no-console', {line: 10}), makeMessage('no-console', {line: 20})]);
-        expect(result.at(0)?.severity).toBe(1);
+        expect(result.at(0)?.severity).toBe(LINT_SEVERITY.WARNING);
         expect(result.at(0)?.line).toBe(10);
-        expect(result.at(1)?.severity).toBe(2);
+        expect(result.at(1)?.severity).toBe(LINT_SEVERITY.ERROR);
         expect(result.at(1)?.line).toBe(20);
     });
 
@@ -86,13 +85,13 @@ describe('transformMessages', () => {
         const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t1\n`);
         const result = transformMessages(makeOptions({quiet: true}), data, '/tmp/src/file.ts', [makeMessage('no-console', {line: 1}), makeMessage('no-console', {line: 2})]);
         expect(result).toHaveLength(1);
-        expect(result.at(0)?.severity).toBe(2);
+        expect(result.at(0)?.severity).toBe(LINT_SEVERITY.ERROR);
     });
 
     it('frozen turns a decrease into a warning rather than writing', () => {
         const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t5\n`);
         const result = transformMessages(makeOptions({frozen: true}), data, '/tmp/src/file.ts', [makeMessage('no-console'), makeMessage('no-console', {line: 2})]);
-        expect(result.at(0)?.severity).toBe(1);
+        expect(result.at(0)?.severity).toBe(LINT_SEVERITY.WARNING);
         expect(result.at(0)?.message).toContain('SEATBELT_FROZEN');
         expect(result.at(0)?.message).toContain('eslint.seatbelt.tsv');
         expect(result.at(0)?.message).not.toContain('/tmp/src/file.ts');
@@ -180,7 +179,7 @@ describe('applySeatbelt', () => {
         );
 
         expect(result.wrote).toBe(false);
-        expect(result.messages.some((message) => message.severity === 2 && message.message.includes('Remove'))).toBe(true);
+        expect(result.messages.some((message) => message.severity === LINT_SEVERITY.ERROR && message.message.includes('Remove'))).toBe(true);
         expect(await Bun.file(tsvPath).text()).toBe(original);
     });
 
@@ -198,7 +197,7 @@ describe('applySeatbelt', () => {
 
         expect(result.wrote).toBe(true);
         expect(result.tsv).toContain('"src.ts"\t"no-console"\t2');
-        expect(result.messages.every((message) => message.severity === 1)).toBe(true);
+        expect(result.messages.every((message) => message.severity === LINT_SEVERITY.WARNING)).toBe(true);
     });
 
     it('prunes rows for deleted files on the write path', async () => {

@@ -1,8 +1,7 @@
 import path from 'node:path';
 
-import type {FormatterResult, LintMessage} from '../types';
-
 import Formatter from '../Formatter';
+import {LINT_SEVERITY, type FormatterResult, type LintMessage} from '../types';
 
 function relativePath(projectRoot: string, filePath: string): string {
     return path.relative(projectRoot, filePath) || filePath;
@@ -10,7 +9,7 @@ function relativePath(projectRoot: string, filePath: string): string {
 
 function formatMessage(projectRoot: string, message: LintMessage): string {
     const loc = `${relativePath(projectRoot, message.filePath)}:${message.line}:${message.column}`;
-    const level = message.severity >= 2 ? 'error' : 'warning';
+    const level = message.severity === LINT_SEVERITY.ERROR ? 'error' : 'warning';
     const rule = message.ruleID ? `  ${message.ruleID}` : '';
     return `${loc}\n  ${level}  ${message.message}${rule}`;
 }
@@ -26,9 +25,9 @@ class StylishFormatter extends Formatter {
     }
 
     format(messages: LintMessage[]): FormatterResult {
-        const visible = this.showWarnings ? messages : messages.filter((message) => message.severity >= 2);
-        const errorCount = messages.filter((message) => message.severity >= 2).length;
-        const warningCount = messages.filter((message) => message.severity < 2).length;
+        const visible = this.showWarnings ? messages : messages.filter((message) => message.severity === LINT_SEVERITY.ERROR);
+        const errorCount = messages.filter((message) => message.severity === LINT_SEVERITY.ERROR).length;
+        const warningCount = messages.filter((message) => message.severity === LINT_SEVERITY.WARNING).length;
 
         if (visible.length === 0) {
             return {text: '', errorCount, warningCount};

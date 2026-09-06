@@ -1,8 +1,7 @@
 import {$} from 'bun';
 
-import type {LintFileResult, LintMessage, LintSeverity, LinterResult} from '../types';
-
 import Linter from '../Linter';
+import {LINT_SEVERITY, type LintFileResult, type LintMessage, type LintSeverity, type LinterResult} from '../types';
 
 const ESLINT_RULE_ID_KEY = 'ruleId' as const;
 
@@ -37,7 +36,7 @@ type ESLintLinterOptions = {
 const PARSE_FAILURE_EXIT_CODE = 2;
 
 function normalizeSeverity(severity: number): LintSeverity {
-    return severity >= 2 ? 2 : 1;
+    return severity >= LINT_SEVERITY.ERROR ? LINT_SEVERITY.ERROR : LINT_SEVERITY.WARNING;
 }
 
 function isESLintJSONResult(value: unknown): value is ESLintJSONResult {

@@ -2,10 +2,15 @@
  * Linter-agnostic diagnostic produced by a Linter (ESLint today, Oxlint later)
  * and consumed by processors and the formatter.
  *
- * `severity` matches ESLint: 2 = error, 1 = warning. Seatbelt only ratchets
- * countable errors (severity 2, non-null ruleID).
+ * Numeric values match ESLint's JSON output. Seatbelt only ratchets countable
+ * errors (`LINT_SEVERITY.ERROR` with a non-null ruleID).
  */
-type LintSeverity = 1 | 2;
+const LINT_SEVERITY = {
+    WARNING: 1,
+    ERROR: 2,
+} as const;
+
+type LintSeverity = (typeof LINT_SEVERITY)[keyof typeof LINT_SEVERITY];
 
 type LintMessage = {
     filePath: string;
@@ -59,4 +64,5 @@ type SeatbeltOptions = {
     verbose: boolean;
 };
 
+export {LINT_SEVERITY};
 export type {FormatterResult, LintFileResult, LintMessage, LintSeverity, LinterResult, ProcessorContext, SeatbeltOptions, SeatbeltRuleSet};
