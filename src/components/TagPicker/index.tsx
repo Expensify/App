@@ -58,6 +58,8 @@ type TagPickerProps = {
      */
     additionalTagsToInclude?: string[];
 
+    /** Whether to add bottom safe area padding to the list (for edge-to-edge bottom-docked modals) */
+    addBottomSafeAreaPadding?: boolean;
     /**
      * Optional override for whether to show GL codes. When omitted, TagPicker reads
      * `showTagGLCodes && glCodes` from the policy in Onyx.
@@ -92,6 +94,7 @@ function TagPicker({
     shouldOrderListByTagName = false,
     onSubmit,
     additionalTagsToInclude,
+    addBottomSafeAreaPadding = false,
     shouldShowGLCode: shouldShowGLCodeProp,
     shouldAutoFocusSearchInput = false,
 }: TagPickerProps) {
@@ -206,6 +209,7 @@ function TagPicker({
             isLoadingNewOptions={isLoadingNewOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             isRowMultilineSupported
             titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />

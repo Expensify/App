@@ -1,6 +1,8 @@
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -61,6 +63,8 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
+    const {isKeyboardActive} = useKeyboardState();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive});
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const triggerRef = useRef<View | null>(null);
@@ -122,7 +126,6 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
         >
             {/* Dropdown Trigger */}
             {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
-
             {/* Dropdown overlay. Gated on hasEverExpanded so the (potentially heavy) content subtree isn't mounted
                 until the dropdown is first opened — PopoverWithMeasuredContentBase mounts children even while hidden. */}
             {isFocused && hasEverExpanded && (
@@ -148,8 +151,9 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
                     shouldSkipRemeasurement
                     shouldDisplayBelowModals
                     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                 >
-                    {popoverContent}
+                    <View style={bottomSafeAreaPaddingStyle}>{popoverContent}</View>
                 </PopoverWithMeasuredContent>
             )}
         </View>
