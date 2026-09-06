@@ -24,7 +24,7 @@ import {
 // This lives here rather than in libs/API because six of the middlewares below import user actions, and every
 // user action imports libs/API. Registering from inside libs/API therefore closes an import cycle: libs/API
 // imports Middleware, Middleware imports an action, and that action imports libs/API again. Instead the
-// composition root calls this explicitly, before anything can call processWithMiddleware: see src/setup/index.ts.
+// setup imports this module before the app renders, and its composition root calls the idempotent function again: see src/setup/index.ts.
 let hasRegistered = false;
 
 function registerMiddlewares() {
@@ -76,5 +76,8 @@ function registerMiddlewares() {
     // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
     addMiddleware(FraudMonitoring);
 }
+
+// Register while the setup module is loaded so the API pipeline is ready before the app renders.
+registerMiddlewares();
 
 export default registerMiddlewares;

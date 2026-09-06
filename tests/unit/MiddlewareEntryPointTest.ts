@@ -17,8 +17,8 @@ jest.mock('@src/setup/platformSetup', () => jest.fn());
 jest.mock('@src/setup/telemetry', () => jest.fn());
 
 describe('src/setup attaches the API middlewares', () => {
-    it('registers all 14 middlewares when the composition root runs', () => {
-        expect(jest.mocked(addMiddleware)).not.toHaveBeenCalled();
+    it('keeps the eagerly registered API middlewares idempotent when the composition root runs', () => {
+        expect(jest.mocked(addMiddleware)).toHaveBeenCalledTimes(14);
 
         appSetup();
 
