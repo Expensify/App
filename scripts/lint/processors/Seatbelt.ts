@@ -197,7 +197,10 @@ Try running eslint, then committing ${seatbeltFilename}.`.trim();
 function messageFrozenUnderMaxErrorCount(message: LintMessage, seatbeltFilename: string, errorCount: number, maxErrorCount: number): LintMessage {
     return {
         ...message,
-        severity: LINT_SEVERITY.WARNING,
+        // Frozen mode is documented to "fail on any diff": a baseline decrease that hasn't reached
+        // zero must still block CI, not just the fully-removed-rule case handled separately below
+        // by frozenRemovedRuleMessages.
+        severity: LINT_SEVERITY.ERROR,
         message: `${message.message}\n${messageFrozenUnderMaxErrorCountText(seatbeltFilename, errorCount, maxErrorCount)}`,
     };
 }

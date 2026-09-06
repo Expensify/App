@@ -90,10 +90,12 @@ describe('transformMessages', () => {
         expect(result.at(0)?.severity).toBe(LINT_SEVERITY.ERROR);
     });
 
-    it('frozen turns a decrease into a warning rather than writing', () => {
+    it('frozen keeps a partial decrease as an error rather than writing', () => {
         const {data} = parseSeatbeltTSV(`"../../src/file.ts"\t"no-console"\t5\n`);
         const result = transformMessages(makeOptions({frozen: true}), data, '/tmp/src/file.ts', [makeMessage('no-console'), makeMessage('no-console', {line: 2})]);
-        expect(result.at(0)?.severity).toBe(LINT_SEVERITY.WARNING);
+        // Frozen mode is documented to fail on any diff: a baseline decrease that hasn't reached
+        // zero must still block CI (not just the fully-removed-rule case, which already errors).
+        expect(result.at(0)?.severity).toBe(LINT_SEVERITY.ERROR);
         expect(result.at(0)?.message).toContain('SEATBELT_FROZEN');
         expect(result.at(0)?.message).toContain('eslint.seatbelt.tsv');
         expect(result.at(0)?.message).not.toContain('/tmp/src/file.ts');
