@@ -57,8 +57,8 @@ const searchLoadingSelector = (snapshot: OnyxEntry<SearchResults>): boolean => !
 
 /**
  * Search sections can yield entries that aren't openable reports. An unreported (self-DM) expense is grouped under
- * the "0" sentinel rather than a real report, so paging onto it lands the user on an empty report — and it inflates
- * the "x of y" counter with a report the Reports list never showed them.
+ * the "0" placeholder rather than a real report, so paging onto it lands the user on an empty report. It also
+ * inflates the "x of y" counter with a report the Reports list never showed them.
  */
 const isNavigableReportID = (reportID: string | undefined): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
 

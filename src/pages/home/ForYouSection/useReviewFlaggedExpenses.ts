@@ -176,7 +176,7 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
 
               // For a one-transaction report the transaction thread is a redundant duplicate of the report itself,
               // so the report is the expense view. The prev/next carousel applies the same rule when it pages onto
-              // such a report, and this entry point has to agree with it — otherwise stepping forward and back
+              // such a report, and this entry point has to agree with it. Otherwise stepping forward and back
               // lands the user on the report when they started on the thread.
               if (isOneTransactionReport(firstFlaggedReport)) {
                   const openReport = () =>

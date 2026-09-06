@@ -124,12 +124,19 @@ function setActiveTransactionIDs(ids: string[], {source, snapshotHash, descripto
 }
 
 /**
- * Returns the currently active transaction IDs, their owner, and sibling descriptors. Used by screens that would
- * otherwise take over the carousel context (e.g. a money request report opened on top of an existing transaction
- * thread) so they can detect a snapshot-backed carousel (one with descriptors) and avoid clobbering it.
+ * Returns the currently active transaction IDs, their owner, the backing snapshot hash, and sibling descriptors.
+ * Used by screens that would otherwise take over the carousel context (e.g. a money request report opened on top
+ * of an existing transaction thread) so they can detect a snapshot-backed carousel (one with descriptors) and
+ * avoid clobbering it. It returns every field `setActiveTransactionIDs` accepts so a screen that temporarily
+ * takes the carousel over (duplicate review) can hand the previous owner's carousel back intact.
  */
-function getActiveTransactionIDs(): {ids: string[] | null; descriptors: Record<string, TransactionThreadNavigationDescriptor> | null; source: string | null} {
-    return {ids: lastSetIDs, descriptors: lastSetDescriptors, source: lastSetSource};
+function getActiveTransactionIDs(): {
+    ids: string[] | null;
+    descriptors: Record<string, TransactionThreadNavigationDescriptor> | null;
+    source: string | null;
+    snapshotHash: number | null;
+} {
+    return {ids: lastSetIDs, descriptors: lastSetDescriptors, source: lastSetSource, snapshotHash: lastSetSnapshotHash};
 }
 
 /**
@@ -137,7 +144,7 @@ function getActiveTransactionIDs(): {ids: string[] | null; descriptors: Record<s
  * push a refreshed list into the carousel.
  *
  * It may only do so when it still owns the carousel, or when nothing owns it yet. Once the user drills into a
- * screen that seeds its own carousel — a report's transaction list, say — that screen becomes the owner and the
+ * screen that seeds its own carousel, such as a report's transaction list, that screen becomes the owner and the
  * background list must leave it alone until the user comes back out to it.
  */
 function shouldRefreshActiveTransactionIDs(source: string, ids: string[]): boolean {
@@ -168,7 +175,7 @@ function clearActiveTransactionIDs() {
 /**
  * Clears the carousel only when `source` still owns it.
  *
- * A writer that unmounts must not wipe a carousel another screen has since taken over — that is how the arrows
+ * A writer that unmounts must not wipe a carousel another screen has since taken over. That is how the arrows
  * used to vanish when a screen re-seeded the list while the previous owner was tearing down.
  */
 function clearActiveTransactionIDsForSource(source: string) {
@@ -179,4 +186,3 @@ function clearActiveTransactionIDsForSource(source: string) {
 }
 
 export {setActiveTransactionIDs, clearActiveTransactionIDs, clearActiveTransactionIDsForSource, getActiveTransactionIDs, shouldRefreshActiveTransactionIDs, CAROUSEL_SOURCE};
-export type {SetActiveTransactionIDsOptions};

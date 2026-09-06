@@ -253,22 +253,6 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
 }
 
 /**
- * How much room a scrollable popover actually has, given where it is anchored. Bounding the popover by the
- * full window height instead lets it overflow the screen edge when the anchor sits away from the top, which is
- * what happens to the header's "More" menu once the header buttons move down into the status/next-step row.
- */
-function getAvailableHeightForAnchor(anchorVertical: number, verticalAlignment: AnchorAlignment['vertical'], windowHeight: number): number {
-    if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
-        return windowHeight - anchorVertical;
-    }
-    if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
-        return anchorVertical;
-    }
-    // CENTER alignment grows in both directions from the anchor, so the closer window edge bounds it.
-    return Math.min(anchorVertical, windowHeight - anchorVertical) * 2;
-}
-
-/**
  * Return a stable string key for a menu item.
  * Prefers explicit `key` property on the item. If missing, falls back to `text`.
  *
@@ -678,23 +662,15 @@ function BasePopoverMenu({
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            const availableHeight = getAvailableHeightForAnchor(anchorPosition.vertical, anchorAlignment.vertical, windowHeight) - variables.compactPopoverMenuVerticalMargin;
-            const minHeight = Math.min(CONST.POPOVER_MENU_MAX_HEIGHT, windowHeight - variables.compactPopoverMenuVerticalMargin);
-            stylesArray.push({maxHeight: Math.max(availableHeight, minHeight)});
+            // Cap to the window, without the old CONST.POPOVER_MENU_MAX_HEIGHT floor: that floor is taller than a
+            // short window, so it let the menu run past the screen edge on one. There is no need to bound this by
+            // the anchor either, because PopoverWithMeasuredContentBase already shifts a popover that would
+            // overflow back inside the window.
+            stylesArray.push({maxHeight: windowHeight - variables.compactPopoverMenuVerticalMargin});
         }
 
         return stylesArray;
-    }, [
-        isSmallScreenWidth,
-        shouldEnableMaxHeight,
-        styles.createMenuContainer,
-        styles.pv2,
-        shouldUseScrollView,
-        windowHeight,
-        isInLandscapeMode,
-        anchorPosition.vertical,
-        anchorAlignment.vertical,
-    ]);
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, styles.pv2, shouldUseScrollView, windowHeight, isInLandscapeMode]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
         (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : styles.pv2, scrollContainerStyle]) as ViewStyle) ?? {};

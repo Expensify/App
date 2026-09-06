@@ -25,7 +25,13 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {CAROUSEL_SOURCE, clearActiveTransactionIDs, setActiveTransactionIDs, shouldRefreshActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {
+    CAROUSEL_SOURCE,
+    clearActiveTransactionIDs,
+    clearActiveTransactionIDsForSource,
+    setActiveTransactionIDs,
+    shouldRefreshActiveTransactionIDs,
+} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -791,11 +797,12 @@ function Search({
 
     const carouselSiblingsKey = carouselSiblingTransactionIDs.join(',');
     const [activeCarouselTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+    const hasSeededCarouselRef = useRef(false);
 
     // This list stays mounted behind the RHP, so it keeps the carousel in step with the results (an expense
     // deleted from the list has to leave the carousel too). It only writes while it still owns the carousel:
     // once the user drills into a report, that report's list takes ownership and this effect stands down until
-    // that report releases it again — which is why the active IDs are a dependency and not just a guard.
+    // that report releases it again. That is why the active IDs are a dependency and not just a guard.
     useEffect(() => {
         if (shouldShowLoadingState) {
             return;
@@ -804,8 +811,24 @@ function Search({
             return;
         }
         setActiveTransactionIDs(carouselSiblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
+        hasSeededCarouselRef.current = true;
         // eslint-disable-next-line react-hooks/exhaustive-deps -- carouselSiblingsKey is an order-sensitive proxy for the array, which is rebuilt on every search data change
     }, [carouselSiblingsKey, activeCarouselTransactionIDs, carouselSource, hash, shouldShowLoadingState]);
+
+    // The effect above seeds the carousel from the results alone, with no row press, so this list has to release it
+    // on the way out. Without this the Spend page's expenses stayed in the carousel after the user left, and any
+    // one-transaction report opened later (from the Inbox, say) picked them up and paged to unrelated expenses.
+    // Teardown is deliberately separate from the seeding effect: folding it in would run the cleanup on every
+    // re-seed, and a run that then bailed at one of the guards would leave the carousel cleared.
+    useEffect(() => {
+        return () => {
+            if (!hasSeededCarouselRef.current) {
+                return;
+            }
+            hasSeededCarouselRef.current = false;
+            clearActiveTransactionIDsForSource(carouselSource);
+        };
+    }, [carouselSource]);
 
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn

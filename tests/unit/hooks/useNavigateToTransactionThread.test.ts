@@ -4,7 +4,7 @@ import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThrea
 
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getExpenseCreationIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 
 import type {Report} from '@src/types/onyx';
 
@@ -36,7 +36,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {getActiveRoute: jest.fn(() => '/search'), navigate: jest.fn()},
 }));
 
-jest.mock('@libs/ReportActionsUtils', () => ({getIOUActionForTransactionID: jest.fn()}));
+jest.mock('@libs/ReportActionsUtils', () => ({getExpenseCreationIOUActionForTransactionID: jest.fn()}));
 
 jest.mock('@components/WideRHPContextProvider', () => ({useWideRHPActions: jest.fn(() => ({markReportRHPWidth: jest.fn()}))}));
 
@@ -46,7 +46,7 @@ jest.mock('@components/OnyxListItemProvider', () => ({usePersonalDetails: jest.f
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({email: 'a@b.com', accountID: 1})));
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}]));
 
-const mockedGetIOUAction = jest.mocked(getIOUActionForTransactionID);
+const mockedGetIOUAction = jest.mocked(getExpenseCreationIOUActionForTransactionID);
 const mockedSetActiveTransactionIDs = jest.mocked(setActiveTransactionIDs);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 

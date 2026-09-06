@@ -44,7 +44,7 @@ type MoneyReportHeaderMoreContentProps = {
 };
 
 /**
- * Cheap visibility gate — decides whether the more-content section should render at all,
+ * Cheap visibility gate that decides whether the more-content section should render at all,
  * avoiding expensive hooks in the body when nothing is shown.
  */
 function MoneyReportHeaderMoreContent({reportID, primaryAction, backTo, statusBarType, shouldShowNextStep, shouldRenderActionsInRow}: MoneyReportHeaderMoreContentProps) {

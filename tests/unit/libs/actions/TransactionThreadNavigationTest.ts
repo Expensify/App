@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomTransaction from '../../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 const SEARCH_HASH = 959171759;
@@ -39,14 +40,37 @@ describe('TransactionThreadNavigation carousel ownership', () => {
         it('records the owning source alongside the IDs', async () => {
             await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
 
-            expect(getActiveTransactionIDs()).toEqual({ids: SEEDED_IDS, descriptors: null, source: SEARCH_SOURCE});
+            expect(getActiveTransactionIDs()).toEqual({ids: SEEDED_IDS, descriptors: null, source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
         });
 
         it('lets a different screen take ownership of the carousel', async () => {
             await setActiveTransactionIDs(SPEND_PAGE_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
             await setActiveTransactionIDs(REPORT_B_IDS, {source: REPORT_SOURCE});
 
-            expect(getActiveTransactionIDs()).toEqual({ids: REPORT_B_IDS, descriptors: null, source: REPORT_SOURCE});
+            expect(getActiveTransactionIDs()).toEqual({ids: REPORT_B_IDS, descriptors: null, source: REPORT_SOURCE, snapshotHash: null});
+        });
+
+        /**
+         * Duplicate review takes the carousel over while it is open and hands the previous one back on refocus. It
+         * can only do that if everything it read back is also something it can write, so a restored carousel keeps
+         * its original owner (which is what lets that screen refresh and release it) along with the snapshot hash
+         * and descriptors its siblings are resolved from.
+         */
+        it('round-trips a displaced carousel back to its original owner', async () => {
+            const descriptors = {A1: {reportID: 'rA', transaction: {...createRandomTransaction(1), transactionID: 'A1'}}};
+            await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH, descriptors});
+            const displaced = getActiveTransactionIDs();
+
+            await setActiveTransactionIDs(REPORT_B_IDS, {source: CAROUSEL_SOURCE.duplicateReview('B1')});
+            await setActiveTransactionIDs(displaced.ids ?? [], {
+                source: displaced.source ?? undefined,
+                snapshotHash: displaced.snapshotHash ?? undefined,
+                descriptors: displaced.descriptors ?? undefined,
+            });
+
+            expect(getActiveTransactionIDs()).toEqual({ids: SEEDED_IDS, descriptors, source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+            // The original owner can refresh its own carousel again, which is what the source is for.
+            expect(shouldRefreshActiveTransactionIDs(SEARCH_SOURCE, SPEND_PAGE_IDS)).toBe(true);
         });
     });
 
@@ -130,7 +154,7 @@ describe('TransactionThreadNavigation carousel ownership', () => {
 
             await clearActiveTransactionIDsForSource(REPORT_SOURCE);
 
-            expect(getActiveTransactionIDs()).toEqual({ids: null, descriptors: null, source: null});
+            expect(getActiveTransactionIDs()).toEqual({ids: null, descriptors: null, source: null, snapshotHash: null});
         });
 
         it('leaves a carousel another screen has taken over', async () => {
@@ -139,7 +163,7 @@ describe('TransactionThreadNavigation carousel ownership', () => {
 
             await clearActiveTransactionIDsForSource(REPORT_SOURCE);
 
-            expect(getActiveTransactionIDs()).toEqual({ids: SPEND_PAGE_IDS, descriptors: null, source: SEARCH_SOURCE});
+            expect(getActiveTransactionIDs()).toEqual({ids: SPEND_PAGE_IDS, descriptors: null, source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
         });
     });
 });

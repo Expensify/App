@@ -630,8 +630,8 @@ function MoneyRequestReportTransactionList({
 
     // Teardown is deliberately separate from the seeding effect above. Folding it in would make React run the
     // cleanup on every re-seed, and any run that then bailed out at one of the guards would leave the carousel
-    // cleared — which is how the arrows disappeared after an action that changed the report's transactions
-    // (duplicating an expense, for instance).
+    // cleared. That is how the arrows disappeared after an action that changed the report's transactions,
+    // such as duplicating an expense.
     useEffect(() => {
         return () => {
             if (!hasSeededCarouselRef.current) {

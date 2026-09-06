@@ -84,7 +84,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetActiveTransactionIDs.mockReturnValue({ids: null, descriptors: null, source: null});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: null, descriptors: null, source: null, snapshotHash: null});
         mockGetRootState.mockReturnValue(createMock<NonNullable<ReturnType<typeof navigationRef.getRootState>>>({}));
     });
 
@@ -244,6 +244,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
             ids: ['recentlyAdded1', 'recentlyAdded2'],
             descriptors: {recentlyAdded1: {reportID: 'r1', transaction: {...createRandomTransaction(1), transactionID: 'recentlyAdded1'}}},
             source: 'home:recentlyAdded',
+            snapshotHash: null,
         });
 
         const transactionIDs = ['trans1', 'trans2', 'trans3'];

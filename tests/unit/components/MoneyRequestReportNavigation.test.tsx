@@ -82,7 +82,7 @@ function useNavigationSource(reportID: string | undefined) {
 
 /**
  * Regression guard for https://github.com/Expensify/App/issues/99627: an unreported (self-DM) expense is grouped
- * under the "0" sentinel rather than a real report, so it inflated the "x of y" counter with an entry the Reports
+ * under the "0" placeholder rather than a real report, so it inflated the "x of y" counter with an entry the Reports
  * list never showed, and paging onto it landed the user on an empty report.
  */
 describe('isNavigableReportID', () => {
@@ -90,7 +90,7 @@ describe('isNavigableReportID', () => {
         expect(isNavigableReportID('12345')).toBe(true);
     });
 
-    it('rejects the unreported sentinel', () => {
+    it('rejects the unreported placeholder', () => {
         expect(isNavigableReportID(CONST.REPORT.UNREPORTED_REPORT_ID)).toBe(false);
     });
 

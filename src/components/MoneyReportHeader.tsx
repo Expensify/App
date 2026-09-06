@@ -1,3 +1,4 @@
+import useCarouselTransactionIDs from '@hooks/useCarouselTransactionIDs';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useMoneyReportHeaderMoreContentVisibility from '@hooks/useMoneyReportHeaderMoreContentVisibility';
@@ -84,7 +85,11 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const transactions = Object.values(reportTransactions);
 
-    const [activeTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+    // The same filtered list MoneyRequestReportTransactionsNavigation renders from, so the two agree on whether
+    // there is an expense carousel to show. Gating on the raw Onyx list let this pick the expense branch while the
+    // carousel itself found nothing to page through, and since the report carousel is the other branch, the user
+    // was left with no arrows at all.
+    const {transactionIDs: activeTransactionIDs} = useCarouselTransactionIDs();
 
     const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
 
@@ -99,13 +104,13 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const [threadTransactionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.parentReportID)}`, {selector: threadTransactionIDSelector});
 
     const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
-    const routeAnchorTransactionID = anchorTransactionIDFromRoute && activeTransactionIDs?.includes(anchorTransactionIDFromRoute) ? anchorTransactionIDFromRoute : undefined;
+    const routeAnchorTransactionID = anchorTransactionIDFromRoute && activeTransactionIDs.includes(anchorTransactionIDFromRoute) ? anchorTransactionIDFromRoute : undefined;
     // The route anchor is the most reliable source right after a cold open: the report's own transactions and its
     // parent report action may not have loaded yet, and without it the carousel would pop in only once they do.
     const carouselAnchorTransactionID = singleTransactionID ?? threadTransactionID ?? routeAnchorTransactionID;
     // Two entries are the minimum for a carousel; with fewer, fall through to the report-level arrows rather than
     // rendering an expense carousel that decides on its own to show nothing.
-    const shouldShowTransactionNavigation = !!carouselAnchorTransactionID && (activeTransactionIDs?.length ?? 0) > 1 && !!activeTransactionIDs?.includes(carouselAnchorTransactionID);
+    const shouldShowTransactionNavigation = !!carouselAnchorTransactionID && activeTransactionIDs.length > 1 && activeTransactionIDs.includes(carouselAnchorTransactionID);
 
     const styles = useThemeStyles();
 
@@ -176,7 +181,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                             backTo={backTo}
                         />
                     )}
-                    {/* An expense carousel is shown wherever this report is anchored to one — including a
+                    {/* An expense carousel is shown wherever this report is anchored to one, including a
                         one-transaction report opened straight from Home, which is not a search screen. The
                         report-level carousel is search-only, since it pages through search results. */}
                     {shouldShowTransactionNavigation && !!carouselAnchorTransactionID ? (

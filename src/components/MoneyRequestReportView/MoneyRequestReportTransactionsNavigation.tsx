@@ -3,6 +3,7 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import useCarouselTransactionIDs from '@hooks/useCarouselTransactionIDs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -11,11 +12,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getExpenseCreationTransactionID} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
-import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
@@ -52,33 +52,6 @@ type PrevNextParentReportActions = {
     nextParentReportAction: OnyxTypes.ReportAction | undefined;
 };
 
-/** IOU action types that reference a transaction without being the action that created the expense. */
-const NON_EXPENSE_CREATION_IOU_TYPES = new Set<string>([
-    CONST.IOU.REPORT_ACTION_TYPE.PAY,
-    CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
-    CONST.IOU.REPORT_ACTION_TYPE.REJECT,
-    CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
-    CONST.IOU.REPORT_ACTION_TYPE.DELETE,
-]);
-
-/**
- * The transaction an action created, or undefined when the action merely references one.
- *
- * Paying, approving or rejecting an expense all produce IOU actions carrying the same `IOUTransactionID`, each with
- * its own thread. Paging onto one of those would open a system message ("marked as paid") rather than the expense.
- * Actions with no `type` are legacy expense-creating actions and are kept.
- */
-const getCreatedTransactionID = (action: OnyxTypes.ReportAction): string | undefined => {
-    if (!isMoneyRequestAction(action)) {
-        return undefined;
-    }
-    const originalMessage = getOriginalMessage(action);
-    if (!originalMessage?.IOUTransactionID) {
-        return undefined;
-    }
-    return !originalMessage.type || !NON_EXPENSE_CREATION_IOU_TYPES.has(originalMessage.type) ? originalMessage.IOUTransactionID : undefined;
-};
-
 /**
  * Only the prev/next parent actions are ever read, so resolve them while scanning instead of collecting every money
  * request action on the parent reports (fast-equals compares the resulting collection on every Onyx update).
@@ -90,15 +63,15 @@ const collectParentReportActions = (
     parentActions: PrevNextParentReportActions,
 ) => {
     for (const action of Object.values(reportActions ?? {})) {
-        const transactionID = getCreatedTransactionID(action);
+        const transactionID = getExpenseCreationTransactionID(action);
         if (!transactionID) {
             continue;
         }
-        if (transactionID === prevTransactionID) {
+        if (transactionID === prevTransactionID && !parentActions.prevParentReportAction) {
             // eslint-disable-next-line no-param-reassign -- intentionally mutates the shared accumulator so callers can resolve both actions in a single pass across multiple report-action sources
             parentActions.prevParentReportAction = action;
         }
-        if (transactionID === nextTransactionID) {
+        if (transactionID === nextTransactionID && !parentActions.nextParentReportAction) {
             // eslint-disable-next-line no-param-reassign -- intentionally mutates the shared accumulator so callers can resolve both actions in a single pass across multiple report-action sources
             parentActions.nextParentReportAction = action;
         }
@@ -108,16 +81,8 @@ const collectParentReportActions = (
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [seededTransactionIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
-    // When the carousel is opened from a search (e.g. the Spend page), the sibling transactions may only exist
-    // in the search snapshot and not in the live collection yet. We keep the snapshot around to fall back to it
-    // so prev/next navigation resolves the correct report instead of breaking.
-    // `useOnyx`'s automatic snapshot redirection doesn't cover this: it only kicks in inside `SearchScopeProvider`
-    // (which wraps the search list, not the RHP this header renders in), it reads the *currently displayed*
-    // search hash rather than the one the carousel was seeded from, and it returns snapshot data *instead of*
-    // live data — whereas here live data has to win over the snapshot (see the merge below).
-    const [snapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
+    // Shared with the header, which uses the same filtered list to decide whether to render this carousel at all.
+    const {transactionIDs: transactionIDsList, snapshot} = useCarouselTransactionIDs();
     // Snapshot-backed flows (e.g. Home "Recently added") seed a descriptor per sibling so the carousel can
     // resolve (and lazily create) each sibling's thread on demand even when the sibling isn't in the live collection.
     const [siblingDescriptorsByTransactionID] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
@@ -130,25 +95,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const personalDetails = usePersonalDetails();
-
-    // The seeded list is a snapshot of what some other screen was showing, and it goes stale: deleting an expense
-    // leaves its ID behind, so the counter keeps counting it and its arrow leads to a "not here" page. Validating
-    // here — rather than trying to keep every writer perfectly in step — is what keeps the two in agreement.
-    const validTransactionIDsSelector = useCallback(
-        (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
-            seededTransactionIDs.filter((transactionID) => {
-                const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
-                const transaction = allTransactions?.[key] ?? snapshot?.data?.[key];
-                // An unknown transaction is one that hasn't loaded yet, not one that is gone. Dropping those would
-                // shrink the carousel under the user on a cold open.
-                if (!transaction) {
-                    return true;
-                }
-                return !isTransactionPendingDelete(transaction) && !isDeletedTransaction(transaction);
-            }),
-        [seededTransactionIDs, snapshot],
-    );
-    const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: validTransactionIDsSelector});
 
     const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
 
@@ -199,7 +145,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     });
 
     // The live pass above can only look up `report_actions_{transaction.reportID}`, which never resolves an
-    // unreported (self-DM) sibling — its IOU action lives in the self-DM's report actions, not under reportID "0".
+    // unreported (self-DM) sibling. Its IOU action lives in the self-DM's report actions, not under reportID "0".
     // Scanning the snapshot's report actions is how those siblings get a parent action at all.
     const snapshotData = snapshot?.data;
     const snapshotParentReportActions = useMemo(() => {
@@ -216,8 +162,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     // Live report actions win over the snapshot: the snapshot only fills in siblings the live pass couldn't resolve
     // (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can hold an
-    // older copy of the same IOU action — e.g. one still missing the childReportID of a thread that has since been
-    // created. Letting that stale copy win would make prev/next believe the sibling has no thread and create a
+    // older copy of the same IOU action, for example one still missing the childReportID of a thread that has since
+    // been created. Letting that stale copy win would make prev/next believe the sibling has no thread and create a
     // duplicate one instead of navigating to the existing thread.
     const prevParentReportAction = reportedParentReportActions?.prevParentReportAction ?? snapshotParentReportActions.prevParentReportAction;
     const nextParentReportAction = reportedParentReportActions?.nextParentReportAction ?? snapshotParentReportActions.nextParentReportAction;
@@ -251,7 +197,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     }, []);
 
     // Two entries are the minimum for there to be anything to page between, and an anchor that isn't in the list
-    // means this expense doesn't belong to the active carousel at all — the list belongs to a screen the user has
+    // means this expense doesn't belong to the active carousel at all. The list belongs to a screen the user has
     // since left. Showing arrows then would step to an unrelated expense.
     if (transactionIDsList.length < 2 || currentTransactionIndex === -1) {
         return;
@@ -328,7 +274,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
 
         // No thread yet. The shared resolver creates one, including for an unreported (self-DM) expense, whose IOU
-        // action lives in the self-DM rather than under report "0" — those used to fall through with no target at
+        // action lives in the self-DM rather than under report "0". Those used to fall through with no target at
         // all and dump the user in their self-DM.
         return getReportIDToOpenForExpense(
             {
@@ -353,7 +299,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         const backTo = getBackTo();
         const targetReportID = resolveSiblingReportID(siblingTransactionID, siblingTransaction, siblingParentReportAction, siblingParentReport, siblingThreadReport);
 
-        // Report "0" is the unreported sentinel, not a report that can be opened. Navigating to it lands the user
+        // Report "0" is the unreported placeholder, not a report that can be opened. Navigating to it lands the user
         // on their self-DM (or a "not here" page), so stay put instead.
         if (!siblingTransactionID || !targetReportID || targetReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             return;

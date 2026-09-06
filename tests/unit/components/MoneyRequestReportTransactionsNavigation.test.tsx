@@ -362,8 +362,8 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             };
         });
 
-        // Thread creation is delegated to the shared resolver so that both directions — and the other screens that
-        // open a single expense — agree on where an expense opens.
+        // Thread creation is delegated to the shared resolver so that both directions, and the other screens that
+        // open a single expense, agree on where an expense opens.
         it('resolves the target through the shared resolver and navigates next', () => {
             jest.mocked(getReportIDToOpenForExpense).mockReturnValue('createdNext');
             renderNavigation();
@@ -569,7 +569,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
      * Regression guard for https://github.com/Expensify/App/issues/99612: an unreported (self-DM) sibling used to
      * fall through with no resolved target, and the resulting navigation dumped the user in their self-DM.
      */
-    it('stays put rather than navigating to the unreported sentinel report', () => {
+    it('stays put rather than navigating to the unreported placeholder report', () => {
         jest.mocked(getReportIDToOpenForExpense).mockReturnValue(CONST.REPORT.UNREPORTED_REPORT_ID);
         mockState.transactionsCollection = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
