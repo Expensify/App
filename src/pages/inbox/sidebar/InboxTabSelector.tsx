@@ -10,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import useReportAttributes from '@hooks/useReportAttributes';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -35,6 +36,7 @@ function InboxTabSelector() {
     const {activeTab, inboxTabCounts} = useSidebarOrderedReportsState();
     const {setActiveTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
+    const reportAttributesDerived = useReportAttributes();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {showConfirmModal} = useConfirmModal();
 
@@ -67,7 +69,7 @@ function InboxTabSelector() {
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            markAllMessagesAsRead(reportNameValuePairs);
+            markAllMessagesAsRead(reportNameValuePairs, reportAttributesDerived);
         });
     };
 
