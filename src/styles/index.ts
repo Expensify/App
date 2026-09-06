@@ -4337,6 +4337,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.transparent,
         },
 
+        // The design comment's mock samples to `hoverComponentBG`, but measured against the chat surface
+        // that is 1.13:1 -- below what the eye picks up on a 28px target, so the hover state Danny asked
+        // for would not read at all. `buttonDefaultBG` is 1.26:1 and is the fill the add-reaction bubble
+        // sitting next to this prompt already uses, so the two match and the state is actually visible.
+        conciergeFeedbackThumbHovered: {
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
         // No line height on purpose. Emoji glyphs carry a tall ascent, so a line box stretched to the
         // thumb's height centres the box but leaves the glyph riding high inside it. Letting the text keep
         // its natural height hands the centring back to the container's flex alignment.

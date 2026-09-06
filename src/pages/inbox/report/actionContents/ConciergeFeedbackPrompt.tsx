@@ -98,8 +98,8 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
         <Tooltip text={label}>
             <PressableWithFeedback
                 style={[styles.conciergeFeedbackThumb, styles.userSelectNone]}
-                hoverStyle={styles.hoveredComponentBG}
-                pressStyle={styles.hoveredComponentBG}
+                hoverStyle={styles.conciergeFeedbackThumbHovered}
+                pressStyle={styles.conciergeFeedbackThumbHovered}
                 onPress={callFunctionIfActionIsAllowed(() => rate(emoji, shouldThank))}
                 accessibilityLabel={label}
                 role={CONST.ROLE.BUTTON}
