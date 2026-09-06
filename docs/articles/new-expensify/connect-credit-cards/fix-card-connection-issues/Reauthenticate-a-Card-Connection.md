@@ -6,7 +6,7 @@ internalScope: Audience is members with personal cards and Workspace Admins with
 retrievalIntent: How to re-authenticate a card connection that needs re-approval.
 contentType: task
 platform: new
-order: 3
+order: 2
 ---
 
 # Re-authenticate a Card Connection

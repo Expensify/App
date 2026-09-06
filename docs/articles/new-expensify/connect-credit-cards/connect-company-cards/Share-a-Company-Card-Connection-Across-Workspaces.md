@@ -3,6 +3,7 @@ title: Share a Company Card Connection Across Workspaces
 description: Learn how to add an existing company card connection to another workspace instead of connecting a new one.
 keywords: [New Expensify, share company card feed Expensify, connect existing company cards, company cards Workspaces, direct feed Expensify, commercial card feed]
 internalScope: Audience is workspace admins and card admins. Covers sharing an existing company card connection across workspaces. Does not cover setting up new connection, assigning cards, or troubleshooting connections.
+order: 4
 ---
 
 # Share a Company Card Connection Across Workspaces

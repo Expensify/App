@@ -3,6 +3,7 @@ title: Set up a Direct Connection for Company Cards
 description: Learn how to connect a company card account using a direct connection so its cards can be assigned to workspace members and their transactions imported into Expensify.
 keywords: [New Expensify, set up direct company card connection, connect company cards Expensify, direct connection Expensify, direct feed Expensify, Plaid company cards]
 internalScope: Audience is workspace admins and card admins. Covers connecting a company card account using a direct connection or Plaid. Does not cover assigning cards, managing cards, or troubleshooting connections.
+order: 2
 ---
 
 # Set up a Direct Connection for Company Cards

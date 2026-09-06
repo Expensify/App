@@ -3,6 +3,7 @@ title: Understand How Credit Card Connections Work
 description: Learn how connecting a credit card brings transactions into Expensify as expenses so they can be added to reports.
 keywords: [credit card connections Expensify, connect credit card Expensify, company cards Expensify, personal cards Expensify, company card vs personal card, how company cards work Expensify, how personal cards work Expensify, credit card transactions Expensify, imported card expenses]
 internalScope: Audience is Expensify members. Covers how connecting company cards and personal cards imports transactions into Expensify. Does not cover company card feed types or card feed setup.
+order: 1
 ---
 
 # Understand How Credit Card Connections Work

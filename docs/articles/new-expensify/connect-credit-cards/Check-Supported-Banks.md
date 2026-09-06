@@ -3,6 +3,7 @@ title: Check Supported Banks and Card Issuers in Expensify
 description: See which banks and card issuers Expensify supports for connecting company credit cards.
 keywords: [check supported banks, supported card issuers, Plaid, connect credit card, bank list, direct feed banks]
 internalScope: Audience is any Expensify user checking bank compatibility. Covers checking whether a bank or card issuer is supported, does not cover how to connect a card feed or troubleshoot connection errors.
+order: 2
 ---
 
 # Check Supported Banks and Card Issuers in Expensify

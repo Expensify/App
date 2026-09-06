@@ -6,7 +6,7 @@ internalScope: Audience is members connecting personal cards and Workspace Admin
 retrievalIntent: How to fix an error when connecting or updating a card in Expensify.
 contentType: task
 platform: new
-order: 4
+order: 3
 ---
 
 # Fix a Card Connection Error

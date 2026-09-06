@@ -3,6 +3,7 @@ title: Connect a personal card
 description: Learn how to connect a new personal credit card to your Expensify account to automatically import transactions.
 keywords: [New Expensify, personal cards, connect card, Wallet, Plaid, bank connection, card import, credit card, New Expensify, oAuth, add card]
 internalScope: Audience is members who want to connect a new personal credit card. Covers the card connection flow including country selection, bank selection, oAuth and Plaid connections, company card warnings, and free card limits. Does not cover managing existing cards or company card programs.
+order: 1
 ---
 
 # Connect a personal card 

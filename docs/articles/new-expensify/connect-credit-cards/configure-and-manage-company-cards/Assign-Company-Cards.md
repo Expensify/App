@@ -3,6 +3,7 @@ title: Assign Company Cards
 description: Learn how to assign company cards to members in your Workspace using the Company cards page.
 keywords: [New Expensify, assign company cards, Expensify card assignment, workspace company cards, assign card to employee, copilot assign card, delegate assign card, card admin]
 internalScope: Audience is Workspace Admins, Card Admins, and their Copilots. Covers assigning company cards to members in New Expensify, does not cover initial connection or troubleshooting connection issues. 
+order: 1
 ---
 
 # Assign Company Cards

@@ -3,6 +3,7 @@ title: Learn About Company Card Connections
 description: Learn the difference between direct feeds and commercial feeds for importing company card transactions from your bank or card provider into Expensify.
 keywords: [company card connections Expensify, company card connection types, direct connection Expensify, commercial card feed Expensify, company card feed Expensify, direct connection vs commercial card feed, Visa VCF Expensify, Mastercard CDF Expensify, American Express GL1025 Expensify]
 internalScope: Audience is Expensify members. Covers the differences between direct connections and commercial card feeds for importing company card transactions. Does not cover setting up a company card connection or assigning company cards to members.
+order: 1
 ---
 
 # Learn About Company Card Connections
