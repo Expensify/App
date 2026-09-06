@@ -1,9 +1,10 @@
 import {parse} from '@babel/parser';
 import {file} from 'bun';
 
+import type {ASTNode} from '../../utils/BabelASTUtils';
 import type {LintMessage} from '../types';
 
-import BabelASTUtils, {type ASTNode} from '../../utils/BabelASTUtils';
+import BabelASTUtils from '../../utils/BabelASTUtils';
 import Processor from '../Processor';
 
 const NO_DEPRECATED_RULE_ID = '@typescript-eslint/no-deprecated';

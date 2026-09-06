@@ -1,7 +1,9 @@
 import {$} from 'bun';
 
+import type {LintFileResult, LintMessage, LintSeverity, LinterResult} from '../types';
+
 import Linter from '../Linter';
-import {LINT_SEVERITY, type LintFileResult, type LintMessage, type LintSeverity, type LinterResult} from '../types';
+import {LINT_SEVERITY} from '../types';
 
 const ESLINT_RULE_ID_KEY = 'ruleId' as const;
 

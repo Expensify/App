@@ -4,8 +4,10 @@ import {mkdtemp, rm, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 
+import type {LintMessage, SeatbeltOptions} from '../../scripts/lint/types';
+
 import {applySeatbelt, canonicalizeMessages, parseSeatbeltTSV, serializeSeatbeltTSV, transformMessages} from '../../scripts/lint/processors/Seatbelt';
-import {LINT_SEVERITY, type LintMessage, type SeatbeltOptions} from '../../scripts/lint/types';
+import {LINT_SEVERITY} from '../../scripts/lint/types';
 
 function makeOptions(overrides: Partial<SeatbeltOptions> = {}): SeatbeltOptions {
     return {

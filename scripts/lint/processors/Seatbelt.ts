@@ -1,10 +1,12 @@
 import {file} from 'bun';
 import {rename} from 'node:fs/promises';
 
+import type {LintMessage, ProcessorContext, SeatbeltOptions, SeatbeltRuleSet} from '../types';
+
 import FileUtils from '../../utils/FileUtils';
 import TSVUtils from '../../utils/TSVUtils';
 import Processor from '../Processor';
-import {LINT_SEVERITY, type LintMessage, type ProcessorContext, type SeatbeltOptions, type SeatbeltRuleSet} from '../types';
+import {LINT_SEVERITY} from '../types';
 
 const SEATBELT_NAME = 'eslint-seatbelt';
 const SEATBELT_TSV_RELATIVE = 'config/eslint/eslint.seatbelt.tsv';

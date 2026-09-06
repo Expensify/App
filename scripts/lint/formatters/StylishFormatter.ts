@@ -1,7 +1,9 @@
 import path from 'node:path';
 
+import type {FormatterResult, LintMessage} from '../types';
+
 import Formatter from '../Formatter';
-import {LINT_SEVERITY, type FormatterResult, type LintMessage} from '../types';
+import {LINT_SEVERITY} from '../types';
 
 function relativePath(projectRoot: string, filePath: string): string {
     return path.relative(projectRoot, filePath) || filePath;

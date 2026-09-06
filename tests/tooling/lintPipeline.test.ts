@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'bun:test';
 
 import type {ESLintJSONResult} from '../../scripts/lint/eslint/ESLintLinter';
+import type {LintMessage, LinterResult} from '../../scripts/lint/types';
 
 import {normalizeESLintResults, parseESLintStdout} from '../../scripts/lint/eslint/ESLintLinter';
 import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
@@ -9,7 +10,7 @@ import Pipeline from '../../scripts/lint/LintPipeline';
 import {filterReactCompilerMessages} from '../../scripts/lint/processors/ReactCompilerFilter';
 import Seatbelt, {resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
 import {stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecated';
-import {LINT_SEVERITY, type LintMessage, type LinterResult} from '../../scripts/lint/types';
+import {LINT_SEVERITY} from '../../scripts/lint/types';
 
 function makeMessage(overrides: Partial<LintMessage> = {}): LintMessage {
     return {

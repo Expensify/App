@@ -14,7 +14,9 @@
 
 import {parse} from '@babel/parser';
 
-import BabelASTUtils, {type ASTNode} from './utils/BabelASTUtils';
+import type {ASTNode} from './utils/BabelASTUtils';
+
+import BabelASTUtils from './utils/BabelASTUtils';
 
 /** Rule id of the Onyx.connect() ban, as exposed through eslint-plugin-rulesdir. */
 const BANNED_RULE_ID = 'rulesdir/no-onyx-connect';
