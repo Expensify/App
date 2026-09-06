@@ -4337,8 +4337,19 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.transparent,
         },
 
+        // A ghost button takes the default button surface on hover. `hoverComponentBG` is what the design
+        // comment sampled, but that was over a plain white page; the chat surface behind this prompt is
+        // warmer, and the token disappears into it.
         conciergeFeedbackThumbHovered: {
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
+        // No line height on purpose. Emoji glyphs carry a tall ascent, so a line box stretched to the
+        // thumb's height centres the box but leaves the glyph riding high inside it. Letting the text keep
+        // its natural height hands the centring back to the container's flex alignment.
+        conciergeFeedbackThumbEmoji: {
+            fontSize: variables.fontSizeNormal,
+            textAlign: 'center',
         },
 
         emojiReactionListHeader: {

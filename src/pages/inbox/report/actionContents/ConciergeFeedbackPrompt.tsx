@@ -8,7 +8,6 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {findEmojiByName, hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
@@ -52,7 +51,6 @@ function hasReactedWithEmoji(emoji: Emoji, reactions: OnyxEntry<ReportActionReac
  */
 function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -110,7 +108,7 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_FEEDBACK.THUMB}
             >
-                <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle()]}>{emoji.code}</Text>
+                <Text style={styles.conciergeFeedbackThumbEmoji}>{emoji.code}</Text>
             </PressableWithFeedback>
         </Tooltip>
     );
