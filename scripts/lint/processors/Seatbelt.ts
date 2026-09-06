@@ -1,7 +1,7 @@
 import {file} from 'bun';
 import {rename} from 'node:fs/promises';
-import path from 'node:path';
 
+import FileUtils from '../../utils/FileUtils';
 import TSVUtils from '../../utils/TSVUtils';
 import Processor from '../Processor';
 import {LINT_SEVERITY, type LintMessage, type ProcessorContext, type SeatbeltOptions, type SeatbeltRuleSet} from '../types';
@@ -56,20 +56,6 @@ function parseMaxErrors(lines: SeatbeltFileLine[]): Map<string, number> {
         maxErrors.set(row.ruleID, row.maxErrors);
     }
     return maxErrors;
-}
-
-function toRelativePath(seatbeltFile: string, filename: string): string {
-    if (!path.isAbsolute(filename)) {
-        return filename;
-    }
-    return path.relative(path.dirname(seatbeltFile), filename);
-}
-
-function toAbsolutePath(seatbeltFile: string, filename: string): string {
-    if (path.isAbsolute(filename)) {
-        return filename;
-    }
-    return path.resolve(path.dirname(seatbeltFile), filename);
 }
 
 function parseSeatbeltTSV(text: string): {data: Map<string, SeatbeltFileData>; comments: string} {
@@ -215,7 +201,7 @@ function messageFrozenUnderMaxErrorCount(message: LintMessage, seatbeltFilename:
 }
 
 function transformMessages(options: SeatbeltOptions, data: Map<string, SeatbeltFileData>, filename: string, messages: LintMessage[]): LintMessage[] {
-    const relativeFilename = toRelativePath(options.seatbeltFile, filename);
+    const relativeFilename = FileUtils.toRelativePath(options.seatbeltFile, filename);
     const ruleToMaxErrorCount = getMaxErrors(data, relativeFilename);
     const allowIncrease = options.allowIncreaseRules === 'all' || options.allowIncreaseRules.size > 0;
     if (!ruleToMaxErrorCount && !allowIncrease) {
@@ -298,7 +284,7 @@ function updateMaxErrors(
     const removedRules = new Set<string>();
     let increasedRulesCount = 0;
     let decreasedRulesCount = 0;
-    const relativeFilename = toRelativePath(options.seatbeltFile, filename);
+    const relativeFilename = FileUtils.toRelativePath(options.seatbeltFile, filename);
     getMaxErrors(data, relativeFilename);
     const existing = data.get(relativeFilename)?.maxErrors;
     const maxErrors = new Map(existing ?? []);
@@ -445,7 +431,7 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
     let anyChanged = false;
 
     for (const [filename, fileMessages] of byFile) {
-        const relativeFilename = toRelativePath(options.seatbeltFile, filename);
+        const relativeFilename = FileUtils.toRelativePath(options.seatbeltFile, filename);
         const maxErrorsBefore = getMaxErrors(data, relativeFilename);
         const maxErrorsBeforeCopy = maxErrorsBefore ? new Map(maxErrorsBefore) : undefined;
         const after = transformMessages(options, data, filename, fileMessages);
@@ -463,7 +449,7 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
     // Native fix for justjake/eslint-seatbelt#15 — previously a post-hoc pass in scripts/lint.ts.
     let pruned = 0;
     for (const relativeFilename of [...data.keys()]) {
-        const absolute = toAbsolutePath(options.seatbeltFile, relativeFilename);
+        const absolute = FileUtils.toAbsolutePath(options.seatbeltFile, relativeFilename);
         if (await file(absolute).exists()) {
             continue;
         }
@@ -540,16 +526,5 @@ function resolveSeatbeltOptions(projectRoot: string, env: NodeJS.ProcessEnv = pr
 }
 
 export default Seatbelt;
-export {
-    applySeatbelt,
-    canonicalizeMessages,
-    compareMessages,
-    countRuleIDs,
-    parseSeatbeltTSV,
-    resolveSeatbeltOptions,
-    serializeSeatbeltTSV,
-    toRelativePath,
-    transformMessages,
-    updateMaxErrors,
-};
+export {applySeatbelt, canonicalizeMessages, compareMessages, countRuleIDs, parseSeatbeltTSV, resolveSeatbeltOptions, serializeSeatbeltTSV, transformMessages, updateMaxErrors};
 export type {SeatbeltApplyResult, SeatbeltFileData};

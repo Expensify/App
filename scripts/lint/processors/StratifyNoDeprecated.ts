@@ -3,42 +3,12 @@ import {file} from 'bun';
 
 import type {LintMessage} from '../types';
 
+import BabelASTUtils, {type ASTNode} from '../../utils/BabelASTUtils';
 import Processor from '../Processor';
 
 const NO_DEPRECATED_RULE_ID = '@typescript-eslint/no-deprecated';
 const NON_CHILD_KEYS = new Set(['loc', 'start', 'end', 'extra', 'leadingComments', 'trailingComments', 'innerComments']);
 const MEMBER_LIKE_TYPES = new Set(['MemberExpression', 'OptionalMemberExpression', 'TSQualifiedName']);
-
-type ASTNode = {
-    type: string;
-    start: number;
-    end: number;
-    [key: string]: unknown;
-};
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null;
-}
-
-const isASTNode = (value: unknown): value is ASTNode => {
-    if (!isRecord(value)) {
-        return false;
-    }
-    return typeof value.type === 'string' && typeof value.start === 'number' && typeof value.end === 'number';
-};
-
-function* astChildren(node: ASTNode): Generator<ASTNode> {
-    for (const [key, value] of Object.entries(node)) {
-        if (NON_CHILD_KEYS.has(key)) {
-            continue;
-        }
-        for (const child of Array.isArray(value) ? value : [value]) {
-            if (isASTNode(child)) {
-                yield child;
-            }
-        }
-    }
-}
 
 function lineColumnToOffset(source: string, line: number, column: number): number {
     let lineStart = 0;
@@ -63,7 +33,7 @@ function findASTPathAtOffset(root: ASTNode, offset: number): ASTNode[] | null {
             return path;
         }
         let descended = false;
-        for (const child of astChildren(current)) {
+        for (const child of BabelASTUtils.children(current, NON_CHILD_KEYS)) {
             if (offset >= child.start && offset <= child.end) {
                 path.push(child);
                 descended = true;
@@ -91,7 +61,7 @@ function topOfMemberChain(path: ASTNode[]): ASTNode {
 function parseSourceOrNull(source: string): ASTNode | null {
     try {
         const parsed: unknown = parse(source, {sourceType: 'module', plugins: ['typescript', 'jsx']});
-        return isASTNode(parsed) ? parsed : null;
+        return BabelASTUtils.isASTNode(parsed) ? parsed : null;
     } catch {
         return null;
     }

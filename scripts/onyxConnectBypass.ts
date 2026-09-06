@@ -14,6 +14,8 @@
 
 import {parse} from '@babel/parser';
 
+import BabelASTUtils, {type ASTNode} from './utils/BabelASTUtils';
+
 /** Rule id of the Onyx.connect() ban, as exposed through eslint-plugin-rulesdir. */
 const BANNED_RULE_ID = 'rulesdir/no-onyx-connect';
 
@@ -42,13 +44,6 @@ type DirectiveMatch = {
     args: string;
 };
 
-type ASTNode = {
-    type: string;
-    start: number;
-    end: number;
-    [key: string]: unknown;
-};
-
 type BabelComment = {
     type: string;
     value: string;
@@ -56,27 +51,22 @@ type BabelComment = {
     end: number | null;
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null;
-}
-
-const isASTNode = (value: unknown): value is ASTNode => {
-    if (!isRecord(value)) {
-        return false;
-    }
-    return typeof value.type === 'string' && typeof value.start === 'number' && typeof value.end === 'number';
-};
-
 function parseSource(source: string): {root: ASTNode; comments: BabelComment[]} | null {
     try {
         const parsed: unknown = parse(source, {sourceType: 'unambiguous', plugins: ['typescript', 'jsx'], errorRecovery: true, attachComment: true});
-        if (!isASTNode(parsed) || !isRecord(parsed)) {
+        if (!BabelASTUtils.isASTNode(parsed) || !BabelASTUtils.isRecord(parsed)) {
             return null;
         }
         const rawComments = parsed.comments;
         const comments = Array.isArray(rawComments)
             ? rawComments.filter((comment): comment is BabelComment => {
-                  return isRecord(comment) && typeof comment.type === 'string' && typeof comment.value === 'string' && typeof comment.start === 'number' && typeof comment.end === 'number';
+                  return (
+                      BabelASTUtils.isRecord(comment) &&
+                      typeof comment.type === 'string' &&
+                      typeof comment.value === 'string' &&
+                      typeof comment.start === 'number' &&
+                      typeof comment.end === 'number'
+                  );
               })
             : [];
         return {root: parsed, comments};
@@ -111,39 +101,26 @@ function directiveArgs(match: DirectiveMatch): string {
 const NON_CHILD_KEYS = new Set(['loc', 'start', 'end', 'extra', 'leadingComments', 'trailingComments', 'innerComments', 'comments']);
 const WRAPPER_TYPES = new Set(['ParenthesizedExpression', 'TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSTypeAssertion']);
 
-function* astChildren(node: ASTNode): Generator<ASTNode> {
-    for (const [key, value] of Object.entries(node)) {
-        if (NON_CHILD_KEYS.has(key)) {
-            continue;
-        }
-        for (const child of Array.isArray(value) ? value : [value]) {
-            if (isASTNode(child)) {
-                yield child;
-            }
-        }
-    }
-}
-
 function unwrapExpression(node: ASTNode): ASTNode {
     let current = node;
-    while (WRAPPER_TYPES.has(current.type) && isASTNode(current.expression)) {
+    while (WRAPPER_TYPES.has(current.type) && BabelASTUtils.isASTNode(current.expression)) {
         current = current.expression;
     }
     return current;
 }
 
 function isOnyxConnectCall(node: ASTNode): boolean {
-    if (node.type !== 'CallExpression' || !isASTNode(node.callee)) {
+    if (node.type !== 'CallExpression' || !BabelASTUtils.isASTNode(node.callee)) {
         return false;
     }
     const callee = node.callee;
     if (callee.type !== 'MemberExpression' || callee.optional === true || callee.computed === true) {
         return false;
     }
-    if (!isASTNode(callee.property) || callee.property.type !== 'Identifier' || callee.property.name !== 'connect') {
+    if (!BabelASTUtils.isASTNode(callee.property) || callee.property.type !== 'Identifier' || callee.property.name !== 'connect') {
         return false;
     }
-    if (!isASTNode(callee.object)) {
+    if (!BabelASTUtils.isASTNode(callee.object)) {
         return false;
     }
     const object = unwrapExpression(callee.object);
@@ -156,7 +133,7 @@ function collectOnyxConnectCallOffsets(root: ASTNode): number[] {
         if (isOnyxConnectCall(node)) {
             offsets.push(node.start);
         }
-        for (const child of astChildren(node)) {
+        for (const child of BabelASTUtils.children(node, NON_CHILD_KEYS)) {
             visit(child);
         }
     };
