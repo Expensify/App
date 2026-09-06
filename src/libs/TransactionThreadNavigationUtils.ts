@@ -34,8 +34,8 @@ type ResolveReportContext = {
     currentUserAccountID: number;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     conciergeChat: OnyxEntry<Report>;
-    isSelfTourViewed?: boolean;
-    hasCompletedGuidedSetupFlow?: boolean;
+    isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
 };
 
 /**
@@ -89,6 +89,8 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
     const transactionThreadReport = createTransactionThreadReport({
         introSelected: context.introSelected,
         conciergeChat: context.conciergeChat,
+        isSelfTourViewed: context.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: context.hasCompletedGuidedSetupFlow,
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
         betas: context.betas,
@@ -96,8 +98,6 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         iouReportAction: iouAction,
         transaction,
         personalDetails: context.personalDetails,
-        isSelfTourViewed: context.isSelfTourViewed,
-        hasCompletedGuidedSetupFlow: context.hasCompletedGuidedSetupFlow,
     });
     return transactionThreadReport?.reportID ?? reportID;
 }
@@ -144,6 +144,8 @@ function getOrCreateTransactionThreadReportID(
     const transactionThreadReport = createTransactionThreadReport({
         introSelected: context.introSelected,
         conciergeChat: context.conciergeChat,
+        isSelfTourViewed: context.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: context.hasCompletedGuidedSetupFlow,
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
         betas: context.betas,

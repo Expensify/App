@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     Card,
@@ -66,7 +67,6 @@ import {toLocaleOrdinal} from './LocaleDigitUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList} from './Localize';
 import Log from './Log';
-import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
@@ -299,6 +299,10 @@ function isSubmittedAction(reportAction: OnyxInputOrEntry<ReportAction>): report
 
 function isSubmittedAndClosedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED);
+}
+
+function isAddExpenseOnSubmittedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED);
 }
 
 function isDynamicExternalWorkflowSubmitAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> {
@@ -4742,6 +4746,7 @@ function getCardIssuedMessage({
     shouldRenderHTML = false,
     shouldNavigateToCardDetails = false,
     policyID = '-1',
+    buildDynamicRoute,
     expensifyCard,
     companyCard,
     translate,
@@ -4751,6 +4756,7 @@ function getCardIssuedMessage({
     shouldRenderHTML?: boolean;
     shouldNavigateToCardDetails?: boolean;
     policyID?: string;
+    buildDynamicRoute: (dynamicRouteSuffixWithParams: string) => Route;
     expensifyCard?: Card;
     companyCard?: Card;
     translate: LocaleContextProps['translate'];
@@ -4763,7 +4769,7 @@ function getCardIssuedMessage({
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
 
     const navigateRoute = shouldNavigateToCardDetails
-        ? createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(String(cardID), policyID))
+        ? buildDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(String(cardID), policyID))
         : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink = (expensifyCardLinkText: string) =>
@@ -5116,6 +5122,7 @@ export {
     isTripPreview,
     isHoldAction,
     isWhisperAction,
+    isAddExpenseOnSubmittedAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isDynamicExternalWorkflowSubmitAction,

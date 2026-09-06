@@ -23,7 +23,6 @@ import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -31,6 +30,7 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {startTransition, useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -126,10 +126,9 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const personalDetails = usePersonalDetails();
 
     // The seeded list is a snapshot of what some other screen was showing, and it goes stale: deleting an expense
@@ -268,7 +267,16 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         return backTo;
     };
 
-    const resolveContext = {introSelected, conciergeChat, betas, currentUserEmail: email, currentUserAccountID: accountID, personalDetails, isSelfTourViewed, hasCompletedGuidedSetupFlow};
+    const resolveContext = {
+        introSelected,
+        conciergeChat,
+        betas,
+        currentUserEmail: email,
+        currentUserAccountID: accountID,
+        personalDetails,
+        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    };
 
     /**
      * Resolves which report shows a sibling expense, creating its transaction thread only when one doesn't exist.

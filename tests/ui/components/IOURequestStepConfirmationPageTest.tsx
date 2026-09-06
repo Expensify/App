@@ -1140,7 +1140,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 harvesting: {enabled: false},
             };
 
-            const isReportOutstandingSpy = jest.spyOn(require('@libs/ReportUtils'), 'isReportOutstanding').mockReturnValue(true);
+            const canAddTransactionSpy = jest.spyOn(require('@libs/ReportUtils'), 'canAddTransaction').mockReturnValue(true);
 
             try {
                 await act(async () => {
@@ -1204,7 +1204,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 const params = requestMoneyMock.mock.calls.at(0)?.at(0);
                 expect(params?.report?.reportID).toBe(transactionReportID);
             } finally {
-                isReportOutstandingSpy.mockRestore();
+                canAddTransactionSpy.mockRestore();
             }
         });
     });
