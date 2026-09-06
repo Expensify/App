@@ -43,6 +43,41 @@ function hasReactedWithEmoji(emoji: Emoji, reactions: OnyxEntry<ReportActionReac
     return [reactions?.[emoji.name], emoji.hexcode ? reactions?.[emoji.hexcode] : undefined].some((entry) => !!entry && hasAccountIDEmojiReacted(accountID, entry.users));
 }
 
+type ConciergeFeedbackThumbProps = {
+    /** The emoji this thumb reacts with */
+    emoji: Emoji;
+
+    /** Tooltip and accessibility label */
+    label: string;
+
+    /** Called when the thumb is pressed */
+    onPress: () => void;
+};
+
+/** One thumb in the feedback prompt: a ghost button carrying the emoji it will react with. */
+function ConciergeFeedbackThumb({emoji, label, onPress}: ConciergeFeedbackThumbProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <Tooltip text={label}>
+            <PressableWithFeedback
+                style={[styles.conciergeFeedbackThumb, styles.userSelectNone]}
+                hoverStyle={styles.conciergeFeedbackThumbHovered}
+                pressStyle={styles.conciergeFeedbackThumbHovered}
+                onPress={onPress}
+                accessibilityLabel={label}
+                role={CONST.ROLE.BUTTON}
+                // The thumb already fills on press, so the default dimming would double up on that feedback.
+                pressDimmingValue={1}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_FEEDBACK.THUMB}
+            >
+                <Text style={styles.conciergeFeedbackThumbEmoji}>{emoji.code}</Text>
+            </PressableWithFeedback>
+        </Tooltip>
+    );
+}
+
 /**
  * Invites a thumbs up or down on the newest Concierge answer. Both thumbs write a real emoji reaction and nothing
  * else: the backend reads the reaction and, for a thumbs down, opens the feedback thread itself. Because the prompt
@@ -94,33 +129,22 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
         return null;
     }
 
-    const renderThumb = (emoji: Emoji, label: string, shouldThank: boolean) => (
-        <Tooltip text={label}>
-            <PressableWithFeedback
-                style={[styles.conciergeFeedbackThumb, styles.userSelectNone]}
-                hoverStyle={styles.conciergeFeedbackThumbHovered}
-                pressStyle={styles.conciergeFeedbackThumbHovered}
-                onPress={callFunctionIfActionIsAllowed(() => rate(emoji, shouldThank))}
-                accessibilityLabel={label}
-                role={CONST.ROLE.BUTTON}
-                // The thumb already fills on press, so the default dimming would double up on that feedback.
-                pressDimmingValue={1}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_FEEDBACK.THUMB}
-            >
-                <Text style={styles.conciergeFeedbackThumbEmoji}>{emoji.code}</Text>
-            </PressableWithFeedback>
-        </Tooltip>
-    );
-
     return (
         <ActionableItemButtons
             layout="horizontal"
             style={styles.alignItemsCenter}
         >
             <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.prompt')}</Text>
-            {renderThumb(thumbsUp, translate('concierge.feedback.useful'), true)}
-            {renderThumb(thumbsDown, translate('concierge.feedback.notUseful'), false)}
+            <ConciergeFeedbackThumb
+                emoji={thumbsUp}
+                label={translate('concierge.feedback.useful')}
+                onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp, true))}
+            />
+            <ConciergeFeedbackThumb
+                emoji={thumbsDown}
+                label={translate('concierge.feedback.notUseful')}
+                onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown, false))}
+            />
         </ActionableItemButtons>
     );
 }
