@@ -1538,9 +1538,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
         icon: 'Flag',
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID}) =>
+        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID, currentUserAccountID}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            canFlagReportAction(reportAction, reportID) &&
+            canFlagReportAction(reportAction, reportID, currentUserAccountID) &&
             !isArchivedRoom &&
             !isChronosReport &&
             reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,

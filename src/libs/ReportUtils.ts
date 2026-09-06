@@ -10541,9 +10541,8 @@ function chatIncludesChronosWithID(reportOrID?: string | Report): boolean {
  * - It's a welcome message whisper
  * - It's an ADD_COMMENT that is not an attachment
  */
-// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined, currentUserAccountID?: number): boolean {
-    const isCurrentUserAction = reportAction?.actorAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
+function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined, currentUserAccountID: number | undefined): boolean {
+    const isCurrentUserAction = reportAction?.actorAccountID === currentUserAccountID;
     if (isWhisperAction(reportAction)) {
         // Allow flagging whispers that are sent by other users
         if (!isCurrentUserAction && reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
@@ -10576,9 +10575,15 @@ function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, repor
 /**
  * Whether flag comment page should show
  */
-function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxInputOrEntry<Report>, conciergeReportID: string | undefined, isReportArchived = false): boolean {
+function shouldShowFlagComment(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    report: OnyxInputOrEntry<Report>,
+    conciergeReportID: string | undefined,
+    isReportArchived: boolean,
+    currentUserAccountID: number | undefined,
+): boolean {
     return (
-        canFlagReportAction(reportAction, report?.reportID) &&
+        canFlagReportAction(reportAction, report?.reportID, currentUserAccountID) &&
         !isArchivedNonExpenseReport(report, isReportArchived) &&
         !chatIncludesChronos(report) &&
         !isConciergeChatReport(report, conciergeReportID) &&
