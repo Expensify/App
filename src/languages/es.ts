@@ -515,8 +515,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         feedback: {
             prompt: '¿Te resultó útil esa respuesta?',
-            helpful: 'Útil',
-            notHelpful: 'No útil',
+            useful: 'Respuesta útil',
+            notUseful: 'Respuesta no útil',
             thanks: '¡Gracias por tus comentarios!',
         },
     },

@@ -523,8 +523,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         feedback: {
             prompt: '这个回答有帮助吗？',
-            helpful: '有帮助',
-            notHelpful: '没有帮助',
+            useful: '有用的回答',
+            notUseful: '没用的回答',
             thanks: '感谢您的反馈！',
         },
     },

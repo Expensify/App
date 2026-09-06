@@ -525,8 +525,8 @@ const translations: TranslationDeepObject<typeof en> = {
         enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
         feedback: {
             prompt: 'Cette réponse vous a-t-elle été utile ?',
-            helpful: 'Utile',
-            notHelpful: 'Pas utile',
+            useful: 'Réponse utile',
+            notUseful: 'Réponse pas utile',
             thanks: 'Merci pour votre retour !',
         },
     },

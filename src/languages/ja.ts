@@ -527,8 +527,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         feedback: {
             prompt: 'この回答は役に立ちましたか？',
-            helpful: '役に立った',
-            notHelpful: '役に立たなかった',
+            useful: '役に立った回答',
+            notUseful: '役に立たなかった回答',
             thanks: 'フィードバックありがとうございます！',
         },
     },

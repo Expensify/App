@@ -99,7 +99,9 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     const renderThumb = (emoji: Emoji, label: string, shouldThank: boolean) => (
         <Tooltip text={label}>
             <PressableWithFeedback
-                style={({hovered, pressed}) => [styles.conciergeFeedbackThumb, styles.userSelectNone, (hovered || pressed) && styles.conciergeFeedbackThumbHovered]}
+                style={[styles.conciergeFeedbackThumb, styles.userSelectNone]}
+                hoverStyle={styles.conciergeFeedbackThumbHovered}
+                pressStyle={styles.conciergeFeedbackThumbHovered}
                 onPress={callFunctionIfActionIsAllowed(() => rate(emoji, shouldThank))}
                 accessibilityLabel={label}
                 role={CONST.ROLE.BUTTON}
@@ -119,8 +121,8 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
             style={styles.alignItemsCenter}
         >
             <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.prompt')}</Text>
-            {renderThumb(thumbsUp, translate('concierge.feedback.helpful'), true)}
-            {renderThumb(thumbsDown, translate('concierge.feedback.notHelpful'), false)}
+            {renderThumb(thumbsUp, translate('concierge.feedback.useful'), true)}
+            {renderThumb(thumbsDown, translate('concierge.feedback.notUseful'), false)}
         </ActionableItemButtons>
     );
 }

@@ -528,8 +528,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         feedback: {
             prompt: 'Ήταν χρήσιμη αυτή η απάντηση;',
-            helpful: 'Χρήσιμη',
-            notHelpful: 'Μη χρήσιμη',
+            useful: 'Χρήσιμη απάντηση',
+            notUseful: 'Μη χρήσιμη απάντηση',
             thanks: 'Ευχαριστούμε για τα σχόλιά σας!',
         },
     },

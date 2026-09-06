@@ -524,8 +524,8 @@ const translations: TranslationDeepObject<typeof en> = {
         enableNotifications: {prompt: 'Wil je een melding krijgen wanneer Concierge reageert?', cta: 'Melden'},
         feedback: {
             prompt: 'Was dat antwoord nuttig?',
-            helpful: 'Nuttig',
-            notHelpful: 'Niet nuttig',
+            useful: 'Nuttig antwoord',
+            notUseful: 'Niet nuttig antwoord',
             thanks: 'Bedankt voor je feedback!',
         },
     },
