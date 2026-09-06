@@ -7,25 +7,25 @@ internalScope: Audience is Expensify members. Covers how connecting company card
 
 # Understand How Credit Card Connections Work
 
-Connecting a credit card lets Expensify automatically import transactions so you don't have to create expenses manually. Once an transaction imports, it appears as an expense and can be added to a report. 
+Expensify connects to the bank or card provider that issued your credit card to automatically import your card transactions. When a transaction imports into Expensify, it becomes an expense that can be added to a report.
 
-Expensify supports two credit card connection types: company cards and personal cards. The way a card is connected determines where the imported expenses are created and how they appear in Expensify. 
+Expensify supports two types of credit card connections: company cards and personal cards. The connection type determines how the card and its imported expenses are managed in Expensify.
 
 ---
 
-## How company cards work
+## How company card connections work
 
 Company cards are connected at the workspace level and then assigned to individual workspace members. Once a card is assigned to a member, the transactions import directly into the member's Expensify account.
 
 Company card expenses appear with a lock and card icon, identifying them as company card expenses.
 
-## How personal cards work 
+## How personal card connections work 
 
-Personal cards are connected in your wallet, rather than on a workspace. Transactions from a personal card import into your own account only.
+Personal cards are connected in your wallet, rather than on a workspace. Transactions from a personal card import into your own account.
 
 Personal card expenses appear with a card icon, identifying them as personal card expenses.
 
-## How company cards and personal cards differ
+## How company card and personal card connections differ
 
 | | Company cards | Personal cards |
 |---|---|---|
@@ -33,10 +33,10 @@ Personal card expenses appear with a card icon, identifying them as personal car
 | Where the expenses import | The account of the workspace member the card is assigned to | The account of the member who connected the card in their wallet |
 | How imported expenses appear | With a card and lock icon |  With a card icon |
 
-# Related articles 
+## Related articles 
 
-- Connect personal cards
-- Understand Company Card Connection Types
-- Check Supported Banks 
+- [Connect Personal Cards](/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Connect-Personal-Cards)
+- [Learn About Company Card Connections](/articles/new-expensify/connect-credit-cards/connect-company-cards/Learn-About-Company-Card-Connections)
+- [Check Supported Banks](/articles/new-expensify/connect-credit-cards/Check-Supported-Banks)
 
 
