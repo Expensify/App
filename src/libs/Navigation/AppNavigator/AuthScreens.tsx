@@ -73,6 +73,7 @@ import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import SubmitPlanWelcomeModalNavigator from './Navigators/SubmitPlanWelcomeModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import {loadRightModalNavigator, loadSearchRouterPage} from './searchRouterLazyLoaders';
+import SubmitIntentDeeplinkHandler from './SubmitIntentDeeplinkHandler';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
@@ -165,6 +166,7 @@ function AuthScreens() {
         <>
             <AuthScreensInitHandler />
             <SearchRouterWarmup />
+            <SubmitIntentDeeplinkHandler />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />

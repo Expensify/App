@@ -1,12 +1,11 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
-import Navigation from '@libs/Navigation/Navigation';
+import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import {isCommuterExclusionEnabled, isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type Policy from '@src/types/onyx/Policy';
 import type PrivatePersonalDetails from '@src/types/onyx/PrivatePersonalDetails';
@@ -120,7 +119,7 @@ function useBlockDistanceRequest({policyID, isManualDistanceRequest = false, isO
                     if (modalAction !== ModalActions.CONFIRM) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+                    openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1);
                 });
                 return;
             }
