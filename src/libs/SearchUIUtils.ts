@@ -1174,9 +1174,9 @@ function getSuggestedSearchesVisibility(
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
 
-    Object.values(policies ?? {}).some((policy) => {
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy) {
-            return false;
+            continue;
         }
 
         const isPaidPolicy = isPaidGroupPolicy(policy);
@@ -1238,24 +1238,7 @@ function getSuggestedSearchesVisibility(
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
         shouldShowSpendOverTimeSuggestion ||= isPolicyEligibleForSpendOverTime(policy, currentUserEmail);
-
-        // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
-        return (
-            shouldShowSubmitSuggestion &&
-            shouldShowPaySuggestion &&
-            shouldShowApproveSuggestion &&
-            shouldShowExportSuggestion &&
-            shouldShowStatementsSuggestion &&
-            shouldShowUnapprovedCashSuggestion &&
-            shouldShowUnapprovedCardSuggestion &&
-            shouldShowExpensifyCardSuggestion &&
-            shouldShowReimbursementsSuggestion &&
-            shouldShowTopSpendersSuggestion &&
-            shouldShowTopCategoriesSuggestion &&
-            shouldShowTopMerchantsSuggestion &&
-            hasEligibleGroupPolicies
-        );
-    });
+    }
 
     return {
         visibility: {
