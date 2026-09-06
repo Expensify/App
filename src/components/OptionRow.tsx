@@ -18,6 +18,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import AccountAvatar from './Avatar/connected/AccountAvatar';
+import ReportAvatar from './Avatar/connected/ReportAvatar';
 import {AvatarTooltipsProvider} from './Avatar/tooltips/AvatarTooltipContext';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
@@ -25,7 +26,6 @@ import Icon from './Icon';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import ReportActionAvatars from './ReportActionAvatars';
 import Text from './Text';
 
 type OptionDataWithOptionalReportID = Omit<OptionData, 'reportID'> & {reportID?: string};
@@ -209,7 +209,7 @@ function OptionRow({
                                                 size={CONST.AVATAR_SIZE.DEFAULT}
                                             />
                                         ) : (
-                                            <ReportActionAvatars
+                                            <ReportAvatar
                                                 subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                                 reportID={reportID}
                                                 size={CONST.AVATAR_SIZE.DEFAULT}

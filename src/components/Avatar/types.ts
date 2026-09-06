@@ -1,8 +1,8 @@
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import type {AvatarSizeName} from '@styles/utils';
+import type {AvatarShape, AvatarSizeName} from '@styles/utils';
 
-import type {AvatarType, Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 
@@ -22,12 +22,6 @@ type AvatarCommonProps = {
     /** Set the size of Avatar */
     size?: AvatarSizeName;
 
-    /**
-     * The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'
-     * For workspace avatars this fill color is ignored — the colors are derived from the avatarID prop instead.
-     */
-    fill?: string;
-
     /** Test ID for the Avatar component */
     testID?: string;
 };
@@ -36,8 +30,8 @@ type AvatarPrimitivesCommonProps = {
     /** Size of Avatar */
     size: AvatarSizeName;
 
-    /** Denotes whether it is an avatar or a workspace avatar */
-    type: AvatarType;
+    /** Shape of the avatar: round for users, rounded square for workspaces */
+    shape: AvatarShape;
 };
 
 type AvatarIcon = Icon & {
