@@ -13,7 +13,7 @@ If your bank isn't supported, you can [import company card transactions from a s
 
 ---
 
-## Who can set up a direct connection for company cards
+## Who can set up a direct connection
 
 To set up a direct connection, you must: 
 
