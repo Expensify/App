@@ -30,11 +30,9 @@ type UsePaginatedReportActionsOptions = {
     shouldSnapshotInitialLastReadTime?: boolean;
 
     /**
-     * When true, the linked `reportActionID` is known to live in the one-transaction thread that gets merged into this
-     * report, so we drop the pagination anchor and render the newest window (the merged view surfaces the linked action).
-     * This must NOT be set merely because the action is absent from this report's cache — an action that belongs to this
-     * report but hasn't been fetched yet still needs the anchor so the list scrolls to it once `OpenReport` hydrates it
-     * (https://github.com/Expensify/App/issues/86919).
+     * When true, the linked `reportActionID` is known to live in the transaction thread merged into this report, so the
+     * anchor is dropped and the newest window is rendered instead. Must not be set merely because the action is absent
+     * from this report's cache — an action that is still loading needs the anchor to scroll to. See issue #86919.
      */
     isLinkedActionInMergedTransactionThread?: boolean;
 };
@@ -81,13 +79,9 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         }
 
         if (reportActionID) {
-            // Only drop the anchor when the linked action is known to live in the one-transaction thread merged into this
-            // report. There getContinuousChain would otherwise return an empty page (the action isn't in this report's own
-            // actions), hiding the parent-level "Submitted" system message; rendering the newest window instead lets the
-            // merged view render and ReportActionsList's initialScrollKey anchors to the linked message. We must NOT drop the
-            // anchor just because the action is absent from this report's cache — an action that belongs to this report but
-            // hasn't loaded yet still needs the anchor so the list scrolls to it once OpenReport hydrates it
-            // (https://github.com/Expensify/App/issues/86919).
+            // Anchoring to an action that isn't in this report returns an empty page, hiding the parent's "Submitted"
+            // message. Rendering the newest window instead lets the merged view show it, and initialScrollKey still
+            // anchors to the linked message.
             return isLinkedActionInMergedTransactionThread ? undefined : reportActionID;
         }
 

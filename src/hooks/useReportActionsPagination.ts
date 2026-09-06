@@ -1,6 +1,6 @@
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getCombinedReportActions, getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getCombinedReportActions, getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
@@ -48,10 +48,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
-    // Resolve whether the linked action lives in the one-transaction thread that gets merged into this report. Only in that
-    // case should usePaginatedReportActions drop the pagination anchor — dropping it merely because the action is absent from
-    // this report's cache would break the initial scroll-to for a valid linked action that simply hasn't been fetched into
-    // this report yet (e.g. an older message). A non-one-transaction report resolves to undefined here, so its anchor is kept.
+    // Only drop the pagination anchor when the linked action really lives in the merged transaction thread. Dropping it just
+    // because the action is missing from this report's cache would break the scroll-to for an action that is still loading.
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
     const [reportActionsForThreadCheck] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const linkedActionTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsForThreadCheck ?? {}, isOffline);
@@ -97,9 +95,23 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, thread.transactionThreadReport, getCurrencyDecimals],
     );
 
+    // useTransactionThread resolves the thread from the paginated window, so it can come back empty when the IOU action sits
+    // in an older page than the one we selected. Fall back to the full-collection resolution the anchor decision used, so the
+    // thread holding the linked action is still merged and can be scrolled to.
+    const mergedTransactionThreadReportID = thread.transactionThreadReportID ?? (isLinkedActionInMergedTransactionThread ? linkedActionTransactionThreadReportID : undefined);
+    const mergedTransactionThreadReportActions = useMemo(() => {
+        if (thread.transactionThreadReportActions) {
+            return thread.transactionThreadReportActions;
+        }
+        if (!isLinkedActionInMergedTransactionThread) {
+            return [];
+        }
+        return getSortedReportActionsForDisplay(linkedActionTransactionThreadActions, true, true, undefined, linkedActionTransactionThreadReportID);
+    }, [thread.transactionThreadReportActions, isLinkedActionInMergedTransactionThread, linkedActionTransactionThreadActions, linkedActionTransactionThreadReportID]);
+
     const reportActions = useMemo(
-        () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, thread.transactionThreadReportID ?? null, thread.transactionThreadReportActions ?? []) : []),
-        [reportActionsToDisplay, thread.transactionThreadReportActions, thread.transactionThreadReportID],
+        () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, mergedTransactionThreadReportID ?? null, mergedTransactionThreadReportActions) : []),
+        [reportActionsToDisplay, mergedTransactionThreadReportActions, mergedTransactionThreadReportID],
     );
 
     const allReportActionIDs = useMemo(() => allReportActions.map((action) => action.reportActionID), [allReportActions]);

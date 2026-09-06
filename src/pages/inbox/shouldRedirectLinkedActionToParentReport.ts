@@ -21,14 +21,10 @@ type ShouldRedirectLinkedActionToParentReportParams = {
 };
 
 /**
- * A copied message link always points at the report that owns the action, which for a one-transaction expense is the
- * transaction thread. Opening that thread directly would hide the parent's system messages (e.g. "Submitted") and the
- * expense report's action buttons, so while the thread is still its parent's only transaction we redirect to the parent
- * and render the combined view instead.
- *
- * Evaluating this at open time rather than when the link is copied is what keeps previously copied links working: once the
- * report gains a second expense this returns false, and the thread opens on its own — which is still where the action
- * lives, so the link never breaks. See https://github.com/Expensify/App/issues/86919.
+ * A copied message link points at the report that owns the action — the transaction thread for a one-transaction expense.
+ * While that thread is still the parent's only transaction we open the parent instead, so its "Submitted" message and
+ * action buttons are shown. Deciding this at open time keeps old links working: once the report gains a second expense
+ * this returns false and the link simply opens the thread, where the action still lives. See issue #86919.
  */
 function shouldRedirectLinkedActionToParentReport({report, parentReport, parentReportAction, reportActionIDFromRoute, isOffline}: ShouldRedirectLinkedActionToParentReportParams): boolean {
     if (!reportActionIDFromRoute || !report?.parentReportID || !isReportTransactionThread(report)) {

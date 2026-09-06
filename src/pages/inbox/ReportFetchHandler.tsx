@@ -440,16 +440,19 @@ function ReportFetchHandler() {
         Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportIDFromRoute, backTo: route.params?.backTo}), {forceReplace: true});
     }, [isFocused, report, reportIDFromRoute, route.params?.backTo, shouldReplaceWithExpenseReportRHP]);
 
-    // Redirect a linked action on a one-transaction thread to its parent expense report so the combined view (including the
-    // parent's "Submitted" system message) is what opens, and the list can anchor to the linked action. `forceReplace` keeps
-    // this out of the history stack so going back returns to wherever the link was opened from, not to the thread route.
-    // Bail while blurred for the same reason as the redirect above: this effect can fire late, after the user has moved on.
+    // Open a linked action on a one-transaction thread in the parent expense report instead, so the combined view shows the
+    // parent's "Submitted" message. `forceReplace` keeps the thread route out of history. Bail while blurred, as above.
     useEffect(() => {
         if (!shouldRedirectToParentReport || !isFocused || !report?.parentReportID) {
             return;
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID, reportActionIDFromRoute, undefined, route.params?.backTo), {forceReplace: true});
-    }, [shouldRedirectToParentReport, isFocused, report?.parentReportID, reportActionIDFromRoute, route.params?.backTo]);
+        // Stay in the Search RHP when the link was opened from there, so the search context isn't lost.
+        const parentRoute =
+            route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT
+                ? ROUTES.SEARCH_REPORT.getRoute({reportID: report.parentReportID, reportActionID: reportActionIDFromRoute, backTo: route.params?.backTo})
+                : ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID, reportActionIDFromRoute, undefined, route.params?.backTo);
+        Navigation.navigate(parentRoute, {forceReplace: true});
+    }, [shouldRedirectToParentReport, isFocused, report?.parentReportID, reportActionIDFromRoute, route.name, route.params?.backTo]);
 
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.

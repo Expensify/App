@@ -1498,9 +1498,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportAction, originalReportID}) => {
             getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = reportAction?.reportActionID;
-                // Always link to the report that actually owns the action so the link can never go stale. For a one-transaction
-                // expense that owner is the transaction thread; ReportFetchHandler redirects to the parent expense report at open
-                // time while that is still the report's only transaction, which is what surfaces the parent's "Submitted" message.
+                // Link to the report that owns the action so the link can never go stale. For a one-transaction expense
+                // ReportFetchHandler redirects to the parent report at open time. See issue #86919.
                 Clipboard.setString(`${environmentURL}/r/${originalReportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
