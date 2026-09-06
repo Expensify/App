@@ -25,7 +25,7 @@ type WorkspaceAvatarProps = AvatarCommonProps & {
 };
 
 /** Renders a workspace avatar, falling back to a default icon derived from the workspace name. */
-function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerStyles, size = CONST.AVATAR_SIZE.DEFAULT, fill, name, avatarID, testID}: WorkspaceAvatarProps) {
+function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerStyles, size = CONST.AVATAR_SIZE.DEFAULT, name, avatarID, testID}: WorkspaceAvatarProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const defaultAvatars = useDefaultAvatars();
@@ -46,7 +46,7 @@ function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerSt
                 <AvatarImage
                     avatarSource={avatarSource}
                     size={size}
-                    type={CONST.ICON_TYPE_WORKSPACE}
+                    shape={CONST.AVATAR_SHAPE.ROUNDED_SQUARE}
                     imageStyles={imageStyles}
                     imageContainerAdditionalStyles={iconAdditionalStyles}
                     onImageError={onImageError}
@@ -65,12 +65,12 @@ function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerSt
             <AvatarIcon
                 avatarSource={avatarSource}
                 size={size}
-                type={CONST.ICON_TYPE_WORKSPACE}
+                shape={CONST.AVATAR_SHAPE.ROUNDED_SQUARE}
                 iconContainerStyles={imageStyles}
                 iconAdditionalStyles={iconAdditionalStyles}
                 fallbackAvatarTestID={fallbackAvatarTestID}
                 iconColors={iconColors}
-                fill={iconColors?.fill ?? (hasImageError ? theme.offline : fill)}
+                fill={iconColors?.fill ?? (hasImageError ? theme.offline : undefined)}
             />
         </AvatarContainer>
     );

@@ -8,7 +8,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -72,6 +71,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         anchorAlignment = defaultAnchorAlignment,
         buttonRef,
         onPress,
+        onPrimaryPress,
         options,
         onOptionSelected,
         onSubItemSelected,
@@ -131,8 +131,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         setSelectedItemIndex(defaultSelectedIndex);
     }, [defaultSelectedIndex]);
 
-    const {paddingBottom} = useSafeAreaPaddings(true);
-
     const {calculatePopoverPosition} = usePopoverPosition();
 
     useEffect(() => {
@@ -167,7 +165,11 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     setIsMenuVisible(!isMenuVisible);
                     return;
                 }
-                if (selectedItem?.value) {
+                if (onPrimaryPress) {
+                    onPrimaryPress();
+                } else if (selectedItem?.onSelected) {
+                    selectedItem.onSelected();
+                } else if (selectedItem?.value) {
                     onPress(e, selectedItem.value);
                 }
             } else {
@@ -194,6 +196,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (!isSplitButton) {
             setIsMenuVisible(!isMenuVisible);
+        } else if (onPrimaryPress) {
+            onPrimaryPress();
+        } else if (selectedItem?.onSelected) {
+            // Honor the item's own handler (as the dropdown menu does) so the main split-button press performs the exact
+            // action of the defaulted item — e.g. paying directly with a specific bank account — instead of the generic
+            // value-based path, which would lose the item's context (like a `methodID`) and route through a fallback flow.
+            selectedItem.onSelected();
         } else if (selectedItem?.value) {
             onPress(event, selectedItem.value);
         }
@@ -342,9 +351,10 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     anchorPosition={popoverAnchorPosition}
                     shouldShowRadioButton={shouldShowRadioButton}
                     anchorRef={dropdownAnchor}
-                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
+                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pt4}
                     anchorAlignment={anchorAlignment}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                     headerText={menuHeaderText}
                     shouldUseScrollView={shouldPopoverUseScrollView}
                     containerStyles={containerStyles}

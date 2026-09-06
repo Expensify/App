@@ -1,4 +1,5 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import type useReportScrollManager from '@hooks/useReportScrollManager';
 
 import type {OpenReportActionParams} from '@libs/actions/Report';
@@ -36,6 +37,7 @@ type UseReportActionsNewActionLiveTailParams = {
     reportID: string;
     introSelected: OpenReportActionParams['introSelected'];
     betas: OpenReportActionParams['betas'];
+    conciergeChat: OpenReportActionParams['conciergeChat'];
     isOffline: boolean;
     reportScrollManager: ReportScrollManager;
     setIsFloatingMessageCounterVisible: (visible: boolean) => void;
@@ -62,6 +64,7 @@ type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune'
  * it from list `onLayout` outside this hook.
  */
 function useReportActionsNewActionLiveTail({
+    conciergeChat,
     reportID,
     introSelected,
     betas,
@@ -82,6 +85,7 @@ function useReportActionsNewActionLiveTail({
     reportLoadingState,
 }: UseReportActionsNewActionLiveTailParams) {
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const isInSidePanel = useIsInSidePanel();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
@@ -113,6 +117,7 @@ function useReportActionsNewActionLiveTail({
                         openReport({
                             reportID,
                             introSelected,
+                            conciergeChat,
                             betas,
                             hasReportActions: true,
                             currentUserAccountID,
@@ -157,6 +162,17 @@ function useReportActionsNewActionLiveTail({
         liveTailJumpRef.current = {stage: 'idle'};
     }, [reportID]);
 
+    // Screen-scoped, so it clears this report route's param rather than the focused route's (e.g. an open RHP).
+    // In the side panel there is no navigator screen: the route is synthetic and carries no reportActionID, and
+    // `navigation` is the withNavigationFallback stub, so the call would only be a logged no-op.
+    // An effect event so `navigation` / `isInSidePanel` stay out of the caller's dependency list - neither triggers the jump.
+    const clearLinkedActionParam = useEffectEvent(() => {
+        if (isInSidePanel) {
+            return;
+        }
+        navigation.setParams({reportActionID: ''});
+    });
+
     useEffect(() => {
         if (liveTailJumpRef.current.stage !== 'open_report') {
             return;
@@ -169,9 +185,9 @@ function useReportActionsNewActionLiveTail({
         }
 
         setTreatAsNoPaginationAnchor(true);
-        navigation.setParams({reportActionID: ''});
+        clearLinkedActionParam();
         liveTailJumpRef.current = {stage: 'await_scroll'};
-    }, [prevIsLoadingInitialReportActions, reportLoadingState?.isLoadingInitialReportActions, setTreatAsNoPaginationAnchor, navigation]);
+    }, [prevIsLoadingInitialReportActions, reportLoadingState?.isLoadingInitialReportActions, setTreatAsNoPaginationAnchor]);
 
     useEffect(() => {
         if (liveTailJumpRef.current.stage !== 'await_scroll') {

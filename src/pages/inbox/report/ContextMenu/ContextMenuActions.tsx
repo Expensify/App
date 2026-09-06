@@ -183,6 +183,7 @@ import {
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    parseMovedTransactionReportIDs,
     getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
@@ -363,6 +364,7 @@ type ContextMenuActionPayload = {
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
+    conciergeChat: OnyxEntry<ReportType>;
     originalReportOfUnapprovedTransaction?: OnyxEntry<ReportType>;
     delegateAccountID: number | undefined;
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
@@ -501,17 +503,27 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
-        onPress: (closePopover, {reportAction, childReport, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, personalDetails}) => {
+        onPress: (closePopover, {reportAction, childReport, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, personalDetails, conciergeChat}) => {
             const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed);
+                        navigateToAndOpenChildReport(
+                            childReport,
+                            reportAction,
+                            originalReport,
+                            currentUserAccountID,
+                            introSelected,
+                            betas,
+                            participantsPersonalDetails,
+                            isSelfTourViewed,
+                            conciergeChat,
+                        );
                     });
                 });
                 return;
             }
-            navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed);
+            navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD,
@@ -547,7 +559,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected, betas, isSelfTourViewed, delegateAccountID, personalDetails},
+            {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected, betas, isSelfTourViewed, delegateAccountID, personalDetails, conciergeChat},
         ) => {
             if (!originalReport?.reportID) {
                 return;
@@ -558,37 +570,39 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        explain(
+                        explain({
                             childReport,
                             originalReport,
                             reportAction,
                             translate,
-                            currentUserPersonalDetails.accountID,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
                             introSelected,
                             betas,
+                            conciergeChat,
                             isSelfTourViewed,
                             delegateAccountID,
                             participantsPersonalDetails,
-                            currentUserPersonalDetails?.timezone,
-                        );
+                            timezone: currentUserPersonalDetails?.timezone,
+                        });
                     });
                 });
                 return;
             }
 
-            explain(
+            explain({
                 childReport,
                 originalReport,
                 reportAction,
                 translate,
-                currentUserPersonalDetails.accountID,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
                 introSelected,
                 betas,
+                conciergeChat,
                 isSelfTourViewed,
                 delegateAccountID,
                 participantsPersonalDetails,
-                currentUserPersonalDetails?.timezone,
-            );
+                timezone: currentUserPersonalDetails?.timezone,
+            });
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,
@@ -619,12 +633,24 @@ const ContextMenuActions: ContextMenuAction[] = [
             !isChronosReport,
         onPress: (
             closePopover,
-            {reportID, reportActions, originalReportActions, originalReportID, reportAction, moneyRequestAction, introSelected, betas, childReportActions, currentUserAccountID},
+            {
+                reportID,
+                reportActions,
+                originalReportActions,
+                originalReportID,
+                reportAction,
+                moneyRequestAction,
+                introSelected,
+                betas,
+                childReportActions,
+                currentUserAccountID,
+                conciergeChat,
+            },
         ) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport({reportID: childReportID, introSelected, betas, hasReportActions: !!childReportActions, currentUserAccountID});
+                    openReport({reportID: childReportID, introSelected, betas, hasReportActions: !!childReportActions, currentUserAccountID, conciergeChat});
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {
@@ -799,7 +825,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, childReportActions},
+            {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, childReportActions, conciergeChat},
         ) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
@@ -814,6 +840,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         betas,
+                        conciergeChat,
                         prevNotificationPreference: childReportNotificationPreference,
                         personalDetails,
                         hasReportActions: !!childReportActions,
@@ -832,6 +859,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 betas,
+                conciergeChat,
                 prevNotificationPreference: childReportNotificationPreference,
                 personalDetails,
                 hasReportActions: !!childReportActions,
@@ -865,7 +893,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, childReportActions},
+            {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, childReportActions, conciergeChat},
         ) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
@@ -880,6 +908,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         betas,
+                        conciergeChat,
                         prevNotificationPreference: childReportNotificationPreference,
                         personalDetails,
                         hasReportActions: !!childReportActions,
@@ -898,6 +927,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 betas,
+                conciergeChat,
                 prevNotificationPreference: childReportNotificationPreference,
                 personalDetails,
                 hasReportActions: !!childReportActions,
@@ -1034,7 +1064,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report?.ownerAccountID, convertToDisplayString);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy?.achAccount?.accountNumber, transaction, bankAccountList);
+                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy, transaction, bankAccountList);
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
@@ -1167,7 +1197,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
                     setClipboardMessage(Parser.htmlToText(getUpdatedOwnershipMessage(translate, reportAction, policy) ?? ''));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-                    setClipboardMessage(getUnreportedTransactionMessage(translate, reportAction, reportAttributes));
+                    const {fromReportID} = parseMovedTransactionReportIDs(reportAction);
+                    setClipboardMessage(
+                        getUnreportedTransactionMessage({
+                            translate,
+                            fromReportID,
+                            derivedReportName: fromReportID ? reportAttributes?.[fromReportID]?.reportName : undefined,
+                        }),
+                    );
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
@@ -1378,7 +1415,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                 ) {
                     setClipboardMessage(getDelegateSubmitMessage(translate, reportAction, currentUserPersonalDetails.email));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-                    setClipboardMessage(getMovedTransactionMessage(translate, reportAction, reportAttributes));
+                    const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(reportAction);
+                    setClipboardMessage(
+                        getMovedTransactionMessage({
+                            translate,
+                            fromReportID,
+                            toReportID,
+                            derivedReportName: displayReportID ? reportAttributes?.[displayReportID]?.reportName : undefined,
+                        }),
+                    );
                 } else if (isMovedAction(reportAction)) {
                     setClipboardMessage(getMovedActionMessage(translate, reportAction, originalReport));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {

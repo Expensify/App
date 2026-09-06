@@ -23,7 +23,7 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import {setCardReconciliationAccount} from '@userActions/Card';
-import {setTravelBillingReconciliationBankAccount} from '@userActions/TravelBilling';
+import {setTravelBillingReconciliationBankAccount, toggleTravelBillingContinuousReconciliation} from '@userActions/TravelBilling';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -170,6 +170,8 @@ function TravelBillingDynamicReconciliation({policyID, workspaceAccountID, domai
 
     const [travelBillingCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const [travelBillingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
+    const [travelBillingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
+    const [travelBillingContinuousReconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
     const travelBillingSettings = getCardSettings(travelBillingCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const travelBillingSettlementAccount = getTravelSettlementAccount(travelBillingSettings, bankAccountList);
     const settlementAccountEnding = travelBillingSettlementAccount?.last4 ?? '';
@@ -179,6 +181,9 @@ function TravelBillingDynamicReconciliation({policyID, workspaceAccountID, domai
             return;
         }
         setTravelBillingReconciliationBankAccount(workspaceAccountID, domainName, newBankAccountID, travelBillingReconciliationBankAccountID);
+        if (!travelBillingContinuousReconciliation) {
+            toggleTravelBillingContinuousReconciliation(workspaceAccountID, true, connectionName, travelBillingContinuousReconciliationConnection);
+        }
         goBack();
     };
 

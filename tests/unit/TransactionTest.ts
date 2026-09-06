@@ -50,7 +50,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -87,6 +87,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         selfDMReportActions: undefined,
         delegateAccountID: undefined,
         getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+        getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
         ...rest,
     });
 }

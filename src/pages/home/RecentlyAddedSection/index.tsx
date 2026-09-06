@@ -45,6 +45,8 @@ function RecentlyAddedSection() {
     const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const hasExpenses = transactions.length > 0;
@@ -55,7 +57,7 @@ function RecentlyAddedSection() {
         // resolving every sibling up front would create a thread for each multi-expense sibling on a single tap.
         // Instead, seed the cheap snapshot-derived descriptors and let the carousel resolve each sibling lazily,
         // one at a time, only when the user actually navigates to it.
-        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID, personalDetails};
+        const resolveContext = {introSelected, betas, conciergeChat, currentUserEmail, currentUserAccountID, personalDetails};
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);

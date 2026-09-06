@@ -68,7 +68,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -95,7 +94,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
-    const {splitReportID: reportID, transactionID, splitExpenseTransactionID} = route.params;
+    const {splitReportID: reportID, originalTransactionID: transactionID, splitExpenseTransactionID} = route.params;
 
     // The search variant is a separate dynamic route, so the suffix to strip depends on which screen is rendered.
     const dynamicRouteSuffix =
@@ -318,7 +317,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         );
     };
 
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const onSaveSplitExpense = () => {
@@ -609,7 +608,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         KeyboardUtils.dismiss({
             afterTransition: () => {
                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
-                Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, item.transactionID)));
             },
         });
     };

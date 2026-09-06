@@ -1,8 +1,8 @@
 ---
 title: Attach and edit receipts on expenses
 description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify for audits and accounting.
-keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt]
-internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses. Does not cover SmartScan configuration or receipt forwarding via email.
+keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt, add additional receipt, who can add a receipt, add additional receipt icon missing, expand receipt]
+internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses, and who is allowed to add a receipt versus only view one. Does not cover SmartScan configuration or receipt forwarding via email.
 ---
 
 Make sure your receipts are attached correctly to individual expenses for audit and accounting compliance. This guide explains how to attach, verify, and troubleshoot receipts in New Expensify — and when to use report comments for additional documentation.
@@ -10,8 +10,11 @@ Make sure your receipts are attached correctly to individual expenses for audit 
 # How to Attach and Verify Receipts on Expenses
 
 ## Who can attach receipts to an expense
-- **Attach or replace a receipt**: The member who created the expense, a Workspace Admin, or the current approver. 
+- **Attach, replace, or add an additional receipt**: The member who created the expense, a Workspace Admin, or the current approver. 
+- **Open a receipt to view it**: Anyone who can see the expense, including members who cannot edit it.
 - **Edit a receipt in an Approved or Paid report**: Requires the report to be unapproved first (see below).
+
+On an expense in a personal chat, such as a 1:1 or group conversation, only the member who created the expense can attach, replace, or add a receipt. Everyone else in the conversation can still open the receipt to view it.
 
 ---
 
@@ -69,19 +72,21 @@ You can rotate a receipt to correct its orientation. Rotation is available for u
 
 Each expense has one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed — for example, the front and back of a paper receipt, or both the credit card slip and the itemized breakdown.
 
+The **Add additional receipt** icon is only shown to members who can edit the expense: the member who created it, a Workspace Admin, or the current approver. Everyone else who can see the expense is shown only the **Expand** icon, which opens the receipt full screen to view it.
+
 **On web:**
 
 1. In the navigation tabs on the left, click **Spend**.
 2. Click on the expense you want to add an additional receipt to. 
 3. Hover over the receipt image.
-4. Click the icon in the upper right corner of the image to **Add additional receipts**.
+4. Click the **Add additional receipt** icon in the upper right corner of the image.
 5. Choose a receipt image to upload. 
 
 **On mobile:**
 
 1. In the navigation tabs on the bottom, tap **Spend**.
 2. Tap the expense you want to add an additional receipt to. 
-3. Tap the icon in the upper right corner of the image to **Add additional receipts**.
+3. Tap the **Add additional receipt** icon in the upper right corner of the image.
 4. Take a photo or choose a file from your device.
 
 **Note:** Only the first (primary) receipt image is included in exports or downloadable reports. Additional receipt images are visible within Expensify on the expense itself.
@@ -122,7 +127,10 @@ It was likely uploaded in the report comments. Receipts must be attached directl
 No. Each expense must have its own receipt. You can upload the same file more than once if needed.
 
 ## Can someone else upload a receipt to my expense?
-Only the expense creator or a Workspace Admin can attach a receipt an expense.
+Only the member who created the expense, a Workspace Admin, or the current approver can attach a receipt to an expense. Other members who can see the expense can open the receipt to view it, but they cannot add to it.
+
+## Why can’t I see the Add additional receipt icon on an expense?
+The **Add additional receipt** icon is only shown to members who can edit the expense. You will not see it if you did not create the expense and you are not a Workspace Admin or the current approver. The **Expand** icon stays available so you can still open the receipt and view it.
 
 ## Will additional receipt images appear in exports or downloadable reports?
 
@@ -140,4 +148,4 @@ If the upload fails (for example, due to a lost network connection), you'll see 
 - **Delete expense** — removes the failed expense entirely. The receipt will be lost if you haven't saved it first.
 
 ## Can I attach both the card and itemized restaurant receipts?
-Yes. Attach the **card receipt** as the primary receipt on the expense, then use **Add additional receipts** to attach the **itemized receipt** directly on the same expense.
+Yes. Attach the **card receipt** as the primary receipt on the expense, then use **Add additional receipt** to attach the **itemized receipt** directly on the same expense.

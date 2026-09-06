@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -47,7 +47,6 @@ function MultiSelectListItem<TItem extends ListItem>({
     return (
         <BaseSelectListItem
             item={itemWithAvatar}
-            keyForList={item.keyForList}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             showTooltip={showTooltip}
@@ -75,13 +74,9 @@ function AvatarLeftElement({icon}: {icon: Icon}) {
 
     return (
         <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
-            <Avatar
-                source={icon.source}
+            <AvatarFromIcon
+                icon={icon}
                 size={CONST.AVATAR_SIZE.X_SMALL}
-                name={icon.name}
-                avatarID={icon.id}
-                type={icon.type ?? CONST.ICON_TYPE_AVATAR}
-                fallbackIcon={icon.fallbackIcon}
             />
         </View>
     );

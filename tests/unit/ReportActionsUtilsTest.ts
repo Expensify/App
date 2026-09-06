@@ -4565,6 +4565,107 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "$0.55" (previously "$0.50")');
         });
 
+        it('should return the tax reclaimable portion as a percentage of the rate', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.5,
+                    newValue: 0.7,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "70%" (previously "50%")');
+        });
+
+        it('should keep two decimal places on a fractional tax reclaimable percentage', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.075,
+                    newValue: 0.1234,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "12.34%" (previously "7.5%")');
+        });
+
+        it('should round a repeating tax reclaimable fraction to two decimal places', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 1 / 3,
+                    newValue: 0.123456,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "12.35%" (previously "33.33%")');
+        });
+
+        it('should treat a previous tax reclaimable portion of zero as a change', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0,
+                    newValue: 0.7,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "70%" (previously "0%")');
+        });
+
+        it('should return the correct message when the whole rate is reclaimable', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.5,
+                    newValue: 1,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "100%" (previously "50%")');
+        });
+
+        it('should return the correct message when a tax reclaimable portion is added', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    newValue: 0.7,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('added a tax reclaimable portion of "70%" to the distance rate "Default Rate"');
+        });
+
         it('should return the correct message when a start date is set on a rate without dates', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
                 reportActionID: '1',

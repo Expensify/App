@@ -1,5 +1,5 @@
 context platform=android
-# @desc   Send a chat message from inside an already-open chat. Reusable helper for setting up state in other flows. Does not navigate or open a chat - assumes the composer is visible. For the QA scenario that exercises the ManualSendMessage Sentry span, see flows/tests/send-message.ad.
+# @desc   Send a chat message from inside an already-open chat. Reusable helper for setting up state in other flows. Does not navigate or open a chat - assumes the composer is visible. For the QA scenario that exercises the ManualSendMessageVisible Sentry span, see flows/tests/send-message.ad.
 # @pre    label="Write something..." editable=true
 # @post   label="Write something..." editable=true
 # @tag    chat
