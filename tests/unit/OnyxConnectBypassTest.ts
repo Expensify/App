@@ -38,6 +38,14 @@ describe('collectDisableDirectivesFromSource', () => {
         expect(collectDisableDirectivesFromSource(parenthesized, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
     });
 
+    it('flags a blanket disable covering an optional-chained Onyx.connect call', () => {
+        const optionalMember = ['/* eslint-disable */', `Onyx?${'.connect'}({key: "x"});`].join('\n');
+        const optionalCall = ['/* eslint-disable */', `Onyx${'.connect'}?.({key: "x"});`].join('\n');
+
+        expect(collectDisableDirectivesFromSource(optionalMember, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource(optionalCall, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
     it('flags blanket line and next-line disables only when they cover a call', () => {
         const source = [`${onyxConnectCall('line')} // eslint-disable-line`, '// eslint-disable-next-line', onyxConnectCall('next')].join('\n');
 

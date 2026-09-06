@@ -110,11 +110,14 @@ function unwrapExpression(node: ASTNode): ASTNode {
 }
 
 function isOnyxConnectCall(node: ASTNode): boolean {
-    if (node.type !== 'CallExpression' || !BabelASTUtils.isASTNode(node.callee)) {
+    // Optional chaining anywhere in the call (`Onyx?.connect(...)`, `Onyx.connect?.(...)`) produces
+    // `OptionalCallExpression`/`OptionalMemberExpression` nodes instead of their non-optional
+    // counterparts, so a blanket disable directive over one would otherwise silently bypass the ban.
+    if ((node.type !== 'CallExpression' && node.type !== 'OptionalCallExpression') || !BabelASTUtils.isASTNode(node.callee)) {
         return false;
     }
     const callee = node.callee;
-    if (callee.type !== 'MemberExpression' || callee.optional === true || callee.computed === true) {
+    if ((callee.type !== 'MemberExpression' && callee.type !== 'OptionalMemberExpression') || callee.computed === true) {
         return false;
     }
     if (!BabelASTUtils.isASTNode(callee.property) || callee.property.type !== 'Identifier' || callee.property.name !== 'connect') {
