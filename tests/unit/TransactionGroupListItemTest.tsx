@@ -1,3 +1,4 @@
+import '@libs/Middleware/register';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -12,7 +13,6 @@ import type {
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 
-import registerMiddlewares from '@libs/Middleware/register';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
@@ -28,8 +28,6 @@ import Onyx from 'react-native-onyx';
 import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-
-registerMiddlewares();
 
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
