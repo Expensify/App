@@ -91,7 +91,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], isOffline);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
-        if (!ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived)) {
+        if (!ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived, undefined)) {
             return false;
         }
 

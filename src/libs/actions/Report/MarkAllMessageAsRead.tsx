@@ -7,7 +7,7 @@ import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isUnread} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions} from '@src/types/onyx';
+import type {Report, ReportActions, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {ReportNameValuePairsArchivedState} from '@selectors/ReportNameValuePairs';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -31,7 +31,7 @@ Onyx.connectWithoutView({
 // The archived state is passed in by the caller (read via useOnyx with reportNameValuePairsArchivedSelector) rather
 // than subscribed to here, so this action stays a plain function and callers only re-render when the archived flags
 // actually change.
-function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>) {
+function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
     if (isAnonymousUser()) {
         return;
     }
@@ -55,7 +55,7 @@ function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameVa
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], isOffline);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-        if (!isUnread(report, oneTransactionThreadReport, isReportArchived)) {
+        if (!isUnread(report, oneTransactionThreadReport, isReportArchived, reportAttributesDerived?.[report.reportID]?.isEmpty)) {
             continue;
         }
 
