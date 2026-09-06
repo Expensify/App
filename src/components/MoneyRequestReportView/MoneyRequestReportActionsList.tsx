@@ -246,8 +246,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // `visibleReportActions` is oldest-first here, while the helper scans newest-first.
     // Suppressed while a Concierge answer is still streaming so the prompt never lands on a half-written reply.
     const latestConciergeFeedbackActionID = useMemo(
-        () => (isDraftPendingCompletion ? undefined : getLatestConciergeFeedbackActionID(visibleReportActions.slice().reverse(), new Set(reportActionIDs))),
-        [isDraftPendingCompletion, visibleReportActions, reportActionIDs],
+        () => (isDraftPendingCompletion || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(visibleReportActions.slice().reverse(), new Set(reportActionIDs))),
+        [isDraftPendingCompletion, hasNewerActions, visibleReportActions, reportActionIDs],
     );
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({

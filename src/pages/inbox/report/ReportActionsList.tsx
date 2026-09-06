@@ -331,7 +331,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // draft, so the prompt would sit under a half-written sentence and walk down the screen with every
     // chunk. This covers the whole reveal, not just the pacing window, because the draft keeps being
     // substituted into the list until its HTML matches the persisted action's.
-    const latestConciergeFeedbackActionID = isSyntheticDraftVisible ? undefined : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, new Set(allReportActionIDs));
+    //
+    // `hasNewerActions` covers the other direction: opening the report at a deep link or an old unread
+    // anchor renders one pagination window, and the newest Concierge reply in that window is not the
+    // newest in the report, so the prompt would ask the user to rate a stale answer.
+    const latestConciergeFeedbackActionID =
+        isSyntheticDraftVisible || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, new Set(allReportActionIDs));
 
     useFollowActionBadgeTarget({
         isProduction,
