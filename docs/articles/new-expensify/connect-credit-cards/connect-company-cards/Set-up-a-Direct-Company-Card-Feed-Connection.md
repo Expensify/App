@@ -1,61 +1,51 @@
 ---
-title: Set up a Direct Company Card Feed Connection
-description: Learn how to connect company credit cards using a direct bank connection or Plaid to import transactions and assign company card.
+title: Set up a Direct Feed for Company Cards 
+description: Learn how to connect company credit cards using a direct feed to import transactions and assign company cards.
 keywords: [New Expensify, set up direct company card feed, connect company cards Expensify, direct feed Expensify, Plaid company cards]
-internalScope: Audience is Workspace Admins. Covers connecting a company card feed using direct feed or Plaid. Does not cover assigning cards, managing cards, or troubleshooting feeds.
+internalScope: Audience is Workspace Admins. Covers connecting a company card feed using direct feed or Plaid. Does not cover assigning cards, managing cards, or troubleshooting connections.
 ---
 
-# Set up a Direct Company Card Connection
+# Set up a Direct Feed for Company Cards 
 
-When you set up a direct company card connection, Expensify establishes a secure connection with your bank to import card transactions automatically. 
+When you set up a direct feed for company cards, Expensify establishes a secure connection with your bank to import card transactions automatically. 
 
 If your bank isn't supported, you can [import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet) instead.
 
 ---
 
-## Who can set up a direct company card feed connection 
+## Who can set up a direct feed for company cards
 
-To set up a direct company card connection, you must: 
+To set up a direct feed, you must: 
 
 - Be a workspace admin or card admin on workspace on the Collect or Control plan
 - Have **Company Cards** enabled on the workspace
-- Have adminstrator login credentials to the relevant online banking account
+- Have master login credentials for your organization's online banking account
 
-**Note**: Workspaces on the Collect plan are limited to one company card connecton. [Learn about the different plan types available in Expensify.](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans)
+**Note**: Workspaces on the Collect plan are limited to one company card connection. [Learn about the different plan types available in Expensify.](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans)
 
 ---
 
-## How to set up a direct company card connection 
+## How to set up a direct feed for company cards
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Workspaces > [Workspace name]**.
 2. Select **Company cards**.
-3. Click **Add cards** to set up your first connection.
-    -  If you don't see **Add cards**, click on your existing company card feed connection then **Add cards**.
-4. Select the country your bank is located in and select **Next**.
+3. Select **Add cards** to set up your first connection.
+    -  If you don't see **Add cards**, select on your existing company card connection then **Add cards**.
+4. Choose the country your bank is located in and select **Next**.
 5. Choose **Direct feed** and select **Next**.
 6. Choose your bank from the list, or select **Other** to see additional banks.
-7. Follow the prompts to authenticate the connection with your bank.
+7. Follow the prompts to authenticate the connection using the master online banking credentials for your organization. 
 
 ![Click add cards to add a card feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_01.png){:width="100%"}
 
 ---
 
-## What happens after you set up a direct company card feed connection 
+## What happens after you set up a direct feed for company cards
 
  - Cards with recent expenses will appear as a list and can be assigned to workspace members.
  - After a card is assigned, posted transactions import into the assigned member's account automatically as expenses.
 
 [Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/Assign-Company-Cards).
-
----
-
-## What bank requirements affect company card connections
-
-Some banks have specific requirements for successful connections:
-
- - **Chase:** Password must be 8–32 characters
- - **Wells Fargo:** Password must be under 14 characters
- - **SVB:** Enable Direct Connect and use a Direct Connect PIN instead of your online banking password
    
 ---
 
@@ -74,7 +64,7 @@ New cards will then be available for assignment.
 
 ## How do I fix a broken company card feed connection?
 
-If your company card feed is broken, you can fix it from the **Time Sensitive** section on **Home**. Click **Fix** to restore the connection. [Learn how to fix a broken company card feed connection](/articles/new-expensify/connect-credit-cards/Fix-a-broken-Company-Card-Feed-Connection). 
+If your company card feed is broken, you can fix it from the **Time Sensitive** section on **Home**. Click **Fix** to restore the connection. [Learn how to fix a broken company card feed connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error). 
 
 ## Can I connect the same company card account across different workspaces? 
 
