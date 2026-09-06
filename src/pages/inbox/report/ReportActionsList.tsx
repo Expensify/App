@@ -327,11 +327,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
 
-    // While a Concierge answer is still being revealed the rendered list holds a synthetic draft, so asking
-    // "was that response useful?" would either point at half a sentence or at the answer above it. Waiting
-    // for the reveal to finish is not enough on its own: the draft's pacing status flips independently of
-    // the server write, so the eligibility check below also requires the action to exist in Onyx.
-    const latestConciergeFeedbackActionID = isSyntheticDraftVisible ? undefined : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, new Set(allReportActionIDs));
+    // Nothing to rate while Concierge is still writing. This uses the pacing status rather than
+    // `isSyntheticDraftVisible`, which additionally stays true until the draft's HTML matches the persisted
+    // action's byte for byte -- a comparison that can simply never come true, and then the prompt would
+    // never appear again for the life of the mount. The pacing status always settles, and the helper's
+    // Onyx-membership check covers the gap between it settling and the server write landing.
+    const latestConciergeFeedbackActionID = isDraftPendingCompletion ? undefined : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, new Set(allReportActionIDs));
 
     useFollowActionBadgeTarget({
         isProduction,

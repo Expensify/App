@@ -1741,21 +1741,26 @@ function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
  *
  * `sortedVisibleReportActions` is ordered newest first, so the first match is the newest one.
  *
- * A match must be in `persistedReportActionIDs`. Two client-built actions are shaped exactly like a
- * finished Concierge answer -- an `ADD_COMMENT` authored by `CONST.ACCOUNT_ID.CONCIERGE` -- but never
- * reach Onyx: the greeting from `buildConciergeGreetingReportAction` and the paced reply from
- * `buildConciergeDraftReportAction`. `toggleEmojiReaction` looks the action up in Onyx and returns
- * without writing when it is missing, so a prompt on either one would render buttons that do nothing.
+ * The newest one must be in `persistedReportActionIDs`, otherwise this returns `undefined`. Two
+ * client-built actions are shaped exactly like a finished Concierge answer -- an `ADD_COMMENT` authored by
+ * `CONST.ACCOUNT_ID.CONCIERGE` -- but never reach Onyx: the greeting from
+ * `buildConciergeGreetingReportAction` and the paced reply from `buildConciergeDraftReportAction`.
+ * `toggleEmojiReaction` looks the action up in Onyx and returns without writing when it is missing, so a
+ * prompt on either one would render buttons that do nothing.
  */
 function getLatestConciergeFeedbackActionID(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: ReadonlySet<string>): string | undefined {
-    return sortedVisibleReportActions.find(
+    const latestConciergeComment = sortedVisibleReportActions.find(
         (action) =>
-            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
-            action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
-            !isDeletedAction(action) &&
-            !isWhisperAction(action) &&
-            persistedReportActionIDs.has(action.reportActionID),
-    )?.reportActionID;
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE && !isDeletedAction(action) && !isWhisperAction(action),
+    );
+
+    if (!latestConciergeComment) {
+        return undefined;
+    }
+
+    // Deliberately no fallback to an older answer. Moving the prompt backwards onto the previous reply
+    // while a newer one is still being revealed asks the user to rate the wrong message.
+    return persistedReportActionIDs.has(latestConciergeComment.reportActionID) ? latestConciergeComment.reportActionID : undefined;
 }
 
 /**
