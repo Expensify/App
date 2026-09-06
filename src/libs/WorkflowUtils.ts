@@ -196,8 +196,6 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             continue;
         }
 
-        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
-
         // A member that is pending deletion keeps a stale submitsTo until the backend confirms the removal.
         // Skip them entirely so they can't create a workflow they will never be a member of, or mark their
         // stale approver as used. See https://github.com/Expensify/App/issues/99357
@@ -205,6 +203,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             continue;
         }
 
+        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
         availableMembers.push(member);
 
         if (!submitsTo || (!employees[submitsTo] && !hrAdvancedModeFinalApproverEmail)) {
@@ -1601,14 +1600,13 @@ function convertApprovalWorkflowRulesToWorkflows({
             continue;
         }
 
-        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
-
         // Same reasoning as in convertPolicyEmployeesToApprovalWorkflows: a member pending deletion keeps a
         // stale submitsTo, so grouping them would build a workflow with no members.
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
 
+        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
         availableMembers.push(member);
 
         const hasInitialRule = !!resolveFirstApprover(email, rules, {});
