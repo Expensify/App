@@ -79,7 +79,6 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
 
 function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
-    // Tag / Category / Submitted violation are only offered when an accessible workspace has that feature.
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const items = getMultiSelectFilterOptions(baseFilterKey, type, translate, baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS ? policies : undefined, policyCategories);
