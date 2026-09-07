@@ -574,6 +574,14 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
 
         dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
 
+        const sidebarScreen = SPLIT_TO_SIDEBAR[minimalActionPayload.name];
+        const focusedRouteInSplit = matchingSplitState.routes.at(matchingSplitState.index ?? -1);
+        // Keep the sidebar in history when the restored split has no central screen to replace.
+        if (indexOfNestedBackToRoute === -1 && nestedTarget.screen !== sidebarScreen && focusedRouteInSplit?.name === sidebarScreen) {
+            dispatch({...nestedAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH});
+            return true;
+        }
+
         if (!compareParams) {
             dispatch({...nestedAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
             return true;

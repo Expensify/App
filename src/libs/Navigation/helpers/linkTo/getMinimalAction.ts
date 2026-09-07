@@ -1,6 +1,7 @@
 import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
 import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
 import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {isRecord} from '@libs/ObjectUtils';
 
 import type {NavigationRoute, State} from '@navigation/types';
 
@@ -15,10 +16,6 @@ type MinimalAction = {
     action: Writable<NavigationAction>;
     targetState: State | undefined;
 };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 function isNamedActionPayload(payload: unknown): payload is ActionPayload & {name: string} {
     return isRecord(payload) && typeof payload.name === 'string';

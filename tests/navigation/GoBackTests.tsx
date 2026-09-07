@@ -444,7 +444,76 @@ describe('Go back on the narrow layout', () => {
             expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject({policyID: policyA});
         });
 
-        it('Should pop to the matching workspace split and apply the requested leaf', () => {
+        it.each([true, false])('Should preserve the workspace sidebar when applying a missing leaf with compareParams=%s', (compareParams) => {
+            const sidebarOnlySplit = {
+                name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                state: {
+                    index: 0,
+                    routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID: policyA, backTo: ROUTES.WORKSPACES_LIST.route}}],
+                },
+            };
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(sidebarOnlySplit, buildWorkspaceSplitRoute(policyB))} />);
+
+            const workspaceStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const matchingSplitBeforeGoBack = workspaceStateBeforeGoBack?.routes.at(0);
+            const sidebarBeforeGoBack = matchingSplitBeforeGoBack?.state?.routes.at(0);
+            expect(matchingSplitBeforeGoBack?.state?.routes).toHaveLength(1);
+            expect(sidebarBeforeGoBack?.name).toBe(SCREENS.WORKSPACE.INITIAL);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA, ROUTES.HOME), {compareParams});
+            });
+
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.key).toBe(matchingSplitBeforeGoBack?.key);
+            expect(activeSplit?.state?.index).toBe(1);
+            expect(activeSplit?.state?.routes).toHaveLength(2);
+            expect(activeSplit?.state?.routes.at(0)).toEqual(sidebarBeforeGoBack);
+            expect(activeSplit?.state?.routes.at(1)).toMatchObject({
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyA, backTo: ROUTES.HOME},
+            });
+
+            act(() => {
+                Navigation.goBack();
+            });
+
+            const workspaceStateAfterSecondBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const splitAfterSecondBack = workspaceStateAfterSecondBack?.routes.at(0);
+            expect(workspaceStateAfterSecondBack?.routes).toHaveLength(1);
+            expect(splitAfterSecondBack?.key).toBe(matchingSplitBeforeGoBack?.key);
+            expect(splitAfterSecondBack?.state?.index).toBe(0);
+            expect(splitAfterSecondBack?.state?.routes).toEqual([sidebarBeforeGoBack]);
+        });
+
+        it.each([true, false])('Should update a restored workspace sidebar directly with compareParams=%s', (compareParams) => {
+            const sidebarOnlySplit = {
+                name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                state: {
+                    index: 0,
+                    routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID: policyA, backTo: ROUTES.WORKSPACES_LIST.route}}],
+                },
+            };
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(sidebarOnlySplit, buildWorkspaceSplitRoute(policyB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyA, ROUTES.HOME), {compareParams});
+            });
+
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.index).toBe(0);
+            expect(activeSplit?.state?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)).toMatchObject({
+                name: SCREENS.WORKSPACE.INITIAL,
+                params: {policyID: policyA, backTo: ROUTES.HOME},
+            });
+        });
+
+        it.each([true, false])('Should pop to the matching workspace split and apply the requested leaf with compareParams=%s', (compareParams) => {
             render(
                 <TestNavigationContainer
                     initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA, SCREENS.WORKSPACE.MORE_FEATURES), buildWorkspaceSplitRoute(policyB))}
@@ -456,13 +525,15 @@ describe('Go back on the narrow layout', () => {
             expect(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.MORE_FEATURES);
 
             act(() => {
-                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA), {compareParams});
             });
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
             const workspaceState = tabState?.routes.at(4)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes).toHaveLength(2);
+            expect(activeSplit?.state?.routes.at(0)).toEqual(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(0));
             expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
                 name: SCREENS.WORKSPACE.PROFILE,
                 params: {policyID: policyA},
@@ -555,7 +626,51 @@ describe('Go back on the narrow layout', () => {
         const domainA = 1;
         const domainB = 2;
 
-        it('Should pop to the matching domain split', () => {
+        it.each([true, false])('Should preserve the domain sidebar when applying a missing leaf with compareParams=%s', (compareParams) => {
+            const sidebarOnlySplit = {
+                name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
+                state: {
+                    index: 0,
+                    routes: [{name: SCREENS.DOMAIN.INITIAL, params: {domainAccountID: domainA}}],
+                },
+            };
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(sidebarOnlySplit, buildDomainSplitRoute(domainB))} />);
+
+            const workspaceStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const matchingSplitBeforeGoBack = workspaceStateBeforeGoBack?.routes.at(0);
+            const sidebarBeforeGoBack = matchingSplitBeforeGoBack?.state?.routes.at(0);
+            expect(matchingSplitBeforeGoBack?.state?.routes).toHaveLength(1);
+            expect(sidebarBeforeGoBack?.name).toBe(SCREENS.DOMAIN.INITIAL);
+
+            act(() => {
+                Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainA), {compareParams});
+            });
+
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.key).toBe(matchingSplitBeforeGoBack?.key);
+            expect(activeSplit?.state?.index).toBe(1);
+            expect(activeSplit?.state?.routes).toHaveLength(2);
+            expect(activeSplit?.state?.routes.at(0)).toEqual(sidebarBeforeGoBack);
+            expect(activeSplit?.state?.routes.at(1)).toMatchObject({
+                name: SCREENS.DOMAIN.MEMBERS,
+                params: {domainAccountID: String(domainA)},
+            });
+
+            act(() => {
+                Navigation.goBack();
+            });
+
+            const workspaceStateAfterSecondBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const splitAfterSecondBack = workspaceStateAfterSecondBack?.routes.at(0);
+            expect(workspaceStateAfterSecondBack?.routes).toHaveLength(1);
+            expect(splitAfterSecondBack?.key).toBe(matchingSplitBeforeGoBack?.key);
+            expect(splitAfterSecondBack?.state?.index).toBe(0);
+            expect(splitAfterSecondBack?.state?.routes).toEqual([sidebarBeforeGoBack]);
+        });
+
+        it.each([true, false])('Should pop to the matching domain split with compareParams=%s', (compareParams) => {
             render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildDomainSplitRoute(domainA, SCREENS.DOMAIN.SAML), buildDomainSplitRoute(domainB))} />);
 
             const tabStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state;
@@ -563,13 +678,15 @@ describe('Go back on the narrow layout', () => {
             expect(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(-1)?.name).toBe(SCREENS.DOMAIN.SAML);
 
             act(() => {
-                Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainA));
+                Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainA), {compareParams});
             });
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
             const workspaceState = tabState?.routes.at(4)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes).toHaveLength(2);
+            expect(activeSplit?.state?.routes.at(0)).toEqual(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(0));
             expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({domainAccountID: domainA});
             expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
                 name: SCREENS.DOMAIN.MEMBERS,
