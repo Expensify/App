@@ -133,7 +133,7 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    useOnboardingFlowRouter();
+    const {isVisitingSecureLink} = useOnboardingFlowRouter();
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     useEffect(() => {
@@ -346,7 +346,7 @@ function AuthScreens() {
                          * screen in and out of the RootStack mid-session (which resets the navigator's state to its initial
                          * route). OnboardingGuard and useOnboardingFlowRouter gate whether/when a user actually lands here.
                          */}
-                        {!shouldSuppressPromotionalUI && !Navigation.isValidateLoginFlow() && (
+                        {!shouldSuppressPromotionalUI && !isVisitingSecureLink && !Navigation.isValidateLoginFlow() && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
