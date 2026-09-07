@@ -1,8 +1,10 @@
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -90,26 +92,40 @@ function VacationDelegateMissingWorkspacesPage() {
         return <NotFoundPage />;
     }
 
-    const getMenuItemsForPolicies = (policyIDs: string[]) =>
-        policyIDs.map((policyID, index) => ({
-            key: policyID,
-            title: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? translate('workspace.common.unavailable'),
-            avatarID: policyID,
-            icon: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.avatarURL,
-            iconType: CONST.ICON_TYPE_WORKSPACE,
-            description: translate('workspace.common.workspace'),
-            interactive: false,
-            wrapperStyle: [styles.ph4, index < policyIDs.length - 1 ? styles.borderBottom : undefined],
-        }));
-
-    const goBackToStatus = () => {
-        Navigation.goBack(ROUTES.SETTINGS_STATUS);
-    };
+    const renderPolicyMenuItems = (policyIDs: string[]) =>
+        policyIDs.map((policyID, index) => {
+            const title = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? translate('workspace.common.unavailable');
+            return (
+                <View
+                    key={policyID}
+                    style={index < policyIDs.length - 1 ? styles.borderBottom : undefined}
+                >
+                    {/* MenuItem.Root's built-in padding is ph5 (20px); mhn1 pulls it back to ph4 (16px) to align with the section title */}
+                    <View style={styles.mhn1}>
+                        <MenuItem.Root>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <WorkspaceAvatar
+                                        source={policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.avatarURL}
+                                        name={title}
+                                        avatarID={policyID}
+                                    />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{title}</MenuItem.Title>
+                                    <MenuItem.Description numberOfLines={1}>{translate('workspace.common.workspace')}</MenuItem.Description>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    </View>
+                </View>
+            );
+        });
 
     const submit = () => {
         setSubmittedInput({delegate, policyDiff});
         setVacationDelegate({creator, delegate, currentDelegate: previousDelegate, shouldOverridePolicyDiffWarning: true});
-        goBackToStatus();
+        Navigation.goBack(ROUTES.SETTINGS_STATUS);
     };
 
     const submitOnce = () => {
@@ -172,16 +188,18 @@ function VacationDelegateMissingWorkspacesPage() {
                     title={translate('statusPage.vacationDelegate.youAreAMemberOf')}
                     titleStyles={[styles.sectionTitle, styles.ph4, styles.w100, styles.borderBottom]}
                     containerStyles={[styles.p0, styles.mh0]}
-                    menuItems={getMenuItemsForPolicies(nonAdminPolicies)}
-                />
+                >
+                    {renderPolicyMenuItems(nonAdminPolicies)}
+                </Section>
             )}
             {adminPolicies.length > 0 && (
                 <Section
                     title={translate('statusPage.vacationDelegate.youAreAnAdminOf')}
                     titleStyles={[styles.sectionTitle, styles.ph4, styles.w100, styles.borderBottom]}
                     containerStyles={[styles.p0, styles.mh0, nonAdminPolicies.length > 0 ? styles.mt5 : undefined]}
-                    menuItems={getMenuItemsForPolicies(adminPolicies)}
-                />
+                >
+                    {renderPolicyMenuItems(adminPolicies)}
+                </Section>
             )}
         </View>
     );

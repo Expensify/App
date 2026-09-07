@@ -91,6 +91,13 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
             policyDiff: response.data.policyDiff,
             pendingAction: null,
         });
+    } else if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+        await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+            delegate: currentDelegate ?? null,
+            previousDelegate: null,
+            pendingAction: null,
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('statusPage.vacationDelegateError'),
+        });
     }
 
     return response;
