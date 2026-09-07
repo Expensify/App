@@ -1336,6 +1336,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                             shouldRenderHTML: true,
                             shouldNavigateToCardDetails,
                             policyID: report?.policyID,
+                            buildDynamicRoute: createDynamicRoute,
                             expensifyCard: card,
                             translate,
                             currentUserAccountID,
