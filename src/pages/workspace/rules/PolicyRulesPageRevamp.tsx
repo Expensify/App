@@ -99,7 +99,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {showConfirmModal} = useConfirmModal();
 
     useEffect(() => {
-        // Fetch once on mount (and when policyID changes). setMerchantRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
+        // Fetch once on mount and whenever policyID changes. setMerchantRule already updates Onyx, so refetching
+        // after a save can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
         // The rules collection is keyed per rule rather than per policy, so it is fetched whole whenever the Rules page is opened.
         getRules();

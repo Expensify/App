@@ -30,6 +30,7 @@ type ExpenseDefaultActionField = ValueOf<typeof CONST.RULES.EXPENSE_DEFAULT.FIEL
  */
 type ExpenseDefaultTaxValue = {
     /** Object wrapping the tax field - field_id_TAX matches the backend API format */
+    // field_id_TAX is the name the rules engine gives this key, so it can't follow our casing convention
     // eslint-disable-next-line @typescript-eslint/naming-convention
     field_id_TAX: {
         /** The external ID of the tax rate */

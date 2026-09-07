@@ -9,8 +9,8 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import usePolicyRules from '@hooks/usePolicyRules';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,6 +27,7 @@ import variables from '@styles/variables';
 import {clearMerchantRuleErrors} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Rule} from '@src/types/onyx';
 
@@ -99,7 +100,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
         [translate, policy],
     );
 
-    const rules = usePolicyRules(policyID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const sortedRules = useMemo(
         () => getPolicyExpenseDefaultRules(rules, policyID).sort((first, second) => ((second.rule.created ?? '') < (first.rule.created ?? '') ? -1 : 1)),
         [rules, policyID],

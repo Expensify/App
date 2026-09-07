@@ -15,7 +15,6 @@ import type {
     PolicyTagLists,
     PolicyTags,
     Report,
-    Rule,
     TaxRate,
     Transaction,
     TravelSettings,
@@ -54,7 +53,6 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
-import {getExpenseDefaultRuleCount, hasExpenseDefaultRuleErrors} from './ExpenseDefaultRuleUtils';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './merge/HRUtils';
 import Navigation from './Navigation/Navigation';
@@ -298,10 +296,10 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 /**
  * Check if the policy has any errors within the rules.
  */
-function hasPolicyRulesError(policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>): boolean {
+function hasPolicyRulesError(policy: OnyxEntry<Policy>, hasMerchantRuleErrors = false): boolean {
     const agentRules = Object.values(policy?.rules?.agentRules ?? {});
 
-    return hasExpenseDefaultRuleErrors(rules, policy?.id) || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
+    return hasMerchantRuleErrors || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
 }
 
 /**
@@ -1129,12 +1127,12 @@ function isMaxExpenseAmountSet(value: number | undefined): value is number {
 /**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null, rules?: OnyxCollection<Rule>): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null, hasExpenseDefaultRules = false): boolean {
     if (!policy) {
         return false;
     }
 
-    if (getExpenseDefaultRuleCount(rules, policy.id) > 0) {
+    if (hasExpenseDefaultRules) {
         return true;
     }
 

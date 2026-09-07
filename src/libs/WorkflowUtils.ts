@@ -1739,6 +1739,7 @@ export {
     reconcileApprovalWorkflowRulesForEdit,
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
+    toIndexMap,
     updateWorkflowDataOnApproverRemoval,
 };
 export type {ApprovalWorkflowRulesDiff};

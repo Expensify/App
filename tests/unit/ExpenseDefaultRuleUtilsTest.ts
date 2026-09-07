@@ -1,9 +1,11 @@
 import {
     buildMerchantRule,
+    getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
     getMerchantRuleFormValues,
     getPolicyExpenseDefaultRules,
     getRuleFilterLeaves,
+    hasExpenseDefaultRuleErrors,
     isExpenseDefaultRule,
 } from '@libs/ExpenseDefaultRuleUtils';
 import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
@@ -239,6 +241,45 @@ describe('ExpenseDefaultRuleUtils', () => {
 
         it('returns an empty list without a policy ID', () => {
             expect(getPolicyExpenseDefaultRules({[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(merchantRuleBody)}, undefined)).toEqual([]);
+        });
+    });
+
+    describe('getExpenseDefaultRuleCount', () => {
+        it('counts only the rules scoped to the given policy', () => {
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(merchantRuleBody),
+                [`${ONYXKEYS.COLLECTION.RULE}2`]: asStoredRule(merchantRuleBody, OTHER_POLICY_ID),
+            };
+
+            expect(getExpenseDefaultRuleCount(collection, POLICY_ID)).toBe(1);
+        });
+
+        it('ignores rules being deleted', () => {
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.RULE}1`]: {...asStoredRule(merchantRuleBody), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+
+            expect(getExpenseDefaultRuleCount(collection, POLICY_ID)).toBe(0);
+        });
+
+        it('is zero for an empty collection', () => {
+            expect(getExpenseDefaultRuleCount({}, POLICY_ID)).toBe(0);
+        });
+    });
+
+    describe('hasExpenseDefaultRuleErrors', () => {
+        const failedRule = {...asStoredRule(merchantRuleBody), errors: {error: 'Whoops'}};
+
+        it("is true when one of the policy's rules failed to save", () => {
+            expect(hasExpenseDefaultRuleErrors({[`${ONYXKEYS.COLLECTION.RULE}1`]: failedRule}, POLICY_ID)).toBe(true);
+        });
+
+        it('is false when the failed rule belongs to another policy', () => {
+            expect(hasExpenseDefaultRuleErrors({[`${ONYXKEYS.COLLECTION.RULE}1`]: {...failedRule, scopeID: OTHER_POLICY_ID}}, POLICY_ID)).toBe(false);
+        });
+
+        it('is false when no rule carries an error', () => {
+            expect(hasExpenseDefaultRuleErrors({[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(merchantRuleBody)}, POLICY_ID)).toBe(false);
         });
     });
 

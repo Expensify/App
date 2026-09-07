@@ -1,3 +1,8 @@
+/**
+ * Helpers for the expense default rules stored in the `rules_` collection, which is what the merchant rule
+ * editor reads and writes. Converts between the rules engine's filter tree and the flat form the editor
+ * uses, and reports the rules the form can't represent so they stay read-only instead of losing data on save.
+ */
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Rule} from '@src/types/onyx';
@@ -17,6 +22,7 @@ import type {ValueOf} from 'type-fest';
 
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
+import {toIndexMap} from './WorkflowUtils';
 
 /** The form shape the merchant rule editor round-trips a rule through. */
 type MerchantRuleFormValues = {
@@ -71,14 +77,6 @@ const SUPPORTED_MERCHANT_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTA
 
 const STRING_ACTION_FIELDS = new Set<ExpenseDefaultActionField>([FIELD.MERCHANT, FIELD.CATEGORY, FIELD.TAG, FIELD.VENDOR_ID, FIELD.COMMENT]);
 const BOOLEAN_ACTION_FIELDS = new Set<ExpenseDefaultActionField>([FIELD.REIMBURSABLE, FIELD.BILLABLE]);
-
-/**
- * The rules engine keys `triggers` and `actions` by a stringified index rather than storing them as arrays.
- * `WorkflowUtils` keeps its own copy of this: importing it from there closes a cycle through `PolicyUtils`.
- */
-function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index), value]));
-}
 
 /** The rule format has no notion of an empty value: a field the admin cleared is simply not set. */
 function emptyToUndefined(value: string | undefined): string | undefined {
@@ -155,6 +153,7 @@ function buildTaxActionValue(taxKey: string | undefined, policy: Policy | undefi
     const tax = policy?.taxRates?.taxes?.[taxKey];
 
     return {
+        // field_id_TAX is the name the rules engine gives this key, so it can't follow our casing convention
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: {
             externalID: taxKey,
@@ -247,7 +246,7 @@ function getEditableMerchantMatch(filters: RuleFilterNode | undefined): Pick<Mer
         return undefined;
     }
 
-    // The backend ORs a list of values together; the form only has one merchant input, so only a single value round-trips.
+    // The backend ORs a list of values together. The form only has one merchant input, so only a single value round-trips.
     const rightValues = [filters.right].flat();
     const merchantToMatch = rightValues.at(0);
     if (rightValues.length !== 1 || typeof merchantToMatch !== 'string' || !merchantToMatch) {
@@ -260,7 +259,7 @@ function getEditableMerchantMatch(filters: RuleFilterNode | undefined): Pick<Mer
 /**
  * Converts a stored rule back into the values the merchant rule editor renders.
  *
- * Returns undefined when the rule can't be represented by the form — a nested filter tree, a filter on a
+ * Returns undefined when the rule can't be represented by the form, such as a nested filter tree, a filter on a
  * field the form has no input for, an unknown trigger or action, or two actions writing the same field.
  * Callers MUST treat undefined as "show this rule read-only": rendering a partial form and saving it back
  * would silently drop everything the form couldn't represent.

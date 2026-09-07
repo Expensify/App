@@ -14,7 +14,7 @@ type RuleFilterComparison = {
     /** The comparison operator. */
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
-    /** The field identifier being compared — one of the search-syntax filter keys (`from`, `merchant`, `amount`). */
+    /** The field identifier being compared, one of the search-syntax filter keys such as `from`, `merchant` or `amount`. */
     left: string;
 
     /** The literal value being compared against. */

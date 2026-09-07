@@ -80,7 +80,7 @@ import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Rule, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
@@ -97,11 +97,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-
-/** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
-function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index), value]));
-}
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 
@@ -3425,25 +3420,16 @@ describe('PolicyUtils', () => {
         });
 
         describe('merchant rules', () => {
+            // Which rules count towards this is decided by the caller's selector and covered in
+            // ExpenseDefaultRuleUtilsTest, so only the pass-through is checked here.
             const policy = createMock<Policy>({id: 'policy1', rules: {}});
-            const merchantRule: Rule = {
-                scope: CONST.RULES.SCOPE.POLICY,
-                scopeID: 'policy1',
-                triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
-                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
-                actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
-            };
 
             it('returns true when the policy has a merchant rule', () => {
-                expect(hasConfiguredRules(policy, undefined, {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: merchantRule})).toBe(true);
+                expect(hasConfiguredRules(policy, undefined, true)).toBe(true);
             });
 
-            it('returns false when the collection holds no rule for this policy', () => {
-                expect(hasConfiguredRules(policy, undefined, {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: {...merchantRule, scopeID: 'another-policy'}})).toBe(false);
-            });
-
-            it('returns false when the collection is empty', () => {
-                expect(hasConfiguredRules(policy, undefined, {})).toBe(false);
+            it('returns false when it has none', () => {
+                expect(hasConfiguredRules(policy, undefined, false)).toBe(false);
             });
         });
 
@@ -4264,43 +4250,31 @@ describe('PolicyUtils', () => {
     });
 
     describe('hasPolicyRulesError', () => {
+        // Whether a merchant rule failed is reduced by the caller's selector and covered in
+        // ExpenseDefaultRuleUtilsTest, so only the agent rules and the pass-through are checked here.
         const POLICY_ID = 'policy-with-rules';
-        const merchantRule = (errors?: Record<string, string>): Rule => ({
-            scope: CONST.RULES.SCOPE.POLICY,
-            scopeID: POLICY_ID,
-            triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
-            filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
-            actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
-            ...(errors ? {errors} : {}),
-        });
 
         it('returns false for an undefined policy', () => {
-            expect(hasPolicyRulesError(undefined, {})).toBe(false);
+            expect(hasPolicyRulesError(undefined)).toBe(false);
         });
 
         it('returns false when no merchant or agent rules exist', () => {
             const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
-            expect(hasPolicyRulesError(policy, {})).toBe(false);
+            expect(hasPolicyRulesError(policy)).toBe(false);
         });
 
-        it('returns false when rules exist but none have errors', () => {
+        it('returns false when agent rules exist but none have errors', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
                 id: POLICY_ID,
                 rules: {agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}}},
             };
-            expect(hasPolicyRulesError(policy, {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: merchantRule()})).toBe(false);
+            expect(hasPolicyRulesError(policy)).toBe(false);
         });
 
         it('returns true when a merchant rule has errors', () => {
             const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
-            expect(hasPolicyRulesError(policy, {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: merchantRule({123: 'boom'})})).toBe(true);
-        });
-
-        it('ignores a rule that failed on another policy', () => {
-            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
-            const otherPolicyRule: Rule = {...merchantRule({123: 'boom'}), scopeID: 'another-policy'};
-            expect(hasPolicyRulesError(policy, {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: otherPolicyRule})).toBe(false);
+            expect(hasPolicyRulesError(policy, true)).toBe(true);
         });
 
         it('returns true when an agent rule has errors', () => {
@@ -4311,7 +4285,7 @@ describe('PolicyUtils', () => {
                     agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
                 },
             };
-            expect(hasPolicyRulesError(policy, {})).toBe(true);
+            expect(hasPolicyRulesError(policy)).toBe(true);
         });
     });
 

@@ -17,7 +17,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
-import usePolicyRules from '@hooks/usePolicyRules';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -46,8 +45,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {LayoutChangeEvent} from 'react-native';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
+import {createHasExpenseDefaultRuleErrorsSelector} from '@selectors/Rule';
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -89,7 +89,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${routePolicyID}`);
-    const rules = usePolicyRules(policyID);
+    const hasMerchantRuleErrorsSelector = useMemo(() => createHasExpenseDefaultRuleErrorsSelector(policyID), [policyID]);
+    const [hasMerchantRuleErrors] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: hasMerchantRuleErrorsSelector});
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policyID);
     const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
@@ -184,7 +185,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         icons: expensifyIcons,
         isConnectionInProgress: isConnectionInProgress(connectionSyncProgress, policy),
         policyCategories,
-        rules,
+        hasMerchantRuleErrors,
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,
         shouldShowRBR,
