@@ -1196,7 +1196,14 @@ const DYNAMIC_ROUTES = {
     },
     EXPENSIFY_CARD_DETAILS: {
         path: 'expensify-card-details/:cardID/:policyID',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.DYNAMIC_PROFILE],
+        entryScreens: [
+            SCREENS.WORKSPACE.EXPENSIFY_CARD,
+            SCREENS.REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.DYNAMIC_PROFILE,
+        ],
         getRoute: (cardID: string, policyID: string) => `expensify-card-details/${cardID}/${policyID}` as const,
     },
     EXPENSIFY_CARD_LIMIT_TYPE: {
@@ -2016,6 +2023,15 @@ const ROUTES = {
                 return 'search/move-transactions/search' as const;
             }
             return `search/move-transactions/search/${encodeURIComponent(backTo)}` as const;
+        },
+    },
+    MERGE_REPORTS_SEARCH_RHP: {
+        route: 'search/merge-reports/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/merge-reports/search' as const;
+            }
+            return `search/merge-reports/search/${encodeURIComponent(backTo)}` as const;
         },
     },
     CHANGE_APPROVER_SEARCH_RHP: {
