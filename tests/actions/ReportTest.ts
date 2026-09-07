@@ -219,6 +219,14 @@ const isTransactionMergeUpdate = (value: unknown): value is Extract<OnyxUpdate<t
     );
 };
 
+const isReportMergeUpdate = (value: unknown): value is Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>, {onyxMethod: typeof Onyx.METHOD.MERGE}> => {
+    if (typeof value !== 'object' || value === null || !('onyxMethod' in value) || !('key' in value) || !('value' in value)) {
+        return false;
+    }
+
+    return value.onyxMethod === Onyx.METHOD.MERGE && typeof value.key === 'string' && value.key.startsWith(ONYXKEYS.COLLECTION.REPORT) && (value.value === null || typeof value.value === 'object');
+};
+
 const isGuidedSetupData = (value: unknown): value is GuidedSetupData =>
     Array.isArray(value) && value.every((item: unknown): item is GuidedSetupData[number] => typeof item === 'object' && item !== null && 'type' in item);
 
@@ -4610,6 +4618,46 @@ describe('actions/Report', () => {
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                 const reportName = reportUpdate?.value && typeof reportUpdate.value === 'object' && 'reportName' in reportUpdate.value ? reportUpdate.value.reportName : undefined;
                 expect(reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
+            });
+
+            it('should negate every total column so the displayed Total stays positive', () => {
+                // Given an IOU report whose totals are all stored positive
+                const policyID = '302';
+                const policy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(3, undefined),
+                    reportID: 'iouReport302',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 3,
+                    total: 10000,
+                    reimbursableTotal: 10000,
+                    nonReimbursableTotal: 0,
+                    unheldTotal: 10000,
+                    unheldReimbursableTotal: 10000,
+                    unheldNonReimbursableTotal: 0,
+                };
+
+                // When converting the IOU report to an expense report
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat302', undefined, TestHelper.getCurrencyDecimalsLocal, []);
+
+                // Then every total column flips sign together with `total`
+                const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const expenseReport = isReportMergeUpdate(reportUpdate) ? reportUpdate.value : undefined;
+                expect(expenseReport?.total).toBe(-10000);
+                expect(expenseReport?.reimbursableTotal).toBe(-10000);
+                expect(expenseReport?.unheldTotal).toBe(-10000);
+                expect(expenseReport?.unheldReimbursableTotal).toBe(-10000);
+
+                // And the Total rendered for the converted report is positive rather than -$100.00
+                const convertedReport: OnyxTypes.Report = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE, ...ReportUtils.getNegatedReportTotals(iouReport)};
+                expect(ReportUtils.getMoneyRequestSpendBreakdown(convertedReport).totalDisplaySpend).toBe(10000);
             });
         });
     });
