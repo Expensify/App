@@ -2,6 +2,8 @@ import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessag
 
 import React from 'react';
 
+import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
+
 type ReportActionsListHeaderProps = {
     /** The ID of the report being displayed */
     reportID: string;
@@ -11,11 +13,12 @@ type ReportActionsListHeaderProps = {
 };
 
 function ReportActionsListHeader({reportID, isDraftPendingCompletion}: ReportActionsListHeaderProps) {
-    if (isDraftPendingCompletion) {
-        return null;
-    }
-
-    return <ConciergeThinkingMessage reportID={reportID} />;
+    return (
+        <>
+            <ConciergeChatHistoryToggle reportID={reportID} />
+            {!isDraftPendingCompletion && <ConciergeThinkingMessage reportID={reportID} />}
+        </>
+    );
 }
 
 export default ReportActionsListHeader;

@@ -4,7 +4,9 @@ import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
+import Text from '@components/Text';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
@@ -37,6 +39,7 @@ import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import React from 'react';
 import {Keyboard, View} from 'react-native';
 
+import ConciergeQuickActions from './ConciergeQuickActions';
 import EnableNotificationsBanner, {BANNER_COMPOSER_OVERLAP_PX} from './EnableNotificationsBanner';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
@@ -92,6 +95,7 @@ function ReportFooter() {
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
+    const {shouldShowWelcome: shouldShowConciergeWelcome, shouldLabelComposerAsNewQuestion} = useConciergeAskState(reportIDFromRoute);
 
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
@@ -108,6 +112,7 @@ function ReportFooter() {
         );
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+                {shouldLabelComposerAsNewQuestion && <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('common.concierge.askNewQuestion')}</Text>}
                 {shouldShowEnableNotificationsBanner ? (
                     <>
                         <EnableNotificationsBanner />
@@ -116,6 +121,7 @@ function ReportFooter() {
                 ) : (
                     composer
                 )}
+                {shouldShowConciergeWelcome && <ConciergeQuickActions reportID={reportIDFromRoute} />}
             </View>
         );
     }

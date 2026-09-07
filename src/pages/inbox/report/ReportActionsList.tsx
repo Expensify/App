@@ -2,6 +2,7 @@ import {renderScrollComponent as renderActionSheetAwareScrollView} from '@compon
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useEnvironment from '@hooks/useEnvironment';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
@@ -135,6 +136,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const {sessionStartTime} = useConciergeSessionState();
+    const {shouldShowWelcome: shouldShowConciergeWelcome} = useConciergeAskState(reportID);
 
     const didLayout = useRef(false);
 
@@ -469,7 +471,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldShowConciergeWelcome && styles.chatContentScrollViewCentered]}
                     onEndReached={loadOlderChatsOnEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChatsAfterTransitions}
