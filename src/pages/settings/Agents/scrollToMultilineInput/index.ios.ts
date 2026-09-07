@@ -2,11 +2,11 @@ import type {FormRef} from '@components/Form/types';
 
 import type {RefObject} from 'react';
 
-function scrollToMultilineInput(formWrapperRef: RefObject<FormRef | null>, shouldScrollToMultilineInput: boolean, inputTopOffset: number) {
-    if (!shouldScrollToMultilineInput || !formWrapperRef.current) {
+function scrollToMultilineInput(formRef: RefObject<FormRef | null>, shouldScrollToMultilineInput: boolean, inputTopOffset: number) {
+    if (!shouldScrollToMultilineInput || !formRef.current) {
         return;
     }
-    formWrapperRef.current.scrollTo(inputTopOffset);
+    formRef.current.scrollTo(inputTopOffset);
 }
 
 export default scrollToMultilineInput;

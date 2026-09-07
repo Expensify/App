@@ -162,7 +162,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alw
 
             // keyboardHeight is negative when open (e.g. -291), so keyboardTop = availableWindowHeightValue + keyboardHeight.
             // Target header height: give the input exactly the space it needs above the keyboard,
-            // the header gets what remains. Clamped to [0, naturalHeight].
+            // the header gets what remains. Clamped to [MIN_HEADER_HEIGHT_ON_COLLAPSE, naturalHeight].
             const keyboardTop = availableWindowHeightValue + keyboardHeight;
             const targetHeight = alwaysCollapseHeaderOnKeyboard
                 ? MIN_HEADER_HEIGHT_ON_COLLAPSE
