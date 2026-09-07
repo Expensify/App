@@ -368,8 +368,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
 
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
-    const firstApproverByMemberEmail = useMemo(() => (isSubmitAndClose(policy) ? {} : getFirstApproverByMemberEmail(approvalWorkflows)), [approvalWorkflows, policy]);
-    const shouldShowApproverColumn = !shouldUseNarrowLayout && Object.keys(firstApproverByMemberEmail).length > 0;
+    const hasApprovalsEnabled = !isSubmitAndClose(policy);
+    const firstApproverByMemberEmail = useMemo(() => (hasApprovalsEnabled ? getFirstApproverByMemberEmail(approvalWorkflows) : {}), [approvalWorkflows, hasApprovalsEnabled]);
+    // Keyed off approvals being enabled rather than off the derived map having entries. Removing an approver blanks the
+    // remaining members' `submitsTo` until the server resolves it, and gating on the map would drop the whole column
+    // for that window (indefinitely, while offline).
+    const shouldShowApproverColumn = !shouldUseNarrowLayout && hasApprovalsEnabled;
     const hasMultiLevelWorkflow = useMemo(() => hasMultiLevelApprovalWorkflow(approvalWorkflows), [approvalWorkflows]);
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
@@ -385,6 +389,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const memberEmail = formatPhoneNumber(login);
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
             const approverEmail = shouldShowApproverColumn ? firstApproverByMemberEmail[login]?.email : undefined;
+
             // Same fallback as the member identity above: when the approver's personal details haven't loaded there is
             // no accountID to join on, so generate one and show the email rather than blanking the cell.
             const approverAccountID = approverEmail ? Number(policyMemberEmailsToAccountIDs[approverEmail] ?? generateAccountID(approverEmail)) : undefined;
