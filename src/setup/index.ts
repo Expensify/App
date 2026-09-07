@@ -1,7 +1,7 @@
 import cleanupPreMountedDraftReports from '@libs/cleanupPreMountedDraftReports';
-import '@libs/Middleware/register';
 import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
+import registerMiddlewares from '@libs/Middleware/register';
 import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import {setDeviceID} from '@userActions/Device';
@@ -22,6 +22,8 @@ import telemetry from './telemetry';
 const enableDevTools = Config?.USE_REDUX_DEVTOOLS === 'true';
 
 export default function () {
+    registerMiddlewares();
+
     telemetry();
 
     toSortedPolyfill.shim();
@@ -87,7 +89,6 @@ export default function () {
             ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
-            ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
         ],
     });
 
