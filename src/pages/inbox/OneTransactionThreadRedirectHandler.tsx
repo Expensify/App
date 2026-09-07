@@ -4,7 +4,6 @@ import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isOneTransactionReport} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 
@@ -12,6 +11,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
@@ -22,6 +24,10 @@ type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
     | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
     | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.AGENT_REPORT>;
+
+function selectTransactionCount(report: OnyxEntry<Report>): number | undefined {
+    return report?.transactionCount;
+}
 
 /**
  * Whether `backTo` points at the report we are about to redirect to. `backTo` is captured from the active route when
@@ -44,7 +50,12 @@ function isBackToParentReport(backTo: Route | undefined, parentReportID: string)
         ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: parentReportID}),
     ];
 
-    return parentReportRoutes.includes(backToPath);
+    // `REPORT_WITH_ID` and `SEARCH_REPORT` end in an optional `:reportActionID`, and `backTo` is captured with
+    // `Navigation.getActiveRoute()`, so it can carry that anchor - `cleanStaleReportActionBackToParam` exists to
+    // rewrite exactly that shape. `/r/<parent>/<actionID>` still renders the parent, so match on the report segment
+    // rather than on the whole route: missing it falls through to a replace and leaves `parent -> parent?backTo=parent`
+    // on the stack, the very thing this branch exists to avoid.
+    return parentReportRoutes.some((parentReportRoute) => backToPath === parentReportRoute || backToPath.startsWith(`${parentReportRoute}/`));
 }
 
 /**
@@ -69,8 +80,10 @@ function OneTransactionThreadRedirectHandler() {
 
     // A gate the shared definition does not have: that derivation reads whatever report actions are in Onyx, so a
     // multi-expense report still paginating in can briefly look like a single-expense one - and navigating on that is
-    // unrecoverable.
-    const [isParentOneTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {selector: isOneTransactionReport});
+    // unrecoverable. Read as the raw count rather than as a boolean so the effect below can tell "the parent has not
+    // loaded yet" apart from "the parent holds more than one expense".
+    const [parentTransactionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {selector: selectTransactionCount});
+    const isParentOneTransactionReport = parentTransactionCount === 1;
 
     // The same definition `HeaderView` and `SidebarUtils` use, so the redirect and the views that render the thread
     // agree. Gated on the parent's transaction count first: without it every plain comment thread would subscribe to
@@ -84,7 +97,7 @@ function OneTransactionThreadRedirectHandler() {
     // report read without waiting on window focus, so it has to survive the redirect. It only exists on the inbox route.
     const referrer = redirectableRoute?.name === SCREENS.REPORT ? redirectableRoute.params?.referrer : undefined;
 
-    const shouldRedirectToParentReport = !!redirectableRoute && !!parentReportID && !!isParentOneTransactionReport && isOneTransactionThread;
+    const shouldRedirectToParentReport = !!redirectableRoute && !!parentReportID && isParentOneTransactionReport && isOneTransactionThread;
 
     // The replace unmounts this screen, but Onyx updates can land before the transition finishes. Keyed by report so a
     // later route onto a different thread still redirects.
@@ -97,12 +110,34 @@ function OneTransactionThreadRedirectHandler() {
     // handler is not remounted when a later route swaps the screen's `reportID` for another thread.
     const openedWithLinkedActionRef = useRef<{reportID: string | undefined; hadLinkedReportAction: boolean} | undefined>(undefined);
 
+    // `transactionCount` is merged optimistically when an expense is deleted (see `Transaction.ts`), so a report whose
+    // thread the user is legitimately reading drops from many expenses to one the moment a *sibling* expense is
+    // deleted. Reading the count live would then redirect mid-read, and the replace drops the thread route so Back
+    // does not undo it. Only the count the parent had when this thread was opened may authorize the redirect. Keyed by
+    // report as above, and latched only once the count is known - `undefined` means the parent has not loaded yet, so
+    // a cold open still redirects when the real count arrives.
+    const openedWithParentTransactionCountRef = useRef<{reportID: string | undefined; transactionCount: number} | undefined>(undefined);
+
     useEffect(() => {
-        const latched = openedWithLinkedActionRef.current;
-        const openedWithLinkedAction = latched && latched.reportID === reportIDFromRoute ? latched : {reportID: reportIDFromRoute, hadLinkedReportAction: hasLinkedReportAction};
+        const latchedLinkedAction = openedWithLinkedActionRef.current;
+        const openedWithLinkedAction =
+            latchedLinkedAction && latchedLinkedAction.reportID === reportIDFromRoute ? latchedLinkedAction : {reportID: reportIDFromRoute, hadLinkedReportAction: hasLinkedReportAction};
         openedWithLinkedActionRef.current = openedWithLinkedAction;
 
-        if (!isFocused || openedWithLinkedAction.hadLinkedReportAction || !shouldRedirectToParentReport || redirectedFromReportIDRef.current === reportIDFromRoute) {
+        if (openedWithParentTransactionCountRef.current?.reportID !== reportIDFromRoute && parentTransactionCount !== undefined) {
+            openedWithParentTransactionCountRef.current = {reportID: reportIDFromRoute, transactionCount: parentTransactionCount};
+        }
+        const openedWithParentTransactionCount = openedWithParentTransactionCountRef.current;
+        const openedOnSingleExpenseReport =
+            !!openedWithParentTransactionCount && openedWithParentTransactionCount.reportID === reportIDFromRoute && openedWithParentTransactionCount.transactionCount === 1;
+
+        if (
+            !isFocused ||
+            openedWithLinkedAction.hadLinkedReportAction ||
+            !openedOnSingleExpenseReport ||
+            !shouldRedirectToParentReport ||
+            redirectedFromReportIDRef.current === reportIDFromRoute
+        ) {
             return;
         }
         redirectedFromReportIDRef.current = reportIDFromRoute;
@@ -128,7 +163,17 @@ function OneTransactionThreadRedirectHandler() {
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(reportRoute, {forceReplace: true});
         });
-    }, [isFocused, shouldRedirectToParentReport, hasLinkedReportAction, reportIDFromRoute, parentReportID, redirectableRoute?.name, redirectableRoute?.params?.backTo, referrer]);
+    }, [
+        isFocused,
+        shouldRedirectToParentReport,
+        hasLinkedReportAction,
+        parentTransactionCount,
+        reportIDFromRoute,
+        parentReportID,
+        redirectableRoute?.name,
+        redirectableRoute?.params?.backTo,
+        referrer,
+    ]);
 
     return null;
 }

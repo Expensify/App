@@ -41,7 +41,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 let mockParentReportID: string | undefined = EXPENSE_REPORT_ID;
-let mockParentTransactionCount = 1;
+let mockParentTransactionCount: number | undefined = 1;
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
@@ -110,6 +110,44 @@ describe('OneTransactionThreadRedirectHandler', () => {
         render(<OneTransactionThreadRedirectHandler />);
 
         await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
+    });
+
+    it('keeps the thread route when a sibling expense is deleted while the user is reading it', async () => {
+        // Two expenses, so this thread is not redundant and the user is on it legitimately.
+        mockParentTransactionCount = 2;
+        mockOneTransactionThreadReportID = undefined;
+
+        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
+
+        await waitForBatchedUpdatesWithAct();
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        // Someone deletes the other expense. `transactionCount` is merged optimistically, so the report becomes a
+        // single-expense one underneath the user - but the thread they are reading must stay put.
+        mockParentTransactionCount = 1;
+        mockOneTransactionThreadReportID = THREAD_REPORT_ID;
+        rerender(<OneTransactionThreadRedirectHandler />);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('still redirects when the parent report only loads after the thread has mounted', async () => {
+        // A cold open: nothing about the parent is in Onyx yet, so no answer can be latched.
+        mockParentTransactionCount = undefined;
+
+        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
+
+        await waitForBatchedUpdatesWithAct();
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        mockParentTransactionCount = 1;
+        rerender(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
     });
 
     it('keeps the thread route when a report action is linked, so the deep link keeps its anchor', async () => {
@@ -239,6 +277,32 @@ describe('OneTransactionThreadRedirectHandler', () => {
         await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
         expect(mockGoBack).toHaveBeenCalledWith(backTo);
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['the inbox report', SCREENS.REPORT, `/r/${EXPENSE_REPORT_ID}/9999`],
+        ['the search RHP report', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/search/view/${EXPENSE_REPORT_ID}/9999`],
+    ])('goes back to the parent report when backTo is %s anchored at one of its actions', async (_name, routeName, backTo) => {
+        // `backTo` is `Navigation.getActiveRoute()`, and both routes end in an optional `:reportActionID`, so it can
+        // carry an anchor. It still renders the parent, so this must not fall through to a replace.
+        mockRouteName = routeName;
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+        expect(mockGoBack).toHaveBeenCalledWith(backTo);
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('replaces the route when backTo is anchored at an action of a different report', async () => {
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: '/r/99999/9999'};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=${encodeURIComponent('/r/99999/9999')}`, {forceReplace: true});
+        expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('leaves the route alone on a screen other than the inbox report and the search RHP report', async () => {
