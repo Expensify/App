@@ -130,7 +130,7 @@ export default {
     rhpWidth: 440,
     // Right (detail) pane width of the wide/super-wide expense views. Decoupled from rhpWidth so the expense
     // report view's right pane can differ from the standalone skinny RHP.
-    wideRHPRightPaneWidth: 400,
+    wideRHPRightPaneWidth: 460,
     // RHP scrim opacity. Scoped to the RHP overlay so other modal backdrops keep the default overlayOpacity.
     rhpOverlayOpacity: 0.5,
     searchSidebarExpandedWidth: 320,
