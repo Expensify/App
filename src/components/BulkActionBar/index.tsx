@@ -36,11 +36,11 @@ import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popove
  * positioning layer around it belongs to the page's own.
  */
 type BulkActionBarContentProps<TValueType> = Omit<BulkActionBarProps<TValueType>, 'style'> & {
-    /** The width the bar has to fit into, once the layer around it has been laid out. */
-    availableWidth: number | undefined;
+    /** How many actions to give a button of their own; the rest go behind "More". Decided by the fitting pass. */
+    inlineActionCount: number;
 
-    /** Called once the bar has been laid out at a width that fits, so it can be revealed and animated in. */
-    onSettled: () => void;
+    /** Reports the width the bar wants at this action count, so the fitting pass can tell whether it fits. */
+    onBarLayout: (width: number) => void;
 };
 
 function BulkActionBarContent<TValueType>({
@@ -50,8 +50,8 @@ function BulkActionBarContent<TValueType>({
     onClearSelection,
     onSubItemSelected,
     barRef,
-    availableWidth,
-    onSettled,
+    inlineActionCount,
+    onBarLayout,
 }: BulkActionBarContentProps<TValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -70,12 +70,6 @@ function BulkActionBarContent<TValueType>({
     // how long their labels are in the viewer's language. So the bar is laid out at the largest count, and drops one
     // action at a time into "More" until it fits. `hasSettled` keeps it hidden until it does, so an overflowing first
     // pass is never shown.
-    const [fittedLayout, setFittedLayout] = useState<{availableWidth: number; actionCount: number; optionCount: number}>();
-
-    // A fitted count only holds for the width and action list it was measured against. Anything else — a container that
-    // grew, a selection whose actions changed — starts again from the largest count, so a wider bar fills up again.
-    const hasFittedLayout = fittedLayout?.availableWidth === availableWidth && fittedLayout?.optionCount === options.length;
-    const inlineActionCount = hasFittedLayout ? fittedLayout.actionCount : CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS;
 
     const hasMoreMenu = options.length > inlineActionCount;
     const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
@@ -97,21 +91,7 @@ function BulkActionBarContent<TValueType>({
         <View
             ref={barRef}
             style={styles.bulkActionBar}
-            onLayout={(event) => {
-                const {width} = event.nativeEvent.layout;
-                if (availableWidth === undefined) {
-                    return;
-                }
-
-                // Shedding an action always makes the bar narrower, so this settles rather than oscillating. At zero
-                // inline actions only the count, "More" and the close button remain, which fits any usable width.
-                if (width > availableWidth && inlineActionCount > 0) {
-                    setFittedLayout({availableWidth, actionCount: inlineActionCount - 1, optionCount: options.length});
-                    return;
-                }
-
-                onSettled();
-            }}
+            onLayout={(event) => onBarLayout(event.nativeEvent.layout.width)}
         >
             {/* Sized for a three-digit count so the bar keeps still as the selection grows, and so swapping the
                 spinner for the count does not resize it either. */}
@@ -201,11 +181,34 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
 
     // This layer spans the container, so laying it out measures the width the bar has to fit into.
     const [availableWidth, setAvailableWidth] = useState<number>();
-    const [settledWidth, setSettledWidth] = useState<number>();
+    const [inlineActionCount, setInlineActionCount] = useState<number>(CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS);
+    const [fitKey, setFitKey] = useState<string>();
 
-    // A change in available width sends the bar back to the largest number of actions, so it has to prove it fits again
-    // before being shown — hence comparing against the width it last settled at rather than keeping a plain flag.
-    const hasSettled = availableWidth !== undefined && settledWidth === availableWidth;
+    // A measurement is tagged with the action count it was taken at, so it can be recognised as stale rather than
+    // discarded. `onLayout` only fires when a view's size changes, so a measurement thrown away while the bar happens
+    // to stay the same size is never replaced — which would leave the bar hidden for good.
+    const [measurement, setMeasurement] = useState<{width: number; actionCount: number}>();
+
+    // The fit is derived rather than decided in a layout handler: the bar and the layer around it are laid out in
+    // whichever order the platform chooses, so this has to re-run whenever either measurement lands.
+    const currentFitKey = `${availableWidth}|${options.length}`;
+    const isMeasurementCurrent = measurement?.actionCount === inlineActionCount;
+    if (currentFitKey !== fitKey) {
+        // The space or the action list changed, so start again from the largest count: a container that grew can fill
+        // back up, and a shrunken one sheds again from the top. Any measurement taken at that count still applies.
+        setFitKey(currentFitKey);
+        setInlineActionCount(CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS);
+    } else if (isMeasurementCurrent && availableWidth !== undefined && measurement.width > availableWidth && inlineActionCount > 0) {
+        // Shedding an action always makes the bar narrower, so this settles rather than oscillating. Changing the count
+        // changes the bar's size, so a fresh measurement is guaranteed to follow.
+        setInlineActionCount(inlineActionCount - 1);
+    }
+
+    // Hidden only while the fitting pass has something left to do: a measurement that does not fit and an action still
+    // to shed, or a stale measurement about to be replaced. Everything else is shown — in particular, a layer that has
+    // not reported a width yet, so that a measurement which never arrives cannot leave the bar permanently invisible.
+    const isAwaitingFit = availableWidth !== undefined && (!isMeasurementCurrent || (measurement.width > availableWidth && inlineActionCount > 0));
+    const hasSettled = !isAwaitingFit;
 
     // The bar appears where nothing was before, so it springs up into place to draw the eye there, the same way the
     // report's floating message counter animates itself in. It waits for the fitting pass so the motion is only ever
@@ -246,8 +249,8 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
                         onClearSelection={onClearSelection}
                         onSubItemSelected={onSubItemSelected}
                         barRef={barRef}
-                        availableWidth={availableWidth}
-                        onSettled={() => setSettledWidth(availableWidth)}
+                        inlineActionCount={inlineActionCount}
+                        onBarLayout={(width) => setMeasurement({width, actionCount: inlineActionCount})}
                     />
                 </ThemeStylesProvider>
             </ThemeProvider>
