@@ -93,20 +93,17 @@ function useConciergeSidePanelReportActions({
         setPrevHasUserSentMessage(hasUserSentMessage);
     }
 
+    const pendingSentActionIDs =
+        isConciergeHiddenHistory && sessionStartTime
+            ? visibleReportActions.filter((action) => isCurrentUserPendingAddAction(action, currentUserAccountID)).map((action) => action.reportActionID)
+            : [];
+    if (pendingSentActionIDs.some((reportActionID) => !sessionSentActionIDs.has(reportActionID))) {
+        setSessionSentActionIDs((prev) => new Set([...prev, ...pendingSentActionIDs]));
+    }
+
     useLayoutEffect(() => {
         onSetHadMessagesAtSessionStart?.(localHadMessagesAtSessionStart);
     }, [localHadMessagesAtSessionStart, onSetHadMessagesAtSessionStart]);
-
-    useLayoutEffect(() => {
-        if (!isConciergeHiddenHistory || !sessionStartTime) {
-            return;
-        }
-        const pendingIDs = visibleReportActions.filter((action) => isCurrentUserPendingAddAction(action, currentUserAccountID)).map((action) => action.reportActionID);
-        if (pendingIDs.length === 0 || pendingIDs.every((reportActionID) => sessionSentActionIDs.has(reportActionID))) {
-            return;
-        }
-        setSessionSentActionIDs((prev) => new Set([...prev, ...pendingIDs]));
-    }, [visibleReportActions, isConciergeHiddenHistory, sessionStartTime, currentUserAccountID, sessionSentActionIDs]);
 
     // Check if the user had sent any message BEFORE this session started.
     // Uses sessionStartTime as the boundary — any user message created before the
