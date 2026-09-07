@@ -120,6 +120,40 @@ describe('OneTransactionThreadRedirectHandler', () => {
         await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
     });
 
+    it('keeps the thread route after the app clears the linked action param mid-session', async () => {
+        mockRouteParams = {reportID: THREAD_REPORT_ID, reportActionID: '99999'};
+
+        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Sending a comment jumps the report to its live tail, which clears the anchor it was opened with. The user is
+        // still reading the thread, so this must not become a redirect.
+        mockRouteParams = {reportID: THREAD_REPORT_ID, reportActionID: ''};
+        rerender(<OneTransactionThreadRedirectHandler />);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('still redirects a thread routed onto later without an anchor of its own', async () => {
+        mockRouteParams = {reportID: THREAD_REPORT_ID, reportActionID: '99999'};
+
+        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
+
+        await waitForBatchedUpdatesWithAct();
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        // The screen is not remounted when a later route swaps in another thread, so the latch has to be per report.
+        mockRouteParams = {reportID: '67890'};
+        rerender(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
+    });
+
     it('keeps the thread route for a send money action', async () => {
         mockParentReportAction = createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.PAY, {amount: 100});
 

@@ -84,14 +84,25 @@ function OneTransactionThreadRedirectHandler() {
     // report read without waiting on window focus, so it has to survive the redirect. It only exists on the inbox route.
     const referrer = redirectableRoute?.name === SCREENS.REPORT ? redirectableRoute.params?.referrer : undefined;
 
-    const shouldRedirectToParentReport = !!redirectableRoute && !!parentReportID && !hasLinkedReportAction && !!isParentOneTransactionReport && isOneTransactionThread;
+    const shouldRedirectToParentReport = !!redirectableRoute && !!parentReportID && !!isParentOneTransactionReport && isOneTransactionThread;
 
     // The replace unmounts this screen, but Onyx updates can land before the transition finishes. Keyed by report so a
     // later route onto a different thread still redirects.
     const redirectedFromReportIDRef = useRef<string | undefined>(undefined);
 
+    // `reportActionID` is mutable, and the app clears it on this very route while the user is still reading the
+    // thread - jumping to the live tail once they send a comment (`useReportActionsNewActionLiveTail`), or dropping an
+    // anchor whose action got deleted (`LinkedActionNotFoundGuard`). Reading it live would turn either into a redirect
+    // that ejects the user mid-session, so latch how the route was opened instead. Keyed by report, because this
+    // handler is not remounted when a later route swaps the screen's `reportID` for another thread.
+    const openedWithLinkedActionRef = useRef<{reportID: string | undefined; hadLinkedReportAction: boolean} | undefined>(undefined);
+
     useEffect(() => {
-        if (!isFocused || !shouldRedirectToParentReport || redirectedFromReportIDRef.current === reportIDFromRoute) {
+        const latched = openedWithLinkedActionRef.current;
+        const openedWithLinkedAction = latched && latched.reportID === reportIDFromRoute ? latched : {reportID: reportIDFromRoute, hadLinkedReportAction: hasLinkedReportAction};
+        openedWithLinkedActionRef.current = openedWithLinkedAction;
+
+        if (!isFocused || openedWithLinkedAction.hadLinkedReportAction || !shouldRedirectToParentReport || redirectedFromReportIDRef.current === reportIDFromRoute) {
             return;
         }
         redirectedFromReportIDRef.current = reportIDFromRoute;
@@ -117,7 +128,7 @@ function OneTransactionThreadRedirectHandler() {
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(reportRoute, {forceReplace: true});
         });
-    }, [isFocused, shouldRedirectToParentReport, reportIDFromRoute, parentReportID, redirectableRoute?.name, redirectableRoute?.params?.backTo, referrer]);
+    }, [isFocused, shouldRedirectToParentReport, hasLinkedReportAction, reportIDFromRoute, parentReportID, redirectableRoute?.name, redirectableRoute?.params?.backTo, referrer]);
 
     return null;
 }
