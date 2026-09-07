@@ -113,8 +113,8 @@ const backendOnlyViolation: TransactionViolation = {
     data: {formattedLimit: '$100'},
 };
 
-/** Seeds a group-policy expense that already carries a backend-only violation, and returns what the edit helpers need. */
-async function seedTransactionWithBackendOnlyViolation(transactionID: string, transactionThreadReportID: string) {
+/** Merges a group-policy expense that already carries a backend-only violation into Onyx, and returns what the edit helpers need. */
+async function mergeTransactionWithBackendOnlyViolation(transactionID: string, transactionThreadReportID: string) {
     const policy: Policy = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
     const transactionThreadReport = {reportID: transactionThreadReportID};
 
@@ -1040,7 +1040,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         it('should keep a violation the client cannot recompute when the tag is edited', async () => {
             // Given an expense on a group policy carrying a violation only the backend can produce
             const transactionID = '1';
-            const {policy, transactionThreadReport} = await seedTransactionWithBackendOnlyViolation(transactionID, '2');
+            const {policy, transactionThreadReport} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
 
             // When editing the tag
             updateMoneyRequestTag({
@@ -1076,7 +1076,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         it('should keep a violation the client cannot recompute when the description is edited', async () => {
             // Given an expense on a group policy carrying a violation only the backend can produce
             const transactionID = '1';
-            const {policy, transactionThreadReport} = await seedTransactionWithBackendOnlyViolation(transactionID, '2');
+            const {policy, transactionThreadReport} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
 
             // When editing the description
             updateMoneyRequestDescription({
@@ -1110,7 +1110,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         it('should keep a violation the client cannot recompute when the tax rate is edited', async () => {
             // Given an expense on a group policy carrying a violation only the backend can produce
             const transactionID = '1';
-            const {policy, transactionThreadReport} = await seedTransactionWithBackendOnlyViolation(transactionID, '2');
+            const {policy, transactionThreadReport} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
 
             // When editing the tax rate
             updateMoneyRequestTaxRate({
@@ -2094,7 +2094,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         it('should keep a violation the client cannot recompute when the merchant is edited', async () => {
             // Given an expense on a group policy carrying a violation only the backend can produce
             const transactionID = '1';
-            const {policy, transactionThreadReport} = await seedTransactionWithBackendOnlyViolation(transactionID, '2');
+            const {policy, transactionThreadReport} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
 
             // When editing the merchant
             updateMoneyRequestMerchant({

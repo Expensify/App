@@ -1,5 +1,6 @@
 import TaxPicker from '@components/TaxPicker';
 
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -11,7 +12,6 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
-import useStoredTransactionViolations from '@hooks/useStoredTransactionViolations';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -66,7 +66,7 @@ function DynamicIOURequestStepTaxRatePage({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const storedTransactionViolations = useStoredTransactionViolations(transaction?.transactionID);
+    const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -126,7 +126,7 @@ function DynamicIOURequestStepTaxRatePage({
             delegateAccountID,
             reportPolicyTags,
             isTrackIntentUser,
-            violations: storedTransactionViolations,
+            violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
         };

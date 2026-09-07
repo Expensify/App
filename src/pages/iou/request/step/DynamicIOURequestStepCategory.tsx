@@ -7,6 +7,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -22,7 +23,6 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import useStoredTransactionViolations from '@hooks/useStoredTransactionViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
@@ -95,7 +95,7 @@ function DynamicIOURequestStepCategory({
     const policyID = policy?.id;
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const storedTransactionViolations = useStoredTransactionViolations(transaction?.transactionID);
+    const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyIdDraft}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -204,7 +204,7 @@ function DynamicIOURequestStepCategory({
                     delegateAccountID,
                     reportPolicyTags,
                     isTrackIntentUser,
-                    violations: storedTransactionViolations,
+                    violations: allTransactionViolations,
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 });

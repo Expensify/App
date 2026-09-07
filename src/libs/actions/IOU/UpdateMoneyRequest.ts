@@ -1646,6 +1646,9 @@ type UpdateMoneyRequestDataKeys =
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
 
+/**
+ * @param params.violations - pass all violations including those generated on the server. Otherwise, server violations will be lost in the local optimistic calculation.
+ */
 function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData<UpdateMoneyRequestDataKeys> {
     const {
         transactionID,
@@ -2153,9 +2156,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedTaxCode ||
             hasModifiedAttendees)
     ) {
-        // This seeds a recompute that is written back with SET, so it has to carry the violations the client cannot
-        // derive (overAutoApprovalLimit, duplicatedTransaction, rter and the like). Callers that leave it empty drop
-        // those from Onyx until the response restores them, which reads as the RBR blinking off mid-edit.
         const currentTransactionViolations = violations ?? [];
         // If the amount, currency or date have been modified, we remove the duplicate violations since they would be out of date as the transaction has changed
         let optimisticViolations =

@@ -1,6 +1,7 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -12,7 +13,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import useStoredTransactionViolations from '@hooks/useStoredTransactionViolations';
 
 import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
@@ -92,7 +92,7 @@ function DynamicIOURequestStepCategoryCreate({
     const policyID = policy?.id;
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const storedTransactionViolations = useStoredTransactionViolations(transaction?.transactionID ?? transactionID);
+    const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID ?? transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
@@ -177,7 +177,7 @@ function DynamicIOURequestStepCategoryCreate({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
-                violations: storedTransactionViolations,
+                violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
             });
