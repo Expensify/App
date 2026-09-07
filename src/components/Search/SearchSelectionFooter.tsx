@@ -1,10 +1,11 @@
+import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
-import {getSearchTotalsAfterLocalRemovals, isGroupEntry} from '@libs/SearchUIUtils';
+import {hasPendingSnapshotRow, isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,12 +142,28 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const metadata = searchResults?.search;
     const metadataCurrency = metadata?.currency;
 
-    // The Search API is the only writer of `search.count`/`search.total`, but the app removes rows from the snapshot
-    // locally on submit/approve/pay, so those figures keep counting rows that are no longer listed until the next
-    // request. Take the removed rows out for as long as the snapshot still shows their absence.
-    const adjustedTotals = getSearchTotalsAfterLocalRemovals(searchResults, metadataCurrency);
-    const metadataCount = adjustedTotals ? adjustedTotals.count : metadata?.count;
-    const metadataTotal = adjustedTotals ? adjustedTotals.total : metadata?.total;
+    // The skeleton belongs to the load that opened the page, not to later refreshes, which already have figures on
+    // screen worth keeping. Cached searches render their stored (stale) figures before the refresh starts, so track
+    // the loading-to-loaded transition rather than whether figures exist.
+    const [loadState, setLoadState] = useState<{hash: number; hasSettled: boolean}>();
+    const isLoadStateForCurrentSearch = loadState?.hash === currentSearchHash;
+    const hasSettledFigures = !!isLoadStateForCurrentSearch && loadState.hasSettled;
+    const isRefreshingFirstPage = !!metadata?.isLoading && metadata?.offset === 0;
+    if (isRefreshingFirstPage && !isLoadStateForCurrentSearch) {
+        setLoadState({hash: currentSearchHash, hasSettled: false});
+    } else if (isLoadStateForCurrentSearch && !hasSettledFigures && !isRefreshingFirstPage && metadata?.count !== undefined) {
+        setLoadState({hash: currentSearchHash, hasSettled: true});
+    }
+
+    // A row action in flight is about to move these figures and its removal hasn't landed, so the figures are stale.
+    const isActionInFlight = useActionLoadingReportIDs().size > 0;
+
+    // Same for a refresh that will count an expense created while the page was open: the row is listed
+    // optimistically but the figures aren't, so leaving them up shows a number that jumps when the response lands.
+    const isCountingPendingRow = isRefreshingFirstPage && hasPendingSnapshotRow(searchResults);
+
+    const metadataCount = metadata?.count;
+    const metadataTotal = metadata?.total;
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const excludedTransactionsKeys = useMemo(() => Object.keys(excludedTransactions), [excludedTransactions]);
     const isExpenseType = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -553,11 +570,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         return null;
     }
 
-    // The only skeleton left is the currency conversion: a request that refreshes figures the footer already shows
-    // runs behind them. Acting on a row triggers one, and covering the figures each time made them blink, while the
-    // count and total they would be replaced with are the ones already on screen. Before the first count arrives
-    // there is nothing to keep, but there is also no footer yet (see shouldShowFooter above).
-    const isFooterTotalLoading = isFooterTotalConverting;
+    // A partial selection shows a client-side subtotal that is ready immediately, so the search-loading skeleton
+    // only applies to the whole-search total. Load-more requests also set metadata.isLoading without recalculating
+    // totals, hence the offset 0 gate.
+    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isActionInFlight || isCountingPendingRow || (!hasSettledFigures && isRefreshingFirstPage)));
 
     return (
         <SearchPageFooter

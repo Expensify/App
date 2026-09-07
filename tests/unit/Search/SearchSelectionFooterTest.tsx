@@ -93,11 +93,8 @@ function buildSearchResults(currency: string | undefined, count = 1, total = -10
     };
 }
 
-/**
- * An expense-report snapshot the app has acted on: report 1 is still listed with one expense, report 2 was removed by
- * submit/approve/pay and left its own expense behind as an orphan.
- */
-function buildSearchResultsWithRemovedRow(isLoading: boolean): SearchResults {
+/** A one-report expense-report snapshot: one expense of 1000, counted by the server. */
+function buildExpenseReportSearchResults(isLoading: boolean): SearchResults {
     const data: SearchResults['data'] = {};
     data[`${ONYXKEYS.COLLECTION.REPORT}1`] = {reportID: '1', currency: CONST.CURRENCY.USD};
     data[`${ONYXKEYS.COLLECTION.TRANSACTION}10`] = {
@@ -107,15 +104,6 @@ function buildSearchResultsWithRemovedRow(isLoading: boolean): SearchResults {
         amount: -1000,
         currency: CONST.CURRENCY.USD,
         groupAmount: -1000,
-        groupCurrency: CONST.CURRENCY.USD,
-    };
-    data[`${ONYXKEYS.COLLECTION.TRANSACTION}20`] = {
-        ...createRandomTransaction(20),
-        transactionID: '20',
-        reportID: '2',
-        amount: -3000,
-        currency: CONST.CURRENCY.USD,
-        groupAmount: -3000,
         groupCurrency: CONST.CURRENCY.USD,
     };
 
@@ -129,8 +117,8 @@ function buildSearchResultsWithRemovedRow(isLoading: boolean): SearchResults {
             isLoading,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-            count: 2,
-            total: 4000,
+            count: 1,
+            total: 1000,
             currency: CONST.CURRENCY.USD,
         },
         data,
@@ -182,7 +170,7 @@ describe('SearchSelectionFooter', () => {
         await Onyx.clear();
     });
 
-    it('subtracts the expenses of a report removed locally by submit/approve/pay', async () => {
+    it('keeps the figures visible when a later refresh runs, such as closing a report', async () => {
         mockSearchQueryContext.current = {
             currentSearchHash: 1,
             currentSearchKey: undefined,
@@ -190,13 +178,19 @@ describe('SearchSelectionFooter', () => {
         };
         mockSelectedTransactions.current = {};
 
-        render(<SearchSelectionFooter searchResults={buildSearchResultsWithRemovedRow(false)} />);
+        // The page's own load runs and settles first; the report overlay opens and closes over this same footer.
+        const {rerender} = render(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(true)} />);
+        await waitForBatchedUpdates();
+        rerender(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(false)} />);
+        await waitForBatchedUpdates();
+
+        rerender(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(true)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1, total: 1000, isTotalLoading: false}));
     });
 
-    it('keeps the figures visible while the search refreshes, instead of flashing the skeleton after every action', async () => {
+    it('shows the skeleton when a cached search refreshes, since its stored figures are stale', async () => {
         mockSearchQueryContext.current = {
             currentSearchHash: 1,
             currentSearchKey: undefined,
@@ -204,10 +198,69 @@ describe('SearchSelectionFooter', () => {
         };
         mockSelectedTransactions.current = {};
 
-        render(<SearchSelectionFooter searchResults={buildSearchResultsWithRemovedRow(true)} />);
+        // Cached figures render first, then the refresh starts.
+        const {rerender} = render(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(false)} />);
+        await waitForBatchedUpdates();
+        rerender(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(true)} />);
         await waitForBatchedUpdates();
 
-        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1, total: 1000, isTotalLoading: false}));
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: true}));
+    });
+
+    it('shows the skeleton for the initial load, before any response has settled', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {};
+
+        render(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(true)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: true}));
+    });
+
+    it('shows the skeleton while a refresh counts an expense created with the page open', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {};
+
+        const {rerender} = render(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(true)} />);
+        await waitForBatchedUpdates();
+        rerender(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(false)} />);
+        await waitForBatchedUpdates();
+
+        // The new expense is merged into the snapshot optimistically; the figures still predate it.
+        const refreshing = buildExpenseReportSearchResults(true);
+        refreshing.data[`${ONYXKEYS.COLLECTION.TRANSACTION}11`] = {
+            ...createRandomTransaction(11),
+            transactionID: '11',
+            reportID: '1',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+        rerender(<SearchSelectionFooter searchResults={refreshing} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: true}));
+    });
+
+    it('shows the skeleton while a row action is in flight', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}1`, {isActionLoading: true});
+
+        render(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(false)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: true}));
     });
 
     it('subtracts excluded expenses from the server count and total', async () => {

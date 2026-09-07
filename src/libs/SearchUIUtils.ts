@@ -93,7 +93,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
@@ -2432,35 +2432,64 @@ function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportI
 }
 
 /**
- * Whole-search count and total with the rows the app removed locally taken out.
- *
- * Only the Search API writes `search.count` and `search.total`, but submit/approve/pay drop the acted-on report from
- * the snapshot straight away, so those figures keep counting expenses that are no longer listed until the next
- * request. The removal nulls the report entry and leaves its transactions behind, and those orphans are exactly the
- * rows that went away: subtracting them restores agreement between the list and the footer, on any page of results.
- * A first-page response replaces the whole snapshot, so the orphans and the stale figures are cleared together.
- *
- * Returns undefined when nothing was removed, or when this can't be answered exactly, in which case the server
- * figures stand:
- * - only expense-report searches, where a row is a report and an orphaned expense means a removed row (on other
- *   search types the snapshot need not hold a report for every expense, so an orphan means nothing)
- * - the total is only adjusted when every removed expense carries a `groupAmount` in `targetCurrency`, since
- *   `search.total` is converted and a raw amount in another currency is not comparable to it. The count is
- *   currency-free, so it is always adjusted.
+ * Whether the snapshot holds a row the server hasn't confirmed yet: an expense or report created or edited while the
+ * page was open and merged in optimistically. The whole-search figures don't cover it, so they trail the list until
+ * the response that counts it lands.
  */
-function getSearchTotalsAfterLocalRemovals(
-    searchResults: OnyxEntry<OnyxTypes.SearchResults>,
-    targetCurrency: string | undefined,
-): {count: number | undefined; total: number | undefined} | undefined {
+function hasPendingSnapshotRow(searchResults: OnyxEntry<OnyxTypes.SearchResults>): boolean {
+    const data = searchResults?.data;
+    if (!data) {
+        return false;
+    }
+
+    for (const key in data) {
+        if (!isTransactionEntry(key) && !isReportEntry(key)) {
+            continue;
+        }
+
+        const entry = data[key];
+        if (entry && typeof entry === 'object' && 'pendingAction' in entry && !!entry.pendingAction) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Snapshot update that removes reports from a search result: their rows, their expenses, and the whole-search figures.
+ *
+ * Submit/approve/pay drop the acted-on report from the snapshot so the list keeps up without a refetch, but only the
+ * Search API writes `search.count`, `search.reportCount` and `search.total`, so the footer kept counting rows that
+ * were no longer listed. Onyx merges values rather than deltas, so the figures here are absolute, computed from the
+ * snapshot as it stands; the next response overwrites them with the server's own.
+ *
+ * Reports already gone from the snapshot contribute nothing, so applying this twice for one report is harmless.
+ * Returns undefined when there is nothing to remove, or for search types whose rows are not reports.
+ *
+ * `total` is only adjusted when every removed expense carries a `groupAmount` in the snapshot's currency: the server
+ * total is converted, and a raw amount in another currency is not comparable. The count is currency-free.
+ */
+function getSnapshotRemovalUpdate(searchResults: OnyxEntry<OnyxTypes.SearchResults>, reportIDs: string[]): NullishDeep<OnyxTypes.SearchResults> | undefined {
     const data = searchResults?.data;
     const search = searchResults?.search;
     if (!data || search?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         return undefined;
     }
 
-    let removedCount = 0;
+    const removedReportIDs = new Set(reportIDs.filter((reportID) => !!data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]));
+    if (removedReportIDs.size === 0) {
+        return undefined;
+    }
+
+    const removedData: NullishDeep<OnyxTypes.SearchResults['data']> = {};
+    for (const reportID of removedReportIDs) {
+        removedData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = null;
+    }
+
+    let removedExpenseCount = 0;
     let removedTotal = 0;
-    let canAdjustTotal = true;
+    let canAdjustTotal = !!search.currency;
 
     for (const key in data) {
         if (!isTransactionEntry(key)) {
@@ -2468,13 +2497,14 @@ function getSearchTotalsAfterLocalRemovals(
         }
 
         const transaction = data[key];
-        if (!transaction?.reportID || data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]) {
+        if (!transaction?.reportID || !removedReportIDs.has(transaction.reportID)) {
             continue;
         }
 
-        removedCount += 1;
+        removedData[key] = null;
+        removedExpenseCount += 1;
 
-        if (transaction.groupAmount === undefined || transaction.groupCurrency !== targetCurrency) {
+        if (transaction.groupAmount === undefined || transaction.groupCurrency !== search.currency) {
             canAdjustTotal = false;
             continue;
         }
@@ -2482,13 +2512,13 @@ function getSearchTotalsAfterLocalRemovals(
         removedTotal -= transaction.groupAmount;
     }
 
-    if (removedCount === 0) {
-        return undefined;
-    }
-
     return {
-        count: search.count === undefined ? undefined : Math.max(search.count - removedCount, 0),
-        total: canAdjustTotal && search.total !== undefined && targetCurrency ? search.total - removedTotal : search.total,
+        data: removedData,
+        search: {
+            ...(search.count === undefined ? {} : {count: Math.max(search.count - removedExpenseCount, 0)}),
+            ...(search.reportCount === undefined ? {} : {reportCount: Math.max(search.reportCount - removedReportIDs.size, 0)}),
+            ...(canAdjustTotal && search.total !== undefined ? {total: search.total - removedTotal} : {}),
+        },
     };
 }
 
@@ -7276,7 +7306,8 @@ export {
     getSortedTransactionData,
     getViolationsFromSearchData,
     getTransactionsByReportID,
-    getSearchTotalsAfterLocalRemovals,
+    getSnapshotRemovalUpdate,
+    hasPendingSnapshotRow,
     isTransactionMatchWithGroupItem,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
