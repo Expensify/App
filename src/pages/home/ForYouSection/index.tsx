@@ -192,7 +192,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
 
     const visibleForYouRows = hideForYou ? [] : forYouRows;
 
-    // Show the skeleton while the to-dos load. Show the empty state only when both groups are empty (PRD D2).
+    // Show the skeleton while the to-dos load. Show the empty state only when both groups are empty.
     const showSkeleton = isInitialLoad && !hideForYou;
     const showEmptyState = !isInitialLoad && !hideForYou && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
     const willOnlyShowConciergePromptBox = timeSensitiveItems.length === 0 && visibleForYouRows.length === 0 && !showSkeleton && !showEmptyState;
