@@ -160,7 +160,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
@@ -576,7 +576,7 @@ function MoneyRequestView({
         }
         return match;
     };
-    const [tripRoomReport] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
+    const [tripRoomReport] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
     const tripRoomReportID = tripRoomReport?.reportID;
 
     const derivedReportNames = useDerivedReportNamesByReportIDs([tripRoomReportID, parentReport?.reportID]);
@@ -752,11 +752,6 @@ function MoneyRequestView({
         if (formattedOriginalAmount) {
             amountHintText = `${translate('iou.purchase')} ${formattedOriginalAmount}`;
         }
-        if (isCancelled) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
-        }
-    } else if (isCancelled) {
-        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
     } else if (isApproved) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
     } else if (shouldShowPaid) {
@@ -1173,7 +1168,7 @@ function MoneyRequestView({
     const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport, parentReportDerivedName);
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
-    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction, policy);
+    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
