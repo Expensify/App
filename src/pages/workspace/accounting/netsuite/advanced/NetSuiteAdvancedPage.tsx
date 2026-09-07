@@ -50,7 +50,7 @@ import {useSharedValue} from 'react-native-reanimated';
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const config = policy?.connections?.netsuite?.options?.config;

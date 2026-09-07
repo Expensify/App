@@ -30,7 +30,7 @@ import {View} from 'react-native';
 function NetSuiteFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
 
     const policyID = policy?.id;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
