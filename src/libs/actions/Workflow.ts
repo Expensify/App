@@ -654,6 +654,14 @@ function clearApprovalWorkflow() {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, null);
 }
 
+/**
+ * Hands ownership of the draft back to the edit page. `originalMembers` is left alone: it stays the correct
+ * removed-members baseline, and nothing reads it once `isFastEdit` is off.
+ */
+function clearApprovalWorkflowFastEdit() {
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {isFastEdit: false});
+}
+
 type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {approvers: Approver[]};
 
 /**
@@ -710,6 +718,7 @@ export {
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
+    clearApprovalWorkflowFastEdit,
     validateApprovalWorkflow,
     setApprovalWorkflowIsInitialFlow,
 };

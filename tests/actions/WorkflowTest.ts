@@ -6,6 +6,7 @@ import {generatePolicyID} from '@src/libs/actions/Policy/Policy';
 import * as Task from '@src/libs/actions/Task';
 import {
     clearApprovalWorkflowApprover,
+    clearApprovalWorkflowFastEdit,
     createApprovalWorkflow,
     createApprovalWorkflowRules,
     removeApprovalWorkflow,
@@ -204,6 +205,30 @@ describe('actions/Workflow', () => {
 
             const approvalWorkflow = await getApprovalWorkflowState();
             expect(approvalWorkflow?.isFastEdit).toBeUndefined();
+        });
+    });
+
+    describe('clearApprovalWorkflowFastEdit', () => {
+        it('should hand a fast-edit draft back to the edit page without disturbing the rest of it', async () => {
+            const members = [{email: employee1Email, displayName: 'Employee 1'}];
+
+            selectApprovalWorkflowForEdit({
+                workflow: {members, approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+                isFastEdit: true,
+            });
+            await waitForBatchedUpdates();
+
+            clearApprovalWorkflowFastEdit();
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.isFastEdit).toBe(false);
+            // The draft itself must survive — the edit page owns it from here and still needs the baseline.
+            expect(approvalWorkflow?.members).toEqual(members);
+            expect(approvalWorkflow?.originalMembers).toEqual(members);
+            expect(approvalWorkflow?.action).toBe(CONST.APPROVAL_WORKFLOW.ACTION.EDIT);
         });
     });
 

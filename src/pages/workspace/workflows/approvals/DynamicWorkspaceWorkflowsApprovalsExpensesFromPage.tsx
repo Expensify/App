@@ -85,6 +85,8 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const isHandingOffToInviteRef = useRef(false);
     // Tracks whether we're still on the very first step of the create flow
     const isInitialCreationFlowRef = useRef(false);
+    // Tracks whether this session was opened as a fast edit, so the cleanup effect can discard the draft.
+    const isFastEditRef = useRef(false);
 
     const excludedUsers = useMemo(() => {
         return getExcludedUsers(policy?.employeeList);
@@ -439,34 +441,44 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             return;
         }
 
-        // Use goBack so we return to the existing parent (e.g. the workflow edit page) in the stack
-        // instead of pushing a new instance. A fresh mount of the edit page would re-derive members
-        // from policy.employeeList via its useEffect and overwrite the selection we just saved.
-        Navigation.goBack(backPath, {compareParams: false});
-
         // A fast edit goes back to the workflows page rather than the edit page, so no other screen will
         // ever save this workflow. Save it here, or the member the admin just picked or dropped is lost.
+        // Every other session leaves saving to its parent, so it only has to navigate: use goBack so we
+        // return to the existing parent (e.g. the workflow edit page) in the stack instead of pushing a new
+        // instance. A fresh mount of the edit page would re-derive members from policy.employeeList via its
+        // useEffect and overwrite the selection we just saved.
         if (!approvalWorkflow?.isFastEdit) {
+            Navigation.goBack(backPath, {compareParams: false});
             return;
         }
 
         const workflowToSave = {...approvalWorkflow, members: allMembers};
+        // Validate before navigating. validateApprovalWorkflow also rejects approver-level state this page
+        // can't edit (a circular forwardsTo, an overLimitForwardsTo without a positive approvalLimit), so on
+        // a policy that already has one of those every fast edit would otherwise navigate away and silently
+        // discard the member change. Stay put instead and let the footer alert surface approvalWorkflow.errors.
         if (!validateApprovalWorkflow(workflowToSave)) {
             return;
         }
+
+        Navigation.goBack(backPath, {compareParams: false});
 
         const originalMembers = approvalWorkflow.originalMembers ?? [];
         // Wait for the transition so the save doesn't blank this page's list while it is still sliding away.
         runAfterPredictedTransition(() => {
             if (isMultipleApproversBetaEnabled) {
                 updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow: {...workflowToSave, members: originalMembers}, policy, rules: rulesCollection});
-                // The rules path leaves the draft behind, unlike updateApprovalWorkflow which clears it optimistically.
-                clearApprovalWorkflow();
-                return;
+            } else {
+                const membersToRemove = originalMembers.filter((originalMember) => !allMembers.some((member) => member.email === originalMember.email));
+                updateApprovalWorkflow(workflowToSave, membersToRemove, [], policy);
             }
 
-            const membersToRemove = originalMembers.filter((originalMember) => !allMembers.some((member) => member.email === originalMember.email));
-            updateApprovalWorkflow(workflowToSave, membersToRemove, [], policy);
+            // This session owns the draft: no edit page will consume it, and neither save path reliably clears
+            // it — updateApprovalWorkflowRules never does, and updateApprovalWorkflow only clears once it
+            // reaches its optimistic data, which it skips when the employee diff comes out empty. Tear the
+            // draft down here so isFastEdit can't outlive the save. Plain Onyx.set(key, null) on a key
+            // neither save path touches, so it is safe after either branch.
+            clearApprovalWorkflow();
         });
     }, [route.params.policyID, selectedMembers, isInitialCreationFlow, backPath, policy, approvalWorkflow, isMultipleApproversBetaEnabled, rulesCollection]);
 
@@ -482,15 +494,23 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 buttonText={buttonText}
                 onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                // Only a fast edit validates and saves from this page, so it is the only case that can leave
+                // errors on the draft for this footer to report.
+                isAlertVisible={!!approvalWorkflow?.isFastEdit && !isEmptyObject(approvalWorkflow?.errors)}
+                sentryLabel={approvalWorkflow?.isFastEdit ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_FAST_EDIT_SAVE : undefined}
                 enabledWhenOffline
             />
         );
-    }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles]);
+    }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles, approvalWorkflow?.isFastEdit, approvalWorkflow?.errors]);
 
-    // Keep the ref in sync so the unmount cleanup below reads the latest value.
+    // Keep the refs in sync so the unmount cleanup below reads the latest values.
     useEffect(() => {
         isInitialCreationFlowRef.current = !!isInitialCreationFlow;
     }, [isInitialCreationFlow]);
+
+    useEffect(() => {
+        isFastEditRef.current = !!approvalWorkflow?.isFastEdit;
+    }, [approvalWorkflow?.isFastEdit]);
 
     // Clean up invite draft when leaving the expenses-from page to prevent
     // stale non-member data from persisting in the approval workflow. Skip
@@ -503,7 +523,11 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             clearInviteDraft(route.params.policyID);
             // Abandoning the initial create step must discard the eagerly-seeded approvalWorkflow
             // draft, otherwise a stale draft stays in Onyx and pollutes the next session.
-            if (isInitialCreationFlowRef.current) {
+            // A fast edit is the same situation: this page is the only screen in that session, so backing
+            // out has to take the draft with it. Leaving it behind would strand isFastEdit in persisted
+            // Onyx, where a later edit page that resumes the draft would hand this sub-page a licence to
+            // save and clear the draft out from under it.
+            if (isInitialCreationFlowRef.current || isFastEditRef.current) {
                 clearApprovalWorkflow();
             }
         };
