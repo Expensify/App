@@ -71,6 +71,12 @@ function PopoverWithMeasuredContentBase({
     const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
+    // Static dimensions skip the `onLayout` measurement below, so `popoverHeight` would otherwise keep its first-render
+    // value forever. Mirror the prop so callers that adapt the height to the space available are positioned correctly.
+    if (hasStaticDimensions && popoverHeight !== popoverDimensions.height) {
+        setPopoverHeight(popoverDimensions.height);
+    }
+
     useEffect(() => {
         if (prevIsVisible || !isVisible || !shouldEnableNewFocusManagement) {
             return;

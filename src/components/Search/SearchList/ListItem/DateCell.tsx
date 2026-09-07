@@ -32,9 +32,12 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
     const styles = useThemeStyles();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: date,
+        // The calendar has a fixed height, so pass its real height to pick the side to open on. It isn't shrunk —
+        // the bottom-edge anchoring is what keeps it off the cell.
+        popoverHeight: CONST.POPOVER_DATE_MAX_HEIGHT,
         onSave,
     });
 
@@ -73,11 +76,8 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
                     onClose={cancelEditing}
                     onSelected={handleSave}
                     anchorPosition={popoverPosition}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    shouldPositionFromTop={!isInverted}
+                    anchorAlignment={anchorAlignment}
+                    shouldPositionFromTop={!shouldOpenAbove}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     inputID="EditableDateCell"
