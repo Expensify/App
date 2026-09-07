@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getChatListItemReportName, isChatThread, isInvoiceReport} from '@libs/ReportUtils';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -58,7 +58,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
                 <View style={[styles.flexRow, styles.alignItemsCenter, !isWhisper ? styles.mb3 : {}]}>
                     <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
                     <TextLink
-                        fontSize={variables.fontSizeSmall}
+                        fontSize={fontScale.micro}
                         onPress={() => {
                             onPress?.();
                         }}
