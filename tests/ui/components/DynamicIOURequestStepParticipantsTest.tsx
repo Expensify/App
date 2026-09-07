@@ -6,17 +6,21 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
 import DynamicIOURequestStepParticipants from '@pages/iou/request/step/DynamicIOURequestStepParticipants';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
+import createMock from '../../utils/createMock';
 import {signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -25,6 +29,7 @@ const ACCOUNT_LOGIN = 'test@user.com';
 const SELF_DM_REPORT_ID = '1';
 const TRANSACTION_ID = '1';
 const POLICY_ID = '2';
+const navigation = createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS>['navigation']>({});
 
 type CapturedSelectorProps = {shouldBlockParticipantSelection?: (policyID?: string) => boolean};
 
@@ -170,6 +175,7 @@ describe('DynamicIOURequestStepParticipants', () => {
                                         isWorkspacesOnly: 'true',
                                     },
                                 }}
+                                navigation={navigation}
                             />
                         </LocaleContextProvider>
                     </CurrentUserPersonalDetailsProvider>
@@ -233,6 +239,7 @@ describe('DynamicIOURequestStepParticipants', () => {
                                         isWorkspacesOnly: 'true',
                                     },
                                 }}
+                                navigation={navigation}
                             />
                         </LocaleContextProvider>
                     </CurrentUserPersonalDetailsProvider>
