@@ -38,28 +38,10 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
     const [isNegated, setIsNegated] = useState(initialIsNegated);
+
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
     const {inputCallbackRef} = useAutoFocusInput();
     const error = useTextFilterValidation(baseFilterKey, value);
-
-    const filterInput = (
-        <TextInput
-            ref={(ref) => {
-                if (!autoFocus || !isTextInput(ref)) {
-                    return;
-                }
-                inputCallbackRef(ref);
-            }}
-            placeholder={label}
-            value={value}
-            errorText={error}
-            hasError={!!error}
-            onChangeText={setValue}
-            accessibilityLabel={label}
-            role={CONST.ROLE.PRESENTATION}
-            containerStyles={[styles.ph5]}
-        />
-    );
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
@@ -68,7 +50,22 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
                 isNegated={isNegated}
                 onNegationChange={setIsNegated}
             >
-                <View>{filterInput}</View>
+                <TextInput
+                    ref={(ref) => {
+                        if (!autoFocus || !isTextInput(ref)) {
+                            return;
+                        }
+                        inputCallbackRef(ref);
+                    }}
+                    placeholder={label}
+                    value={value}
+                    errorText={error}
+                    hasError={!!error}
+                    onChangeText={setValue}
+                    accessibilityLabel={label}
+                    role={CONST.ROLE.PRESENTATION}
+                    containerStyles={[styles.ph5]}
+                />
             </NegatableFilter>
             <Button
                 style={[styles.ph5, styles.pb5]}
