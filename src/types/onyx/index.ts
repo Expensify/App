@@ -139,6 +139,7 @@ import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
+import type PolicyVendors from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -305,6 +306,7 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
     PolicyConnectionName,
