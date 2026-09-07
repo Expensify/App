@@ -15,8 +15,10 @@ const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
     prefixes,
     config,
     subscribe,
-    // Covers both the initial URL and later `url` events. The native OAuth callback is consumed by the auth
-    // session that opened it, so routing it would only land on NotFound and tear down the returning screen.
+    // Native only: react-navigation reads `filter` in useLinking.native, not on web. There it covers both the
+    // initial URL and later `url` events. The native OAuth callback is consumed by the auth session that opened
+    // it, so routing it would only land on NotFound and tear down the returning screen. The signed-out path goes
+    // through openReportFromDeepLink instead, which has its own guard.
     filter: (url) => !isNativeOAuthCallbackURL(url),
 };
 
