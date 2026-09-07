@@ -82,7 +82,7 @@ You can move expenses to a different report, create a new report, or remove them
 Approved and Paid reports are locked for editing. To make changes:
 
 1. (Admins only) Open the report.
-2. Click **More > Cancel Payment** (if Paid).
+2. Click **More > Cancel payment** (if Paid).
 3. Then select **More > Unapprove**.
 
 After it’s unapproved:

@@ -109,7 +109,7 @@ If a receipt was added to the report comments instead of the expense:
 Approved and Paid reports are locked for editing. To make changes:
 
 1. (Admins only) Open the report.
-2. Click **More > Cancel Payment** (if Paid).
+2. Click **More > Cancel payment** (if Paid).
 3. Then click **More > Unapprove**.
 4. The member can then click **More > Undo Submit**.
 5. Now the expense and receipt can be updated.
