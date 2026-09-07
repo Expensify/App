@@ -268,6 +268,35 @@ describe('createWorkspaceListPoliciesSelector', () => {
         expect(result).toHaveLength(1);
     });
 
+    it('excludes a policy whose id has not been merged in yet', () => {
+        // A `policy_` record is merged field-by-field, so a freshly joined workspace can pass shouldShowPolicy
+        // before its `id` arrives. Such a row has no key, no avatar seed and nothing to navigate to.
+        const policies = {
+            [`${P}p1`]: makePolicy({id: undefined}),
+        };
+        expect(createWorkspaceListPoliciesSelector(userLogin)(policies)).toEqual([]);
+    });
+
+    it('still includes an id-less policy when it is a pending join request', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({
+                id: undefined,
+                isJoinRequestPending: true,
+                policyDetailsForNonMembers: {
+                    p1: {
+                        name: 'Pending Workspace',
+                        type: CONST.POLICY.TYPE.TEAM,
+                        ownerAccountID: 1,
+                        ownerEmail: 'owner@example.com',
+                    },
+                },
+            }),
+        };
+        const [item] = createWorkspaceListPoliciesSelector(userLogin)(policies);
+        expect(item?.isJoinRequestPending).toBe(true);
+        expect(item?.nonMemberDetails?.policyID).toBe('p1');
+    });
+
     it('projects only the expected fields onto each result item', () => {
         const policy = makePolicy({
             id: 'p1',
