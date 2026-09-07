@@ -12,8 +12,6 @@ import {getCompanyCardFeedWithDomainIDForCard, getCustomOrFormattedFeedName} fro
 import Navigation from '@libs/Navigation/Navigation';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -99,8 +97,6 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     return (
         <BaseWidgetItem
             icon={icons.Connect}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}

@@ -1001,7 +1001,7 @@ const translations = {
         tooltip: 'Get started here!',
     },
     homePage: {
-        forYou: 'For you',
+        toDos: 'To-dos',
         conciergePrompt: {
             goodMorning: ({name}: {name?: string}) => (name ? `Good morning, ${name}.` : 'Good morning.'),
             goodAfternoon: ({name}: {name?: string}) => (name ? `Good afternoon, ${name}.` : 'Good afternoon.'),
@@ -1029,12 +1029,12 @@ const translations = {
             addShippingAddress: {
                 title: 'We need your shipping address',
                 subtitle: 'Provide an address to receive your Expensify Card.',
-                cta: 'Add address',
+                cta: 'Add',
             },
             addVirtualCardPersonalDetails: {
                 title: 'Add your details to view and start using your Expensify Card.',
                 subtitle: 'Expensify Card',
-                cta: 'Add details',
+                cta: 'Add',
             },
             addPaymentCard: {
                 title: 'Add a payment card to keep using Expensify',
@@ -1064,7 +1064,7 @@ const translations = {
             addHomeAddress: {
                 title: 'Add your home address for distance tracking',
                 subtitle: 'Account',
-                cta: 'Add address',
+                cta: 'Add',
             },
             fixFailedBilling: {
                 title: "We couldn't bill your card on file",
@@ -1101,7 +1101,6 @@ const translations = {
             title: 'Your spend',
             awaitingApproval: 'Awaiting approval',
             repaidLast30Days: 'Repaid last 30 days',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `See ${count} more`,
         discoverSection: {
@@ -1195,6 +1194,8 @@ const translations = {
             setupRules: 'Set up spend rules',
             customizeSpendCategories: 'Customize spend categories',
             customizeSpendCategoriesSubText: 'Organize and classify expenses',
+            customizeExpenseCategories: 'Customize your expense categories',
+            customizeExpenseCategoriesSubText: 'Add your company’s categories to code your expenses',
             createExpense: 'Create an expense',
             createExpenseSubText: 'Scan, drag and drop, or manually enter an expense using the + button',
             linkPersonalCard: 'Link personal card',
@@ -1356,6 +1357,7 @@ const translations = {
         addAdditionalReceipt: 'Add additional receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
+        pageCount: ({pageCount}: {pageCount: number}) => `Page 1 of ${pageCount}`,
         addAReceipt: {
             phrase1: 'Add a receipt',
             phrase2: 'or drag and drop one here',
@@ -4284,8 +4286,7 @@ const translations = {
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         enterTheDateOfBirthOfTheOwner: "What's the owner's date of birth?",
-        enterTheLast4: 'What are the last 4 digits of the owner’s Social Security Number?',
-        last4SSN: 'Last 4 of SSN',
+        enterTheSSN: "What's the owner's Social Security Number?",
         dontWorry: "Don't worry, we don't do any personal credit checks!",
         enterTheOwnersAddress: "What's the owner's address?",
         letsDoubleCheck: 'Let’s double check that everything looks right.',
@@ -4312,13 +4313,12 @@ const translations = {
         whatsYourDOB: "What's your date of birth?",
         whatsTheOwnersAddress: "What's the owner's address?",
         whatsYourAddress: "What's your address?",
-        whatAreTheLast: "What are the last 4 digits of the owner's Social Security Number?",
-        whatsYourLast: 'What are the last 4 digits of your Social Security Number?',
+        whatsTheOwnersSSN: "What's the owner's Social Security Number?",
+        whatsYourSSN: 'What is your Social Security Number?',
         whatsYourNationality: 'What is your country of citizenship?',
         whatsTheOwnersNationality: "What's the owner's country of citizenship?",
         countryOfCitizenship: 'Country of citizenship',
         dontWorry: "Don't worry, we don't do any personal credit checks!",
-        last4: 'Last 4 of SSN',
         whyDoWeAsk: 'Why do we ask for this?',
         letsDoubleCheck: 'Let’s double check that everything looks right.',
         legalName: 'Legal name',
@@ -4340,6 +4340,8 @@ const translations = {
         proofOfBeneficialOwner: 'Proof of beneficial owner',
         proofOfBeneficialOwnerDescription:
             "Please provide a signed attestation and org chart from a public accountant, notary, or lawyer verifying ownership of 25% or more of the business. It must be dated within the last three months and include the signer's license number.",
+        proofOfBeneficialOwnerDescriptionCA:
+            'Please provide your Schedule 50 (Shareholder Information) from your most recent T2 corporate income tax return, showing every individual who owns 25% or more of the business.',
         copyOfID: 'Copy of ID for beneficial owner',
         copyOfIDDescription: "Examples: Passport, driver's license, etc.",
         proofOfAddress: 'Address proof for beneficial owner',
@@ -6701,6 +6703,7 @@ const translations = {
             subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information.",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
+            cannotDisableImportedReportFields: 'Report fields imported from your accounting connection cannot be disabled.',
             importedFromAccountingSoftware: 'The report fields below are imported from your',
             textType: 'Text',
             dateType: 'Date',
@@ -7558,12 +7561,12 @@ const translations = {
                 summaryDisabled: 'No commute exclusion',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
                 summaryHomeAndOffice: 'Use home and office locations',
-                optionDisabledTitle: 'Do not exclude commutes',
+                optionDisabledTitle: 'Do not exclude commute',
                 optionDisabledHelp: 'No commute is removed from claims.',
-                optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
-                optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
-                optionHomeAndOfficeTitle: 'Calculate by home and office',
-                optionHomeAndOfficeHelp: 'Use member’s home address, work arrangement, and office assignment to calculate commute exclusions.',
+                optionFixedDistanceTitle: 'Remove fixed distance',
+                optionFixedDistanceHelp: 'Subtracts the same distance from every claim.',
+                optionHomeAndOfficeTitle: 'Exclude usual commute',
+                optionHomeAndOfficeHelp: "Subtracts each member's regular commute based on their home, work arrangement, and office.",
                 distanceLabel: 'Distance',
                 workspaceAddressRequired: {
                     title: 'Not so fast...',
@@ -8251,6 +8254,22 @@ const translations = {
                 expenseDefaultsSubtitle: 'Update fields without submitter doing anything',
                 ifAnyExpenseMatches: 'If any expense matches:',
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
+                confirmErrorCategory: 'Please select a category',
+                confirmErrorCategoryTax: 'Please select a tax rate',
+                confirmErrorCondition: 'Please enter a merchant',
+                confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
+                turnOnTaxesFirstTitle: 'Turn on taxes first',
+                turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
+                categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
+                categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
+            },
+            expenseDefaultType: {
+                title: 'Apply expense defaults',
+                subtitle: 'What should this rule match on?',
+                merchant: 'Merchant',
+                merchantDescription: 'Update fields on expenses from a specific merchant',
+                category: 'Category',
+                categoryDescription: 'Set a default tax rate for a specific category',
             },
             newRule: {
                 title: 'New rule',
@@ -8259,12 +8278,12 @@ const translations = {
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
                 flagForReviewDescription: 'Notify approvers when expenses exceed category limits',
-                requireFields: 'Field requirements',
+                requireFields: 'Set field requirements',
                 requireFieldsDescription: 'Require specific expense fields or waive requiring them.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
-                createAgentRule: 'Agent rule',
-                createAgentRuleDescription: 'Describe flexible rules that run when you need.',
+                createAgentRule: 'Describe agent rule',
+                createAgentRuleDescription: 'Create flexible rules that run when you need.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -8273,6 +8292,7 @@ const translations = {
                 findRule: 'Find rule',
                 rename: 'Rename',
                 update: 'Update',
+                categoryIs: (category: string) => `Category is "${category}"`,
                 merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
             },
@@ -8283,6 +8303,7 @@ const translations = {
             },
             requireFieldsTable: {
                 tableColumnType: 'Type',
+                typeLabel: 'Require',
                 tableColumnCondition: 'Condition',
                 tableColumnRule: 'Rule',
                 findRule: 'Find rule',
@@ -8304,6 +8325,11 @@ const translations = {
             categoriesDisabledEmptyState: {
                 title: 'Categories are not enabled',
                 subtitle: 'Enable categories to gain more control of your spend.',
+            },
+            taxesDisabledEmptyState: {
+                title: 'Taxes are not enabled',
+                subtitle: 'Enable taxes to document and reclaim eligible taxes.',
+                cta: 'Enable taxes',
             },
             requireFieldsRule: {
                 title: 'Field requirements',
@@ -9640,6 +9666,10 @@ const translations = {
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
+        },
+        mergeReports: {
+            title: 'Merge reports',
+            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
         },
     },
     genericErrorPage: {

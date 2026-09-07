@@ -1,6 +1,7 @@
 import Button from '@components/ButtonComposed';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ImageSVG from '@components/ImageSVG';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
@@ -25,26 +26,28 @@ function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.ph5, styles.pv10, styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
-            <View style={[styles.toddInCarIllustrationContainer]}>
-                <ImageSVG
-                    src={ToddInCar}
-                    contentFit="contain"
-                />
-            </View>
-            <View style={[styles.gap2, styles.pb5, styles.pt2]}>
-                <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>{translate('gps.desktop.title')}</Text>
-                <Text style={[styles.textAlignCenter, styles.textSupportingNormal]}>{translate('gps.desktop.subtitle')}</Text>
-            </View>
+        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+            <View style={[styles.ph5, styles.pv10, styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh100]}>
+                <View style={[styles.toddInCarIllustrationContainer]}>
+                    <ImageSVG
+                        src={ToddInCar}
+                        contentFit="contain"
+                    />
+                </View>
+                <View style={[styles.gap2, styles.pb5, styles.pt2]}>
+                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>{translate('gps.desktop.title')}</Text>
+                    <Text style={[styles.textAlignCenter, styles.textSupportingNormal]}>{translate('gps.desktop.subtitle')}</Text>
+                </View>
 
-            <Button
-                onPress={() => Linking.openURL(CONST.EXPENSIFY_MOBILE_URL)}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_OPEN_MOBILE_BUTTON}
-            >
-                <Button.Text>{translate('gps.desktop.button')}</Button.Text>
-            </Button>
-        </View>
+                <Button
+                    onPress={() => Linking.openURL(CONST.EXPENSIFY_MOBILE_URL)}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_OPEN_MOBILE_BUTTON}
+                >
+                    <Button.Text>{translate('gps.desktop.button')}</Button.Text>
+                </Button>
+            </View>
+        </ScrollView>
     );
 }
 
