@@ -25,22 +25,18 @@ type NumericTextInputProps = {
     /** Callback for keyboard events received by the numeric input. */
     onKeyPress?: (event: NumericEditingKeyPressEvent) => void;
 
-    /** Whether the input grows with its content. */
-    autoGrow?: boolean;
-
-    /** Hide the focused appearance of the input. */
-    hideFocusedState?: boolean;
-
     /** Style applied to the input container. */
     containerStyle?: StyleProp<ViewStyle>;
 } & Pick<
     BaseTextInputProps,
     | 'accessibilityLabel'
     | 'autoFocus'
+    | 'autoGrow'
     | 'autoGrowExtraSpace'
     | 'autoGrowMarginSide'
     | 'disabled'
     | 'disableKeyboard'
+    | 'hideFocusedState'
     | 'keyboardType'
     | 'onBlur'
     | 'onFocus'
@@ -50,7 +46,6 @@ type NumericTextInputProps = {
     | 'prefixStyle'
     | 'shouldApplyPaddingToContainer'
     | 'shouldUseDefaultLineHeightForPrefix'
-    | 'submitBehavior'
     | 'testID'
     | 'touchableInputWrapperStyle'
 >;

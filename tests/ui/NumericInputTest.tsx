@@ -88,12 +88,7 @@ describe('NumericInput', () => {
 
         it('calls onPress when the symbol button is pressed', () => {
             const onPress = jest.fn();
-            renderNumericInput(
-                {value: '12'},
-                <NumericInput.SymbolButton onPress={onPress}>
-                    $
-                </NumericInput.SymbolButton>,
-            );
+            renderNumericInput({value: '12'}, <NumericInput.SymbolButton onPress={onPress}>$</NumericInput.SymbolButton>);
 
             fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: SYMBOL_ACCESSIBILITY_LABEL}));
 
