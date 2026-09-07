@@ -1,4 +1,5 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {isRecord} from '@libs/ObjectUtils';
 import type {Middleware} from '@libs/Request';
 
 import reconcileMovedScanFailedReport, {getMovedScanFailedTransactionIDs} from '@userActions/IOU/reconcileMovedScanFailedReport';
@@ -28,10 +29,6 @@ type RealReport = {
 
 /** `payMoneyRequest` sends the wallet command for Expensify Wallet payments and the plain one for everything else, both built from the same params. */
 const PAYMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.PAY_MONEY_REQUEST, WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET]);
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return !!value && typeof value === 'object';
-}
 
 function getString(value: unknown): string | undefined {
     return typeof value === 'string' ? value : undefined;
@@ -198,3 +195,4 @@ const handleMovedScanFailedExpenses: Middleware = (requestResponse, request) =>
     });
 
 export default handleMovedScanFailedExpenses;
+export {PAYMENT_COMMANDS};

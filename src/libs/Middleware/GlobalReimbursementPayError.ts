@@ -1,6 +1,7 @@
-import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import {isRecord} from '@libs/ObjectUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
 import type Request from '@src/types/onyx/Request';
@@ -10,9 +11,7 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './types';
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return !!value && typeof value === 'object';
-}
+import {PAYMENT_COMMANDS} from './HandleMovedScanFailedExpenses';
 
 /**
  * Middleware that detects the Corpay pay modal signal sent by the backend when a pay attempt fails because the
@@ -21,11 +20,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  */
 const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response<TKey> | void>, request: Request<TKey> | PaginatedRequest<TKey>) =>
     responsePromise.then((response) => {
-        if (request?.command !== WRITE_COMMANDS.PAY_MONEY_REQUEST && request?.command !== WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET) {
+        if (!request?.command || !PAYMENT_COMMANDS.has(request.command) || !response || response.jsonCode === CONST.JSON_CODE.SUCCESS) {
             return response;
         }
 
-        const onyxData = response?.onyxData ?? [];
+        const onyxData = response.onyxData ?? [];
         const hasCorpayPayModal = onyxData.some((update) => update.key === ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL);
 
         if (!hasCorpayPayModal) {
