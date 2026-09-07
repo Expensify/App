@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksOnlineFxExpenseAccount} from '@libs/actions/connections/QuickbooksOnline';
@@ -52,6 +53,7 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
             })),
         [qboConfig?.fxExpenseAccount, expenseAccounts],
     );
+    const {filteredData, textInputOptions} = useSelectionListSearch(qboOnlineSelectorOptions);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -93,7 +95,8 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={!isGlobalReimbursementFXEnabled}
             displayName="QuickbooksFxExpenseAccountSelectPage"
-            data={qboOnlineSelectorOptions}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             headerContent={listHeaderComponent}
             onSelectRow={updateAccount}
             shouldSingleExecuteRowSelect
