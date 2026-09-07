@@ -53,18 +53,27 @@ function OneTransactionThreadRedirectHandler() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const parentReportID = getNonEmptyStringOnyxID(report?.parentReportID);
 
-    // The same definition `HeaderView` and `SidebarUtils` use through `ReportUtils.isOneTransactionThread`, including
-    // the send money exclusion. Sharing it keeps the redirect and the views that render the thread in agreement.
-    const isOneTransactionThread = useIsOneTransactionThread(report);
-
     // A gate the shared definition does not have, because only navigating on it is unrecoverable: that derivation
     // reads whatever report actions are in Onyx, so while a multi-expense report is still paginating in only one IOU
     // action may be present and the report would briefly look like a single-expense one.
     const [isParentOneTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {selector: isOneTransactionReport});
 
+    // The same definition `HeaderView` and `SidebarUtils` use through `ReportUtils.isOneTransactionThread`, including
+    // the send money exclusion. Sharing it keeps the redirect and the views that render the thread in agreement.
+    // This handler renders on every report screen, so the derivation is gated on the parent's own transaction count
+    // first: it is a single field, it is already a precondition of redirecting, and without it every plain comment
+    // thread would subscribe to its chat's entire report action list and re-run the selector on each new message.
+    // Passing `undefined` keeps the hook call unconditional while leaving its subscriptions inert.
+    const isOneTransactionThread = useIsOneTransactionThread(isParentOneTransactionReport ? report : undefined);
+
     // A message deep link is left alone: it points at an action inside the thread, and dropping the thread
     // route would drop the anchor the link was opened for.
     const hasLinkedReportAction = !!route.params?.reportActionID;
+
+    // A push notification opens the report it targets with `referrer=notification`, and for a comment on a single
+    // expense that target is this thread. The param is what lets `useMarkAsRead` mark the report read without
+    // waiting on window focus, so it has to survive the redirect. It only exists on the inbox route.
+    const referrer = route.name === SCREENS.REPORT ? route.params?.referrer : undefined;
 
     const shouldRedirectToParentReport = !!parentReportID && !hasLinkedReportAction && !!isParentOneTransactionReport && isOneTransactionThread;
 
@@ -96,12 +105,12 @@ function OneTransactionThreadRedirectHandler() {
         const reportRoute =
             route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT
                 ? ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, backTo})
-                : ROUTES.REPORT_WITH_ID.getRoute(parentReportID, undefined, undefined, backTo);
+                : ROUTES.REPORT_WITH_ID.getRoute(parentReportID, undefined, referrer, backTo);
 
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(reportRoute, {forceReplace: true});
         });
-    }, [isFocused, shouldRedirectToParentReport, reportIDFromRoute, parentReportID, route.name, route.params?.backTo]);
+    }, [isFocused, shouldRedirectToParentReport, reportIDFromRoute, parentReportID, route.name, route.params?.backTo, referrer]);
 
     return null;
 }

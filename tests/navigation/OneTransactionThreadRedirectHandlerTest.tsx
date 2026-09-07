@@ -26,7 +26,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 let mockRouteName: string = SCREENS.REPORT;
-let mockRouteParams: {reportID?: string; reportActionID?: string; backTo?: string} = {reportID: THREAD_REPORT_ID};
+let mockRouteParams: {reportID?: string; reportActionID?: string; backTo?: string; referrer?: string} = {reportID: THREAD_REPORT_ID};
 let mockIsFocused = true;
 
 jest.mock('@react-navigation/native', () => {
@@ -142,6 +142,24 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
         await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
         expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=home`, {forceReplace: true});
+    });
+
+    it('forwards the notification referrer so the report it redirects to still marks itself read', async () => {
+        mockRouteParams = {reportID: THREAD_REPORT_ID, referrer: CONST.REFERRER.NOTIFICATION};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?referrer=${CONST.REFERRER.NOTIFICATION}`, {forceReplace: true});
+    });
+
+    it('forwards the notification referrer alongside backTo', async () => {
+        mockRouteParams = {reportID: THREAD_REPORT_ID, referrer: CONST.REFERRER.NOTIFICATION, backTo: 'home'};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?referrer=${CONST.REFERRER.NOTIFICATION}&backTo=home`, {forceReplace: true});
     });
 
     it('does not redirect while the screen is blurred', async () => {
