@@ -35,7 +35,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withSequence, withTiming} fr
 import type {CameraProps} from './types';
 
 const BLINK_DURATION_MS = 80;
-const CAPTURE_JPEG_QUALITY = 0.92;
+const CAPTURE_JPEG_QUALITY = 1;
 
 /**
  * Crop the current video frame to the viewfinder aspect ratio and encode it once as JPEG.
