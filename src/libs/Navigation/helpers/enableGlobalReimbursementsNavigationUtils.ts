@@ -7,6 +7,8 @@ import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import createDynamicRoute from './dynamicRoutesUtils/createDynamicRoute';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
+import getStateFromPath from './getStateFromPath';
 
 type EnableGlobalReimbursementsRouteParams = {
     bankCountry?: string;
@@ -40,6 +42,8 @@ function getEnableGlobalReimbursementsRootBackPath(dynamicBasePath: string): Rou
     return dynamicBasePath as Route;
 }
 
+const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.entryScreens);
+
 function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: string): boolean {
     const pathWithoutQuery = basePath.split('?').at(0) ?? '';
 
@@ -47,7 +51,17 @@ function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: string): boole
         return false;
     }
 
-    return pathWithoutQuery.startsWith('search/') || pathWithoutQuery.startsWith('r/') || pathWithoutQuery === 'home' || pathWithoutQuery === 'settings/wallet';
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- path parsed to verify focused route name against entry screens
+        const focusedRouteName = findFocusedRouteWithOnyxTabGuard(getStateFromPath(pathWithoutQuery as Route) ?? {})?.name;
+        if (focusedRouteName && ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS.has(focusedRouteName)) {
+            return true;
+        }
+    } catch {
+        return false;
+    }
+
+    return false;
 }
 
 function getEnableGlobalReimbursementsBusinessNavigationRoute(

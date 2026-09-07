@@ -4,7 +4,11 @@
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isDynamicRouteScreen from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteScreen';
-import {getDynamicBasePathFromNavigationPath, getEnableGlobalReimbursementsRootBackPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
+import {
+    getDynamicBasePathFromNavigationPath,
+    getEnableGlobalReimbursementsRootBackPath,
+    shouldUseDynamicEnableGlobalReimbursementsBase,
+} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import type {State} from '@libs/Navigation/types';
 
@@ -63,7 +67,7 @@ function useEnableGlobalReimbursementsNavigation() {
         };
 
         const getRootBackPath = (): Route => {
-            if (isDynamic) {
+            if (isDynamic && shouldUseDynamicEnableGlobalReimbursementsBase(dynamicBasePath)) {
                 return getEnableGlobalReimbursementsRootBackPath(dynamicBasePath);
             }
             return ROUTES.SETTINGS_WALLET;

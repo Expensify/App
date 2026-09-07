@@ -66,6 +66,12 @@ describe('Enable global reimbursements dynamic routes', () => {
         );
     });
 
+    it('accepts expense report and search root entry screens', () => {
+        expect(shouldUseDynamicEnableGlobalReimbursementsBase('e/12345')).toBe(true);
+        expect(shouldUseDynamicEnableGlobalReimbursementsBase('search')).toBe(true);
+        expect(shouldUseDynamicEnableGlobalReimbursementsBase('r/12345')).toBe(true);
+    });
+
     it('falls back to wallet settings route for unsupported entry screens', () => {
         expect(shouldUseDynamicEnableGlobalReimbursementsBase('settings/preferences')).toBe(false);
 
