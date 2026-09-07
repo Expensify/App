@@ -727,7 +727,7 @@ type XeroConnectionData = {
     /** Collection of bank accounts */
     bankAccounts: Account[];
 
-    /** Profit and loss accounts, the only ones a currency conversion cost can be charged to. Undefined until Integration-Server has synced them for the workspace. */
+    /** Profit and loss accounts, the only ones a currency conversion cost can be charged to. */
     expenseAccounts?: Account[];
 
     /** Supplier contacts keyed by their Xero contact ID. Undefined until Integration-Server has synced suppliers for the workspace. */
