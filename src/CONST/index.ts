@@ -1387,6 +1387,7 @@ const CONST = {
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
+    QA_NEW_EXPENSIFY_URL: 'https://qa.new.exops.io',
     PR_TESTING_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     CHASE_ACCOUNT_NUMBER_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account',
@@ -1395,6 +1396,7 @@ const CONST = {
     IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#multi-level-tags',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
+    QA_EXPENSIFY_URL: 'https://qa.exops.io',
     DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
         'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#how-do-i-enable-camera-access-for-mobile-browsers-so-i-can-take-photos-of-my-receipts',
     BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
@@ -1657,6 +1659,9 @@ const CONST = {
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
+
+                // Hidden action that only carries the violations snapshot of an expense added to a report that was already awaiting its first approval
+                ADD_EXPENSE_ON_SUBMITTED: 'ADDEXPENSEONSUBMITTED',
                 APPROVED: 'APPROVED',
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
@@ -3619,6 +3624,14 @@ const CONST = {
         VENDOR_BILL: 'bill',
     },
 
+    // The vendor-name portion for card expenses that don't match an existing vendor. It is untranslated on purpose
+    // so the rendered helper text names the vendor record the admin sees in QuickBooks Online or Sage Intacct.
+    // Translations own the sentence punctuation because the name can appear mid-sentence.
+    NON_REIMBURSABLE_FALLBACK_VENDOR_NAME: {
+        CREDIT_CARD: 'Credit Card Misc',
+        DEBIT_CARD: 'Debit Card Misc',
+    },
+
     QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE: {
         CREDIT_CARD: 'CREDIT_CARD_CHARGE',
         CHECK: 'CHECK',
@@ -3803,8 +3816,15 @@ const CONST = {
     ENVIRONMENT: {
         DEV: 'development',
         STAGING: 'staging',
+        QA: 'qa',
         PRODUCTION: 'production',
         ADHOC: 'adhoc',
+    },
+
+    SERVER: {
+        PRODUCTION: 'production',
+        STAGING: 'staging',
+        QA: 'qa',
     },
 
     ENABLE_PAYMENTS: {
@@ -4174,6 +4194,17 @@ const CONST = {
             FIELD_LIST_TITLE: 'text_title',
             TAX: 'tax',
         },
+        /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
+        EXPENSE_DEFAULTS_SECTION: {
+            CATEGORIES: 'categories',
+            MERCHANTS: 'merchants',
+            MERCHANT_TYPES: 'merchantTypes',
+        },
+        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
+        EXPENSE_DEFAULT_RULE_TYPE: {
+            MERCHANT: 'merchant',
+            CATEGORY: 'category',
+        },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
         DEFAULT_FIELD_LIST_TARGET: 'expense',
@@ -4525,6 +4556,20 @@ const CONST = {
             },
             get ACCOUNTING_CONNECTION_NAMES() {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.DUALENTRY] as const;
+            },
+            // The `origin` the backend stamps on a report field imported by an accounting integration. These values
+            // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
+            get REPORT_FIELD_ORIGIN() {
+                return {
+                    [this.NAME.QBO]: 'qbo',
+                    [this.NAME.QBD]: 'qbd',
+                    [this.NAME.XERO]: 'xero',
+                    [this.NAME.NETSUITE]: 'netsuite',
+                    [this.NAME.SAGE_INTACCT]: 'intacct',
+                    [this.NAME.CERTINIA]: 'financialforce',
+                    [this.NAME.RILLET]: 'rillet',
+                    [this.NAME.DUALENTRY]: 'dualentry',
+                } as const;
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
@@ -9286,6 +9331,7 @@ const CONST = {
                 FLAG_FOR_REVIEW_RULE_CATEGORY: 'WorkspaceRules-FlagForReviewRuleCategory',
                 FLAG_FOR_REVIEW_RULE_AMOUNT: 'WorkspaceRules-FlagForReviewRuleAmount',
                 FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: 'WorkspaceRules-FlagForReviewRuleExpenseLimitType',
+                CATEGORY_TAX_RULE_ITEM: 'WorkspaceRules-CategoryTaxRuleItem',
                 MERCHANT_TYPE_RULE_ITEM: 'WorkspaceRules-MerchantTypeRuleItem',
                 MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
                 MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',
