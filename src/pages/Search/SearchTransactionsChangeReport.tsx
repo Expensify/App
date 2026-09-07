@@ -113,7 +113,7 @@ function SearchTransactionsChangeReport() {
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
-    // Kept separate from `targetOwnerAccountID`, which stops at the first owner it finds; counting needs them all.
+    // Kept separate from `targetOwnerAccountID`, which stops at the first owner it finds. Counting needs them all.
     const hasMultipleSubmitters = useMemo(() => {
         const ownerAccountIDs = new Set<number>();
         let hasUnknownOwner = false;
