@@ -2,6 +2,7 @@ import {
     FailureTracking,
     FraudMonitoring,
     handleDeletedAccount,
+    HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,
     LoadPostDataForOpenOrReconnect,
     LoadTest,
@@ -13,6 +14,7 @@ import {
     SentryServerTiming,
     SupportalPermission,
 } from '@libs/Middleware';
+import registerMiddlewares from '@libs/Middleware/register';
 import type * as RequestModule from '@libs/Request';
 import {addMiddleware} from '@libs/Request';
 
@@ -33,6 +35,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     SentryServerTiming,
     RecordFullReconnectTime,
     LoadPostDataForOpenOrReconnect,
+    HandleMovedScanFailedExpenses,
     SaveResponseInOnyx,
     FraudMonitoring,
 ];
@@ -41,9 +44,7 @@ describe('Middleware registration', () => {
     let registered: RequestModule.Middleware[] = [];
 
     beforeAll(() => {
-        // jest.isolateModules would give register.ts its own module registry, so the middlewares it resolves
-        // would be distinct function objects from the ones imported above and every identity check would fail.
-        require('@libs/Middleware/register');
+        registerMiddlewares();
         registered = jest.mocked(addMiddleware).mock.calls.map(([middleware]) => middleware);
     });
 
@@ -51,9 +52,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 13 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(13);
-        expect(new Set(registered).size).toBe(13);
+    it('registers all 14 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(14);
+        expect(new Set(registered).size).toBe(14);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
@@ -62,6 +63,7 @@ describe('Middleware registration', () => {
         expect(indexOf(SaveResponseInOnyx)).toBeGreaterThanOrEqual(0);
         expect(indexOf(RecordFullReconnectTime)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(LoadPostDataForOpenOrReconnect)).toBeLessThan(indexOf(SaveResponseInOnyx));
+        expect(indexOf(HandleMovedScanFailedExpenses)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(FraudMonitoring)).toBeGreaterThan(indexOf(SaveResponseInOnyx));
     });
 });

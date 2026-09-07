@@ -37,7 +37,6 @@ import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {
-    canAccessPolicyBankAccount,
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     getValidConnectedIntegration,
@@ -108,7 +107,6 @@ import Onyx from 'react-native-onyx';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 
-import {getBankAccountList} from './BankAccounts';
 import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
@@ -639,13 +637,9 @@ function getPayActionCallback({
         return;
     }
 
-    const paymentPolicy = policy ?? snapshotPolicy;
-
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
-        // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
-        // them pick it instead of silently paying with (and reporting) the workspace one.
-        if (!canAccessPolicyBankAccount(paymentPolicy, getBankAccountList())) {
+        const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
+        if (!hasVBBA) {
             goToItem();
             return;
         }
@@ -667,14 +661,14 @@ function getPayActionCallback({
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
-        policy: paymentPolicy,
+        policy: snapshotPolicy ?? policy,
         chatReportPolicy: chatReportPolicyForPayment,
         betas,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
+        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,

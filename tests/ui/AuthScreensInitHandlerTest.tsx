@@ -3,6 +3,7 @@ import {render} from '@testing-library/react-native';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
 import {init as activeClientManagerInit, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
+import {isQAServerActive} from '@libs/ApiUtils';
 import AuthScreensInitHandler from '@libs/Navigation/AppNavigator/AuthScreensInitHandler';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,6 +14,7 @@ import {openApp} from '@userActions/App';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {subscribeToUserEvents} from '@userActions/User';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +31,12 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 const TEST_ACCOUNT_ID = 1;
+const QA_APP_KEY = 'qa-app-key';
+
+jest.mock('@libs/ApiUtils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/ApiUtils'),
+    isQAServerActive: jest.fn(() => false),
+}));
 
 jest.mock('@libs/Pusher', () => ({
     __esModule: true,
@@ -121,6 +129,7 @@ const mockedDidUserLogInDuringSession = jest.mocked(didUserLogInDuringSession);
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 const mockedIsReady = jest.mocked(isReady);
 const mockedSubscribeToUserEvents = jest.mocked(subscribeToUserEvents);
+const mockedIsQAServerActive = jest.mocked(isQAServerActive);
 function renderAuthScreensInitHandler() {
     return render(
         <LocaleContextProvider>
@@ -146,9 +155,14 @@ describe('AuthScreensInitHandler', () => {
         mockedIsClientTheLeader.mockReturnValue(true);
         mockedIsReady.mockReturnValue(Promise.resolve());
         mockedIsActiveRoute.mockReturnValue(false);
+        mockedIsQAServerActive.mockReturnValue(false);
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         await Onyx.clear();
         await waitForBatchedUpdates();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('calls subscribeToUserEvents with a getter function on mount', async () => {
@@ -214,6 +228,37 @@ describe('AuthScreensInitHandler', () => {
             throw new Error('Expected report attributes getter to be provided');
         }
         expect(getter()).toBeUndefined();
+    });
+
+    it.each([
+        ['production', false, CONFIG.PUSHER.APP_KEY],
+        ['QA', true, QA_APP_KEY],
+    ])('opens the Pusher socket with the %s app key', async (_server, isQAActive, expectedAppKey) => {
+        // PUSHER_QA_APP_KEY is empty in this environment, so give it a value the QA case can pick up.
+        jest.replaceProperty(CONFIG.PUSHER, 'QA_APP_KEY', QA_APP_KEY);
+        mockedIsQAServerActive.mockReturnValue(isQAActive);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await waitForBatchedUpdates();
+
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockedPusherInit).toHaveBeenCalledWith({appKey: expectedAppKey, cluster: CONFIG.PUSHER.CLUSTER});
+    });
+
+    it('skips Pusher init when the active server has no app key configured', async () => {
+        mockedIsQAServerActive.mockReturnValue(true);
+        jest.replaceProperty(CONFIG.PUSHER, 'QA_APP_KEY', '');
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await waitForBatchedUpdates();
+
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockedPusherInit).not.toHaveBeenCalled();
+        expect(mockedSubscribeToUserEvents).not.toHaveBeenCalled();
     });
 
     it('signs out when logging in as new user during transition', async () => {
