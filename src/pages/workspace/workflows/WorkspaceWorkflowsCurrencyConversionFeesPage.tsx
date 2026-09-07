@@ -40,7 +40,7 @@ type CurrencyConversionFeesItem = {
 function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: WorkspaceWorkflowsCurrencyConversionFeesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
 
     const selectedPreference = policy?.globalReimbursementFXPreferCompany
         ? CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY
@@ -87,7 +87,7 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isGlobalReimbursementFXEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES}
+            shouldBeBlocked={!isGlobalReimbursementFXEnabled}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

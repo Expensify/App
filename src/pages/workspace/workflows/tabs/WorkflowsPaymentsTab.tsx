@@ -63,7 +63,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -356,7 +356,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             />
                         </OfflineWithFeedback>
                     )}
-                    {policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && canWritePayments && isGlobalReimbursementFXEnabled && (
+                    {canWritePayments && isGlobalReimbursementFXEnabled && (
                         <OfflineWithFeedback
                             pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
                             errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
