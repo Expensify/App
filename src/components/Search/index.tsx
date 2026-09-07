@@ -1095,6 +1095,15 @@ function Search({
 
     if (hasErrors) {
         const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+        // "Refresh needed" claims content went stale, but a failed first search never had any results to go
+        // stale, so only show it when the snapshot still holds data. A fresh failure keeps the generic error.
+        const isStaleResults = !isInvalidQuery && !isEmptyObject(searchResults?.data);
+        let subtitleKey: 'errorPage.subtitle' | 'errorPage.wrongTypeSubtitle' | 'search.searchResults.staleResults.subtitle' = 'errorPage.subtitle';
+        if (isInvalidQuery) {
+            subtitleKey = 'errorPage.wrongTypeSubtitle';
+        } else if (isStaleResults) {
+            subtitleKey = 'search.searchResults.staleResults.subtitle';
+        }
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
@@ -1103,16 +1112,16 @@ function Search({
                     containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
                     title={
-                        isInvalidQuery
-                            ? translate('errorPage.title', {
+                        isStaleResults
+                            ? translate('search.searchResults.staleResults.title')
+                            : translate('errorPage.title', {
                                   isBreakLine: shouldUseNarrowLayout,
                               })
-                            : translate('search.searchResults.staleResults.title')
                     }
-                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'search.searchResults.staleResults.subtitle')}
+                    subtitle={translate(subtitleKey)}
                     // A failed request leaves results that are out of date rather than broken, so that case gets the
                     // refresh copy and illustration. An invalid query keeps the error copy, since it really did fail.
-                    {...(!isInvalidQuery && {
+                    {...(isStaleResults && {
                         illustration: 'FolderSync',
                         illustrationWidth: variables.iconSizeUltraLarge,
                         illustrationHeight: variables.iconSizeUltraLarge,
