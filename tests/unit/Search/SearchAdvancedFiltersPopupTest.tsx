@@ -201,12 +201,19 @@ describe('SearchAdvancedFiltersPopup', () => {
         expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
     });
 
-    it('keeps the row withheld when the cursor leaves away from the content', () => {
+    it('releases the row the cursor swept out of away from the content once its wait elapses', () => {
         hover(FILTER_KEYS.FROM);
         movePointer(100, 100);
         leaveList(60);
 
+        // The sweep itself paid for nothing, and the wait left running releases the row that stayed on show.
         expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(false);
+
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
+        });
+
+        expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
     });
 
     it('hands the shown content the live form and a hidden one the values it was last shown with', () => {

@@ -1,4 +1,3 @@
-import LoadingIndicator from '@components/LoadingIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
@@ -135,27 +134,20 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
             itemCount={listData.length}
             isSearchable={shouldShowSearchInput}
             isNegatable={isNegatable}
-            // Held at the height a contact list occupies, so what arrives does not push the panel open under the cursor.
-            shouldUseFixedPopoverHeight={!ready}
         >
-            {ready ? (
-                <SelectionList
-                    data={listData}
-                    textInputOptions={textInputOptions}
-                    shouldClearInputWhenHidden
-                    canSelectMultiple
-                    ListItem={UserSelectionListItem}
-                    onSelectRow={selectUser}
-                    shouldUpdateFocusedIndex
-                    isLoadingNewOptions={isLoadingNewOptions}
-                    shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
-                    footerContent={footer}
-                />
-            ) : (
-                // One spinner while the contact list is not being built yet.
-                <LoadingIndicator />
-            )}
+            <SelectionList
+                data={listData}
+                textInputOptions={textInputOptions}
+                shouldClearInputWhenHidden
+                canSelectMultiple
+                ListItem={UserSelectionListItem}
+                onSelectRow={selectUser}
+                shouldUpdateFocusedIndex
+                isLoadingNewOptions={isLoadingNewOptions}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
+                style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                footerContent={footer}
+            />
         </ListFilterWrapper>
     );
 }
