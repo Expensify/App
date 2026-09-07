@@ -82,6 +82,11 @@ function buildWorkspaceNavigationState(...workspaceSplits: WorkspaceScopeRoute[]
 
 const TestNarrowLayoutContext = createContext(true);
 
+function useTestResponsiveLayout() {
+    const shouldUseNarrowLayout = useContext(TestNarrowLayoutContext);
+    return {...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout};
+}
+
 function renderCentralOnlySplits(...workspaceSplits: WorkspaceScopeRoute[]) {
     // Mount two root entries first, matching an in-app cross-tab deep link. A cold root adds a sidebar.
     const initialState: InitialState = {index: 1, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}, {name: NAVIGATORS.TAB_NAVIGATOR}]};
@@ -146,10 +151,7 @@ describe('Go back on the narrow layout', () => {
 
         it('keeps workspace identity coherent after cross-scope navigation, widening, and Back', () => {
             // Context updates reach memoized navigation screens, as the real responsive hook does.
-            mockedUseResponsiveLayout.mockImplementation(function useTestResponsiveLayout() {
-                const shouldUseNarrowLayout = useContext(TestNarrowLayoutContext);
-                return {...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout};
-            });
+            mockedUseResponsiveLayout.mockImplementation(useTestResponsiveLayout);
             const categoriesA = {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.WORKSPACE.CATEGORIES, params: {policyID: 'policy-a'}}]}};
             const {view, initialState} = renderCentralOnlySplits(categoriesA);
             const originalSplit = getActiveWorkspaceState()?.routes.at(0);
