@@ -24,17 +24,18 @@ const ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS: DynamicRouteSuffix[] = [
     DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.path,
 ];
 
+const ENABLE_GLOBAL_REIMBURSEMENTS_PATH_PREFIX = DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path.split('/').at(0) ?? 'enable-global-reimbursements';
+
 function getDynamicBasePathFromNavigationPath(path: string | undefined): string {
     if (!path) {
         return ROUTES.HOME;
     }
 
     const pathWithoutLeadingSlash = path.replaceAll(/^\/+/g, '');
-    for (const pattern of ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS) {
-        const match = findAllMatchingDynamicSuffixes(pathWithoutLeadingSlash).find((suffixMatch) => suffixMatch.pattern === pattern);
-        if (match) {
-            return getPathWithoutDynamicSuffix(match.pathUsedForMatching, match.actualSuffix, match.pattern);
-        }
+    const suffixMatches = findAllMatchingDynamicSuffixes(pathWithoutLeadingSlash);
+    const match = suffixMatches.find((suffixMatch) => ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS.includes(suffixMatch.pattern));
+    if (match) {
+        return getPathWithoutDynamicSuffix(match.pathUsedForMatching, match.actualSuffix, match.pattern);
     }
 
     return pathWithoutLeadingSlash;
@@ -50,7 +51,7 @@ const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTE
 function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: string): boolean {
     const pathWithoutQuery = basePath.split('?').at(0) ?? '';
 
-    if (!pathWithoutQuery || pathWithoutQuery.includes('enable-global-reimbursements')) {
+    if (!pathWithoutQuery || pathWithoutQuery.includes(ENABLE_GLOBAL_REIMBURSEMENTS_PATH_PREFIX)) {
         return false;
     }
 
@@ -84,6 +85,7 @@ function getEnableGlobalReimbursementsBusinessNavigationRoute(
 
 export type {EnableGlobalReimbursementsRouteParams};
 export {
+    ENABLE_GLOBAL_REIMBURSEMENTS_PATH_PREFIX,
     getDynamicBasePathFromNavigationPath,
     getEnableGlobalReimbursementsBusinessNavigationRoute,
     getEnableGlobalReimbursementsRootBackPath,

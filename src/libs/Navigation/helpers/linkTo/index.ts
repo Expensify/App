@@ -25,6 +25,7 @@ import getMinimalAction from './getMinimalAction';
 
 const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,
+    skipMatchingFullScreenRoute: false,
 };
 
 /**

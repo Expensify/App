@@ -93,6 +93,16 @@ type DynamicRoutes = Record<string, DynamicRouteConfig>;
  * Avoid for: regular navigation, single-entry workflows
  *
  */
+const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = [
+    SCREENS.REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+    SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+    SCREENS.HOME,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.SETTINGS.WALLET.ROOT,
+] as const;
+
 const DYNAMIC_ROUTES = {
     VERIFY_ACCOUNT: {
         path: 'verify-account',
@@ -173,77 +183,42 @@ const DYNAMIC_ROUTES = {
     },
     ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: {
         path: 'enable-global-reimbursements/business/:bankAccountID/:subPage/:action?',
-        entryScreens: [
-            SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
-            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.HOME,
-            SCREENS.SEARCH.ROOT,
-            SCREENS.SETTINGS.WALLET.ROOT,
-        ],
-        getRoute: (bankAccountID: string | number, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) => {
-            const base = `enable-global-reimbursements/business/${bankAccountID}/${subPage}${action ? `/${action}` : ''}` as const;
-            if (!params?.bankCountry && !params?.bankCurrency) {
-                return base;
-            }
-            return getUrlWithParams(base, {
+        entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+        getRoute: (bankAccountID: string | number, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/business/${bankAccountID}/${subPage}${action ? `/${action}` : ''}`, {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,
-            });
-        },
+            }),
         queryParams: ['bankCountry', 'bankCurrency'],
     },
     ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: {
         path: 'enable-global-reimbursements/agreements/:bankAccountID',
         entryScreens: [
-            SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
-            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.HOME,
-            SCREENS.SEARCH.ROOT,
-            SCREENS.SETTINGS.WALLET.ROOT,
+            ...ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
             SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
             SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
         ],
-        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) => {
-            const base = `enable-global-reimbursements/agreements/${bankAccountID}` as const;
-            if (!params?.bankCountry && !params?.bankCurrency) {
-                return base;
-            }
-            return getUrlWithParams(base, {
+        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/agreements/${bankAccountID}`, {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,
-            });
-        },
+            }),
         queryParams: ['bankCountry', 'bankCurrency'],
     },
     ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: {
         path: 'enable-global-reimbursements/sign/:bankAccountID',
         entryScreens: [
-            SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
-            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.HOME,
-            SCREENS.SEARCH.ROOT,
-            SCREENS.SETTINGS.WALLET.ROOT,
+            ...ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
             SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
             SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
             SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS,
             SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS,
         ],
-        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) => {
-            const base = `enable-global-reimbursements/sign/${bankAccountID}` as const;
-            if (!params?.bankCountry && !params?.bankCurrency) {
-                return base;
-            }
-            return getUrlWithParams(base, {
+        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/sign/${bankAccountID}`, {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,
-            });
-        },
+            }),
         queryParams: ['bankCountry', 'bankCurrency'],
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
@@ -2388,42 +2363,27 @@ const ROUTES = {
     },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/business/:subPage/:action?',
-        getRoute: (bankAccountID: number | undefined, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) => {
-            const base = `settings/wallet/${bankAccountID}/enable-global-reimbursements/business/${subPage}${action ? `/${action}` : ''}` as const;
-            if (!params?.bankCountry && !params?.bankCurrency) {
-                return base;
-            }
-            return getUrlWithParams(base, {
+        getRoute: (bankAccountID: number | undefined, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/business/${subPage}${action ? `/${action}` : ''}`, {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,
-            });
-        },
+            }),
     },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/agreements',
-        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) => {
-            const base = `settings/wallet/${bankAccountID}/enable-global-reimbursements/agreements` as const;
-            if (!params?.bankCountry && !params?.bankCurrency) {
-                return base;
-            }
-            return getUrlWithParams(base, {
+        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/agreements`, {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,
-            });
-        },
+            }),
     },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/sign',
-        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) => {
-            const base = `settings/wallet/${bankAccountID}/enable-global-reimbursements/sign` as const;
-            if (!params?.bankCountry && !params?.bankCurrency) {
-                return base;
-            }
-            return getUrlWithParams(base, {
+        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/sign`, {
                 bankCountry: params?.bankCountry,
                 bankCurrency: params?.bankCurrency,
-            });
-        },
+            }),
     },
     SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
