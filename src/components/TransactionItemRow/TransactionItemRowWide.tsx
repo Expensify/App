@@ -707,7 +707,7 @@ function TransactionItemRowWide({
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
-                            containerStyle={styles.m0}
+                            containerStyle={styles.checkboxContainerTableRow}
                             wrapperStyle={styles.justifyContentCenter}
                             sentryLabel={checkboxSentryLabel}
                         />

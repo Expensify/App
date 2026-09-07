@@ -159,7 +159,7 @@ function CardListItemHeaderImpl({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            containerStyle={styles.m0}
+                            containerStyle={styles.checkboxContainerTableRow}
                         />
                     )}
                     {!isLargeScreenWidth && (

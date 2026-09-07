@@ -186,6 +186,8 @@ export default {
     sliderKnobSize: 26,
     checkboxLabelActiveOpacity: 0.7,
     checkboxLabelHoverOpacity: 1,
+    checkboxSizeTableRow: 16,
+    checkboxBorderWidthTableRow: 1,
     avatarChatSpacing: 12,
     // Left padding for the composer text input, tightened so the text sits close to the action button
     composerTextInputPaddingLeft: 5,
