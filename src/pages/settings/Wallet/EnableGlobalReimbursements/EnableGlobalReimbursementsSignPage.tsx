@@ -24,14 +24,19 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
     const {getAgreementsRoute, isDynamic} = useEnableGlobalReimbursementsNavigation();
     const bankAccountID = route.params?.bankAccountID;
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
-    const currency = bankAccount?.bankCurrency ?? '';
-    const country = bankAccount?.bankCountry;
+    const currency = route.params?.bankCurrency ?? bankAccount?.bankCurrency ?? '';
+    const country = route.params?.bankCountry ?? bankAccount?.bankCountry;
     const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const defaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM] ?? [];
 
+    const persistedRouteParams = {
+        bankCountry: route.params?.bankCountry,
+        bankCurrency: route.params?.bankCurrency,
+    };
+
     const goBack = () => {
-        const agreementsRoute = getAgreementsRoute(Number(bankAccountID));
+        const agreementsRoute = getAgreementsRoute(Number(bankAccountID), persistedRouteParams);
         if (isDynamic) {
             Navigation.navigate(agreementsRoute, {forceReplace: true});
             return;

@@ -57,6 +57,13 @@ describe('Enable global reimbursements dynamic routes', () => {
         expect(typeRoute.match(/enable-global-reimbursements/g)?.length).toBe(1);
     });
 
+    it('builds sign route with query params on dynamic base', () => {
+        const basePath = 'search/view/6546028296902751';
+        const signRoute = createDynamicRoute(DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.getRoute('9053192', {bankCountry: 'US', bankCurrency: 'USD'}), basePath);
+
+        expect(signRoute).toBe('search/view/6546028296902751/enable-global-reimbursements/sign/9053192?bankCountry=US&bankCurrency=USD');
+    });
+
     it('uses search base path captured at signal time for pay modal navigation', () => {
         const signalPath = 'search/view/6546028296902751?backTo=%2Fsearch%3Fq%3Dtype%253Aexpense';
         const route = getEnableGlobalReimbursementsBusinessNavigationRoute(9053192, 'registration-number', {bankCountry: 'US', bankCurrency: 'USD'}, signalPath);

@@ -29,7 +29,8 @@ const inputIDs = {
 function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimbursementsAgreementsPageProps) {
     const {getBusinessRoute, getSignRoute, isDynamic} = useEnableGlobalReimbursementsNavigation();
     const bankAccountID = route.params?.bankAccountID;
-    const [currency = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]?.bankCurrency});
+    const [bankAccountCurrency = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]?.bankCurrency});
+    const currency = route.params?.bankCurrency ?? bankAccountCurrency;
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const defaultValues: Record<keyof typeof inputIDs, boolean> = Object.fromEntries(
         Object.keys(inputIDs).map((key) => {
@@ -53,7 +54,7 @@ function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimburse
     };
 
     const goToSignPage = () => {
-        Navigation.navigate(getSignRoute(Number(bankAccountID)), isDynamic ? {forceReplace: true} : undefined);
+        Navigation.navigate(getSignRoute(Number(bankAccountID), persistedRouteParams), isDynamic ? {forceReplace: true} : undefined);
     };
 
     return (

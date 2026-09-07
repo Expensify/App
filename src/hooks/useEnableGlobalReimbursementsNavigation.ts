@@ -59,11 +59,11 @@ function useEnableGlobalReimbursementsNavigation() {
             return ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID), params);
         };
 
-        const getSignRoute = (bankAccountID: number | string): Route => {
+        const getSignRoute = (bankAccountID: number | string, params?: EnableGlobalReimbursementsRouteParams): Route => {
             if (isDynamic) {
-                return createDynamicRoute(DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.getRoute(String(bankAccountID)), dynamicBasePath);
+                return createDynamicRoute(DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.getRoute(String(bankAccountID), params), dynamicBasePath);
             }
-            return ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.getRoute(Number(bankAccountID));
+            return ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.getRoute(Number(bankAccountID), params);
         };
 
         const getRootBackPath = (): Route => {

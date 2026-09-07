@@ -234,7 +234,17 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS,
             SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS,
         ],
-        getRoute: (bankAccountID: string | number) => `enable-global-reimbursements/sign/${bankAccountID}` as const,
+        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) => {
+            const base = `enable-global-reimbursements/sign/${bankAccountID}` as const;
+            if (!params?.bankCountry && !params?.bankCurrency) {
+                return base;
+            }
+            return getUrlWithParams(base, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            });
+        },
+        queryParams: ['bankCountry', 'bankCurrency'],
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
@@ -2404,7 +2414,16 @@ const ROUTES = {
     },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/sign',
-        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements/sign` as const,
+        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) => {
+            const base = `settings/wallet/${bankAccountID}/enable-global-reimbursements/sign` as const;
+            if (!params?.bankCountry && !params?.bankCurrency) {
+                return base;
+            }
+            return getUrlWithParams(base, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            });
+        },
     },
     SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/share-bank-account',

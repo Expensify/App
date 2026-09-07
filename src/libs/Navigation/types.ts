@@ -223,6 +223,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
         bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: {
         bankAccountID: string;
@@ -238,6 +240,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
         bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
     };
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
