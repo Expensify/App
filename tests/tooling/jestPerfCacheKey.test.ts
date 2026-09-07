@@ -4,21 +4,19 @@ import fs from 'fs';
 
 /**
  * reassurePerformanceTests.yml restores a Jest transform cache that seedJestPerfCache.yml writes.
- * Four properties make that safe and effective, and all four are invisible at a glance because they
- * are agreements between two files. These tests are the enforcement:
+ * Four properties keep that safe and effective, and each is an agreement between two files that
+ * breaks silently rather than failing a check. These tests are the enforcement:
  *
- * 1. Every copy of the cache key is byte-identical. A restore keyed differently from the save is a
- *    silent permanent miss - nothing fails, the perf jobs just go cold again.
- * 2. A push-triggered workflow calls the seed. It carries no paths filter and no schedule, so
- *    probing every push to main is both how the entry stays warm and how it recovers from an
- *    eviction. Orphan the call and the cache goes stale forever with no failing check.
- * 3. No `restore-keys` anywhere. A prefix fallback would reuse transform output built by a
- *    different babel-plugin-react-compiler, because babel-jest does not hash plugin versions into
- *    an entry's name, and this workflow gates render counts at COUNT_DEVIATION: 0.
- * 4. Every restore is followed by a step that reads its `cache-hit`. A miss costs each measure job
- *    a full cold Babel pass and fails nothing, and `Report Jest cache size` reads the directory
- *    after the perf run, by which point Jest has written a full transform set either way. So that
- *    warning is the only thing distinguishing a working mechanism from one that silently died.
+ * 1. Every copy of the cache key is byte-identical - a restore keyed differently from the save is a
+ *    permanent miss and the perf jobs just go cold again.
+ * 2. A push-triggered workflow calls the seed. With no paths filter and no schedule, probing every
+ *    push to main is both how the entry stays warm and how it recovers from an eviction.
+ * 3. No `restore-keys` anywhere: babel-jest does not hash plugin versions into an entry's name, so
+ *    a prefix fallback could reuse output built by a different babel-plugin-react-compiler, and
+ *    this workflow gates render counts at COUNT_DEVIATION: 0.
+ * 4. Every restore is followed by a step reading its `cache-hit`. `Report Jest cache size` reads
+ *    the directory after the perf run, by which point Jest has written a full transform set either
+ *    way, so that warning is the only symptom of a dead cache.
  */
 
 const PERF_WORKFLOW = '.github/workflows/reassurePerformanceTests.yml';
