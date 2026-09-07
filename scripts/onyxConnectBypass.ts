@@ -173,7 +173,22 @@ function isBlanketDirective(args: string): boolean {
 }
 
 function lineNumberAtOffset(source: string, offset: number): number {
-    return source.slice(0, offset).split('\n').length;
+    let line = 1;
+    let index = 0;
+    const end = Math.min(Math.max(offset, 0), source.length);
+    while (index < end) {
+        const code = source.charCodeAt(index);
+        if (code === 0x0d) {
+            line++;
+            index += source.charCodeAt(index + 1) === 0x0a ? 2 : 1;
+            continue;
+        }
+        if (code === 0x0a || code === 0x2028 || code === 0x2029) {
+            line++;
+        }
+        index++;
+    }
+    return line;
 }
 
 function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, callOffsets: number[], enableMatches: DirectiveMatch[]): boolean {

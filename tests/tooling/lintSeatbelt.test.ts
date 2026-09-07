@@ -123,6 +123,21 @@ describe('serializeSeatbeltTSV', () => {
         }
         expect(serializeSeatbeltTSV(data, comments)).toBe(original);
     });
+
+    it('keeps per-row and trailing comments when rewriting counts', () => {
+        const original = `# eslint-seatbelt temporarily allowed errors
+
+"../../src/a.ts"	"no-console"	1
+# tracked in Expensify/App#123
+"../../src/b.ts"	"no-debugger"	2
+# leftover
+`;
+        const {data, comments, trailingComments} = parseSeatbeltTSV(original);
+        for (const fileState of data.values()) {
+            fileState.maxErrors = new Map(fileState.lines.map((line) => [line.ruleID, line.maxErrors]));
+        }
+        expect(serializeSeatbeltTSV(data, comments, trailingComments)).toBe(original);
+    });
 });
 
 describe('applySeatbelt', () => {

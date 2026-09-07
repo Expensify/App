@@ -61,6 +61,16 @@ describe('collectDisableDirectivesFromSource', () => {
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
     });
 
+    it('counts LS/PS line terminators the same way ESLint does for next-line coverage', () => {
+        const lineSeparator = '\u2028';
+        const paragraphSeparator = '\u2029';
+        const ls = `// eslint-disable-next-line${lineSeparator}${onyxConnectCall('x')}`;
+        const ps = `// eslint-disable-next-line${paragraphSeparator}${onyxConnectCall('x')}`;
+
+        expect(collectDisableDirectivesFromSource(ls, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource(ps, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
     it('ignores blanket disables that do not cover a banned call', () => {
         const source = ['/* eslint-disable */', 'console.log(1);', '// eslint-disable-next-line', 'console.log(2);'].join('\n');
 

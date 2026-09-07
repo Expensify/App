@@ -17,6 +17,7 @@ type SeatbeltFileLine = {
     filename: string;
     ruleID: string;
     maxErrors: number;
+    comments: string;
 };
 
 type SeatbeltFileData = {
@@ -49,7 +50,7 @@ function asSeatbeltLine(row: unknown[], lineNumber: number): SeatbeltFileLine {
     if (typeof maxErrors !== 'number') {
         throw new Error(`Expected maxErrors to be a JSON number at line ${lineNumber}`);
     }
-    return {filename, ruleID, maxErrors};
+    return {filename, ruleID, maxErrors, comments: ''};
 }
 
 function parseMaxErrors(lines: SeatbeltFileLine[]): Map<string, number> {
@@ -60,11 +61,12 @@ function parseMaxErrors(lines: SeatbeltFileLine[]): Map<string, number> {
     return maxErrors;
 }
 
-function parseSeatbeltTSV(text: string): {data: Map<string, SeatbeltFileData>; comments: string} {
+function parseSeatbeltTSV(text: string): {data: Map<string, SeatbeltFileData>; comments: string; trailingComments: string} {
     const parsed = TSVUtils.parse(text);
     const data = new Map<string, SeatbeltFileData>();
     for (const [index, row] of parsed.rows.entries()) {
         const line = asSeatbeltLine(row.cells, index + 1);
+        line.comments = row.comments;
         let fileState = data.get(line.filename);
         if (!fileState) {
             fileState = {maxErrors: undefined, lines: []};
@@ -72,23 +74,24 @@ function parseSeatbeltTSV(text: string): {data: Map<string, SeatbeltFileData>; c
         }
         fileState.lines.push(line);
     }
-    return {data, comments: parsed.leadingComments};
+    return {data, comments: parsed.leadingComments, trailingComments: parsed.trailingComments};
 }
 
-function serializeSeatbeltTSV(data: Map<string, SeatbeltFileData>, comments: string): string {
+function serializeSeatbeltTSV(data: Map<string, SeatbeltFileData>, comments: string, trailingComments = ''): string {
     const rows: Array<{cells: unknown[]; comments: string}> = [];
     for (const [filename, fileState] of data) {
         if (fileState.maxErrors) {
+            const commentsByRule = new Map(fileState.lines.map((line) => [line.ruleID, line.comments]));
             fileState.lines = [];
             for (const [ruleID, maxErrorCount] of fileState.maxErrors) {
-                fileState.lines.push({filename, ruleID, maxErrors: maxErrorCount});
+                fileState.lines.push({filename, ruleID, maxErrors: maxErrorCount, comments: commentsByRule.get(ruleID) ?? ''});
             }
         }
         for (const line of fileState.lines) {
-            rows.push({cells: [line.filename, line.ruleID, line.maxErrors], comments: ''});
+            rows.push({cells: [line.filename, line.ruleID, line.maxErrors], comments: line.comments});
         }
     }
-    return TSVUtils.serialize({leadingComments: comments, trailingComments: '', rows}, {sort: true});
+    return TSVUtils.serialize({leadingComments: comments, trailingComments, rows}, {sort: true});
 }
 
 function getMaxErrors(data: Map<string, SeatbeltFileData>, relativeFilename: string): Map<string, number> | undefined {
@@ -416,7 +419,9 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
     const existingText = await file(options.seatbeltFile)
         .text()
         .catch(() => '');
-    const {data, comments} = existingText ? parseSeatbeltTSV(existingText) : {data: new Map<string, SeatbeltFileData>(), comments: DEFAULT_FILE_HEADER};
+    const {data, comments, trailingComments} = existingText
+        ? parseSeatbeltTSV(existingText)
+        : {data: new Map<string, SeatbeltFileData>(), comments: DEFAULT_FILE_HEADER, trailingComments: ''};
 
     const canonical = canonicalizeMessages(messages);
     const byFile = new Map<string, LintMessage[]>();
@@ -467,7 +472,7 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
         anyChanged = true;
         pruned++;
     }
-    const tsv = serializeSeatbeltTSV(data, comments || DEFAULT_FILE_HEADER);
+    const tsv = serializeSeatbeltTSV(data, comments || DEFAULT_FILE_HEADER, trailingComments);
     const shouldWrite = anyChanged && !options.frozen && !options.readOnly;
     if (pruned > 0) {
         const verb = shouldWrite ? 'removed' : 'would remove';
