@@ -1,4 +1,4 @@
-import {getTabNavigatorState, getTabScreenParam, getTabState, isReportsTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {getReportsTabPreloadTarget, getTabNavigatorState, getTabScreenParam, getTabState, isReportsTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -131,5 +131,54 @@ describe('isReportsTabPreloaded', () => {
 
     it('returns false when the root state is undefined', () => {
         expect(isReportsTabPreloaded(undefined)).toBe(false);
+    });
+});
+
+describe('getReportsTabPreloadTarget', () => {
+    const buildRootState = ({index = 0, reportsState}: {index?: number; reportsState?: {routes: Array<{name: string}>; index: number}} = {}) => ({
+        routes: [
+            {
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    key: 'tab-1',
+                    index,
+                    routes: [
+                        {name: SCREENS.HOME, key: 'home-1'},
+                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, key: 'reports-1', state: reportsState},
+                    ],
+                },
+            },
+        ],
+    });
+
+    it('returns the tab state key when Reports is present, blurred and unmounted', () => {
+        expect(getReportsTabPreloadTarget(buildRootState())).toBe('tab-1');
+    });
+
+    // Preloading the focused tab would drop `shouldFreeze` with nothing to warm in return.
+    it('returns undefined when Reports is the focused tab', () => {
+        expect(getReportsTabPreloadTarget(buildRootState({index: 1}))).toBeUndefined();
+    });
+
+    it('returns undefined when the Reports route is already mounted', () => {
+        expect(getReportsTabPreloadTarget(buildRootState({reportsState: {routes: [{name: SCREENS.REPORT}], index: 0}}))).toBeUndefined();
+    });
+
+    it('returns undefined when there is no Reports route', () => {
+        const rootState = {routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {key: 'tab-1', index: 0, routes: [{name: SCREENS.HOME, key: 'home-1'}]}}]};
+        expect(getReportsTabPreloadTarget(rootState)).toBeUndefined();
+    });
+
+    it('returns undefined when the tab state has no key', () => {
+        const rootState = {routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, key: 'reports-1'}]}}]};
+        expect(getReportsTabPreloadTarget(rootState)).toBeUndefined();
+    });
+
+    it('returns undefined when the tab navigator has not registered its state yet', () => {
+        expect(getReportsTabPreloadTarget({routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]})).toBeUndefined();
+    });
+
+    it('returns undefined when the root state is undefined', () => {
+        expect(getReportsTabPreloadTarget(undefined)).toBeUndefined();
     });
 });

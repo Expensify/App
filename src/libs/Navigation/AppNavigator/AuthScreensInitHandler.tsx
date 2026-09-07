@@ -15,7 +15,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import {getTabNavigatorState} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {getReportsTabPreloadTarget, getTabNavigatorState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import Pusher from '@libs/Pusher';
@@ -235,18 +235,12 @@ function AuthScreensInitHandler() {
         }
 
         const task = Scheduler.scheduleWhenIdle(() => {
-            const tabState = getTabNavigatorState(navigationRef.getRootState());
-            const reportsSplitRoute = tabState?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-            const focusedRouteName = tabState?.index === undefined ? undefined : tabState.routes.at(tabState.index)?.name;
-
-            // Preloading a tab pins its key in `preloadedRouteKeys`, which drops `shouldFreeze` in BottomTabView.
-            // On the focused or already-mounted Reports tab that would defeat `freezeOnBlur` until the user next
-            // opens Inbox, so skip both cases - despite the docs calling the second one a no-op.
-            if (!tabState?.key || !reportsSplitRoute || focusedRouteName === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || reportsSplitRoute.state) {
+            const target = getReportsTabPreloadTarget(navigationRef.getRootState());
+            if (!target) {
                 return;
             }
 
-            navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR), target: tabState.key});
+            navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR), target});
         });
 
         return () => task.cancel();

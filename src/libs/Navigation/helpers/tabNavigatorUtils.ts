@@ -43,6 +43,25 @@ function isReportsTabPreloaded(rootState: RootNavigationState): boolean {
 }
 
 /**
+ * The tab state key to dispatch a Reports tab preload at, or undefined when preloading would be pure cost.
+ *
+ * Preloading pins the route key in `preloadedRouteKeys`, which drops `shouldFreeze` in BottomTabView. On the
+ * focused or already-mounted Reports tab that only defeats `freezeOnBlur` until the user next opens Inbox,
+ * with nothing to warm in return, so both are skipped - despite the docs calling the second one a no-op.
+ */
+function getReportsTabPreloadTarget(rootState: RootNavigationState): string | undefined {
+    const tabState = getTabNavigatorState(rootState);
+    const reportsSplitRoute = tabState?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+    const focusedRouteName = tabState?.index === undefined ? undefined : tabState.routes.at(tabState.index)?.name;
+
+    if (!tabState?.key || !reportsSplitRoute || reportsSplitRoute.state || focusedRouteName === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+        return undefined;
+    }
+
+    return tabState.key;
+}
+
+/**
  * Extracts the inner screen name from a TAB_NAVIGATOR route's params.
  * Returns undefined if the route is not TAB_NAVIGATOR or has no screen param.
  */
@@ -53,4 +72,4 @@ function getTabScreenParam(route: NavigationPartialRoute | {name: string; params
     return undefined;
 }
 
-export {getTabState, getTabScreenParam, getTabNavigatorState, isReportsTabPreloaded};
+export {getTabState, getTabScreenParam, getTabNavigatorState, getReportsTabPreloadTarget, isReportsTabPreloaded};
