@@ -653,6 +653,8 @@ const translations = {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
+        notValid: "This link couldn't be used.",
+        sessionMismatch: "The link you opened isn't valid for your current session.",
     },
     multifactorAuthentication: {
         reviewTransaction: {
