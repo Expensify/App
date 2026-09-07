@@ -1,4 +1,3 @@
-import {dismissOnboardingModalBeforeExit} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +20,7 @@ function useReturnToOriginReport() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     return useCallback(() => {
-        dismissOnboardingModalBeforeExit();
+        Navigation.dismissModal();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID));
     }, [originReportID, conciergeReportID]);
 }

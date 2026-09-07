@@ -4,13 +4,11 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 import {StackActions} from '@react-navigation/native';
 
-function dismissOnboardingModalBeforeExit() {}
-
 /**
  * Pops the nested OnboardingModalNavigator stack back to its first route so useLinking
  * unwinds per-step browser history entries before onboarding completes and the modal unmounts.
  */
-function resetOnboardingStackToRoot() {
+export default function resetOnboardingStackToRoot() {
     if (!navigationRef.isReady()) {
         return;
     }
@@ -29,5 +27,3 @@ function resetOnboardingStackToRoot() {
         target: nestedState.key,
     });
 }
-
-export {dismissOnboardingModalBeforeExit, resetOnboardingStackToRoot};
