@@ -307,7 +307,7 @@ type AddNewCardFeedData = {
     publicToken?: string;
 
     /** Feed from Plaid connection */
-    plaidConnectedFeed?: CardFeedWithNumber;
+    plaidConnectedFeed?: string;
 
     /** Feed name from Plaid connection */
     plaidConnectedFeedName?: string;

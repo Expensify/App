@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -227,13 +228,17 @@ type PopoverMenuContentProps = {
 };
 
 function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, children, addBottomSafeAreaPadding}: PopoverMenuContentProps): React.JSX.Element {
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyle});
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's own dock decision (bottom-docked only when isSmallScreenWidth)
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldAddBottomSafeAreaPadding = addBottomSafeAreaPadding && isSmallScreenWidth && !isKeyboardActive;
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding, style: contentContainerStyle});
 
     if (shouldUseScrollView) {
         return (
             <ScrollView
                 contentContainerStyle={contentContainerStyle}
-                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                addBottomSafeAreaPadding={shouldAddBottomSafeAreaPadding}
             >
                 {children}
             </ScrollView>
@@ -245,22 +250,6 @@ function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, childre
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
-}
-
-/**
- * How much room a scrollable popover actually has, given where it is anchored. Bounding the popover by the
- * full window height instead lets it overflow the screen edge when the anchor sits away from the top, which is
- * what happens to the header's "More" menu once the header buttons move down into the status/next-step row.
- */
-function getAvailableHeightForAnchor(anchorVertical: number, verticalAlignment: AnchorAlignment['vertical'], windowHeight: number): number {
-    if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
-        return windowHeight - anchorVertical;
-    }
-    if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
-        return anchorVertical;
-    }
-    // CENTER alignment grows in both directions from the anchor, so the closer window edge bounds it.
-    return Math.min(anchorVertical, windowHeight - anchorVertical) * 2;
 }
 
 /**
@@ -673,23 +662,11 @@ function BasePopoverMenu({
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            const availableHeight = getAvailableHeightForAnchor(anchorPosition.vertical, anchorAlignment.vertical, windowHeight) - variables.compactPopoverMenuVerticalMargin;
-            const minHeight = Math.min(CONST.POPOVER_MENU_MAX_HEIGHT, windowHeight - variables.compactPopoverMenuVerticalMargin);
-            stylesArray.push({maxHeight: Math.max(availableHeight, minHeight)});
+            stylesArray.push({maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)});
         }
 
         return stylesArray;
-    }, [
-        isSmallScreenWidth,
-        shouldEnableMaxHeight,
-        styles.createMenuContainer,
-        styles.pv2,
-        shouldUseScrollView,
-        windowHeight,
-        isInLandscapeMode,
-        anchorPosition.vertical,
-        anchorAlignment.vertical,
-    ]);
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, styles.pv2, shouldUseScrollView, windowHeight, isInLandscapeMode]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
         (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : styles.pv2, scrollContainerStyle]) as ViewStyle) ?? {};

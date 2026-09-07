@@ -96,7 +96,7 @@ function useComposerSubmit(reportID: string) {
             return;
         }
 
-        if (createTaskFromMarkdown({text: draftMessageTrimmed, parentReport: report, currentUserPersonalDetails, quickAction, ancestors: reportAncestors})) {
+        if (createTaskFromMarkdown({text: draftMessageTrimmed, parentReport: report, currentUserPersonalDetails, quickAction, delegateAccountID, ancestors: reportAncestors})) {
             return;
         }
 

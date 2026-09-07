@@ -1,5 +1,5 @@
 import useAttendees from '@hooks/useAttendees';
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
@@ -48,6 +48,7 @@ import {View} from 'react-native';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
 
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
+import ConfirmationFieldsProvider from './MoneyRequestConfirmationFields/Provider';
 import buildConfirmAction from './MoneyRequestConfirmationList/confirmAction';
 import ConfirmationFooterContent from './MoneyRequestConfirmationList/ConfirmationFooterContent';
 import ConfirmationTelemetry from './MoneyRequestConfirmationList/ConfirmationTelemetry';
@@ -256,7 +257,7 @@ function MoneyRequestConfirmationList({
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -513,7 +514,7 @@ function MoneyRequestConfirmationList({
         setDidConfirmSplit,
         showDelegateNoAccessModal,
         onConfirm: () => {
-            if (blockManualOrOdometerDistanceRequestIfNeeded()) {
+            if (blockDistanceRequestIfNeeded()) {
                 return;
             }
             onConfirm?.();
@@ -547,65 +548,76 @@ function MoneyRequestConfirmationList({
         />
     );
 
+    // The expense-type flags below (`isDistanceRequest`, `isTimeRequest`, ...) are temporary: once this component
+    // forks per expense type, each variant knows its own type and they leave both the provider and the context.
     const listFooterContent = (
-        <View style={isCompactMode ? styles.flex1 : undefined}>
-            <MoneyRequestConfirmationListFooter
-                receiptStitchError={receiptStitchError}
-                action={action}
-                iouType={iouType}
-                transactionID={transactionID}
-                reportID={reportID}
-                reportActionID={reportActionID}
-                isScanRequest={isScanRequest}
-                policyID={policyID}
-                policy={policy}
-                policyTags={policyTags}
-                selectedParticipants={selectedParticipantsProp}
-                isReadOnly={isReadOnly}
-                didConfirm={!!didConfirm}
-                isEditingSplitBill={isEditingSplitBill}
-                isPolicyExpenseChat={isPolicyExpenseChat}
-                expenseMode={{isDistance: isDistanceRequest, isTime: isTimeRequest, isInvoice: isTypeInvoice, isPerDiem: isPerDiemRequest}}
-                distanceFlags={{isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
-                distanceData={{
-                    distance,
-                    hasRoute,
-                    unit,
-                    distanceRateName: mileageRate.name,
-                    distanceRateCurrency: currency,
-                    mileageRate,
-                    expenseDate: getCreated(transaction),
-                    customUnitRateID,
-                    shouldShowRateAutoUpdatedTooltip,
-                    customUnit: transaction?.comment?.customUnit,
-                }}
-                amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
-                requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
-                visibilityFlags={{
-                    shouldShowSmartScanFields,
-                    shouldShowAmountField: !isPerDiemRequest,
-                    shouldShowMerchant,
-                    shouldShowCategories,
-                    shouldShowTax,
-                    isParticipantPickerVisible,
-                }}
-                errorState={{shouldDisplayFieldError, formError, clearFormErrors, setFormError}}
-                toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                receiptOptions={{
-                    receiptFilename,
-                    receiptPath,
-                    isLoadingReceipt,
-                    isReceiptEditable,
-                    shouldDisplayReceipt,
-                    onPDFLoadError,
-                    onPDFPassword,
-                }}
-                compactControls={{showMoreFields, setShowMoreFields}}
-                scrollFocusedInputIntoView={scrollFocusedInputIntoView}
-                onSubmitForm={confirm}
-                onTaxAmountEmptyChange={setIsTaxAmountEmpty}
-            />
-        </View>
+        <ConfirmationFieldsProvider
+            transactionID={transactionID}
+            reportID={reportID}
+            reportActionID={reportActionID}
+            action={action}
+            iouType={iouType}
+            policyID={policyID}
+            isReadOnly={isReadOnly}
+            didConfirm={!!didConfirm}
+            isEditingSplitBill={isEditingSplitBill}
+            isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
+            isPolicyExpenseChat={isPolicyExpenseChat}
+            isDistanceRequest={isDistanceRequest}
+            isPerDiemRequest={isPerDiemRequest}
+            isTimeRequest={isTimeRequest}
+            isTypeInvoice={isTypeInvoice}
+            isManualDistanceRequest={isManualDistanceRequest}
+            isOdometerDistanceRequest={isOdometerDistanceRequest}
+            isGPSDistanceRequest={isGPSDistanceRequest}
+            scrollFocusedInputIntoView={scrollFocusedInputIntoView}
+            onSubmitForm={confirm}
+            onTaxAmountEmptyChange={setIsTaxAmountEmpty}
+        >
+            <View style={isCompactMode ? styles.flex1 : undefined}>
+                <MoneyRequestConfirmationListFooter
+                    receiptStitchError={receiptStitchError}
+                    isCompactMode={isCompactMode}
+                    policy={policy}
+                    policyTags={policyTags}
+                    selectedParticipants={selectedParticipantsProp}
+                    distanceData={{
+                        distance,
+                        hasRoute,
+                        unit,
+                        distanceRateName: mileageRate.name,
+                        distanceRateCurrency: currency,
+                        mileageRate,
+                        expenseDate: getCreated(transaction),
+                        customUnitRateID,
+                        shouldShowRateAutoUpdatedTooltip,
+                        customUnit: transaction?.comment?.customUnit,
+                    }}
+                    amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
+                    requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
+                    visibilityFlags={{
+                        shouldShowSmartScanFields,
+                        shouldShowAmountField: !isPerDiemRequest,
+                        shouldShowMerchant,
+                        shouldShowCategories,
+                        shouldShowTax,
+                        isParticipantPickerVisible,
+                    }}
+                    errorState={{shouldDisplayFieldError, formError, clearFormErrors, setFormError}}
+                    toggleHandlers={{onToggleReimbursable, onToggleBillable}}
+                    receiptOptions={{
+                        receiptFilename,
+                        receiptPath,
+                        isLoadingReceipt,
+                        isReceiptEditable,
+                        shouldDisplayReceipt,
+                        onPDFLoadError,
+                        onPDFPassword,
+                    }}
+                    compactControls={{showMoreFields, setShowMoreFields}}
+                />
+            </View>
+        </ConfirmationFieldsProvider>
     );
 
     return (

@@ -18,7 +18,6 @@ import Onyx from 'react-native-onyx';
  */
 
 let lastSetIDs: string[] | null = null;
-let lastSetSnapshotHash: number | null = null;
 let lastSetDescriptors: Record<string, TransactionThreadNavigationDescriptor> | null = null;
 
 function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDescriptor> | null, b: Record<string, TransactionThreadNavigationDescriptor> | null) {
@@ -46,25 +45,19 @@ function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDes
 }
 
 /**
- * Idempotent: skips the Onyx write when the IDs, snapshot hash, and descriptor map haven't changed.
+ * Idempotent: skips the Onyx write when the IDs and the descriptor map haven't changed.
  * This lets callers (e.g. useEffect in MoneyRequestReportTransactionList) fire
  * freely without worrying about referential equality of the input array.
  */
-function setActiveTransactionIDs(ids: string[], snapshotHash?: number, siblingDescriptorsByTransactionID?: Record<string, TransactionThreadNavigationDescriptor>) {
-    const nextSnapshotHash = snapshotHash ?? null;
+function setActiveTransactionIDs(ids: string[], siblingDescriptorsByTransactionID?: Record<string, TransactionThreadNavigationDescriptor>) {
     const nextDescriptors = siblingDescriptorsByTransactionID ?? null;
-    const areIDsUnchanged = lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i));
-    if (areIDsUnchanged && lastSetSnapshotHash === nextSnapshotHash && areDescriptorMapsEqual(lastSetDescriptors, nextDescriptors)) {
+    const sameIDs = lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i));
+    if (sameIDs && areDescriptorMapsEqual(lastSetDescriptors, nextDescriptors)) {
         return Promise.resolve();
     }
     lastSetIDs = ids;
-    lastSetSnapshotHash = nextSnapshotHash;
     lastSetDescriptors = nextDescriptors;
-    return Promise.all([
-        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids),
-        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH, nextSnapshotHash),
-        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, nextDescriptors),
-    ]);
+    return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, nextDescriptors)]);
 }
 
 /**
@@ -76,42 +69,10 @@ function getActiveTransactionIDs(): {ids: string[] | null; descriptors: Record<s
     return {ids: lastSetIDs, descriptors: lastSetDescriptors};
 }
 
-function shouldWriteActiveTransactionIDsForSearch(
-    activeIDs: string[] | undefined,
-    activeSnapshotHash: number | undefined,
-    searchSnapshotHash: number,
-    searchTransactionIDs: string[],
-): boolean {
-    if (searchTransactionIDs.length === 0) {
-        return false;
-    }
-    if (!activeIDs?.length) {
-        return searchTransactionIDs.length > 1;
-    }
-    if (activeSnapshotHash !== searchSnapshotHash) {
-        return false;
-    }
-    const isUpToDate = activeIDs.length === searchTransactionIDs.length && activeIDs.every((id, index) => id === searchTransactionIDs.at(index));
-    return !isUpToDate;
-}
-
-function shouldPreserveActiveTransactionIDs(candidateIDs: string[], anchorTransactionID: string): boolean {
-    const activeIDs = lastSetIDs;
-    if (!activeIDs?.includes(anchorTransactionID)) {
-        return false;
-    }
-    return activeIDs.length > candidateIDs.length && candidateIDs.every((id) => activeIDs.includes(id));
-}
-
 function clearActiveTransactionIDs() {
     lastSetIDs = null;
-    lastSetSnapshotHash = null;
     lastSetDescriptors = null;
-    return Promise.all([
-        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, null),
-        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH, null),
-        Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, null),
-    ]);
+    return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, null), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, null)]);
 }
 
-export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs, shouldWriteActiveTransactionIDsForSearch, shouldPreserveActiveTransactionIDs};
+export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs};

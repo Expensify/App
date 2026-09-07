@@ -84,6 +84,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const isAccountInSetupState = isBankAccountPartiallySetup(bankAccountState);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -252,7 +254,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         }
         showConfirmModal({
             title: translate('workflowsPayerPage.shareBankAccount.shareTitle'),
-            success: true,
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             confirmText: translate('common.share'),
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
@@ -358,7 +360,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 onConfirm={() => {
                     setShowValidationModal(false);
                 }}
-                success
+                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
                 onCancel={() => setShowValidationModal(false)}
                 prompt={
                     <View style={[styles.renderHTML, styles.flexRow]}>
@@ -383,7 +385,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 onConfirm={() => {
                     setShowErrorModal(false);
                 }}
-                success
+                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
                 prompt={
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML
@@ -400,6 +402,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                     guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                                     betas,
                                     personalDetails,
+                                    conciergeChat,
                                 );
                             }}
                             html={translate('workflowsPayerPage.shareBankAccount.errorDescription', {
