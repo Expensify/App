@@ -31,11 +31,6 @@ const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersona
 const PRIVATE_PERSONAL_DETAILS_ROUTE = ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route;
 const PRIVATE_PERSONAL_DETAILS_ROUTE_WITH_FOCUS = ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1);
 
-/**
- * The home address link in the action HTML points at the private personal details page without a `fieldToFocus` param,
- * so Address line 1 isn't focused when the page is opened that way. Point those anchors at the exact route the
- * "Add address" button below navigates to, so both entry points behave identically.
- */
 function focusAddressLineOnPrivatePersonalDetailsLinks(html: string): string {
     if (!html) {
         return html;
