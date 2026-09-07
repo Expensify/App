@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -38,6 +39,7 @@ function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {syncReimbursedReports} = config?.sync ?? {};
     const fxExpenseAccount = config?.fxExpenseAccount;
     const expenseAccountOptions = useMemo<SelectorType[]>(() => getSageIntacctExpenseAccounts(policy, fxExpenseAccount), [policy, fxExpenseAccount]);
+    const {filteredData, textInputOptions} = useSelectionListSearch(expenseAccountOptions);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -76,7 +78,8 @@ function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctFxExpenseAccountPage"
-            data={expenseAccountOptions}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             shouldBeBlocked={!syncReimbursedReports || !isGlobalReimbursementFXEnabled}
             onSelectRow={updateAccount}
