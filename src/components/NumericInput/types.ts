@@ -39,7 +39,6 @@ type NumericTextInputProps = {
     | 'autoFocus'
     | 'autoGrowExtraSpace'
     | 'autoGrowMarginSide'
-    | 'contentWidth'
     | 'disabled'
     | 'disableKeyboard'
     | 'keyboardType'

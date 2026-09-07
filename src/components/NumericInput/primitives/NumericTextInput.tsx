@@ -30,7 +30,6 @@ function NumericTextInput({
     autoGrow = true,
     autoGrowExtraSpace,
     autoGrowMarginSide,
-    contentWidth,
     containerStyle,
     disabled,
     disableKeyboard = true,
@@ -84,7 +83,6 @@ function NumericTextInput({
             autoGrow={autoGrow}
             autoGrowExtraSpace={autoGrowExtraSpace}
             autoGrowMarginSide={autoGrowMarginSide}
-            contentWidth={contentWidth}
             disabled={disabled}
             disableKeyboard={disableKeyboard}
             disableKeyboardShortcuts
