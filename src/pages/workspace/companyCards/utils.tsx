@@ -243,7 +243,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 exportType,
                 data,
-                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, backTo ?? basePath),
             };
         }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
@@ -370,7 +370,7 @@ function getExportMenuItem(
                 title,
                 exportType,
                 shouldShowMenuItem,
-                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path, backTo ?? basePath),
                 data: resultData.map((card) => ({
                     value: card.id,
                     text: card.name,

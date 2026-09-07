@@ -112,6 +112,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.TRAVEL.MY_TRIPS,
+            SCREENS.WORKSPACE.TRAVEL,
         ],
     },
     CONTACT_METHODS: {
@@ -1196,7 +1198,14 @@ const DYNAMIC_ROUTES = {
     },
     EXPENSIFY_CARD_DETAILS: {
         path: 'expensify-card-details/:cardID/:policyID',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.DYNAMIC_PROFILE],
+        entryScreens: [
+            SCREENS.WORKSPACE.EXPENSIFY_CARD,
+            SCREENS.REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.DYNAMIC_PROFILE,
+        ],
         getRoute: (cardID: string, policyID: string) => `expensify-card-details/${cardID}/${policyID}` as const,
     },
     EXPENSIFY_CARD_LIMIT_TYPE: {
@@ -4030,11 +4039,6 @@ const ROUTES = {
         route: 'travel/upgrade/workspace/confirmation',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
-    },
-    TRAVEL_VERIFY_ACCOUNT: {
-        route: `travel/${VERIFY_ACCOUNT}`,
-
-        getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
     },
     TRAVEL_ENABLE: {
         route: 'travel/enable/:policyID/:subPage?/:action?',

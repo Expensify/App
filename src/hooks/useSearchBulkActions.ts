@@ -47,7 +47,7 @@ import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {canAccessPolicyBankAccount, getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -908,10 +908,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            // Bulk pay funds from the workspace bank account when no account was picked in the menu, so a workspace only
-            // counts here if the workspace account is actually shared with the current user. Anyone else — including a
-            // payer the account was never shared with — has to open the report and pick an account of their own.
-            if (!policy || !canAccessPolicyBankAccount(policy, bankAccountList)) {
+            if (!policy?.achAccount?.bankAccountID) {
                 continue;
             }
 
@@ -919,7 +916,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return result;
-    }, [policies, bankAccountList]);
+    }, [policies]);
 
     const exportSearchData = searchResults?.data;
     const exportSearchType = searchResults?.search.type ?? queryJSON?.type;
@@ -1878,14 +1875,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // Shared confirmation flow used by BOTH "Export to <integration>" and "Mark as exported" so the
             // two actions behave identically. When applicable, the partial-export modal is shown first and,
             // only after it resolves, the existing "export again" modal — the two are never combined.
-            // `shouldCheckCompanyMismatch` gates the different-companies guard: it only applies to the real
-            // integration export (which pushes data into a single external company), not to manual marking.
+            // `isRealIntegrationExport` distinguishes the real integration export (which pushes data into a
+            // single external company) from manual marking, and gates the two confirmations that only make
+            // sense for a real export: the different-companies guard and the "export again" warning.
             const buildIntegrationHandleExportAction =
                 (
                     integrationReportIDs: string[],
                     integration: NonNullable<ReturnType<typeof getConnectedIntegration>>,
                     integrationGroupSize: number,
-                    shouldCheckCompanyMismatch: boolean,
+                    isRealIntegrationExport: boolean,
                     connectionNameFriendly: string,
                 ) =>
                 (exportAction: () => void) => {
@@ -1906,7 +1904,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     // This guard is skipped for "Mark as exported": the MarkAsExported backend command logs a
                     // per-report exported action independently and never pushes into an external company, so marking
                     // reports across different companies in one call is fine.
-                    if (shouldCheckCompanyMismatch) {
+                    if (isRealIntegrationExport) {
                         const companyIDs = new Set<string | undefined>();
                         for (const reportID of integrationReportIDs) {
                             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -1953,7 +1951,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     // Ask about the already-exported reports (if any) and then run the export.
                     const confirmExportAgainThenRun = () => {
-                        if (!areAnyReportsExported) {
+                        // The "export again" warning is skipped for "Mark as exported" for the same reason as the
+                        // different-companies guard above: MarkAsExported only logs a per-report exported action and
+                        // never pushes data into the external company. Warning that reports "will be exported again"
+                        // to e.g. QuickBooks Online is wrong there and blocks users from re-marking their reports.
+                        if (!areAnyReportsExported || !isRealIntegrationExport) {
                             runExport();
                             return;
                         }
