@@ -68,6 +68,14 @@ function useConciergeSidePanelReportActions({
     const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
     const [prevHasUserSentMessage, setPrevHasUserSentMessage] = useState(hasUserSentMessage);
 
+    // Report actions the user sent during this session, captured while they were still pending. `sessionStartTime` is
+    // anchored with a network skew that isn't measured yet on a cold open, so on a device whose clock runs ahead the
+    // boundary can land past the real server clock. The server-stamped `created` then falls below it and the message
+    // the user just sent is filtered out seconds after appearing — taking the view back to the welcome state with it.
+    // Applies to the side panel as well as the main DM; both compare against a boundary anchored the same way.
+    // Membership here is sticky for the life of the session, so a re-stamp can never evict a message we already showed.
+    const [sessionSentActionIDs, setSessionSentActionIDs] = useState<ReadonlySet<string>>(() => new Set());
+
     const hadMessagesAtSessionStart = localHadMessagesAtSessionStart;
     const showFullHistory = externalShowFullHistory ?? localShowFullHistory;
     const setShowFullHistory = onSetShowFullHistory ?? setLocalShowFullHistory;
@@ -77,6 +85,7 @@ function useConciergeSidePanelReportActions({
         setLocalShowFullHistory(false);
         const messagesExistAtStart = !!isConciergeMainDM && !!sessionStartTime && visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime);
         setLocalHadMessagesAtSessionStart(messagesExistAtStart);
+        setSessionSentActionIDs(new Set());
     } else if (prevHasUserSentMessage && !hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
         setLocalShowFullHistory(false);
@@ -87,6 +96,17 @@ function useConciergeSidePanelReportActions({
     useLayoutEffect(() => {
         onSetHadMessagesAtSessionStart?.(localHadMessagesAtSessionStart);
     }, [localHadMessagesAtSessionStart, onSetHadMessagesAtSessionStart]);
+
+    useLayoutEffect(() => {
+        if (!isConciergeHiddenHistory || !sessionStartTime) {
+            return;
+        }
+        const pendingIDs = visibleReportActions.filter((action) => isCurrentUserPendingAddAction(action, currentUserAccountID)).map((action) => action.reportActionID);
+        if (pendingIDs.length === 0 || pendingIDs.every((reportActionID) => sessionSentActionIDs.has(reportActionID))) {
+            return;
+        }
+        setSessionSentActionIDs((prev) => new Set([...prev, ...pendingIDs]));
+    }, [visibleReportActions, isConciergeHiddenHistory, sessionStartTime, currentUserAccountID, sessionSentActionIDs]);
 
     // Check if the user had sent any message BEFORE this session started.
     // Uses sessionStartTime as the boundary — any user message created before the
@@ -133,7 +153,10 @@ function useConciergeSidePanelReportActions({
         return visibleReportActions.some((action) => isOpenChildTaskAction(action, currentUserAccountID));
     }, [isConciergeMainDM, isConciergeHiddenHistory, visibleReportActions, currentUserAccountID]);
 
-    const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasUserSentMessage && !showFullHistory && !hasMessagesInSession && !hasOpenChildTask;
+    // `hasUserSentMessage` and `hasMessagesInSession` are both timestamp comparisons, so a server re-stamp flips them
+    // together — without the sticky set the welcome state would come back on top of a conversation already in progress.
+    const hasSentInSession = hasUserSentMessage || sessionSentActionIDs.size > 0;
+    const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasSentInSession && !showFullHistory && !hasMessagesInSession && !hasOpenChildTask;
     const showConciergeGreeting = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !showFullHistory && (!isConciergeMainDM || !hadMessagesAtSessionStart);
 
     const conciergeGreetingAction = useMemo(() => {
@@ -168,6 +191,10 @@ function useConciergeSidePanelReportActions({
             if (!sessionStartTime) {
                 return false;
             }
+            // Sent in this session and already shown once — keep it regardless of what the server stamped on it.
+            if (sessionSentActionIDs.has(action.reportActionID)) {
+                return true;
+            }
             if (isConciergeMainDM) {
                 // A still-OPEN child task (e.g. an unfinished onboarding task) stays pinned even though it predates
                 // the session, so collapsing read history behind "Show history" never buries a task the user still
@@ -194,7 +221,7 @@ function useConciergeSidePanelReportActions({
                 (action.created >= sessionStartTime && (!isFromCurrentUser || action.created >= firstUserMessageCreated))
             );
         },
-        [sessionStartTime, isConciergeMainDM, firstUserMessageCreated, currentUserAccountID],
+        [sessionStartTime, isConciergeMainDM, firstUserMessageCreated, currentUserAccountID, sessionSentActionIDs],
     );
 
     const filterActions = useCallback(

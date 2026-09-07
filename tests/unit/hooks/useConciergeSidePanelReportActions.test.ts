@@ -259,3 +259,67 @@ describe('useConciergeSidePanelReportActions (main DM open-task pinning)', () =>
         expect(visibleIDs).toContain('20');
     });
 });
+
+describe('useConciergeSidePanelReportActions (main DM sent-message retention)', () => {
+    const SESSION_START = toDBTime(CLIENT_OPEN_MS);
+
+    const createdAction = buildAction('10', {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: toDBTime(CLIENT_OPEN_MS - 7_200_000)});
+    const preSessionUser = buildAction('11', {created: toDBTime(CLIENT_OPEN_MS - 3_600_000)});
+    const preSessionConcierge = buildAction('12', {actorAccountID: CONCIERGE_ACCOUNT_ID, created: toDBTime(CLIENT_OPEN_MS - 3_500_000)});
+
+    /** Mirrors how `useReportActionsVisibility` calls the hook: the side panel drives its own local state. */
+    function buildProps(sentMessage: ReportAction, hasUserSentMessage: boolean, isConciergeMainDM: boolean) {
+        const reportActions = [createdAction, preSessionUser, preSessionConcierge, sentMessage];
+        const report: Report = {...createRandomReport(Number(REPORT_ID)), reportID: REPORT_ID, lastReadTime: SESSION_START};
+
+        return {
+            report,
+            reportActions,
+            visibleReportActions: reportActions,
+            isConciergeHiddenHistory: true,
+            hasUserSentMessage,
+            hasOlderActions: false,
+            sessionStartTime: SESSION_START,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            greetingText: 'Hi there, how can I help?',
+            loadOlderChats: jest.fn(),
+            isConciergeMainDM,
+            showFullHistory: isConciergeMainDM ? false : undefined,
+            hadMessagesAtSessionStart: isConciergeMainDM ? false : undefined,
+        };
+    }
+
+    /** The message as it is sent (pending), then as the server hands it back stamped below the boundary. */
+    const pendingMessage = () => buildAction('20', {created: toDBTime(CLIENT_OPEN_MS + 500), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+    const restampedMessage = () => buildAction('20', {created: toDBTime(CLIENT_OPEN_MS - 3000), pendingAction: undefined});
+
+    function renderSurface(isConciergeMainDM: boolean) {
+        const {result, rerender} = renderHook((props: Parameters<typeof useConciergeSidePanelReportActions>[0]) => useConciergeSidePanelReportActions(props), {
+            initialProps: buildProps(pendingMessage(), true, isConciergeMainDM),
+        });
+        return {
+            result,
+            // The server response clears the pending flag and re-stamps `created`, which also flips `hasUserSentMessage`.
+            landServerResponse: () => rerender(buildProps(restampedMessage(), false, isConciergeMainDM)),
+        };
+    }
+
+    it.each([
+        ['main DM', true],
+        ['side panel', false],
+    ])('keeps the message the user just sent in the %s when the server stamps it below the session boundary', (_surface, isConciergeMainDM) => {
+        // Given the user's message is still pending, so it is visible on the strength of its pending state
+        const {result, landServerResponse} = renderSurface(isConciergeMainDM);
+        expect(result.current.filteredReportActions.map((action) => action.reportActionID)).toContain('20');
+
+        // When the server response lands and re-stamps `created` behind the boundary — what happens on a device whose
+        // clock runs ahead of the server
+        landServerResponse();
+
+        // Then the message stays on screen and the welcome state does not come back over the conversation.
+        expect(result.current.filteredReportActions.map((action) => action.reportActionID)).toContain('20');
+        expect(result.current.showConciergeSidePanelWelcome).toBe(false);
+        // ...and the read history is still collapsed behind "Show history".
+        expect(result.current.filteredReportActions.map((action) => action.reportActionID)).not.toContain('11');
+    });
+});
