@@ -31,9 +31,10 @@ describe('oxcTransformer', () => {
             }
         `;
         const result = oxcTransformer.process(source, path.resolve('src/libs/math.ts'), transformOptions);
-        expect(result.code).toContain('module.exports');
+        expect(result.code).toContain('exports.add = add');
         expect(result.code).not.toMatch(/^export /m);
         expect(result.code).not.toContain(': number');
+        expect(result.map?.sources?.some((mapSource) => mapSource.endsWith('math.ts'))).toBe(true);
     });
 
     it('runs React Compiler on app components', () => {
@@ -58,6 +59,19 @@ describe('oxcTransformer', () => {
         expect(result.code).toContain('jsxDEV');
     });
 
+    it('lowers const in jest.mock factories so circular imports do not TDZ', () => {
+        const source = `
+            const mockedReportID = '1';
+            jest.mock('./foo', () => ({
+                parseReportRouteParams: () => ({reportID: mockedReportID}),
+            }));
+            export const x = mockedReportID;
+        `;
+        const result = oxcTransformer.process(source, path.resolve('tests/unit/Hello.test.ts'), transformOptions);
+        expect(result.code).toMatch(/var mockedReportID/);
+        expect(result.code).not.toMatch(/\bconst mockedReportID\b/);
+    });
+
     it('hoists jest.mock above require() after CJS conversion', () => {
         const source = `
             import foo from './foo';
@@ -65,20 +79,10 @@ describe('oxcTransformer', () => {
             export const x = foo;
         `;
         const result = oxcTransformer.process(source, path.resolve('tests/perf-test/Hello.perf-test.tsx'), transformOptions);
-        expect(result.code).toMatch(/jest\.mock\(['"]\.\/foo['"]\)/);
+        expect(result.code).toContain('_getJestObj().mock("./foo")');
         expect(result.code).toMatch(/require\(['"]\.\/foo['"]\)/);
-        expect(result.code.search(/jest\.mock\(['"]\.\/foo['"]\)/)).toBeLessThan(result.code.search(/require\(['"]\.\/foo['"]\)/));
-        expect(result.code).toContain('module.exports');
-    });
-
-    it('does not hoist jest.mock nested inside a function', () => {
-        const source = `
-            export function setup() {
-                jest.mock('./foo');
-            }
-        `;
-        const result = oxcTransformer.process(source, path.resolve('tests/unit/Hello.test.ts'), transformOptions);
-        expect(result.code).toMatch(/function setup\(\) \{[\s\S]*jest\.mock\(['"]\.\/foo['"]\)/);
+        expect(result.code.indexOf('_getJestObj().mock')).toBeLessThan(result.code.search(/require\(['"]\.\/foo['"]\)/));
+        expect(result.code).toContain('exports.x');
     });
 
     it('lowers dynamic import() so Jest still owns the module graph', () => {

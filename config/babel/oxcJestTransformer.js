@@ -1,12 +1,15 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const esbuild = require('esbuild');
-const {parseSync} = require('oxc-parser');
+const babel = require('@babel/core');
 const {transformSync} = require('oxc-transform-react');
 
 const babelJest = require('babel-jest');
-const OXC_PARSER_VERSION = require('oxc-parser/package.json').version;
+const BABEL_CORE_VERSION = require('@babel/core/package.json').version;
+const BLOCK_SCOPING_PLUGIN_VERSION = require('@babel/plugin-transform-block-scoping/package.json').version;
+const DYNAMIC_IMPORT_PLUGIN_VERSION = require('@babel/plugin-transform-dynamic-import/package.json').version;
+const CJS_PLUGIN_VERSION = require('@babel/plugin-transform-modules-commonjs/package.json').version;
+const JEST_HOIST_VERSION = require('babel-plugin-jest-hoist/package.json').version;
 const OXC_TRANSFORM_REACT_VERSION = require('oxc-transform-react/package.json').version;
 const BaseReactCompilerConfig = require('./reactCompilerConfig');
 
@@ -17,7 +20,6 @@ const TESTS_RE = /[/\\]tests[/\\]/;
 const JEST_SETUP_RE = /[/\\]jest[/\\]/;
 const MOCKS_RE = /[/\\]__mocks__[/\\]/;
 const JEST_HOIST_RE = /\bjest\s*\.\s*(mock|unmock|deepUnmock|disableAutomock|enableAutomock)\b/;
-const HOISTABLE_JEST_FNS = new Set(['mock', 'unmock', 'deepUnmock', 'disableAutomock', 'enableAutomock']);
 
 const TRANSFORMER_SOURCE = fs.readFileSync(__filename);
 const REACT_COMPILER_CONFIG_KEY = JSON.stringify(BaseReactCompilerConfig);
@@ -27,6 +29,10 @@ const REACT_COMPILER_OPTIONS = {
     panicThreshold: 'none',
     eslintSuppressionRules: [],
 };
+
+const CJS_PLUGIN_OPTIONS = {loose: true, strictMode: false};
+const CJS_PLUGINS = ['@babel/plugin-transform-block-scoping', '@babel/plugin-transform-dynamic-import', ['@babel/plugin-transform-modules-commonjs', CJS_PLUGIN_OPTIONS]];
+const CJS_AND_HOIST_PLUGINS = [...CJS_PLUGINS, 'babel-plugin-jest-hoist'];
 
 function getLang(filename) {
     const ext = path.extname(filename).slice(1);
@@ -47,65 +53,26 @@ function shouldRunReactCompiler(filename) {
     return !TESTS_RE.test(filename) && !JEST_SETUP_RE.test(filename) && !MOCKS_RE.test(filename);
 }
 
-function isJestIdentifier(expression) {
-    return expression?.type === 'Identifier' && expression.name === 'jest';
-}
+function toCommonJS(code, sourcePath, inputSourceMap) {
+    const plugins = JEST_HOIST_RE.test(code) ? CJS_AND_HOIST_PLUGINS : CJS_PLUGINS;
+    const result = babel.transformSync(code, {
+        filename: sourcePath,
+        ast: false,
+        code: true,
+        babelrc: false,
+        configFile: false,
+        compact: false,
+        sourceType: 'module',
+        sourceMaps: true,
+        inputSourceMap: inputSourceMap ?? undefined,
+        plugins,
+    });
 
-function isHoistableJestCall(expression) {
-    if (expression?.type !== 'CallExpression' || expression.optional) {
-        return false;
+    if (!result?.code) {
+        return {code, map: inputSourceMap};
     }
 
-    const callee = expression.callee;
-    if (callee?.type !== 'MemberExpression' || callee.computed || callee.optional) {
-        return false;
-    }
-
-    if (callee.property?.type !== 'Identifier' || !HOISTABLE_JEST_FNS.has(callee.property.name)) {
-        return false;
-    }
-
-    return isJestIdentifier(callee.object) || isHoistableJestCall(callee.object);
-}
-
-function statementSpan(statement) {
-    return statement.range ?? [statement.start, statement.end];
-}
-
-function hoistJestMocks(code) {
-    if (!JEST_HOIST_RE.test(code)) {
-        return code;
-    }
-
-    const {program, errors} = parseSync('hoist.js', code, {sourceType: 'script', range: true});
-    if (errors.length > 0) {
-        return code;
-    }
-
-    const hoisted = [];
-    const rest = [];
-    let cursor = 0;
-
-    for (const statement of program.body) {
-        const [start, end] = statementSpan(statement);
-        if (statement.type === 'ExpressionStatement' && isHoistableJestCall(statement.expression)) {
-            if (start > cursor) {
-                rest.push(code.slice(cursor, start));
-            }
-            hoisted.push(code.slice(start, end).trim());
-            cursor = end;
-        }
-    }
-
-    if (hoisted.length === 0) {
-        return code;
-    }
-
-    if (cursor < code.length) {
-        rest.push(code.slice(cursor));
-    }
-
-    return `${hoisted.join('\n')}\n${rest.join('')}`;
+    return {code: result.code, map: result.map ?? inputSourceMap};
 }
 
 function processWithOxc(sourceText, sourcePath) {
@@ -120,15 +87,7 @@ function processWithOxc(sourceText, sourcePath) {
         return null;
     }
 
-    const cjs = esbuild.transformSync(oxcResult.code, {
-        loader: 'js',
-        format: 'cjs',
-        supported: {'dynamic-import': false},
-        sourcefile: sourcePath,
-        sourcemap: true,
-    });
-
-    return {code: hoistJestMocks(cjs.code), map: cjs.map};
+    return toCommonJS(oxcResult.code, sourcePath, oxcResult.map);
 }
 
 module.exports = {
@@ -145,8 +104,12 @@ module.exports = {
             .update(sourcePath)
             .update(TRANSFORMER_SOURCE)
             .update(REACT_COMPILER_CONFIG_KEY)
-            .update(esbuild.version)
-            .update(OXC_PARSER_VERSION)
+            .update(JSON.stringify(CJS_PLUGIN_OPTIONS))
+            .update(BABEL_CORE_VERSION)
+            .update(BLOCK_SCOPING_PLUGIN_VERSION)
+            .update(DYNAMIC_IMPORT_PLUGIN_VERSION)
+            .update(CJS_PLUGIN_VERSION)
+            .update(JEST_HOIST_VERSION)
             .update(OXC_TRANSFORM_REACT_VERSION)
             .digest('hex');
     },
@@ -158,7 +121,7 @@ module.exports = {
                     return result;
                 }
             } catch {
-                // Fall through to babel-jest for syntax OXC or esbuild cannot parse.
+                // Fall through to babel-jest for syntax OXC or the CJS pass cannot parse.
             }
         }
 

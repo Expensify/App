@@ -18,9 +18,9 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        // OXC compiles TS/JSX (and React Compiler on app sources). esbuild then emits CJS
-        // and lowers import(). oxc-parser splices top-level jest.mock calls above require()
-        // so Jest still intercepts them. Native OXC + esbuild stays fast under Reassure's
+        // OXC compiles TS/JSX (and React Compiler on app sources). A small Babel pass then
+        // emits loose CommonJS, lowers import(), and hoists jest.mock so test files no
+        // longer need a babel-jest split. Native OXC stays fast under Reassure's
         // `--max-opt=1` (V8 sparkplug only).
         '^.+\\.[jt]sx?$': '<rootDir>/config/babel/oxcJestTransformer.js',
         '^.+\\.svg?$': 'jest-transformer-svg',
