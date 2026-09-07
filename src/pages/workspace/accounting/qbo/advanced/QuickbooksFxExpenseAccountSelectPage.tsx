@@ -34,7 +34,7 @@ type SelectorType = ListItem & {
 function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
