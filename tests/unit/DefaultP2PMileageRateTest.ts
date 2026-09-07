@@ -15,6 +15,13 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@libs/telemetry/activeSpans');
+jest.mock('@libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@libs/API');
+    return {
+        ...actual,
+        read: jest.fn(actual.read),
+    };
+});
 
 describe('Default P2P mileage rate', () => {
     beforeAll(() => {
@@ -33,7 +40,8 @@ describe('Default P2P mileage rate', () => {
 
     describe('getDefaultP2PMileageRate', () => {
         it('calls API.read with GetDefaultP2PMileageRate', () => {
-            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+            const readSpy = jest.mocked(API.read);
+            readSpy.mockImplementation(() => {});
 
             getDefaultP2PMileageRate();
 
@@ -46,7 +54,8 @@ describe('Default P2P mileage rate', () => {
         // (the same way startDistanceRequest does) or the Distance tab loads with a malformed rate.
         it('prefetches the default P2P mileage rate when starting a split distance request', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+            const readSpy = jest.mocked(API.read);
+            readSpy.mockImplementation(() => {});
 
             startMoneyRequest(CONST.IOU.TYPE.SPLIT, '1', [], CONST.IOU.REQUEST_TYPE.DISTANCE);
 
@@ -56,7 +65,8 @@ describe('Default P2P mileage rate', () => {
         // Non-split flows never expose a Distance tab, so they must not issue the (uncached) prefetch read.
         it('does not prefetch the default P2P mileage rate for non-split requests', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+            const readSpy = jest.mocked(API.read);
+            readSpy.mockImplementation(() => {});
 
             startMoneyRequest(CONST.IOU.TYPE.SUBMIT, '1', [], CONST.IOU.REQUEST_TYPE.MANUAL);
 

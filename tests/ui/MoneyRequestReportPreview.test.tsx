@@ -116,6 +116,22 @@ jest.mock('@components/ProcessMoneyReportHoldMenu', () => ({
     },
 }));
 
+jest.mock('@libs/ReportUtils', () => {
+    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
+    return {
+        ...actual,
+        hasViolations: jest.fn(actual.hasViolations),
+    };
+});
+
+jest.mock('@src/libs/ReportActionsUtils', () => {
+    const actual = jest.requireActual<typeof ReportActionUtils>('@src/libs/ReportActionsUtils');
+    return {
+        ...actual,
+        getIOUActionForReportID: jest.fn(actual.getIOUActionForReportID),
+    };
+});
+
 const SELECTED_BANK_ACCOUNT_ID = 9999;
 
 const getIOUActionForReportID = (reportID: string | undefined, transactionID: string | undefined) => {
@@ -245,8 +261,8 @@ describe('MoneyRequestReportPreview', () => {
             keys: ONYXKEYS,
         });
         jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
-        jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(getIOUActionForReportID);
-        jest.spyOn(ReportUtils, 'hasViolations').mockImplementation(hasViolations);
+        jest.mocked(ReportActionUtils.getIOUActionForReportID).mockImplementation(getIOUActionForReportID);
+        jest.mocked(ReportUtils.hasViolations).mockImplementation(hasViolations);
         await TestHelper.signInWithTestUser();
     });
 

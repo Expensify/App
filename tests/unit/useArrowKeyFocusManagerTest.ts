@@ -5,25 +5,25 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 type ShortcutCallback = () => void;
 type ShortcutConfig = {isActive?: boolean};
 
-const shortcuts: Record<string, {callback: ShortcutCallback; isActive: boolean}> = {};
+const mockShortcuts: Record<string, {callback: ShortcutCallback; isActive: boolean}> = {};
 
 jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callback: ShortcutCallback, config?: ShortcutConfig) => {
-    shortcuts[key.shortcutKey] = {callback, isActive: config?.isActive ?? true};
+    mockShortcuts[key.shortcutKey] = {callback, isActive: config?.isActive ?? true};
 });
 
 function pressArrowDown() {
     act(() => {
-        if (!shortcuts.ArrowDown?.isActive) {
+        if (!mockShortcuts.ArrowDown?.isActive) {
             return;
         }
-        shortcuts.ArrowDown.callback();
+        mockShortcuts.ArrowDown.callback();
     });
 }
 
 describe('useArrowKeyFocusManager', () => {
     afterEach(() => {
-        for (const key of Object.keys(shortcuts)) {
-            delete shortcuts[key];
+        for (const key of Object.keys(mockShortcuts)) {
+            delete mockShortcuts[key];
         }
     });
 

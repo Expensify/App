@@ -26,13 +26,13 @@ import React from 'react';
 
 import createMock from '../../utils/createMock';
 
-const TEST_IOU_REPORT_ID = '1001';
+const mockTestIOUReportID = '1001';
 const TEST_TRANSACTION_ID = '3003';
 const TEST_ACCOUNT_ID = 1;
 const TEST_EMAIL = 'submitter@test.com';
 
 const iouReport = {
-    reportID: TEST_IOU_REPORT_ID,
+    reportID: mockTestIOUReportID,
     type: CONST.REPORT.TYPE.EXPENSE,
     policyID: 'policy1',
     ownerAccountID: 2,
@@ -137,7 +137,7 @@ jest.mock('@hooks/useConfirmPendingRTERAndProceed', () => ({
 const mockStartSubmittingAnimation = jest.fn();
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
-    useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID, transactions: mockTransactions}),
+    useReportPreviewData: () => ({iouReportID: mockTestIOUReportID, transactions: mockTransactions}),
     useReportPreviewTransactionViolations: () => ({transactionViolations: mockTransactionViolations}),
     useReportPreviewAnimationState: () => ({isSubmittingAnimationRunning: false}),
     useReportPreviewActions: () => ({stopAnimation: jest.fn(), startSubmittingAnimation: mockStartSubmittingAnimation}),
@@ -184,7 +184,7 @@ describe('SubmitActionButton', () => {
         // override the implementation to simulate dismissals.
         mockedGetTransactionViolations.mockImplementation((transaction, violations) => violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]);
         mockedUseOnyx.mockImplementation((key) => {
-            if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockTestIOUReportID}`) {
                 return createOnyxResult<Report>(iouReport);
             }
             return createOnyxResult(undefined);
@@ -278,7 +278,7 @@ describe('SubmitActionButton', () => {
 
         // Then the decision is made from the report preview's own violations and transactions rather than a separate
         // Onyx read, which is what let this button drift out of sync with the report header's submit button
-        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(TEST_IOU_REPORT_ID, reportViolations, true, TEST_ACCOUNT_ID, TEST_EMAIL, reportTransactions);
+        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(mockTestIOUReportID, reportViolations, true, TEST_ACCOUNT_ID, TEST_EMAIL, reportTransactions);
     });
 
     it('passes dismissal-filtered violations to the strict policy rules gate', () => {
@@ -296,7 +296,7 @@ describe('SubmitActionButton', () => {
         // collection instead of the raw context slice, so the two Submit buttons cannot disagree on dismissed violations
         expect(mockedGetTransactionViolations).toHaveBeenCalledWith(reportTransactions.at(0), reportViolations, TEST_EMAIL, TEST_ACCOUNT_ID, iouReport, undefined, undefined);
         expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(
-            TEST_IOU_REPORT_ID,
+            mockTestIOUReportID,
             {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: []},
             true,
             TEST_ACCOUNT_ID,

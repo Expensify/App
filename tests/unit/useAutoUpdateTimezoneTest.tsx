@@ -11,9 +11,17 @@ import createMock from '../utils/createMock';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
 
+jest.mock('@userActions/PersonalDetails', () => {
+    const actual = jest.requireActual<typeof PersonalDetails>('@userActions/PersonalDetails');
+    return {
+        ...actual,
+        updateAutomaticTimezone: jest.fn(actual.updateAutomaticTimezone),
+    };
+});
+
 describe('useAutoUpdateTimezone', () => {
     const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
-    const updateAutomaticTimezoneSpy = jest.spyOn(PersonalDetails, 'updateAutomaticTimezone');
+    const updateAutomaticTimezoneSpy = jest.mocked(PersonalDetails.updateAutomaticTimezone);
 
     const originalDateTimeFormat = Intl.DateTimeFormat;
 

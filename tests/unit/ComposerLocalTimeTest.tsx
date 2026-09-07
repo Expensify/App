@@ -16,13 +16,13 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const CURRENT_USER_ACCOUNT_ID = 1;
+const mockCurrentUserAccountID = 1;
 const RECIPIENT_ACCOUNT_ID = 2;
 const REPORT_ID = '1';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: () => ({accountID: CURRENT_USER_ACCOUNT_ID}),
+    default: () => ({accountID: mockCurrentUserAccountID}),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -61,7 +61,7 @@ describe('ComposerLocalTime', () => {
     });
 
     it('renders local time for a non-agent participant', async () => {
-        const report = buildReport([CURRENT_USER_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID]);
+        const report = buildReport([mockCurrentUserAccountID, RECIPIENT_ACCOUNT_ID]);
         const personalDetails: PersonalDetailsList = {
             [RECIPIENT_ACCOUNT_ID]: {
                 accountID: RECIPIENT_ACCOUNT_ID,
@@ -86,7 +86,7 @@ describe('ComposerLocalTime', () => {
     });
 
     it('returns null when the composer is full size', async () => {
-        const report = buildReport([CURRENT_USER_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID]);
+        const report = buildReport([mockCurrentUserAccountID, RECIPIENT_ACCOUNT_ID]);
         const personalDetails: PersonalDetailsList = {
             [RECIPIENT_ACCOUNT_ID]: {
                 accountID: RECIPIENT_ACCOUNT_ID,
@@ -111,7 +111,7 @@ describe('ComposerLocalTime', () => {
     });
 
     it('returns null for an agent participant', async () => {
-        const report = buildReport([CURRENT_USER_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID]);
+        const report = buildReport([mockCurrentUserAccountID, RECIPIENT_ACCOUNT_ID]);
         const personalDetails: PersonalDetailsList = {
             [RECIPIENT_ACCOUNT_ID]: {
                 accountID: RECIPIENT_ACCOUNT_ID,

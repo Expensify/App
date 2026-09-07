@@ -24,17 +24,17 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const AGENT_ERROR = "Agent accounts can't be signed into directly. To use an agent, sign in with your own account and access it via Copilot.";
-const INVALID_EMAIL_ERROR = 'The email entered is invalid. Please fix the format and try again.';
+const mockAgentError = "Agent accounts can't be signed into directly. To use an agent, sign in with your own account and access it via Copilot.";
+const mockInvalidEmailError = 'The email entered is invalid. Please fix the format and try again.';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => {
             switch (key) {
                 case 'loginForm.error.agentSignInBlocked':
-                    return AGENT_ERROR;
+                    return mockAgentError;
                 case 'loginForm.error.invalidFormatEmailLogin':
-                    return INVALID_EMAIL_ERROR;
+                    return mockInvalidEmailError;
                 case 'loginForm.phoneOrEmail':
                     return 'Phone or email';
                 case 'loginForm.loginForm':
@@ -117,7 +117,7 @@ describe('BaseLoginForm', () => {
         fireEvent.press(continueButton);
 
         await waitFor(() => {
-            expect(screen.getByText(AGENT_ERROR)).toBeTruthy();
+            expect(screen.getByText(mockAgentError)).toBeTruthy();
         });
         expect(mockBeginSignIn).not.toHaveBeenCalled();
     });
@@ -132,7 +132,7 @@ describe('BaseLoginForm', () => {
         fireEvent.press(continueButton);
 
         await waitFor(() => {
-            expect(screen.getByText(AGENT_ERROR)).toBeTruthy();
+            expect(screen.getByText(mockAgentError)).toBeTruthy();
         });
         expect(mockBeginSignIn).not.toHaveBeenCalled();
     });

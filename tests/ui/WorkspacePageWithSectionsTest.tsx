@@ -21,7 +21,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const POLICY_ID = 1;
+const mockPolicyID = 1;
 
 // Mock navigation hooks
 jest.mock('@react-navigation/native', () => {
@@ -32,7 +32,7 @@ jest.mock('@react-navigation/native', () => {
         useRoute: () => ({
             key: 'test-route',
             name: 'WORKSPACE_INITIAL',
-            params: {policyID: POLICY_ID.toString()},
+            params: {policyID: mockPolicyID.toString()},
         }),
         usePreventRemove: jest.fn(),
     };
@@ -53,14 +53,14 @@ jest.mock('@components/FullscreenLoadingIndicator', () => {
     };
 });
 
-const mockPolicy: Policy = {...createRandomPolicy(POLICY_ID), type: CONST.POLICY.TYPE.CORPORATE, pendingAction: null, role: CONST.POLICY.ROLE.ADMIN};
+const mockPolicy: Policy = {...createRandomPolicy(mockPolicyID), type: CONST.POLICY.TYPE.CORPORATE, pendingAction: null, role: CONST.POLICY.ROLE.ADMIN};
 
 const getDefaultProps = (props = {}) => ({
     headerText: 'Test Workspace',
     route: {
         key: 'test-route',
         name: SCREENS.WORKSPACE.INITIAL,
-        params: {policyID: POLICY_ID.toString()},
+        params: {policyID: mockPolicyID.toString()},
     },
     policy: mockPolicy,
     ...props,
@@ -83,7 +83,7 @@ describe('WorkspacePageWithSections', () => {
                 keys: ONYXKEYS,
             });
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicyID}`, mockPolicy);
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -132,7 +132,7 @@ describe('WorkspacePageWithSections', () => {
     describe('FullPageNotFoundView behavior when deleting a workspace', () => {
         // The policy is read from Onyx via the withPolicy HOC (which overrides the `policy` prop), so these
         // tests drive the workspace state through the Onyx policy collection to mirror the real delete flow.
-        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}` as const;
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${mockPolicyID}` as const;
 
         beforeEach(async () => {
             // Render the page content (not the loading indicator) so we can assert on the not-found view directly.

@@ -29,7 +29,7 @@ type CreateTransactionArg = {optimisticTransactionIDs?: string[]; optimisticChat
 
 // These mocks isolate the submit-orchestration boundary so we can assert *what ScanSkipConfirmation composes*
 // (optimistic-id threading + dismiss-first + cleanup) without exercising the real action/navigation stack.
-let triggerFileSelection: ((files: FileObject[]) => void) | null = null;
+let mockTriggerFileSelection: ((files: FileObject[]) => void) | null = null;
 let capturedCreateTransactionArg: CreateTransactionArg | undefined;
 const mockCreateTransaction = jest.fn((arg: CreateTransactionArg) => {
     capturedCreateTransactionArg = arg;
@@ -67,7 +67,7 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams',
 jest.mock('@hooks/useFilesValidation', () => {
     const ReactLib = jest.requireActual<typeof React>('react');
     return (callback: (files: FileObject[]) => void) => {
-        triggerFileSelection = callback;
+        mockTriggerFileSelection = callback;
         return {
             validateFiles: (files: FileObject[]) => callback(files),
             PDFValidationComponent: ReactLib.createElement(ReactLib.Fragment),
@@ -125,7 +125,7 @@ describe('ScanSkipConfirmation submit orchestration', () => {
     });
 
     beforeEach(() => {
-        triggerFileSelection = null;
+        mockTriggerFileSelection = null;
         capturedCreateTransactionArg = undefined;
     });
 
@@ -176,11 +176,11 @@ describe('ScanSkipConfirmation submit orchestration', () => {
         );
 
         await waitForBatchedUpdatesWithAct();
-        expect(triggerFileSelection).not.toBeNull();
+        expect(mockTriggerFileSelection).not.toBeNull();
 
         const receiptFile = {name: 'receipt.png', type: 'image/png', size: 100, uri: 'file://receipt.png'} as FileObject;
         await act(async () => {
-            triggerFileSelection?.([receiptFile]);
+            mockTriggerFileSelection?.([receiptFile]);
         });
         await waitForBatchedUpdates();
 

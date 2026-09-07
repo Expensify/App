@@ -16,10 +16,10 @@ import type {UseOnyxResult} from 'react-native-onyx';
 
 import React from 'react';
 
-const TEST_IOU_REPORT_ID = '1001';
+const mockTestIOUReportID = '1001';
 
 const iouReport = {
-    reportID: TEST_IOU_REPORT_ID,
+    reportID: mockTestIOUReportID,
     type: CONST.REPORT.TYPE.EXPENSE,
     policyID: 'policy1',
 } as Report;
@@ -66,7 +66,7 @@ const mockStartApprovedAnimation = jest.fn();
 const mockOnHoldMenuOpen = jest.fn();
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
-    useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID}),
+    useReportPreviewData: () => ({iouReportID: mockTestIOUReportID}),
     useReportPreviewActionState: () => ({shouldShowPayButton: true}),
     useReportPreviewActions: () => ({startApprovedAnimation: mockStartApprovedAnimation, onHoldMenuOpen: mockOnHoldMenuOpen}),
 }));
@@ -96,7 +96,7 @@ describe('ApproveActionButton', () => {
         mockIsDelegateAccessRestricted = false;
         mockedHasHeldExpenses.mockReturnValue(false);
         mockedUseOnyx.mockImplementation((key) => {
-            if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockTestIOUReportID}`) {
                 return createOnyxResult<Report>(iouReport);
             }
             return createOnyxResult(undefined);

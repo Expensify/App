@@ -26,7 +26,7 @@ type MockConfirmModalProps = {
     buttonVariant?: string;
 };
 
-let lastModalProps: MockConfirmModalProps | undefined;
+let mockLastModalProps: MockConfirmModalProps | undefined;
 
 function getBackendErrorFromPrompt(prompt: string | React.ReactNode | undefined): string | undefined {
     if (!isValidElement<{children: React.ReactNode}>(prompt)) {
@@ -51,7 +51,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({
 
 jest.mock('@components/ConfirmModal', () => {
     return (props: MockConfirmModalProps) => {
-        lastModalProps = props;
+        mockLastModalProps = props;
         return null;
     };
 });
@@ -105,7 +105,7 @@ describe('CopyPolicySettingsProgressModal', () => {
     });
 
     beforeEach(async () => {
-        lastModalProps = undefined;
+        mockLastModalProps = undefined;
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
@@ -121,7 +121,7 @@ describe('CopyPolicySettingsProgressModal', () => {
 
             await renderModal();
 
-            expect(lastModalProps?.isVisible).toBe(false);
+            expect(mockLastModalProps?.isVisible).toBe(false);
         });
 
         it('should be visible when currentStep is loading', async () => {
@@ -131,7 +131,7 @@ describe('CopyPolicySettingsProgressModal', () => {
 
             await renderModal();
 
-            expect(lastModalProps?.isVisible).toBe(true);
+            expect(mockLastModalProps?.isVisible).toBe(true);
         });
 
         it('should be visible when currentStep is complete', async () => {
@@ -141,7 +141,7 @@ describe('CopyPolicySettingsProgressModal', () => {
 
             await renderModal();
 
-            expect(lastModalProps?.isVisible).toBe(true);
+            expect(mockLastModalProps?.isVisible).toBe(true);
         });
     });
 
@@ -155,27 +155,27 @@ describe('CopyPolicySettingsProgressModal', () => {
         it('should show copy-in-progress title and description', async () => {
             await renderModal();
 
-            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.progress.copyInProgressTitle');
-            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.progress.copyInProgressDescription');
+            expect(mockLastModalProps?.title).toBe('workspace.copyPolicySettings.progress.copyInProgressTitle');
+            expect(mockLastModalProps?.prompt).toBe('workspace.copyPolicySettings.progress.copyInProgressDescription');
         });
 
         it('should show "let me know" as confirm text', async () => {
             await renderModal();
 
-            expect(lastModalProps?.confirmText).toBe('workspace.copyPolicySettings.progress.letMeKnowPrompt');
+            expect(mockLastModalProps?.confirmText).toBe('workspace.copyPolicySettings.progress.letMeKnowPrompt');
         });
 
         it('should not show cancel button', async () => {
             await renderModal();
 
-            expect(lastModalProps?.shouldShowCancelButton).toBe(false);
+            expect(mockLastModalProps?.shouldShowCancelButton).toBe(false);
         });
 
         it('should call requestCopyPolicySettingsNotification on confirm', async () => {
             await renderModal();
 
             act(() => {
-                lastModalProps?.onConfirm?.();
+                mockLastModalProps?.onConfirm?.();
             });
 
             expect(mockRequestNotification).toHaveBeenCalledTimes(1);
@@ -193,7 +193,7 @@ describe('CopyPolicySettingsProgressModal', () => {
             await renderModal();
 
             act(() => {
-                lastModalProps?.onConfirm?.();
+                mockLastModalProps?.onConfirm?.();
             });
 
             expect(mockRequestNotification).toHaveBeenCalledTimes(1);
@@ -211,23 +211,23 @@ describe('CopyPolicySettingsProgressModal', () => {
         it('should show concierge notification title and description', async () => {
             await renderModal();
 
-            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.progress.conciergeNotificationTitle');
-            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.progress.conciergeNotificationDescription');
+            expect(mockLastModalProps?.title).toBe('workspace.copyPolicySettings.progress.conciergeNotificationTitle');
+            expect(mockLastModalProps?.prompt).toBe('workspace.copyPolicySettings.progress.conciergeNotificationDescription');
         });
 
         it('should show go-to-concierge as confirm and dismiss as cancel', async () => {
             await renderModal();
 
-            expect(lastModalProps?.confirmText).toBe('common.goToConcierge');
-            expect(lastModalProps?.cancelText).toBe('common.dismiss');
-            expect(lastModalProps?.shouldShowCancelButton).toBe(true);
+            expect(mockLastModalProps?.confirmText).toBe('common.goToConcierge');
+            expect(mockLastModalProps?.cancelText).toBe('common.dismiss');
+            expect(mockLastModalProps?.shouldShowCancelButton).toBe(true);
         });
 
         it('should clear state and navigate to concierge on confirm', async () => {
             await renderModal();
 
             act(() => {
-                lastModalProps?.onConfirm?.();
+                mockLastModalProps?.onConfirm?.();
             });
 
             expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
@@ -238,7 +238,7 @@ describe('CopyPolicySettingsProgressModal', () => {
             await renderModal();
 
             act(() => {
-                lastModalProps?.onCancel?.();
+                mockLastModalProps?.onCancel?.();
             });
 
             expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
@@ -257,22 +257,22 @@ describe('CopyPolicySettingsProgressModal', () => {
         it('should show all-set title and copy-completed description', async () => {
             await renderModal();
 
-            expect(lastModalProps?.title).toBe('common.allSet');
-            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.progress.copyCompleted');
+            expect(mockLastModalProps?.title).toBe('common.allSet');
+            expect(mockLastModalProps?.prompt).toBe('workspace.copyPolicySettings.progress.copyCompleted');
         });
 
         it('should show done as confirm text without cancel button', async () => {
             await renderModal();
 
-            expect(lastModalProps?.confirmText).toBe('common.done');
-            expect(lastModalProps?.shouldShowCancelButton).toBe(false);
+            expect(mockLastModalProps?.confirmText).toBe('common.done');
+            expect(mockLastModalProps?.shouldShowCancelButton).toBe(false);
         });
 
         it('should clear state on confirm', async () => {
             await renderModal();
 
             act(() => {
-                lastModalProps?.onConfirm?.();
+                mockLastModalProps?.onConfirm?.();
             });
 
             expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
@@ -282,7 +282,7 @@ describe('CopyPolicySettingsProgressModal', () => {
             await renderModal();
 
             act(() => {
-                lastModalProps?.onCancel?.();
+                mockLastModalProps?.onCancel?.();
             });
 
             expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
@@ -291,7 +291,7 @@ describe('CopyPolicySettingsProgressModal', () => {
         it('should handle browser back navigation when visible', async () => {
             await renderModal();
 
-            expect(lastModalProps?.shouldHandleNavigationBack).toBe(true);
+            expect(mockLastModalProps?.shouldHandleNavigationBack).toBe(true);
         });
     });
 
@@ -311,19 +311,19 @@ describe('CopyPolicySettingsProgressModal', () => {
         it('should be visible when in loading state and backend reports failed', async () => {
             await renderModal();
 
-            expect(lastModalProps?.isVisible).toBe(true);
+            expect(mockLastModalProps?.isVisible).toBe(true);
         });
 
         it('should show failed title', async () => {
             await renderModal();
 
-            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.progress.copyFailedTitle');
+            expect(mockLastModalProps?.title).toBe('workspace.copyPolicySettings.progress.copyFailedTitle');
         });
 
         it('should show default error message when backend error is not provided', async () => {
             await renderModal();
 
-            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.error');
+            expect(mockLastModalProps?.prompt).toBe('workspace.copyPolicySettings.error');
         });
 
         it('should show backend error message when provided', async () => {
@@ -337,28 +337,28 @@ describe('CopyPolicySettingsProgressModal', () => {
 
             await renderModal();
 
-            expect(getBackendErrorFromPrompt(lastModalProps?.prompt)).toBe(backendError);
+            expect(getBackendErrorFromPrompt(mockLastModalProps?.prompt)).toBe(backendError);
         });
 
         it('should show try again as confirm and dismiss as cancel', async () => {
             await renderModal();
 
-            expect(lastModalProps?.confirmText).toBe('common.tryAgain');
-            expect(lastModalProps?.cancelText).toBe('common.dismiss');
-            expect(lastModalProps?.shouldShowCancelButton).toBe(true);
+            expect(mockLastModalProps?.confirmText).toBe('common.tryAgain');
+            expect(mockLastModalProps?.cancelText).toBe('common.dismiss');
+            expect(mockLastModalProps?.shouldShowCancelButton).toBe(true);
         });
 
         it('should show danger styling', async () => {
             await renderModal();
 
-            expect(lastModalProps?.buttonVariant).toBe(CONST.BUTTON_VARIANT.DANGER);
+            expect(mockLastModalProps?.buttonVariant).toBe(CONST.BUTTON_VARIANT.DANGER);
         });
 
         it('should clear state and navigate to copy settings flow on confirm (try again)', async () => {
             await renderModal();
 
             act(() => {
-                lastModalProps?.onConfirm?.();
+                mockLastModalProps?.onConfirm?.();
             });
 
             expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
@@ -369,7 +369,7 @@ describe('CopyPolicySettingsProgressModal', () => {
             await renderModal();
 
             act(() => {
-                lastModalProps?.onCancel?.();
+                mockLastModalProps?.onCancel?.();
             });
 
             expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
@@ -388,7 +388,7 @@ describe('CopyPolicySettingsProgressModal', () => {
             await renderModal();
 
             act(() => {
-                lastModalProps?.onConfirm?.();
+                mockLastModalProps?.onConfirm?.();
             });
 
             expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);

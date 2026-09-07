@@ -19,6 +19,14 @@ import {getCurrencyDecimalsLocal, getCurrencySymbolLocal, getRequiredOnyxUpdates
 import {isObject, parseJSONRecord} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+jest.mock('@src/libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@src/libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
+
 const RORY_ACCOUNT_ID = 3;
 
 function isPartialReport(value: unknown): value is Partial<Report> {
@@ -84,7 +92,8 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
 
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -159,7 +168,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -223,7 +233,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -296,7 +307,8 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -373,7 +385,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -440,7 +453,8 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -505,7 +519,8 @@ describe('actions/IOU/BulkEdit', () => {
             };
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             // No canEditFieldOfMoneyRequest mock — unreported expenses must bypass that check
             updateMultipleMoneyRequests({
@@ -1481,7 +1496,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -1549,7 +1565,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -1638,7 +1655,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             // When: bulk-editing with the shared policy (different from transaction's policy)
             updateMultipleMoneyRequests({
@@ -1734,7 +1752,8 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             // When: bulk-editing reimbursable with the shared policy (different from transaction's policy)
             updateMultipleMoneyRequests({
@@ -1809,7 +1828,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -1882,7 +1902,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -1948,7 +1969,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -2008,7 +2030,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -2116,7 +2139,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -2209,7 +2233,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 transactionIDs: [txn1ID, txn2ID],
@@ -2298,7 +2323,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 transactionIDs: [txnID],
@@ -2395,7 +2421,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             // Iter 1 (currency) → indeterminate. Iter 2 (same-currency amount) must inherit the sticky flag.
             updateMultipleMoneyRequests({
@@ -2480,7 +2507,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             // `transactions` carries both (mirrors mergedTransactions in SearchEditMultiplePage).
             updateMultipleMoneyRequests({
@@ -2562,7 +2590,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 transactionIDs: [txnID],
@@ -2641,7 +2670,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             // Merchant edit leaves totals untouched, so the gate lets the recompute through.
             updateMultipleMoneyRequests({
@@ -2721,7 +2751,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert the attendees command and optimistic data.
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -2811,7 +2842,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert attendees params omit phantom reportActionID.
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,
@@ -2893,7 +2925,8 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert both persist commands.
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
                 personalDetailsList: undefined,

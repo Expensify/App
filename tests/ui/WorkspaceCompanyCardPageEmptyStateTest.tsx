@@ -10,7 +10,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
-const POLICY_ID = 'policy123';
+const mockPolicyID = 'policy123';
 
 let mockIsUserValidated = false;
 let mockIsActingAsDelegate = false;
@@ -67,7 +67,7 @@ jest.mock('@hooks/useOtherFeedsForFeedSelector', () => ({
 
 jest.mock('@hooks/usePolicy', () => ({
     __esModule: true,
-    default: () => ({id: POLICY_ID, policyAccountID: 123, outputCurrency: 'USD'}),
+    default: () => ({id: mockPolicyID, policyAccountID: 123, outputCurrency: 'USD'}),
 }));
 
 jest.mock('@hooks/usePolicyFeatureWriteAccess', () => ({
@@ -98,7 +98,7 @@ const mockNavigate = jest.mocked(Navigation.navigate);
 const mockClearAddNewCardFlow = jest.mocked(clearAddNewCardFlow);
 
 function renderEmptyState() {
-    return render(<WorkspaceCompanyCardPageEmptyState policyID={POLICY_ID} />);
+    return render(<WorkspaceCompanyCardPageEmptyState policyID={mockPolicyID} />);
 }
 
 function pressAddCards() {
@@ -123,7 +123,7 @@ describe('WorkspaceCompanyCardPageEmptyState', () => {
         pressAddCards();
 
         expect(mockVerifyAccountAndResume).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(POLICY_ID));
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(mockPolicyID));
         expect(mockClearAddNewCardFlow).not.toHaveBeenCalled();
     });
 
@@ -139,7 +139,7 @@ describe('WorkspaceCompanyCardPageEmptyState', () => {
     });
 
     it.each([
-        ['with feeds from other workspaces', [{value: 'feed1'}], () => ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(POLICY_ID)],
+        ['with feeds from other workspaces', [{value: 'feed1'}], () => ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(mockPolicyID)],
         ['without other feeds', [], () => DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path],
     ])('defers to account verification for an unvalidated user and resumes the branching %s', async (_, otherFeeds, expectedRoute) => {
         mockOtherFeeds = otherFeeds;

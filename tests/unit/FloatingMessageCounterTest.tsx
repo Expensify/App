@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 /* eslint-disable @typescript-eslint/naming-convention -- Translation keys use dot-notation which violates naming conventions */
-const translationMap: Record<string, string> = {
+const mockTranslationMap: Record<string, string> = {
     newMessages: 'New messages',
     latestMessages: 'Latest messages',
     'common.actionBadge.submit': 'Submit',
@@ -21,7 +21,7 @@ const translationMap: Record<string, string> = {
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: jest.fn((key: string) => translationMap[key] ?? key),
+        translate: jest.fn((key: string) => mockTranslationMap[key] ?? key),
         numberFormat: jest.fn((num: number) => num.toString()),
         toLocaleDigit: jest.fn((digit: string) => digit),
     })),

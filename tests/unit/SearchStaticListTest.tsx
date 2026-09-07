@@ -73,9 +73,17 @@ jest.mock('@components/TransactionItemRow', () => jest.fn(() => null));
 jest.mock('@components/Skeletons/SearchRowSkeleton', () => jest.fn(() => null));
 jest.mock('@components/StatusBadge', () => jest.fn(() => null));
 
+jest.mock('@libs/SearchUIUtils', () => {
+    const actual = jest.requireActual<typeof SearchUIUtils>('@libs/SearchUIUtils');
+    return {
+        ...actual,
+        getSections: jest.fn(actual.getSections),
+    };
+});
+
 // getSections consumes conciergeReportID (via createOption/getReportName) — keep SearchUIUtils real so the
 // threading through SearchStaticList's getSections call is actually executed by this test.
-const getSectionsSpy = jest.spyOn(SearchUIUtils, 'getSections');
+const getSectionsSpy = jest.mocked(SearchUIUtils.getSections);
 
 const EMPTY_SEARCH_RESULTS: SearchResults = {
     search: {

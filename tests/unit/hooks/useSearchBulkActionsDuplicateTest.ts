@@ -171,13 +171,13 @@ jest.mock('@components/Search/SearchContext', () => ({
     }),
 }));
 
-const CURRENT_USER_ACCOUNT_ID = 1;
+const mockCurrentUserAccountID = 1;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         login: 'test@example.com',
-        accountID: CURRENT_USER_ACCOUNT_ID,
+        accountID: mockCurrentUserAccountID,
         email: 'test@example.com',
     })),
 }));
@@ -239,7 +239,7 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         total: 100,
         currency: 'USD',
         chatReportID: undefined,
-        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        ownerAccountID: mockCurrentUserAccountID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ...overrides,
     };
@@ -297,13 +297,13 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockAreAllMatchingItemsSelected = false;
         mockDefaultExpensePolicy = undefined;
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: mockCurrentUserAccountID, email: 'test@example.com'});
 
         const defaultReportIDs = ['report1', 'r0', 'r1', 'r2', 'r3'];
         for (const reportID of defaultReportIDs) {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: mockCurrentUserAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: `Report ${reportID}`,
             });
@@ -727,7 +727,7 @@ describe('useSearchBulkActions - duplicate option', () => {
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             reportName: 'Test Workspace',
         };
 
@@ -988,7 +988,7 @@ describe('useSearchBulkActions - duplicate option', () => {
             policyID: defaultPolicyID,
             type: CONST.REPORT.TYPE.EXPENSE,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             reportName: 'Default WS',
         };
         const chatReport: Report = {
@@ -1080,7 +1080,7 @@ describe('useSearchBulkActions - duplicate option', () => {
             policyID: defaultPolicyID,
             type: CONST.REPORT.TYPE.EXPENSE,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             reportName: 'Default WS',
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
@@ -1110,7 +1110,7 @@ describe('useSearchBulkActions - duplicate option', () => {
             mergePromises.push(
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r_limit_${i}`, {
                     reportID: `r_limit_${i}`,
-                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    ownerAccountID: mockCurrentUserAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 } as Report),
             );
@@ -1169,7 +1169,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockAreAllMatchingItemsSelected = false;
         mockDefaultExpensePolicy = undefined;
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: mockCurrentUserAccountID, email: 'test@example.com'});
     });
 
     afterEach(async () => {
@@ -1187,7 +1187,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         const report: Report = {
             reportID: 'report1',
             policyID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Test Report',
         };
@@ -1212,7 +1212,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
                 policyID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: mockCurrentUserAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: `Report ${reportID}`,
             });
@@ -1238,7 +1238,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         const report: Report = {
             reportID: 'report1',
             policyID: 'policy1',
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Test Report',
         };
@@ -1260,7 +1260,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         const report: Report = {
             reportID: 'report1',
             policyID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Test Report',
         };
@@ -1305,14 +1305,14 @@ describe('useSearchBulkActions - duplicate report option', () => {
         const expenseReport: Report = {
             reportID: 'rpt1',
             policyID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Expense Report',
         };
         const iouReport: Report = {
             reportID: 'rpt2',
             policyID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             type: CONST.REPORT.TYPE.IOU,
             reportName: 'IOU Report',
         };
@@ -1349,7 +1349,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         const report: Report = {
             reportID: 'rpt1',
             policyID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Valid Report',
         };
@@ -1380,7 +1380,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
                 policyID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: mockCurrentUserAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: `Report ${reportID}`,
             });
@@ -1416,7 +1416,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}rpt1`, {
             reportID: 'rpt1',
             policyID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Report',
         });

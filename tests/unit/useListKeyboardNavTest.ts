@@ -7,7 +7,7 @@ import type Navigation from '@libs/Navigation/Navigation';
 type ShortcutCallback = () => void;
 type ShortcutConfig = {isActive?: boolean};
 
-const shortcuts: Record<string, {callback: ShortcutCallback; isActive: boolean}> = {};
+const mockShortcuts: Record<string, {callback: ShortcutCallback; isActive: boolean}> = {};
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -18,24 +18,24 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callback: ShortcutCallback, config?: ShortcutConfig) => {
-    shortcuts[key.shortcutKey] = {callback, isActive: config?.isActive ?? true};
+    mockShortcuts[key.shortcutKey] = {callback, isActive: config?.isActive ?? true};
 });
 
 function pressArrowDown() {
     act(() => {
-        if (!shortcuts.ArrowDown?.isActive) {
+        if (!mockShortcuts.ArrowDown?.isActive) {
             return;
         }
-        shortcuts.ArrowDown.callback();
+        mockShortcuts.ArrowDown.callback();
     });
 }
 
 function pressArrowUp() {
     act(() => {
-        if (!shortcuts.ArrowUp?.isActive) {
+        if (!mockShortcuts.ArrowUp?.isActive) {
             return;
         }
-        shortcuts.ArrowUp.callback();
+        mockShortcuts.ArrowUp.callback();
     });
 }
 
@@ -59,8 +59,8 @@ function simulateFocusOut(container: HTMLElement, relatedTarget: EventTarget | n
 
 describe('useListKeyboardNav', () => {
     afterEach(() => {
-        for (const key of Object.keys(shortcuts)) {
-            delete shortcuts[key];
+        for (const key of Object.keys(mockShortcuts)) {
+            delete mockShortcuts[key];
         }
     });
 

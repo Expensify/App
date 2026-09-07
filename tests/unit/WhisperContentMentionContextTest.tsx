@@ -24,7 +24,7 @@ jest.mock('@hooks/useReportIsArchived', () => ({
 }));
 
 const REPORT_ID = 'report-100';
-const ROOM_ID = 'room-200';
+const mockRoomID = 'room-200';
 const POLICY_ID = 'workspace-abc';
 type WhisperActionName = typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER;
 
@@ -35,15 +35,17 @@ jest.mock('@pages/inbox/report/ReportActionItemMessage', () => {
         '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer',
     );
 
-    // cspell:disable-next-line
-    const tnode = {attributes: {reportid: ROOM_ID}, data: '#test-room'};
-    return () => (
-        <Renderer
-            tnode={tnode}
-            TDefaultRenderer={() => null}
-            style={{}}
-        />
-    );
+    return () => {
+        // cspell:disable-next-line
+        const tnode = {attributes: {reportid: mockRoomID}, data: '#test-room'};
+        return (
+            <Renderer
+                tnode={tnode}
+                TDefaultRenderer={() => null}
+                style={{}}
+            />
+        );
+    };
 });
 
 function createWhisperAction<T extends WhisperActionName>(actionName: T): ReportAction<T> {
@@ -77,8 +79,8 @@ describe('Whisper content components provide MentionReportContext so room mentio
                 reportID: REPORT_ID,
                 policyID: POLICY_ID,
             } as Report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_ID}`, {
-                reportID: ROOM_ID,
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockRoomID}`, {
+                reportID: mockRoomID,
                 reportName: 'test-room',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 policyID: POLICY_ID,

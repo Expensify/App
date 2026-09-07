@@ -33,6 +33,14 @@ import Onyx from 'react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
+
 const DOMAIN_NAME = 'test.com';
 const EXISTING_DOMAIN_ACCOUNT_ID = 4242;
 
@@ -55,7 +63,8 @@ jest.mock('@hooks/useInFlightRequests', () => ({
     useIsAppLoadPending: () => mockIsAppLoadPending,
 }));
 
-const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+const apiWriteSpy = jest.mocked(API.write);
+apiWriteSpy.mockImplementation(() => Promise.resolve());
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();

@@ -2,6 +2,7 @@ import type {GuidedSetupTask} from '@libs/actions/Report';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import * as NextStepUtils from '@libs/NextStepUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {isPolicyPayer} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -60,6 +61,43 @@ function requireCallArgument(call: unknown, index: number): unknown {
 }
 
 jest.mock('@libs/GoogleTagManager');
+
+jest.mock('@libs/ReportUtils', () => {
+    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
+    return {
+        ...actual,
+        prepareOnboardingOnyxData: jest.fn(actual.prepareOnboardingOnyxData),
+        getAllWorkspaceReports: jest.fn(actual.getAllWorkspaceReports),
+        getAllPolicyReports: jest.fn(actual.getAllPolicyReports),
+        isExpenseReport: jest.fn(actual.isExpenseReport),
+        hasViolations: jest.fn(actual.hasViolations),
+        isIOUReportUsingReport: jest.fn(actual.isIOUReportUsingReport),
+    };
+});
+
+jest.mock('@libs/PersonalDetailsUtils', () => {
+    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
+    return {
+        ...actual,
+        getPersonalDetailByEmail: jest.fn(actual.getPersonalDetailByEmail),
+    };
+});
+
+jest.mock('@libs/NextStepUtils', () => {
+    const actual = jest.requireActual<typeof NextStepUtils>('@libs/NextStepUtils');
+    return {
+        ...actual,
+        buildOptimisticNextStep: jest.fn(actual.buildOptimisticNextStep),
+    };
+});
+
+jest.mock('@libs/API', () => {
+    const actual = jest.requireActual<typeof APIModule>('@libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
 
 OnyxUpdateManager();
 describe('actions/Policy', () => {
@@ -1394,7 +1432,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             // When creating a workspace with distance rates feature enabled
@@ -1438,7 +1476,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             // When creating a workspace with isSelfTourViewed set to true
@@ -1476,7 +1514,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             // When creating a workspace with isSelfTourViewed set to false
@@ -1516,7 +1554,7 @@ describe('actions/Policy', () => {
             // chat is passed below and prepareOnboardingOnyxData does not early-return.
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             // When creating a workspace with isSelfTourViewed set to true.
@@ -1565,7 +1603,7 @@ describe('actions/Policy', () => {
             // chat is passed below and prepareOnboardingOnyxData does not early-return.
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             // When creating a workspace with isSelfTourViewed set to false.
@@ -1651,7 +1689,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
             const adminEmail = 'admin@example.com';
             const adminAccountID = 999;
@@ -1694,7 +1732,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
             const createWorkspaceTaskReportID = 'testTaskReportID123';
 
@@ -1749,7 +1787,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             // When creating a workspace and the user has already completed a guided onboarding flow,
@@ -1786,7 +1824,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             // When creating a workspace before the user has gone through guided onboarding (introSelected.choice is undefined),
@@ -1822,7 +1860,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             // Even when introSelected.choice is populated, TEST_DRIVE_RECEIVER must still enter the block via
@@ -1857,10 +1895,10 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             // Force prepareOnboardingOnyxData to return undefined so the early-return path inside the guarded block runs.
             // This mirrors the real-world case where the target chat (Concierge for non-MANAGE_TEAM flows) cannot be resolved.
-            const prepareSpy = jest.spyOn(ReportUtils, 'prepareOnboardingOnyxData').mockReturnValue(undefined);
+            const prepareSpy = jest.mocked(ReportUtils.prepareOnboardingOnyxData).mockReturnValue(undefined);
             const policyID = Policy.generatePolicyID();
 
             // introSelected.choice is undefined so the block enters; engagementChoice is non-MANAGE_TEAM
@@ -1943,7 +1981,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             Policy.createWorkspace({
@@ -1975,7 +2013,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
             const adminEmail = 'admin@example.com';
             const adminAccountID = 555;
@@ -2019,7 +2057,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const adminEmail = 'admin@example.com';
             const adminAccountID = 555;
 
@@ -2369,7 +2407,7 @@ describe('actions/Policy', () => {
 
     describe('updateAddress', () => {
         it('should send discrete address fields with UPDATE_POLICY_ADDRESS', async () => {
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             Policy.updateAddress(policyID, {
@@ -2407,7 +2445,7 @@ describe('actions/Policy', () => {
         });
 
         it('should send an empty second line when addressStreet2 is missing', async () => {
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
             Policy.updateAddress(policyID, {
@@ -2638,8 +2676,8 @@ describe('actions/Policy', () => {
             };
             const nonOwnedWorkspaceChats = [nonOwnedWorkspaceChat1, nonOwnedWorkspaceChat2];
 
-            const getAllWorkspaceReportsSpy = jest.spyOn(ReportUtils, 'getAllWorkspaceReports').mockReturnValue([ownWorkspaceChat, ...nonOwnedWorkspaceChats]);
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const getAllWorkspaceReportsSpy = jest.mocked(ReportUtils.getAllWorkspaceReports).mockReturnValue([ownWorkspaceChat, ...nonOwnedWorkspaceChats]);
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
 
             Policy.leaveWorkspace(ESH_ACCOUNT_ID, ESH_EMAIL, policy);
             await waitForBatchedUpdates();
@@ -2744,8 +2782,8 @@ describe('actions/Policy', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
-            const getAllWorkspaceReportsSpy = jest.spyOn(ReportUtils, 'getAllWorkspaceReports').mockReturnValue([workspaceChat]);
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const getAllWorkspaceReportsSpy = jest.mocked(ReportUtils.getAllWorkspaceReports).mockReturnValue([workspaceChat]);
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
 
             const customAccountID = 999;
             const customEmail = 'custom@example.com';
@@ -3234,7 +3272,7 @@ describe('actions/Policy', () => {
         });
 
         it('should not call API when policy is undefined', async () => {
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
 
             Policy.upgradeSubmit(undefined, CONST.POLICY.TYPE.TEAM, ESH_EMAIL, ESH_ACCOUNT_ID, undefined, undefined);
             await waitForBatchedUpdates();
@@ -3441,13 +3479,13 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const optimisticNextStep = createMock<ReportNextStep>({messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION, icon: CONST.NEXT_STEP.ICONS.CHECKMARK});
-            const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep').mockReturnValue(optimisticNextStep);
+            const buildNextStepNewSpy = jest.mocked(NextStepUtils.buildOptimisticNextStep).mockReturnValue(optimisticNextStep);
 
-            const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
-            const isExpenseReportSpy = jest.spyOn(ReportUtils, 'isExpenseReport');
-            const hasViolationsSpy = jest.spyOn(ReportUtils, 'hasViolations');
+            const getAllPolicyReportsSpy = jest.mocked(ReportUtils.getAllPolicyReports);
+            const isExpenseReportSpy = jest.mocked(ReportUtils.isExpenseReport);
+            const hasViolationsSpy = jest.mocked(ReportUtils.hasViolations);
 
             const policyID = Policy.generatePolicyID();
             const fakePolicy: PolicyType = {
@@ -3508,13 +3546,13 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const optimisticNextStep = createMock<ReportNextStep>({messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION, icon: CONST.NEXT_STEP.ICONS.CHECKMARK});
-            const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep').mockReturnValue(optimisticNextStep);
+            const buildNextStepNewSpy = jest.mocked(NextStepUtils.buildOptimisticNextStep).mockReturnValue(optimisticNextStep);
 
-            const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
-            const isExpenseReportSpy = jest.spyOn(ReportUtils, 'isExpenseReport');
-            const hasViolationsSpy = jest.spyOn(ReportUtils, 'hasViolations').mockReturnValue(false);
+            const getAllPolicyReportsSpy = jest.mocked(ReportUtils.getAllPolicyReports);
+            const isExpenseReportSpy = jest.mocked(ReportUtils.isExpenseReport);
+            const hasViolationsSpy = jest.mocked(ReportUtils.hasViolations).mockReturnValue(false);
 
             const policyID = Policy.generatePolicyID();
             const fakePolicy: PolicyType = {
@@ -3573,9 +3611,9 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
-            const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep');
-            const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
+            const buildNextStepNewSpy = jest.mocked(NextStepUtils.buildOptimisticNextStep);
+            const getAllPolicyReportsSpy = jest.mocked(ReportUtils.getAllPolicyReports);
 
             const policyID = Policy.generatePolicyID();
             const fakePolicy: PolicyType = {
@@ -3671,7 +3709,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
 
             const policyID = Policy.generatePolicyID();
             const fakePolicy: PolicyType = {
@@ -3696,7 +3734,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
 
             const policyID = Policy.generatePolicyID();
             const fakePolicy: PolicyType = {
@@ -3721,7 +3759,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
 
             const policyID = Policy.generatePolicyID();
             const employeeList = {
@@ -3827,7 +3865,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const employeeWithNoForwarding = 'noforward@example.com';
 
             const policyID = Policy.generatePolicyID();
@@ -3880,7 +3918,7 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
             const differentApprover = 'manager@example.com';
 
             const policyID = Policy.generatePolicyID();
@@ -4717,7 +4755,7 @@ describe('actions/Policy', () => {
             const domain = 'example.com';
             const displayNameForWorkspace = Str.UCFirst(domain.split('.').at(0) ?? '');
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+            jest.mocked(PersonalDetailsUtils.getPersonalDetailByEmail).mockReturnValue({
                 displayName: TEST_DISPLAY_NAME,
                 phoneNumber: TEST_PHONE_NUMBER,
                 accountID: TEST_ACCOUNT_ID,
@@ -4730,7 +4768,7 @@ describe('actions/Policy', () => {
         it('should generate a workspace name based on the display name when the domain is public and display name is available', () => {
             const displayNameForWorkspace = Str.UCFirst(TEST_DISPLAY_NAME);
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+            jest.mocked(PersonalDetailsUtils.getPersonalDetailByEmail).mockReturnValue({
                 displayName: TEST_DISPLAY_NAME,
                 phoneNumber: TEST_PHONE_NUMBER,
                 accountID: TEST_ACCOUNT_ID,
@@ -4745,7 +4783,7 @@ describe('actions/Policy', () => {
             const username = emailParts.at(0) ?? '';
             const displayNameForWorkspace = Str.UCFirst(username);
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+            jest.mocked(PersonalDetailsUtils.getPersonalDetailByEmail).mockReturnValue({
                 displayName: '',
                 phoneNumber: TEST_PHONE_NUMBER,
                 accountID: TEST_ACCOUNT_ID,
@@ -4761,7 +4799,7 @@ describe('actions/Policy', () => {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
             };
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+            jest.mocked(PersonalDetailsUtils.getPersonalDetailByEmail).mockReturnValue({
                 displayName: TEST_DISPLAY_NAME,
                 phoneNumber: TEST_PHONE_NUMBER,
                 accountID: TEST_ACCOUNT_ID,
@@ -4774,7 +4812,7 @@ describe('actions/Policy', () => {
         });
 
         it('should return "My Group Workspace" when the domain is SMS', () => {
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+            jest.mocked(PersonalDetailsUtils.getPersonalDetailByEmail).mockReturnValue({
                 displayName: TEST_DISPLAY_NAME,
                 phoneNumber: TEST_PHONE_NUMBER,
                 accountID: TEST_ACCOUNT_ID,
@@ -4792,7 +4830,7 @@ describe('actions/Policy', () => {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
             };
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+            jest.mocked(PersonalDetailsUtils.getPersonalDetailByEmail).mockReturnValue({
                 displayName: TEST_DISPLAY_NAME,
                 phoneNumber: TEST_PHONE_NUMBER,
                 accountID: TEST_ACCOUNT_ID,
@@ -7489,8 +7527,8 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
-            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
+            const isIOUReportUsingReportSpy = jest.mocked(ReportUtils.isIOUReportUsingReport).mockReturnValue(true);
 
             Policy.createWorkspaceFromIOUPayment({
                 iouReport,
@@ -7588,8 +7626,8 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
             await waitForBatchedUpdates();
 
-            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const isIOUReportUsingReportSpy = jest.mocked(ReportUtils.isIOUReportUsingReport).mockReturnValue(true);
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
 
             const result = Policy.createWorkspaceFromIOUPayment({
                 iouReport,
@@ -7642,8 +7680,8 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
             await waitForBatchedUpdates();
 
-            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
-            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const isIOUReportUsingReportSpy = jest.mocked(ReportUtils.isIOUReportUsingReport).mockReturnValue(true);
+            const apiWriteSpy = jest.mocked(APIModule.write).mockImplementation(() => Promise.resolve());
 
             Policy.createWorkspaceFromIOUPayment({
                 iouReport,

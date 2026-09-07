@@ -31,13 +31,13 @@ jest.mock('@hooks/usePermissions', () => ({
     default: () => ({isBetaEnabled: () => false}),
 }));
 
-const CURRENT_USER_ACCOUNT_ID = 1;
+const mockCurrentUserAccountID = 1;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         login: 'test@example.com',
-        accountID: CURRENT_USER_ACCOUNT_ID,
+        accountID: mockCurrentUserAccountID,
         email: 'test@example.com',
     })),
 }));
@@ -76,7 +76,7 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         total: 100,
         currency: 'USD',
         chatReportID: undefined,
-        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        ownerAccountID: mockCurrentUserAccountID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ...overrides,
     };
@@ -92,7 +92,7 @@ describe('useBulkDuplicateReportAction', () => {
         await Onyx.clear();
         mockDefaultExpensePolicy = undefined;
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: mockCurrentUserAccountID, email: 'test@example.com'});
     });
 
     afterEach(async () => {
@@ -108,7 +108,7 @@ describe('useBulkDuplicateReportAction', () => {
             allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
                 reportID,
                 policyID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: mockCurrentUserAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: `Report ${reportID}`,
             };
@@ -141,7 +141,7 @@ describe('useBulkDuplicateReportAction', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: {
                 reportID: 'rpt1',
                 policyID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: mockCurrentUserAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: 'Report',
             },
@@ -172,7 +172,7 @@ describe('useBulkDuplicateReportAction', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: {
                 reportID: 'rpt1',
                 policyID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: mockCurrentUserAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: 'Report',
             },
@@ -199,7 +199,7 @@ describe('useBulkDuplicateReportAction', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: {
                 reportID: 'rpt1',
                 policyID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: mockCurrentUserAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: 'Report',
             },
@@ -238,7 +238,7 @@ describe('useBulkDuplicateReportAction', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: {
                 reportID: 'rpt1',
                 policyID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: mockCurrentUserAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: 'Report',
             },
@@ -281,7 +281,7 @@ describe('useBulkDuplicateReportAction', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: {
                 reportID: 'rpt1',
                 policyID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: mockCurrentUserAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: 'Report',
             },
@@ -312,7 +312,7 @@ describe('useBulkDuplicateReportAction', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: {
                 reportID: 'rpt1',
                 policyID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: mockCurrentUserAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: 'Report',
             },
@@ -331,7 +331,7 @@ describe('useBulkDuplicateReportAction', () => {
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
                 ownerPersonalDetails: expect.objectContaining({
-                    accountID: CURRENT_USER_ACCOUNT_ID,
+                    accountID: mockCurrentUserAccountID,
                     login: 'test@example.com',
                 }),
                 currentUserLogin: 'test@example.com',

@@ -10,7 +10,7 @@ import {DeviceEventEmitter} from 'react-native';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
 
 const REPORT_ID = '1';
-const CURRENT_USER_ACCOUNT_ID = 1;
+const mockCurrentUserAccountID = 1;
 const OTHER_USER_ACCOUNT_ID = 99;
 const LAST_READ_TIME = '2023-01-01 10:00:00.000';
 
@@ -20,7 +20,7 @@ let mockLastReadTimeByReportID: Record<string, string> = {};
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: () => ({accountID: CURRENT_USER_ACCOUNT_ID}),
+    default: () => ({accountID: mockCurrentUserAccountID}),
 }));
 
 jest.mock('@hooks/useIsAnonymousUser', () => ({

@@ -31,6 +31,14 @@ import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+jest.mock('@src/libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@src/libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
+
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -749,7 +757,8 @@ describe('actions/SendInvoice', () => {
     describe('sendInvoice', () => {
         it('creates a new invoice chat when one has been converted from individual to business', async () => {
             // Mock API.write for this test
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             // Given a convertedInvoiceReport is stored in Onyx
             const {policy, transaction, convertedInvoiceChat}: InvoiceTestData = InvoiceData;
@@ -834,7 +843,8 @@ describe('actions/SendInvoice', () => {
             const policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             // When sending an invoice
             sendInvoice({
@@ -917,7 +927,8 @@ describe('actions/SendInvoice', () => {
             };
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             sendInvoice({
                 currentUserAccountID: 123,

@@ -30,13 +30,13 @@ import {createGlobalFetchMock, getCurrencyDecimalsLocal} from '../../utils/TestH
 import {hasDefinedProperty, isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const topMostReportID = '23423423';
+const mockTopMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
-    getTopmostReportId: jest.fn(() => topMostReportID),
+    getTopmostReportId: jest.fn(() => mockTopMostReportID),
     setNavigationActionToMicrotaskQueue: jest.fn(),
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),

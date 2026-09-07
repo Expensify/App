@@ -29,7 +29,7 @@ type MenuItemMockProps = Record<string, unknown> & {
     pressableTestID?: string;
 };
 
-const menuItemPropsCapture: {current: MenuItemMockProps[]} = {current: []};
+const mockMenuItemPropsCapture: {current: MenuItemMockProps[]} = {current: []};
 
 // Production-faithful: keep children mounted across `isVisible` flips (mirrors react-native-modal during close animation).
 jest.mock('@components/PopoverWithMeasuredContent', () => {
@@ -52,7 +52,7 @@ jest.mock('@components/MenuItem', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo.
     const {View: RNView, Text: RNText} = jest.requireActual('react-native');
     function MockMenuItem(props: MenuItemMockProps) {
-        menuItemPropsCapture.current.push(props);
+        mockMenuItemPropsCapture.current.push(props);
         return (
             <RNView testID={props.pressableTestID ?? 'mock-menu-item'}>
                 <RNText>{props.title ?? ''}</RNText>
@@ -103,15 +103,15 @@ jest.mock('@hooks/useLocalize', () => () => ({
 
 // Captures registered shortcuts so tests can fire them imperatively. Re-registration overwrites — mirrors real RN-keycommand replacement.
 type ShortcutEntry = {callback: (event?: unknown) => void; isActive: boolean};
-const registeredShortcuts: Record<string, ShortcutEntry> = {};
+const mockRegisteredShortcuts: Record<string, ShortcutEntry> = {};
 jest.mock('@hooks/useKeyboardShortcut', () => {
     return (shortcut: {shortcutKey: string}, callback: (event?: unknown) => void, config?: {isActive?: boolean}) => {
-        registeredShortcuts[shortcut.shortcutKey] = {callback, isActive: config?.isActive ?? true};
+        mockRegisteredShortcuts[shortcut.shortcutKey] = {callback, isActive: config?.isActive ?? true};
     };
 });
 
 function pressShortcut(shortcutKey: string): void {
-    const entry = registeredShortcuts[shortcutKey];
+    const entry = mockRegisteredShortcuts[shortcutKey];
     if (!entry?.isActive) {
         return;
     }
@@ -174,12 +174,12 @@ function setMockModal(value: typeof mockModalState.value): void {
 }
 
 beforeEach(() => {
-    menuItemPropsCapture.current = [];
+    mockMenuItemPropsCapture.current = [];
     mockNavigationState.blurListeners.clear();
     mockModalState.value = undefined;
     mockModalState.listeners.clear();
-    for (const key of Object.keys(registeredShortcuts)) {
-        delete registeredShortcuts[key];
+    for (const key of Object.keys(mockRegisteredShortcuts)) {
+        delete mockRegisteredShortcuts[key];
     }
     jest.clearAllMocks();
 });
@@ -210,12 +210,12 @@ function stubViewGetBoundingClientRect(): {restore: () => void} {
 }
 
 function findItemByTitle(title: string): MenuItemMockProps | undefined {
-    return menuItemPropsCapture.current.findLast((p) => p.title === title);
+    return mockMenuItemPropsCapture.current.findLast((p) => p.title === title);
 }
 
 function press(title: string): void {
     const onPress = findItemByTitle(title)?.onPress;
-    menuItemPropsCapture.current = [];
+    mockMenuItemPropsCapture.current = [];
     if (typeof onPress === 'function') {
         act(() => onPress());
     }
@@ -1489,7 +1489,7 @@ describe('PopoverMenu V2', () => {
             press('Open Sub');
             expect(findItemByTitle('Choose')).toBeDefined();
 
-            menuItemPropsCapture.current = [];
+            mockMenuItemPropsCapture.current = [];
             tree.rerender(<RemountingHarness remountKey={2} />);
 
             expect(findItemByTitle('Open Sub')).toBeDefined();
@@ -1636,7 +1636,7 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('A item')).toBeDefined();
             expect(findItemByTitle('Top')).toBeUndefined();
 
-            menuItemPropsCapture.current = [];
+            mockMenuItemPropsCapture.current = [];
             tree.rerender(<SubMenuWithToggle showSub={false} />);
             expect(findItemByTitle('Top')).toBeDefined();
             expect(findItemByTitle('A item')).toBeUndefined();
@@ -1679,7 +1679,7 @@ describe('PopoverMenu V2', () => {
             press('Open B');
             expect(findItemByTitle('B item')).toBeDefined();
 
-            menuItemPropsCapture.current = [];
+            mockMenuItemPropsCapture.current = [];
             tree.rerender(<NestedTree showSubs={false} />);
             expect(findItemByTitle('Top')).toBeDefined();
             expect(findItemByTitle('B item')).toBeUndefined();
@@ -1726,7 +1726,7 @@ describe('PopoverMenu V2', () => {
             press('Open B');
             expect(captured.at(-1)).toBe('B');
 
-            menuItemPropsCapture.current = [];
+            mockMenuItemPropsCapture.current = [];
             tree.rerender(<NestedTree showInner={false} />);
 
             // Cascade pops the path-stack tail past unmounted entries to the nearest still-mounted ancestor (A), NOT to root.
@@ -1985,7 +1985,7 @@ describe('PopoverMenu V2', () => {
             focus('Inner-A');
             expect(findItemByTitle('Inner-A')?.focused).toBe(true);
 
-            menuItemPropsCapture.current = [];
+            mockMenuItemPropsCapture.current = [];
             tree.rerender(<SubMenuWithToggle showSub={false} />);
 
             // After cascade: index 1 maps to Outer-B in the parent list. Focus must NOT carry over.
@@ -2404,7 +2404,7 @@ describe('PopoverMenu V2', () => {
     describe('Arrow-key navigation', () => {
         // capture accumulates across re-renders — read the LATEST render of a title to assert post-arrow state.
         function findItemFocusedFlag(title: string): boolean {
-            return !!menuItemPropsCapture.current.findLast((p) => p.title === title)?.focused;
+            return !!mockMenuItemPropsCapture.current.findLast((p) => p.title === title)?.focused;
         }
 
         it('ArrowDown focuses rows in registration (DOM) order; ArrowUp walks back', () => {

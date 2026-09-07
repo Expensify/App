@@ -6,6 +6,7 @@ import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardVio
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -18,9 +19,18 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock getCurrentUserEmail from Report actions
 const MOCK_CURRENT_USER_EMAIL = 'test@expensify.com';
+const mockGetCurrentUserEmail = jest.fn(() => MOCK_CURRENT_USER_EMAIL);
 jest.mock('@libs/actions/Report', () => ({
-    getCurrentUserEmail: jest.fn(() => MOCK_CURRENT_USER_EMAIL),
+    getCurrentUserEmail: () => mockGetCurrentUserEmail(),
 }));
+
+jest.mock('@src/libs/TransactionUtils', () => {
+    const actual = jest.requireActual<typeof TransactionUtils>('@src/libs/TransactionUtils');
+    return {
+        ...actual,
+        shouldShowViolation: jest.fn(actual.shouldShowViolation),
+    };
+});
 
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
@@ -2348,7 +2358,7 @@ describe('getViolationsOnyxData', () => {
 
             beforeEach(() => {
                 // Mock getCurrentUserEmail to return empty string
-                jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('');
+                mockGetCurrentUserEmail.mockReturnValue('');
             });
 
             afterEach(() => {
@@ -3793,7 +3803,7 @@ describe('hasVisibleViolationsForUser', () => {
         };
 
         // Mock shouldShowViolation to return true for missing category
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockReturnValue(true);
+        jest.mocked(TransactionUtils.shouldShowViolation).mockReturnValue(true);
 
         const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
@@ -3810,7 +3820,7 @@ describe('hasVisibleViolationsForUser', () => {
         };
 
         // Mock shouldShowViolation to return false for RECEIPT_NOT_SMART_SCANNED (hidden from submitter)
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.mocked(TransactionUtils.shouldShowViolation).mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false; // Hidden from submitter
             }
@@ -3832,7 +3842,7 @@ describe('hasVisibleViolationsForUser', () => {
             ],
         };
 
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.mocked(TransactionUtils.shouldShowViolation).mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false;
             }
@@ -3867,7 +3877,7 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${secondTransactionID}`]: [missingCategoryViolation],
         };
 
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.mocked(TransactionUtils.shouldShowViolation).mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false;
             }

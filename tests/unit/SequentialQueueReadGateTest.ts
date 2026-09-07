@@ -17,6 +17,15 @@ jest.mock('@libs/ActiveClientManager', () => ({
     init: jest.fn(),
 }));
 
+jest.mock('@libs/NetworkState', () => {
+    const actual = jest.requireActual<typeof NetworkState>('@libs/NetworkState');
+    return {
+        ...actual,
+        getIsOffline: jest.fn(actual.getIsOffline),
+        subscribe: jest.fn(actual.subscribe),
+    };
+});
+
 // Kept apart from SequentialQueueTest so no pushed request has moved the shared gate before a test starts.
 
 const request: Request<'userMetadata'> = {
@@ -36,9 +45,9 @@ beforeAll(() => {
 beforeEach(() => {
     mockFetch = TestHelper.createGlobalFetchMock();
     global.fetch = mockFetch;
-    offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+    offlineSpy = jest.mocked(NetworkState.getIsOffline).mockReturnValue(false);
     networkStateListeners = [];
-    jest.spyOn(NetworkState, 'subscribe').mockImplementation((callback) => {
+    jest.mocked(NetworkState.subscribe).mockImplementation((callback) => {
         networkStateListeners.push(callback);
         return () => {
             networkStateListeners = networkStateListeners.filter((listener) => listener !== callback);

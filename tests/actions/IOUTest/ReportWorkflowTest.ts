@@ -72,6 +72,14 @@ import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@src/libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@src/libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
+
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -1749,7 +1757,8 @@ describe('actions/IOU/ReportWorkflow', () => {
         });
 
         it('omits the API managerAccountID but keeps the existing report manager optimistically when policy employee data is missing', async () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const correctManagerAccountID = 101;
@@ -1823,7 +1832,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('routes to the default approver when the submitter is a policy member but their submitsTo was removed from the workspace', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const removedApproverAccountID = 101;
@@ -1901,7 +1911,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('omits the API managerAccountID but keeps the existing report manager optimistically for a retracted report when policy employee data is missing', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const correctManagerAccountID = 101;
@@ -1969,7 +1980,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('primes the report PDF-filename NVP when shouldExportToPDF is true', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify the PDF NVP optimistic/failure data.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const submitterEmail = 'submitter@example.com';
@@ -2025,7 +2037,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('does not touch the PDF-filename NVP when shouldExportToPDF is not set', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify the PDF NVP is absent.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const submitterEmail = 'submitter@example.com';
@@ -2077,7 +2090,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('uses the updated policy approver when employee data is available', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const adminAccountID = 100;
             const submitterAccountID = 101;
@@ -2149,7 +2163,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('uses the rule approver in the optimistic next step when the existing report manager is stale', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const defaultApproverAccountID = 101;
@@ -2248,7 +2263,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('keeps the workspace chat outstanding when an admin submits after approver changes', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting optimistic parent chat data after submit from workspace chat.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const workspaceChatReportID = '2';
             const adminAccountID = 100;
@@ -2411,7 +2427,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('recomputes the submit approver for a retracted forwarded report', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const firstApproverAccountID = 101;
@@ -2483,7 +2500,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('allows submit while a retract state update is pending', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Verifying submitReport writes while offline retract is pending.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const managerAccountID = 101;
@@ -2549,7 +2567,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('allows submit while only nextStep is pending', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Verifying submitReport writes when only a generic nextStep update is pending.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const managerAccountID = 101;
@@ -2614,7 +2633,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('restores the original report state and manager when submit fails', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify failure rollback data.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const managerAccountID = 101;
@@ -2664,7 +2684,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('omits the API managerAccountID from search submit when policy employee data is missing', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const correctManagerAccountID = 101;
@@ -2711,7 +2732,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('uses the popover-selected manager email for search submit managerAccountID', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const defaultManagerAccountID = 101;
@@ -2770,7 +2792,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('sends the manager email alone from search submit when the chosen manager email has no accountID', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const defaultManagerAccountID = 101;
@@ -2821,7 +2844,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('resolves search submit managerAccountID from employeeList when personal details are missing', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
             const defaultManagerAccountID = 101;
@@ -2884,7 +2908,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('submits from search while a retract update is pending', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Verifying search submit writes while offline retract is pending.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const report: Report = {
                 ...createRandomReport(1, undefined),
                 reportID: '1',
@@ -2901,7 +2926,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('submits from search while only nextStep is pending', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Verifying search submit writes when only a generic nextStep update is pending.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const report: Report = {
                 ...createRandomReport(1, undefined),
                 reportID: '1',
@@ -2918,7 +2944,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('optimistically updates the report status and adds a SUBMITTED action so search submit reflects while offline', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write onyxData to verify optimistic submit payload.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const report: Report = {
                 ...createRandomReport(1, undefined),
                 reportID: '1',
@@ -2969,8 +2996,6 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         beforeEach(async () => {
             jest.clearAllMocks();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls in each delegate forwarding test.
-            jest.spyOn(API, 'write');
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [DELEGATE_ACCOUNT_ID]: {
                     accountID: DELEGATE_ACCOUNT_ID,
@@ -3197,7 +3222,7 @@ describe('actions/IOU/ReportWorkflow', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify optimistic/failure data.
-            jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            jest.mocked(API.write).mockImplementation(() => Promise.resolve());
         });
 
         it('clears hasOutstandingChildRequest optimistically and restores it if the approve request fails', () => {
@@ -3839,7 +3864,8 @@ describe('actions/IOU/ReportWorkflow', () => {
     describe('retractReport', () => {
         it('does not set a retract pending field that hides resubmit', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify retract optimistic data does not hide resubmit.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const policy: OnyxEntry<Policy> = createRandomPolicy(1);
             const expenseReport: Report = {
                 ...createRandomReport(1, undefined),
@@ -3905,7 +3931,8 @@ describe('actions/IOU/ReportWorkflow', () => {
     describe('change approver formatter forwarding', () => {
         it('uses the injected formatter for the optimistic approver display name', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write optimistic data to verify formatter forwarding.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(API.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const approverAccountID = 8332403627;
             const approverLogin = '+18332403627@expensify.sms';
             const formatPhoneNumberSpy = jest.fn(formatPhoneNumber);

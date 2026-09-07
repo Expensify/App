@@ -99,6 +99,13 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
+jest.mock('@src/libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@src/libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -2727,7 +2734,8 @@ describe('actions/IOU/TrackExpense', () => {
         afterEach(PusherHelper.teardown);
 
         it('should call API.write with delete money request onyx data for selfDM track expenses and return the parent report route in single transaction view', () => {
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             const result = deleteTrackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,

@@ -5,6 +5,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import * as MoneyRequestActions from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 
 import IOURequestStepHours from '@pages/iou/request/step/IOURequestStepHours';
@@ -56,6 +57,17 @@ jest.mock('@hooks/useResponsiveLayout', () => () => ({
     isLargeScreenWidth: true,
 }));
 
+jest.mock('@libs/actions/IOU/MoneyRequest', () => {
+    const actual = jest.requireActual<typeof MoneyRequestActions>('@libs/actions/IOU/MoneyRequest');
+    return {
+        ...actual,
+        setMoneyRequestAmount: jest.fn(actual.setMoneyRequestAmount),
+        setMoneyRequestMerchant: jest.fn(actual.setMoneyRequestMerchant),
+        setMoneyRequestTimeCount: jest.fn(actual.setMoneyRequestTimeCount),
+        setMoneyRequestTimeRate: jest.fn(actual.setMoneyRequestTimeRate),
+    };
+});
+
 const ACCOUNT_ID = 1;
 const ACCOUNT_LOGIN = 'test@user.com';
 const TRANSACTION_ID = 'transaction-1';
@@ -93,10 +105,10 @@ describe('IOURequestStepHours', () => {
         jest.clearAllMocks();
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
-        setMoneyRequestAmountSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestAmount');
-        setMoneyRequestMerchantSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestMerchant');
-        setMoneyRequestTimeCountSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestTimeCount');
-        setMoneyRequestTimeRateSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestTimeRate');
+        setMoneyRequestAmountSpy = jest.mocked(MoneyRequestActions.setMoneyRequestAmount);
+        setMoneyRequestMerchantSpy = jest.mocked(MoneyRequestActions.setMoneyRequestMerchant);
+        setMoneyRequestTimeCountSpy = jest.mocked(MoneyRequestActions.setMoneyRequestTimeCount);
+        setMoneyRequestTimeRateSpy = jest.mocked(MoneyRequestActions.setMoneyRequestTimeRate);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createPolicyWithTimeTracking());

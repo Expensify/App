@@ -18,6 +18,14 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('@libs/API');
 jest.mock('../../src/libs/actions/SignInRedirect');
 
+jest.mock('../../src/libs/actions/Device', () => {
+    const actual = jest.requireActual<typeof DeviceActions>('../../src/libs/actions/Device');
+    return {
+        ...actual,
+        getDeviceInfoWithID: jest.fn(actual.getDeviceInfoWithID),
+    };
+});
+
 const mockAPI = jest.mocked(API);
 
 describe('actions/User', () => {
@@ -405,7 +413,7 @@ describe('actions/User', () => {
 
     describe('validateSecondaryLogin', () => {
         beforeEach(() => {
-            jest.spyOn(DeviceActions, 'getDeviceInfoWithID').mockResolvedValue('{"deviceID":"test-device"}');
+            jest.mocked(DeviceActions.getDeviceInfoWithID).mockResolvedValue('{"deviceID":"test-device"}');
         });
 
         afterEach(() => {

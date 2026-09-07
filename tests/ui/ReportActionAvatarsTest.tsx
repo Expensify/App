@@ -50,7 +50,7 @@ function getAvatarData(dataSet: unknown): AvatarData {
 
 /* --- UI Mocks --- */
 
-const parseSource = (source: AvatarSource | IconAsset): string => {
+const mockParseSource = (source: AvatarSource | IconAsset): string => {
     if (typeof source === 'string') {
         return source;
     }
@@ -76,7 +76,7 @@ jest.mock('@components/Avatar/UserAvatar', () => {
             <MockedAvatarData
                 dataSet={{
                     avatarID: accountID,
-                    uri: parseSource(source ?? '') || 'No Source',
+                    uri: mockParseSource(source ?? '') || 'No Source',
                     parent: testID,
                 }}
                 testID="MockedAvatarData"
@@ -92,7 +92,7 @@ jest.mock('@components/Avatar/WorkspaceAvatar', () => {
                 dataSet={{
                     name,
                     avatarID,
-                    uri: parseSource(source ?? '') || 'No Source',
+                    uri: mockParseSource(source ?? '') || 'No Source',
                     parent: testID,
                 }}
                 testID="MockedAvatarData"
@@ -106,7 +106,7 @@ jest.mock('@src/components/Icon', () => {
         return (
             <MockedAvatarData
                 dataSet={{
-                    uri: parseSource(src) || 'No Source',
+                    uri: mockParseSource(src) || 'No Source',
                     parent: testID,
                 }}
                 testID="MockedIconData"

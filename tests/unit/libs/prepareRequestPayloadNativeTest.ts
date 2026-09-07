@@ -3,7 +3,9 @@ import type PrepareRequestPayload from '@libs/prepareRequestPayload/types';
 const mockCheckFileExists = jest.fn<Promise<boolean>, [string | undefined]>();
 jest.mock('@libs/fileDownload/checkFileExists', () => ({
     __esModule: true,
-    default: mockCheckFileExists,
+    get default() {
+        return mockCheckFileExists;
+    },
 }));
 
 jest.mock('@libs/fileDownload/FileUtils', () => ({
@@ -13,21 +15,25 @@ jest.mock('@libs/fileDownload/FileUtils', () => ({
 const mockValidateFormDataParameter = jest.fn();
 jest.mock('@libs/validateFormDataParameter', () => ({
     __esModule: true,
-    default: mockValidateFormDataParameter,
+    get default() {
+        return mockValidateFormDataParameter;
+    },
 }));
 
 const mockLogReceiptDropped = jest.fn();
 jest.mock('@libs/telemetry/ReceiptObservability', () => ({
-    logReceiptDropped: mockLogReceiptDropped,
+    get logReceiptDropped() {
+        return mockLogReceiptDropped;
+    },
 }));
 
-const RECEIPTS_FOLDER = '/Containers/Data/Application/CURRENT/Documents/Receipts-Upload';
+const mockReceiptsFolder = '/Containers/Data/Application/CURRENT/Documents/Receipts-Upload';
 jest.mock('@libs/ReceiptStorage', () => ({
     __esModule: true,
     default: {
         resolve: (source?: string) => {
             const name = source?.includes('/Receipts-Upload/') ? source.split('/').pop() : undefined;
-            return name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
+            return name ? `file://${mockReceiptsFolder}/${name}` : source;
         },
     },
 }));
@@ -96,9 +102,9 @@ describe('prepareRequestPayload (native)', () => {
 
         const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
 
-        expect(mockCheckFileExists).toHaveBeenCalledWith(`file://${RECEIPTS_FOLDER}/receipt_9.jpg`);
+        expect(mockCheckFileExists).toHaveBeenCalledWith(`file://${mockReceiptsFolder}/receipt_9.jpg`);
         expect(formData.has('receipt')).toBe(true);
-        expect(mockValidateFormDataParameter).toHaveBeenCalledWith('RequestMoney', 'receipt', expect.objectContaining({uri: `file://${RECEIPTS_FOLDER}/receipt_9.jpg`}));
+        expect(mockValidateFormDataParameter).toHaveBeenCalledWith('RequestMoney', 'receipt', expect.objectContaining({uri: `file://${mockReceiptsFolder}/receipt_9.jpg`}));
         expect(mockLogReceiptDropped).not.toHaveBeenCalled();
     });
 
@@ -115,7 +121,7 @@ describe('prepareRequestPayload (native)', () => {
         const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
 
         expect(formData.has('receipt')).toBe(false);
-        expect(mockLogReceiptDropped).toHaveBeenCalledWith(expect.objectContaining({source: `file://${RECEIPTS_FOLDER}/gone.jpg`}));
+        expect(mockLogReceiptDropped).toHaveBeenCalledWith(expect.objectContaining({source: `file://${mockReceiptsFolder}/gone.jpg`}));
     });
 
     it('should not check the filesystem for a bundled placeholder receipt', async () => {

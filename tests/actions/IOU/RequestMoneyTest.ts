@@ -61,6 +61,14 @@ import {
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
+jest.mock('@src/libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@src/libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
+
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -116,8 +124,7 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 const unapprovedCashHash = 71801560;
 const unapprovedCashSimilarSearchHash = 1832274510;
 jest.mock('@src/libs/SearchQueryUtils', () => {
-    const actual = jest.requireActual('@src/libs/SearchQueryUtils');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const actual = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
     return {
         ...actual,
         getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
@@ -2610,7 +2617,8 @@ describe('actions/IOU', () => {
         const isValid = (value: unknown) => !value || typeof value !== 'object' || value instanceof Blob;
 
         beforeEach(() => {
-            writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
         });
 
         afterEach(() => {
@@ -2992,7 +3000,7 @@ describe('actions/IOU', () => {
                 view: CONST.SEARCH.VIEW.TABLE,
             } as SearchQueryJSON;
 
-            const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(currentSearchQueryJSON);
+            const getCurrentSearchQueryJSONSpy = jest.mocked(SearchQueryUtils.getCurrentSearchQueryJSON).mockReturnValue(currentSearchQueryJSON);
 
             requestMoney({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,

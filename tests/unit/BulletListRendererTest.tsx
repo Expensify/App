@@ -19,7 +19,7 @@ jest.mock('@hooks/useHasTextAncestor', () => () => false);
 
 // Capture the html string ultimately passed to react-native-render-html so we can
 // assert the orphaned <br/> stripping happens before the library sees the HTML.
-const capturedSource: {html?: string} = {};
+const mockCapturedSource: {html?: string} = {};
 
 function mockGetFirstTextContent(tnode?: TBlock): string {
     const firstChild = tnode?.children.at(0);
@@ -32,7 +32,7 @@ jest.mock('react-native-render-html', () => {
     return {
         RenderHTMLConfigProvider: ({children}: {children: React.ReactNode}) => children,
         RenderHTMLSource: ({source}: {source: {html?: string}}) => {
-            capturedSource.html = source?.html;
+            mockCapturedSource.html = source?.html;
             return ReactModule.createElement(MockView);
         },
         TNodeChildrenRenderer: ({tnode}: {tnode?: TBlock}) => ReactModule.createElement(MockText, null, mockGetFirstTextContent(tnode)),
@@ -57,7 +57,7 @@ const buildULTNode = (children: Array<{tagName: string; text: string}>) =>
 
 describe('Bullet list rendering', () => {
     beforeEach(() => {
-        capturedSource.html = undefined;
+        mockCapturedSource.html = undefined;
     });
 
     describe('ULRenderer', () => {
@@ -145,79 +145,79 @@ describe('Bullet list rendering', () => {
     describe('RenderHTML strips orphaned <br/> tags inside <ul>', () => {
         it('strips <br/> immediately before </ul>', () => {
             render(<RenderHTML html="<ul><li>One</li><li>Two</li><br/></ul>" />);
-            expect(capturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
+            expect(mockCapturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
         });
 
         it('strips <br> (no slash) immediately before </ul>', () => {
             render(<RenderHTML html="<ul><li>One</li><li>Two</li><br></ul>" />);
-            expect(capturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
+            expect(mockCapturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
         });
 
         it('strips <br/> appearing between </li> and the next <li>', () => {
             render(<RenderHTML html="<ul><li>One</li><br/><li>Two</li></ul>" />);
-            expect(capturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
+            expect(mockCapturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
         });
 
         it('leaves a valid <ul>/<li> list untouched', () => {
             render(<RenderHTML html="<ul><li>One</li><li>Two</li></ul>" />);
-            expect(capturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
+            expect(mockCapturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
         });
 
         it('strips multiple consecutive <br/> before </ul>', () => {
             render(<RenderHTML html="<ul><li>One</li><br/><br/><br/></ul>" />);
-            expect(capturedSource.html).toBe('<ul><li>One</li></ul>');
+            expect(mockCapturedSource.html).toBe('<ul><li>One</li></ul>');
         });
 
         it('strips multiple consecutive <br/> between </li> and <li>', () => {
             render(<RenderHTML html="<ul><li>One</li><br/><br/><li>Two</li></ul>" />);
-            expect(capturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
+            expect(mockCapturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
         });
 
         it('does not strip <br/> outside of <ul> lists', () => {
             render(<RenderHTML html="<p>line1<br/>line2</p>" />);
-            expect(capturedSource.html).toBe('<p>line1<br/>line2</p>');
+            expect(mockCapturedSource.html).toBe('<p>line1<br/>line2</p>');
         });
 
         it('preserves <br/> that lives inside <li> as an in-bullet line break', () => {
             render(<RenderHTML html="<ul><li>One<br/>still one</li><li>Two</li></ul>" />);
-            expect(capturedSource.html).toBe('<ul><li>One<br/>still one</li><li>Two</li></ul>');
+            expect(mockCapturedSource.html).toBe('<ul><li>One<br/>still one</li><li>Two</li></ul>');
         });
     });
 
     describe('RenderHTML strips orphaned <br/> tags inside <ol>', () => {
         it('strips <br/> immediately before </ol>', () => {
             render(<RenderHTML html="<ol><li>One</li><li>Two</li><br/></ol>" />);
-            expect(capturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
+            expect(mockCapturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
         });
 
         it('strips <br> (no slash) immediately before </ol>', () => {
             render(<RenderHTML html="<ol><li>One</li><li>Two</li><br></ol>" />);
-            expect(capturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
+            expect(mockCapturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
         });
 
         it('strips <br/> appearing between </li> and the next <li> inside <ol>', () => {
             render(<RenderHTML html="<ol><li>One</li><br/><li>Two</li></ol>" />);
-            expect(capturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
+            expect(mockCapturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
         });
 
         it('leaves a valid <ol>/<li> list untouched', () => {
             render(<RenderHTML html="<ol><li>One</li><li>Two</li></ol>" />);
-            expect(capturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
+            expect(mockCapturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
         });
 
         it('strips multiple consecutive <br/> before </ol>', () => {
             render(<RenderHTML html="<ol><li>One</li><br/><br/><br/></ol>" />);
-            expect(capturedSource.html).toBe('<ol><li>One</li></ol>');
+            expect(mockCapturedSource.html).toBe('<ol><li>One</li></ol>');
         });
 
         it('strips multiple consecutive <br/> between </li> and <li> inside <ol>', () => {
             render(<RenderHTML html="<ol><li>One</li><br/><br/><li>Two</li></ol>" />);
-            expect(capturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
+            expect(mockCapturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
         });
 
         it('preserves <br/> that lives inside <li> as an in-item line break', () => {
             render(<RenderHTML html="<ol><li>One<br/>still one</li><li>Two</li></ol>" />);
-            expect(capturedSource.html).toBe('<ol><li>One<br/>still one</li><li>Two</li></ol>');
+            expect(mockCapturedSource.html).toBe('<ol><li>One<br/>still one</li><li>Two</li></ol>');
         });
     });
 });

@@ -25,6 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // Testing only so it's okay to import computeReportName
 // eslint-disable-next-line no-restricted-imports
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
@@ -223,6 +224,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
@@ -354,6 +356,33 @@ jest.mock('@libs/PolicyUtils', () => {
         // isGroupPolicy delegates to the isPaidGroupPolicy mock so tests that tweak isPaidGroupPolicy still drive group-policy checks
         isGroupPolicy: jest.fn().mockImplementation((policy?: Policy) => isPaidGroupPolicy(policy) === true || actualPolicyUtils.isSubmitPolicy(policy)),
         isPolicyOwner: jest.fn().mockImplementation((policy?: Policy, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
+    };
+});
+
+jest.mock('@libs/ReportActionsUtils', () => {
+    const actual = jest.requireActual<typeof ReportActionsUtils>('@libs/ReportActionsUtils');
+    return {
+        ...actual,
+        isReversedTransaction: jest.fn(actual.isReversedTransaction),
+        isDeletedAction: jest.fn(actual.isDeletedAction),
+        isTrackExpenseAction: jest.fn(actual.isTrackExpenseAction),
+    };
+});
+
+jest.mock('@libs/TransactionUtils', () => {
+    const actual = jest.requireActual<typeof TransactionUtils>('@libs/TransactionUtils');
+    return {
+        ...actual,
+        isScanning: jest.fn(actual.isScanning),
+        hasMissingSmartscanFields: jest.fn(actual.hasMissingSmartscanFields),
+    };
+});
+
+jest.mock('@libs/actions/IOU/Hold', () => {
+    const actual = jest.requireActual<typeof HoldUtils>('@libs/actions/IOU/Hold');
+    return {
+        ...actual,
+        unholdRequest: jest.fn(actual.unholdRequest),
     };
 });
 
@@ -5811,7 +5840,7 @@ describe('ReportUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
+            const unholdRequestSpy = jest.mocked(HoldUtils.unholdRequest).mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
             changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined);
@@ -15657,7 +15686,7 @@ describe('ReportUtils', () => {
         test('returns reversed transaction message when action is reversed', () => {
             const reportAction = createRandomReportAction(1);
 
-            jest.spyOn(require('@libs/ReportActionsUtils'), 'isReversedTransaction').mockReturnValueOnce(true);
+            jest.mocked(ReportActionsUtils.isReversedTransaction).mockReturnValueOnce(true);
 
             const result = getTransactionReportName({
                 translate: translateLocal,
@@ -15674,7 +15703,7 @@ describe('ReportUtils', () => {
         test('returns deleted expense message when action is deleted', () => {
             const reportAction = createRandomReportAction(1);
 
-            jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValueOnce(true);
+            jest.mocked(ReportActionsUtils.isDeletedAction).mockReturnValueOnce(true);
 
             const result = getTransactionReportName({
                 translate: translateLocal,
@@ -15725,7 +15754,7 @@ describe('ReportUtils', () => {
 
         test('returns create expense fallback when linkedTransaction is empty and reportAction is track expense', () => {
             const reportAction = createRandomReportAction(1);
-            jest.spyOn(require('@libs/ReportActionsUtils'), 'isTrackExpenseAction').mockReturnValueOnce(true);
+            jest.mocked(ReportActionsUtils.isTrackExpenseAction).mockReturnValueOnce(true);
 
             const result = getTransactionReportName({
                 translate: translateLocal,
@@ -15744,7 +15773,7 @@ describe('ReportUtils', () => {
                 ...createRandomTransaction(1),
                 reportID: mockReportID,
             };
-            jest.spyOn(require('@libs/TransactionUtils'), 'isScanning').mockReturnValueOnce(true);
+            jest.mocked(TransactionUtils.isScanning).mockReturnValueOnce(true);
 
             const result = getTransactionReportName({
                 translate: translateLocal,
@@ -15763,7 +15792,7 @@ describe('ReportUtils', () => {
                 ...createRandomTransaction(1),
                 reportID: mockReportID,
             };
-            jest.spyOn(require('@libs/TransactionUtils'), 'hasMissingSmartscanFields').mockReturnValueOnce(true);
+            jest.mocked(TransactionUtils.hasMissingSmartscanFields).mockReturnValueOnce(true);
 
             const result = getTransactionReportName({
                 translate: translateLocal,

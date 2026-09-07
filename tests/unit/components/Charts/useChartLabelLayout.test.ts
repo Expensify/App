@@ -11,10 +11,10 @@ import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import createMock from '../../../utils/createMock';
 
 /**
- * Each glyph = PX_PER_CHAR wide. This gives deterministic widths:
+ * Each glyph = mockPxPerChar wide. This gives deterministic widths:
  * "AAA" = 21px, "AAAAAA" = 42px, "A".repeat(16) = 112px, "..." = 21px
  */
-const PX_PER_CHAR = 7;
+const mockPxPerChar = 7;
 const MOCK_ASCENT = 12;
 const MOCK_DESCENT = 4;
 
@@ -22,7 +22,7 @@ jest.mock('@components/Charts/utils', () => {
     const actual = jest.requireActual<typeof ChartUtils>('@components/Charts/utils');
     return {
         ...actual,
-        measureTextWidth: (text: string, ...rest: [SkTypefaceFontProvider, number]): number => text.length * PX_PER_CHAR + 0 * rest.length,
+        measureTextWidth: (text: string, ...rest: [SkTypefaceFontProvider, number]): number => text.length * mockPxPerChar + 0 * rest.length,
         getFontLineMetrics: (...args: [SkTypefaceFontProvider, number]): {ascent: number; descent: number} => ({
             ascent: MOCK_ASCENT + 0 * args.length,
             descent: MOCK_DESCENT,
@@ -182,8 +182,8 @@ describe('useChartLabelLayout', () => {
                 lastTickRightSpace: 200,
             });
             expect(result.current.labelRotation).toBe(45);
-            expect(result.current.labelMaxWidths.at(0)).toBeLessThan(16 * PX_PER_CHAR);
-            expect(result.current.labelMaxWidths.at(1)).toBeGreaterThanOrEqual(2 * PX_PER_CHAR);
+            expect(result.current.labelMaxWidths.at(0)).toBeLessThan(16 * mockPxPerChar);
+            expect(result.current.labelMaxWidths.at(1)).toBeGreaterThanOrEqual(2 * mockPxPerChar);
         });
 
         it('does NOT constrain last label when right-aligned despite tight right edge', () => {
@@ -200,7 +200,7 @@ describe('useChartLabelLayout', () => {
                 lastTickRightSpace: 40,
             });
             expect(result.current.labelRotation).toBe(45);
-            expect(result.current.labelMaxWidths.at(2)).toBeGreaterThanOrEqual(16 * PX_PER_CHAR);
+            expect(result.current.labelMaxWidths.at(2)).toBeGreaterThanOrEqual(16 * mockPxPerChar);
         });
     });
 

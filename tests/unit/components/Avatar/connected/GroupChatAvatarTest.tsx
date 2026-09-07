@@ -18,14 +18,14 @@ const GROUP_AVATAR_URL = 'https://example.com/group-avatar.png';
 const GROUP_NAME = 'Weekend Trip';
 const FALLBACK_NAME = 'Fallback Name';
 
-const ALICE_ACCOUNT_ID = 1;
-const BOB_ACCOUNT_ID = 2;
-const CARL_ACCOUNT_ID = 3;
+const mockAliceAccountID = 1;
+const mockBobAccountID = 2;
+const mockCarlAccountID = 3;
 
 const PARTICIPANTS = {
-    [ALICE_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-    [BOB_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-    [CARL_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+    [mockAliceAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+    [mockBobAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+    [mockCarlAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
 };
 
 // Captures the props `GroupChatAvatar` hands to the layout primitive, which is the whole contract of this component.
@@ -44,9 +44,9 @@ jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getContainerStyles: mock
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: () => ({
-        [ALICE_ACCOUNT_ID]: {accountID: ALICE_ACCOUNT_ID, firstName: 'Alice', displayName: 'Alice Smith'},
-        [BOB_ACCOUNT_ID]: {accountID: BOB_ACCOUNT_ID, firstName: 'Bob', displayName: 'Bob Jones'},
-        [CARL_ACCOUNT_ID]: {accountID: CARL_ACCOUNT_ID, firstName: 'Carl', displayName: 'Carl Fox'},
+        [mockAliceAccountID]: {accountID: mockAliceAccountID, firstName: 'Alice', displayName: 'Alice Smith'},
+        [mockBobAccountID]: {accountID: mockBobAccountID, firstName: 'Bob', displayName: 'Bob Jones'},
+        [mockCarlAccountID]: {accountID: mockCarlAccountID, firstName: 'Carl', displayName: 'Carl Fox'},
     }),
 }));
 
@@ -136,7 +136,7 @@ describe('GroupChatAvatar (connected)', () => {
     it('should exclude members pending deletion from the name', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createGroupChatReport());
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT_ID}`, {
-            pendingChatMembers: [{accountID: String(CARL_ACCOUNT_ID), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+            pendingChatMembers: [{accountID: String(mockCarlAccountID), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
         });
         await waitForBatchedUpdatesWithAct();
 

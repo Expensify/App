@@ -13,7 +13,7 @@ const mockNavigationSetParams = jest.fn();
 const mockGlobalSetParams = jest.fn();
 const mockOpenReport = jest.fn();
 const mockLogAlert = jest.fn();
-let newActionHandler: ((isFromCurrentUser: boolean, action?: ReportAction) => void) | undefined;
+let mockNewActionHandler: ((isFromCurrentUser: boolean, action?: ReportAction) => void) | undefined;
 
 jest.mock('@libs/Log', () => ({
     __esModule: true,
@@ -71,7 +71,7 @@ jest.mock('@libs/actions/Report', () => ({
     },
     pruneReportActionPagesToNewestWindow: jest.fn(),
     subscribeToNewActionEvent: (_reportID: string, callback: (isFromCurrentUser: boolean, action?: ReportAction) => void) => {
-        newActionHandler = callback;
+        mockNewActionHandler = callback;
         return jest.fn();
     },
 }));
@@ -115,7 +115,7 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
 describe('useReportActionsNewActionLiveTail', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        newActionHandler = undefined;
+        mockNewActionHandler = undefined;
         mockNavigation = {setParams: mockNavigationSetParams, getState: () => ({key: 'stack-report'})};
         mockIsInSidePanel = false;
     });
@@ -125,7 +125,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({conciergeChat})});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            mockNewActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
         });
 
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
@@ -135,7 +135,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false})});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            mockNewActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
         });
 
         // The onboarding flags are threaded straight through so guided-setup optimistic data is derived from real Onyx
@@ -147,7 +147,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams()});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            mockNewActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
         });
 
         expect(mockOpenReport).toHaveBeenCalledTimes(1);
@@ -170,7 +170,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({setTreatAsNoPaginationAnchor})});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            mockNewActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
         });
 
         expect(() =>
@@ -192,7 +192,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({setTreatAsNoPaginationAnchor})});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            mockNewActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
         });
 
         rerender(

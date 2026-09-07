@@ -39,14 +39,14 @@ type CapturedListProps = {
 // Capture the props the list is rendered with so we can observe `maintainVisibleContentPosition`, whose
 // `disabled` flag is `!(hasScrolledOverThreshold || shouldFocusToTopOnMount)`. With no deep-link the latter
 // is false, so `!disabled` mirrors the boolean under test.
-let capturedListProps: CapturedListProps = {};
+let mockCapturedListProps: CapturedListProps = {};
 // Every value the maintain-visible-content-position flag has held (`!disabled`), in render order. `[0]` is the
 // value on the list's very first render — the property that matters, since it must be right before any effect runs.
 let mockMvcpHistory: Array<boolean | undefined> = [];
 
 // `!disabled` from the captured `maintainVisibleContentPosition`, or `undefined` before the list first renders.
 function isMvcpEnabled() {
-    const config = capturedListProps.maintainVisibleContentPosition;
+    const config = mockCapturedListProps.maintainVisibleContentPosition;
     return config ? !config.disabled : undefined;
 }
 
@@ -55,7 +55,7 @@ jest.mock('@components/FlashList/InvertedFlashList', () => {
     return {
         __esModule: true,
         default: forwardRef<unknown, CapturedListProps>((props) => {
-            capturedListProps = props;
+            mockCapturedListProps = props;
             mockMvcpHistory.push(props.maintainVisibleContentPosition ? !props.maintainVisibleContentPosition.disabled : undefined);
             return null;
         }),
@@ -114,12 +114,12 @@ async function renderList(initialOffset: number) {
             </ComposeProviders>
         </NavigationContainer>,
     );
-    await waitFor(() => expect(capturedListProps.maintainVisibleContentPosition).toBeDefined());
+    await waitFor(() => expect(mockCapturedListProps.maintainVisibleContentPosition).toBeDefined());
     return utils;
 }
 
 beforeEach(async () => {
-    capturedListProps = {};
+    mockCapturedListProps = {};
     mockMvcpHistory = [];
     setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -166,12 +166,12 @@ describe('ReportActionsList hasScrolledOverThreshold', () => {
         expect(isMvcpEnabled()).toBe(false);
 
         act(() => {
-            capturedListProps.onScroll?.({nativeEvent: {contentOffset: {y: THRESHOLD + 50}}});
+            mockCapturedListProps.onScroll?.({nativeEvent: {contentOffset: {y: THRESHOLD + 50}}});
         });
         expect(isMvcpEnabled()).toBe(true);
 
         act(() => {
-            capturedListProps.onScroll?.({nativeEvent: {contentOffset: {y: 0}}});
+            mockCapturedListProps.onScroll?.({nativeEvent: {contentOffset: {y: 0}}});
         });
         expect(isMvcpEnabled()).toBe(false);
     });

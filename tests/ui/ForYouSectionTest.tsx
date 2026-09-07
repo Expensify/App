@@ -119,7 +119,7 @@ jest.mock('@hooks/useThemeStyles', () =>
 
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({})));
 
-const RECEIPT_SEARCH_ASSET = {testID: 'receipt-search-icon'};
+const mockReceiptSearchAsset = {testID: 'receipt-search-icon'};
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
@@ -127,7 +127,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
         Send: null,
         ThumbsUp: null,
         Export: null,
-        ReceiptSearch: RECEIPT_SEARCH_ASSET,
+        ReceiptSearch: mockReceiptSearchAsset,
     })),
     useMemoizedLazyIllustrations: jest.fn(() => ({
         ThumbsUpStars: null,
@@ -630,8 +630,8 @@ describe('ForYouSection', () => {
             expect(screen.getByText('Begin')).toBeOnTheScreen();
 
             // The ReceiptSearch asset should be passed as the `icon` prop on at least one BaseWidgetItem.
-            // We look for any rendered element whose `icon` prop is the RECEIPT_SEARCH_ASSET reference.
-            const matchingNodes = unsafeRoot.findAll((node) => node.props && (node.props as {icon?: unknown}).icon === RECEIPT_SEARCH_ASSET);
+            // We look for any rendered element whose `icon` prop is the mockReceiptSearchAsset reference.
+            const matchingNodes = unsafeRoot.findAll((node) => node.props && (node.props as {icon?: unknown}).icon === mockReceiptSearchAsset);
             expect(matchingNodes.length).toBeGreaterThan(0);
         });
 

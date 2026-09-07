@@ -27,6 +27,13 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@react-navigation/native');
+jest.mock('@src/libs/ReportActionsUtils', () => {
+    const actual = jest.requireActual<typeof ReportActionUtils>('@src/libs/ReportActionsUtils');
+    return {
+        ...actual,
+        getIOUActionForReportID: jest.fn(actual.getIOUActionForReportID),
+    };
+});
 
 const ACTOR_ACCOUNT_ID = 123456789;
 const ACTOR_EMAIL = 'test@test.com';
@@ -57,7 +64,7 @@ describe('ClearReportActionErrors UI', () => {
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
-        jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(getIOUActionForReportID);
+        jest.mocked(ReportActionUtils.getIOUActionForReportID).mockImplementation(getIOUActionForReportID);
     });
 
     beforeEach(async () => {

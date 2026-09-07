@@ -30,8 +30,8 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const TEST_ACCOUNT_ID = 12345;
-const TEST_EMAIL = 'test@expensify.com';
+const mockTestAccountID = 12345;
+const mockTestEmail = 'test@expensify.com';
 const TEST_REPORT_ID = '1';
 const TEST_CHAT_REPORT_ID = '2';
 const TEST_POLICY_ID = '3';
@@ -65,7 +65,7 @@ jest.mock('@components/Search/SearchScopeProvider', () => ({
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: jest.fn(() => ({accountID: TEST_ACCOUNT_ID, login: TEST_EMAIL, email: TEST_EMAIL})),
+    default: jest.fn(() => ({accountID: mockTestAccountID, login: mockTestEmail, email: mockTestEmail})),
 }));
 
 jest.mock('@hooks/useEnvironment', () => ({
@@ -351,7 +351,7 @@ function buildReport(overrides: Partial<Report> = {}): Report {
         reportID: TEST_REPORT_ID,
         chatReportID: TEST_CHAT_REPORT_ID,
         policyID: TEST_POLICY_ID,
-        ownerAccountID: TEST_ACCOUNT_ID,
+        ownerAccountID: mockTestAccountID,
         currency: 'USD',
         type: CONST.REPORT.TYPE.EXPENSE,
         ...overrides,
@@ -412,7 +412,7 @@ describe('useSelectionModeReportActions', () => {
         mockPrimaryAction = '';
         mockSecondaryActions = [];
         await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
-        await Onyx.merge(ONYXKEYS.SESSION, {email: TEST_EMAIL, accountID: TEST_ACCOUNT_ID});
+        await Onyx.merge(ONYXKEYS.SESSION, {email: mockTestEmail, accountID: mockTestAccountID});
     });
 
     afterEach(async () => {

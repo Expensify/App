@@ -3,7 +3,7 @@ import type {TransactionReportGroupListItemType} from '@components/Search/Search
 import * as ReportWorkflow from '@libs/actions/IOU/ReportWorkflow';
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports -- namespace import needed to spy on hasViolations in the approve-action test
+// eslint-disable-next-line no-restricted-imports -- namespace import needed to mock hasViolations in the approve-action test
 import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -32,6 +32,22 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
+
+jest.mock('@libs/ReportUtils', () => {
+    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
+    return {
+        ...actual,
+        hasViolations: jest.fn(actual.hasViolations),
+    };
+});
+
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => {
+    const actual = jest.requireActual<typeof ReportWorkflow>('@libs/actions/IOU/ReportWorkflow');
+    return {
+        ...actual,
+        approveMoneyRequest: jest.fn(actual.approveMoneyRequest),
+    };
+});
 
 const mockReportItemWithHold = createMock<TransactionReportGroupListItemType>({
     groupedBy: 'expense-report',
@@ -425,8 +441,8 @@ describe('handleActionButtonPress', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1049531721038862176`]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
         };
 
-        const hasViolationsMock = jest.spyOn(ReportUtils, 'hasViolations').mockReturnValue(true);
-        const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
+        const hasViolationsMock = jest.mocked(ReportUtils.hasViolations).mockReturnValue(true);
+        const approveMoneyRequestMock = jest.mocked(ReportWorkflow.approveMoneyRequest).mockImplementation(jest.fn());
 
         // When: the approve action button is pressed
         handleActionButtonPress({

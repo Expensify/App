@@ -65,7 +65,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
     });
 }
 
-const topMostReportID = '23423423';
+const mockTopMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
@@ -74,7 +74,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigateBackToLastSuperWideRHPScreen: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
-    getTopmostReportId: jest.fn(() => topMostReportID),
+    getTopmostReportId: jest.fn(() => mockTopMostReportID),
     setNavigationActionToMicrotaskQueue: jest.fn(),
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -117,15 +117,15 @@ jest.mock('@libs/deferredLayoutWrite', () => ({
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
-const unapprovedCashHash = 71801560;
-const unapprovedCashSimilarSearchHash = 1832274510;
+const mockUnapprovedCashHash = 71801560;
+const mockUnapprovedCashSimilarSearchHash = 1832274510;
 jest.mock('@src/libs/SearchQueryUtils', () => {
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
         getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
-            hash: unapprovedCashHash,
+            hash: mockUnapprovedCashHash,
             query: 'test',
             type: 'expense',
             status: ['drafts', 'outstanding'],
@@ -133,7 +133,7 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
             flatFilters: [{key: 'reimbursable', filters: [{operator: 'eq', value: 'yes'}]}],
             inputQuery: '',
             recentSearchHash: 89,
-            similarSearchHash: unapprovedCashSimilarSearchHash,
+            similarSearchHash: mockUnapprovedCashSimilarSearchHash,
             sortBy: 'tag',
             sortOrder: 'asc',
         })),

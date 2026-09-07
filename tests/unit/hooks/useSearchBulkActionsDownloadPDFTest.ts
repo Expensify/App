@@ -104,13 +104,13 @@ jest.mock('@components/Search/SearchContext', () => ({
     }),
 }));
 
-const CURRENT_USER_ACCOUNT_ID = 1;
+const mockCurrentUserAccountID = 1;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         login: 'test@example.com',
-        accountID: CURRENT_USER_ACCOUNT_ID,
+        accountID: mockCurrentUserAccountID,
         email: 'test@example.com',
     })),
 }));
@@ -152,7 +152,7 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         total: 100,
         currency: 'USD',
         chatReportID: undefined,
-        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        ownerAccountID: mockCurrentUserAccountID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ...overrides,
     };
@@ -236,10 +236,10 @@ describe('useSearchBulkActions - Download as PDF', () => {
         mockCurrentSearchResults = undefined;
         mockAreAllMatchingItemsSelected = false;
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: mockCurrentUserAccountID, email: 'test@example.com'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
             reportID: '1',
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Report 1',
         });
@@ -358,7 +358,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
     it('should show Download as PDF when multiple reports are selected', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
             reportID: '2',
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Report 2',
         });
@@ -409,7 +409,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
     it('should call exportReportsToPDF for multi-select and set activeExportID', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
             reportID: '2',
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            ownerAccountID: mockCurrentUserAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Report 2',
         });

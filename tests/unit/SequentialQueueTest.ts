@@ -28,6 +28,22 @@ jest.mock('@libs/ActiveClientManager', () => ({
     isReady: jest.fn(() => Promise.resolve()),
     init: jest.fn(),
 }));
+
+jest.mock('@libs/NetworkState', () => {
+    const actual = jest.requireActual<typeof NetworkState>('@libs/NetworkState');
+    return {
+        ...actual,
+        getIsOffline: jest.fn(actual.getIsOffline),
+    };
+});
+
+jest.mock('../../src/libs/Request', () => {
+    const actual = jest.requireActual<typeof RequestModule>('../../src/libs/Request');
+    return {
+        ...actual,
+        processWithMiddleware: jest.fn(actual.processWithMiddleware),
+    };
+});
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 
 const request: Request<'userMetadata'> = {
@@ -65,7 +81,7 @@ describe('SequentialQueue', () => {
         // write. If the network flips offline during that await, flush() would early-return on its
         // offline guard without resolving isReadyPromise — leaving waitForIdle() (READs) hung until
         // an unrelated reconnect. push() must instead resolve isReadyPromise and skip flushing.
-        const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        const offlineSpy = jest.mocked(NetworkState.getIsOffline).mockReturnValue(false);
         let timeoutId: ReturnType<typeof setTimeout> | undefined;
         try {
             // Kick off the push while "online": the synchronous prelude runs up to `await persistencePromise`.
@@ -387,7 +403,7 @@ describe('SequentialQueue', () => {
         await clearPersistedRequests();
         await waitForBatchedUpdates();
 
-        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockRejectedValue(new Error(CONST.ERROR.ALREADY_CREATED));
+        const processSpy = jest.mocked(RequestModule.processWithMiddleware).mockRejectedValue(new Error(CONST.ERROR.ALREADY_CREATED));
         const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
 
         const successData: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>> = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 9999}}];
@@ -419,7 +435,7 @@ describe('SequentialQueue', () => {
     });
 
     it('should reset the shared throttle when the queue stops because the app went offline', async () => {
-        const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        const offlineSpy = jest.mocked(NetworkState.getIsOffline).mockReturnValue(false);
         mockFetch.mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
 
         try {
@@ -642,7 +658,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
             return Promise.resolve();
         };
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the mock only needs command and data, so skip the generic signature
-        const spy = jest.spyOn(RequestModule, 'processWithMiddleware').mockImplementation(mockImpl as typeof RequestModule.processWithMiddleware);
+        const spy = jest.mocked(RequestModule.processWithMiddleware).mockImplementation(mockImpl as typeof RequestModule.processWithMiddleware);
         return {spy, capture};
     }
 
@@ -652,7 +668,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
     let offlineSpy: jest.SpyInstance;
     beforeEach(() => {
         // This only runs while the queue drains after reconnecting, so keep the queue unblocked.
-        offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        offlineSpy = jest.mocked(NetworkState.getIsOffline).mockReturnValue(false);
     });
     afterEach(() => {
         offlineSpy.mockRestore();
@@ -892,7 +908,7 @@ describe('SequentialQueue - QueueFlushedData', () => {
         await waitForBatchedUpdates();
 
         const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.HAS_LOADED_APP> = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HAS_LOADED_APP, value: true};
-        jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode});
+        jest.mocked(RequestModule.processWithMiddleware).mockResolvedValue({jsonCode});
         SequentialQueue.push({command: 'OpenApp', queueFlushedData: [flushedUpdate]});
         await SequentialQueue.waitForIdle();
         await waitForBatchedUpdates();
@@ -1202,7 +1218,7 @@ describe('SequentialQueue - pause watchdog', () => {
         // This is the bug the watchdog exists for: the stranded OpenApp has to reach the wire and the skeleton has to
         // go away. Asserting only isPaused() would stay green even if the queue never drained.
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
-        const processWithMiddleware = jest.spyOn(RequestModule, 'processWithMiddleware').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        const processWithMiddleware = jest.mocked(RequestModule.processWithMiddleware).mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
 
         SequentialQueue.pause();
         SequentialQueue.push({

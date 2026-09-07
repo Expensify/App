@@ -29,7 +29,7 @@ function emitKeyboardEvent(event: 'keyboardDidShow' | 'keyboardDidHide', height:
 }
 
 function setAppState(state: AppStateStatus) {
-    (AppState as {currentState: AppStateStatus}).currentState = state;
+    (AppState as {emitCurrentTestState: (nextState: AppStateStatus) => void}).emitCurrentTestState(state);
     for (const handler of appStateListeners) {
         handler(state);
     }

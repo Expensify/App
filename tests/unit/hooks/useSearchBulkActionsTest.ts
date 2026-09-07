@@ -178,13 +178,13 @@ jest.mock('@components/Search/SearchContext', () => ({
     }),
 }));
 
-const CURRENT_USER_ACCOUNT_ID = 1;
+const mockCurrentUserAccountID = 1;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         login: 'test@example.com',
-        accountID: CURRENT_USER_ACCOUNT_ID,
+        accountID: mockCurrentUserAccountID,
         email: 'test@example.com',
     })),
 }));
@@ -267,7 +267,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockCurrentSearchResults = undefined;
         mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: mockCurrentUserAccountID, email: 'test@example.com'});
     });
 
     afterEach(async () => {

@@ -197,6 +197,14 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 jest.mock('@libs/telemetry/markOpenReportEnd', () => jest.fn());
 
+jest.mock('@libs/ReportActionsUtils', () => {
+    const actual = jest.requireActual<typeof ReportActionsUtils>('@libs/ReportActionsUtils');
+    return {
+        ...actual,
+        shouldReportActionBeVisible: jest.fn(actual.shouldReportActionBeVisible),
+    };
+});
+
 const mockReport: OnyxTypes.Report = {
     reportID: '123',
     reportName: 'Test Report',
@@ -630,7 +638,7 @@ describe('ReportActionsList (body)', () => {
         ];
 
         const setupConciergeMocks = () => {
-            jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
+            jest.mocked(ReportActionsUtils.shouldReportActionBeVisible).mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
@@ -786,7 +794,7 @@ describe('ReportActionsList (body)', () => {
         ];
 
         const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false, hasOnceLoadedReportActions = true) => {
-            jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
+            jest.mocked(ReportActionsUtils.shouldReportActionBeVisible).mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseIsInSidePanel.mockReturnValue(false);
             mockUseSidePanelState.mockReturnValue(defaultSidePanelState);

@@ -24,6 +24,14 @@ jest.mock('@hooks/useAncestors', () => ({
     default: jest.fn(() => []),
 }));
 
+jest.mock('@libs/ReportUtils', () => {
+    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
+    return {
+        ...actual,
+        getOriginalReportID: jest.fn(actual.getOriginalReportID),
+    };
+});
+
 const mockUseAncestors = jest.mocked(useAncestors);
 
 let getOriginalReportIDSpy: jest.SpiedFunction<typeof ReportUtils.getOriginalReportID>;
@@ -127,8 +135,7 @@ function resetProviderTestState() {
 describe('ReportActionEditMessageContextProvider', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        // Spy the real export so the provider's import uses the same function (jest.mock replacement did not intercept calls).
-        getOriginalReportIDSpy = jest.spyOn(ReportUtils, 'getOriginalReportID');
+        getOriginalReportIDSpy = jest.mocked(ReportUtils.getOriginalReportID);
     });
 
     afterAll(() => {

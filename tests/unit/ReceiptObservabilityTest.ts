@@ -5,6 +5,15 @@ import {logReceiptCaptured, logReceiptQueueSnapshot, mintAndStampReceiptTraceId}
 
 import type {FileObject} from '@src/types/utils/Attachment';
 
+jest.mock('@libs/actions/PersistedRequests', () => {
+    const actual = jest.requireActual<typeof PersistedRequests>('@libs/actions/PersistedRequests');
+    return {
+        ...actual,
+        getAll: jest.fn(actual.getAll),
+        getOngoingRequest: jest.fn(actual.getOngoingRequest),
+    };
+});
+
 type CapturedLogLine = {message: string; sendNow?: boolean; params: Record<string, unknown>};
 
 const receiptRequest = (transactionID: string, receiptTraceId: string) => ({
@@ -81,8 +90,8 @@ describe('ReceiptObservability', () => {
         let getOngoingRequestSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            getAllSpy = jest.spyOn(PersistedRequests, 'getAll').mockReturnValue([]);
-            getOngoingRequestSpy = jest.spyOn(PersistedRequests, 'getOngoingRequest').mockReturnValue(null);
+            getAllSpy = jest.mocked(PersistedRequests.getAll).mockReturnValue([]);
+            getOngoingRequestSpy = jest.mocked(PersistedRequests.getOngoingRequest).mockReturnValue(null);
         });
 
         afterEach(() => {

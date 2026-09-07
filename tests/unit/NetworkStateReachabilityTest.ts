@@ -9,15 +9,15 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import {NetInfoStateType} from '@react-native-community/netinfo';
 
-let netInfoListener: ((state: NetInfoState) => void) | null = null;
+let mockNetInfoListener: ((state: NetInfoState) => void) | null = null;
 const mockOnyxCallbacks = new Map<string, (value: unknown) => void>();
 
 jest.mock('@react-native-community/netinfo', () => ({
     NetInfoStateType: {wifi: 'wifi'},
     addEventListener: jest.fn((cb: (state: NetInfoState) => void) => {
-        netInfoListener = cb;
+        mockNetInfoListener = cb;
         return () => {
-            netInfoListener = null;
+            mockNetInfoListener = null;
         };
     }),
     configure: jest.fn(),
@@ -33,10 +33,10 @@ jest.mock('react-native-onyx', () => ({
 }));
 
 function fireNetInfoState(overrides: Partial<NetInfoWifiState>) {
-    if (!netInfoListener) {
+    if (!mockNetInfoListener) {
         throw new Error('NetInfo listener not registered');
     }
-    netInfoListener({
+    mockNetInfoListener({
         isConnected: true,
         isInternetReachable: true,
         type: NetInfoStateType.wifi,
@@ -69,7 +69,7 @@ describe('NetworkState — internetUnreachable hard stop via NetInfo', () => {
 
     beforeEach(() => {
         jest.resetModules();
-        netInfoListener = null;
+        mockNetInfoListener = null;
         mockOnyxCallbacks.clear();
 
         const mod = require<typeof NetworkState>('@src/libs/NetworkState');
@@ -112,7 +112,7 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
 
     beforeEach(() => {
         jest.resetModules();
-        netInfoListener = null;
+        mockNetInfoListener = null;
         mockOnyxCallbacks.clear();
 
         // Fresh import each test so prevIsInternetReachable resets
@@ -299,7 +299,7 @@ describe('NetworkState — a successful request clears the INTERNET_UNREACHABLE 
 
     beforeEach(() => {
         jest.resetModules();
-        netInfoListener = null;
+        mockNetInfoListener = null;
         mockOnyxCallbacks.clear();
 
         // Require NetworkState and the middleware in the same module registry generation so

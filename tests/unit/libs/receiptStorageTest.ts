@@ -12,10 +12,10 @@ jest.mock('react-native-fs', () => ({
 
 jest.mock('@libs/NumberUtils', () => ({rand64: () => '1234'}));
 
-const FOLDER = '/var/mobile/Containers/Data/Application/AAAA-1111/Documents/Receipts-Upload';
+const mockFolder = '/var/mobile/Containers/Data/Application/AAAA-1111/Documents/Receipts-Upload';
 jest.mock('@libs/getReceiptsUploadFolderPath', () => ({
     __esModule: true,
-    default: () => FOLDER,
+    default: () => mockFolder,
 }));
 
 // Import the native implementation by path. Jest resolves the bare specifier to the web implementation.
@@ -35,15 +35,15 @@ describe('ReceiptStorage', () => {
 
             expect(name).toBe('receipt_1234.jpg');
             expect(name).not.toContain('/');
-            expect(mockMv).toHaveBeenCalledWith('/var/mobile/Library/Caches/ImageManipulator/cropped.jpg', `${FOLDER}/receipt_1234.jpg`);
+            expect(mockMv).toHaveBeenCalledWith('/var/mobile/Library/Caches/ImageManipulator/cropped.jpg', `${mockFolder}/receipt_1234.jpg`);
         });
 
         it('verifies rather than moves a file the camera already wrote into the folder', async () => {
-            const name = await ReceiptStorage.adopt(`file://${FOLDER}/CAM-1.jpg`);
+            const name = await ReceiptStorage.adopt(`file://${mockFolder}/CAM-1.jpg`);
 
             expect(name).toBe('CAM-1.jpg');
             expect(mockMv).not.toHaveBeenCalled();
-            expect(mockExists).toHaveBeenCalledWith(`${FOLDER}/CAM-1.jpg`);
+            expect(mockExists).toHaveBeenCalledWith(`${mockFolder}/CAM-1.jpg`);
         });
 
         it('appends the unique suffix at the end when the filename has no extension', async () => {
@@ -57,7 +57,7 @@ describe('ReceiptStorage', () => {
 
             expect(name).toBe('CAM-2.jpg');
             expect(mockMv).not.toHaveBeenCalled();
-            expect(mockExists).toHaveBeenCalledWith(`${FOLDER}/CAM-2.jpg`);
+            expect(mockExists).toHaveBeenCalledWith(`${mockFolder}/CAM-2.jpg`);
         });
 
         it('rejects when the move fails, instead of handing back the ephemeral path', async () => {
@@ -75,7 +75,7 @@ describe('ReceiptStorage', () => {
 
     describe('toLocalUri', () => {
         it('resolves against the folder as it is right now', () => {
-            expect(ReceiptStorage.toLocalUri('receipt_1234.jpg')).toBe(`file://${FOLDER}/receipt_1234.jpg`);
+            expect(ReceiptStorage.toLocalUri('receipt_1234.jpg')).toBe(`file://${mockFolder}/receipt_1234.jpg`);
         });
     });
 
@@ -83,11 +83,11 @@ describe('ReceiptStorage', () => {
         const stale = 'file:///var/mobile/Containers/Data/Application/BBBB-2222/Documents/Receipts-Upload/receipt_9.jpg';
 
         it('re-roots the filename in a stored path onto the folder as it stands now, whichever container the path names', () => {
-            expect(ReceiptStorage.resolve(stale)).toBe(`file://${FOLDER}/receipt_9.jpg`);
+            expect(ReceiptStorage.resolve(stale)).toBe(`file://${mockFolder}/receipt_9.jpg`);
         });
 
         it('re-roots a stored path that carries no file:// scheme', () => {
-            expect(ReceiptStorage.resolve('/var/mobile/Containers/Data/Application/BBBB-2222/Documents/Receipts-Upload/receipt_9.jpg')).toBe(`file://${FOLDER}/receipt_9.jpg`);
+            expect(ReceiptStorage.resolve('/var/mobile/Containers/Data/Application/BBBB-2222/Documents/Receipts-Upload/receipt_9.jpg')).toBe(`file://${mockFolder}/receipt_9.jpg`);
         });
 
         it('leaves a path that never belonged to the folder alone, so a purged cache file is not reported as recoverable', () => {

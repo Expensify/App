@@ -8,19 +8,19 @@ import type {PersonalDetailsList, Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
-const CURRENT_USER_ACCOUNT_ID = 1;
+const mockCurrentUserAccountID = 1;
 const RECIPIENT_ACCOUNT_ID = 2;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: () => ({accountID: CURRENT_USER_ACCOUNT_ID}),
+    default: () => ({accountID: mockCurrentUserAccountID}),
 }));
 
 const REPORT = {
     reportID: '1',
     type: CONST.REPORT.TYPE.CHAT,
     participants: {
-        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+        [mockCurrentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
         [RECIPIENT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
     },
 } as Report;

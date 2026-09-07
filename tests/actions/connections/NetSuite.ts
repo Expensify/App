@@ -22,9 +22,15 @@ import Onyx from 'react-native-onyx';
 import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@libs/API');
+jest.mock('@libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
 
-const writeSpy = jest.spyOn(API, 'write');
+const writeSpy = jest.mocked(API.write);
 
 const MOCK_POLICY_ID = 'MOCK_POLICY_ID';
 const MOCK_CREDENTIALS = {

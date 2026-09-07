@@ -64,6 +64,21 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
+jest.mock('@src/libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@src/libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
+
+jest.mock('@src/libs/SearchQueryUtils', () => {
+    const actual = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+    return {
+        ...actual,
+        getCurrentSearchQueryJSON: jest.fn(actual.getCurrentSearchQueryJSON),
+    };
+});
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
@@ -138,7 +153,9 @@ describe('actions/IOU/Receipt', () => {
         let getCurrentSearchQueryJSONSpy: jest.SpyInstance;
 
         const mockApiWrite = () => {
-            return jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
+            return writeSpy;
         };
 
         beforeEach(() => {
@@ -146,7 +163,7 @@ describe('actions/IOU/Receipt', () => {
             // within JavaScript's safe integer range so the transaction data and its Onyx key
             // continue to refer to the same ID.
             transactionID = Date.now().toString();
-            getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(createMock<SearchQueryJSON>({hash: snapshotHash}));
+            getCurrentSearchQueryJSONSpy = jest.mocked(SearchQueryUtils.getCurrentSearchQueryJSON).mockReturnValue(createMock<SearchQueryJSON>({hash: snapshotHash}));
         });
 
         afterEach(() => {
@@ -561,7 +578,8 @@ describe('actions/IOU/Receipt', () => {
 
         it('should optimistically null the receipt and set pending field', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
             await seedOnyx();
 
             try {
@@ -599,7 +617,8 @@ describe('actions/IOU/Receipt', () => {
 
         it('should call API.write with DETACH_RECEIPT command and correct params', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
             await seedOnyx();
 
             try {

@@ -9,8 +9,8 @@ import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
 const mockClearSelectedTransactions = jest.fn();
 
-const REPORT_ID = 'report1';
-const POLICY_ID = 'policy1';
+const mockReportID = 'report1';
+const mockPolicyID = 'policy1';
 const EXPORT_NAME = 'Test Template';
 
 jest.mock('@libs/actions/Search', () => ({
@@ -84,8 +84,8 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string) => {
-        if (key === `report_${REPORT_ID}`) {
-            return [{reportID: REPORT_ID, policyID: POLICY_ID}];
+        if (key === `report_${mockReportID}`) {
+            return [{reportID: mockReportID, policyID: mockPolicyID}];
         }
         return [undefined];
     },
@@ -98,10 +98,10 @@ describe('useExportActions - template export status modal', () => {
     });
 
     it('queues the export with progress tracking', () => {
-        const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
+        const {result} = renderHook(() => useExportActions({reportID: mockReportID}));
 
         act(() => {
-            result.current.beginExportWithTemplate('Test Template', 'csv', ['1', '2'], EXPORT_NAME, POLICY_ID);
+            result.current.beginExportWithTemplate('Test Template', 'csv', ['1', '2'], EXPORT_NAME, mockPolicyID);
         });
 
         expect(mockQueueExportSearchWithTemplate).toHaveBeenCalledWith(
@@ -109,9 +109,9 @@ describe('useExportActions - template export status modal', () => {
                 templateName: 'Test Template',
                 templateType: 'csv',
                 jsonQuery: '{}',
-                reportIDList: [REPORT_ID],
+                reportIDList: [mockReportID],
                 transactionIDList: ['1', '2'],
-                policyID: POLICY_ID,
+                policyID: mockPolicyID,
                 exportName: EXPORT_NAME,
             },
             true,
@@ -121,10 +121,10 @@ describe('useExportActions - template export status modal', () => {
 
     it('does not queue the export and shows the offline modal when offline', () => {
         mockIsOffline = true;
-        const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
+        const {result} = renderHook(() => useExportActions({reportID: mockReportID}));
 
         act(() => {
-            result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], EXPORT_NAME, POLICY_ID);
+            result.current.beginExportWithTemplate('Test Template', 'csv', ['1'], EXPORT_NAME, mockPolicyID);
         });
 
         expect(mockQueueExportSearchWithTemplate).not.toHaveBeenCalled();

@@ -49,6 +49,11 @@ jest.mock('expo-task-manager', () => ({
     // Add other methods here if you use them
 }));
 
+jest.mock('expo-web-browser', () => ({
+    openAuthSessionAsync: jest.fn(() => Promise.resolve({type: 'dismiss'})),
+    maybeCompleteAuthSession: jest.fn(),
+}));
+
 // Mock expo-location — the jest-expo preset replaces all native module methods with jest.fn(async () => {}),
 // which returns undefined instead of a proper PermissionResponse. This causes crashes when code reads .status
 // from the result of requestForegroundPermissionsAsync().

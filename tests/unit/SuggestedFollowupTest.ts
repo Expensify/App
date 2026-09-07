@@ -15,6 +15,14 @@ import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@libs/actions/Report', () => {
+    const actual = jest.requireActual<typeof ReportActions>('@libs/actions/Report');
+    return {
+        ...actual,
+        addComment: jest.fn(actual.addComment),
+    };
+});
+
 const REPORT_ID = '1';
 const REPORT_ACTION_ID = '100';
 
@@ -163,7 +171,7 @@ describe('SuggestedFollowup actions — followup-list skeleton flag', () => {
 
         it('forwards the real conciergeReportID to addComment instead of falling back to the deprecated Onyx.connect value', async () => {
             // Given addComment is stubbed so we can inspect the params it receives
-            const addCommentSpy = jest.spyOn(ReportActions, 'addComment').mockImplementation(() => {});
+            const addCommentSpy = jest.mocked(ReportActions.addComment).mockImplementation(() => {});
             // And a followup with no pre-generated response (the plain-comment path)
             const selectedFollowup: Followup = {text: 'Why was this flagged?'};
 
@@ -190,7 +198,7 @@ describe('SuggestedFollowup actions — followup-list skeleton flag', () => {
 
         it('forwards the conciergeReportID on the pre-generated-response path as well', async () => {
             // Given addComment is stubbed and a followup that carries a pre-generated Concierge response
-            const addCommentSpy = jest.spyOn(ReportActions, 'addComment').mockImplementation(() => {});
+            const addCommentSpy = jest.mocked(ReportActions.addComment).mockImplementation(() => {});
             const selectedFollowup: Followup = {
                 text: 'Why was this flagged?',
                 response: 'Because it was a duplicate.',

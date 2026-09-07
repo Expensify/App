@@ -86,11 +86,7 @@
         "shellcheck",
         "patch-package",
         "diff-so-fancy",
-        "@babel/plugin-proposal-class-properties",
-        "@babel/plugin-transform-block-scoping",
-        "@babel/plugin-transform-dynamic-import",
-        "@babel/plugin-transform-modules-commonjs",
-        "babel-plugin-jest-hoist"
+        "@babel/plugin-proposal-class-properties"
     ],
     "ignoreBinaries": ["metro-symbolicate", "mkcert"]
 }

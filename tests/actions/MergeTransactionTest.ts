@@ -38,6 +38,14 @@ import * as TestHelper from '../utils/TestHelper';
 import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
+
 // Helper function to create mock violations
 function createMockViolations(): TransactionViolation[] {
     return [
@@ -535,7 +543,7 @@ describe('mergeTransactionRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
 
-        const writeSpy = jest.spyOn(API, 'write');
+        const writeSpy = jest.mocked(API.write);
 
         mockFetch?.pause?.();
 

@@ -27,7 +27,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // That distinction is the whole point: iOS maps the flag to `preventNativeDismiss`, so a swipe-back is decided by
 // the last committed value. A callback that reads refs answers correctly whenever it is called, yet still leaves
 // the flag stale, because React Compiler reuses the render-time result while the closure's captured values hold.
-const preventRemoveFlags: boolean[] = [];
+const mockPreventRemoveFlags: boolean[] = [];
 
 // Only the two React APIs this factory needs. A namespace import of 'react' trips no-restricted-imports,
 // and `typeof import(...)` is banned, so name them off the default import instead (types are erased).
@@ -122,7 +122,7 @@ jest.mock('@react-navigation/native', () => {
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
         usePreventRemove: (shouldPreventRemove: boolean) => {
-            preventRemoveFlags.push(shouldPreventRemove);
+            mockPreventRemoveFlags.push(shouldPreventRemove);
         },
         useRoute: jest.fn(() => ({key: 'distance-odometer', name: 'Money_Request_Distance_Create', params: {}})),
     };
@@ -213,10 +213,10 @@ const odometerInput = (labelKey: string) => {
 
 // ScreenWrapper calls usePreventRemove as well and always passes false here, so a single armed call in the render
 // pass can only have come from the discard guard. Reading the last flag alone would depend on render order.
-const isGuardArmed = () => preventRemoveFlags.some(Boolean);
+const isGuardArmed = () => mockPreventRemoveFlags.some(Boolean);
 
 const typeStartReading = async (value: string) => {
-    preventRemoveFlags.length = 0;
+    mockPreventRemoveFlags.length = 0;
     fireEvent.changeText(odometerInput('distance.odometer.startReading'), value);
     await waitForBatchedUpdatesWithAct();
 };
@@ -228,7 +228,7 @@ describe('IOURequestStepDistanceOdometer - native discard guard arms on the read
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        preventRemoveFlags.length = 0;
+        mockPreventRemoveFlags.length = 0;
         await Onyx.clear();
         await waitForBatchedUpdates();
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);

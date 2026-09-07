@@ -20,14 +20,14 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@components/ConfirmedRoute.tsx');
 
-const EMPTY_OPTIONS = {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
+const mockEmptyOptions = {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('@libs/OptionsListUtils', () => ({
     __esModule: true,
     ...jest.requireActual('@libs/OptionsListUtils'),
-    getValidOptions: jest.fn(() => ({options: EMPTY_OPTIONS, hasMore: false})),
-    getSearchOptions: jest.fn(() => ({options: EMPTY_OPTIONS, hasMore: false})),
+    getValidOptions: jest.fn(() => ({options: mockEmptyOptions, hasMore: false})),
+    getSearchOptions: jest.fn(() => ({options: mockEmptyOptions, hasMore: false})),
 }));
 
 const MOCK_ACCOUNT_ID = 12345;
@@ -560,7 +560,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
         mockFilteredPersonalDetails.current = [];
 
         // getValidOptions is mocked, so the contact de-duplication under test only depends on the inputs passed to the hook.
-        mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
+        mockGetValidOptions.mockReturnValue({options: mockEmptyOptions, hasMore: false});
         await act(async () => {
             await Onyx.clear();
         });

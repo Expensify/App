@@ -21,14 +21,14 @@ type MockReactModule = {
     createElement: (...args: unknown[]) => ReactElement;
 };
 
-let lastShowConfirmModalOptions: ShowConfirmModalOptions | undefined;
-let resolveModalPromise: ((result: ModalResult) => void) | undefined;
+let mockLastShowConfirmModalOptions: ShowConfirmModalOptions | undefined;
+let mockResolveModalPromise: ((result: ModalResult) => void) | undefined;
 
 jest.mock('@hooks/useConfirmModal', () => () => ({
     showConfirmModal: jest.fn((options: ShowConfirmModalOptions) => {
-        lastShowConfirmModalOptions = options;
+        mockLastShowConfirmModalOptions = options;
         return new Promise<ModalResult>((resolve) => {
-            resolveModalPromise = resolve;
+            mockResolveModalPromise = resolve;
         });
     }),
 }));
@@ -72,8 +72,8 @@ describe('useCreateEmptyReportConfirmation', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockTranslate.mockClear();
-        lastShowConfirmModalOptions = undefined;
-        resolveModalPromise = undefined;
+        mockLastShowConfirmModalOptions = undefined;
+        mockResolveModalPromise = undefined;
     });
 
     it('calls showConfirmModal when openCreateReportConfirmation is invoked', () => {
@@ -90,9 +90,9 @@ describe('useCreateEmptyReportConfirmation', () => {
             result.current.openCreateReportConfirmation();
         });
 
-        expect(lastShowConfirmModalOptions).toBeDefined();
-        expect(lastShowConfirmModalOptions?.confirmText).toBe('report.newReport.createReport');
-        expect(lastShowConfirmModalOptions?.cancelText).toBe('common.cancel');
+        expect(mockLastShowConfirmModalOptions).toBeDefined();
+        expect(mockLastShowConfirmModalOptions?.confirmText).toBe('report.newReport.createReport');
+        expect(mockLastShowConfirmModalOptions?.cancelText).toBe('common.cancel');
     });
 
     it('invokes onConfirm when modal resolves with CONFIRM', async () => {
@@ -110,7 +110,7 @@ describe('useCreateEmptyReportConfirmation', () => {
         });
 
         await act(async () => {
-            resolveModalPromise?.({action: 'CONFIRM'});
+            mockResolveModalPromise?.({action: 'CONFIRM'});
         });
 
         expect(onConfirm).toHaveBeenCalledTimes(1);
@@ -135,7 +135,7 @@ describe('useCreateEmptyReportConfirmation', () => {
         });
 
         await act(async () => {
-            resolveModalPromise?.({action: 'CLOSE'});
+            mockResolveModalPromise?.({action: 'CLOSE'});
         });
 
         expect(onConfirm).not.toHaveBeenCalled();
@@ -170,7 +170,7 @@ describe('useCreateEmptyReportConfirmation', () => {
         });
 
         await act(async () => {
-            resolveModalPromise?.({action: 'CLOSE'});
+            mockResolveModalPromise?.({action: 'CLOSE'});
         });
 
         expect(onConfirm).not.toHaveBeenCalled();
@@ -197,7 +197,7 @@ describe('useCreateEmptyReportConfirmation', () => {
         mockTranslate.mockClear();
         render(
             <>
-                {lastShowConfirmModalOptions?.prompt}
+                {mockLastShowConfirmModalOptions?.prompt}
                 {/* Keep this null second child to render the ReactNode prompt without triggering react/jsx-no-useless-fragment. */}
                 {null}
             </>,

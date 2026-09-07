@@ -15,7 +15,7 @@ import type {Report} from '@src/types/onyx';
 
 import React from 'react';
 
-const PB4_PADDING_BOTTOM = 16;
+const mockPb4PaddingBottom = 16;
 
 jest.mock('@hooks/useReportRecipientLocalTime');
 jest.mock('@pages/inbox/report/useShouldShowComposerForActiveEditDraft');
@@ -27,7 +27,7 @@ jest.mock('@libs/ReportUtils', () => ({
 
 jest.mock('@hooks/useThemeStyles', () => () => ({
     flex1: {flex: 1},
-    pb4: {paddingBottom: PB4_PADDING_BOTTOM},
+    pb4: {paddingBottom: mockPb4PaddingBottom},
 }));
 
 const mockUseReportRecipientLocalTime = jest.mocked(useReportRecipientLocalTime);
@@ -136,7 +136,7 @@ describe('ReportActionsListPaddingView', () => {
 
                 const view = renderPaddingView();
 
-                expect(getPaddingBottom(view.toJSON)).toBe(shouldApplyBottomPadding ? PB4_PADDING_BOTTOM : undefined);
+                expect(getPaddingBottom(view.toJSON)).toBe(shouldApplyBottomPadding ? mockPb4PaddingBottom : undefined);
             },
         );
     });

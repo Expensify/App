@@ -23,10 +23,10 @@ jest.mock('@libs/ReportUtils', () => ({
     }),
     hasOnlyNonReimbursableTransactions: jest.fn().mockReturnValue(false),
     hasHeldExpenses: jest.fn().mockReturnValue(false),
-    parseReportRouteParams: jest.fn().mockReturnValue({
+    parseReportRouteParams: jest.fn(() => ({
         reportID: mockedReportID,
         isSubReportPageRoute: false,
-    }),
+    })),
 }));
 
 const convertToDisplayString = jest.fn().mockImplementation((amountInCents: number | undefined = 0): string => `$${amountInCents}.00`);

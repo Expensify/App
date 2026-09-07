@@ -24,7 +24,7 @@ type NarrowDestinationStrategyProps = {
     narrowDestinationStrategy: NarrowDestinationStrategy;
 };
 
-const pendingIdlePreInserts: PendingPreInsert[] = [];
+const mockPendingIdlePreInserts: PendingPreInsert[] = [];
 
 jest.mock('@hooks/useResponsiveLayout', () => () => ({
     shouldUseNarrowLayout: true,
@@ -45,7 +45,7 @@ jest.mock('@libs/Scheduler', () => ({
     Scheduler: {
         scheduleWhenIdle: jest.fn((callback: () => void) => {
             const pendingPreInsert: PendingPreInsert = {callback, cancelled: false};
-            pendingIdlePreInserts.push(pendingPreInsert);
+            mockPendingIdlePreInserts.push(pendingPreInsert);
 
             return {
                 cancel: jest.fn(() => {
@@ -57,8 +57,8 @@ jest.mock('@libs/Scheduler', () => ({
 }));
 
 function flushPendingIdlePreInserts() {
-    const callbacks = pendingIdlePreInserts.filter((pendingPreInsert) => !pendingPreInsert.cancelled).map((pendingPreInsert) => pendingPreInsert.callback);
-    pendingIdlePreInserts.length = 0;
+    const callbacks = mockPendingIdlePreInserts.filter((pendingPreInsert) => !pendingPreInsert.cancelled).map((pendingPreInsert) => pendingPreInsert.callback);
+    mockPendingIdlePreInserts.length = 0;
     for (const callback of callbacks) {
         callback();
     }
@@ -105,7 +105,7 @@ describe('usePreMountDestination', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.useFakeTimers();
-        pendingIdlePreInserts.length = 0;
+        mockPendingIdlePreInserts.length = 0;
         mockGetIsNarrowLayout.mockReturnValue(true);
         jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(false);
     });

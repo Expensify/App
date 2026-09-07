@@ -4,6 +4,7 @@ import type {RenderAPI} from '@testing-library/react-native';
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import * as TrackExpense from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -17,7 +18,7 @@ import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import * as API from '@src/libs/API';
+import * as APIModule from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, Policy, PolicyTagLists, RecentWaypoint, Report, ReportActions} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -40,6 +41,14 @@ import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+jest.mock('@src/libs/API', () => {
+    const actual = jest.requireActual<typeof APIModule>('@src/libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -71,6 +80,14 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
+jest.mock('@libs/actions/IOU/TrackExpense', () => {
+    const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
+    return {
+        ...actual,
+        requestMoney: jest.fn(actual.requestMoney),
+    };
+});
+
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
@@ -91,14 +108,15 @@ describe('actions/Duplicate', () => {
     });
 
     describe('mergeDuplicates', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.SpiedFunction<typeof APIModule.write>;
         let currencyListProvider: RenderAPI;
 
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
 
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+            writeSpy = jest.mocked(APIModule.write);
+            writeSpy.mockImplementation((command, params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
                     for (const update of options.optimisticData) {
@@ -912,13 +930,14 @@ describe('actions/Duplicate', () => {
     });
 
     describe('resolveDuplicates', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.SpiedFunction<typeof APIModule.write>;
 
         beforeEach(() => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+
+            writeSpy = jest.mocked(APIModule.write);
+            writeSpy.mockImplementation((command, params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
                     for (const update of options.optimisticData) {
@@ -1199,7 +1218,7 @@ describe('actions/Duplicate', () => {
 
             // Then: Verify API was called
             // eslint-disable-next-line
-            expect(API.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
+            expect(APIModule.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
         });
 
         it('should handle missing IOU actions gracefully', async () => {
@@ -1605,7 +1624,7 @@ describe('actions/Duplicate', () => {
     });
 
     describe('duplicateExpenseTransaction', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.SpiedFunction<typeof APIModule.write>;
         let recentWaypoints: RecentWaypoint[] = [];
         let targetPolicyTags: OnyxEntry<PolicyTagLists>;
 
@@ -1628,8 +1647,9 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+
+            writeSpy = jest.mocked(APIModule.write);
+            writeSpy.mockImplementation((command, params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
                     for (const update of options.optimisticData) {
@@ -1657,7 +1677,7 @@ describe('actions/Duplicate', () => {
         });
 
         it('threads the conciergeChat report through to requestMoney', () => {
-            const requestMoneySpy = jest.spyOn(require('@libs/actions/IOU/TrackExpense'), 'requestMoney');
+            const requestMoneySpy = jest.mocked(TrackExpense.requestMoney);
             const conciergeChat = {reportID: 'concierge-duplicate-1'};
 
             duplicateExpenseTransaction({
@@ -2906,7 +2926,7 @@ describe('actions/Duplicate', () => {
     });
 
     describe('duplicateReport', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.SpiedFunction<typeof APIModule.write>;
 
         const mockPolicy = createRandomPolicy(1);
         const mockPolicyCategories = createRandomPolicyCategories(3);
@@ -2988,8 +3008,9 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+
+            writeSpy = jest.mocked(APIModule.write);
+            writeSpy.mockImplementation((command, params, options) => {
                 if (options?.optimisticData) {
                     for (const update of options.optimisticData) {
                         if (update.onyxMethod === Onyx.METHOD.MERGE) {
@@ -3471,7 +3492,7 @@ describe('actions/Duplicate', () => {
     });
 
     describe('bulkDuplicateExpenses', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.SpiedFunction<typeof APIModule.write>;
 
         const mockPolicy: Policy = {
             ...createRandomPolicy(1),
@@ -3486,8 +3507,9 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+
+            writeSpy = jest.mocked(APIModule.write);
+            writeSpy.mockImplementation((command, params, options) => {
                 if (options?.optimisticData) {
                     for (const update of options.optimisticData) {
                         if (update.onyxMethod === Onyx.METHOD.MERGE) {
@@ -3564,10 +3586,10 @@ describe('actions/Duplicate', () => {
 
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCalls = (writeSpy.mock.calls as unknown[][]).filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(3);
 
-            const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
+            const iouReportIDs = new Set(requestMoneyCalls.map(([, params]) => params.iouReportID));
             expect(iouReportIDs.size).toBe(1);
         });
 
@@ -3630,7 +3652,7 @@ describe('actions/Duplicate', () => {
     });
 
     describe('bulkDuplicateReports', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.SpiedFunction<typeof APIModule.write>;
 
         const SOURCE_POLICY_ID = 'sourcePolicy1';
         const DEFAULT_POLICY_ID = 'defaultPolicy1';
@@ -3741,8 +3763,9 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+
+            writeSpy = jest.mocked(APIModule.write);
+            writeSpy.mockImplementation((command, params, options) => {
                 if (options?.optimisticData) {
                     for (const update of options.optimisticData) {
                         if (update.onyxMethod === Onyx.METHOD.MERGE) {
@@ -3915,10 +3938,10 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
 
-            const createReportCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_APP_REPORT));
+            const createReportCalls = (writeSpy.mock.calls as unknown[][]).filter(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_APP_REPORT));
             expect(createReportCalls).toHaveLength(2);
 
-            const reportNames = createReportCalls.map((call) => call[1].reportName);
+            const reportNames = createReportCalls.map(([, params]) => params.reportName);
             expect(reportNames).toContain('Copy of Source Policy Report');
             expect(reportNames).toContain('Copy of Inaccessible Policy Report');
         });

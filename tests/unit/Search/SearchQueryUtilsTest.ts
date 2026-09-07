@@ -71,7 +71,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 
-const personalDetailsFakeData = {
+const mockPersonalDetailsFakeData = {
     'johndoe@example.com': {
         accountID: 12345,
     },
@@ -93,7 +93,7 @@ jest.mock('@libs/PersonalDetailsUtils', () => {
     return {
         ...actual,
         getPersonalDetailByEmail(email: string) {
-            return personalDetailsFakeData[email];
+            return mockPersonalDetailsFakeData[email];
         },
     };
 });

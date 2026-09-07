@@ -39,7 +39,6 @@ jest.doMock('react-native', () => {
     const reactNativeMock = Object.setPrototypeOf(
         {
             NativeModules: {
-                ...ReactNative.NativeModules,
                 BootSplash: {
                     hide: jest.fn().mockResolvedValue(undefined),
                     logoSizeRatio: 1,

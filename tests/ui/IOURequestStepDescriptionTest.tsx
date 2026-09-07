@@ -36,11 +36,11 @@ jest.mock('@libs/shouldForceKeyboardIfAlreadyFocused', () => ({
 
 // Capture the `onCancel` the component wires into the discard-changes hook, without dragging in the real
 // navigation/modal machinery (that flow is covered by tests/unit/hooks/useDiscardChangesConfirmationNative.test.ts).
-let capturedOnCancel: (() => void) | undefined;
+let mockCapturedOnCancel: (() => void) | undefined;
 jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
     __esModule: true,
     default: (options: {onCancel?: () => void}) => {
-        capturedOnCancel = options.onCancel;
+        mockCapturedOnCancel = options.onCancel;
         return {suppressDiscardPrompt: jest.fn()};
     },
 }));
@@ -84,7 +84,7 @@ const NAVIGATION = createMock<React.ComponentProps<typeof IOURequestStepDescript
 describe('IOURequestStepDescription - discard modal onCancel', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        capturedOnCancel = undefined;
+        mockCapturedOnCancel = undefined;
     });
 
     it('forces the soft keyboard on cancel when the platform helper opts in (iOS)', async () => {
@@ -100,9 +100,9 @@ describe('IOURequestStepDescription - discard modal onCancel', () => {
         await waitForBatchedUpdatesWithAct();
 
         // The component must have wired an onCancel handler into the discard-changes hook.
-        expect(capturedOnCancel).toBeDefined();
+        expect(mockCapturedOnCancel).toBeDefined();
 
-        act(() => capturedOnCancel?.());
+        act(() => mockCapturedOnCancel?.());
 
         // iOS: shouldDelay=true, no forced selection range, forceKeyboardIfAlreadyFocused=true (the #97823 fix).
         expect(mockFocusFn).toHaveBeenCalledWith(true, undefined, true);
@@ -120,9 +120,9 @@ describe('IOURequestStepDescription - discard modal onCancel', () => {
         // Let the component's useOnyx subscriptions settle so their updates don't fire outside act().
         await waitForBatchedUpdatesWithAct();
 
-        expect(capturedOnCancel).toBeDefined();
+        expect(mockCapturedOnCancel).toBeDefined();
 
-        act(() => capturedOnCancel?.());
+        act(() => mockCapturedOnCancel?.());
 
         // Android/web: forceKeyboardIfAlreadyFocused=false, argument-identical to pre-#97823 main, so the Android
         // regression (focus without keyboard on the hardware-back path) is removed.

@@ -68,6 +68,14 @@ jest.mock('@userActions/Search', () => ({
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
+jest.mock('@src/libs/SearchQueryUtils', () => {
+    const actual = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+    return {
+        ...actual,
+        buildSearchQueryJSON: jest.fn(actual.buildSearchQueryJSON),
+    };
+});
+
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
 const receiverAccountID = 18439985;
@@ -13527,7 +13535,7 @@ describe('getSavedSearchIconName', () => {
     });
 
     it('falls back to the bookmark icon when the query cannot be parsed into a type', () => {
-        const spy = jest.spyOn(SearchQueryUtils, 'buildSearchQueryJSON').mockReturnValue(undefined);
+        const spy = jest.mocked(SearchQueryUtils.buildSearchQueryJSON).mockReturnValue(undefined);
         expect(SearchUIUtils.getSavedSearchIconName('an-unparseable-query')).toBe('Bookmark');
         spy.mockRestore();
     });
@@ -13542,7 +13550,7 @@ describe('getSavedSearchIconName', () => {
         // A missing query must resolve to the fallback everywhere. Without the guard, '' would parse to the
         // grammar default (type:expense -> ReceiptBookmark) while an undefined query would throw and log a
         // console error, so the static twin and the interactive menus would disagree for the same search.
-        const spy = jest.spyOn(SearchQueryUtils, 'buildSearchQueryJSON');
+        const spy = jest.mocked(SearchQueryUtils.buildSearchQueryJSON);
         expect(SearchUIUtils.getSavedSearchIconName(query)).toBe('Bookmark');
         // The guard short-circuits before buildSearchQueryJSON, so no parse (and no console error) happens.
         expect(spy).not.toHaveBeenCalled();

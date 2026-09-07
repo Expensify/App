@@ -9,7 +9,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment, notifyNewAction} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
-import type * as API from '@libs/API';
+import * as APIlib from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -80,8 +80,6 @@ import {isObject, parseJSONRecord} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
-const APIlib = jest.requireActual<typeof API>('@libs/API');
-
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
@@ -130,6 +128,13 @@ jest.mock('@libs/deferredLayoutWrite', () => ({
     reserveDeferredWriteChannel: jest.fn(),
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
+jest.mock('@libs/API', () => {
+    const actual = jest.requireActual<typeof APIlib>('@libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
 
 const unapprovedCashHash = 71801560;
 jest.mock('@src/libs/SearchQueryUtils', () => {
@@ -5774,7 +5779,7 @@ describe('updateSplitTransactions', () => {
         const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
-        const writeSpy = jest.spyOn(APIlib, 'write');
+        const writeSpy = jest.mocked(APIlib.write);
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5959,7 +5964,7 @@ describe('updateSplitTransactions', () => {
         const originalCommentAction = Object.values(originalThreadReportActions ?? {}).find((action) => isAddCommentAction(action));
         expect(originalCommentAction?.reportActionID).toBeDefined();
 
-        const writeSpy = jest.spyOn(APIlib, 'write');
+        const writeSpy = jest.mocked(APIlib.write);
         // Split a transaction that already has thread comments.
         const {splitTransactionID1, splitTransactionID2} = await splitToTwo(expenseReport, originalTransactionID, iouAction);
         const split1ThreadReportID = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1)?.childReportID;
@@ -6084,7 +6089,7 @@ describe('updateSplitTransactions', () => {
         expect(remainingTransactionCommentAction?.reportActionID).toBeDefined();
         expect(remainingTransactionHoldAction?.reportActionID).toBeDefined();
 
-        const writeSpy = jest.spyOn(APIlib, 'write');
+        const writeSpy = jest.mocked(APIlib.write);
 
         const remainingSplitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
         const {allTransactions, allReports, allReportNameValuePairs, allReportActions} = await getCollections();

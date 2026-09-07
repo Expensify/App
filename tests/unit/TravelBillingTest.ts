@@ -18,12 +18,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+jest.mock('@libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
+
 describe('TravelBilling', () => {
     let spyAPIWrite: jest.SpyInstance;
     let spyOnyxMerge: jest.SpyInstance;
 
     beforeEach(() => {
-        spyAPIWrite = jest.spyOn(API, 'write');
+        spyAPIWrite = jest.mocked(API.write);
         spyOnyxMerge = jest.spyOn(Onyx, 'merge');
     });
 

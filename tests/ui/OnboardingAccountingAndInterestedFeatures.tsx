@@ -45,12 +45,20 @@ jest.mock('@hooks/useCompleteOnboarding', () => () => ({
     isLoading: false,
 }));
 
+jest.mock('@libs/Browser', () => {
+    const actual = jest.requireActual<typeof Browser>('@libs/Browser');
+    return {
+        ...actual,
+        isMobileSafari: jest.fn(actual.isMobileSafari),
+    };
+});
+
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 const navigate = jest.spyOn(Navigation, 'navigate');
 const goBack = jest.spyOn(Navigation, 'goBack');
-const isMobileSafari = jest.spyOn(Browser, 'isMobileSafari');
+const isMobileSafari = jest.mocked(Browser.isMobileSafari);
 jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(undefined);
 
 function renderInterestedFeaturesPage() {

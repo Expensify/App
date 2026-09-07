@@ -54,6 +54,13 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
+jest.mock('@src/libs/API', () => {
+    const actual = jest.requireActual<typeof API>('@src/libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+    };
+});
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
@@ -201,7 +208,8 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         it('should the createdIOUReportActionID parameter not be undefined when rejecting an expense to an open report', async () => {
             // Mock API.write for this test
 
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             const openingReport = {
                 ...createRandomReport(3, undefined),
@@ -337,7 +345,8 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
         it('should not create movedTransactionAction when rejecting an expense to a new draft report', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(() => Promise.resolve());
 
             const secondTransaction = {
                 ...createRandomTransaction(2),
@@ -409,7 +418,8 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
         it('should call API.write with REJECT_EXPENSE_REPORT command', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
             await waitForBatchedUpdates();
@@ -430,7 +440,8 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             const markdownComment = 'Rejected because **important**';
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, markdownComment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
             await waitForBatchedUpdates();
@@ -553,7 +564,8 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
         it('should call API.write with MARK_TRANSACTION_VIOLATION_AS_RESOLVED command', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
@@ -591,7 +603,8 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
         it('should not make API call or notify when reportID is undefined', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             const {notifyNewAction} = require('@src/libs/actions/Report');
 
@@ -614,7 +627,8 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
         it('uses the passed transactionViolations parameter instead of the global Onyx collection', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.mocked(API.write);
+            writeSpy.mockImplementation(jest.fn());
 
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');

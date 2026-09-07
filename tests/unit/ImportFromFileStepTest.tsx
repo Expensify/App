@@ -17,7 +17,7 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const POLICY_ID = 'import-from-file-step-test-policy';
+const mockPolicyID = 'import-from-file-step-test-policy';
 
 // The inline template download is a client-side file write, and the help guide opens an external link.
 // Stub both so the test asserts the presses are wired up without touching the filesystem or the browser.
@@ -41,7 +41,7 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: () => true,
         useFocusEffect: jest.fn(),
         usePreventRemove: jest.fn(),
-        useRoute: () => ({key: 'test-route', name: 'Workspace_Company_Cards_Add_New', params: {policyID: POLICY_ID}}),
+        useRoute: () => ({key: 'test-route', name: 'Workspace_Company_Cards_Add_New', params: {policyID: mockPolicyID}}),
     };
 });
 
@@ -56,6 +56,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     removeScreenFromNavigationState: jest.fn(),
     dismissModal: jest.fn(),
 }));
+
+jest.mock('@libs/actions/Link', () => {
+    const actual = jest.requireActual<typeof Link>('@libs/actions/Link');
+    return {
+        ...actual,
+        openLink: jest.fn(actual.openLink),
+    };
+});
 
 function renderImportFromFileStep() {
     return render(
@@ -94,7 +102,7 @@ describe('ImportFromFileStep inline help links', () => {
     });
 
     it('renders the help guide link as a Pressable that keeps its href and opens the help guide', () => {
-        const openLinkSpy = jest.spyOn(Link, 'openLink').mockImplementation(() => {});
+        const openLinkSpy = jest.mocked(Link.openLink).mockImplementation(() => {});
         const helpGuideLink = screen.getByTestId('ImportFromFileStep-HelpGuideLink');
 
         // Retains href so web renders a real <a> (native link behavior), while still routing through onPress on every platform.

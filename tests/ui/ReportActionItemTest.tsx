@@ -86,6 +86,14 @@ jest.mock('@libs/actions/Link', () => {
 
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
+jest.mock('@src/libs/ReportActionsUtils', () => {
+    const actual = jest.requireActual<typeof ReportActionUtils>('@src/libs/ReportActionsUtils');
+    return {
+        ...actual,
+        getIOUActionForReportID: jest.fn(actual.getIOUActionForReportID),
+    };
+});
+
 const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
 
@@ -113,7 +121,7 @@ describe('ReportActionItem', () => {
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
-        jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(getIOUActionForReportID);
+        jest.mocked(ReportActionUtils.getIOUActionForReportID).mockImplementation(getIOUActionForReportID);
     });
 
     beforeEach(async () => {

@@ -26,6 +26,7 @@ import {
     setTwoFactorAuthExemptEmailForDomain,
     updateDomainSecurityGroup,
 } from '@libs/actions/Domain';
+import * as APIModule from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {generateAccountID} from '@libs/UserUtils';
 
@@ -44,6 +45,15 @@ import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@libs/API', () => {
+    const actual = jest.requireActual<typeof APIModule>('@libs/API');
+    return {
+        ...actual,
+        write: jest.fn(actual.write),
+        makeRequestWithSideEffects: jest.fn(actual.makeRequestWithSideEffects),
+    };
+});
+
 OnyxUpdateManager();
 describe('actions/Domain', () => {
     beforeAll(() => {
@@ -58,7 +68,8 @@ describe('actions/Domain', () => {
     });
 
     it('createDomain', () => {
-        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        const apiWriteSpy = jest.mocked(APIModule.write);
+        apiWriteSpy.mockImplementation(() => Promise.resolve());
         const domainKeysBeforeCreation = new Set([`${ONYXKEYS.COLLECTION.DOMAIN}123`]);
         createDomain('test.com', domainKeysBeforeCreation);
 
@@ -111,7 +122,8 @@ describe('actions/Domain', () => {
     });
 
     it('resetDomain', () => {
-        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        const apiWriteSpy = jest.mocked(APIModule.write);
+        apiWriteSpy.mockImplementation(() => Promise.resolve());
         const domainAccountID = 123;
         const domainName = 'test.com';
 
@@ -140,7 +152,8 @@ describe('actions/Domain', () => {
 
     describe('requestDomainAdminship', () => {
         it('optimistically marks the requester as pending', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const currentUserAccountID = 456;
 
@@ -157,7 +170,8 @@ describe('actions/Domain', () => {
         });
 
         it('rolls only the requester back on failure when the domain is one the user can see', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const currentUserAccountID = 456;
 
@@ -173,7 +187,8 @@ describe('actions/Domain', () => {
         });
 
         it('drops the whole entry on failure when it only exists to carry the flow, so no empty domain lingers', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const currentUserAccountID = 456;
 
@@ -218,7 +233,8 @@ describe('actions/Domain', () => {
     });
 
     it('addMemberToDomain', () => {
-        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        const apiWriteSpy = jest.mocked(APIModule.write);
+        apiWriteSpy.mockImplementation(() => Promise.resolve());
         const domainAccountID = 123;
         const email = 'test@example.com';
         const defaultSecurityGroupID = '1';
@@ -282,7 +298,8 @@ describe('actions/Domain', () => {
     });
 
     it('addAdminToDomain - adds and clears optimistic personal details for optimistic accounts', () => {
-        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        const apiWriteSpy = jest.mocked(APIModule.write);
+        apiWriteSpy.mockImplementation(() => Promise.resolve());
         const domainAccountID = 123;
         const accountID = 456;
         const targetEmail = 'test@example.com';
@@ -326,7 +343,8 @@ describe('actions/Domain', () => {
     });
 
     it('addAdminToDomain - does not update optimistic personal details for non-optimistic accounts', () => {
-        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        const apiWriteSpy = jest.mocked(APIModule.write);
+        apiWriteSpy.mockImplementation(() => Promise.resolve());
         const domainAccountID = 123;
         const accountID = 456;
         const targetEmail = 'test@example.com';
@@ -402,7 +420,8 @@ describe('actions/Domain', () => {
 
     describe('closeUserAccount', () => {
         it('closeUserAccount - sends DELETE_DOMAIN_MEMBER API request with correct data', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainName = 'test.com';
             const accountID = 456;
@@ -467,7 +486,8 @@ describe('actions/Domain', () => {
         });
 
         it('closeUserAccount - handles overrideProcessingReports flag', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainName = 'test.com';
             const targetEmail = 'user@test.com';
@@ -486,7 +506,8 @@ describe('actions/Domain', () => {
 
     describe('setDomainVacationDelegate', () => {
         it('sends SET_VACATION_DELEGATE request with ADD pending action when no existing delegate', () => {
-            const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
+            const apiSideEffectSpy = jest.mocked(APIModule.makeRequestWithSideEffects);
+            apiSideEffectSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
             const creator = 'admin@test.com';
@@ -547,7 +568,8 @@ describe('actions/Domain', () => {
         });
 
         it('uses UPDATE pending action when existing delegate is present', () => {
-            const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
+            const apiSideEffectSpy = jest.mocked(APIModule.makeRequestWithSideEffects);
+            apiSideEffectSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
             const creator = 'admin@test.com';
@@ -576,7 +598,8 @@ describe('actions/Domain', () => {
 
     describe('deleteDomainVacationDelegate', () => {
         it('deleteDomainVacationDelegate - sends DELETE_VACATION_DELEGATE request with correct data', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
             const vacationer = 'vacationer@test.com';
@@ -782,7 +805,8 @@ describe('actions/Domain', () => {
         const exemptEmails = ['other@test.com', targetEmail];
 
         it('removes targetEmail from exempt emails in optimisticData when force2FA is true', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
 
             setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, exemptEmails, targetEmail, true);
 
@@ -803,7 +827,8 @@ describe('actions/Domain', () => {
         });
 
         it('adds targetEmail to exempt emails in optimisticData when force2FA is false and no twoFactorAuthCode is provided', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
 
             setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, exemptEmails, targetEmail, false);
 
@@ -824,7 +849,8 @@ describe('actions/Domain', () => {
         });
 
         it('keeps exempt emails unchanged in optimisticData when force2FA is false and twoFactorAuthCode is provided', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const twoFactorAuthCode = '123456';
 
             setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, exemptEmails, targetEmail, false, twoFactorAuthCode);
@@ -846,7 +872,8 @@ describe('actions/Domain', () => {
         });
 
         it('sets twoFactorAuthExemptEmailsError to null and adds VALIDATE_DOMAIN_TWO_FACTOR_CODE error in failureData when twoFactorAuthCode is provided', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const twoFactorAuthCode = '123456';
 
             setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, exemptEmails, targetEmail, true, twoFactorAuthCode);
@@ -873,7 +900,8 @@ describe('actions/Domain', () => {
         });
 
         it('sets twoFactorAuthExemptEmailsError to an error object and omits VALIDATE_DOMAIN_TWO_FACTOR_CODE from failureData when no twoFactorAuthCode is provided', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
 
             setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, exemptEmails, targetEmail, true);
 
@@ -906,7 +934,8 @@ describe('actions/Domain', () => {
 
     describe('resetDomainMemberTwoFactorAuth', () => {
         it('calls RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH with correct optimistic, success, and failure data', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const targetAccountID = 456;
             const targetEmail = 'member@test.com';
@@ -971,8 +1000,9 @@ describe('actions/Domain', () => {
             jest.clearAllMocks();
         });
 
-        it('calls API.write with CHANGE_DOMAIN_SECURITY_GROUP command', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => {});
+        it('calls APIModule.write with CHANGE_DOMAIN_SECURITY_GROUP command', () => {
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => {});
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
@@ -980,8 +1010,9 @@ describe('actions/Domain', () => {
             apiWriteSpy.mockRestore();
         });
 
-        it('passes correct parameters to API.write', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => {});
+        it('passes correct parameters to APIModule.write', () => {
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => {});
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
             const [, parameters] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
@@ -995,7 +1026,8 @@ describe('actions/Domain', () => {
         });
 
         it('optimisticData moves account from current to target security group and sets pending action', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => {});
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => {});
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
             const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
@@ -1025,7 +1057,8 @@ describe('actions/Domain', () => {
         });
 
         it('successData clears pending action and errors for the member', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => {});
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => {});
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
             const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
@@ -1039,7 +1072,8 @@ describe('actions/Domain', () => {
         });
 
         it('failureData reverts domain state, clears pending action and sets move member error', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => {});
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => {});
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
             const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
@@ -1056,7 +1090,8 @@ describe('actions/Domain', () => {
         });
 
         it('extracts newID correctly from targetSecurityGroupKey', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => {});
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => {});
             const customTargetKey: SecurityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}999`;
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, customTargetKey);
 
@@ -1102,7 +1137,8 @@ describe('actions/Domain', () => {
 
     describe('updateDomainSecurityGroup', () => {
         it('sends UPDATE_DOMAIN_SECURITY_GROUP with correct optimistic, success, and failure data', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const groupID = '456';
             const accountID = 789;
@@ -1176,14 +1212,15 @@ describe('actions/Domain', () => {
         let apiWriteSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
         });
 
         afterEach(() => {
             apiWriteSpy.mockRestore();
         });
 
-        it('calls API.write with DELETE_DOMAIN_SECURITY_GROUP and correct parameters', () => {
+        it('calls APIModule.write with DELETE_DOMAIN_SECURITY_GROUP and correct parameters', () => {
             deleteDomainSecurityGroup(domainAccountID, groupID);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
@@ -1320,7 +1357,8 @@ describe('actions/Domain', () => {
 
     describe('setDefaultSecurityGroup', () => {
         it('sends SET_DEFAULT_DOMAIN_SECURITY_GROUP with correct optimistic, success, and failure data', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const groupID = '456';
             const previousGroupID = '789';
@@ -1380,7 +1418,8 @@ describe('actions/Domain', () => {
         });
 
         it('handles undefined previousGroupID in failure data', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const groupID = '456';
             const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
@@ -1422,7 +1461,8 @@ describe('actions/Domain', () => {
         });
 
         it('sends CREATE_DOMAIN_SECURITY_GROUP with correct optimistic, success, and failure data', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const newSecurityGroup: DomainSecurityGroup = {
                 name: 'New Group',
@@ -1482,7 +1522,8 @@ describe('actions/Domain', () => {
         });
 
         it('optimistically sets domain_defaultSecurityGroupID to the new group when shouldSetAsDefaultGroup is true and reverts it on failure', () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.mocked(APIModule.write);
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const previousDefaultGroupID = '999';
             const newSecurityGroup: DomainSecurityGroup = {

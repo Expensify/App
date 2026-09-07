@@ -7,7 +7,7 @@ type AccessibilityModule = {
     };
 };
 
-const appStateListeners: AppStateChangeListener[] = [];
+const mockAppStateListeners: AppStateChangeListener[] = [];
 
 let mockScreenReaderValue = false;
 let mockReduceMotionValue = false;
@@ -41,7 +41,7 @@ jest.mock('react-native', () => ({
     AppState: {
         addEventListener: jest.fn((event: string, listener: AppStateChangeListener) => {
             if (event === 'change') {
-                appStateListeners.push(listener);
+                mockAppStateListeners.push(listener);
             }
             return {remove: jest.fn()};
         }),
@@ -53,7 +53,7 @@ jest.mock('react-native', () => ({
 
 beforeEach(() => {
     jest.resetModules();
-    appStateListeners.length = 0;
+    mockAppStateListeners.length = 0;
     mockScreenReaderValue = false;
     mockReduceMotionValue = false;
     mockReduceMotionFetchCount = 0;
@@ -67,7 +67,7 @@ function loadModule(): AccessibilityModule {
 }
 
 function emitAppState(status: string): void {
-    for (const cb of appStateListeners) {
+    for (const cb of mockAppStateListeners) {
         cb(status);
     }
 }

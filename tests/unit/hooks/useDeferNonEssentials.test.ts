@@ -8,11 +8,11 @@ type PendingAction = {followUpAction: string; reportID?: string} | null;
 
 const mockGetPendingSubmitFollowUpAction = jest.fn<PendingAction, []>();
 const mockRunAfterTransitions = jest.fn<{cancel: jest.Mock}, [unknown]>();
-let focusEffectCleanup: (() => void) | undefined;
+let mockFocusEffectCleanup: (() => void) | undefined;
 
 jest.mock('@react-navigation/native', () => ({
     useFocusEffect: (cb: () => (() => void) | undefined) => {
-        focusEffectCleanup = cb();
+        mockFocusEffectCleanup = cb();
     },
 }));
 
@@ -27,7 +27,7 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 describe('useDeferNonEssentials', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        focusEffectCleanup = undefined;
+        mockFocusEffectCleanup = undefined;
         mockRunAfterTransitions.mockReturnValue({cancel: jest.fn()});
     });
 
@@ -135,8 +135,8 @@ describe('useDeferNonEssentials', () => {
 
         renderHook(() => useDeferNonEssentials('report-1'));
 
-        expect(typeof focusEffectCleanup).toBe('function');
-        focusEffectCleanup?.();
+        expect(typeof mockFocusEffectCleanup).toBe('function');
+        mockFocusEffectCleanup?.();
 
         expect(mockCancel).toHaveBeenCalled();
     });

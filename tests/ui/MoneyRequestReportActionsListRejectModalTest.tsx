@@ -26,7 +26,7 @@ import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const FAKE_REPORT_ID = '100001';
+const mockFakeReportID = '100001';
 const FAKE_POLICY_ID = 'FAKE_POLICY_001';
 const FAKE_ACCOUNT_ID = 15593135;
 const FAKE_TRANSACTION_ID = 'FAKE_TXN_001';
@@ -41,7 +41,7 @@ jest.mock('@react-navigation/native', () => ({
         return {
             key: 'test-key',
             name: SCREENS_MOCK.REPORT,
-            params: {reportID: FAKE_REPORT_ID},
+            params: {reportID: mockFakeReportID},
         };
     },
 }));
@@ -164,7 +164,7 @@ jest.mock('@hooks/useParentReportAction', () => jest.fn(() => undefined));
 jest.mock('@navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
 
 const mockReport: Report = {
-    reportID: FAKE_REPORT_ID,
+    reportID: mockFakeReportID,
     reportName: 'Test Expense Report',
     chatReportID: '200001',
     ownerAccountID: FAKE_ACCOUNT_ID,
@@ -199,7 +199,7 @@ const mockPolicy: Policy = {
 
 const mockTransaction: Transaction = {
     transactionID: FAKE_TRANSACTION_ID,
-    reportID: FAKE_REPORT_ID,
+    reportID: mockFakeReportID,
     amount: 10000,
     currency: CONST.CURRENCY.USD,
     merchant: 'Test Merchant',
@@ -209,7 +209,7 @@ const mockTransaction: Transaction = {
 
 const mockReportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
     reportActionID: 'ACTION_001',
-    reportID: FAKE_REPORT_ID,
+    reportID: mockFakeReportID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2025-01-01 00:00:00',
     actorAccountID: FAKE_ACCOUNT_ID,
@@ -263,11 +263,11 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         await act(async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: false,
-                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockFakeReportID}` as const]: mockReport,
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
-                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockFakeReportID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockFakeReportID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
                 [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
             });
         });
@@ -291,7 +291,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         await act(async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: true,
-                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockFakeReportID}` as const]: mockReport,
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
                 [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
@@ -313,9 +313,9 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
     it('shows the empty state when only the stored loading flag is true', async () => {
         await act(async () => {
             await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockFakeReportID}` as const]: mockReport,
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
-                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockFakeReportID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false},
                 [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
             });
         });
@@ -330,9 +330,9 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
     it('keeps the loading list mounted when only the report pending state is true', async () => {
         await act(async () => {
             await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockFakeReportID}` as const]: mockReport,
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
-                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockFakeReportID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false},
                 [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
             });
         });
@@ -344,15 +344,15 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         expect(screen.getByTestId('MockMoneyRequestReportTransactionList')).toBeTruthy();
         expect(screen.getByTestId('MockInitialReportActionsSkeleton')).toBeTruthy();
         expect(screen.queryByTestId('MockSearchMoneyRequestReportEmptyState')).toBeNull();
-        expect(mockUseIsReportLoadPending).toHaveBeenCalledWith(FAKE_REPORT_ID);
+        expect(mockUseIsReportLoadPending).toHaveBeenCalledWith(mockFakeReportID);
     });
 
     it('shows a warm empty report without a skeleton or loading list while a report request is pending', async () => {
         await act(async () => {
             await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockFakeReportID}` as const]: mockReport,
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
-                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: true},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockFakeReportID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: true},
                 [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
             });
         });
@@ -371,9 +371,9 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         mockUseIsReportLoadPending.mockReturnValue(true);
         await act(async () => {
             await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockFakeReportID}` as const]: mockReport,
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
-                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockFakeReportID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false},
                 [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
             });
         });

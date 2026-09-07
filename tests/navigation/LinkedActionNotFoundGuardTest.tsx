@@ -10,8 +10,8 @@ import {View} from 'react-native';
 
 const REPORT_ID = '12345';
 const REPORT_ACTION_ID = '67890';
-const ROUTE_KEY = 'test-route-key';
-const NAVIGATOR_KEY = 'test-navigator-key';
+const mockRouteKey = 'test-route-key';
+const mockNavigatorKey = 'test-navigator-key';
 
 const mockSetParams = jest.fn();
 const mockCleanStaleBackToParam = jest.fn();
@@ -41,12 +41,12 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actual,
         useRoute: () => ({
-            key: ROUTE_KEY,
+            key: mockRouteKey,
             name: 'Report',
             params: mockRouteParams,
         }),
         useNavigation: () => ({
-            getState: () => ({key: NAVIGATOR_KEY}),
+            getState: () => ({key: mockNavigatorKey}),
         }),
     };
 });
@@ -151,7 +151,7 @@ describe('LinkedActionNotFoundGuard', () => {
 
         expect(screen.getByTestId('test-children')).toBeTruthy();
         expect(mockSetParams).toHaveBeenCalledTimes(1);
-        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
+        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, mockRouteKey, mockNavigatorKey);
     });
 
     it('clears reportActionID when the linked action is deleted while being viewed', () => {
@@ -174,7 +174,7 @@ describe('LinkedActionNotFoundGuard', () => {
         );
 
         expect(screen.getByTestId('test-children')).toBeTruthy();
-        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
+        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, mockRouteKey, mockNavigatorKey);
         expect(mockCleanStaleBackToParam).toHaveBeenCalledWith(REPORT_ID, REPORT_ACTION_ID);
     });
 
@@ -200,7 +200,7 @@ describe('LinkedActionNotFoundGuard', () => {
         );
 
         // The cleanup effect should clear reportActionID with the route key
-        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
+        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, mockRouteKey, mockNavigatorKey);
         expect(mockCleanStaleBackToParam).toHaveBeenCalledWith(REPORT_ID, REPORT_ACTION_ID);
     });
 
@@ -239,7 +239,7 @@ describe('LinkedActionNotFoundGuard', () => {
 
         expect(mockSetParams).toHaveBeenCalledTimes(1);
         // Verify route.key is the second argument (needed for split navigator targeting)
-        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
+        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, mockRouteKey, mockNavigatorKey);
     });
 
     it('renders children without guard when no reportActionID in route', () => {

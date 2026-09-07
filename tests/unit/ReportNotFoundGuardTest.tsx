@@ -14,13 +14,13 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const REPORT_ID = '1';
+const mockReportID = '1';
 const CHILD_TEST_ID = 'report-content';
 const NOT_FOUND_TEST_ID = 'FullPageNotFoundView';
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
-    useRoute: () => ({key: 'report', name: 'Report', params: {reportID: REPORT_ID}}),
+    useRoute: () => ({key: 'report', name: 'Report', params: {reportID: mockReportID}}),
 }));
 
 // FullPageNotFoundView lazy-loads the ToddBehindCloud illustration; stub it so the blocking view renders synchronously.
@@ -62,7 +62,7 @@ describe('ReportNotFoundGuard', () => {
 
     it('does NOT show the not-found page when a stale "not loading" flag is leaked and the report is absent (the #92920 race)', async () => {
         // Simulate the leaked memory-only flag from a previous report, with the current report not yet in Onyx.
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockReportID}`, {isLoadingInitialReportActions: false});
         await waitForBatchedUpdates();
 
         renderGuard();
@@ -76,7 +76,7 @@ describe('ReportNotFoundGuard', () => {
 
     it('shows the not-found page once a real loading phase has completed and the report is still absent (no regression)', async () => {
         // A genuine fetch is in flight for this reportID.
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockReportID}`, {isLoadingInitialReportActions: true});
         await waitForBatchedUpdates();
 
         renderGuard();
@@ -87,7 +87,7 @@ describe('ReportNotFoundGuard', () => {
         expect(isContentVisible()).toBe(true);
 
         // The fetch resolves with no report (genuinely inaccessible) -> not-found should now show.
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockReportID}`, {isLoadingInitialReportActions: false});
         await waitForBatchedUpdates();
 
         expect(isNotFoundVisible()).toBe(true);
@@ -95,8 +95,8 @@ describe('ReportNotFoundGuard', () => {
     });
 
     it('renders the report content when the report exists', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, {reportID: mockReportID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockReportID}`, {isLoadingInitialReportActions: false});
         await waitForBatchedUpdates();
 
         renderGuard();

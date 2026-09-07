@@ -30,7 +30,7 @@ import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const preventRemoveFlags: boolean[] = [];
+const mockPreventRemoveFlags: boolean[] = [];
 
 // Mock LocaleContextProvider to avoid dynamic import issues with emojis/IntlStore
 jest.mock('@components/LocaleContextProvider', () => {
@@ -133,7 +133,7 @@ jest.mock('@react-navigation/native', () => {
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
         usePreventRemove: (shouldPreventRemove: boolean) => {
-            preventRemoveFlags.push(shouldPreventRemove);
+            mockPreventRemoveFlags.push(shouldPreventRemove);
         },
         useRoute: jest.fn(() => ({name: 'Money_Request_Step_Amount'})),
     };
@@ -187,7 +187,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        preventRemoveFlags.length = 0;
+        mockPreventRemoveFlags.length = 0;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -314,16 +314,16 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         );
 
         await waitForBatchedUpdatesWithAct();
-        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(false);
 
         fireEvent.press(screen.getByText('iou.flip'));
         await waitForBatchedUpdatesWithAct();
-        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(true);
 
-        preventRemoveFlags.length = 0;
+        mockPreventRemoveFlags.length = 0;
         fireEvent.press(screen.getByText('iou.flip'));
         await waitForBatchedUpdatesWithAct();
-        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(false);
     });
 
     it('keeps the native discard guard armed when a transaction draft update arrives after a sign-only change', async () => {
@@ -358,15 +358,15 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('iou.flip'));
         await waitForBatchedUpdatesWithAct();
-        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(true);
 
-        preventRemoveFlags.length = 0;
+        mockPreventRemoveFlags.length = 0;
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 500});
         });
         await waitForBatchedUpdatesWithAct();
 
-        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(true);
     });
 
     it('disarms the native discard guard when the request type changes after a sign-only change', async () => {
@@ -401,15 +401,15 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('iou.flip'));
         await waitForBatchedUpdatesWithAct();
-        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(true);
 
-        preventRemoveFlags.length = 0;
+        mockPreventRemoveFlags.length = 0;
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
         });
         await waitForBatchedUpdatesWithAct();
 
-        expect(preventRemoveFlags.at(-1)).toBe(false);
+        expect(mockPreventRemoveFlags.at(-1)).toBe(false);
     });
 
     it('arms the native discard guard when a negative amount becomes positive and disarms it when the negative sign is restored', async () => {
@@ -442,16 +442,16 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         );
 
         await waitForBatchedUpdatesWithAct();
-        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(false);
 
         fireEvent.press(screen.getByText('iou.flip'));
         await waitForBatchedUpdatesWithAct();
-        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(true);
 
-        preventRemoveFlags.length = 0;
+        mockPreventRemoveFlags.length = 0;
         fireEvent.press(screen.getByText('iou.flip'));
         await waitForBatchedUpdatesWithAct();
-        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(false);
     });
 
     it('disarms the native discard guard when backspace clears an empty negative amount', async () => {
@@ -486,7 +486,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('iou.flip'));
         await waitForBatchedUpdatesWithAct();
-        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(true);
 
         const amountInput = screen.getByTestId('moneyRequestAmountInput');
         fireEvent.changeText(amountInput, '5');
@@ -494,10 +494,10 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         fireEvent.changeText(amountInput, '');
         await waitForBatchedUpdatesWithAct();
 
-        preventRemoveFlags.length = 0;
+        mockPreventRemoveFlags.length = 0;
         fireEvent(amountInput, 'keyPress', {nativeEvent: {key: 'Backspace'}});
         await waitForBatchedUpdatesWithAct();
 
-        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+        expect(mockPreventRemoveFlags.some(Boolean)).toBe(false);
     });
 });
