@@ -21,14 +21,12 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 
-import type {AccountingActionsContextType, AccountingStateContextType, ActiveIntegration, ActiveIntegrationState} from './types';
+import type {ActiveIntegration, ActiveIntegrationState} from './types';
 
-import {defaultAccountingActionsContextValue, defaultAccountingStateContextValue, popoverAnchorRefsInitialValue} from './default';
-
-const AccountingStateContext = createContext<AccountingStateContextType>(defaultAccountingStateContextValue);
-const AccountingActionsContext = createContext<AccountingActionsContextType>(defaultAccountingActionsContextValue);
+import {AccountingActionsContext, AccountingStateContext, useAccountingActions, useAccountingState} from './contexts';
+import {popoverAnchorRefsInitialValue} from './default';
 
 type AccountingContextProviderProps = ChildrenProps & {
     policy: OnyxEntry<Policy>;
@@ -199,14 +197,6 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             </AccountingActionsContext.Provider>
         </AccountingStateContext.Provider>
     );
-}
-
-function useAccountingState(): AccountingStateContextType {
-    return useContext(AccountingStateContext);
-}
-
-function useAccountingActions(): AccountingActionsContextType {
-    return useContext(AccountingActionsContext);
 }
 
 export {AccountingContextProvider, useAccountingState, useAccountingActions};
