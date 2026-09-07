@@ -991,6 +991,148 @@ describe('actions/IOU/PayMoneyRequest', () => {
             expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
             expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
         });
+        describe('scan-failed expenses', () => {
+            const employeeAccountID = 3;
+            const scanFailedPolicy: Policy = {
+                ...createRandomPolicy(0),
+                id: '1',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const chatReport = {
+                reportID: '456',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: employeeAccountID,
+                iouReportID: '123',
+                policyID: scanFailedPolicy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            } as Report;
+
+            const buildTransaction = (transactionID: string, amount: number, isScanFailed: boolean): Transaction => ({
+                ...buildOptimisticTransaction({transactionParams: {amount, currency: 'USD', reportID: '123', merchant: 'Valid merchant'}}),
+                transactionID,
+                ...(isScanFailed
+                    ? {
+                          merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                          iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                          receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+                      }
+                    : {}),
+            });
+
+            const setUpReport = async (transactions: Transaction[]) => {
+                const expenseReport = {
+                    reportID: '123',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: employeeAccountID,
+                    managerID: RORY_ACCOUNT_ID,
+                    policyID: scanFailedPolicy.id,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    total: transactions.reduce((sum, transaction) => sum + (transaction.amount ?? 0), 0),
+                    currency: 'USD',
+                    parentReportID: chatReport.reportID,
+                    chatReportID: chatReport.reportID,
+                } as Report;
+
+                const reportActions: ReportActions = {};
+                for (const transaction of transactions) {
+                    const action = buildOptimisticIOUReportAction({
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: transaction.amount,
+                        currency: 'USD',
+                        comment: '',
+                        participants: [],
+                        transactionID: transaction.transactionID,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    });
+                    reportActions[action.reportActionID] = action as ReportAction;
+                }
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${scanFailedPolicy.id}`, scanFailedPolicy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, reportActions);
+                await Onyx.multiSet(
+                    Object.fromEntries(transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction])) as TransactionCollectionDataSet,
+                );
+                await waitForBatchedUpdates();
+
+                return expenseReport;
+            };
+
+            const pay = (expenseReport: Report) =>
+                payMoneyRequest({
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    chatReport,
+                    iouReport: expenseReport,
+                    introSelected: undefined,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserLogin: RORY_EMAIL,
+                    full: true,
+                    policy: scanFailedPolicy,
+                    chatReportPolicy: scanFailedPolicy,
+                    betas: [CONST.BETAS.ALL],
+                    isSelfTourViewed: false,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    chatReportActions: undefined,
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                    conciergeChat: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                });
+
+            it('moves the scan-failed expense to a new report when another expense is being paid', async () => {
+                const validTransaction = buildTransaction('valid1', -3000, false);
+                const scanFailedTransaction = buildTransaction('scanFailed1', 0, true);
+                const expenseReport = await setUpReport([validTransaction, scanFailedTransaction]);
+
+                const newReportID = pay(expenseReport);
+                await waitForBatchedUpdates();
+
+                expect(newReportID).toBeDefined();
+                const movedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
+                expect(movedTransaction?.reportID).toBe(newReportID);
+                const paidTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${validTransaction.transactionID}`);
+                expect(paidTransaction?.reportID).toBe(expenseReport.reportID);
+
+                const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+                const payAction = Object.values(reportActions ?? {}).find((action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY);
+                expect(payAction && isMoneyRequestAction(payAction) ? getOriginalMessage(payAction)?.amount : undefined).toBe(3000);
+            });
+
+            it('does not create a new report when every expense in the report is scan-failed', async () => {
+                const scanFailedTransaction = buildTransaction('scanFailed1', 0, true);
+                const expenseReport = await setUpReport([scanFailedTransaction]);
+
+                const newReportID = pay(expenseReport);
+                await waitForBatchedUpdates();
+
+                expect(newReportID).toBeUndefined();
+                const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
+                expect(transaction?.reportID).toBe(expenseReport.reportID);
+            });
+
+            it('does not move a scan-failed expense that has an amount, so the payment total stays in sync with the backend', async () => {
+                const validTransaction = buildTransaction('valid1', -3000, false);
+                const scanFailedTransaction = buildTransaction('scanFailed1', -5000, true);
+                const expenseReport = await setUpReport([validTransaction, scanFailedTransaction]);
+
+                const newReportID = pay(expenseReport);
+                await waitForBatchedUpdates();
+
+                expect(newReportID).toBeUndefined();
+                const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
+                expect(transaction?.reportID).toBe(expenseReport.reportID);
+
+                const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+                const payAction = Object.values(reportActions ?? {}).find((action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY);
+                expect(payAction && isMoneyRequestAction(payAction) ? getOriginalMessage(payAction)?.amount : undefined).toBe(8000);
+            });
+        });
 
         it('should accept isSelfTourViewed as true and apply optimistic data correctly', async () => {
             const chatReport = {
