@@ -20,7 +20,7 @@ import SCREENS from '@src/SCREENS';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {dismissAuthSession, openAuthSessionAsync} from 'expo-web-browser';
+import {dismissAuthSession, openAuthSessionAsync, WebBrowserResultType} from 'expo-web-browser';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -30,6 +30,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('expo-web-browser', () => ({
     openAuthSessionAsync: jest.fn(),
     dismissAuthSession: jest.fn(),
+    WebBrowserResultType: {CANCEL: 'cancel'},
 }));
 
 jest.mock('@libs/getPlatform', () => jest.fn());
@@ -120,7 +121,7 @@ describe('SAMLSignInPage', () => {
     });
 
     it('leaves once when the user cancels the in-app browser', async () => {
-        mockedOpenAuthSessionAsync.mockResolvedValue({type: 'cancel'});
+        mockedOpenAuthSessionAsync.mockResolvedValue({type: WebBrowserResultType.CANCEL});
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
