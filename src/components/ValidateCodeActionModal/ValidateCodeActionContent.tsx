@@ -29,6 +29,7 @@ function ValidateCodeActionContent({
     handleSubmitForm,
     clearError,
     sendValidateCode,
+    validateCodeReasonCode,
     isLoading,
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
@@ -46,10 +47,12 @@ function ValidateCodeActionContent({
         }
         firstRenderRef.current = false;
 
-        // The validateCode is account-level, so skip sending if one was already requested within the resend window (e.g. a page reload)
+        // The validateCode is account-level, so skip sending if one was already requested within the resend window (e.g. a page reload).
+        // When this screen declares a reason, only suppress if the recent request was for the same flow.
         const requestedAt = validateCodeAction?.lastValidateCodeRequestedAt;
         const sentRecently = !!requestedAt && Date.now() - requestedAt < CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND;
-        if (sentRecently) {
+        const sentRecentlyForSameReason = sentRecently && (!validateCodeReasonCode || validateCodeAction?.lastValidateCodeReason === validateCodeReasonCode);
+        if (sentRecentlyForSameReason) {
             return;
         }
 
