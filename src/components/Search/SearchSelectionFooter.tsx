@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
-import {isGroupEntry} from '@libs/SearchUIUtils';
+import {getSearchTotalsAfterLocalRemovals, isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -139,9 +139,14 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const isGroupedSearch = !isReportsSearch && !!currentSearchQueryJSON?.groupBy;
 
     const metadata = searchResults?.search;
-    const metadataCount = metadata?.count;
     const metadataCurrency = metadata?.currency;
-    const metadataTotal = metadata?.total;
+
+    // The Search API is the only writer of `search.count`/`search.total`, but the app removes rows from the snapshot
+    // locally on submit/approve/pay, so those figures keep counting rows that are no longer listed until the next
+    // request. Take the removed rows out for as long as the snapshot still shows their absence.
+    const adjustedTotals = getSearchTotalsAfterLocalRemovals(searchResults, metadataCurrency);
+    const metadataCount = adjustedTotals ? adjustedTotals.count : metadata?.count;
+    const metadataTotal = adjustedTotals ? adjustedTotals.total : metadata?.total;
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const excludedTransactionsKeys = useMemo(() => Object.keys(excludedTransactions), [excludedTransactions]);
     const isExpenseType = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -548,10 +553,11 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         return null;
     }
 
-    // A partial selection shows a client-side subtotal that is ready immediately, so only show the search-loading
-    // skeleton when the footer is displaying the whole-search total. (Load-more requests also set metadata.isLoading
-    // but don't recalculate totals, so gate on offset 0.)
-    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && !!metadata?.isLoading && metadata?.offset === 0);
+    // The only skeleton left is the currency conversion: a request that refreshes figures the footer already shows
+    // runs behind them. Acting on a row triggers one, and covering the figures each time made them blink, while the
+    // count and total they would be replaced with are the ones already on screen. Before the first count arrives
+    // there is nothing to keep, but there is also no footer yet (see shouldShowFooter above).
+    const isFooterTotalLoading = isFooterTotalConverting;
 
     return (
         <SearchPageFooter

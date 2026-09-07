@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -41,6 +42,9 @@ type PayActionCellProps = {
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
+    // Paying from a row drops it from the Ready to pay snapshot, the same as every other action path. Without the
+    // search key the removal is skipped, and the list and the footer keep the report until the next refetch.
+    const {currentSearchKey} = useSearchQueryContext();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -98,7 +102,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             return;
         }
 
-        const additionalOnyxData = getSearchPayOnyxData(hash, reportID);
+        const additionalOnyxData = getSearchPayOnyxData(hash, reportID, currentSearchKey);
 
         if (isInvoiceReport(iouReport)) {
             // Invoice payments rely on the invoice room data, so they can't proceed without the chat report.

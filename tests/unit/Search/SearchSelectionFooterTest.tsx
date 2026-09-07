@@ -11,6 +11,7 @@ import type {SearchResults} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
@@ -49,6 +50,7 @@ type CapturedFooterProps = {
     total?: number;
     defaultCurrency?: string;
     currency?: string;
+    isTotalLoading?: boolean;
     onCurrencyChange?: (currency: string) => void;
 };
 const mockCapturedFooterProps: {current: CapturedFooterProps | undefined} = {current: undefined};
@@ -88,6 +90,50 @@ function buildSearchResults(currency: string | undefined, count = 1, total = -10
             hasResults: true,
         },
         data: {},
+    };
+}
+
+/**
+ * An expense-report snapshot the app has acted on: report 1 is still listed with one expense, report 2 was removed by
+ * submit/approve/pay and left its own expense behind as an orphan.
+ */
+function buildSearchResultsWithRemovedRow(isLoading: boolean): SearchResults {
+    const data: SearchResults['data'] = {};
+    data[`${ONYXKEYS.COLLECTION.REPORT}1`] = {reportID: '1', currency: CONST.CURRENCY.USD};
+    data[`${ONYXKEYS.COLLECTION.TRANSACTION}10`] = {
+        ...createRandomTransaction(10),
+        transactionID: '10',
+        reportID: '1',
+        amount: -1000,
+        currency: CONST.CURRENCY.USD,
+        groupAmount: -1000,
+        groupCurrency: CONST.CURRENCY.USD,
+    };
+    data[`${ONYXKEYS.COLLECTION.TRANSACTION}20`] = {
+        ...createRandomTransaction(20),
+        transactionID: '20',
+        reportID: '2',
+        amount: -3000,
+        currency: CONST.CURRENCY.USD,
+        groupAmount: -3000,
+        groupCurrency: CONST.CURRENCY.USD,
+    };
+
+    return {
+        search: {
+            hash: 1,
+            offset: 0,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            hasMoreResults: false,
+            hasResults: true,
+            isLoading,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            count: 2,
+            total: 4000,
+            currency: CONST.CURRENCY.USD,
+        },
+        data,
     };
 }
 
@@ -134,6 +180,34 @@ describe('SearchSelectionFooter', () => {
 
     afterEach(async () => {
         await Onyx.clear();
+    });
+
+    it('subtracts the expenses of a report removed locally by submit/approve/pay', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {};
+
+        render(<SearchSelectionFooter searchResults={buildSearchResultsWithRemovedRow(false)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1, total: 1000, isTotalLoading: false}));
+    });
+
+    it('keeps the figures visible while the search refreshes, instead of flashing the skeleton after every action', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {};
+
+        render(<SearchSelectionFooter searchResults={buildSearchResultsWithRemovedRow(true)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1, total: 1000, isTotalLoading: false}));
     });
 
     it('subtracts excluded expenses from the server count and total', async () => {

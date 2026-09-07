@@ -2432,6 +2432,67 @@ function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportI
 }
 
 /**
+ * Whole-search count and total with the rows the app removed locally taken out.
+ *
+ * Only the Search API writes `search.count` and `search.total`, but submit/approve/pay drop the acted-on report from
+ * the snapshot straight away, so those figures keep counting expenses that are no longer listed until the next
+ * request. The removal nulls the report entry and leaves its transactions behind, and those orphans are exactly the
+ * rows that went away: subtracting them restores agreement between the list and the footer, on any page of results.
+ * A first-page response replaces the whole snapshot, so the orphans and the stale figures are cleared together.
+ *
+ * Returns undefined when nothing was removed, or when this can't be answered exactly, in which case the server
+ * figures stand:
+ * - only expense-report searches, where a row is a report and an orphaned expense means a removed row (on other
+ *   search types the snapshot need not hold a report for every expense, so an orphan means nothing)
+ * - the total is only adjusted when every removed expense carries a `groupAmount` in `targetCurrency`, since
+ *   `search.total` is converted and a raw amount in another currency is not comparable to it. The count is
+ *   currency-free, so it is always adjusted.
+ */
+function getSearchTotalsAfterLocalRemovals(
+    searchResults: OnyxEntry<OnyxTypes.SearchResults>,
+    targetCurrency: string | undefined,
+): {count: number | undefined; total: number | undefined} | undefined {
+    const data = searchResults?.data;
+    const search = searchResults?.search;
+    if (!data || search?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return undefined;
+    }
+
+    let removedCount = 0;
+    let removedTotal = 0;
+    let canAdjustTotal = true;
+
+    for (const key in data) {
+        if (!isTransactionEntry(key)) {
+            continue;
+        }
+
+        const transaction = data[key];
+        if (!transaction?.reportID || data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]) {
+            continue;
+        }
+
+        removedCount += 1;
+
+        if (transaction.groupAmount === undefined || transaction.groupCurrency !== targetCurrency) {
+            canAdjustTotal = false;
+            continue;
+        }
+
+        removedTotal -= transaction.groupAmount;
+    }
+
+    if (removedCount === 0) {
+        return undefined;
+    }
+
+    return {
+        count: search.count === undefined ? undefined : Math.max(search.count - removedCount, 0),
+        total: canAdjustTotal && search.total !== undefined && targetCurrency ? search.total - removedTotal : search.total,
+    };
+}
+
+/**
  * Groups the snapshot's transactions by reportID in a single pass, so rows can look up their own
  * transactions instead of each calling `getTransactionsForReport` (a full snapshot scan).
  */
@@ -7215,6 +7276,7 @@ export {
     getSortedTransactionData,
     getViolationsFromSearchData,
     getTransactionsByReportID,
+    getSearchTotalsAfterLocalRemovals,
     isTransactionMatchWithGroupItem,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,

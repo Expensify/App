@@ -2389,7 +2389,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals);
+                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals, currentSearchKey);
                         } else {
                             Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
                         }
