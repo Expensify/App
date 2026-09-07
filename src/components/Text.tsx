@@ -1,6 +1,6 @@
 import useTheme from '@hooks/useTheme';
 
-import {containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+import {containsOnlyCustomEmoji} from '@libs/CustomEmojiUtils';
 
 import type {TextVariant} from '@styles/typography';
 import {textVariants} from '@styles/typography';
