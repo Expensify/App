@@ -22,7 +22,7 @@ If you want to understand why card connection issues happen, see [Understand Car
 Who can take action depends on the card type:
 
 - **Personal cards:** the cardholder manages their own card in **Account > Wallet**.
-- **Company card feeds:** a workspace admin or card admin manages the feed under **Workspace > Company cards**. Individual members can't fix a company card feed themselves.
+- **Company cards:** a workspace admin or card admin manages the connection under **Workspace > Company cards**. Individual members can't fix a company card feed themselves.
 
 If you're a member and see a connection issue on an expense from a company card, a workspace admin or card admin may need to resolve the underlying feed issue.
 
@@ -55,7 +55,8 @@ If Expensify says the connection **needs reauthentication**, the connection has 
 
 ## What to do if the recommended action doesn't resolve the error
 
-If your connection to American Express, Bank of America, Brex, Capital One, Chase, Citibank, Stripe, or Wells Fargo is broken and the recommended action doesn't resolve the error, you can try connecting to that bank a different way. [Learn how to set up a direct connection for company cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards), which includes connecting through Plaid.
+If your connection to American Express, Bank of America, Brex, Capital One, Chase, Citibank, Stripe, or Wells Fargo is broken and the recommended action doesn't resolve the error, you can try connecting to that bank a different way. See 
+[What should I do if I can't connect to my bank?](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards#What-should-I-do-if-I-can't-connect-to-my-bank?), which includes connecting through Plaid.
 
 If you are still unable to resolve the error, contact Concierge for support. When you reach out, please include:
 
@@ -79,13 +80,3 @@ If you were connecting a new card, you can continue the connection process after
 If the card was already connected, Expensify can resume importing transactions after the connection is restored.
 
 Transactions that didn't import while an existing connection was unavailable may import after the connection is restored.
-
----
-
-## Where to get more help with a card connection error
-
-If the error continues after following the recommended action, use the troubleshooting guidance for the specific connection state or bank.
-
-- [Learn how to reauthenticate a card connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Reauthenticate-a-Card-Connection)
-- [Learn how to manage personal cards](/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Manage-Personal-Cards)
-- [Learn how to set up a commercial feed for company cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards)
