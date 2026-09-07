@@ -104,7 +104,6 @@ function InboxTabSelector() {
                 renderTooltipContent: renderProductTrainingTooltip,
                 shouldRender: shouldShowProductTrainingTooltip,
                 shouldForceRenderingBelow: true,
-                shouldHideOnNavigate: false,
                 anchorAlignment: {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
