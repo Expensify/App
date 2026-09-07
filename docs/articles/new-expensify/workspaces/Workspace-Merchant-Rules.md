@@ -19,13 +19,15 @@ To create a Merchant Rule:
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
 2. Click **Rules**.
-3. In the **Merchant** section, click **Add merchant rule**.
+3. In the **Merchant** section, click **Add merchant rule**. If the **Rules** page shows tabs instead, select the **Expense defaults** tab, click **Add rule**, select **Apply expense defaults**, then select **Merchant**.
 4. Enter the merchant name and choose how it should match:
    - **Contains**
    - **Matches exactly**
 5. Select the fields you want the rule to update. 
 6. Optionally apply the rule to existing unsubmitted expenses and review matching expenses using **Preview matches**.
-7. Select **Save Rule**
+7. Click **Save rule**.
+
+A rule that matches on **Merchant** can update any expense field the rule supports. To set only a default tax rate for a category, create a rule that matches on **Category** instead. [Learn how to set a default tax rate for a category](/articles/new-expensify/workspaces/Set-a-default-tax-rate-for-a-category).
 
 ---
 

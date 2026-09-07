@@ -143,7 +143,7 @@ To manage them:
 Available options:
 
 - **Approver** – Assign a specific approver for expenses in this category.
-- **Default tax rate** – Set a default tax percentage ([Taxes](/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Default tax rate** – Set a default tax percentage ([Taxes](/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace). You can also set and manage this rate from the **Expense defaults** tab on the **Rules** page. [Learn how to set a default tax rate for a category](/articles/new-expensify/workspaces/Set-a-default-tax-rate-for-a-category).
 - **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
