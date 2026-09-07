@@ -7,7 +7,7 @@ import {normalizeESLintResults, parseESLintStdout} from '../../scripts/lint/esli
 import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
 import Linter from '../../scripts/lint/Linter';
 import Pipeline from '../../scripts/lint/LintPipeline';
-import {filterReactCompilerMessages} from '../../scripts/lint/processors/ReactCompilerFilter';
+import {filterReactCompilerMessages, shouldPersistCompilerCache} from '../../scripts/lint/processors/ReactCompilerFilter';
 import Seatbelt, {resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
 import {stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecated';
 import {LINT_SEVERITY} from '../../scripts/lint/types';
@@ -165,6 +165,13 @@ describe('filterReactCompilerMessages', () => {
         const messages = [makeMessage({filePath: '/tmp/does-not-exist.tsx', ruleID: 'react/jsx-no-constructed-context-values'})];
         const result = await filterReactCompilerMessages(messages, '/tmp');
         expect(result).toEqual(messages);
+    });
+
+    it('does not persist fallback compiler failures to cache', () => {
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: false, cacheable: false})).toBe(false);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: false, cacheable: true})).toBe(true);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: true, cacheable: true})).toBe(true);
+        expect(shouldPersistCompilerCache(undefined)).toBe(false);
     });
 });
 

@@ -85,38 +85,43 @@ type Candidate = {
 type CompilerWorkerResponse = {
     filename: string;
     bothMemoized: boolean;
+    cacheable: boolean;
 };
 
 function conservativeFallback(candidate: Candidate): CompilerWorkerResponse {
-    return {filename: candidate.filename, bothMemoized: false};
+    return {filename: candidate.filename, bothMemoized: false, cacheable: false};
 }
 
-async function checkCandidatesWithPool(candidates: Candidate[], checkBoth: CompilerCheck | undefined, workerCount: number): Promise<Map<string, boolean>> {
-    const memoized = new Map<string, boolean>();
+function shouldPersistCompilerCache(verdict: CompilerWorkerResponse | undefined): boolean {
+    return verdict?.cacheable === true;
+}
+
+async function checkCandidatesWithPool(candidates: Candidate[], checkBoth: CompilerCheck | undefined, workerCount: number): Promise<Map<string, CompilerWorkerResponse>> {
+    const verdicts = new Map<string, CompilerWorkerResponse>();
     if (candidates.length === 0) {
-        return memoized;
+        return verdicts;
     }
 
     if (checkBoth) {
         await Promise.all(
             candidates.map(async (candidate) => {
                 try {
-                    memoized.set(candidate.filename, await checkBoth(candidate.source, candidate.filename));
+                    verdicts.set(candidate.filename, {filename: candidate.filename, bothMemoized: await checkBoth(candidate.source, candidate.filename), cacheable: true});
                 } catch {
                     // Conservative: keep the message rather than aborting the whole lint.
-                    memoized.set(candidate.filename, false);
+                    verdicts.set(candidate.filename, conservativeFallback(candidate));
                 }
             }),
         );
-        return memoized;
+        return verdicts;
     }
 
     const pool = new WorkerPool<Candidate, CompilerWorkerResponse>(new URL('./ReactCompilerWorker.ts', import.meta.url), workerCount);
     const responses = await pool.map(candidates, conservativeFallback);
     for (const response of responses) {
-        memoized.set(response.filename, response.bothMemoized);
+        verdicts.set(response.filename, response);
     }
-    return memoized;
+    return verdicts;
 }
 
 /**
@@ -200,13 +205,13 @@ async function filterReactCompilerMessages(
     const computed = await checkCandidatesWithPool(uncached, checkBoth, workerCount);
     await Promise.all(
         uncached.map(async (candidate) => {
-            const bothMemoized = computed.get(candidate.filename) ?? false;
-            memoized.set(candidate.filename, bothMemoized);
-            if (checkBoth) {
+            const verdict = computed.get(candidate.filename) ?? conservativeFallback(candidate);
+            memoized.set(candidate.filename, verdict.bothMemoized);
+            if (checkBoth || !shouldPersistCompilerCache(verdict)) {
                 return;
             }
             try {
-                await writeCache(cachePath(projectRoot, cacheKey(reactCompilerFingerprint, candidate.filename, candidate.source)), bothMemoized);
+                await writeCache(cachePath(projectRoot, cacheKey(reactCompilerFingerprint, candidate.filename, candidate.source)), verdict.bothMemoized);
             } catch {
                 // Conservative: skip the cache write rather than abort the lint.
             }
@@ -222,5 +227,5 @@ async function filterReactCompilerMessages(
 }
 
 export default ReactCompilerFilter;
-export {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN, filterReactCompilerMessages, isSuppressibleMessage, RULES_SUPPRESSED_BY_REACT_COMPILER};
+export {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN, filterReactCompilerMessages, isSuppressibleMessage, RULES_SUPPRESSED_BY_REACT_COMPILER, shouldPersistCompilerCache};
 export type {CompilerCheck};
