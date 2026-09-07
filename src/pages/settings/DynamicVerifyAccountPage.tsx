@@ -1,5 +1,6 @@
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useDynamicForwardPath from '@hooks/useDynamicForwardPath';
+import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -19,6 +20,7 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
     let forwardPath = useDynamicForwardPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
     const isJoinWorkspaceTask = route.params?.isJoinWorkspaceTask === 'true';
+    const returnToOriginReport = useReturnToOriginReport();
 
     if (backPath === ROUTES.SETTINGS_WALLET) {
         forwardPath = ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute();
@@ -32,6 +34,7 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
         <VerifyAccountPageBase
             navigateBackTo={backPath}
             navigateForwardTo={forwardPath}
+            handleClose={isJoinWorkspaceTask ? returnToOriginReport : undefined}
             onValidationSuccess={isJoinWorkspaceTask ? getAccessiblePolicies : undefined}
         />
     );

@@ -1026,7 +1026,7 @@ describe('OnboardingPrivateDomain Page', () => {
     });
 
     it('should redirect a public-domain user away to the purpose step', async () => {
-        await TestHelper.signInWithTestUser();
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -1048,7 +1048,7 @@ describe('OnboardingPrivateDomain Page', () => {
     });
 
     it('should redirect a public-domain SMB user away to the employees step', async () => {
-        await TestHelper.signInWithTestUser();
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -1071,7 +1071,7 @@ describe('OnboardingPrivateDomain Page', () => {
     });
 
     it('should redirect a public-domain VSB user away to the employees step', async () => {
-        await TestHelper.signInWithTestUser();
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {

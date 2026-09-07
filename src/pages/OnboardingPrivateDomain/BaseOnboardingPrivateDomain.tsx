@@ -26,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import {CONST as COMMON_CONST} from 'expensify-common';
+import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -36,12 +36,13 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [hasValidateCodeBeenSent, setHasValidateCodeBeenSent] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (acc) => ({
             validated: acc?.validated,
-            isFromPublicDomain: acc?.isFromPublicDomain,
         }),
     });
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
@@ -61,6 +62,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
     const onboardingIntent = useOnboardingIntent();
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
+    const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow;
 
     const {
         taskReport: validateEmailTaskReport,
@@ -106,7 +108,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const continueAfterPrivateDomain = useCallback(
         (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
             if (isJoiningCompanyWorkspace) {
-                if (hasCompletedGuidedSetupFlow) {
+                if (isConciergeTaskFlow) {
                     returnToOriginReport();
                     return;
                 }
@@ -115,12 +117,14 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             }
             navigateToNextOnboardingStep(backTo, options);
         },
-        [isJoiningCompanyWorkspace, hasCompletedGuidedSetupFlow, navigateToNextOnboardingStep, returnToOriginReport],
+        [isJoiningCompanyWorkspace, isConciergeTaskFlow, navigateToNextOnboardingStep, returnToOriginReport],
     );
 
-    // Only validated public-domain users are blocked from this screen — for them the "people on YOUR domain" copy would reference gmail.com.
-    // An unvalidated public-domain user who just submitted a work email may land here before isFromPublicDomain updates; that's the staging happy path.
-    const shouldBlockPublicDomain = !!account?.validated && !!account?.isFromPublicDomain;
+    // Only users whose current primary login is both validated and public-domain are blocked from this screen, since
+    // the "people on YOUR domain" copy would otherwise reference gmail.com. The account flag can lag a primary-login
+    // change, so only use it until the login itself is available in Onyx.
+    const isCurrentPrimaryPublicDomain = PUBLIC_DOMAINS_SET.has(domain.toLowerCase());
+    const shouldBlockPublicDomain = isCurrentPrimaryPublicDomain && (isValidated || (!!account?.validated && !loginList?.[session?.email ?? '']));
 
     useEffect(() => {
         if (shouldBlockPublicDomain) {
@@ -166,8 +170,10 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <OnboardingHeader
-                shouldShowBackButton
+                shouldShowBackButton={!isConciergeTaskFlow}
                 onBackButtonPress={handleBackButtonPress}
+                shouldShowCloseButton={isConciergeTaskFlow}
+                onCloseButtonPress={returnToOriginReport}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
@@ -204,7 +210,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateError={getAccessiblePoliciesAction?.errors}
                         hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                         shouldShowSkipButton
-                        handleSkipButtonPress={() => continueAfterPrivateDomain(route.params?.backTo)}
+                        handleSkipButtonPress={() => (isConciergeTaskFlow ? returnToOriginReport() : continueAfterPrivateDomain(route.params?.backTo))}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}
                     />
