@@ -49,8 +49,8 @@
                         "comment": "Plaid setup"
                     },
                     {
-                        "/": "/oauth/callback",
-                        "comment": "Cloudflare Access OAuth callback for the QA environment"
+                        "/": "/oauth/native-callback",
+                        "comment": "Native-only Cloudflare Access OAuth callback, no web route"
                     },
                     {
                         "/": "/statements/*",
