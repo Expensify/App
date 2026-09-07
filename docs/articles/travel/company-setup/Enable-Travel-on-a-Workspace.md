@@ -2,7 +2,7 @@
 title: Enable Expensify Travel on a workspace
 description: Learn how Workspace Admins can enable Expensify Travel to manage business travel bookings and expenses in one place.
 keywords: [Expensify Travel, enable travel, workspace admin, business travel, travel management, travel policy, book travel, company travel]
-internalScope: Audience is Workspace Admins. Covers enabling Expensify Travel and the Add trip names to expenses setting. Does not cover booking restrictions or travel policy configuration
+internalScope: Audience is Workspace Admins. Covers enabling Expensify Travel, finishing travel setup so Book travel appears for members, and the Add trip names to expenses setting. Does not cover booking restrictions or travel policy configuration
 ---
 
 # Enable Expensify Travel on a workspace
@@ -20,10 +20,24 @@ Only **Workspace Admins** can enable Expensify Travel for a workspace.
 3. In the left menu, click **More Features**. 
 4. Toggle on **Travel**.
 
+Toggling on **Travel** adds a **Travel** item to the workspace left menu, but it does not finish setting up Expensify Travel. Complete the setup steps below before your members can book travel.
+
+## How to finish Expensify Travel setup so members can book travel
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your workspace name to access the settings for that workspace.
+3. In the left menu, click **Travel**.
+4. On the **Get started with Expensify Travel** page, click **Let’s go**.
+5. Complete each step Expensify asks for. Depending on your workspace, this can include your legal name, your workspace address, your admin email domain, and your **Legal entity tax ID**.
+6. Accept the travel terms and conditions.
+
+Only **Workspace Admins** can complete these steps. Members are not asked for their legal name when they book a trip — Expensify collects it during this setup flow instead.
+
 ## What happens after enabling Expensify Travel
 
-Once Expensify Travel is enabled: 
+Once Expensify Travel setup is complete: 
 
+- **Book travel** appears in the **+** menu for members of that workspace
 - Team members can book flights, hotels, cars, and trains
 - Travel bookings follow your workspace’s travel policy
 - Bookings and expenses stay connected from start to finish
@@ -38,6 +52,12 @@ To customize your company’s travel rules — like flight class, hotel limits, 
 [Expensify Travel policy setup hub](https://help.expensify.com/travel/hubs/company-setup/).
 
 # FAQ
+
+## Why don’t my members see Book travel after I turned on the Travel toggle?
+
+**Book travel** only appears once Expensify Travel setup is complete for the workspace. Turning on the **Travel** toggle in **More features** is the first step, not the last one.
+
+Members also only see **Book travel** for workspaces they belong to. If someone leaves or is removed from the workspace, **Book travel** disappears for them unless another workspace they belong to has Expensify Travel set up.
 
 ## Why are trip names being added to my expense descriptions?
 
