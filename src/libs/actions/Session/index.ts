@@ -879,14 +879,16 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false, curren
     // re-fires and loops. This key is RAM-only (resets on reload), so setting it early carries no stuck-state risk; the
     // optimisticData re-sets it and finallyData reverts it exactly as before.
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
-    Device.getDeviceInfoWithID().then((deviceInfo) => {
-        API.read(
-            READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
+    NetworkStore.setLastShortAuthToken(authToken);
+
+    return Device.getDeviceInfoWithID().then((deviceInfo) =>
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
             {authToken, skipReauthentication: true, authMethod, deviceInfo, currentAuthToken},
             {optimisticData, failureData, finallyData},
-        );
-    });
-    NetworkStore.setLastShortAuthToken(authToken);
+        ),
+    );
 }
 
 /**

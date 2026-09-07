@@ -1,4 +1,4 @@
-import {READ_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 
 import CONST from '@src/CONST';
@@ -104,7 +104,7 @@ describe('Middleware', () => {
             jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: 200, lastUpdateID: 501, previousUpdateID: 500});
 
             await Request.processWithMiddleware({
-                command: READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
+                command: SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
                 data: {apiRequestType: CONST.API_REQUEST_TYPE.READ},
                 finallyData: [
                     {
