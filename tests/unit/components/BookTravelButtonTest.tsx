@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
+import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -107,12 +108,14 @@ const workspaceWithoutTravel: Policy = {
 
 const renderBookTravelButton = () =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <BookTravelButton
-                text="Book a trip"
-                activePolicyID={POLICY_ID}
-            />
-        </ComposeProviders>,
+        <NavigationContainer>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <BookTravelButton
+                    text="Book a trip"
+                    activePolicyID={POLICY_ID}
+                />
+            </ComposeProviders>
+        </NavigationContainer>,
     );
 
 const seedOnyx = async (isValidated: boolean) => {
@@ -211,6 +214,22 @@ describe('BookTravelButton', () => {
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
+        it('does not collect a missing legal name outside the travel enablement flow', async () => {
+            await seedWorkspaces(travelEnabledPolicy, POLICY_ID);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {});
+                await waitForBatchedUpdatesWithAct();
+            });
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(openTravelDotLink).toHaveBeenCalledWith(POLICY_ID);
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('missing-personal-details'));
+        });
+
         it('asks the user to switch defaults when the default workspace accepted travel terms but has travel switched off', async () => {
             await seedWorkspaces(travelEnabledPolicy, DEFAULT_POLICY_ID, {...travelEnabledPolicy, id: DEFAULT_POLICY_ID, isTravelEnabled: false});
             renderBookTravelButton();
@@ -237,7 +256,7 @@ describe('BookTravelButton', () => {
     });
 
     describe('when the user has a personal-email login', () => {
-        it('shows the public-domain error before the missing legal-name step even when legal details are missing', async () => {
+        it('shows the public-domain error even when legal details are missing', async () => {
             // Given a user logged in with a public-domain email and no legal name set yet
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, provisionedPolicy);
@@ -251,7 +270,7 @@ describe('BookTravelButton', () => {
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then they are routed to the public-domain error, not the missing legal-name page
+            // Then they are routed to the public-domain error without entering the workspace legal-name page
             expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('public-domain-error'));
             expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('missing-personal-details'));
         });

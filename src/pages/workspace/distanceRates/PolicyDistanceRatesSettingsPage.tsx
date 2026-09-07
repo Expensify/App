@@ -235,7 +235,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
                         >
                             <View style={[styles.mt2, styles.mb5, styles.mh5]}>
-                                <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                     <Text
                                         style={[styles.textNormal, styles.colorMuted]}
                                         accessible={false}
@@ -296,7 +296,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         pendingAction={customUnit?.pendingFields?.taxEnabled}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
-                            <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                 <Text
                                     style={[styles.textNormal, styles.colorMuted]}
                                     accessible={false}

@@ -9,7 +9,6 @@ import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useExportDownloadStatusModal from '@hooks/useExportDownloadStatusModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -82,7 +81,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(true));
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -100,7 +98,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             return;
         }
 
-        const exportID = queueExportSearchWithTemplate(
+        queueExportSearchWithTemplate(
             {
                 templateName,
                 templateType,
@@ -112,7 +110,9 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             },
             true,
         );
-        trackExport(exportID);
+
+        // Clear the selection now that the export has started; the app-level ExportDownloadStatusManager shows the modal.
+        clearSelectedTransactions(true);
     };
 
     const onDeleteSelected = (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
@@ -238,7 +238,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     return (
         <>
-            {exportDownloadStatusModal}
             {isDuplicateOptionVisible && (
                 <BulkDuplicateHandler
                     selectedTransactionsKeys={selectedTransactionIDs}
