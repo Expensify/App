@@ -105,7 +105,7 @@ import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
 
 import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
-import {getBankAccountFromID, getBankAccountList} from './actions/BankAccounts';
+import {getBankAccountFromID} from './actions/BankAccounts';
 import {unholdRequest} from './actions/IOU/Hold';
 import {
     createDraftTransaction,
@@ -446,12 +446,6 @@ type BuildOptimisticIOUReportActionParams = {
     linkedExpenseReportAction?: OnyxEntry<ReportAction>;
     payAsBusiness?: boolean;
     bankAccountID?: number | undefined;
-    /**
-     * Masked number of the bank account the report was actually paid with. Stored on the action so every viewer sees
-     * the same account, since the payer's account is not present in every viewer's `bankAccountList` and the policy's
-     * ACH account can belong to a different bank account than the one used to pay.
-     */
-    accountNumber?: string;
     isPersonalTrackingExpense?: boolean;
     reportActionID?: string;
     // TODO: delegateAccountIDParam will be made required when all callers pass the value (https://github.com/Expensify/App/issues/66425)
@@ -1073,14 +1067,6 @@ const FALLBACK_TITLE_FIELD: PolicyReportField = {
     orderWeight: 0,
     isTax: false,
 };
-
-let conciergeReportIDOnyxConnect: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
-    callback: (value) => {
-        conciergeReportIDOnyxConnect = value;
-    },
-});
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 Onyx.connect({
@@ -6070,7 +6056,7 @@ function getReportPreviewMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
-            const isFromInvoice = originalMessage?.paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA && !!originalMessage?.bankAccountID;
+            const isFromInvoice = !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
@@ -6095,7 +6081,7 @@ function getReportPreviewMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = getBankAccountLastFourDigits(undefined, getBankAccountList(), policy ?? undefined, originalMessage?.accountNumber, payerAccountID);
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? policy?.achAccount?.accountNumber?.slice(-4) ?? '';
             const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits) : undefined;
             if (crossBorderMessage) {
                 return crossBorderMessage;
@@ -6292,10 +6278,7 @@ function getReportPreviewReportActionMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
-            // `bankAccountID` alone doesn't imply the invoice was paid outside VBBA, since a paying admin can pick a
-            // bank account for any payment type. The VBBA check must be evaluated first (see below) so a VBBA
-            // payment always renders as "paid with bank account 1234" rather than being mislabeled as personal.
-            const isFromInvoice = originalMessage?.paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA && !!originalMessage?.bankAccountID;
+            const isFromInvoice = !!originalMessage?.bankAccountID;
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
@@ -6320,7 +6303,7 @@ function getReportPreviewReportActionMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = getBankAccountLastFourDigits(undefined, getBankAccountList(), reportPolicy, originalMessage?.accountNumber, payerAccountID);
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
             // This variant returns raw English to match the surrounding non-localized preview strings.
             if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
@@ -7849,7 +7832,6 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         isPersonalTrackingExpense = false,
         payAsBusiness,
         bankAccountID,
-        accountNumber,
         reportActionID,
         delegateAccountIDParam,
         isSubmitterMarkedPaymentReceived,
@@ -7890,11 +7872,6 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
 
         if (isSubmitterMarkedPaymentReceived) {
             originalMessage.isSubmitterMarkedPaymentReceived = true;
-        }
-
-        // Persist the masked account used to pay so every viewer resolves the same account (see `accountNumber` above).
-        if (accountNumber) {
-            originalMessage.accountNumber = accountNumber;
         }
     }
 
@@ -11420,7 +11397,7 @@ function getIOUReportActionDisplayMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    policy: OnyxEntry<Policy>,
+    policyACHAccountNumber: string | undefined,
     transaction?: OnyxEntry<Transaction>,
     bankAccountList?: OnyxEntry<BankAccountList>,
 ): string {
@@ -11435,7 +11412,7 @@ function getIOUReportActionDisplayMessage(
 
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const last4Digits = getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policy, originalMessage?.accountNumber, reportAction?.actorAccountID);
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policyACHAccountNumber);
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 
         switch (originalMessage.paymentType) {
@@ -12589,8 +12566,8 @@ type PrepareOnboardingOnyxDataParams = {
     isSelfTourViewed?: boolean;
     // TODO: should be required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     currentUserEmail?: string;
-    /** The concierge chat report, looked up by conciergeReportID. Falls back to getChatByParticipants using the deprecated module-level Onyx data while the refactor is in progress. */
-    conciergeChat?: OnyxEntry<Report>;
+    /** The concierge chat report, looked up by conciergeReportID */
+    conciergeChat: OnyxEntry<Report>;
     /** The admins chat report, looked up by adminsChatReportID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
     adminsChatReport?: OnyxEntry<Report>;
     /** The self-DM report, looked up by ONYXKEYS.SELF_DM_REPORT_ID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
@@ -12614,7 +12591,7 @@ function prepareOnboardingOnyxData({
     onboardingPurposeSelected,
     isSelfTourViewed,
     currentUserEmail,
-    conciergeChat: conciergeChatParam,
+    conciergeChat,
     adminsChatReport: adminsChatReportParam,
     selfDMReport: selfDMReportParam,
     currentUserAccountID,
@@ -12634,10 +12611,6 @@ function prepareOnboardingOnyxData({
     // Server picks the inboxAdminsBespoke variant at response time, so optimistic writes here would be stale.
     const shouldDeferOptimisticTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     const adminsChatReport = adminsChatReportParam ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
-    const conciergeChat =
-        conciergeChatParam ??
-        getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], deprecatedAllReports, false) ??
-        (conciergeReportIDOnyxConnect ? {reportID: conciergeReportIDOnyxConnect} : undefined);
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS})
         : conciergeChat;
