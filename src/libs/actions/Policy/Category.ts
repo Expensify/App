@@ -17,13 +17,13 @@ import type {
     SetPolicyCategoryMaxAmountParams,
     SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
-    SetPolicyCategoryTaxParams,
     SetPolicyShowCategoryGLCodesParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
+import {getRuleCategoryName, matchesCategoryTaxRule} from '@libs/CategoryTaxRulesUtils';
 import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -945,7 +945,6 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
     const policyCategoryToUpdate = policyData.categories?.[policyCategory.oldName];
 
     const policyCategoryApproverRule = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], policyCategory.oldName);
-    const policyCategoryExpenseRule = CategoryUtils.getCategoryExpenseRule(policy?.rules?.expenseRules ?? [], policyCategory.oldName);
     const approvalRules = policy?.rules?.approvalRules ?? [];
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const mccGroup = policy?.mccGroup ?? {};
@@ -955,16 +954,22 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
     const updatedMccGroup = CategoryUtils.updateCategoryInMccGroup(clonedMccGroup, policyCategory.oldName, policyCategory.newName);
     const updatedMccGroupWithClearedPendingAction = CategoryUtils.updateCategoryInMccGroup(clonedMccGroup, policyCategory.oldName, policyCategory.newName, true);
 
-    if (policyCategoryExpenseRule) {
-        const ruleIndex = updatedExpenseRules.findIndex((rule) => rule.id === policyCategoryExpenseRule.id);
-        policyCategoryExpenseRule.applyWhen = policyCategoryExpenseRule.applyWhen.map((applyWhen) => ({
-            ...applyWhen,
-            ...(applyWhen.field === CONST.POLICY.FIELDS.CATEGORY &&
-                applyWhen.value === policyCategory.oldName && {
-                    value: policyCategory.newName,
-                }),
-        }));
-        updatedExpenseRules[ruleIndex] = policyCategoryExpenseRule;
+    // Found by its category condition rather than by `id`, because a rule created in NewDot has none: comparing ids
+    // made every rule without one equal, so a rename overwrote whichever sat earliest in the array and destroyed it.
+    // The match is rewritten as a copy for the same reason — the rule read off the policy is the live object.
+    const expenseRuleIndex = updatedExpenseRules.findIndex((rule) => matchesCategoryTaxRule(rule, policyCategory.oldName));
+    const ruleToRename = updatedExpenseRules.at(expenseRuleIndex);
+    if (expenseRuleIndex !== -1 && ruleToRename) {
+        updatedExpenseRules[expenseRuleIndex] = {
+            ...ruleToRename,
+            applyWhen: ruleToRename.applyWhen.map((applyWhen) => ({
+                ...applyWhen,
+                ...(applyWhen.field === CONST.POLICY.FIELDS.CATEGORY &&
+                    applyWhen.value === policyCategory.oldName && {
+                        value: policyCategory.newName,
+                    }),
+            })),
+        };
     }
 
     // Its related by name, so the corresponding rule has to be updated to handle offline scenario
@@ -1059,6 +1064,7 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
                 value: {
                     rules: {
                         approvalRules,
+                        expenseRules,
                     },
                     mccGroup,
                 },
@@ -1282,62 +1288,6 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY, parameters, onyxData);
-}
-
-function setPolicyAutoCategorizeNewExpenses(policyID: string, enabled: boolean) {
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    autoCategorizeNewExpenses: enabled,
-                    errorFields: {
-                        autoCategorizeNewExpenses: null,
-                    },
-                    pendingFields: {
-                        autoCategorizeNewExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    errorFields: {
-                        autoCategorizeNewExpenses: null,
-                    },
-                    pendingFields: {
-                        autoCategorizeNewExpenses: null,
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    autoCategorizeNewExpenses: !enabled,
-                    errorFields: {
-                        autoCategorizeNewExpenses: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
-                    },
-                    pendingFields: {
-                        autoCategorizeNewExpenses: null,
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters = {
-        policyID,
-        enabled,
-    };
-
-    API.write(WRITE_COMMANDS.SET_POLICY_AUTO_CATEGORIZE_NEW_EXPENSES, parameters, onyxData);
 }
 
 function setPolicyShowCategoryGLCodes(policyID: string | undefined, showCategoryGLCodes: boolean) {
@@ -1889,72 +1839,224 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
 }
 
-function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string) {
-    if (!policy?.id) {
+/**
+ * The categories an expense rule already matches on, for membership tests that would otherwise scan the array once per
+ * name. A rate isn't required, since a rule is found here to have one written to it.
+ */
+function getCategoriesWithExpenseRule(expenseRules: ExpenseRule[]): Set<string | undefined> {
+    return new Set(expenseRules.map(getRuleCategoryName));
+}
+
+/** Builds the expense rule that carries a category's default tax rate. */
+function buildCategoryTaxRule(categoryName: string, taxID: string): ExpenseRule {
+    return {
+        tax: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            field_id_TAX: {externalID: taxID},
+        },
+        applyWhen: [
+            {
+                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                field: CONST.POLICY.FIELDS.CATEGORY,
+                value: categoryName,
+            },
+        ],
+    };
+}
+
+/**
+ * Applies a tax rate to each category, returning the whole rules array.
+ *
+ * Onyx replaces arrays wholesale, so a write can never patch one rule. Every stage supplies the complete array.
+ */
+function withCategoryTaxRates(expenseRules: ExpenseRule[], taxRatesByCategory: Map<string, string | undefined>): ExpenseRule[] {
+    const updated = expenseRules.map((rule) => {
+        const categoryName = getRuleCategoryName(rule);
+        const taxID = categoryName ? taxRatesByCategory.get(categoryName) : undefined;
+
+        if (!taxID) {
+            return rule;
+        }
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        return {...rule, tax: {field_id_TAX: {...rule.tax?.field_id_TAX, externalID: taxID}}};
+    });
+
+    const categoriesWithExpenseRule = getCategoriesWithExpenseRule(expenseRules);
+    const added = [...taxRatesByCategory.entries()].flatMap(([categoryName, taxID]) =>
+        !taxID || categoriesWithExpenseRule.has(categoryName) ? [] : [buildCategoryTaxRule(categoryName, taxID)],
+    );
+
+    return [...updated, ...added];
+}
+
+/**
+ * Sets the same default tax rate on one or more categories.
+ *
+ * No `successData`, like `setPolicyCategoryApprover`: it would carry a whole-array snapshot, and `API.write` persists
+ * those, so queued offline writes would replay stale arrays over each other. The server response is authoritative.
+ *
+ * The command is per-category, so a bulk save is one write each, and every rollback is the array as it stood before the
+ * save. Onyx replaces the array wholesale, so a rollback can't patch a single rule: whichever failure lands last is the
+ * array. Snapshots that each spared their own siblings therefore contradicted each other once two writes failed, and
+ * the survivor made a rejected category look saved. One identical baseline makes the order stop mattering.
+ *
+ * The cost is that a partial failure discards the writes that succeeded too, so they read stale until the next policy
+ * read. That beats showing a rate the server rejected, which is what the admin would otherwise save on top of.
+ */
+function setPolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[], taxID: string) {
+    if (!policy?.id || categoryNames.length === 0 || !taxID) {
+        Log.warn('Invalid params for setPolicyCategoryTaxes');
         return;
     }
     const policyID = policy.id;
-    const expenseRules = policy?.rules?.expenseRules ?? [];
-    const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
-    const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
+    const expenseRules = policy.rules?.expenseRules ?? [];
+    const requested = new Map(categoryNames.map((categoryName) => [categoryName, taxID]));
 
-    if (!existingCategoryExpenseRule) {
-        updatedExpenseRules.push({
-            tax: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                field_id_TAX: {
-                    externalID: taxID,
-                },
-            },
-            applyWhen: [
-                {
-                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                    field: CONST.POLICY.FIELDS.CATEGORY,
-                    value: categoryName,
-                },
-            ],
-        });
-    } else {
-        const indexToUpdate = updatedExpenseRules.indexOf(existingCategoryExpenseRule);
-        const expenseRule = updatedExpenseRules.at(indexToUpdate);
-
-        if (expenseRule && indexToUpdate !== -1) {
-            expenseRule.tax.field_id_TAX.externalID = taxID;
-        }
-    }
+    // Every write shares this array. They are all enqueued at once, so the optimistic state has to be the same
+    // end state for each of them rather than a running total that the last write would truncate.
+    const optimisticExpenseRules = withCategoryTaxRates(expenseRules, requested);
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    rules: {
-                        expenseRules: updatedExpenseRules,
-                    },
-                },
+                value: {rules: {expenseRules: optimisticExpenseRules}},
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    rules: {
-                        expenseRules,
-                    },
-                },
+                value: {rules: {expenseRules}},
             },
         ],
     };
 
-    const parameters: SetPolicyCategoryTaxParams = {
-        policyID,
-        categoryName,
-        taxID,
+    for (const categoryName of categoryNames) {
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID}, onyxData);
+    }
+}
+
+/** Sets a single category's default tax rate. */
+function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string) {
+    setPolicyCategoryTaxes(policy, [categoryName], taxID);
+}
+
+/**
+ * Removes the tax defaults for one or more categories. There is no dedicated delete command: writing the workspace's own
+ * default rate is what clears an override, since `getCategoryDefaultTaxRate` falls back to that same rate when no rule
+ * exists. The rules are dropped optimistically so the rows go straight away.
+ *
+ * Dropped rather than marked as deleting, so no grey pending row offline. A rule can't carry a pending flag: clearing
+ * one on success means rewriting the whole array, `API.write` persists that snapshot, and queued writes then replay
+ * stale arrays over each other. That was the state before dc9c34f9a97 removed `pendingAction` from `ExpenseRule`.
+ *
+ * Every rollback is the array as it stood before the delete, for the reason in `setPolicyCategoryTaxes`: Onyx replaces
+ * the array wholesale, so per-category snapshots contradict each other and the last failure to land hides the rest.
+ */
+function deletePolicyCategoryTaxes(policy: OnyxEntry<Policy>, categoryNames: string[]) {
+    const defaultExternalID = policy?.taxRates?.defaultExternalID;
+    if (!policy?.id || !defaultExternalID || categoryNames.length === 0) {
+        Log.warn('Invalid params for deletePolicyCategoryTaxes');
+        return;
+    }
+    const policyID = policy.id;
+    const expenseRules = policy.rules?.expenseRules ?? [];
+    const categoriesWithExpenseRule = getCategoriesWithExpenseRule(expenseRules);
+    const targets = categoryNames.filter((categoryName) => categoriesWithExpenseRule.has(categoryName));
+
+    if (targets.length === 0) {
+        return;
+    }
+
+    // Shared like the save path: the writes are enqueued together, so each needs the same end state.
+    const targetedCategories = new Set(targets);
+    const optimisticExpenseRules = expenseRules.filter((rule) => {
+        const categoryName = getRuleCategoryName(rule);
+        return !categoryName || !targetedCategories.has(categoryName);
+    });
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules: optimisticExpenseRules}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules}},
+            },
+        ],
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, onyxData);
+    for (const categoryName of targets) {
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, categoryName, taxID: defaultExternalID}, onyxData);
+    }
+}
+
+/** Removes a single category's default tax rate. */
+function deletePolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string) {
+    deletePolicyCategoryTaxes(policy, [categoryName]);
+}
+
+/**
+ * Moves a category's default tax rate to another category.
+ *
+ * The command is per-category, so a move is two writes: clearing the old category and setting the new one. They share
+ * one rollback array — the state before the move — because Onyx replaces the array wholesale. Rolling each write back
+ * against its own baseline instead lets the second failure overwrite what the first restored, dropping both rules.
+ *
+ * If exactly one write fails the local array goes back to the state before the move, so the one that succeeded reads
+ * stale until the next policy read. Two commands with no transaction between them can't do better, and it beats
+ * leaving the rate on two categories at once.
+ *
+ * The server can be left mid-move for the same reason — the rate on both categories, or on neither — and no rollback
+ * here can undo a request that already landed. A compensating write is not the answer: it can fail too, and offline it
+ * queues behind the failure it is meant to repair. The next policy read reconciles, and until the API can move a rate
+ * in one command that is the honest bound on this flow.
+ */
+function movePolicyCategoryTax(policy: OnyxEntry<Policy>, fromCategoryName: string, toCategoryName: string, taxID: string) {
+    const defaultExternalID = policy?.taxRates?.defaultExternalID;
+    if (!policy?.id || !defaultExternalID || !fromCategoryName || !toCategoryName || !taxID) {
+        Log.warn('Invalid params for movePolicyCategoryTax');
+        return;
+    }
+    const policyID = policy.id;
+    const originalExpenseRules = policy.rules?.expenseRules ?? [];
+    const withoutOldCategory = originalExpenseRules.filter((rule) => !matchesCategoryTaxRule(rule, fromCategoryName));
+    const optimisticExpenseRules = withCategoryTaxRates(withoutOldCategory, new Map([[toCategoryName, taxID]]));
+
+    // Writing the workspace default rate is what clears an override, so the move's first half is a write like any other.
+    const writes = [
+        {categoryName: fromCategoryName, taxID: defaultExternalID},
+        {categoryName: toCategoryName, taxID},
+    ];
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules: optimisticExpenseRules}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {rules: {expenseRules: originalExpenseRules}},
+            },
+        ],
+    };
+
+    for (const write of writes) {
+        API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, {policyID, ...write}, onyxData);
+    }
 }
 
 function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: string, areAttendeesRequired: boolean, policyCategories: PolicyCategories = {}) {
@@ -2035,6 +2137,8 @@ export {
     DEFAULT_MCC_GROUP,
     isDefaultMccGroupID,
     clearCategoryErrors,
+    deletePolicyCategoryTax,
+    deletePolicyCategoryTaxes,
     createPolicyCategory,
     deleteWorkspaceCategories,
     downloadCategoriesCSV,
@@ -2044,6 +2148,7 @@ export {
     openPolicyCategoriesPage,
     removePolicyCategoryReceiptsRequired,
     removePolicyCategoryItemizedReceiptsRequired,
+    movePolicyCategoryTax,
     renamePolicyCategory,
     setPolicyCategoryApprover,
     setPolicyCategoryAttendeesRequired,
@@ -2056,10 +2161,10 @@ export {
     setPolicyCategoryReceiptsRequired,
     setPolicyCategoryItemizedReceiptsRequired,
     setPolicyCategoryTax,
+    setPolicyCategoryTaxes,
     setPolicyCustomUnitDefaultCategory,
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
-    setPolicyAutoCategorizeNewExpenses,
     setPolicyShowCategoryGLCodes,
 };
