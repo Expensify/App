@@ -54,7 +54,24 @@ jest.mock('@libs/actions/SidePanel', () => ({
     },
 }));
 
-const {handleRHPVariantNavigation} = jest.requireActual<typeof RHPVariantTest>('../../../../src/components/SidePanel/RHPVariantTest/index.ts');
+const {handleRHPVariantNavigation, shouldOpenRHPVariant} = jest.requireActual<typeof RHPVariantTest>('../../../../src/components/SidePanel/RHPVariantTest/index.ts');
+
+describe('shouldOpenRHPVariant', () => {
+    it('opens the side panel for the rhpHomePage variant at any company size', () => {
+        // Company size is deliberately not consulted — the experiment runs across every size.
+        expect(shouldOpenRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE)).toBe(true);
+    });
+
+    it('opens the side panel for the trackExpensesWithConcierge variant', () => {
+        expect(shouldOpenRHPVariant(CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE)).toBe(true);
+    });
+
+    it('does not open the side panel for the retired arms or when no variant is assigned', () => {
+        expect(shouldOpenRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM)).toBe(false);
+        expect(shouldOpenRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM)).toBe(false);
+        expect(shouldOpenRHPVariant(null)).toBe(false);
+    });
+});
 
 describe('handleRHPVariantNavigation', () => {
     beforeEach(() => {
