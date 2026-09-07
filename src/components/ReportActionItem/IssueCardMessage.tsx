@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 
@@ -6,6 +6,7 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -53,21 +54,23 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const shouldShowActivateButton = isAssigneeCurrentUser && shouldShowActivateCard(action?.actionName, expensifyCard, privatePersonalDetails);
 
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     return (
         <>
             <RenderHTML
-                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, expensifyCard, companyCard, translate, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID})}</muted-text>`}
+                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, buildDynamicRoute, expensifyCard, companyCard, translate, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID})}</muted-text>`}
             />
             {shouldShowAddMissingDetailsButton && (
                 <Button
                     onPress={() => {
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(expensifyCard.cardID))));
                     }}
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     style={[styles.alignSelfStart, styles.mt3]}
-                    text={translate('workspace.expensifyCard.addShippingDetails')}
-                />
+                >
+                    <Button.Text>{translate('workspace.expensifyCard.addShippingDetails')}</Button.Text>
+                </Button>
             )}
             {shouldShowActivateButton && (
                 <Button
@@ -77,10 +80,11 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
                         }
                         Navigation.navigate(ROUTES.REPORT_CARD_ACTIVATE.getRoute(expensifyCard.cardID, route.params?.reportID, route.params?.reportActionID));
                     }}
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     style={[styles.alignSelfStart, styles.mt3]}
-                    text={translate('activateCardPage.activateCard')}
-                />
+                >
+                    <Button.Text>{translate('activateCardPage.activateCard')}</Button.Text>
+                </Button>
             )}
         </>
     );

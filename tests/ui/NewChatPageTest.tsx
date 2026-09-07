@@ -50,7 +50,7 @@ jest.mock('react-native-permissions', () => ({
     },
 }));
 
-const triggerTransitionEnd = () => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+const {triggerTransitionEnd} = jest.requireMock<NativeNavigationMock>('@react-navigation/native');
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
     <OnyxListItemProvider>

@@ -49,8 +49,20 @@ function getOxcAndWorkletsLoaders(isDevServer: boolean) {
         {
             loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
             options: {
-                reactCompiler: {target: '19', panicThreshold: 'none', isDev: isDevServer},
-                target: 'node20',
+                reactCompiler: {
+                    target: '19',
+                    panicThreshold: 'none',
+                    // `sources` is a filename allowlist: the compiler only runs on files whose path
+                    // contains one of these strings. Every path contains the empty string, so this
+                    // replaces the default filter (which skips `node_modules`) and keeps the compiler
+                    // running over INCLUDED_NODE_MODULES the same way it does over app source.
+                    sources: [''],
+                    // The compiler treats `react-hooks/exhaustive-deps` and `react-hooks/rules-of-hooks`
+                    // suppressions as an opt-out by default. babel-plugin-react-compiler disables that
+                    // default whenever exhaustive-memo and hooks-usage validation are both on, which is
+                    // its own default, so an empty list keeps web and Metro/Jest compiling the same files.
+                    eslintSuppressionRules: [],
+                },
                 jsx: {runtime: 'automatic', development: isDevServer, refresh: isDevServer},
             },
         },
@@ -551,13 +563,18 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(sentryWebpackPlugin
                         ? ([
                               sentryWebpackPlugin({
-                                  authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
+                                  authToken: process.env.SENTRY_AUTH_TOKEN,
                                   org: 'expensify',
                                   project: 'app',
                                   release: {
                                       name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
                                       create: true,
                                       setCommits: {auto: true},
+                                      // Don't inject SENTRY_RELEASE into every chunk: the SDK only reads it as a
+                                      // fallback, and setupSentry.ts passes `release` to Sentry.init explicitly.
+                                      // If set to true, the app version is embedded into every chunk, so each version
+                                      // bump changes the contenthash of every bundle and invalidates the entire cache.
+                                      inject: false,
                                   },
                                   sourcemaps: {
                                       assets: './dist/**/*.{js,map}',

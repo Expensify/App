@@ -19,6 +19,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         goBack: () => {
             mockGoBack();
         },
+        // SignInModal dismisses itself once IS_LOADING_APP settles to false. That is unrelated to back
+        // handling, but Onyx carries the flag in from whatever ran earlier, so both must be stubbed or the
+        // dismiss effect throws before the assertions run.
         dismissModal: jest.fn(),
         navigate: jest.fn(),
     },

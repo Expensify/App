@@ -117,11 +117,8 @@ type DistanceSymbolProps = {
     /** Toggles the unit of measurement for every symbol on the map. */
     toggleDistanceUnit: () => void;
 
-    /** List of coordinates which together forms a direction. */
-    directionCoordinates?: Coordinate[];
-
-    /** List of waypoints on the map */
-    waypoints?: WayPoint[];
+    /** Coordinate at which the symbol is anchored on the map. */
+    distanceSymbolCoordinate?: Coordinate | null;
 
     /**
      * Whether the direction to which the symbol is assigned to is selected, true by default if not provided.

@@ -277,6 +277,7 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
+    shouldRemoveQueuedAttachment = false,
 ): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -290,6 +291,14 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     let nextAction = null;
     if (currentAddComment) {
         currentAddComment.data = {...currentAddComment.data, ...parameters};
+
+        // The queued request keeps its own file, so without dropping it the server would re-add an attachment the edit removed.
+        if (shouldRemoveQueuedAttachment) {
+            delete currentAddComment.data.file;
+            delete currentAddComment.data.attachmentID;
+            currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+        }
+
         nextAction = {
             type: 'replace',
             index: addCommentIndex,

@@ -73,6 +73,11 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         return;
     }
 
+    // API sometimes returns the parent as the preexisting report, which would parent it to itself
+    if (preexistingReportID === parentReportID) {
+        return;
+    }
+
     // Handle cleanup of stale optimistic IOU report and its report preview separately
     if (isMoneyRequestReport(report) && parentReportID && parentReportActionID) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
@@ -218,19 +223,19 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                         callback();
 
                         // We are already on the parent one expense report, so just call the API to fetch report data
-                        // betas is safe to pass as undefined because introSelected is undefined, so the code path
-                        // that uses betas is never reached. Passing it explicitly so the compiler flags this when
-                        // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions, currentUserAccountID});
+                        // betas and conciergeChat are safe to pass as undefined because introSelected is undefined, so the
+                        // guided-setup code path that uses them is never reached. Passing them explicitly so the compiler
+                        // flags this when they become required. Refactor issues: https://github.com/Expensify/App/issues/66424
+                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, conciergeChat: undefined, hasReportActions, currentUserAccountID});
                     });
                 } else {
                     callback();
 
                     // We are already on the parent one expense report, so just call the API to fetch report data
-                    // betas is safe to pass as undefined because introSelected is undefined, so the code path
-                    // that uses betas is never reached. Passing it explicitly so the compiler flags this when
-                    // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions, currentUserAccountID});
+                    // betas and conciergeChat are safe to pass as undefined because introSelected is undefined, so the
+                    // guided-setup code path that uses them is never reached. Passing them explicitly so the compiler
+                    // flags this when they become required. Refactor issues: https://github.com/Expensify/App/issues/66424
+                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, conciergeChat: undefined, hasReportActions, currentUserAccountID});
                 }
                 return;
             }

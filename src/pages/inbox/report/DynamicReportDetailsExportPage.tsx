@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -41,6 +42,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const policyID = report?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -49,6 +51,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'XeroSquare',
         'QBOSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
@@ -58,27 +61,28 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
         'GustoSquare',
     ]);
 
-    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
+    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons, policy);
     const canBeExported = canBeExportedUtil(report);
     const isExported = isExportedUtil(reportActions, report);
+    const connectionNameFriendly = getAccountingIntegrationDisplayName(policy, connectionName, translate);
 
     const confirmExport = useCallback(
         (type: ExportType) => {
             if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                exportToIntegration(reportID, connectionName);
+                exportToIntegration(reportID, connectionName, policy);
             } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], connectionName);
+                markAsManuallyExported([reportID], connectionName, policy);
             }
             Navigation.dismissModal();
         },
-        [connectionName, reportID],
+        [connectionName, policy, reportID],
     );
 
     const showExportAgainModal = useCallback(
         async (type: ExportType) => {
             const result = await showConfirmModal({
                 title: translate('workspace.exportAgainModal.title'),
-                prompt: translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName),
+                prompt: translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName, connectionNameFriendly}),
                 confirmText: translate('workspace.exportAgainModal.confirmText'),
                 cancelText: translate('workspace.exportAgainModal.cancelText'),
             });
@@ -86,13 +90,13 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
                 confirmExport(type);
             }
         },
-        [showConfirmModal, translate, report?.reportName, connectionName, confirmExport],
+        [showConfirmModal, translate, report?.reportName, connectionName, connectionNameFriendly, confirmExport],
     );
 
     const exportSelectorOptions: ExportSelectorType[] = [
         {
             value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-            text: translate('workspace.common.exportIntegrationSelected', connectionName),
+            text: translate('workspace.common.exportIntegrationSelected', {connectionName, connectionNameFriendly}),
             icons: [
                 {
                     source: iconToDisplay ?? '',

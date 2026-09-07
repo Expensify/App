@@ -1,34 +1,24 @@
 import {renderHook} from '@testing-library/react-native';
 
+import useOnyx from '@hooks/useOnyx';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 
-const onyxData: Record<string, unknown> = {};
+import type {OnyxValue} from 'react-native-onyx';
 
-const mockUseOnyx = jest.fn(
-    (
-        key: string,
-        options?: {
-            selector?: (value: unknown) => unknown;
-        },
-    ) => {
-        const value = onyxData[key];
-        const selectedValue = options?.selector ? options.selector(value as never) : value;
-        return [selectedValue];
-    },
-);
+jest.mock('@hooks/useOnyx', () => jest.fn());
 
-jest.mock('@hooks/useOnyx', () => ({
-    __esModule: true,
-    default: (key: string, options?: {selector?: (value: unknown) => unknown}) => mockUseOnyx(key, options),
-}));
+const mockUseOnyx = jest.mocked(useOnyx);
+
+let savedSearches: OnyxValue<typeof ONYXKEYS.SAVED_SEARCHES>;
 
 describe('useSearchShouldCalculateTotals', () => {
     beforeEach(() => {
-        onyxData[ONYXKEYS.SAVED_SEARCHES] = undefined;
+        savedSearches = undefined;
         mockUseOnyx.mockClear();
+        mockUseOnyx.mockImplementation(() => [savedSearches, {status: 'loaded'}]);
     });
 
     it('returns false when disabled', () => {
@@ -50,7 +40,7 @@ describe('useSearchShouldCalculateTotals', () => {
     });
 
     it('returns true for saved searches that match the hash', () => {
-        onyxData[ONYXKEYS.SAVED_SEARCHES] = {
+        savedSearches = {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             456: {
                 name: 'My search',
@@ -64,7 +54,7 @@ describe('useSearchShouldCalculateTotals', () => {
     });
 
     it('returns false when saved searches do not match the hash', () => {
-        onyxData[ONYXKEYS.SAVED_SEARCHES] = {
+        savedSearches = {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             456: {
                 name: 'My search',

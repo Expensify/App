@@ -10,6 +10,17 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+const makeCategory = (name: string, glCode: string): PolicyCategories[string] => ({
+    enabled: true,
+    name,
+    unencodedName: name,
+    areCommentsRequired: false,
+    'GL Code': glCode,
+    externalID: '',
+    origin: '',
+    pendingAction: undefined,
+});
+
 describe('CategoryOptionListUtils', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.DEFAULT);
@@ -1329,5 +1340,122 @@ describe('CategoryOptionListUtils', () => {
             {name: '::', enabled: true, pendingAction: undefined},
             {name: 'Normal:Category', enabled: true, pendingAction: undefined},
         ]);
+    });
+
+    it('shows the GL code only on the subcategory row when searching for a subcategory', () => {
+        const categories: PolicyCategories = {
+            Lunch: makeCategory('Lunch', '4100'),
+            'Lunch: Sushi': makeCategory('Lunch: Sushi', '4200'),
+        };
+
+        const sections = getCategoryListSections({
+            categories,
+            searchValue: 'sushi',
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const rows = sections.flatMap((section) => section.data);
+        const parentRow = rows.find((row) => row.searchText === 'Lunch');
+        const childRow = rows.find((row) => row.searchText === 'Lunch: Sushi');
+
+        expect(parentRow?.alternateText).toBeUndefined();
+        expect(childRow?.alternateText).toBe('4200');
+    });
+
+    it('shows GL codes for both parent and child categories in the full list (no search)', () => {
+        const categories: PolicyCategories = {
+            Lunch: makeCategory('Lunch', '4100'),
+            'Lunch: Sushi': makeCategory('Lunch: Sushi', '4200'),
+        };
+
+        const sections = getCategoryListSections({
+            categories,
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const rows = sections.flatMap((section) => section.data);
+
+        expect(rows.find((row) => row.searchText === 'Lunch')?.alternateText).toBe('4100');
+        expect(rows.find((row) => row.searchText === 'Lunch: Sushi')?.alternateText).toBe('4200');
+    });
+
+    it('shows the GL code on the recently used subcategory but not on its synthesized parent header', () => {
+        const categories: PolicyCategories = {'Lunch: Sushi': makeCategory('Lunch: Sushi', '4200'), Lunch: makeCategory('Lunch', '4100')};
+        for (let index = 0; index < CONST.STANDARD_LIST_ITEM_LIMIT; index++) {
+            categories[`Category ${index}`] = makeCategory(`Category ${index}`, `${1000 + index}`);
+        }
+
+        const sections = getCategoryListSections({
+            categories,
+            recentlyUsedCategories: ['Lunch: Sushi'],
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const recentRows = sections.find((section) => section.title === translateLocal('common.recent'))?.data ?? [];
+
+        expect(recentRows.find((row) => row.searchText === 'Lunch')?.alternateText).toBeUndefined();
+        expect(recentRows.find((row) => row.searchText === 'Lunch: Sushi')?.alternateText).toBe('4200');
+    });
+
+    it('marks a selected category that is also enabled and keeps its GL code', () => {
+        const categories: PolicyCategories = {
+            Food: makeCategory('Food', '5000'),
+            Travel: makeCategory('Travel', '6000'),
+        };
+        const selectedOptions: Category[] = [{name: 'Food', enabled: true}];
+
+        const sections = getCategoryListSections({
+            categories,
+            selectedOptions,
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const rows = sections.flatMap((section) => section.data);
+        const foodRow = rows.find((row) => row.searchText === 'Food');
+
+        expect(foodRow?.isSelected).toBe(true);
+        expect(foodRow?.alternateText).toBe('5000');
+    });
+
+    it('deduplicates a category that is both selected and enabled in search results', () => {
+        const categories: PolicyCategories = {
+            Food: makeCategory('Food', '5000'),
+            'Food: Meat': makeCategory('Food: Meat', '5100'),
+        };
+        const selectedOptions: Category[] = [{name: 'Food', enabled: true}];
+
+        const sections = getCategoryListSections({
+            categories,
+            selectedOptions,
+            searchValue: 'Food',
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const foodRows = sections.flatMap((section) => section.data).filter((row) => row.searchText === 'Food');
+
+        expect(foodRows).toHaveLength(1);
+        expect(foodRows.at(0)?.alternateText).toBe('5000');
+    });
+
+    it('does not show GL codes when the shouldShowGLCode flag is disabled', () => {
+        const categories: PolicyCategories = {
+            Lunch: makeCategory('Lunch', '4100'),
+            'Lunch: Sushi': makeCategory('Lunch: Sushi', '4200'),
+        };
+
+        const sections = getCategoryListSections({
+            categories,
+            searchValue: 'sushi',
+            localeCompare,
+            translate: translateLocal,
+        });
+        const rows = sections.flatMap((section) => section.data);
+
+        expect(rows.every((row) => row.alternateText === undefined)).toBe(true);
     });
 });

@@ -1,5 +1,6 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
+import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
 
@@ -29,10 +30,15 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
         if (!integrationForExport) {
             return;
         }
+        const connectionNameFriendly = getAccountingIntegrationDisplayName(policy, integrationForExport, translate);
 
         showConfirmModal({
             title: translate('workspace.exportAgainModal.title'),
-            prompt: translate('workspace.exportAgainModal.description', reportName, integrationForExport),
+            prompt: translate('workspace.exportAgainModal.description', {
+                connectionName: integrationForExport,
+                connectionNameFriendly,
+                reportName,
+            }),
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {
@@ -40,9 +46,9 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
                 return;
             }
             if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                exportToIntegration(reportID, integrationForExport);
+                exportToIntegration(reportID, integrationForExport, policy);
             } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], integrationForExport);
+                markAsManuallyExported([reportID], integrationForExport, policy);
             }
         });
     };

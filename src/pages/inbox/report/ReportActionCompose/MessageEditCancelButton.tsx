@@ -1,11 +1,13 @@
 import Icon from '@components/Icon';
-import {PressableWithFeedback} from '@components/Pressable';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
 
@@ -24,33 +26,32 @@ type MessageEditCancelButtonProps = ViewProps & {
 
 function MessageEditCancelButton({onCancel, testID, ...restProps}: MessageEditCancelButtonProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
-    const closeButtonStyles = [styles.composerSizeButton, {marginVertical: styles.composerSizeButton.marginHorizontal}];
+    const closeButtonStyles = [styles.composerSizeButton];
 
     return (
         <View {...restProps}>
             <Tooltip text={translate('common.cancel')}>
-                <PressableWithFeedback
+                <PressableWithoutFeedback
                     testID={testID}
                     onPress={onCancel}
-                    style={closeButtonStyles}
+                    style={({hovered, pressed}) => [...closeButtonStyles, StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed}))]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.close')}
-                    // disable dimming
-                    hoverDimmingValue={1}
-                    pressDimmingValue={1}
                     // Keep focus on the composer when cancel button is clicked.
                     onMouseDown={(e) => e.preventDefault()}
                     sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON}
                 >
-                    <Icon
-                        fill={theme.icon}
-                        src={icons.Close}
-                    />
-                </PressableWithFeedback>
+                    {({hovered, pressed}) => (
+                        <Icon
+                            fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed})})}
+                            src={icons.Close}
+                        />
+                    )}
+                </PressableWithoutFeedback>
             </Tooltip>
         </View>
     );

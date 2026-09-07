@@ -75,7 +75,6 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-            setIsPDSandFSGDownloadedTouched(true);
             return getFieldRequiredErrors(values, STEP_FIELDS, translate);
         },
         [STEP_FIELDS, translate],
@@ -126,6 +125,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
             formID={ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmitWithDownload}
+            onBeforeSubmit={() => setIsPDSandFSGDownloadedTouched(true)}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}

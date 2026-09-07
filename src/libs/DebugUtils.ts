@@ -371,6 +371,9 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
         }
 
         for (const [key, val] of Object.entries(test)) {
+            if (val === null) {
+                continue;
+            }
             const expectedValueType = type[key];
             // val is a constant enum
             if (typeof expectedValueType === 'object') {
@@ -461,6 +464,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'submitterUserID':
         case 'submitterPayrollID':
         case 'orderDealNumbers':
+        case 'debitedCurrency':
+        case 'creditedCurrency':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -487,6 +492,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'reimbursableTotal':
         case 'unheldReimbursableTotal':
         case 'transactionCount':
+        case 'debitedAmount':
+        case 'creditedAmount':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
@@ -603,6 +610,10 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 submitterUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 submitterPayrollID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 orderDealNumbers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                debitedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                debitedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -829,6 +840,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                pageCount: 'number',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -1198,6 +1210,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                pageCount: 'number',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
@@ -1472,6 +1485,7 @@ function getReasonForShowingRowInLHN({
     currentUserLogin,
     currentUserAccountID,
     conciergeReportID,
+    hasGuidesEmails,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1483,6 +1497,7 @@ function getReasonForShowingRowInLHN({
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
+    hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
@@ -1504,6 +1519,7 @@ function getReasonForShowingRowInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1567,7 +1583,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
             report,
             chatReport,
             reportActions,
@@ -1577,8 +1593,8 @@ function getReasonAndReportActionForRBRInLHNRow(
             isOffline,
             currentUserAccountID,
             transactionViolations,
-            isArchivedReport,
-        ) ?? {};
+            isReportArchived: isArchivedReport,
+        }) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

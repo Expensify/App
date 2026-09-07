@@ -576,19 +576,19 @@ export default createOnyxDerivedValueConfig({
                 let actionBadge;
                 let actionTargetReportActionID;
                 let needsParentChatErrorPropagation = false;
-                const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report,
                     chatReport,
-                    reportActionsList,
-                    hasAnyViolations || hasFieldViolations,
+                    reportActions: reportActionsList,
+                    hasViolations: hasAnyViolations || hasFieldViolations,
                     reportErrors,
                     transactions,
                     isOffline,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     transactionViolations,
-                    !!isReportArchived,
+                    isReportArchived: !!isReportArchived,
                     reports,
-                );
+                });
 
                 // When the report is ready to submit, always show the green Submit badge
                 // regardless of violations — the user can submit without fix.

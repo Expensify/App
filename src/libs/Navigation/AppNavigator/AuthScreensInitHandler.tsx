@@ -13,6 +13,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
+import {isQAServerActive} from '@libs/ApiUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,7 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 
 function initializePusher(
@@ -47,10 +48,20 @@ function initializePusher(
     getTopmostOneTransactionThreadReportID: () => string | undefined,
     getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
+    // No fallback: CONFIG.PUSHER.APP_KEY defaults to the production key, so falling back would open a QA socket
+    // against production Pusher and every channel auth, signed with QA's secret, would be rejected quietly.
+    const appKey = isQAServerActive() ? CONFIG.PUSHER.QA_APP_KEY : CONFIG.PUSHER.APP_KEY;
+
+    // pusher-js rejects only a null/undefined key, so an empty one builds a socket that never connects while Pusher.init
+    // resolves solely from its 'connected' handler, leaving every subscribe() and the PUSHER_INIT span pending forever.
+    if (!appKey) {
+        Log.alert('[Pusher] Skipping init: no Pusher app key is configured for the active server');
+        return Promise.resolve();
+    }
+
     return Pusher.init({
-        appKey: CONFIG.PUSHER.APP_KEY,
+        appKey,
         cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
         User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, getReportAttributes);
     });
@@ -62,7 +73,7 @@ function initializePusher(
  *
  * Extracted from AuthScreens to isolate useOnyx subscriptions:
  * - SESSION, NVP_INTRO_SELECTED, NVP_ACTIVE_POLICY_ID,
- *   NVP_ONBOARDING (tour selector), ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT (x2),
+ *   NVP_ONBOARDING (guided-setup and tour status selector), ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT (x2),
  *   IS_LOADING_APP
  */
 function AuthScreensInitHandler() {
@@ -78,7 +89,7 @@ function AuthScreensInitHandler() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
@@ -170,7 +181,16 @@ function AuthScreensInitHandler() {
         } else if (SessionUtils.didUserLogInDuringSession()) {
             const reportID = getReportIDFromLink(initialURL ?? null);
             if (reportID && !isAuthenticatedAtStartup) {
-                Report.openReport({reportID, introSelected, betas, hasReportActions: false, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
+                Report.openReport({
+                    reportID,
+                    introSelected,
+                    betas,
+                    conciergeChat,
+                    hasReportActions: false,
+                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                });
                 // Don't want to call `openReport` again when logging out and then logging in
                 setIsAuthenticatedAtStartup(true);
             }
@@ -185,7 +205,7 @@ function AuthScreensInitHandler() {
             introSelected,
             currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             activePolicy,
-            isSelfTourViewed,
+            guidedSetupAndTourStatus?.isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
             lastWorkspaceNumber,

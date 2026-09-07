@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 type Params = Parameters<typeof useConfirmationCtaText>[0];
@@ -86,7 +87,7 @@ describe('useConfirmationCtaText', () => {
     });
 
     it('includes formatted amount in sendInvoice copy when invoicing details are present', () => {
-        const policy = {invoice: {companyName: 'Acme', companyWebsite: 'acme.com'}} as Params['policy'];
+        const policy = createMock<NonNullable<Params['policy']>>({invoice: {companyName: 'Acme', companyWebsite: 'acme.com'}});
         const {result} = renderHook(() => useConfirmationCtaText({...baseParams, isTypeInvoice: true, iouType: CONST.IOU.TYPE.INVOICE, policy, formattedAmount: '$50.00'}), {
             wrapper: Wrapper,
         });

@@ -26,8 +26,8 @@ describe('BaseModal', () => {
                 captured = props;
                 return null;
             },
-        }));
-        const BaseModal = (require('@components/Modal/BaseModal') as {default: React.ComponentType<Record<string, unknown>>}).default;
+        })); // Scope the dependency mock to this test.
+        const BaseModal = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal').default;
 
         render(
             <BaseModal
@@ -41,8 +41,11 @@ describe('BaseModal', () => {
 
         const initialFocus = captured?.initialFocus;
         expect(typeof initialFocus).toBe('function');
+        if (typeof initialFocus !== 'function') {
+            throw new Error('Expected the bottom-docked modal to provide an initial-focus getter');
+        }
         // dismiss button never mounted -> ref.current is null -> the getter resolves to false (no crash)
-        expect((initialFocus as () => unknown)()).toBe(false);
+        expect(initialFocus()).toBe(false);
     });
 
     it.each([

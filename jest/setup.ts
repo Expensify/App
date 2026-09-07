@@ -9,8 +9,6 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import 'react-native-gesture-handler/jestSetup';
 import type Animated from 'react-native-reanimated';
 
-// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
-import * as core from '@actions/core';
 import {useMemo} from 'react';
 import 'setimmediate';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
@@ -30,6 +28,7 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 setupMockImages();
 mockFSLibrary();
 
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 Object.assign(global, {TextDecoder, TextEncoder});
 
 // This mock is required as per setup instructions for react-navigation testing
@@ -91,13 +90,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 const isVerbose = process.env.JEST_VERBOSE === 'true';
 
 if (!isVerbose) {
-    jest.spyOn(core, 'startGroup').mockImplementation(() => {});
-    jest.spyOn(core, 'endGroup').mockImplementation(() => {});
-    jest.spyOn(core, 'group').mockImplementation(<T>(_title: string, fn: () => T) => fn());
-    jest.spyOn(core, 'info').mockImplementation(() => {});
-    jest.spyOn(core, 'setOutput').mockImplementation(() => {});
-
-    // Make them global to override module-level console calls
+    // Override console methods globally so module-level console calls are silenced too
     global.console = {
         ...console,
         log: jest.fn(),
@@ -121,7 +114,14 @@ jest.mock('react-native-fs', () => ({
                 res([]);
             }),
     ),
-    CachesDirectoryPath: jest.fn(),
+    exists: jest.fn(() => Promise.resolve(false)),
+    mkdir: jest.fn(() => Promise.resolve()),
+    moveFile: jest.fn(() => Promise.resolve()),
+    copyFile: jest.fn(() => Promise.resolve()),
+    writeFile: jest.fn(() => Promise.resolve()),
+    DocumentDirectoryPath: '/mock/documents',
+    CachesDirectoryPath: '/mock/caches',
+    LibraryDirectoryPath: '/mock/library',
 }));
 
 jest.mock('react-native-share', () => ({
@@ -131,6 +131,9 @@ jest.mock('react-native-share', () => ({
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
+    // react-native-reanimated/mock leaves dispatchCommand out (see its own "ADD ME IF NEEDED" comment). forceClearInput
+    // (src/libs/ComponentUtils) dispatches it from a UI-thread worklet, so any test exercising that path needs it mocked.
+    dispatchCommand: jest.fn(),
     useReducedMotion: jest.fn,
     useScrollViewOffset: jest.fn(() => 0),
     useAnimatedRef: jest.fn(() => jest.fn()),

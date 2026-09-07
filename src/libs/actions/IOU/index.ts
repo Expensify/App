@@ -50,18 +50,6 @@ Onyx.connect({
     },
 });
 
-let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-        allPolicyTags = value;
-    },
-});
-
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -181,6 +169,10 @@ function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
     return deprecatedCurrentUserPersonalDetails;
 }
 
+function getCurrentUserAccountIDFromSession(): number {
+    return deprecatedUserAccountID;
+}
+
 function getRecentAttendees(): OnyxEntry<Attendee[]> {
     return recentAttendees;
 }
@@ -193,14 +185,6 @@ function getSearchQueryByHash(): Record<string, string> {
     return searchQueryByHash;
 }
 
-/**
- * This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
- * All usages of this function should be replaced with params passed to the functions or useOnyx hook in React components.
- */
-function getPolicyTags(): OnyxCollection<OnyxTypes.PolicyTagLists> {
-    return allPolicyTags;
-}
 export {
     getAllPersonalDetails,
     getAllTransactions,
@@ -211,8 +195,8 @@ export {
     getAllReportNameValuePairs,
     getAllTransactionDrafts,
     getCurrentUserPersonalDetails,
+    getCurrentUserAccountIDFromSession,
     getRecentAttendees,
     getAllSnapshots,
     getSearchQueryByHash,
-    getPolicyTags,
 };

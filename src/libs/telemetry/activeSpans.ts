@@ -107,10 +107,19 @@ function getSpan(spanId: string) {
     return activeSpans.get(spanId)?.span;
 }
 
+/** Look up a span whose id is suffixed (e.g. per-attempt spans stored as `${name}_${attempt}`). */
+function getSpanByPrefix(prefix: string) {
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (spanID.startsWith(prefix)) {
+            return entry.span;
+        }
+    }
+}
+
 function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue | undefined>) {
     const span = getSpan(spanId);
     span?.setAttributes(attributes);
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, getSpanByPrefix, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};

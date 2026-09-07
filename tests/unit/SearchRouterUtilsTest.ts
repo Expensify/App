@@ -9,13 +9,25 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {NavigationState} from '@react-navigation/native';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {PartialDeep} from 'type-fest';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 
 // Helper to create minimal navigation state for testing
 // The function only uses index, routes, and nested state properties
-function createMockState(partialState: {index: number; routes: Array<{name: string; params?: Record<string, unknown>; state?: unknown}>}): NavigationState {
-    return partialState as NavigationState;
+type MockNavigationRoute = PartialDeep<Omit<NavigationState['routes'][number], 'name' | 'state'>, {recurseIntoArrays: true}> &
+    Pick<NavigationState['routes'][number], 'name'> & {
+        state?: MockNavigationState;
+    };
+
+type MockNavigationState = PartialDeep<Omit<NavigationState, 'index' | 'routes'>, {recurseIntoArrays: true}> &
+    Pick<NavigationState, 'index'> & {
+        routes: MockNavigationRoute[];
+    };
+
+function createMockState(partialState: MockNavigationState): NavigationState {
+    return createMock<NavigationState>(partialState);
 }
 
 describe('SearchRouterUtils', () => {
@@ -198,22 +210,7 @@ describe('SearchRouterUtils', () => {
             return {seededQuery, submittedQuery: getQueryWithSubstitutions(seededQuery, substitutions)};
         }
 
-        it('resolves a workspace name containing a comma to its policy ID', () => {
-            const item: SearchQueryItem = {
-                keyForList: POLICY_ID,
-                roomType: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                policyID: POLICY_ID,
-                autocompleteID: POLICY_ID,
-                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
-            };
-
-            const {seededQuery, submittedQuery} = submitContextualSuggestion(item, buildPolicies('Acme,Inc'));
-
-            expect(seededQuery).toBe('type:expense workspace:"Acme,Inc"');
-            expect(submittedQuery).toBe(`type:expense workspace:${POLICY_ID}`);
-        });
-
-        it('resolves a workspace name containing both a quote and a comma to its policy ID', () => {
+        it('keeps a workspace name containing both a quote and a comma, and resolves it to its policy ID', () => {
             const item: SearchQueryItem = {
                 keyForList: POLICY_ID,
                 roomType: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -224,11 +221,11 @@ describe('SearchRouterUtils', () => {
 
             const {seededQuery, submittedQuery} = submitContextualSuggestion(item, buildPolicies('Acme "US",Inc'));
 
-            expect(seededQuery).toBe('type:expense workspace:"Acme US,Inc"');
+            expect(seededQuery).toBe('type:expense workspace:"Acme \\"US\\",Inc"');
             expect(submittedQuery).toBe(`type:expense workspace:${POLICY_ID}`);
         });
 
-        it('resolves a workspace name containing a quote and a space to its policy ID', () => {
+        it('keeps a workspace name containing a quote and a space, and resolves it to its policy ID', () => {
             const item: SearchQueryItem = {
                 keyForList: POLICY_ID,
                 roomType: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -237,8 +234,9 @@ describe('SearchRouterUtils', () => {
                 searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
             };
 
-            const {submittedQuery} = submitContextualSuggestion(item, buildPolicies('Acme "US" Inc'));
+            const {seededQuery, submittedQuery} = submitContextualSuggestion(item, buildPolicies('Acme "US" Inc'));
 
+            expect(seededQuery).toBe('type:expense workspace:"Acme \\"US\\" Inc"');
             expect(submittedQuery).toBe(`type:expense workspace:${POLICY_ID}`);
         });
 

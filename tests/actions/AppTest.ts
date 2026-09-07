@@ -21,6 +21,7 @@ import type {MockFetch} from '../utils/TestHelper';
 
 import * as App from '../../src/libs/actions/App';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -245,42 +246,42 @@ describe('actions/App', () => {
         });
 
         it('should filter out undefined policies', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1'},
                 policy2: undefined,
                 policy3: {id: 'policy3', name: 'Policy 3'},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy1', 'policy3']);
         });
 
         it('should filter out policies with pendingAction ADD', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1', pendingAction: 'add'},
                 policy2: {id: 'policy2', name: 'Policy 2'},
                 policy3: {id: 'policy3', name: 'Policy 3', pendingAction: 'update'},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy2', 'policy3']);
         });
 
         it('should return IDs for all valid non-optimistic policies', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1'},
                 policy2: {id: 'policy2', name: 'Policy 2'},
                 policy3: {id: 'policy3', name: 'Policy 3'},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy1', 'policy2', 'policy3']);
         });
 
         it('should include policies with other pendingAction values', () => {
-            const policies = {
+            const policies = createMock<OnyxCollection<Policy>>({
                 policy1: {id: 'policy1', name: 'Policy 1', pendingAction: 'update'},
                 policy2: {id: 'policy2', name: 'Policy 2', pendingAction: 'delete'},
                 policy3: {id: 'policy3', name: 'Policy 3', pendingAction: null},
                 policy4: {id: 'policy4', name: 'Policy 4', pendingAction: undefined},
-            } as unknown as OnyxCollection<Policy>;
+            });
             const result = App.getNonOptimisticPolicyIDs(policies);
             expect(result).toEqual(['policy1', 'policy2', 'policy3', 'policy4']);
         });

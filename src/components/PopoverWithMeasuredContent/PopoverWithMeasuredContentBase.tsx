@@ -1,6 +1,7 @@
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import Popover from '@components/Popover';
+import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -227,7 +228,7 @@ function PopoverWithMeasuredContentBase({
             style={styles.invisiblePopover}
             onLayout={measurePopover}
         >
-            {children}
+            <ScreenWrapperOfflineIndicatorContext.Provider value={{}}>{children}</ScreenWrapperOfflineIndicatorContext.Provider>
         </View>
     );
 }

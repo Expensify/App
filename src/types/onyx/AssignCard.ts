@@ -47,6 +47,12 @@ type AssignCardData = {
      */
     customCardName: string;
 
+    /**
+     * Whether the user has manually edited the custom card name in CardNameStep.
+     * When true, the name is preserved instead of being recomputed from the selected assignee.
+     */
+    isCustomCardNameEdited: boolean;
+
     /** The transaction start date of the card */
     startDate: string;
 
@@ -54,7 +60,7 @@ type AssignCardData = {
     dateOption: string;
 
     /** Bank ID for Plaid */
-    institutionId?: CardFeedWithNumber;
+    institutionId?: string;
 
     /** Access token for Plaid bank */
     plaidAccessToken?: string;

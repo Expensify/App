@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-fs/android/src/main/java/com/rnfs/RNFSManager.java b/node_modules/react-native-fs/android/src/main/java/com/rnfs/RNFSManager.java
+index 351ac06..feabc38 100755
+--- a/node_modules/react-native-fs/android/src/main/java/com/rnfs/RNFSManager.java
++++ b/node_modules/react-native-fs/android/src/main/java/com/rnfs/RNFSManager.java
+@@ -80,7 +80,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
+       if (!isDirectoryAllowed && file.isDirectory()) {
+         throw new IORejectionException("EISDIR", "EISDIR: illegal operation on a directory, read '" + filepath + "'");
+       }
+-      uri = Uri.parse("file://" + filepath);
++      uri = Uri.fromFile(file);
+     }
+     return uri;
+   }

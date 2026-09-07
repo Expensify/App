@@ -1,0 +1,47 @@
+diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+index 6f78506..ea8febf 100644
+--- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
++++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+@@ -158,7 +158,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+   const prevQueryStringRef = useRef(JSON.stringify(query));
+ 
+   // Store latest _request function - ensures debounced function always calls current version with latest closures
+-  const requestRef = useRef(_request);
++  const requestRef = useRef(null);
+   const queryString = useMemo(() => JSON.stringify(query), [query]);
+ 
+   const [stateText, setStateText] = useState('');
+@@ -351,6 +351,16 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+   // API REQUEST FUNCTIONS
+   // ==========================================================================
+ 
++  const _disableRowLoaders = useCallback(() => {
++    for (let i = 0; i < resultsRef.current.length; i++) {
++      if (resultsRef.current[i].isLoading === true) {
++        resultsRef.current[i].isLoading = false;
++      }
++    }
++
++    setDataSource(buildRowsFromResults(resultsRef.current));
++  }, [buildRowsFromResults]);
++
+   const _requestNearby = useCallback(
+     (latitude, longitude) => {
+       _abortRequests();
+@@ -650,16 +660,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     }
+   };
+ 
+-  const _disableRowLoaders = useCallback(() => {
+-    for (let i = 0; i < resultsRef.current.length; i++) {
+-      if (resultsRef.current[i].isLoading === true) {
+-        resultsRef.current[i].isLoading = false;
+-      }
+-    }
+-
+-    setDataSource(buildRowsFromResults(resultsRef.current));
+-  }, [buildRowsFromResults]);
+-
+   const _onPress = (rowData) => {
+     if (rowData.isPredefinedPlace !== true && fetchDetails === true) {
+       if (rowData.isLoading === true) {
