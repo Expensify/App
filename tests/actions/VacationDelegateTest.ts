@@ -143,16 +143,32 @@ describe('actions/VacationDelegate', () => {
             jest.restoreAllMocks();
         });
 
-        it('writes no error on a failed response, leaving the caller to report it', async () => {
+        it('reconciles the NVP itself on a failed response, since the caller may have already navigated away', async () => {
             const response = {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'Nope'};
-            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve(response));
+            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
+                // The optimistic data is applied before the response resolves.
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+                    creator: 'admin@test.com',
+                    delegate: 'delegate@test.com',
+                    previousDelegate: 'old@test.com',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    errors: null,
+                });
+                return response;
+            });
 
-            // An error here would light up a red brick road on the profile page, which reads as something being broken.
-            await expect(setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com'})).resolves.toEqual(response);
+            // There is no failureData attached to the request (see the first test above), so the action must undo the optimistic
+            // update and surface the error itself instead of relying on a caller that may no longer be mounted to do it.
+            await expect(setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'})).resolves.toEqual(response);
             await waitForBatchedUpdates();
 
             const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-            expect(vacationDelegate?.errors).toBeFalsy();
+            expect(vacationDelegate?.delegate).toBe('old@test.com');
+            expect(vacationDelegate?.previousDelegate).toBeFalsy();
+            expect(vacationDelegate?.pendingAction).toBeFalsy();
+            expect(vacationDelegate?.errors).toBeTruthy();
+
+            jest.restoreAllMocks();
         });
 
         it('does not merge a policyDiff on a successful (200) response', async () => {
