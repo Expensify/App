@@ -28,7 +28,6 @@ import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 
 import type {CurrencyListActionsContextType} from './useCurrencyList';
@@ -99,7 +98,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -364,6 +363,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         chatReportID: candidateIOUReport?.reportID,
                         chatReport: candidateIOUReport,
                         chatReportActions: selfDMReportActions,
+                        transactionThreadReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`],
                         transactionID,
                         reportAction: action,
                         iouReport: undefined,
@@ -393,6 +393,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionID,
                     reportAction: action,
                     transactionThreadReport,
+                    transactionThreadReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`],
                     transactions: duplicateTransactions,
                     violations: duplicateTransactionViolations,
                     iouReport,

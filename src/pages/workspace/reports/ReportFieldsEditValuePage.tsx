@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasAccountingConnections} from '@libs/PolicyUtils';
 import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -76,7 +75,6 @@ function ReportFieldsEditValuePage({
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
-            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

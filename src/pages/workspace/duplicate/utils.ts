@@ -1,16 +1,18 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import {getCorrectedAutoReportingFrequency, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
 
 import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
 
 import {isAuthenticationError, isConnectionUnverified} from '@userActions/connections';
 
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextProps['translate']) {
+function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextProps['translate'], policyCategories?: PolicyCategories) {
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable =
         !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
@@ -59,6 +61,15 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
     // (disabledFields) both indicate a non-default cash expense rule worth copying.
     if (policy?.defaultReimbursable === false || Object.values(policy?.disabledFields ?? {}).some(Boolean)) {
         total.push(translate('workspace.rules.individualExpenseRules.cashExpenseDefault'));
+    }
+
+    // Field requirements and flag for review rules are stored on the categories rather than on the policy.
+    const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    if (enabledCategories.some((category) => categoryHasAnyRequireFieldsRule(category))) {
+        total.push(translate('workspace.rules.tabs.requireFields'));
+    }
+    if (enabledCategories.some((category) => hasExplicitFlagAmount(category.maxExpenseAmount) && category.pendingFields?.maxExpenseAmount !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+        total.push(translate('workspace.rules.tabs.flagForReview'));
     }
 
     return total.length > 0 ? total : null;

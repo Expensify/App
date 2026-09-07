@@ -27,9 +27,19 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
+import type {PersonalDetails} from '@src/types/onyx';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+
+/**
+ * Whether the given personal details resolve to Concierge. Concierge is already rendered as its own dedicated
+ * button on the Help page, so any guide / account manager / partner manager slot that resolves to Concierge
+ * should be hidden to avoid showing Concierge twice.
+ */
+function isConciergePersonalDetail(details: PersonalDetails | null | undefined): boolean {
+    return details?.accountID === CONST.ACCOUNT_ID.CONCIERGE || details?.login?.toLowerCase() === CONST.EMAIL.CONCIERGE;
+}
 
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
@@ -48,6 +58,8 @@ function HelpPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
@@ -56,100 +68,106 @@ function HelpPage() {
     const shouldBeAccessibleWithBookCallButton = (calendarLink: string | undefined) => !calendarLink;
 
     const partnerManagerCalendarLink = account?.partnerManagerCalendarLink;
-    const partnerManagerItem = partnerManagerDetails
-        ? {
-              key: partnerManagerDetails.login,
-              title: partnerManagerDetails.displayName,
-              description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.partnerManagerDescription') : undefined,
-              icon: partnerManagerDetails.avatar,
-              iconType: CONST.ICON_TYPE_AVATAR,
-              onPress: () =>
-                  navigateToAndOpenReportWithAccountIDs(
-                      [partnerManagerDetails.accountID],
-                      currentUserAccountID,
-                      introSelected,
-                      guidedSetupAndTourStatus?.isSelfTourViewed,
-                      guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                      betas,
-                      personalDetails,
-                  ),
-              shouldShowRightIcon: !partnerManagerCalendarLink,
-              shouldShowRightComponent: !!partnerManagerCalendarLink,
-              shouldBeAccessible: shouldBeAccessibleWithBookCallButton(partnerManagerCalendarLink),
-              rightComponent: partnerManagerCalendarLink ? (
-                  <BookCallButton
-                      calendarLink={partnerManagerCalendarLink}
-                      isNested
-                  />
-              ) : undefined,
-              wrapperStyle: [styles.sectionMenuItemTopDescription],
-              sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
-          }
-        : null;
+    const partnerManagerItem =
+        partnerManagerDetails && !isConciergePersonalDetail(partnerManagerDetails)
+            ? {
+                  key: partnerManagerDetails.login,
+                  title: partnerManagerDetails.displayName,
+                  description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.partnerManagerDescription') : undefined,
+                  icon: partnerManagerDetails.avatar,
+                  iconType: CONST.ICON_TYPE_AVATAR,
+                  onPress: () =>
+                      navigateToAndOpenReportWithAccountIDs(
+                          [partnerManagerDetails.accountID],
+                          currentUserAccountID,
+                          introSelected,
+                          guidedSetupAndTourStatus?.isSelfTourViewed,
+                          guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                          betas,
+                          personalDetails,
+                          conciergeChat,
+                      ),
+                  shouldShowRightIcon: !partnerManagerCalendarLink,
+                  shouldShowRightComponent: !!partnerManagerCalendarLink,
+                  shouldBeAccessible: shouldBeAccessibleWithBookCallButton(partnerManagerCalendarLink),
+                  rightComponent: partnerManagerCalendarLink ? (
+                      <BookCallButton
+                          calendarLink={partnerManagerCalendarLink}
+                          isNested
+                      />
+                  ) : undefined,
+                  wrapperStyle: [styles.sectionMenuItemTopDescription],
+                  sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
+              }
+            : null;
 
     const guideCalendarLink = account?.guideDetails?.calendarLink;
-    const guideItem = guideDetails
-        ? {
-              key: guideDetails.login,
-              title: guideDetails.displayName,
-              description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.accountExecutiveDescription') : undefined,
-              icon: guideDetails.avatar,
-              iconType: CONST.ICON_TYPE_AVATAR,
-              onPress: () =>
-                  navigateToAndOpenReportWithAccountIDs(
-                      [guideDetails.accountID],
-                      currentUserAccountID,
-                      introSelected,
-                      guidedSetupAndTourStatus?.isSelfTourViewed,
-                      guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                      betas,
-                      personalDetails,
-                  ),
-              shouldShowRightIcon: !guideCalendarLink,
-              shouldShowRightComponent: !!guideCalendarLink,
-              shouldBeAccessible: shouldBeAccessibleWithBookCallButton(guideCalendarLink),
-              rightComponent: guideCalendarLink ? (
-                  <BookCallButton
-                      calendarLink={guideCalendarLink}
-                      isNested
-                  />
-              ) : undefined,
-              wrapperStyle: [styles.sectionMenuItemTopDescription],
-              sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
-          }
-        : null;
+    const guideItem =
+        guideDetails && !isConciergePersonalDetail(guideDetails)
+            ? {
+                  key: guideDetails.login,
+                  title: guideDetails.displayName,
+                  description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.accountExecutiveDescription') : undefined,
+                  icon: guideDetails.avatar,
+                  iconType: CONST.ICON_TYPE_AVATAR,
+                  onPress: () =>
+                      navigateToAndOpenReportWithAccountIDs(
+                          [guideDetails.accountID],
+                          currentUserAccountID,
+                          introSelected,
+                          guidedSetupAndTourStatus?.isSelfTourViewed,
+                          guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                          betas,
+                          personalDetails,
+                          conciergeChat,
+                      ),
+                  shouldShowRightIcon: !guideCalendarLink,
+                  shouldShowRightComponent: !!guideCalendarLink,
+                  shouldBeAccessible: shouldBeAccessibleWithBookCallButton(guideCalendarLink),
+                  rightComponent: guideCalendarLink ? (
+                      <BookCallButton
+                          calendarLink={guideCalendarLink}
+                          isNested
+                      />
+                  ) : undefined,
+                  wrapperStyle: [styles.sectionMenuItemTopDescription],
+                  sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
+              }
+            : null;
 
     const accountManagerCalendarLink = account?.accountManagerCalendarLink;
-    const accountManagerItem = accountManagerDetails
-        ? {
-              key: accountManagerDetails.login,
-              title: accountManagerDetails.displayName,
-              description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.accountManagerDescription') : undefined,
-              icon: accountManagerDetails.avatar,
-              iconType: CONST.ICON_TYPE_AVATAR,
-              onPress: () =>
-                  navigateToAndOpenReportWithAccountIDs(
-                      [accountManagerDetails.accountID],
-                      currentUserAccountID,
-                      introSelected,
-                      guidedSetupAndTourStatus?.isSelfTourViewed,
-                      guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                      betas,
-                      personalDetails,
-                  ),
-              shouldShowRightIcon: !accountManagerCalendarLink,
-              shouldShowRightComponent: !!accountManagerCalendarLink,
-              shouldBeAccessible: shouldBeAccessibleWithBookCallButton(accountManagerCalendarLink),
-              rightComponent: accountManagerCalendarLink ? (
-                  <BookCallButton
-                      calendarLink={accountManagerCalendarLink}
-                      isNested
-                  />
-              ) : undefined,
-              wrapperStyle: [styles.sectionMenuItemTopDescription],
-              sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
-          }
-        : null;
+    const accountManagerItem =
+        accountManagerDetails && !isConciergePersonalDetail(accountManagerDetails)
+            ? {
+                  key: accountManagerDetails.login,
+                  title: accountManagerDetails.displayName,
+                  description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.accountManagerDescription') : undefined,
+                  icon: accountManagerDetails.avatar,
+                  iconType: CONST.ICON_TYPE_AVATAR,
+                  onPress: () =>
+                      navigateToAndOpenReportWithAccountIDs(
+                          [accountManagerDetails.accountID],
+                          currentUserAccountID,
+                          introSelected,
+                          guidedSetupAndTourStatus?.isSelfTourViewed,
+                          guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                          betas,
+                          personalDetails,
+                          conciergeChat,
+                      ),
+                  shouldShowRightIcon: !accountManagerCalendarLink,
+                  shouldShowRightComponent: !!accountManagerCalendarLink,
+                  shouldBeAccessible: shouldBeAccessibleWithBookCallButton(accountManagerCalendarLink),
+                  rightComponent: accountManagerCalendarLink ? (
+                      <BookCallButton
+                          calendarLink={accountManagerCalendarLink}
+                          isNested
+                      />
+                  ) : undefined,
+                  wrapperStyle: [styles.sectionMenuItemTopDescription],
+                  sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
+              }
+            : null;
 
     const hasActiveItem = !!partnerManagerItem || !!guideItem || !!accountManagerItem;
 
