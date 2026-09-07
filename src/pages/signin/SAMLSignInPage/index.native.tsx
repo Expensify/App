@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
 
-import {openAuthSessionAsync} from 'expo-web-browser';
+import {dismissAuthSession, openAuthSessionAsync} from 'expo-web-browser';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 function SAMLSignInPage() {
@@ -30,8 +30,22 @@ function SAMLSignInPage() {
     const [SAMLUrl, setSAMLUrl] = useState('');
     const {translate} = useLocalize();
     const hasOpenedAuthSession = useRef(false);
+    const isAuthSessionOpen = useRef(false);
+    const hasExitedSAMLFlow = useRef(false);
 
     const handleExitSAMLFlow = useCallback(() => {
+        // Closing a stuck in-app browser settles its promise, which lands here a second time.
+        if (hasExitedSAMLFlow.current) {
+            return;
+        }
+        hasExitedSAMLFlow.current = true;
+
+        // An in-app browser left open blocks the next sign-in attempt from opening one, and only iOS can close it.
+        if (isAuthSessionOpen.current && getPlatform() === CONST.PLATFORM.IOS) {
+            isAuthSessionOpen.current = false;
+            dismissAuthSession();
+        }
+
         // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
         setIsAuthenticatingWithShortLivedToken(false);
         Navigation.isNavigationReady().then(() => {
@@ -39,6 +53,19 @@ function SAMLSignInPage() {
             clearSignInData();
         });
     }, []);
+
+    useEffect(
+        () => () => {
+            // Leaving the page must not leave the in-app browser open, or the next sign-in attempt cannot open one.
+            if (!isAuthSessionOpen.current || getPlatform() !== CONST.PLATFORM.IOS) {
+                return;
+            }
+            hasExitedSAMLFlow.current = true;
+            isAuthSessionOpen.current = false;
+            dismissAuthSession();
+        },
+        [],
+    );
 
     /**
      * Handles in-app navigation once we get a response back from Expensify
@@ -102,8 +129,10 @@ function SAMLSignInPage() {
         // reauthenticate() abort while the SAML sign-in is in progress. signInWithShortLivedAuthToken() resets it on
         // success; the cancel/error/failure paths reset it via handleExitSAMLFlow and handleNavigationStateChange.
         setIsAuthenticatingWithShortLivedToken(true);
+        isAuthSessionOpen.current = true;
         openAuthSessionAsync(SAMLUrl, CONST.SAML_REDIRECT_URL)
             .then((response: WebBrowserAuthSessionResult) => {
+                isAuthSessionOpen.current = false;
                 if (response.type !== 'success') {
                     // The auth session closed without handing a callback URL back to the app (e.g. the in-app browser
                     // was dismissed/cancelled, or the redirect to the custom scheme never fired). Log the result type so
@@ -116,6 +145,7 @@ function SAMLSignInPage() {
                 handleNavigationStateChange(response.url);
             })
             .catch((error) => {
+                isAuthSessionOpen.current = false;
                 Log.hmmm('SAML sign in failed', {error});
                 handleExitSAMLFlow();
             });
