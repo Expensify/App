@@ -1,7 +1,9 @@
+import {hasUserMessageSinceQuestion} from '@libs/ReportActionFollowupUtils';
 import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 
@@ -31,23 +33,28 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
     const isConciergeChat = reportID === conciergeReportID;
     const sessionStartTime = isInSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
 
-    // Derive the boolean inside the Onyx selector so the indicators re-render only when session activity
-    // flips, not on every report-action change in the Concierge chat.
-    const hasSessionActivitySelector = (actions: OnyxEntry<ReportActions>) => {
+    // Derive this state inside the Onyx selector so the indicators re-render only when relevant Concierge
+    // indicator state flips, not on every report-action change in the Concierge chat.
+    const conciergeIndicatorStateSelector = (actions: OnyxEntry<ReportActions>) => {
         if (!actions || !sessionStartTime) {
-            return false;
+            return {hasSessionActivity: false, hasNewerUserMessage: false};
         }
-        return Object.values(actions).some((action) => isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime));
+        return {
+            hasSessionActivity: Object.values(actions).some(
+                (action) => isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime),
+            ),
+            hasNewerUserMessage: hasUserMessageSinceQuestion(actions, pendingFollowupList?.questionReportActionID, CONST.ACCOUNT_ID.CONCIERGE),
+        };
     };
-    const [hasSessionActivity] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: hasSessionActivitySelector,
+    const [conciergeIndicatorState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: conciergeIndicatorStateSelector,
     });
 
-    if (pendingFollowupList) {
+    if (pendingFollowupList && !conciergeIndicatorState?.hasNewerUserMessage) {
         return true;
     }
 
-    return isConciergeChat && !hasSessionActivity;
+    return isConciergeChat && !conciergeIndicatorState?.hasSessionActivity;
 }
 
 export default useShouldSuppressConciergeIndicators;
