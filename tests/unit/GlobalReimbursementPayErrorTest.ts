@@ -13,7 +13,11 @@ const IOU_REPORT_ID = '12345';
 const REPORT_ACTION_ID = '67890';
 const OTHER_REPORT_ACTION_ID = '11111';
 
-function buildPayRequest(overrides: Partial<Request<OnyxKey>> = {}): Request<OnyxKey> {
+type PayRequestOverrides = Partial<Omit<Request<OnyxKey>, 'failureData'>> & {
+    failureData?: AnyOnyxUpdate[];
+};
+
+function buildPayRequest(overrides: PayRequestOverrides = {}): Request<OnyxKey> {
     return {
         command: WRITE_COMMANDS.PAY_MONEY_REQUEST,
         data: {
@@ -42,10 +46,11 @@ function buildPayRequest(overrides: Partial<Request<OnyxKey>> = {}): Request<Ony
             },
         ],
         ...overrides,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     } as Request<OnyxKey>;
 }
 
-function buildCorpayPayModalResponse(jsonCode: number = CONST.JSON_CODE.UNABLE_TO_RETRY): Response<OnyxKey> {
+function buildCorpayPayModalResponse(jsonCode: number | string = CONST.JSON_CODE.UNABLE_TO_RETRY): Response<OnyxKey> {
     return {
         jsonCode,
         onyxData: [
@@ -169,8 +174,7 @@ describe('GlobalReimbursementPayError middleware', () => {
                 {
                     onyxMethod: 'merge',
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                    value: 'invalid' as unknown as Record<string, unknown>,
+                    value: 'invalid',
                 },
             ],
         });
