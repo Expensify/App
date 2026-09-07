@@ -31,7 +31,7 @@ import React, {useMemo} from 'react';
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
 
     const policyID = policy?.id;
     const xeroConfig = policy?.connections?.xero?.config;
