@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -31,6 +31,8 @@ import {View} from 'react-native';
 
 type WorkspaceCreateTaxValuePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE_VALUE>;
 
+const shouldUseLegacyInput = canUseTouchScreenUtil();
+
 function WorkspaceCreateTaxValuePage({
     route: {
         params: {policyID},
@@ -41,7 +43,6 @@ function WorkspaceCreateTaxValuePage({
 
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM_DRAFT);
     const [currentValue, setCurrentValue] = useState(formDraft?.[INPUT_IDS.VALUE]);
-    const shouldUseLegacyInput = canUseTouchScreen();
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID));
 
