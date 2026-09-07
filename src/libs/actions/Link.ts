@@ -613,6 +613,15 @@ function openReportFromDeepLink(
                         }
 
                         const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
+                            // Linking already rendered the deeplinked route on cold launch. Abort this
+                            // deferred handler once the focused screen is no longer that route — otherwise
+                            // a late callback after Sign in / thread / Back (or after waiting on Onyx for
+                            // OpenReport) would clobber the user's navigation (#96346).
+                            const deeplinkRoute = route as Route;
+                            if (deeplinkRoute && !Navigation.isActiveRoute(deeplinkRoute)) {
+                                return;
+                            }
+
                             // Check if the report exists in the collection
                             const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
@@ -625,12 +634,6 @@ function openReportFromDeepLink(
                                     return;
                                 }
                                 navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
-                                return;
-                            }
-
-                            // Skip the deferred re-navigate if the deeplinked route is still the active route.
-                            const deeplinkRoute = route as Route;
-                            if (deeplinkRoute && Navigation.isActiveRoute(deeplinkRoute)) {
                                 return;
                             }
 

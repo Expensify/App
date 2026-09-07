@@ -826,7 +826,7 @@ function navContainsProtectedRoutes(state: State | undefined): boolean {
 function waitForProtectedRoutes() {
     return new Promise<void>((resolve) => {
         isNavigationReady().then(() => {
-            // Prefer getRootState() over getState(): during the PublicScreens → AuthScreens swap,
+            // Prefer getRootState() over getState(): during the swap from PublicScreens to AuthScreens,
             // getState() can briefly return a partial tree with routes but no routeNames, so
             // navContainsProtectedRoutes stays false until an unrelated navigation fires. That delay
             // is what lets a deferred deep-link navigate clobber the first Sign in / thread tap (#96346).
