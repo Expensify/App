@@ -88,6 +88,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.completeHrSetup';
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAnHRConnection';
+        case CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT:
+            return 'debug.indicatorStatus.aBankAccountFailedValidation';
         default:
             return undefined;
     }
@@ -116,10 +118,9 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
             return ROUTES.WORKSPACE_ACCOUNTING.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
-            return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
-            return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
+        case CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
