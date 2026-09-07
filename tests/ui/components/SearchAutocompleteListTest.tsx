@@ -319,4 +319,39 @@ describe('SearchAutocompleteList', () => {
         expect(mockCreateOptionFromReport).toHaveBeenCalled();
         expect(mockDoesReportMatchSearchTerms).toHaveBeenCalledWith(expect.objectContaining({reportID: '456'}), ['a']);
     });
+
+    it('does not display Notifications when Auth returns it as a server-only result', async () => {
+        const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
+        const mockCreateOptionFromReport = jest.mocked(createOptionFromReport);
+
+        // Given App has no locally matched reports for the query
+        mockCreateOptionFromReport.mockClear();
+        mockCombineOrdering.mockReturnValue({recentReports: [], personalDetails: []});
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}456`, {
+                reportID: '456',
+                participants: {[CONST.ACCOUNT_ID.NOTIFICATIONS]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            });
+            await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['456']);
+        });
+
+        // When Auth returns Notifications
+        const {toJSON} = render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <SearchAutocompleteList
+                        autocompleteQueryValue="notifications"
+                        handleSearch={jest.fn()}
+                        onListItemPress={jest.fn()}
+                    />
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Notifications is not added to "Search results"
+        expect(JSON.stringify(toJSON())).not.toContain('456');
+        expect(mockCreateOptionFromReport).not.toHaveBeenCalled();
+    });
 });

@@ -29,7 +29,7 @@ import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isOneOnOneChat} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
@@ -442,7 +442,7 @@ function SearchAutocompleteList({
                     continue;
                 }
                 const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                if (!report) {
+                if (!report || report.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS]) {
                     continue;
                 }
                 const reportOption = createOptionFromReport({
@@ -454,6 +454,7 @@ function SearchAutocompleteList({
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
                     sortedActions,
                     conciergeReportID,
+                    config: {showPersonalDetails: isOneOnOneChat(report)},
                     visibleReportActionsData,
                     isTrackIntentUser,
                 });
