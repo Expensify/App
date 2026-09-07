@@ -1,11 +1,9 @@
-import DisplayContentsView from '@components/DisplayContentsView';
+import AlwaysPaintedView from '@components/AlwaysPaintedView';
 
-import useThemeStyles from '@hooks/useThemeStyles';
+import type NonTopScreenWrapperProps from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/nonTopScreenWrapperTypes';
 
 import {useLayoutEffect, useState} from 'react';
 import {Freeze} from 'react-freeze';
-
-import type ScreenFreezeWrapperProps from './types';
 
 // Delay freezing long enough for screen transition and modal/popover dismiss
 // animations to complete. On mobile, freezing a screen while an animation
@@ -13,9 +11,8 @@ import type ScreenFreezeWrapperProps from './types';
 // blocks React rendering and can cause the app to become unresponsive.
 const FREEZE_DELAY_MS = 500;
 
-function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperProps) {
+function ScreenFreezeWrapper({isScreenBlurred, children}: NonTopScreenWrapperProps) {
     const [frozen, setFrozen] = useState(false);
-    const styles = useThemeStyles();
 
     // Decouple the Suspense render task so it won't be interrupted by React's concurrent mode
     // and stuck in an infinite loop
@@ -43,7 +40,7 @@ function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperPro
 
     return (
         <Freeze freeze={frozen}>
-            <DisplayContentsView style={styles.flex1}>{children}</DisplayContentsView>
+            <AlwaysPaintedView>{children}</AlwaysPaintedView>
         </Freeze>
     );
 }

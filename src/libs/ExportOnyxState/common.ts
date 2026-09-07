@@ -143,6 +143,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['id', 'type', 'role', 'outputCurrency', 'areCategoriesEnabled', 'areTagsEnabled'],
         maskList: ['name', 'avatar'],
     },
+    // Vendor names can reveal a workspace's suppliers, so keep the collection structure but mask names in exports.
+    [ONYXKEYS.COLLECTION.POLICY_VENDORS]: {
+        allowList: ['externalID', 'enabled', 'origin'],
+        maskList: ['name'],
+    },
     [ONYXKEYS.USER_WALLET]: {
         allowList: ['currentBalance', 'availableBalance', 'tierName'],
         maskList: [],
@@ -164,6 +169,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
 const safeOnyxKeys = new Set<string>([
     ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
     ONYXKEYS.ACTIVE_CLIENTS,
+    ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.AGENT_RULE_SUGGESTIONS,
     ONYXKEYS.AGENT_TEMPLATES,
     ONYXKEYS.ARE_AGENTS_LOADED,
@@ -187,6 +193,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME,
     ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD,
     ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED,
+    ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN,
     ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN,
     ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING,
     ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
@@ -248,6 +255,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
     ONYXKEYS.LAST_EXPORT_METHOD,
     ONYXKEYS.LAST_FULL_RECONNECT_TIME,
+    ONYXKEYS.LAST_MEASURED_DATABASE_SIZE,
     ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS,
     ONYXKEYS.MAX_CANVAS_AREA,
     ONYXKEYS.MAX_CANVAS_HEIGHT,
@@ -316,7 +324,6 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
     ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
-    ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
     ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
@@ -333,6 +340,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING,
     ONYXKEYS.SHOULD_MASK_ONYX_STATE,
     ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key is still on device until the migration drains it, so it stays in the safe-to-export set
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT,
     ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE,

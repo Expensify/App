@@ -422,7 +422,10 @@ function getRemainingSecondsInWindow(requestedAt: number | undefined, windowMs: 
     if (!requestedAt) {
         return 0;
     }
-    return Math.max(0, Math.ceil((windowMs - (Date.now() - requestedAt)) / CONST.MILLISECONDS_PER_SECOND));
+    const remainingSeconds = Math.ceil((windowMs - (Date.now() - requestedAt)) / CONST.MILLISECONDS_PER_SECOND);
+
+    // A backward clock correction leaves `requestedAt` in the future, which would otherwise report more than the window.
+    return Math.min(Math.ceil(windowMs / CONST.MILLISECONDS_PER_SECOND), Math.max(0, remainingSeconds));
 }
 
 /**
@@ -751,6 +754,23 @@ const getDayValidationErrorKey = (translate: LocalizedTranslate, inputDate: Date
  */
 const isFutureDay = (inputDate: Date): boolean => {
     return isAfter(startOfDay(inputDate), startOfDay(new Date()));
+};
+
+/**
+ * Whether a transaction's date is further ahead than the backend tolerates.
+ *
+ * Mirrors the backend rule `DATETIME(COALESCE(modifiedCreated, created)) <= DATETIME('NOW', '+14 hours')`. A
+ * transaction date is a plain calendar date with no time or offset, so the backend cannot know the sender's local
+ * date and allows up to the furthest timezone (UTC+14) before flagging it.
+ */
+const isTransactionDateFuture = (transactionDate: string): boolean => {
+    if (!transactionDate) {
+        return false;
+    }
+
+    const thresholdDate = formatMachineDateWithUTCTimeZone(addHours(new Date(), 14).toISOString());
+
+    return formatMachineDateWithUTCTimeZone(transactionDate) > thresholdDate;
 };
 
 /**
@@ -1340,6 +1360,7 @@ const DateUtils = {
     getFormattedDuration,
     formatCountdownTimer,
     isFutureDay,
+    isTransactionDateFuture,
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,

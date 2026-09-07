@@ -4,6 +4,7 @@ import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -34,6 +35,7 @@ import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPl
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -45,6 +47,7 @@ import {
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
@@ -131,6 +134,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
+    const memberAvatarSource = details.avatar ?? (memberLogin ? getDefaultAvatarURL({accountID, accountEmail: addSMSDomainIfPhoneNumber(memberLogin)}) : undefined);
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
@@ -337,7 +341,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                                 <UserAvatar
                                     containerStyles={[styles.mb4, styles.noOutline]}
-                                    source={details.avatar}
+                                    source={memberAvatarSource}
                                     accountID={accountID}
                                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={fallbackIcon}
@@ -427,14 +431,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                 </>
                             )}
-                            <MenuItem
-                                style={styles.mb5}
-                                title={translate('common.profile')}
-                                icon={icons.Info}
-                                onPress={navigateToProfile}
-                                shouldShowRightIcon
-                                pressableTestID="member-profile-menu-item"
-                            />
+                            <View style={styles.mb5}>
+                                <MenuItemNavigation
+                                    title={translate('common.profile')}
+                                    icon={icons.Info}
+                                    onPress={navigateToProfile}
+                                    testID="member-profile-menu-item"
+                                />
+                            </View>
                             {memberCards.length > 0 && (
                                 <>
                                     <View style={[styles.ph5, styles.pv3]}>
