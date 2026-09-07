@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePrevious from '@hooks/usePrevious';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 
@@ -16,7 +17,6 @@ import {close as closeVisibleModal} from '@libs/actions/Modal';
 import {calculateBillNewDot, deleteWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings, isCard} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPendingDeletePolicy, shouldBlockWorkspaceDeletionForInvoicifyUser} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -60,6 +60,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const {showConfirmModal, closeModal} = useConfirmModal();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -158,7 +159,6 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             ),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
-            success: false,
             shouldHandleNavigationBack: false,
         }).then(() => {
             dismissDeleteWorkspaceFlow();
@@ -191,7 +191,6 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
                 prompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
-                success: false,
                 shouldHandleNavigationBack: false,
             }).then(() => {
                 dismissDeleteWorkspaceFlow();
@@ -206,11 +205,11 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         const policyName = policy?.name;
 
         showConfirmModal({
-            title: translate('workspace.common.delete'),
+            title: policyName ? translate('workspace.common.deleteWorkspaceTitle', policyName) : translate('workspace.common.delete'),
             prompt: hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             ...(hasDeleteWorkspaceExpensifyCardsError ? {} : {isConfirmLoading: isPendingDelete}),
         }).then((result) => {
             if (!policyName || result.action !== ModalActions.CONFIRM) {
@@ -259,7 +258,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         hasStartedRef.current = true;
 
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(privateSubscription?.type), policies, policyID, session?.accountID)) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
+            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
             onDismiss();
             return;
         }
