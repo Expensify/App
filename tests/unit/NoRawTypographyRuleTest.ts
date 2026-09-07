@@ -62,7 +62,7 @@ describe('no-raw-typography', () => {
             'const jsx = <Text variant="body">hi</Text>;',
             'const jsx = <Icon width={16} height={16} />;',
             'const style = StyleUtils.getFontSizeStyle(fontScale.h2);',
-            // `variables` is only the escape hatch for typography names — unrelated keys are untouched.
+            // `variables` is only the escape hatch for typography names, so unrelated keys are untouched.
             'const style = {fontSize: variables.iconSizeNormal};',
             'const style = {padding: variables.fontSizeNormal};',
             'const width = getWidth(variables.fontSizeNormal);',
@@ -72,7 +72,7 @@ describe('no-raw-typography', () => {
             'const style = {fontSize: props.fontSize};',
             'const style = {fontSize: isSmall ? fontScale.micro : fontScale.text};',
             // Only `variables.*` is traced through an alias. A bare number behind a `const` is
-            // indistinguishable from any other constant — test fixtures and layout math live there too.
+            // indistinguishable from any other constant, and test fixtures and layout math live there too.
             'const FONT_SIZE = 12; const style = {fontSize: FONT_SIZE};',
             'const size = isSmall ? fontScale.micro : 17; const style = {fontSize: size};',
             // The styles layer composes tokens out of `variables`, so it reads them by name.
@@ -146,7 +146,7 @@ describe('no-raw-typography', () => {
                 code: 'const jsx = <CustomText lineHeight={20}>hi</CustomText>;',
                 errors: [{messageId: 'rawTypography'}],
             },
-            // A `const` alias is not an escape hatch — the value is traced back to where it was written.
+            // A `const` alias is not an escape hatch. The value is traced back to where it was written.
             {
                 code: 'const size = variables.fontSizeXXSmall; const style = StyleUtils.getFontSizeStyle(size);',
                 errors: [{messageId: 'rawTypographyVariable'}],

@@ -65,9 +65,9 @@ function isNumericLiteral(node) {
 }
 
 /**
- * Matches `variables.fontSizeNormal`, `variables.lineHeightXLarge`, and friends — the named escape
- * hatch around the typography scale. Only the `variables` module is matched; unrelated objects that
- * happen to have a `fontSize*` key are left alone.
+ * Matches `variables.fontSizeNormal`, `variables.lineHeightXLarge`, and friends. This is the named
+ * escape hatch around the typography scale. Only the `variables` module is matched. Unrelated objects
+ * that happen to have a `fontSize*` key are left alone.
  *
  * This is a syntactic match on the `variables.<name>` shape, not a resolved-import check, so it is a
  * convention guard rather than an airtight ban. Renaming the import (`import vars from '@styles/variables'`),
@@ -110,7 +110,7 @@ function findVariable(scope, variableName) {
 /**
  * The expression a `const` alias was assigned, so `const size = variables.fontSizeXXSmall` followed by
  * `getFontSizeStyle(size)` is still caught. Only single-definition `const` bindings with a plain
- * identifier name are followed — a `let` binding or a destructuring pattern has no single value to
+ * identifier name are followed. A `let` binding or a destructuring pattern has no single value to
  * trace, so those are left alone rather than guessed at.
  *
  * Only `variables.*` references are traced through an alias, never bare numbers. A `const FONT_SIZE = 12`
@@ -134,9 +134,9 @@ function getConstInitializer(variable) {
 
 /**
  * Flags object properties (`{fontSize: 17}`), JSX attributes (`<Text fontSize={17}>`), and
- * `getFontSizeStyle()`/`getLineHeightStyle()` arguments that set type outside the typography scale —
- * both numeric literals and `variables.fontSize*` / `variables.lineHeight*` references. With
- * `allowVariablesReferences`, only the numeric literals are banned.
+ * `getFontSizeStyle()`/`getLineHeightStyle()` arguments that set type outside the typography scale.
+ * That covers both numeric literals and `variables.fontSize*` / `variables.lineHeight*` references.
+ * With `allowVariablesReferences`, only the numeric literals are banned.
  *
  * @param {import('eslint').Rule.RuleContext} context
  * @returns {import('eslint').Rule.RuleListener}

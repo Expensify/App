@@ -557,8 +557,8 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXSmall,
         },
         // The two scales are deliberately mismatched: this needs `micro`'s size with `finePrint`'s 12 line
-        // height, which is what it always had. Do not "fix" it to `lineHeightScale.micro` (14/16) — that
-        // changes the rendered line height.
+        // height, which is what it always had. Do not "fix" it to `lineHeightScale.micro` (14/16), because
+        // that changes the rendered line height.
         textDoubleDecker: {
             fontSize: fontScale.micro,
             opacity: 0.8,
