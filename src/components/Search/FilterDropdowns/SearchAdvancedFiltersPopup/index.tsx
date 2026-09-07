@@ -158,8 +158,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         });
     };
 
-    // Restarted by every movement, so it elapses only once the cursor has come to rest, and dropped when the popover
-    // closes.
+    // Elapses once the cursor comes to rest on a row.
     const {invoke: waitForCursorToRest, cancel: cancelReadyWait} = useDebounceWithControls(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
 
     const hoverFilter = (filterKey: SearchFilter['key']) => {
@@ -169,10 +168,8 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
 
     const {trackMovement: trackPointerMovement, stopTracking} = usePointerMovement(CONST.SEARCH.HOVER_INTENT_REST_RADIUS_PX, waitForCursorToRest);
 
-    // The row the cursor ended on stays on show, so it releases what it was withholding either way: at once for a
-    // cursor heading toward the content, and once the wait left running elapses for one heading away. The direction
-    // comes from the last tracked position rather than from the exit point alone, because `SafeTriangle` covers that
-    // path with an overlay of its own and the cursor leaves the list above it as often as through its edge.
+    // The direction comes from the last tracked position rather than the exit point, because `SafeTriangle` covers the
+    // path to the content with an overlay and the cursor leaves the list above it as often as through its edge.
     const stopTrackingPointer = (event: {clientX: number}) => {
         const lastMovement = stopTracking();
 

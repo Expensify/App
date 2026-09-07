@@ -14,7 +14,7 @@ function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initial
     const [isNegated, setIsNegated] = useState(initialIsNegated);
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
 
-    // A withheld filter stands as its own loading state, so none of its controls are drawn behind the spinner.
+    // The filter is its own loading state, so its controls do not render behind the spinner.
     if (ready === false) {
         return (
             <View style={[styles.mt6, styles.flex1]}>

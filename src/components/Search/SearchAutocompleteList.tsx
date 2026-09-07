@@ -461,13 +461,17 @@ function SearchAutocompleteList({
         setFrozenLocalRank(buildRankMap(recentReportsOptions));
     }
 
-    const debounceHandleSearch = useDebounce(() => {
-        if (!handleSearch || !autocompleteQueryWithoutFilters) {
-            return;
-        }
+    const debounceHandleSearch = useDebounce(
+        () => {
+            if (!handleSearch || !autocompleteQueryWithoutFilters) {
+                return;
+            }
 
-        handleSearch(autocompleteQueryWithoutFilters);
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+            handleSearch(autocompleteQueryWithoutFilters);
+        },
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
+    );
 
     useEffect(() => {
         debounceHandleSearch();

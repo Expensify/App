@@ -28,7 +28,7 @@ function useDebouncedSaveDraftImpl(saveDraftFn: (...args: unknown[]) => void, wa
             isSavePending.current = false;
         },
         wait,
-        // Capped so a draft is still written every `wait` while someone keeps typing, rather than only once they pause.
+        // maxWait writes a draft every `wait` while typing continues.
         {shouldExecuteOnUnmount, maxWait: wait},
     );
 

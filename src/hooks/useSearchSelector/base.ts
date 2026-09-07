@@ -436,9 +436,9 @@ function useSearchSelectorBase({
             if (hasMoreReports) {
                 loadMoreReports();
             }
-            // Capped so pages keep arriving while someone scrolls on, rather than only once the scrolling stops.
         },
         CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        // maxWait keeps pages arriving while the scrolling continues.
         {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
     );
 

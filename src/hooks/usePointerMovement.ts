@@ -1,15 +1,11 @@
 import {useRef} from 'react';
 
 type PointerPosition = {
-    /** Horizontal position of the pointer, in viewport pixels. */
     x: number;
-
-    /** Vertical position of the pointer, in viewport pixels. */
     y: number;
 };
 
 type PointerMovement = {
-    /** Handles a pointer move. `onMove` runs only for a pointer that traveled past the rest radius. */
     trackMovement: (event: {clientX: number; clientY: number}) => void;
 
     /** Forgets the tracked position and hands back the one the pointer was last seen moving at. */
@@ -18,10 +14,10 @@ type PointerMovement = {
 
 /**
  * Tracks where a pointer moves, ignoring travel shorter than `restRadius`, so a hand shaking on the spot counts as
- * still. The position it kept is what tells a later handler which way the pointer was heading.
+ * still. The first move after mount and after `stopTracking` has nothing to measure against, so it always counts.
  *
- * @param restRadius How far the pointer has to travel, in pixels, before it counts as moving.
- * @param onMove Called for a move past that radius.
+ * `onMove` has to be a stable reference: it keys the memoization of whatever handler the caller builds from
+ * `trackMovement`.
  */
 function usePointerMovement(restRadius: number, onMove: () => void): PointerMovement {
     const positionRef = useRef<PointerPosition | null>(null);
