@@ -17,6 +17,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsTabFocused from '@hooks/useIsTabFocused';
 import useNetwork from '@hooks/useNetwork';
 
 import {search} from '@libs/actions/Search';
@@ -37,6 +38,8 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
 
 import createMock from '../../../utils/createMock';
 
@@ -81,6 +84,13 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: () => ({}),
 }));
 
+// Mandatory: the real hook reads the root navigation state, which is never ready under Jest, so it
+// would report "not focused" and the searches would silently never fire.
+jest.mock('@hooks/useIsTabFocused', () => ({
+    __esModule: true,
+    default: jest.fn(() => true),
+}));
+
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
 }));
@@ -109,6 +119,8 @@ jest.mock('@libs/PolicyUtils', () => ({
 // Typed references to mocked modules
 
 const mockedUseNetwork = jest.mocked(useNetwork);
+const mockedUseIsTabFocused = jest.mocked(useIsTabFocused);
+const mockedUseIsFocused = jest.mocked(useIsFocused);
 const mockedUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockedSearch = jest.mocked(search);
 const mockedGetDisplayableExpensifyCards = jest.mocked(getDisplayableExpensifyCards);
@@ -263,6 +275,8 @@ beforeEach(() => {
     }
     mockUseOnyx.mockClear();
     mockedSearch.mockClear();
+    mockedUseIsTabFocused.mockReturnValue(true);
+    mockedUseIsFocused.mockReturnValue(true);
 
     mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY);
     mockedBuildRepaidLast30DaysQuery.mockReturnValue(PAYMENT_QUERY);
@@ -543,6 +557,23 @@ describe('useYourSpendData — search dispatch', () => {
         );
     });
 
+    it('does not replay the set when an RHP opens and closes over Home', () => {
+        // Given Home has already fired its searches
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const callsAfterFirstRender = mockedSearch.mock.calls.length;
+        expect(callsAfterFirstRender).toBeGreaterThan(0);
+
+        // When an RHP is pushed over Home and popped again, leaving the Home tab active throughout
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender(undefined);
+
+        // Then closing it does not refetch a set the account already has
+        expect(mockedSearch).toHaveBeenCalledTimes(callsAfterFirstRender);
+    });
+
     it('does not dispatch search() when offline', () => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         mockedUseNetwork.mockReturnValue(networkState(true));
@@ -813,6 +844,25 @@ describe('useYourSpendData — refires search when a relevant report state chang
     beforeEach(() => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('holds an approval behind an open RHP and refires once it closes', () => {
+        // Given Home has searched with one OUTSTANDING report
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // When the report is approved behind an open RHP, and the RHP is then closed
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        rerender(undefined);
+        expect(approvalSearchCallCount()).toBe(before);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender(undefined);
+
+        // Then the refresh is not lost: it fires once, after Home is visible again
+        expect(approvalSearchCallCount()).toBe(before + 1);
     });
 
     it('refires the approval search when an owned report leaves the OUTSTANDING state', () => {
