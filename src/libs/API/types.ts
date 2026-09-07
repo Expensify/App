@@ -700,6 +700,8 @@ const WRITE_COMMANDS = {
     JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
 } as const;
 
+const PAYMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.PAY_MONEY_REQUEST, WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET]);
+
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
 
 type WriteCommandParameters = {
@@ -1738,7 +1740,7 @@ type SideEffectRequestCommandParameters = {
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
 
-export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, AUTHENTICATION_COMMAND};
+export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, AUTHENTICATION_COMMAND, PAYMENT_COMMANDS};
 
 type ApiCommand = WriteCommand | ReadCommand | SideEffectRequestCommand;
 type CommandOfType<TRequestType extends ApiRequestType> = TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE

@@ -35,13 +35,10 @@ function EnableGlobalReimbursementsPayModal() {
         });
 
         if (result.action === ModalActions.CONFIRM) {
-            const {bankAccountID, bankCountry, bankCurrency} = modalData;
-            if (typeof bankAccountID !== 'number' || Number.isNaN(bankAccountID)) {
-                clearCorpayPayModal();
-            } else if (isAccountLocked) {
+            if (isAccountLocked) {
                 showLockedAccountModal();
-                clearCorpayPayModal();
             } else {
+                const {bankAccountID, bankCountry, bankCurrency} = modalData;
                 Navigation.navigate(
                     getEnableGlobalReimbursementsBusinessNavigationRoute(
                         bankAccountID,
@@ -54,11 +51,9 @@ function EnableGlobalReimbursementsPayModal() {
                     ),
                     {skipMatchingFullScreenRoute: true},
                 );
-                clearCorpayPayModal();
             }
-        } else {
-            clearCorpayPayModal();
         }
+        clearCorpayPayModal();
     });
 
     useEffect(() => {

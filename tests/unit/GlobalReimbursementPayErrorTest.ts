@@ -49,7 +49,7 @@ function buildPayRequest(overrides: PayRequestOverrides = {}): Request<OnyxKey> 
     } as Request<OnyxKey>;
 }
 
-function buildCorpayPayModalResponse(jsonCode: number | string = CONST.JSON_CODE.UNABLE_TO_RETRY): Response<OnyxKey> {
+function buildCorpayPayModalResponse(jsonCode: number | string = CONST.JSON_CODE.EXP_ERROR): Response<OnyxKey> {
     return {
         jsonCode,
         onyxData: [
@@ -128,7 +128,7 @@ describe('GlobalReimbursementPayError middleware', () => {
     it('leaves failureData untouched if response does not contain RAM_ONLY_CORPAY_PAY_MODAL', async () => {
         const request = buildPayRequest();
         const response: Response<OnyxKey> = {
-            jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY,
+            jsonCode: CONST.JSON_CODE.EXP_ERROR,
             onyxData: [
                 {
                     onyxMethod: 'merge',

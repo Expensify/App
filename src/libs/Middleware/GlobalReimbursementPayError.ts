@@ -1,3 +1,4 @@
+import {PAYMENT_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import {isRecord} from '@libs/ObjectUtils';
 
@@ -10,8 +11,6 @@ import type Response from '@src/types/onyx/Response';
 import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './types';
-
-import {PAYMENT_COMMANDS} from './HandleMovedScanFailedExpenses';
 
 /**
  * Middleware that detects the Corpay pay modal signal sent by the backend when a pay attempt fails because the
