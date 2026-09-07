@@ -4432,12 +4432,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         // Pins the callout to the top of the scroll area, like floatingMessageCounterWrapper, so scrolling cannot hide it.
+        // Both occupy that strip, so the callout sits one layer above: it is dismissible, and the "New messages" pill
+        // underneath it stays reachable once the callout is gone.
         merchantRuleCalloutOverlay: {
             ...positioning.pAbsolute,
             ...positioning.t0,
             ...positioning.l0,
             ...positioning.r0,
-            zIndex: 100,
+            zIndex: 101,
         },
 
         // Floats above the composer without taking height, so the conversation does not jump when it appears.
