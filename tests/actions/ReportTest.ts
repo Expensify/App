@@ -224,7 +224,12 @@ const isReportMergeUpdate = (value: unknown): value is Extract<OnyxUpdate<typeof
         return false;
     }
 
-    return value.onyxMethod === Onyx.METHOD.MERGE && typeof value.key === 'string' && value.key.startsWith(ONYXKEYS.COLLECTION.REPORT) && (value.value === null || typeof value.value === 'object');
+    return (
+        value.onyxMethod === Onyx.METHOD.MERGE &&
+        typeof value.key === 'string' &&
+        value.key.startsWith(ONYXKEYS.COLLECTION.REPORT) &&
+        (value.value === null || typeof value.value === 'object')
+    );
 };
 
 const isGuidedSetupData = (value: unknown): value is GuidedSetupData =>

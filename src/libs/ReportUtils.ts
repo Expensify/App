@@ -4851,7 +4851,9 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
  * so negating `total` alone leaves the stale positive siblings behind and renders the Total as negative.
  * Absent columns are not added so they keep being derived from `total`.
  */
-function getNegatedReportTotals(report: OnyxEntry<Report>): Pick<Report, 'total' | 'reimbursableTotal' | 'nonReimbursableTotal' | 'unheldTotal' | 'unheldReimbursableTotal' | 'unheldNonReimbursableTotal'> {
+function getNegatedReportTotals(
+    report: OnyxEntry<Report>,
+): Pick<Report, 'total' | 'reimbursableTotal' | 'nonReimbursableTotal' | 'unheldTotal' | 'unheldReimbursableTotal' | 'unheldNonReimbursableTotal'> {
     return {
         total: -(report?.total ?? 0),
         ...(report?.reimbursableTotal != null && {reimbursableTotal: -report.reimbursableTotal}),
