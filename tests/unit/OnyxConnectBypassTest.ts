@@ -73,6 +73,14 @@ describe('collectDisableDirectivesFromSource', () => {
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([]);
     });
 
+    it('does not treat eslint-enable-line or eslint-enable-next-line as re-enabling the ban', () => {
+        const enableLine = ['/* eslint-disable */', '// eslint-enable-line', onyxConnectCall('x')].join('\n');
+        const enableNextLine = ['/* eslint-disable */', '// eslint-enable-next-line', onyxConnectCall('x')].join('\n');
+
+        expect(collectDisableDirectivesFromSource(enableLine, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource(enableNextLine, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
     it('matches a trailing eslint-disable-line that names the ban', () => {
         const source = `${onyxConnectCall('x')} // eslint-disable-line ${BANNED_RULE_ID}\n`;
 

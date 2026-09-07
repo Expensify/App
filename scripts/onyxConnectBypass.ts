@@ -83,7 +83,11 @@ function collectDirectiveMatches(comments: readonly BabelComment[], source: stri
         if (comment.start === null || comment.end === null) {
             continue;
         }
-        const directiveMatch = comment.value.match(new RegExp(`^\\s*eslint-${directive}(?<kind>-next-line|-line)?(?<args>[\\s\\S]*)$`));
+        // ESLint only supports -line / -next-line on disable. `eslint-enable-line` and
+        // `eslint-enable-next-line` are not real directives, so treating them as enables
+        // would reopen a blanket disable that ESLint still honors.
+        const pattern = directive === 'disable' ? '^\\s*eslint-disable(?<kind>-next-line|-line)?(?<args>[\\s\\S]*)$' : '^\\s*eslint-enable(?!-)(?<args>[\\s\\S]*)$';
+        const directiveMatch = comment.value.match(new RegExp(pattern));
         if (!directiveMatch) {
             continue;
         }
