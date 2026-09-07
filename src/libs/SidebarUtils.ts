@@ -30,174 +30,40 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {Str} from 'expensify-common';
-
 import type {OptionData} from './ReportUtils';
 
 import {isAnonymousUser} from './actions/Session';
-import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
-import {formatList} from './Localize';
 import Log from './Log';
-import {getLastMessageTextForReport, shouldUseFullTitleForOption} from './OptionsListUtils';
-import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from './OptionsListUtils/getChatPreviewParts';
-import Parser from './Parser';
-import {getPersonalDetailsByID, getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
-import {getCleanedTagName} from './PolicyUtils';
-import {
-    getActionableCard3DSTransactionApprovalMessage,
-    getActionableCardFraudAlertResolutionMessage,
-    getAddedApprovalRuleMessage,
-    getAddedBudgetMessage,
-    getAddedCardFeedMessage,
-    getAddedConnectionMessage,
-    getAssignedCompanyCardMessage,
-    getAutoPayApprovedReportsEnabledMessage,
-    getAutoReimbursementMessage,
-    getCardIssuedMessage,
-    getCategoryTaxRateMessage,
-    getChangedApproverActionMessage,
-    getCompanyAddressUpdateMessage,
-    getCompanyCardConnectionBrokenMessage,
-    getCurrencyConversionFeeMessage,
-    getCurrencyDefaultTaxUpdateMessage,
-    getCustomTaxNameUpdateMessage,
-    getDefaultApproverUpdateMessage,
-    getDelegateSubmitMessage,
-    getDeletedApprovalRuleMessage,
-    getDeletedBudgetMessage,
-    getForeignCurrencyDefaultTaxUpdateMessage,
-    getForwardsToUpdateMessage,
-    getIntegrationSyncFailedMessage,
-    getInvoiceCompanyNameUpdateMessage,
-    getInvoiceCompanyWebsiteUpdateMessage,
-    getIOUReportIDFromReportActionPreview,
-    getLastVisibleMessage,
-    getMccGroupCategoryMessage,
-    getMessageOfOldDotReportAction,
-    getOriginalMessage,
-    getPlaidBalanceFailureMessage,
-    getPolicyChangeLogAddEmployeeMessage,
-    getPolicyChangeLogDefaultBillableMessage,
-    getPolicyChangeLogDefaultReimbursableMessage,
-    getPolicyChangeLogDefaultTitleEnforcedMessage,
-    getPolicyChangeLogDeleteMemberMessage,
-    getPolicyChangeLogEmployeeLeftMessage,
-    getPolicyChangeLogMaxExpenseAgeMessage,
-    getPolicyChangeLogMaxExpenseAmountMessage,
-    getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
-    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
-    getPolicyChangeLogUpdateEmployee,
-    getReimburserUpdateMessage,
-    getRemovedCardFeedMessage,
-    getRemovedConnectionMessage,
-    getRenamedAction,
-    getRenamedCardFeedMessage,
-    getReportAction,
-    getReportActionActorAccountID,
-    getReportActionMessageText,
-    getRequireCompanyCardsEnabledMessage,
-    getRequiresCategoryMessage,
-    getRequiresTagMessage,
-    getRoomAvatarUpdatedMessage,
-    getSetAutoJoinMessage,
-    getSettlementAccountLockedMessage,
-    getSubmitsToUpdateMessage,
-    getTagListNameUpdatedMessage,
-    getTagListUpdatedMessage,
-    getTagListUpdatedRequiredMessage,
-    getTravelUpdateMessage,
-    getUnassignedCompanyCardMessage,
-    getUpdateACHAccountMessage,
-    getUpdatedApprovalRuleMessage,
-    getUpdatedAuditRateMessage,
-    getUpdatedAutoHarvestingMessage,
-    getUpdatedBudgetMessage,
-    getUpdatedCardFeedLiabilityMessage,
-    getUpdatedCardFeedStatementPeriodMessage,
-    getUpdatedDefaultTitleMessage,
-    getUpdatedIndividualBudgetNotificationMessage,
-    getUpdatedManualApprovalThresholdMessage,
-    getUpdatedOwnershipMessage,
-    getUpdatedProhibitedExpensesMessage,
-    getUpdatedReimbursementChoiceMessage,
-    getUpdatedSharedBudgetNotificationMessage,
-    getUpdatedTimeEnabledMessage,
-    getUpdatedTimeRateMessage,
-    getUpdateRoomDescriptionMessage,
-    getWorkspaceAttendeeTrackingUpdateMessage,
-    getWorkspaceCategoriesUpdatedMessage,
-    getWorkspaceCategoryUpdateMessage,
-    getWorkspaceCurrencyUpdateMessage,
-    getWorkspaceCustomUnitRateAddedMessage,
-    getWorkspaceCustomUnitRateDeletedMessage,
-    getWorkspaceCustomUnitRateImportedMessage,
-    getWorkspaceCustomUnitRateUpdatedMessage,
-    getWorkspaceCustomUnitSubRateDeletedMessage,
-    getWorkspaceCustomUnitSubRateUpdatedMessage,
-    getWorkspaceCustomUnitUpdatedMessage,
-    getWorkspaceDescriptionUpdatedMessage,
-    getWorkspaceFeatureEnabledMessage,
-    getWorkspaceFrequencyUpdateMessage,
-    getWorkspaceReimbursementUpdateMessage,
-    getWorkspaceReportFieldAddMessage,
-    getWorkspaceReportFieldDeleteMessage,
-    getWorkspaceReportFieldUpdateMessage,
-    getWorkspaceTagUpdateMessage,
-    getWorkspaceTaxUpdateMessage,
-    getWorkspaceUpdateFieldMessage,
-    isActionOfType,
-    isCardIssuedAction,
-    isCategoryModificationAction,
-    isInviteOrRemovedAction,
-    isLeavePolicyAction,
-    isOldDotReportAction,
-    isPolicyCopyReportAction,
-    isRenamedAction,
-    isTagModificationAction,
-    isTaskAction,
-} from './ReportActionsUtils';
-import {deprecatedGetReportName, getReportName} from './ReportNameUtils';
+import {shouldUseFullTitleForOption} from './OptionsListUtils';
+import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
+import {getIOUReportIDFromReportActionPreview, getReportAction} from './ReportActionsUtils';
+import {getReportAlternateText, getWelcomeMessage} from './ReportAlternateTextUtils';
+import {deprecatedGetReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
-    formatReportLastMessageText,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getChatRoomSubtitle,
-    getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getIcons,
-    getMovedTransactionMessage,
-    parseMovedTransactionReportIDs,
     getParticipantsAccountIDsForDisplay,
     getPendingDeleteMemberAccountIDs,
-    getPolicyChangeLogCopyMessage,
-    getPolicyName,
     getReceiptUploadErrorReason,
-    getReportDescription,
     getReportMetadata,
     getReportNotificationPreference,
     getReportParticipantsTitle,
-    getReportSubtitlePrefix,
-    getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
-    getWorkspaceNameUpdatedMessage,
     hasExpensifyGuidesEmails,
     hasReportErrorsOtherThanFailedReceipt,
-    isAdminRoom,
-    isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
-    isDeprecatedGroupDM,
-    isDomainRoom,
     isExpenseReport,
     isExpenseRequest,
-    isGroupChat as isGroupChatUtil,
     isHiddenForCurrentUser,
     isInvoiceReport,
-    isInvoiceRoom,
     isIOUOwnedByCurrentUser,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
@@ -208,7 +74,6 @@ import {
     isSelfDM,
     isSystemChat as isSystemChatUtil,
     isTaskReport,
-    isThread,
     isTripRoom,
     isUnread,
     isUnreadWithMention,
@@ -216,29 +81,6 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
-import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
-import StringUtils from './StringUtils';
-import {getTaskReportActionMessage} from './TaskUtils';
-
-type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
-
-type WelcomeMessageParams = {
-    report: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
-    invoiceReceiverPolicy: OnyxEntry<Policy>;
-    participantPersonalDetailList: PersonalDetails[];
-    translate: LocalizedTranslate;
-    localeCompare: LocaleContextProps['localeCompare'];
-    conciergeReportID: string | undefined;
-    derivedReportName?: string;
-    isReportArchived?: boolean;
-    reportDetailsLink?: string;
-    shouldShowUsePlusButtonText?: boolean;
-    additionalText?: string;
-    isTrackIntentUser?: boolean;
-    currentUserAccountID?: number;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-};
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
@@ -1024,429 +866,32 @@ function getOptionData({
         isSelfDM(report),
     );
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
-    // If the last actor's details are not currently saved in Onyx Collection,
-    // then try to get that from the last report action if that action is valid
-    // to get data from.
-    let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
-    if (!lastActorDetails && lastAction) {
-        const lastActorDisplayName = lastAction?.person?.[0]?.text;
-        lastActorDetails = lastActorDisplayName
-            ? {
-                  displayName: lastActorDisplayName,
-                  accountID: report.lastActorAccountID,
-              }
-            : null;
-    }
-
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
-    let lastMessageTextFromReport = lastMessageTextFromReportProp;
-    if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport({
-            translate,
-            dateFnsLocale,
-            report,
-            personalDetails,
-            lastActorDetails,
-            conciergeReportID,
-            movedFromReport,
-            movedToReport,
-            policy,
-            isReportArchived,
-            reportMetadata,
-            reportAttributesDerived,
-            policyTags,
-            currentUserLogin,
-            lastAction,
-            isTrackIntentUser,
-            currentUserAccountID,
-        });
-    }
-
-    // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
-    let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
-
-    // Specifically for concierge chats and expense reports, which don't meet any of the conditions in the if statement below
-    if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
-        lastMessageText = getActionableCard3DSTransactionApprovalMessage(translate, lastAction) ?? lastMessageText;
-    } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT) && !!getDelegateSubmitMessage(translate, lastAction, currentUserLogin)) {
-        lastMessageText = Parser.htmlToText(getDelegateSubmitMessage(translate, lastAction, currentUserLogin));
-    }
-
-    const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report, isReportArchived);
-
-    const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !isReportArchived) {
-        const lastActionName = lastAction?.actionName ?? report.lastActionType;
-        const prefix = getReportSubtitlePrefix(report);
-
-        if (isRenamedAction(lastAction)) {
-            result.alternateText = getRenamedAction(translate, lastAction, isExpense, lastActorDisplayName);
-        } else if (isTaskAction(lastAction)) {
-            result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(translate, lastAction).text);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
-            const actionMessage = getReportActionMessageText(lastAction);
-            result.alternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
-            result.alternateText = translate('report.actions.type.leftTheChatWithName', lastActorDisplayName);
-        } else if (isInviteOrRemovedAction(lastAction)) {
-            let actorDetails;
-            if (lastAction.actorAccountID) {
-                actorDetails = personalDetails?.[lastAction?.actorAccountID];
-            }
-            let actorDisplayName = lastAction?.person?.[0]?.text;
-            if (!actorDetails && actorDisplayName && lastAction.actorAccountID) {
-                actorDetails = {
-                    displayName: actorDisplayName,
-                    accountID: lastAction.actorAccountID,
-                };
-            }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate) : undefined;
-            const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
-            const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
-            const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
-            const verb =
-                lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
-                    ? translate('workspace.invite.invited')
-                    : translate('workspace.invite.removed');
-            const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
-            result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = deprecatedGetReportName(lastActionReport ?? undefined, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
-            if (roomName) {
-                const preposition =
-                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
-                        ? ` ${translate('workspace.invite.to')}`
-                        : ` ${translate('workspace.invite.from')}`;
-                result.alternateText += `${preposition} ${roomName}`;
-            }
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
-            result.alternateText = getWorkspaceNameUpdatedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(lastAction)?.resolution) {
-            result.alternateText = getActionableCardFraudAlertResolutionMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
-            result.alternateText = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getWorkspaceDescriptionUpdatedMessage(translate, lastAction)));
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY)) {
-            result.alternateText = getWorkspaceCurrencyUpdateMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY)) {
-            result.alternateText = getWorkspaceFrequencyUpdateMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE)) {
-            result.alternateText = translate('workspaceActions.upgradedWorkspace');
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE)) {
-            result.alternateText = Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'));
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE)) {
-            result.alternateText = translate('workspaceActions.downgradedWorkspace');
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-            result.alternateText = Parser.htmlToText(getIntegrationSyncFailedMessage(translate, lastAction, report?.policyID));
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
-            result.alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
-            result.alternateText = Parser.htmlToText(getPlaidBalanceFailureMessage(translate, lastAction));
-        } else if (lastAction?.actionName && isCategoryModificationAction(lastAction.actionName)) {
-            result.alternateText = getWorkspaceCategoryUpdateMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES)) {
-            result.alternateText = getWorkspaceCategoriesUpdatedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS)) {
-            result.alternateText = translate('workspaceActions.importTags');
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS)) {
-            result.alternateText = translate('workspaceActions.deletedAllTags');
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_RULE)) {
-            result.alternateText = translate('workspaceActions.addedRule');
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULE)) {
-            result.alternateText = translate('workspaceActions.updatedRule');
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_RULE)) {
-            result.alternateText = translate('workspaceActions.removedRule');
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST)) {
-            result.alternateText = getTagListUpdatedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED)) {
-            result.alternateText = getTagListUpdatedRequiredMessage(translate, lastAction);
-        } else if (
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX) ||
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
-        ) {
-            result.alternateText = getWorkspaceTaxUpdateMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME)) {
-            result.alternateText = getCustomTaxNameUpdateMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX)) {
-            result.alternateText = getCurrencyDefaultTaxUpdateMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX)) {
-            result.alternateText = getForeignCurrencyDefaultTaxUpdateMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
-            result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(translate, lastAction) ?? '');
-        } else if (isTagModificationAction(lastAction?.actionName ?? '')) {
-            result.alternateText = getCleanedTagName(getWorkspaceTagUpdateMessage(translate, lastAction) ?? '');
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT)) {
-            result.alternateText = getWorkspaceCustomUnitUpdatedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES)) {
-            result.alternateText = getWorkspaceCustomUnitRateImportedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitRateDeletedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitSubRateUpdatedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_SUB_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitSubRateDeletedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD)) {
-            result.alternateText = getWorkspaceReportFieldAddMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD)) {
-            result.alternateText = getWorkspaceReportFieldUpdateMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_REPORT_FIELD)) {
-            result.alternateText = getWorkspaceReportFieldDeleteMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
-            result.alternateText = getWorkspaceUpdateFieldMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
-            result.alternateText = getWorkspaceFeatureEnabledMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
-            result.alternateText = getWorkspaceAttendeeTrackingUpdateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
-            result.alternateText = getRequireCompanyCardsEnabledMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY) {
-            result.alternateText = getRequiresCategoryMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG) {
-            result.alternateText = getRequiresTagMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE) {
-            result.alternateText = getCurrencyConversionFeeMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
-            result.alternateText = getAutoPayApprovedReportsEnabledMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
-            result.alternateText = getAutoReimbursementMessage(translate, lastAction, convertToDisplayString);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE) {
-            result.alternateText = getCategoryTaxRateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY) {
-            result.alternateText = getMccGroupCategoryMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER) {
-            result.alternateText = getDefaultApproverUpdateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO) {
-            result.alternateText = getSubmitsToUpdateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
-            result.alternateText = getForwardsToUpdateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
-            result.alternateText = getInvoiceCompanyNameUpdateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
-            result.alternateText = getInvoiceCompanyWebsiteUpdateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER) {
-            result.alternateText = getReimburserUpdateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
-            result.alternateText = getWorkspaceReimbursementUpdateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT) {
-            result.alternateText = getUpdateACHAccountMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS) {
-            result.alternateText = getCompanyAddressUpdateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
-            result.alternateText = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, lastAction, convertToDisplayString);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT) {
-            result.alternateText = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate, lastAction, convertToDisplayString);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
-            result.alternateText = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastAction, convertToDisplayString);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE) {
-            result.alternateText = getPolicyChangeLogMaxExpenseAgeMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
-            result.alternateText = getPolicyChangeLogDefaultBillableMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE) {
-            result.alternateText = getPolicyChangeLogDefaultReimbursableMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
-            result.alternateText = getPolicyChangeLogDefaultTitleEnforcedMessage(translate, lastAction);
-        } else if (isLeavePolicyAction(lastAction)) {
-            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, getPersonalDetailsByID(lastAction.actorAccountID, personalDetails), true);
-        } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate, currentUserAccountID});
-        } else if (lastAction && isOldDotReportAction(lastAction)) {
-            result.alternateText = getMessageOfOldDotReportAction(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
-            result.alternateText = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getUpdateRoomDescriptionMessage(translate, lastAction)));
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR) {
-            result.alternateText = getRoomAvatarUpdatedMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
-            result.alternateText = getPolicyChangeLogAddEmployeeMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-            result.alternateText = getPolicyChangeLogUpdateEmployee(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
-            result.alternateText = getPolicyChangeLogDeleteMemberMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            const {fromReportID} = parseMovedTransactionReportIDs(lastAction);
-            result.alternateText = Parser.htmlToText(
-                getUnreportedTransactionMessage({
-                    translate,
-                    fromReportID,
-                    derivedReportName: fromReportID ? reportAttributesDerived?.[fromReportID]?.reportName : undefined,
-                }),
-            );
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
-            result.alternateText = getReportActionMessageText(lastAction) ?? '';
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
-            result.alternateText = getAddedConnectionMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
-            result.alternateText = getRemovedConnectionMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
-            result.alternateText = getAddedCardFeedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED)) {
-            result.alternateText = getRemovedCardFeedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED)) {
-            result.alternateText = getRenamedCardFeedMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD)) {
-            result.alternateText = getAssignedCompanyCardMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD)) {
-            result.alternateText = getUnassignedCompanyCardMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY)) {
-            result.alternateText = getUpdatedCardFeedLiabilityMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
-            result.alternateText = getUpdatedCardFeedStatementPeriodMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE) {
-            result.alternateText = getUpdatedAuditRateMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE) {
-            result.alternateText = getAddedApprovalRuleMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE) {
-            result.alternateText = getDeletedApprovalRuleMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE) {
-            result.alternateText = getUpdatedApprovalRuleMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE) {
-            result.alternateText = getAddExpensifyCardRuleMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE) {
-            result.alternateText = getUpdateExpensifyCardRuleMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE) {
-            result.alternateText = getRemoveExpensifyCardRuleMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE) {
-            result.alternateText = StringUtils.lineBreaksToSpaces(getAddAgentRuleMessage(translate, lastAction));
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE) {
-            result.alternateText = StringUtils.lineBreaksToSpaces(getUpdateAgentRuleMessage(translate, lastAction));
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE) {
-            result.alternateText = StringUtils.lineBreaksToSpaces(getDeleteAgentRuleMessage(translate, lastAction));
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
-            result.alternateText = getUpdatedManualApprovalThresholdMessage(translate, lastAction, convertToDisplayString);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) {
-            result.alternateText = getAddedBudgetMessage(translate, lastAction, policy);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) {
-            result.alternateText = getUpdatedBudgetMessage(translate, lastAction, policy);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET) {
-            result.alternateText = getDeletedBudgetMessage(translate, lastAction, policy);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED) {
-            result.alternateText = getUpdatedTimeEnabledMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE) {
-            result.alternateText = getUpdatedTimeRateMessage(translate, lastAction, convertToDisplayString);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES) {
-            result.alternateText = getUpdatedProhibitedExpensesMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE) {
-            result.alternateText = getUpdatedReimbursementChoiceMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN) {
-            result.alternateText = getSetAutoJoinMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE) {
-            result.alternateText = getUpdatedDefaultTitleMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
-            result.alternateText = getUpdatedAutoHarvestingMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION) {
-            result.alternateText = getUpdatedIndividualBudgetNotificationMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION) {
-            result.alternateText = getUpdatedSharedBudgetNotificationMessage(translate, lastAction);
-        } else if (isPolicyCopyReportAction(lastAction)) {
-            result.alternateText = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastAction));
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
-            result.alternateText = translate('iou.retracted');
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
-            result.alternateText = translate('iou.reopened');
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
-            result.alternateText = getTravelUpdateMessage(translate, lastAction);
-        } else if (
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
-        ) {
-            result.alternateText = Parser.htmlToText(getChangedApproverActionMessage(translate, lastAction));
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
-            result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-            const {fromReportID, toReportID, displayReportID} = parseMovedTransactionReportIDs(lastAction);
-            result.alternateText = Parser.htmlToText(
-                getMovedTransactionMessage({
-                    translate,
-                    fromReportID,
-                    toReportID,
-                    derivedReportName: displayReportID ? reportAttributesDerived?.[displayReportID]?.reportName : undefined,
-                }),
-            );
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
-            result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
-        } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
-            const displayName =
-                (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(
-                        report,
-                        lastActorDetails,
-                        currentUserAccountID,
-                        personalDetails,
-                        !!reportNameValuePairs?.private_isArchived,
-                        translate,
-                        visibleReportActionsData,
-                        lastAction,
-                    )) ||
-                lastActorDisplayName;
-            result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
-        } else {
-            result.alternateText =
-                lastMessageTextFromReport.length > 0
-                    ? formatReportLastMessageText(Parser.htmlToText(lastMessageText))
-                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction, visibleReportActionsData, currentUserAccountID)?.lastMessageText;
-
-            if (!result.alternateText) {
-                result.alternateText = formatReportLastMessageText(
-                    getWelcomeMessage({
-                        report,
-                        policy,
-                        invoiceReceiverPolicy,
-                        participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
-                        translate,
-                        localeCompare,
-                        conciergeReportID,
-                        derivedReportName: reportAttributesDerived?.[report.reportID]?.reportName,
-                        isReportArchived,
-                        isTrackIntentUser,
-                        currentUserAccountID,
-                        formatPhoneNumber,
-                    }).messageText ?? translate('report.noActivityYet'),
-                );
-            }
-        }
-        result.alternateText = prefix + result.alternateText;
-    } else {
-        if (!lastMessageText) {
-            lastMessageText = formatReportLastMessageText(
-                getWelcomeMessage({
-                    report,
-                    policy,
-                    invoiceReceiverPolicy,
-                    participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
-                    translate,
-                    localeCompare,
-                    conciergeReportID,
-                    derivedReportName: reportAttributesDerived?.[report.reportID]?.reportName,
-                    isReportArchived,
-                    formatPhoneNumber,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                }).messageText || translate('report.noActivityYet'),
-            );
-        }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translate) && !isReportArchived) {
-            const displayName =
-                (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(
-                        report,
-                        lastActorDetails,
-                        currentUserAccountID,
-                        personalDetails,
-                        !!reportNameValuePairs?.private_isArchived,
-                        translate,
-                        visibleReportActionsData,
-                        lastAction,
-                    )) ||
-                lastActorDisplayName;
-            result.alternateText = `${displayName}: ${formatReportLastMessageText(lastMessageText)}`;
-        } else {
-            result.alternateText = formatReportLastMessageText(lastMessageText);
-        }
-    }
+    result.alternateText = getReportAlternateText({
+        report,
+        lastAction,
+        lastActionReport,
+        movedFromReport,
+        movedToReport,
+        card,
+        lastMessageTextFromReport: lastMessageTextFromReportProp,
+        personalDetails,
+        policy,
+        invoiceReceiverPolicy,
+        policyTags,
+        isReportArchived,
+        privateIsArchived: !!reportNameValuePairs?.private_isArchived,
+        conciergeReportID,
+        reportAttributesDerived,
+        visibleReportActionsData,
+        currentUserAccountID,
+        currentUserLogin,
+        isTrackIntentUser,
+        translate,
+        localeCompare,
+        formatPhoneNumber,
+        dateFnsLocale,
+        convertToDisplayString,
+    });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
@@ -1513,142 +958,6 @@ function getOptionData({
     result.type = report.type;
 
     return result;
-}
-
-function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
-    const {
-        report,
-        policy,
-        invoiceReceiverPolicy,
-        participantPersonalDetailList,
-        translate,
-        localeCompare,
-        conciergeReportID,
-        derivedReportName,
-        isReportArchived = false,
-        reportDetailsLink = '',
-        shouldShowUsePlusButtonText = false,
-        additionalText = '',
-        isTrackIntentUser = false,
-        currentUserAccountID,
-        formatPhoneNumber,
-    } = params;
-
-    const welcomeMessage: WelcomeMessage = {};
-    if (isChatThread(report) || isTaskReport(report)) {
-        return welcomeMessage;
-    }
-
-    if (isChatRoom(report)) {
-        return getRoomWelcomeMessage({translate, report, invoiceReceiverPolicy, derivedReportName, isReportArchived, reportDetailsLink, formatPhoneNumber});
-    }
-
-    if (isPolicyExpenseChat(report)) {
-        if (policy?.description) {
-            welcomeMessage.messageHtml = policy.description;
-            welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
-        } else if (isTrackIntentUser && report?.ownerAccountID === currentUserAccountID) {
-            welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatTrack');
-            welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
-        } else {
-            welcomeMessage.messageHtml = translate(
-                'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
-                getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
-                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber, translate}),
-            );
-            welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
-        }
-        return welcomeMessage;
-    }
-
-    if (isSelfDM(report)) {
-        welcomeMessage.messageText = translate('reportActionsView.beginningOfChatHistorySelfDM');
-        return welcomeMessage;
-    }
-
-    if (isSystemChatUtil(report)) {
-        welcomeMessage.messageText = translate('reportActionsView.beginningOfChatHistorySystemDM');
-        return welcomeMessage;
-    }
-    const isMultipleParticipant = participantPersonalDetailList.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare, formatPhoneNumber, translate);
-
-    if (!displayNamesWithTooltips.length) {
-        return welcomeMessage;
-    }
-
-    const userTags = displayNamesWithTooltips.map(({displayName, accountID}) => `<user-details accountid="${accountID}">${displayName ?? ''}</user-details>`);
-    const usersHtml = formatList(userTags);
-
-    let messageHtml = translate('reportActionsView.beginningOfChatHistory', usersHtml);
-
-    // Append additional text for plus button or Concierge
-    if (shouldShowUsePlusButtonText) {
-        messageHtml += translate('reportActionsView.usePlusButton', additionalText);
-    }
-    if (isConciergeChatReport(report, conciergeReportID)) {
-        messageHtml = translate('reportActionsView.askConcierge');
-    }
-
-    welcomeMessage.messageHtml = messageHtml;
-    welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
-    return welcomeMessage;
-}
-
-/**
- * Get welcome message based on room type
- */
-type GetRoomWelcomeMessageParams = {
-    translate: LocalizedTranslate;
-    report: OnyxEntry<Report>;
-    invoiceReceiverPolicy: OnyxEntry<Policy>;
-    derivedReportName: string | undefined;
-    isReportArchived?: boolean;
-    reportDetailsLink?: string;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-};
-
-function getRoomWelcomeMessage({
-    translate,
-    report,
-    invoiceReceiverPolicy,
-    derivedReportName,
-    isReportArchived = false,
-    reportDetailsLink = '',
-    formatPhoneNumber,
-}: GetRoomWelcomeMessageParams): WelcomeMessage {
-    const welcomeMessage: WelcomeMessage = {};
-    const workspaceName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
-    const reportName = getReportName(report ?? undefined, derivedReportName);
-
-    if (report?.description) {
-        welcomeMessage.messageHtml = getReportDescription(report);
-        welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
-        return welcomeMessage;
-    }
-
-    if (isReportArchived) {
-        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfArchivedRoom', reportName, reportDetailsLink);
-    } else if (isDomainRoom(report)) {
-        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryDomainRoom', report?.reportName ?? '');
-    } else if (isAdminRoom(report)) {
-        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryAdminRoom', workspaceName);
-    } else if (isAnnounceRoom(report)) {
-        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryAnnounceRoom', workspaceName);
-    } else if (isInvoiceRoom(report)) {
-        const payer =
-            report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber, translate})
-                : invoiceReceiverPolicy?.name;
-        const receiver = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
-        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
-    } else {
-        // Message for user created rooms or other room types.
-        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryUserRoom', reportName, reportDetailsLink);
-    }
-    welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
-
-    return welcomeMessage;
 }
 
 /**

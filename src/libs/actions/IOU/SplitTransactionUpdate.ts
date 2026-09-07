@@ -1407,18 +1407,15 @@ function updateSplitTransactions({
             optimisticData: deleteExpenseOptimisticData,
             failureData: deleteExpenseFailureData,
             successData: deleteExpenseSuccessData,
-        } = getDeleteTrackExpenseInformation(
-            splitTransactionReport,
-            undeletedTransaction?.transactionID,
-            currentReportAction,
-            undefined,
-            currentUserPersonalDetails.accountID,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
-        );
+        } = getDeleteTrackExpenseInformation({
+            chatReport: splitTransactionReport,
+            transactionID: undeletedTransaction?.transactionID,
+            reportAction: currentReportAction,
+            isChatReportArchived: undefined,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            transactionThreadReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportAction?.childReportID}`],
+            shouldRemoveIOUTransaction: isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
+        });
 
         // getDeleteTrackExpenseInformation only handles deleting the transaction report thread, so we need to update the report preview action here
         if (originalReportPreviewAction) {
@@ -1428,6 +1425,8 @@ function updateSplitTransactions({
                 updatedReportPreviewAction: (updatedReportPreviewAction ?? originalReportPreviewAction) as OnyxTypes.ReportAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: false,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
+                // shouldDeleteTransactionThread is false, so the transaction-thread report actions are never read here.
+                transactionThreadReportActionsParam: undefined,
             });
             updatedReportPreviewAction = cleanUpTransactionThreadReportOnyxData.updatedReportPreviewAction;
         }

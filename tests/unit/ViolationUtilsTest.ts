@@ -3472,6 +3472,14 @@ const brokenCardConnection530Violation: TransactionViolation = {
     },
 };
 
+const brokenCardConnection531Violation: TransactionViolation = {
+    name: CONST.VIOLATIONS.RTER,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    data: {
+        rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531,
+    },
+};
+
 const brokenCardConnectionReauthViolation: TransactionViolation = {
     name: CONST.VIOLATIONS.RTER,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -3517,6 +3525,14 @@ describe('getViolationTranslation', () => {
         );
         expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnectionReauthViolation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnectionReauthViolationExpected,
+        );
+    });
+
+    it('should return the temporary retry-later message for a 531 broken card connection', async () => {
+        IntlStore.load(CONST.LOCALES.EN);
+        await waitForBatchedUpdates();
+        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnection531Violation, translate: translateLocal, convertToDisplayString})).toBe(
+            "Can't auto-match receipt due to a temporary bank issue. Please try again later.",
         );
     });
 

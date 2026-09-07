@@ -84,6 +84,10 @@ type SearchResultsInfo = {
     /** The number of results */
     count?: number;
 
+    /** The number of matching reports across all pages, returned by the server for expense-report searches.
+     * Distinct from `count`, which is the number of expenses; used to label "Select all matching" on the Reports tab. */
+    reportCount?: number;
+
     /** The total spend */
     total?: number;
 

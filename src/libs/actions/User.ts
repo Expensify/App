@@ -524,6 +524,7 @@ function requestValidateCodeAction(params?: ResendValidateCodeParams) {
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
                 lastValidateCodeRequestedAt: requestedAt,
+                lastValidateCodeReason: params?.reasonCode ?? null,
                 isLoading: true,
                 pendingFields: {
                     actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -557,6 +558,7 @@ function requestValidateCodeAction(params?: ResendValidateCodeParams) {
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
                 lastValidateCodeRequestedAt: null,
+                lastValidateCodeReason: null,
                 isLoading: false,
                 errorFields: {
                     actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
@@ -601,7 +603,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGINS,
@@ -623,6 +625,14 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             value: {
                 isLoading: false,
                 validated: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                lastValidateCodeRequestedAt: null,
+                lastValidateCodeReason: null,
             },
         },
     ];
@@ -1012,11 +1022,11 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     }
 }
 
-function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
+function setActiveServer(server: ValueOf<typeof CONST.SERVER>) {
     if (CONFIG.IS_HYBRID_APP) {
-        HybridAppModule.shouldUseStaging(shouldUseStagingServer);
+        HybridAppModule.shouldUseStaging(server === CONST.SERVER.STAGING);
     }
-    Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, shouldUseStagingServer);
+    Onyx.set(ONYXKEYS.ACTIVE_SERVER, server);
 }
 
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
@@ -1675,13 +1685,21 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 isVerifiedValidateActionCode: true,
                 isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                lastValidateCodeRequestedAt: null,
+                lastValidateCodeReason: null,
             },
         },
     ];
@@ -1991,7 +2009,7 @@ export {
     updatePreferredSkinTone,
     setInboxTab,
     updateChatPriorityMode,
-    setShouldUseStagingServer,
+    setActiveServer,
     togglePlatformMute,
     joinScreenShare,
     clearScreenShareRequest,
