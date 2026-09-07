@@ -3,7 +3,7 @@ import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
 import MenuItemDescriptionPlaceholder from '@components/MenuItem/leaves/text/description/MenuItemDescriptionPlaceholder';
-import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
+import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 

@@ -2448,6 +2448,7 @@ describe('actions/IOU/TrackExpense', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
@@ -2561,6 +2562,7 @@ describe('actions/IOU/TrackExpense', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,

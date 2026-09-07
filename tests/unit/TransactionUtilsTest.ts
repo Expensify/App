@@ -1656,6 +1656,14 @@ describe('TransactionUtils', () => {
             expect(showBrokenConnectionViolation).toBe(true);
         });
 
+        it('should return true for a 531 (temporary, retry later) broken connection violation', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
         it('should return true when a re-auth broken connection violation exists and the user is the policy member', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}}];
