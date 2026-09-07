@@ -1,9 +1,9 @@
 ---
-ruleId: CONSISTENCY-18
+ruleId: CONSISTENCY-17
 title: Pluralize with PluralForm, not ternaries on a count
 ---
 
-## [CONSISTENCY-18] Pluralize with PluralForm, not ternaries on a count
+## [CONSISTENCY-17] Pluralize with PluralForm, not ternaries on a count
 
 ### Reasoning
 

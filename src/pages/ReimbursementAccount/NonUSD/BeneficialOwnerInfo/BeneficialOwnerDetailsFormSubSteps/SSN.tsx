@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
-import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidSSNFullNine} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,33 +14,33 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {SafeString} from 'expensify-common';
 import React, {useCallback} from 'react';
 
-type Last4SSNProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
+type SSNProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
-const {SSN_LAST_4, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {SSN: SSN_KEY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-function Last4SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: Last4SSNProps) {
+function SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: SSNProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const last4SSNInputID = `${PREFIX}_${ownerBeingModifiedID}_${SSN_LAST_4}` as const;
-    const defaultLast4SSN = SafeString(reimbursementAccountDraft?.[last4SSNInputID]);
-    const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourLast' : 'ownershipInfoStep.whatAreTheLast');
+    const ssnInputID = `${PREFIX}_${ownerBeingModifiedID}_${SSN_KEY}` as const;
+    const defaultSSN = SafeString(reimbursementAccountDraft?.[ssnInputID]);
+    const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourSSN' : 'ownershipInfoStep.whatsTheOwnersSSN');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [last4SSNInputID], translate);
+            const errors = getFieldRequiredErrors(values, [ssnInputID], translate);
 
-            if (values[last4SSNInputID] && !isValidSSNLastFour(SafeString(values[last4SSNInputID]))) {
-                errors[last4SSNInputID] = translate('bankAccount.error.ssnLast4');
+            if (values[ssnInputID] && !isValidSSNFullNine(SafeString(values[ssnInputID]))) {
+                errors[ssnInputID] = translate('additionalDetailsStep.ssnFull9Error');
             }
 
             return errors;
         },
-        [last4SSNInputID, translate],
+        [ssnInputID, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: [last4SSNInputID],
+        fieldIds: [ssnInputID],
         onNext,
         shouldSaveDraft: isEditing,
     });
@@ -55,15 +55,16 @@ function Last4SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBei
             formDisclaimer={translate('beneficialOwnerInfoStep.dontWorry')}
             validate={validate}
             onSubmit={handleSubmit}
-            inputId={last4SSNInputID}
-            inputLabel={translate('ownershipInfoStep.last4')}
+            inputId={ssnInputID}
+            inputLabel={translate('common.ssnFull9')}
             inputMode={CONST.INPUT_MODE.NUMERIC}
-            defaultValue={defaultLast4SSN}
+            defaultValue={defaultSSN}
             shouldShowHelpLinks={false}
-            maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+            maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             shouldDelayAutoFocus
         />
     );
 }
 
-export default Last4SSN;
+export default SSN;

@@ -1,9 +1,9 @@
 ---
-ruleId: CONSISTENCY-14
+ruleId: CONSISTENCY-13
 title: Non-trivial new files start with a header description
 ---
 
-## [CONSISTENCY-14] Non-trivial new files start with a header description
+## [CONSISTENCY-13] Non-trivial new files start with a header description
 
 ### Reasoning
 

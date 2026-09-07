@@ -1,9 +1,9 @@
 ---
-ruleId: CONSISTENCY-16
+ruleId: CONSISTENCY-15
 title: Write comments as plain, natural sentences
 ---
 
-## [CONSISTENCY-16] Write comments as plain, natural sentences
+## [CONSISTENCY-15] Write comments as plain, natural sentences
 
 ### Reasoning
 
