@@ -32,7 +32,7 @@ export default function DomainAdminRequestsTableRow({item, rowIndex}: DomainAdmi
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const accessibilityLabel = [item.name, item.email].filter(Boolean).join(', ');
-    const isActionDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isActionDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || item.disabled;
 
     const actionButtons = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>

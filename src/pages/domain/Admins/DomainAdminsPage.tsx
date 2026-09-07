@@ -155,6 +155,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                       accountID,
                       name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
                       email: formatPhoneNumber(login),
+                      disabled: !login,
                       errors: getLatestError(errors),
                       pendingAction,
                       approve: () => approveDomainAdminshipRequest(domainAccountID, accountID, login, domainName ?? ''),
