@@ -31,11 +31,7 @@ const REACT_COMPILER_OPTIONS = {
 };
 
 const CJS_PLUGIN_OPTIONS = {loose: true, strictMode: false};
-const CJS_PLUGINS = [
-    '@babel/plugin-transform-block-scoping',
-    '@babel/plugin-transform-dynamic-import',
-    ['@babel/plugin-transform-modules-commonjs', CJS_PLUGIN_OPTIONS],
-];
+const CJS_PLUGINS = ['@babel/plugin-transform-block-scoping', '@babel/plugin-transform-dynamic-import', ['@babel/plugin-transform-modules-commonjs', CJS_PLUGIN_OPTIONS]];
 const CJS_AND_HOIST_PLUGINS = [...CJS_PLUGINS, 'babel-plugin-jest-hoist'];
 
 function getLang(filename) {
