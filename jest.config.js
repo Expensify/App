@@ -18,7 +18,10 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        '^.+\\.[jt]sx?$': 'babel-jest',
+        // Reassure re-transforms ~7k files under `--max-opt=1` (V8 sparkplug only), which
+        // makes Babel ~half of each measure job. OXC + esbuild is native and stays fast
+        // without TurboFan. Test files stay on babel-jest so `jest.mock` is still hoisted.
+        '^.+\\.[jt]sx?$': isPerfTestRun ? '<rootDir>/config/babel/oxcJestTransformer.js' : 'babel-jest',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: [
