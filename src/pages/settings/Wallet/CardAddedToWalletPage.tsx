@@ -67,7 +67,7 @@ function CardAddedToWalletPage({
                                 width={CONTACTLESS_MARK_WIDTH}
                                 height={PAYMENT_MARK_HEIGHT}
                                 contentFit="contain"
-                                fill={theme.icon}
+                                fill={theme.text}
                                 src={icons.Contactless}
                                 accessibilityLabel={translate('cardPage.cardAddedToWalletPage.contactlessMark')}
                             />
