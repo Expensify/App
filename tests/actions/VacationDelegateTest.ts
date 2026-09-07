@@ -143,7 +143,7 @@ describe('actions/VacationDelegate', () => {
             jest.restoreAllMocks();
         });
 
-        it('reconciles the NVP itself on a failed response, since the caller may have already navigated away', async () => {
+        it('applies the failureData it could not attach when the response fails, since the caller may have already navigated away', async () => {
             const response = {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'Nope'};
             jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
                 // The optimistic data is applied before the response resolves.
@@ -157,16 +157,46 @@ describe('actions/VacationDelegate', () => {
                 return response;
             });
 
-            // There is no failureData attached to the request (see the first test above), so the action must undo the optimistic
-            // update and surface the error itself instead of relying on a caller that may no longer be mounted to do it.
+            // There is no failureData attached to the request (see the first test above), so the action has to apply it itself
+            // instead of relying on a caller that may no longer be mounted to report the failure.
             await expect(setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'})).resolves.toEqual(response);
             await waitForBatchedUpdates();
 
             const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-            expect(vacationDelegate?.delegate).toBe('old@test.com');
-            expect(vacationDelegate?.previousDelegate).toBeFalsy();
             expect(vacationDelegate?.pendingAction).toBeFalsy();
             expect(vacationDelegate?.errors).toBeTruthy();
+
+            // Rolling back belongs to whoever dismisses the error, so both delegate fields have to survive for it to roll back to.
+            expect(vacationDelegate?.delegate).toBe('delegate@test.com');
+            expect(vacationDelegate?.previousDelegate).toBe('old@test.com');
+
+            jest.restoreAllMocks();
+        });
+
+        it('leaves a failed response in a state where dismissing the error restores the last confirmed delegate', async () => {
+            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+                    creator: 'admin@test.com',
+                    delegate: 'delegate@test.com',
+                    previousDelegate: 'old@test.com',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    errors: null,
+                });
+                return {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'Nope'};
+            });
+
+            await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
+            await waitForBatchedUpdates();
+
+            // What the profile page does when the red brick road is dismissed. It reads previousDelegate back out of Onyx, so a failure
+            // that cleared it would delete the delegate the user actually has instead of restoring it.
+            const failed = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+            clearVacationDelegateError(failed?.previousDelegate);
+            await waitForBatchedUpdates();
+
+            const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+            expect(vacationDelegate?.delegate).toBe('old@test.com');
+            expect(vacationDelegate?.errors).toBeFalsy();
 
             jest.restoreAllMocks();
         });

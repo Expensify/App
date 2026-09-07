@@ -56,6 +56,9 @@ function VacationDelegatePage() {
         setVacationDelegate({creator: currentUserLogin, delegate: option?.login ?? '', currentDelegate})
             .then((response) => {
                 if (!navigation.isFocused()) {
+                    if (response?.data?.policyDiff) {
+                        clearVacationDelegateError(currentDelegate);
+                    }
                     return;
                 }
 
@@ -64,7 +67,8 @@ function VacationDelegatePage() {
                     return;
                 }
 
-                // The request writes no error of its own, so this modal is the only feedback for a failure. Dismissing it restores the previous delegate.
+                // The action leaves the failure on the NVP for the profile page's red brick road, but the user is still on this screen,
+                // so report it where they are. Dismissing the modal restores the previous delegate, exactly as dismissing that error would.
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     showErrorModal(currentDelegate, response?.jsonCode === CONST.JSON_CODE.EXP_ERROR ? response.message : undefined);
                     return;

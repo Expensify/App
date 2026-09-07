@@ -80,8 +80,8 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
     await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE);
 
     // We need to read the API response for capturing a policy diff warning. This is the other half of the branch above, not a chained call.
-    // No failureData: the API layer treats the 305 policy diff warning as a failure, and any error written for this request lights up a red brick
-    // road on the profile page, which reads as something being broken. The caller reports every outcome from the returned response instead.
+    // No failureData: the API layer treats the 305 policy diff warning as a failure, so attaching it would light up a red brick road on the
+    // profile page for what is really just the next step of this flow. The branches below apply it by hand for the failures that are real.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-multiple-api-calls
     const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData});
 
@@ -92,12 +92,7 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
             pendingAction: null,
         });
     } else if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-        await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
-            delegate: currentDelegate ?? null,
-            previousDelegate: null,
-            pendingAction: null,
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('statusPage.vacationDelegateError'),
-        });
+        await Onyx.update(failureData);
     }
 
     return response;

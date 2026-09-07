@@ -19,7 +19,8 @@ import type * as ReactNavigation from '@react-navigation/native';
 // eslint-disable-next-line no-restricted-imports -- React Native Pressable/Text are required only to type the actual Jest module export; this does not import them at runtime.
 import type {Pressable as ReactNativePressable, Text as ReactNativeText} from 'react-native';
 
-import {NavigationContainer} from '@react-navigation/native';
+import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -71,6 +72,34 @@ function renderPage() {
         <NavigationContainer>
             <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
                 <VacationDelegatePage />
+            </ComposeProviders>
+        </NavigationContainer>,
+    );
+}
+
+// A real Stack.Navigator so pushing "Other" genuinely blurs VacationDelegatePage's own useNavigation().isFocused(),
+// unlike renderPage() above where the page is the sole, permanently-focused screen.
+type TestParamList = {
+    VacationDelegate: undefined;
+    Other: undefined;
+};
+const Stack = createStackNavigator<TestParamList>();
+const testNavigationRef = createNavigationContainerRef<TestParamList>();
+
+function renderPageWithStack() {
+    return render(
+        <NavigationContainer ref={testNavigationRef}>
+            <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
+                <Stack.Navigator initialRouteName="VacationDelegate">
+                    <Stack.Screen
+                        name="VacationDelegate"
+                        component={VacationDelegatePage}
+                    />
+                    <Stack.Screen
+                        name="Other"
+                        component={() => null}
+                    />
+                </Stack.Navigator>
             </ComposeProviders>
         </NavigationContainer>,
     );
@@ -188,5 +217,42 @@ describe('VacationDelegatePage', () => {
                 optimisticData: [expect.objectContaining({value: expect.objectContaining({delegate: DELEGATE_B_EMAIL, previousDelegate: ORIGINAL_DELEGATE_EMAIL})})],
             }),
         );
+    });
+
+    it('rolls back the optimistic delegate instead of leaving an unconfirmed policy diff behind when the screen loses focus before the response resolves', async () => {
+        let resolveSideEffect: (response: {jsonCode: number; data?: {policyDiff: unknown}}) => void = () => {};
+        apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    resolveSideEffect = resolve;
+                }),
+        );
+        jest.mocked(Navigation.navigate).mockClear();
+
+        renderPageWithStack();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('select-delegate-a'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Simulates the user swiping the RHP away (or otherwise navigating off this screen) before the request settles.
+        await act(async () => {
+            testNavigationRef.current?.navigate('Other');
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        await act(async () => {
+            resolveSideEffect({jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING, data: {policyDiff: {adminPolicies: [], nonAdminPolicies: []}}});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // There's no longer a screen to carry the user into the missing-workspaces step, so it must not be pushed onto whatever they navigated to instead.
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES);
+
+        const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+        expect(vacationDelegate?.delegate).toBeFalsy();
+        expect(vacationDelegate?.policyDiff).toBeFalsy();
+        expect(vacationDelegate?.pendingAction).toBeFalsy();
+        expect(vacationDelegate?.errors).toBeFalsy();
     });
 });
