@@ -21,6 +21,7 @@ import type {PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {DomUtils, parseDocument} from 'htmlparser2';
+import escapeRegExp from 'lodash/escapeRegExp';
 
 type HomeAddressRequiredContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED>;
@@ -49,7 +50,7 @@ function focusAddressLineOnPrivatePersonalDetailsLinks(html: string): string {
             if (href && path?.endsWith(PRIVATE_PERSONAL_DETAILS_ROUTE)) {
                 const newHref = `${path.slice(0, -PRIVATE_PERSONAL_DETAILS_ROUTE.length)}${PRIVATE_PERSONAL_DETAILS_ROUTE_WITH_FOCUS}`;
 
-                adjustedHtml = adjustedHtml.replace(`href="${href}"`, `href="${newHref}"`);
+                adjustedHtml = adjustedHtml.replace(new RegExp(`href=(["']?)${escapeRegExp(href)}\\1`), `href=$1${newHref}$1`);
             }
         }
 
