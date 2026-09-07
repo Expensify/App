@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
+import usePolicyRules from '@hooks/usePolicyRules';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -26,6 +27,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {getRules} from '@libs/actions/Policy/Rules';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -87,7 +89,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${routePolicyID}`);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const rules = usePolicyRules(policyID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policyID);
     const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
@@ -148,6 +150,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             return;
         }
         openPolicyInitialPage(routePolicyID);
+        // The rules collection is keyed per rule rather than per policy, so it is fetched whole whenever a workspace is opened.
+        getRules();
     };
     useNetwork({onReconnect: fetchPolicyData});
     useFocusEffect(

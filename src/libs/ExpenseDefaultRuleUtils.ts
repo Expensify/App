@@ -72,7 +72,10 @@ const SUPPORTED_MERCHANT_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTA
 const STRING_ACTION_FIELDS = new Set<ExpenseDefaultActionField>([FIELD.MERCHANT, FIELD.CATEGORY, FIELD.TAG, FIELD.VENDOR_ID, FIELD.COMMENT]);
 const BOOLEAN_ACTION_FIELDS = new Set<ExpenseDefaultActionField>([FIELD.REIMBURSABLE, FIELD.BILLABLE]);
 
-/** The rules engine keys `triggers` and `actions` by a stringified index rather than storing them as arrays. */
+/**
+ * The rules engine keys `triggers` and `actions` by a stringified index rather than storing them as arrays.
+ * `WorkflowUtils` keeps its own copy of this: importing it from there closes a cycle through `PolicyUtils`.
+ */
 function toIndexMap<T>(values: T[]): Record<string, T> {
     return Object.fromEntries(values.map((value, index) => [String(index), value]));
 }

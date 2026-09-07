@@ -26,12 +26,13 @@ import {
 import type {Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+import type {RuleFilter, RuleFilterComparison} from '@src/types/onyx/RuleFilters';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
@@ -1649,7 +1650,7 @@ describe('WorkflowUtils', () => {
         const approveActions = {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}};
         const buildFromFilter = (emails: string[]) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: emails});
         const buildToFilter = (email: string) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: email});
-        const and = (left: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, right: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter => ({
+        const and = (left: RuleFilter | RuleFilterComparison, right: RuleFilter | RuleFilterComparison): RuleFilter => ({
             operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
             left,
             right,

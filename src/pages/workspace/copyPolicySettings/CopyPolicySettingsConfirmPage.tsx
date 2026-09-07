@@ -10,6 +10,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyRules from '@hooks/usePolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {copyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
@@ -42,7 +43,7 @@ function CopyPolicySettingsConfirmPage() {
     const [copyPolicySettingsState, copyPolicySettingsMetadata] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const allRules = usePolicyRules(sourcePolicyID);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];

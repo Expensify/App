@@ -12,6 +12,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyRules from '@hooks/usePolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
@@ -74,7 +75,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
-    const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const allRules = usePolicyRules(sourcePolicyID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;

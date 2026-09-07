@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyRules from '@hooks/usePolicyRules';
 
 import {getExpenseDefaultsTableData} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,7 +25,7 @@ function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelec
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const rules = usePolicyRules(policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 

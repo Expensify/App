@@ -14,7 +14,7 @@ import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButton
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
-import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
+import {getRules, openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -63,6 +63,8 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
 
     const fetchRules = useCallback(() => {
         openPolicyRulesPage(policyID);
+        // The rules collection is keyed per rule rather than per policy, so it is fetched whole whenever the Rules page is opened.
+        getRules();
     }, [policyID]);
 
     useEffect(() => {

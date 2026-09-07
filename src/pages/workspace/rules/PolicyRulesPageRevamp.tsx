@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
+import {getRules, openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -99,8 +99,10 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {showConfirmModal} = useConfirmModal();
 
     useEffect(() => {
-        // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
+        // Fetch once on mount (and when policyID changes). setMerchantRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
+        // The rules collection is keyed per rule rather than per policy, so it is fetched whole whenever the Rules page is opened.
+        getRules();
     }, [policyID]);
 
     useEffect(() => {

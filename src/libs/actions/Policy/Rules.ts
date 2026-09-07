@@ -49,7 +49,6 @@ function openPolicyRulesPage(policyID: string | undefined) {
     const params: OpenPolicyRulesPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_RULES_PAGE, params);
-    getRules();
 }
 
 /**

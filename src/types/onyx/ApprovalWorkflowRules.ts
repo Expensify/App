@@ -2,7 +2,7 @@ import type CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-import type {RuleFilter, RuleFilterComparison} from './RuleFilters';
+import type {RuleFilterNode} from './RuleFilters';
 
 /**
  * A report lifecycle event that can fire an approval-workflow rule (`ReportSubmit` or `ReportApprove`).
@@ -37,17 +37,6 @@ type ApprovalWorkflowAction = {
 type ApprovalWorkflowActions = Record<string, ApprovalWorkflowAction>;
 
 /**
- * A single comparison node: `<left> <operator> <right>`. Both `left` and `right` are always present.
- */
-type ApprovalWorkflowFilterComparison = RuleFilterComparison;
-
-/**
- * A boolean filter that combines two child nodes. `left` / `right` may each be either a leaf comparison
- * or a nested boolean filter. Both children are always present.
- */
-type ApprovalWorkflowFilter = RuleFilter;
-
-/**
  * The body of a single approval-workflow rule. When the report event matches one of the `triggers` and
  * the `filters` match the report, the rule's `actions` are performed
  */
@@ -56,7 +45,7 @@ type ApprovalWorkflowRule = {
     triggers: ApprovalWorkflowTriggers;
 
     /** Conditions that must match the report for the rule to fire. */
-    filters: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison;
+    filters: RuleFilterNode;
 
     /** What happens when the rule matches. */
     actions: ApprovalWorkflowActions;
@@ -65,4 +54,4 @@ type ApprovalWorkflowRule = {
     isDefaultApprovalWorkflow?: boolean;
 };
 
-export type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule, ApprovalWorkflowTriggers};
+export type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers};

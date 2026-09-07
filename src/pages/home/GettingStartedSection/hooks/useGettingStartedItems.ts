@@ -3,6 +3,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyRules from '@hooks/usePolicyRules';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
@@ -68,7 +69,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const intent = useOnboardingIntent();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const rules = usePolicyRules(activePolicyID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
