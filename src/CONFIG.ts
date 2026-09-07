@@ -43,7 +43,10 @@ const secureNgrokURL = addTrailingForwardSlash(get(Config, 'SECURE_NGROK_URL', '
 const secureExpensifyUrl = addTrailingForwardSlash(get(Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/'));
 const useNgrok = get(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = get(Config, 'USE_WEB_PROXY', 'true') === 'true';
-const qaExpensifyURL = get(Config, 'QA_EXPENSIFY_URL', '');
+// addTrailingForwardSlash('') returns '/', which would look configured
+const normalizeOptionalRoot = (value: string): string => (value ? addTrailingForwardSlash(value) : '');
+const qaExpensifyURL = normalizeOptionalRoot(get(Config, 'QA_EXPENSIFY_URL', ''));
+const qaSecureExpensifyURL = normalizeOptionalRoot(get(Config, 'QA_SECURE_EXPENSIFY_URL', ''));
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
 
 // Throw errors on dev if config variables are not set correctly
@@ -83,6 +86,8 @@ export default {
         DEFAULT_SECURE_API_ROOT: secureURLRoot,
         STAGING_API_ROOT: stagingExpensifyURL,
         STAGING_SECURE_API_ROOT: stagingSecureExpensifyUrl,
+        QA_API_ROOT: qaExpensifyURL,
+        QA_SECURE_API_ROOT: qaSecureExpensifyURL,
         LEGACY_PARTNER_NAME: get(Config, 'LEGACY_EXPENSIFY_PARTNER_NAME', getDefaultLegacyPartnerConfig().name),
         LEGACY_PARTNER_PASSWORD: get(Config, 'LEGACY_EXPENSIFY_PARTNER_PASSWORD', getDefaultLegacyPartnerConfig().password),
         PARTNER_NAME: get(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
@@ -99,6 +104,7 @@ export default {
     IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
     PUSHER: {
         APP_KEY: get(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
+        QA_APP_KEY: get(Config, 'PUSHER_QA_APP_KEY', ''),
         SUFFIX: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? get(Config, 'PUSHER_DEV_SUFFIX', '') : '',
         CLUSTER: 'mt1',
     },
@@ -143,8 +149,7 @@ export default {
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
     // Auth for the Cloudflare Access-protected QA server. Empty values disable the feature entirely
     QA_AUTH: {
-        // Only normalize a non-empty value: addTrailingForwardSlash('') returns '/' and would look configured
-        API_ROOT: qaExpensifyURL ? addTrailingForwardSlash(qaExpensifyURL) : '',
+        API_ROOT: qaExpensifyURL,
         TEAM_DOMAIN: get(Config, 'QA_CF_TEAM_DOMAIN', ''),
         CLIENT_ID: get(Config, 'QA_CF_OAUTH_CLIENT_ID', ''),
         // Which Access-protected endpoint the test tool calls to verify auth is a property of the

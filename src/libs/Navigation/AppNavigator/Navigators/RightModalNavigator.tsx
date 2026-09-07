@@ -476,6 +476,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
                                 getComponent={loadSearchSavePage}
+                                options={modalStackScreenOptions}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
