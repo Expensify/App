@@ -1,39 +1,44 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
+import type {DynamicColumnConstraints} from '@components/Table/calculateDynamicColumnWidths';
+import calculateDynamicColumnWidths from '@components/Table/calculateDynamicColumnWidths';
 
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {SearchColumnMeasurementContext} from '@libs/getSearchColumnContentToMeasure';
 import getSearchColumnContentToMeasure, {
     DYNAMICALLY_SIZED_SEARCH_COLUMNS,
+    getSearchColumnEditButtonReserve,
     getSearchColumnExtraWidth,
     HUGGED_SEARCH_COLUMNS,
     SEARCH_COLUMN_HEADER_TRANSLATION_KEYS,
 } from '@libs/getSearchColumnContentToMeasure';
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
 import createWidestTextMeasurer from '@libs/measureTextWidth/widestTextMeasurer';
+import {getSearchTableRowInsetWidth} from '@libs/SearchUIUtils';
 
+import type {GetReportTableColumnStylesParams} from '@styles/utils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
 const {MIN_FREE_TEXT_COLUMN_WIDTH, MAX_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
-/** How a dynamically sized column shares the table's free space. */
+/** How wide a dynamically sized column was resolved to, and how far it may be squeezed before the table scrolls. */
 type SearchColumnSizing = {
-    /** The width the column's content wants, as a ratio against the other dynamic columns rather than a pixel width. */
-    flexWeight: number;
+    /**
+     * The width the column is laid out at, or `undefined` when every column fits an equal share and they all stay
+     * equal, which is what the columns are already styled to do.
+     */
+    width: number | undefined;
 
     /** Width the column is never squeezed below, so its header stays readable however narrow the table gets. */
     minWidth: number;
 
-    /**
-     * Width the column's content actually wants, up to the cap. Once the table scrolls it is sized from these rather
-     * than from the minimums, so a column that has the room stops truncating just because a narrower table would have
-     * had to squeeze it.
-     */
+    /** Width the column's content wants, used to lay the columns out once the table has given up on fitting them. */
     contentWidth: number;
 
     /** Whether the column is sized to its content exactly, rather than sharing the row's spare space with the others. */
@@ -65,8 +70,14 @@ type UseSearchColumnWidthsParams = {
      * text from measures as empty and leaves its columns on their existing widths. */
     data: SearchListItem[];
 
+    /** Measured width of the area the table renders into, including the rows' own margin and padding. */
+    tableWidth: number;
+
     /** Whether dynamic sizing should run. Callers pass `false` on narrow layouts, where rows render as cards. */
     isEnabled: boolean;
+
+    /** Which columns render in their wider variant, so the fixed columns are subtracted at the width they really take. */
+    columnSizeOptions?: GetReportTableColumnStylesParams;
 
     /** Data some columns need to resolve their text, read once at the list level rather than per row. */
     measurementContext?: SearchColumnMeasurementContext;
@@ -77,31 +88,72 @@ type UseSearchColumnWidthsParams = {
  * fixed columns leave over. Today that leaves a column of empty descriptions holding the same room as one of long
  * merchant names.
  *
- * Measured widths are applied as flex weights, not pixels. The fixed columns, gaps, and padding are spread across
- * several files, so computing "the space left over" here would duplicate those numbers and overflow the row the moment
- * the two drifted. As weights, the columns divide whatever is actually free and the row adds up by construction.
+ * The widths come from `calculateDynamicColumnWidths`, the same resolver the Members table uses, so every dynamically
+ * sized table in the app behaves identically: equal columns while everything fits, then a column that can't fit an
+ * equal share taking exactly its content while the rest split the remainder equally, then a squeeze toward the
+ * minimums, and only then a scroll. The per-table part is what to measure and what each column's minimum is.
  *
- * Returns an empty map to leave the columns as they are: sizing is off, or text can't be measured (native).
+ * Returns an empty map to leave the columns as they are: sizing is off, text can't be measured (native), or the table
+ * hasn't been measured yet.
  */
-function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: UseSearchColumnWidthsParams): Partial<Record<SearchColumnType, SearchColumnSizing>> {
+function useSearchColumnWidths({
+    columns,
+    data,
+    tableWidth,
+    isEnabled,
+    columnSizeOptions,
+    measurementContext,
+}: UseSearchColumnWidthsParams): Partial<Record<SearchColumnType, SearchColumnSizing>> {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const noColumnSizing: Partial<Record<SearchColumnType, SearchColumnSizing>> = {};
 
     // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.
-    if (!isEnabled || !canMeasureText()) {
+    if (!isEnabled || tableWidth <= 0 || !canMeasureText()) {
         return noColumnSizing;
     }
 
     const dynamicColumns = columns.filter((column) => DYNAMICALLY_SIZED_SEARCH_COLUMNS.has(column));
 
-    // With one dynamic column there is nothing to divide: it already takes whatever the fixed columns leave over.
-    if (dynamicColumns.length < 2) {
+    if (dynamicColumns.length === 0) {
         return noColumnSizing;
     }
 
-    const contentWidths: Array<{column: SearchColumnType; contentWidth: number; headerLabelWidth: number}> = [];
+    let fixedColumnsWidth = 0;
+
+    for (const column of columns) {
+        if (DYNAMICALLY_SIZED_SEARCH_COLUMNS.has(column)) {
+            continue;
+        }
+
+        const declaredWidth = StyleUtils.getReportTableColumnStyles(column, columnSizeOptions ?? {}).width;
+
+        // A column styled with flex alone declares no width, so it can't be subtracted from the budget and the whole
+        // table keeps its existing layout rather than being sized from a budget that is wrong.
+        if (typeof declaredWidth !== 'number') {
+            return noColumnSizing;
+        }
+
+        fixedColumnsWidth += declaredWidth;
+    }
+
+    // What the dynamic columns share: the table, less what the row spends on anything that is not a column, less the
+    // columns pinned to a width of their own. The inset comes from the same helper the horizontal scroller subtracts,
+    // so the two cannot disagree about whether the columns fit.
+    //
+    // It does not have to be exact. The resolved widths are applied as a flex basis that still grows and shrinks, so an
+    // inset a few px out shows as the columns sharing a little more or less room rather than as dead space at the end
+    // of the row. What it does decide is which of the four states the table is in, and "close" is enough for that.
+    const availableWidth = tableWidth - getSearchTableRowInsetWidth(columns.length) - fixedColumnsWidth;
+
+    if (availableWidth <= 0) {
+        return noColumnSizing;
+    }
+
+    const constraints: DynamicColumnConstraints[] = [];
+    const contentWidths: number[] = [];
 
     for (const column of dynamicColumns) {
         const measurer = createWidestTextMeasurer();
@@ -119,49 +171,62 @@ function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: U
             return noColumnSizing;
         }
 
-        const extraWidth = getSearchColumnExtraWidth(column);
+        // A short value in an editable cell sits under the edit button that appears on hover, so it is the one case
+        // where the button has to be reserved for. Measured from the text alone, before the cell's own padding, since
+        // that padding is what the value is inset by rather than room it has to spare.
+        const extraWidth = getSearchColumnExtraWidth(column) + getSearchColumnEditButtonReserve(column, widestContentWidth);
 
-        // The header counts as content, so a column of empty cells is sized by its heading instead of collapsing.
-        // The result is capped because a column is sized by its single widest value: one long merchant name would
-        // otherwise claim a share of the row proportional to itself and squeeze every other column. The cap bounds that
-        // share only, so a table with room to spare still hands the surplus out rather than leaving it unused.
-        const contentWidth = Math.min(Math.max(Math.ceil(widestContentWidth + extraWidth), headerLabelWidth), Math.max(MAX_FREE_TEXT_COLUMN_WIDTH + extraWidth, headerLabelWidth));
+        // A column has to fit its header as well as its cells, so the heading is part of what its content needs rather
+        // than a separate floor. That also keeps a column of empty cells identifiable instead of collapsing.
+        const contentWidth = Math.max(Math.ceil(widestContentWidth + extraWidth), headerLabelWidth);
 
-        contentWidths.push({column, contentWidth, headerLabelWidth});
-    }
+        contentWidths.push(contentWidth);
 
-    // Normalized to average 1, so each dynamic column still grows by one unit overall, exactly as `flex: 1` did.
-    // Other flexible columns grow by 1, so raw pixel weights here would be hundreds of units against their 1 and
-    // would collapse them. Normalizing only changes how these columns split their own share.
-    //
-    // Averaged over the columns that share the space, since a hugging column takes no share and would only drag down
-    // the figure the other columns are measured against.
-    const sharingColumns = contentWidths.filter(({column}) => !HUGGED_SEARCH_COLUMNS.has(column));
-    const averageContentWidth = sharingColumns.reduce((total, {contentWidth}) => total + contentWidth, 0) / sharingColumns.length;
-
-    // Written as a positive test so an empty set of sharing columns, which divides to NaN rather than to 0, is caught.
-    if (!(averageContentWidth > 0)) {
-        return noColumnSizing;
-    }
-
-    const columnSizing: Partial<Record<SearchColumnType, SearchColumnSizing>> = {};
-
-    for (const {column, contentWidth, headerLabelWidth} of contentWidths) {
-        const shouldHug = HUGGED_SEARCH_COLUMNS.has(column);
-
-        if (shouldHug) {
-            // Sized to its content and left there: it holds a badge, so the spare space belongs to the text columns.
-            columnSizing[column] = {flexWeight: 0, minWidth: contentWidth, contentWidth, shouldHug};
+        // A column holding a fixed-size element is pinned to its content: it takes no share of the spare room and is
+        // never squeezed, so its three constraints are the same number and the resolver settles it there immediately.
+        if (HUGGED_SEARCH_COLUMNS.has(column)) {
+            constraints.push({contentWidth, minWidth: contentWidth, maxWidth: contentWidth});
             continue;
         }
 
+        constraints.push({
+            contentWidth,
+            // Squeezed no further than a readable width, or its own content when that is narrower, so a short value
+            // isn't inflated to the minimum. Never below the header, which would leave the column unidentifiable.
+            minWidth: Math.max(Math.min(contentWidth, MIN_FREE_TEXT_COLUMN_WIDTH + extraWidth), headerLabelWidth),
+            // Uncapped while the table still fits, so a long value gets the room when the room is there instead of
+            // stopping at a cap and leaving the space unused. Capping is only for the scrolling case below.
+            maxWidth: Number.POSITIVE_INFINITY,
+        });
+    }
+
+    const {widths, shouldScrollHorizontally} = calculateDynamicColumnWidths(constraints, availableWidth);
+
+    const columnSizing: Partial<Record<SearchColumnType, SearchColumnSizing>> = {};
+
+    for (const [index, column] of dynamicColumns.entries()) {
+        const constraint = constraints.at(index);
+        const contentWidth = contentWidths.at(index) ?? 0;
+
+        if (!constraint) {
+            continue;
+        }
+
+        const shouldHug = HUGGED_SEARCH_COLUMNS.has(column);
+
+        // Past the point where the columns fit, a column is sized to its content but no wider than the cap: the table
+        // scrolls either way, and letting one unusually long value set the width would push every column after it out
+        // of view for the sake of a single row. Below the cap nothing is capped at all, which is why this is applied
+        // here rather than as the constraint the resolver sees.
+        const scrolledWidth = shouldHug ? contentWidth : Math.max(Math.min(contentWidth, MAX_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), constraint.minWidth);
+
         columnSizing[column] = {
             shouldHug,
-            flexWeight: contentWidth / averageContentWidth,
-            // Squeezed no further than a readable width, its own content if that is narrower, and never below the
-            // header, which would leave the column unidentifiable. Once these no longer fit, the table scrolls.
-            minWidth: Math.max(Math.min(contentWidth, MIN_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), headerLabelWidth),
-            contentWidth,
+            minWidth: constraint.minWidth,
+            contentWidth: shouldScrollHorizontally ? scrolledWidth : contentWidth,
+            // An empty result means every column fits an equal share, so they are left to divide the row equally, which
+            // is state one of the model and exactly what the columns are already styled to do.
+            width: shouldScrollHorizontally ? scrolledWidth : widths.at(index),
         };
     }
 

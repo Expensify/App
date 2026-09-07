@@ -79,11 +79,19 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
             return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, flexBasis: sizing.contentWidth, minWidth: sizing.contentWidth, width: undefined};
         }
 
-        // The measured width is a share of the free space, not a width of its own: growing from a zero basis in
-        // proportion to what the content needs is what makes the columns add up to the row without this knowing what
-        // the fixed columns, gaps, and padding spend. `flex` is cleared because the base style sets it on exactly these
-        // columns, and leaving both it and the properties below would make which one wins depend on emission order.
-        return {...columnStyles, flex: undefined, flexGrow: sizing.flexWeight, flexShrink: 1, flexBasis: 0, minWidth: sizing.minWidth, width: undefined};
+        // The resolved width is the column's starting size, not its final one: it still grows and shrinks from there.
+        //
+        // That is what the model already asks for. A column settled at its content width is settled by the resolver and
+        // reaches this with nothing left to share, while the columns splitting the remainder were each given an equal
+        // slice of it - so growing them all by one unit keeps that slice equal and simply hands out whatever the budget
+        // was short by. Pinning them instead would leave that difference as a band of empty space at the end of the
+        // row, which is what the rows' own padding and chrome, spread across several differently shaped row
+        // components, make impossible to predict to the pixel from here.
+        //
+        // Shrinking is the same argument in the other direction, floored at the width below which the column stops
+        // being readable. `flex` is cleared because the base style sets it on exactly these columns, and leaving both
+        // it and the properties below would make which one wins depend on emission order.
+        return {...columnStyles, flex: undefined, flexGrow: 1, flexShrink: 1, flexBasis: sizing.width ?? 0, minWidth: sizing.minWidth, width: undefined};
     };
 }
 

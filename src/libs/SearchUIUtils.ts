@@ -7002,6 +7002,21 @@ const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal;
 /** The margin and padding each row sits inside on both sides (`mh5` on its wrapper, `ph3` on the row). */
 const SEARCH_TABLE_ROW_CHROME_WIDTH = (20 + 12) * 2;
 
+/** Width of the checkbox leading each row. */
+const SEARCH_TABLE_ROW_CHECKBOX_WIDTH = 24;
+
+/**
+ * Everything a row spends on something that is not a column: its margin and padding, the leading checkbox, the trailing
+ * arrow, and a gap between every adjacent pair of children.
+ *
+ * The column sizing and the horizontal scroller both subtract this from the table, so they share one expression rather
+ * than each keeping a copy: the two disagreeing is what makes a table scroll while it still has room, or reserve a band
+ * of width at the end of the row that no column ever fills.
+ */
+function getSearchTableRowInsetWidth(columnCount: number): number {
+    return SEARCH_TABLE_ROW_CHECKBOX_WIDTH + (columnCount + 1) * SEARCH_TABLE_COLUMN_GAP + SEARCH_TABLE_ROW_ARROW_WIDTH + SEARCH_TABLE_ROW_CHROME_WIDTH;
+}
+
 function getTableMinWidth(
     columns: SearchColumnType[],
     type?: SearchDataTypes,
@@ -7009,18 +7024,13 @@ function getTableMinWidth(
     columnMinWidths?: Partial<Record<SearchColumnType, number>>,
     shouldIncludeRowChrome = true,
 ) {
-    // Starts at 24px to account for the checkbox width
-    let minWidth = 24;
-
     // The row lays out the checkbox, then every column, then the trailing arrow, as flex children of one gapped row, so
-    // it spends a gap between each adjacent pair: one more than there are columns. Those gaps, the arrow, and the row's
-    // own margin and padding are all width the table needs on top of the columns themselves.
+    // it spends a gap between each adjacent pair: one more than there are columns. Those gaps, the arrow, the checkbox,
+    // and the row's own margin and padding are all width the table needs on top of the columns themselves.
     //
     // A caller sizing something the rows only partly fill leaves this out, since reserving room the rows don't use there
     // widens the table past what its heading covers.
-    if (shouldIncludeRowChrome) {
-        minWidth += (columns.length + 1) * SEARCH_TABLE_COLUMN_GAP + SEARCH_TABLE_ROW_ARROW_WIDTH + SEARCH_TABLE_ROW_CHROME_WIDTH;
-    }
+    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : SEARCH_TABLE_ROW_CHECKBOX_WIDTH;
 
     for (const column of columns) {
         // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates
@@ -7320,6 +7330,7 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,
+    getSearchTableRowInsetWidth,
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,

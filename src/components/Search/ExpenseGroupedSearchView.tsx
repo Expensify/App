@@ -311,7 +311,9 @@ function ExpenseGroupedSearchView({
             columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
-            data={data}
+            // Deliberately not passed, which leaves this view's columns exactly as they are styled. A group's heading
+            // and its rows are separate list items with columns of their own, so sizing the table from the top header
+            // alone lines the heading up against widths its own cells never see. Sized in a follow-up.
             isKeyboardShown={isKeyboardShown}
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}

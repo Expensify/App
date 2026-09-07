@@ -95,8 +95,10 @@ function SearchListViewLayout({
     const columnWidths = useSearchColumnWidths({
         columns,
         data: data ?? [],
+        tableWidth,
         // A header is only rendered in the table layout. Narrow layouts render rows as cards with no columns to size.
         isEnabled: isHeaderVisible && !!data,
+        columnSizeOptions,
         measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags},
     });
 

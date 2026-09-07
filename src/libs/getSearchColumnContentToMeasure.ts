@@ -171,6 +171,37 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE]: 'common.tagGLCode',
 };
 
+/**
+ * Width the edit button covers at the trailing edge of an editable cell: the button itself plus the inset it sits at.
+ *
+ * The button is absolutely positioned, so it takes no width of its own and a column is never sized for it. It is drawn
+ * over whatever is underneath it instead, which only matters where the value reaches that far.
+ */
+const EDITABLE_CELL_EDIT_BUTTON_WIDTH = 28 + 4;
+
+/**
+ * How short a value has to be before the edit button is worth reserving room for.
+ *
+ * A value with room to spare is left-aligned well clear of the button, so reserving for it would widen every editable
+ * column to guard against an overlap that cannot happen. It is only a value that runs the width of its own cell that
+ * ends up underneath the button, and that is what this catches.
+ */
+const NARROW_EDITABLE_CONTENT_WIDTH = 60;
+
+/**
+ * Width to add so a short value in an editable cell isn't covered by the edit button when the row is hovered.
+ *
+ * Applies to the measured value rather than to the column: a column is only ever this narrow when it has settled at
+ * exactly what its content needs, since anything wider already clears the button on its own.
+ */
+function getSearchColumnEditButtonReserve(column: SearchColumnType, contentTextWidth: number): number {
+    if (!EDITABLE_SEARCH_COLUMNS.has(column) || contentTextWidth >= NARROW_EDITABLE_CONTENT_WIDTH) {
+        return 0;
+    }
+
+    return EDITABLE_CELL_EDIT_BUTTON_WIDTH;
+}
+
 /** Width a column needs on top of its text, for the non-text content its cell renders. */
 function getSearchColumnExtraWidth(column: SearchColumnType): number {
     const editableCellWidth = EDITABLE_SEARCH_COLUMNS.has(column) ? EDITABLE_CELL_CHROME_WIDTH : 0;
@@ -369,5 +400,5 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: SearchL
 }
 
 export default getSearchColumnContentToMeasure;
-export {DYNAMICALLY_SIZED_SEARCH_COLUMNS, HUGGED_SEARCH_COLUMNS, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS, getSearchColumnExtraWidth};
+export {DYNAMICALLY_SIZED_SEARCH_COLUMNS, HUGGED_SEARCH_COLUMNS, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS, getSearchColumnEditButtonReserve, getSearchColumnExtraWidth};
 export type {SearchColumnMeasurementContext};
