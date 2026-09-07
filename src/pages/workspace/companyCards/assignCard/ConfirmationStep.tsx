@@ -1,6 +1,6 @@
 import Button from '@components/ButtonComposed';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItem from '@components/MenuItem';
+import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -21,7 +22,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -72,7 +72,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const cardToAssign = assignCard?.cardToAssign;
 
-    const cardholder = getPersonalDetailByEmail(cardToAssign?.email ?? '');
+    const cardholder = usePersonalDetailByLogin(cardToAssign?.email ?? '');
     const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');
 
     const cardholderEmail = Str.removeSMSDomain(cardToAssign?.email ?? '');
@@ -121,7 +121,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName}, currentUserAccountID);
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, {...cardToAssign, cardholder, bankName}, cardholderAccountID, currentUserAccountID);
     };
 
     const editStep = (step: string) => {
@@ -191,13 +191,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                     </View>
-                    <MenuItem
+                    <MenuItemAvatarNavigation
                         title={cardholderName}
                         description={cardholderEmail}
-                        icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        shouldShowRightIcon
-                        pressableTestID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
+                        avatarSource={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
+                        accountID={cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID}
+                        testID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                     />
                     <MenuItemWithTopDescription

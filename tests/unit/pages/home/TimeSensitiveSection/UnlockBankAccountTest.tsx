@@ -6,7 +6,8 @@ import {navigateToConciergeChat} from '@libs/actions/Report';
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TimeSensitiveSection from '@src/pages/home/TimeSensitiveSection';
+import TimeSensitiveGroup from '@src/pages/home/TimeSensitiveSection/TimeSensitiveGroup';
+import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -70,6 +71,11 @@ const POLICY_ID = 'policy_1';
 const POLICY_NAME = 'My Workspace';
 const CONCIERGE_REPORT_ID = 'concierge_report_1';
 
+// Renders the "Time sensitive" group the way the Home "For you" card now does (hook + presentational group).
+function TimeSensitiveSection() {
+    return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
+}
+
 const renderTimeSensitiveSection = () =>
     render(
         <OnyxListItemProvider>
@@ -95,7 +101,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: POLICY_NAME,
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',
@@ -180,7 +185,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: POLICY_NAME,
             role: CONST.POLICY.ROLE.USER,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',
@@ -208,7 +212,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: 'Workspace One',
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',
@@ -224,7 +227,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: 'Workspace Two',
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: SECOND_LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX5678',
@@ -255,7 +257,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
                 name: 'Workspace One',
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 achAccount: {
                     bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                     accountNumber: 'XXXXXXXX1234',
@@ -271,7 +272,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
                 name: 'Workspace Two',
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 achAccount: {
                     bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                     accountNumber: 'XXXXXXXX5678',
@@ -304,7 +304,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: POLICY_NAME,
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',

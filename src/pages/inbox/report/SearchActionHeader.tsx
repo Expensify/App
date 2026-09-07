@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getChatListItemReportName, isChatThread, isInvoiceReport} from '@libs/ReportUtils';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -50,7 +50,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
-    const reportName = getChatListItemReportName(action, report, conciergeReportID, linkedTransactions, translate, personalDetailsList);
+    const reportName = getChatListItemReportName(action, report, parentReport, conciergeReportID, linkedTransactions, translate, personalDetailsList);
 
     return (
         <View style={[styles.p4]}>
@@ -58,7 +58,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
                 <View style={[styles.flexRow, styles.alignItemsCenter, !isWhisper ? styles.mb3 : {}]}>
                     <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
                     <TextLink
-                        fontSize={variables.fontSizeSmall}
+                        fontSize={fontScale.micro}
                         onPress={() => {
                             onPress?.();
                         }}

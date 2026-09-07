@@ -63,11 +63,10 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReports, getAllTransactions} from '.';
+import {getAllReports, getAllTransactions, getCurrentUserAccountIDFromSession} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
-import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
@@ -1245,7 +1244,6 @@ function bulkDuplicateExpenses({
 
     // A copy of an unreported expense is tracked, so only an expense that lands on the report can submit it.
     const lastReportBoundIndex = targetPolicy ? transactionsToDuplicate.findLastIndex((t) => !!t.reportID && t.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) : -1;
-    let lastDuplicateTransactionID: string | undefined;
 
     for (let i = 0; i < transactionsToDuplicate.length; i++) {
         const item = transactionsToDuplicate.at(i);
@@ -1316,9 +1314,6 @@ function bulkDuplicateExpenses({
         if (result?.iouReport) {
             optimisticIOUReport = result.iouReport;
         }
-        if (result?.transactionID) {
-            lastDuplicateTransactionID = result.transactionID;
-        }
 
         if (currentTargetReport && !currentTargetReport.iouReportID) {
             currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
@@ -1326,7 +1321,6 @@ function bulkDuplicateExpenses({
     }
 
     playSound(SOUNDS.DONE);
-    signalExpenseAddedGrowl(lastDuplicateTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 }
 
 type BulkDuplicateReportsParams = {
@@ -1358,7 +1352,7 @@ type BulkDuplicateReportsParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
-function bulkDuplicateReports({
+async function bulkDuplicateReports({
     dateFnsLocale,
     selectedReports: selectedReportsParam,
     allReports,
@@ -1410,6 +1404,9 @@ function bulkDuplicateReports({
         transactionsByReportID.set(transaction.reportID, list);
     }
 
+    let hasDuplicatedReport = false;
+    const accountIDAtStart = getCurrentUserAccountIDFromSession();
+
     for (const selectedReport of selectedReportsParam) {
         const reportID = selectedReport.reportID;
         if (!reportID) {
@@ -1424,6 +1421,21 @@ function bulkDuplicateReports({
 
         if (!snapshotReport && !onyxReport && reportTransactions.length === 0) {
             continue;
+        }
+
+        if (hasDuplicatedReport) {
+            // Temporary until the backend exposes a single command that duplicates a whole selection. Until then,
+            // let the previous report's optimistic writes apply before blocking the thread again.
+            // eslint-disable-next-line no-await-in-loop
+            await new Promise<void>((resolve) => {
+                setTimeout(resolve, 0);
+            });
+
+            // Signing out clears Onyx, so the reports and policies captured above belong to an account that is no
+            // longer active. Duplicating the rest of them would write the previous account's data under the new one.
+            if (getCurrentUserAccountIDFromSession() !== accountIDAtStart) {
+                return;
+            }
         }
 
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -1470,6 +1482,8 @@ function bulkDuplicateReports({
             participantsPolicyTags,
             conciergeChat,
         });
+
+        hasDuplicatedReport = true;
     }
 
     playSound(SOUNDS.DONE);

@@ -15,7 +15,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useState} from 'react';
+import React, {useImperativeHandle, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -89,7 +89,8 @@ function buildNewTransactionIDMap(data: SearchListItem[], newTransactions: Trans
  * `useSearchListViewState`, and the surrounding chrome from `SearchListViewLayout`. This view owns the group
  * machinery: on wide web it splits each group into a sticky `GroupHeader` plus an expandable
  * `GroupChildrenContainer` (`shouldSplitGroups`); otherwise each group renders through `TransactionGroupListItem`.
- * Selection counts are report-aware (flattened over child transactions plus empty groups).
+ * Selection counts are report-aware (flattened over child transactions plus empty groups), and the scroll
+ * handle remaps the router's data index to the split-list index.
  */
 function ExpenseGroupedSearchView({
     queryJSON,
@@ -111,6 +112,7 @@ function ExpenseGroupedSearchView({
     onScroll,
     contentContainerStyle,
     containerStyle,
+    ref,
 }: ExpenseGroupedSearchViewProps) {
     const {type, groupBy} = queryJSON;
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -169,6 +171,26 @@ function ExpenseGroupedSearchView({
     const isItemVisible = (item: SearchListItem) => !isRowDeleted(item) || isOffline;
     const firstVisibleIndex = listData.findIndex(isItemVisible);
     const lastVisibleIndex = listData.findLastIndex(isItemVisible);
+
+    // The router highlights by source-data index; remap it to the split-list index before scrolling.
+    useImperativeHandle(
+        ref,
+        () => ({
+            scrollToIndex: (index: number, animated = true) => {
+                if (!shouldSplit) {
+                    scrollToListIndex(index, animated);
+                    return;
+                }
+                const item = data.at(index);
+                if (!item) {
+                    return;
+                }
+                const splitIndex = item.keyForList ? listData.findIndex((listItem) => listItem.keyForList === `header_${item.keyForList}`) : -1;
+                scrollToListIndex(splitIndex !== -1 ? splitIndex : index, animated);
+            },
+        }),
+        [data, listData, shouldSplit, scrollToListIndex],
+    );
 
     const getItemType = (item: SearchListItem) => {
         if (!shouldSplit) {
@@ -235,6 +257,7 @@ function ExpenseGroupedSearchView({
                     onLongPressRow={onLongPressRow}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onUndelete={handleUndelete}
+                    isFirstItem={index - 1 === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     newTransactionID={containerNewTransactionID}
                 />
@@ -269,7 +292,6 @@ function ExpenseGroupedSearchView({
                     onFocus={onFocus}
                     newTransactionID={newTransactionID}
                     onUndelete={handleUndelete}
-                    keyForList={item.keyForList}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                 />
