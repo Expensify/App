@@ -2463,7 +2463,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copy: 'コピー',
         disable: '無効にする',
         enableTwoFactorAuth: '2 要素認証を有効にする',
-        enable2FA: '2FAを有効にする',
         pleaseEnableTwoFactorAuth: '二要素認証を有効にしてください。',
         twoFactorAuthIsRequiredDescription: 'セキュリティ保護のため、統合を接続するには Xero で二要素認証が必要です。',
         twoFactorAuthIsRequiredForAdminsHeader: '2要素認証が必要です',

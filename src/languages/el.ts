@@ -2549,7 +2549,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyCodes: 'Αντιγραφή κωδικών',
         disable: 'Απενεργοποίηση',
         enableTwoFactorAuth: 'Ενεργοποιήστε τον έλεγχο ταυτότητας δύο παραγόντων',
-        enable2FA: 'Ενεργοποίηση 2FA',
         pleaseEnableTwoFactorAuth: 'Παρακαλούμε ενεργοποιήστε τον έλεγχο ταυτότητας δύο παραγόντων.',
         twoFactorAuthIsRequiredDescription: 'Για λόγους ασφαλείας, το Xero απαιτεί έλεγχο ταυτότητας δύο παραγόντων για να συνδεθεί η ενοποίηση.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Απαιτείται έλεγχος ταυτότητας δύο παραγόντων',
