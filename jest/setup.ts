@@ -67,6 +67,12 @@ jest.mock('expo-image', () => ({
     ),
 }));
 
+jest.mock('expo-store-review', () => ({
+    hasAction: jest.fn(() => Promise.resolve(false)),
+    isAvailableAsync: jest.fn(() => Promise.resolve(false)),
+    requestReview: jest.fn(() => Promise.resolve()),
+}));
+
 // Mock expo-location — the jest-expo preset replaces all native module methods with jest.fn(async () => {}),
 // which returns undefined instead of a proper PermissionResponse. This causes crashes when code reads .status
 // from the result of requestForegroundPermissionsAsync().
