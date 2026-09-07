@@ -6,8 +6,9 @@ import OneTransactionThreadRedirectHandler from '@src/pages/inbox/OneTransaction
 import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 
-import React from 'react';
 import type {ValueOf} from 'type-fest';
+
+import React from 'react';
 
 const THREAD_REPORT_ID = '12345';
 const EXPENSE_REPORT_ID = '54321';
@@ -98,7 +99,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
         await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
     });
 
-    it("keeps the thread route while a multi-expense report is still paginating in and only one of its IOU actions has loaded", async () => {
+    it('keeps the thread route while a multi-expense report is still paginating in and only one of its IOU actions has loaded', async () => {
         mockParentTransactionCount = 3;
 
         render(<OneTransactionThreadRedirectHandler />);

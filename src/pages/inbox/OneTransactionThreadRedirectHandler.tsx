@@ -55,11 +55,7 @@ function OneTransactionThreadRedirectHandler() {
     // Sending money keeps its own thread - `isOneTransactionThread` excludes it too - because the report and the
     // thread are not interchangeable there.
     const shouldRedirectToParentReport =
-        !!parentReportID &&
-        !hasLinkedReportAction &&
-        !!isParentOneTransactionReport &&
-        oneTransactionThreadReportID === reportIDFromRoute &&
-        !isSentMoneyReportAction(parentReportAction);
+        !!parentReportID && !hasLinkedReportAction && !!isParentOneTransactionReport && oneTransactionThreadReportID === reportIDFromRoute && !isSentMoneyReportAction(parentReportAction);
 
     // The replace unmounts this screen, but Onyx updates can land before the transition finishes. Keyed by the
     // report we redirected away from so a later route onto a different thread still redirects.
