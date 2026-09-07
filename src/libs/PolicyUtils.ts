@@ -21,6 +21,7 @@ import type {
 } from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
+    Account,
     ApprovalRule,
     ConnectionLastSync,
     ConnectionName,
@@ -2066,10 +2067,9 @@ function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: 
     }));
 }
 
-function getXeroExpenseAccounts(policy: Policy | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
-    const expenseAccounts = policy?.connections?.xero?.data?.expenseAccounts ?? [];
-
-    return expenseAccounts.map(({id, name}) => ({
+/** Only profit and loss accounts can take a currency conversion cost, so these are kept apart from the bank accounts. */
+function getXeroExpenseAccounts(expenseAccounts: Account[] | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
+    return (expenseAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
