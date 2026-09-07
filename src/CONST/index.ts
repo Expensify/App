@@ -6425,6 +6425,15 @@ const CONST = {
         /** How many of a selection's actions get a button of their own in the bar before the rest move behind "More". */
         MAX_INLINE_ACTIONS: 3,
 
+        /** The same at the in-between widths, which do not have the room for a third button. */
+        MAX_INLINE_ACTIONS_MEDIUM_SCREEN: 2,
+
+        /**
+         * Room left between the bar and the edges of the container it floats in. The bar sheds an action before it gets
+         * this close to an edge, rather than only once it has already touched one.
+         */
+        EDGE_MARGIN: 24,
+
         /** How far the bar floats above the bottom of the container it is rendered in. */
         BOTTOM_OFFSET: 20,
 

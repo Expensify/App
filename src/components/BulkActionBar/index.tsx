@@ -12,6 +12,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -63,14 +64,8 @@ function BulkActionBarContent<TValueType>({
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
     const [moreMenuAnchorPosition, setMoreMenuAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
 
-    // Only the highest-priority actions are given a button of their own; the rest stay reachable behind "More".
-    //
-    // How many that is has to come from the width the bar actually has, not from a screen breakpoint: the bar sits in a
-    // content pane whose width depends on the sidebar and the layout around it, and the buttons' own widths depend on
-    // how long their labels are in the viewer's language. So the bar is laid out at the largest count, and drops one
-    // action at a time into "More" until it fits. `hasSettled` keeps it hidden until it does, so an overflowing first
-    // pass is never shown.
-
+    // Only the highest-priority actions are given a button of their own; the rest stay reachable behind "More". How
+    // many that is comes from the bar's own fitting pass — see `BulkActionBar` below.
     const hasMoreMenu = options.length > inlineActionCount;
     const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
@@ -179,36 +174,48 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
     const invertedTheme = useInvertedThemePreference();
     const isReducedMotionEnabled = Accessibility.useReducedMotion();
 
+    const {isMediumScreenWidth} = useResponsiveLayout();
+
+    // The number of buttons to start from, which is what the bar shows on a container roomy enough for them. The
+    // in-between widths start one lower, so they land on their usual layout without having to be measured out of a
+    // wider one first.
+    const startingActionCount = isMediumScreenWidth ? CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS_MEDIUM_SCREEN : CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS;
+
     // This layer spans the container, so laying it out measures the width the bar has to fit into.
     const [availableWidth, setAvailableWidth] = useState<number>();
-    const [inlineActionCount, setInlineActionCount] = useState<number>(CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS);
+    const [inlineActionCount, setInlineActionCount] = useState<number>(startingActionCount);
     const [fitKey, setFitKey] = useState<string>();
 
-    // A measurement is tagged with the action count it was taken at, so it can be recognised as stale rather than
+    // A measurement is tagged with the action count it was taken at, so it can be recognized as stale rather than
     // discarded. `onLayout` only fires when a view's size changes, so a measurement thrown away while the bar happens
     // to stay the same size is never replaced — which would leave the bar hidden for good.
     const [measurement, setMeasurement] = useState<{width: number; actionCount: number}>();
 
+    // The width the bar has to stay within, keeping it clear of the container's edges rather than flush against them.
+    //
     // The fit is derived rather than decided in a layout handler: the bar and the layer around it are laid out in
     // whichever order the platform chooses, so this has to re-run whenever either measurement lands.
-    const currentFitKey = `${availableWidth}|${options.length}`;
+    const widthBudget = availableWidth === undefined ? undefined : availableWidth - CONST.BULK_ACTION_BAR.EDGE_MARGIN;
+
+    const currentFitKey = `${availableWidth}|${options.length}|${startingActionCount}`;
     const isMeasurementCurrent = measurement?.actionCount === inlineActionCount;
+    const isOverflowing = isMeasurementCurrent && widthBudget !== undefined && measurement.width > widthBudget;
+
     if (currentFitKey !== fitKey) {
-        // The space or the action list changed, so start again from the largest count: a container that grew can fill
-        // back up, and a shrunken one sheds again from the top. Any measurement taken at that count still applies.
+        // The space, the action list or the breakpoint changed, so start again from the top: a container that grew can
+        // fill back up, and a shrunken one sheds again. Any measurement taken at that count still applies.
         setFitKey(currentFitKey);
-        setInlineActionCount(CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS);
-    } else if (isMeasurementCurrent && availableWidth !== undefined && measurement.width > availableWidth && inlineActionCount > 0) {
+        setInlineActionCount(startingActionCount);
+    } else if (isOverflowing && inlineActionCount > 0) {
         // Shedding an action always makes the bar narrower, so this settles rather than oscillating. Changing the count
         // changes the bar's size, so a fresh measurement is guaranteed to follow.
         setInlineActionCount(inlineActionCount - 1);
     }
 
-    // Hidden only while the fitting pass has something left to do: a measurement that does not fit and an action still
-    // to shed, or a stale measurement about to be replaced. Everything else is shown — in particular, a layer that has
-    // not reported a width yet, so that a measurement which never arrives cannot leave the bar permanently invisible.
-    const isAwaitingFit = availableWidth !== undefined && (!isMeasurementCurrent || (measurement.width > availableWidth && inlineActionCount > 0));
-    const hasSettled = !isAwaitingFit;
+    // Shown straight away at the starting count, so a container with the room for it needs no measuring pass to appear.
+    // It is only hidden once a measurement says it overflows and there is still an action to shed, which is the one case
+    // where what is on screen is about to be replaced.
+    const hasSettled = !(isOverflowing && inlineActionCount > 0);
 
     // The bar appears where nothing was before, so it springs up into place to draw the eye there, the same way the
     // report's floating message counter animates itself in. It waits for the fitting pass so the motion is only ever
