@@ -3514,6 +3514,91 @@ describe('SearchQueryUtils', () => {
         return null;
     }
 
+    describe('merchant multi-value query serialization', () => {
+        test.each(['merchant*:Amazon,Uber', 'merchant:Amazon,Uber'])('preserves array AST for %s', (input) => {
+            const queryJSON = buildSearchQueryJSON(input);
+            if (!queryJSON?.filters) {
+                throw new Error('Expected merchant filters to be defined');
+            }
+
+            const merchantNode = findNode(queryJSON.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+            expect(merchantNode.right).toEqual(['Amazon', 'Uber']);
+
+            const builtQuery = buildSearchQueryString(queryJSON);
+            const updatedQuery = getQueryWithUpdatedValues(input, true);
+            if (!updatedQuery) {
+                throw new Error('Expected updated query to be defined');
+            }
+
+            expect(updatedQuery).toBe(builtQuery);
+            expect(buildSearchQueryJSON(builtQuery)?.filters).toEqual(queryJSON.filters);
+            expect(buildSearchQueryJSON(updatedQuery)?.filters).toEqual(queryJSON.filters);
+
+            const canonicalQueryJSON = buildSearchQueryJSON(updatedQuery);
+            if (!canonicalQueryJSON?.filters) {
+                throw new Error('Expected canonical merchant filters to be defined');
+            }
+
+            expect(serializeQueryJSONForBackend(canonicalQueryJSON)).toBe(JSON.stringify({...canonicalQueryJSON, status: ''}));
+            expect(getQueryWithUpdatedValues(updatedQuery, true)).toBe(updatedQuery);
+            expect(buildSearchQueryString(buildSearchQueryJSON(updatedQuery))).toBe(updatedQuery);
+        });
+
+        test.each([
+            ['merchant=Amazon,Uber', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, ['Amazon', 'Uber'], 'merchant=Amazon,Uber'],
+            ['-merchant:Amazon,Uber', CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, ['Amazon', 'Uber'], '-merchant:Amazon,Uber'],
+            ['merchant*:Amazon', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, 'Amazon', 'merchant*:Amazon'],
+            ['merchant*:"Amazon,Uber"', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, 'Amazon,Uber', 'merchant*:"Amazon,Uber"'],
+        ])('keeps merchant operator semantics for %s', (input, operator, value, expectedQuery) => {
+            const queryJSON = buildSearchQueryJSON(input);
+            if (!queryJSON?.filters) {
+                throw new Error('Expected merchant filters to be defined');
+            }
+
+            const merchantNode = findNode(queryJSON.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+
+            expect(merchantNode.operator).toBe(operator);
+            expect(merchantNode.right).toEqual(value);
+            const rebuiltQueryString = buildSearchQueryString(queryJSON);
+            expect(rebuiltQueryString).toContain(expectedQuery);
+            expect(buildSearchQueryJSON(rebuiltQueryString)?.filters).toEqual(queryJSON.filters);
+        });
+
+        test('preserves separate merchant contains filters when rebuilding', () => {
+            const queryJSON = buildSearchQueryJSON('merchant*:Amazon merchant*:Uber');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected merchant query to be defined');
+            }
+
+            expect(queryJSON.filters.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.AND);
+            expect(buildSearchQueryJSON(buildSearchQueryString(queryJSON))?.filters).toEqual(queryJSON.filters);
+        });
+
+        test('keeps category comma lists on the exact operator', () => {
+            const queryJSON = buildSearchQueryJSON('category:Travel,Meals');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected category filters to be defined');
+            }
+
+            const categoryNode = findNode(queryJSON.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+            if (!categoryNode) {
+                throw new Error('Expected category node to be found in AST');
+            }
+
+            expect(categoryNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(categoryNode.right).toEqual(['Travel', 'Meals']);
+            expect(buildSearchQueryString(queryJSON)).toContain('category:Travel,Meals');
+        });
+    });
+
     describe('applyContainsOperatorToTextFields', () => {
         it('should preserve explicit merchant eq as exact match', () => {
             const queryJSON = buildSearchQueryJSON('type:expense merchant=coffee');

@@ -12,10 +12,12 @@ import React from 'react';
 
 import type {AmountFilterContentProps} from './AmountFilterContent';
 import type {DateFilterContentProps} from './DateFilterContent';
+import type {MerchantFilterContentProps} from './MerchantFilterContent';
 import type {ReportFieldFilterContentProps} from './ReportFieldFilterContent';
 import type {TextInputFilterContentProps} from './TextInputFilterContent';
 
-type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'merchantOperator' | 'onChange'>;
+type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'onChange'>;
+type MerchantFilterContentWrapperProps = Pick<MerchantFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'merchantOperator' | 'onChange'>;
 type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'baseFilterKey' | 'value' | 'onChange'>;
 type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'baseFilterKey' | 'value' | 'hasFeed' | 'onChange'>;
 type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
@@ -28,6 +30,7 @@ type SearchAdvancedFiltersContentProps = {
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     ready?: boolean;
     components: {
+        Merchant: React.ComponentType<MerchantFilterContentWrapperProps>;
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
         Amount: React.ComponentType<AmountFilterContentWrapperProps>;
         Date: React.ComponentType<DateFilterContentWrapperProps>;
@@ -94,24 +97,33 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
         );
     }
 
-    if (isTextFilterKey(baseFilterKey)) {
-        const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
-        const TextFilter = components.Text;
-        const isMerchantFilter = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        const MerchantFilter = components.Merchant;
+        const isNegated = !!values?.[FILTER_KEYS.MERCHANT_NOT];
+        const value = values?.[isNegated ? FILTER_KEYS.MERCHANT_NOT : FILTER_KEYS.MERCHANT];
         const merchantOperator = values?.[FILTER_KEYS.MERCHANT_OPERATOR] ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
         return (
-            <TextFilter
-                key={isMerchantFilter ? `${baseFilterKey}-${merchantOperator}` : baseFilterKey}
+            <MerchantFilter
+                key={`${baseFilterKey}-${merchantOperator}`}
                 baseFilterKey={baseFilterKey}
                 value={value}
                 isNegated={isNegated}
-                merchantOperator={isMerchantFilter ? merchantOperator : undefined}
-                onChange={(newValue, negated, newMerchantOperator) =>
-                    onChange({
-                        ...getFilterFormValues(baseFilterKey, newValue, negated),
-                        ...(isMerchantFilter ? {[FILTER_KEYS.MERCHANT_OPERATOR]: newMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO} : {}),
-                    })
-                }
+                merchantOperator={merchantOperator}
+                onChange={onChange}
+            />
+        );
+    }
+
+    if (isTextFilterKey(baseFilterKey)) {
+        const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
+        const TextFilter = components.Text;
+        return (
+            <TextFilter
+                key={baseFilterKey}
+                baseFilterKey={baseFilterKey}
+                value={value}
+                isNegated={isNegated}
+                onChange={(newValue, negated) => onChange(getFilterFormValues(baseFilterKey, newValue, negated))}
             />
         );
     }
@@ -133,4 +145,11 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
 }
 
 export default SearchAdvancedFiltersContent;
-export type {TextInputFilterContentWrapperProps, AmountFilterContentWrapperProps, DateFilterContentWrapperProps, ReportFieldFilterContentWrapperProps, ListFilterContentWrapperProps};
+export type {
+    TextInputFilterContentWrapperProps,
+    MerchantFilterContentWrapperProps,
+    AmountFilterContentWrapperProps,
+    DateFilterContentWrapperProps,
+    ReportFieldFilterContentWrapperProps,
+    ListFilterContentWrapperProps,
+};
