@@ -152,7 +152,7 @@ function NetSuiteImportCustomFieldView({
                                 prompt: translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removePrompt`),
                                 confirmText: translate('common.remove'),
                                 cancelText: translate('common.cancel'),
-                                danger: true,
+                                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                             }).then((result) => {
                                 if (result.action !== ModalActions.CONFIRM) {
                                     return;

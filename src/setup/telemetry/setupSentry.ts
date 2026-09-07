@@ -57,8 +57,14 @@ function setupSentry(): void {
         integrations,
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
-        // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
-        ignoreErrors: [CONST.ERROR.UPDATE_REQUIRED],
+        ignoreErrors: [
+            // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
+            CONST.ERROR.UPDATE_REQUIRED,
+            // Bare-string rejections from the Convert Experiments script in web/index.html, which reads OnyxDB directly.
+            // They carry no stack frames for thirdPartyErrorFilterIntegration to tag; the prefix limits this to the
+            // browser SDK's rejection wording, so a real Error carrying the same text still reports.
+            /^Non-Error promise rejection captured with value: No data found for key/,
+        ],
         denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,

@@ -242,7 +242,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         prompt: translate('workspace.accounting.disconnectPrompt', connectedIntegrationDisplayName),
                         confirmText: translate('workspace.accounting.disconnect'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     }).then(({action}) => {
                         if (action !== ModalActions.CONFIRM || !connectedIntegration || !policyID) {
                             return;
