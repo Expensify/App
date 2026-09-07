@@ -4,6 +4,7 @@ import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/Ad
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import {useDebounceWithControls} from '@hooks/useDebounce';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
-import React, {Activity, useEffect, useRef, useState} from 'react';
+import React, {Activity, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
@@ -155,16 +156,10 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
             return {...currentState, readyFilters: [...currentState.readyFilters, currentState.activeFilter]};
         });
     };
-    const restTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-    const cancelReadyWait = () => clearTimeout(restTimeoutRef.current);
-    // Drops the wait when the popover closes.
-    useEffect(() => cancelReadyWait, []);
 
-    /** Restarted by every movement, so it elapses only once the cursor has come to rest. */
-    const waitForCursorToRest = () => {
-        cancelReadyWait();
-        restTimeoutRef.current = setTimeout(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
-    };
+    // Restarted by every movement, so it elapses only once the cursor has come to rest, and dropped when the popover
+    // closes.
+    const {invoke: waitForCursorToRest, cancel: cancelReadyWait} = useDebounceWithControls(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
 
     const hoverFilter = (filterKey: SearchFilter['key']) => {
         showFilter(filterKey);

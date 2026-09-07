@@ -28,7 +28,8 @@ function useDebouncedSaveDraftImpl(saveDraftFn: (...args: unknown[]) => void, wa
             isSavePending.current = false;
         },
         wait,
-        {shouldExecuteOnUnmount},
+        // Capped so a draft is still written every `wait` while someone keeps typing, rather than only once they pause.
+        {shouldExecuteOnUnmount, maxWait: wait},
     );
 
     const saveDraft = (...args: unknown[]) => {

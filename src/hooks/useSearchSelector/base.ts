@@ -424,18 +424,23 @@ function useSearchSelectorBase({
     // Two independent pagination cursors are checked here on purpose:
     // - hasMore/maxResults track how many relevance-sorted options are rendered.
     // - hasMoreReports/loadMoreReports track the raw Onyx report pool size by useFilteredOptions
-    const onListEndReached = useDebounce(() => {
-        if (!areOptionsInitialized) {
-            return;
-        }
+    const onListEndReached = useDebounce(
+        () => {
+            if (!areOptionsInitialized) {
+                return;
+            }
 
-        if (hasMore) {
-            setMaxResults((previous) => previous + maxResultsPerPage);
-        }
-        if (hasMoreReports) {
-            loadMoreReports();
-        }
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+            if (hasMore) {
+                setMaxResults((previous) => previous + maxResultsPerPage);
+            }
+            if (hasMoreReports) {
+                loadMoreReports();
+            }
+            // Capped so pages keep arriving while someone scrolls on, rather than only once the scrolling stops.
+        },
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
+    );
 
     const isOptionSelected = (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
 

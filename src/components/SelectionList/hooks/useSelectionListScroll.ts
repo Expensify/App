@@ -32,7 +32,12 @@ function useSelectionListScroll<TData>(listRef: RefObject<Pick<FlashListRef<TDat
         }
     };
 
-    const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
+    // Capped so a held arrow key keeps the list following the focused row instead of it standing still until the key is released.
+    const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {
+        leading: true,
+        trailing: true,
+        maxWait: CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME,
+    });
 
     return {scrollToIndex, debouncedScrollToIndex};
 }
