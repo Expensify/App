@@ -6,18 +6,7 @@ const meta = {
         description: 'Disallow raw numeric fontSize/lineHeight values. Type must come from the typography scale so it cannot drift from the design system.',
         recommended: 'error',
     },
-    schema: [
-        {
-            type: 'object',
-            properties: {
-                // The styles layer composes tokens out of `variables`, so it is allowed to read
-                // `variables.fontSize*`/`variables.lineHeight*` directly. Everywhere else must go
-                // through `src/styles/typography.ts`.
-                allowVariablesReferences: {type: 'boolean'},
-            },
-            additionalProperties: false,
-        },
-    ],
+    schema: [],
     messages: {
         rawTypography: 'Raw `{{property}}: {{value}}` is not allowed. Use a `<Text variant="...">` or a token from src/styles/typography.ts (https://github.com/Expensify/App/issues/37503).',
         rawTypographyVariable:
@@ -70,6 +59,12 @@ function isNumericLiteral(node) {
  * hatch around the typography scale. Only the `variables` module is matched; unrelated objects that
  * happen to have a `fontSize*` key are left alone.
  *
+ * This is a syntactic match on the `variables.<name>` shape, not a resolved-import check, so it is a
+ * convention guard rather than an airtight ban. Renaming the import (`import vars from '@styles/variables'`),
+ * destructuring (`const {fontSizeNormal} = variables`), and computed access (`variables['fontSizeNormal']`)
+ * all read as something else and are not flagged. The app imports the module as `variables` everywhere,
+ * so in practice the only bypass is a deliberate one.
+ *
  * @param {import('estree').Node} node
  * @returns {boolean}
  */
@@ -88,34 +83,95 @@ function isVariablesTypographyReference(node) {
 }
 
 /**
+ * @param {import('eslint').Scope.Scope | null} scope
+ * @param {string} variableName
+ * @returns {import('eslint').Scope.Variable | undefined}
+ */
+function findVariable(scope, variableName) {
+    for (let current = scope; current; current = current.upper) {
+        const variable = current.set.get(variableName);
+        if (variable) {
+            return variable;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * The expression a `const` alias was assigned, so `const size = variables.fontSizeXXSmall` followed by
+ * `getFontSizeStyle(size)` is still caught. Only single-definition `const` bindings with a plain
+ * identifier name are followed — a `let` binding or a destructuring pattern has no single value to
+ * trace, so those are left alone rather than guessed at.
+ *
+ * @param {import('eslint').Scope.Variable} variable
+ * @returns {import('estree').Node | undefined}
+ */
+function getConstInitializer(variable) {
+    if (variable.defs.length !== 1) {
+        return undefined;
+    }
+    const definition = variable.defs.at(0);
+    if (definition.type !== 'Variable' || definition.parent.kind !== 'const' || definition.node.id.type !== 'Identifier') {
+        return undefined;
+    }
+    return definition.node.init ?? undefined;
+}
+
+/**
  * Flags object properties (`{fontSize: 17}`), JSX attributes (`<Text fontSize={17}>`), and
  * `getFontSizeStyle()`/`getLineHeightStyle()` arguments that set type outside the typography scale —
- * both numeric literals and, unless `allowVariablesReferences` is set, `variables.fontSize*` /
- * `variables.lineHeight*` references.
+ * both numeric literals and `variables.fontSize*` / `variables.lineHeight*` references.
  *
  * @param {import('eslint').Rule.RuleContext} context
  * @returns {import('eslint').Rule.RuleListener}
  */
 function create(context) {
-    const allowVariablesReferences = context.options.at(0)?.allowVariablesReferences ?? false;
-
-    function report(valueNode, propertyName) {
-        const isVariableReference = isVariablesTypographyReference(valueNode);
+    function report(valueNode, propertyName, bannedValue) {
         context.report({
             node: valueNode,
-            messageId: isVariableReference ? 'rawTypographyVariable' : 'rawTypography',
+            messageId: bannedValue.messageId,
             data: {
                 property: propertyName,
-                value: context.sourceCode.getText(valueNode),
+                // The offending expression, which is what the alias was assigned when the value reached
+                // us through a `const`. Naming the identifier instead would just echo the property back.
+                value: context.sourceCode.getText(bannedValue.node),
             },
         });
     }
 
-    function isBannedValue(valueNode) {
-        if (isNumericLiteral(valueNode)) {
-            return true;
+    /**
+     * Walks past ternaries and `const` aliases so the banned value is found wherever it was written,
+     * not only when it sits directly in the banned position.
+     *
+     * @param {import('estree').Node} valueNode
+     * @param {Set<import('eslint').Scope.Variable>} visitedVariables guards against cyclic aliases
+     * @returns {{messageId: string, node: import('estree').Node} | undefined}
+     */
+    function findBannedValue(valueNode, visitedVariables) {
+        const unwrapped = unwrap(valueNode);
+        if (isNumericLiteral(unwrapped)) {
+            return {messageId: 'rawTypography', node: unwrapped};
         }
-        return !allowVariablesReferences && isVariablesTypographyReference(valueNode);
+        if (isVariablesTypographyReference(unwrapped)) {
+            return {messageId: 'rawTypographyVariable', node: unwrapped};
+        }
+        if (unwrapped.type === 'ConditionalExpression') {
+            return findBannedValue(unwrapped.consequent, visitedVariables) ?? findBannedValue(unwrapped.alternate, visitedVariables);
+        }
+        if (unwrapped.type !== 'Identifier') {
+            return undefined;
+        }
+        const variable = findVariable(context.sourceCode.getScope(unwrapped), unwrapped.name);
+        if (!variable || visitedVariables.has(variable)) {
+            return undefined;
+        }
+        visitedVariables.add(variable);
+        const initializer = getConstInitializer(variable);
+        return initializer ? findBannedValue(initializer, visitedVariables) : undefined;
+    }
+
+    function getBannedValue(valueNode) {
+        return findBannedValue(valueNode, new Set());
     }
 
     /**
@@ -138,19 +194,27 @@ function create(context) {
                 return;
             }
             const propertyName = getPropertyName(node.key);
-            if (propertyName === undefined || !BANNED_PROPERTIES.has(propertyName) || !isBannedValue(node.value)) {
+            if (propertyName === undefined || !BANNED_PROPERTIES.has(propertyName)) {
                 return;
             }
-            report(node.value, propertyName);
+            const bannedValue = getBannedValue(node.value);
+            if (!bannedValue) {
+                return;
+            }
+            report(node.value, propertyName, bannedValue);
         },
         JSXAttribute(node) {
             if (node.name.type !== 'JSXIdentifier' || !BANNED_PROPERTIES.has(node.name.name)) {
                 return;
             }
-            if (node.value?.type !== 'JSXExpressionContainer' || !isBannedValue(node.value.expression)) {
+            if (node.value?.type !== 'JSXExpressionContainer') {
                 return;
             }
-            report(node.value.expression, node.name.name);
+            const bannedValue = getBannedValue(node.value.expression);
+            if (!bannedValue) {
+                return;
+            }
+            report(node.value.expression, node.name.name, bannedValue);
         },
         CallExpression(node) {
             const helperName = getTypographyHelperName(node.callee);
@@ -158,10 +222,14 @@ function create(context) {
                 return;
             }
             const argument = node.arguments.at(0);
-            if (!argument || !isBannedValue(argument)) {
+            if (!argument) {
                 return;
             }
-            report(argument, helperName === 'getFontSizeStyle' ? 'fontSize' : 'lineHeight');
+            const bannedValue = getBannedValue(argument);
+            if (!bannedValue) {
+                return;
+            }
+            report(argument, helperName === 'getFontSizeStyle' ? 'fontSize' : 'lineHeight', bannedValue);
         },
     };
 }

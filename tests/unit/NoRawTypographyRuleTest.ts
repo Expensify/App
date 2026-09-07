@@ -66,15 +66,11 @@ describe('no-raw-typography', () => {
             'const style = {fontSize: variables.iconSizeNormal};',
             'const style = {padding: variables.fontSizeNormal};',
             'const width = getWidth(variables.fontSizeNormal);',
-            // The styles layer opts out of the named-reference check while it finishes migrating.
-            {
-                code: 'const style = {fontSize: variables.fontSizeNormal};',
-                options: [{allowVariablesReferences: true}],
-            },
-            {
-                code: 'const style = StyleUtils.getFontSizeStyle(variables.fontSizeNormal);',
-                options: [{allowVariablesReferences: true}],
-            },
+            // Aliases are only followed when there is a single value to follow.
+            'const size = fontScale.text; const style = {fontSize: size};',
+            'let size = 17; size = fontScale.text; const style = {fontSize: size};',
+            'const style = {fontSize: props.fontSize};',
+            'const style = {fontSize: isSmall ? fontScale.micro : fontScale.text};',
         ],
         invalid: [
             {
@@ -137,17 +133,37 @@ describe('no-raw-typography', () => {
                 code: 'const jsx = <CustomText lineHeight={20}>hi</CustomText>;',
                 errors: [{messageId: 'rawTypography'}],
             },
+            // A `const` alias is not an escape hatch — the value is traced back to where it was written.
+            {
+                code: 'const size = variables.fontSizeXXSmall; const style = StyleUtils.getFontSizeStyle(size);',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
+            {
+                code: 'const size = 17; const style = {fontSize: size};',
+                errors: [{messageId: 'rawTypography'}],
+            },
+            {
+                code: 'const size = variables.fontSizeNormal; const jsx = <Text fontSize={size}>hi</Text>;',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
+            {
+                code: 'const outer = variables.fontSizeNormal; const inner = outer; const style = {fontSize: inner};',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
+            // Both branches of a ternary are checked, aliased or not.
+            {
+                code: 'const style = {fontSize: isSmall ? variables.fontSizeXXSmall : variables.fontSizeExtraSmall};',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
+            {
+                code: 'const size = isSmall ? fontScale.micro : 17; const style = {fontSize: size};',
+                errors: [{messageId: 'rawTypography'}],
+            },
         ],
     });
 
     tsRuleTester.run(`${ruleModule.name} (TS assertions)`, ruleModule, {
-        valid: [
-            'const style = {fontSize: fontScale.text as number};',
-            {
-                code: 'const style = {fontSize: variables.fontSizeNormal as number};',
-                options: [{allowVariablesReferences: true}],
-            },
-        ],
+        valid: ['const style = {fontSize: fontScale.text as number};'],
         invalid: [
             {
                 code: 'const style = {fontSize: variables.fontSizeNormal as number};',
