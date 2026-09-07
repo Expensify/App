@@ -54,6 +54,7 @@ import * as Device from '@userActions/Device';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
+import {canActionTask} from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
@@ -1588,7 +1589,12 @@ function AddWorkEmail(
     addWorkEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
     currentUserAccountID?: number,
 ) {
-    const completedTaskReportActionID = addWorkEmailTaskReport && currentUserAccountID ? rand64() : undefined;
+    const completedTaskReportActionID =
+        addWorkEmailTaskReport &&
+        currentUserAccountID &&
+        canActionTask(addWorkEmailTaskReport, addWorkEmailTaskParentReportAction, currentUserAccountID, addWorkEmailTaskParentReport, isAddWorkEmailTaskParentReportArchived)
+            ? rand64()
+            : undefined;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
