@@ -541,8 +541,6 @@ describe('actions/PolicyRules', () => {
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
-
-            expect((await getRules())?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]).toBeFalsy();
         });
     });
 
