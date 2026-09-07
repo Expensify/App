@@ -27,7 +27,7 @@ function ApprovePrimaryAction({reportID}: ApprovePrimaryActionProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         isTrackIntentUser,
         report: moneyRequestReport,
         policy,
@@ -46,7 +46,7 @@ function ApprovePrimaryAction({reportID}: ApprovePrimaryActionProps) {
             onPress={confirmApproval}
             isDisabled={isBlockSubmitDueToPreventSelfApproval}
         >
-            <Button.Text>{shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}</Button.Text>
+            <Button.Text>{shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}</Button.Text>
         </Button>
     );
 }

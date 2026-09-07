@@ -1,5 +1,5 @@
+import ts from '@typescript/typescript6';
 import {Str} from 'expensify-common';
-import ts from 'typescript';
 
 import TSCompilerUtils from '../../scripts/utils/TSCompilerUtils';
 
@@ -776,6 +776,36 @@ describe('TSCompilerUtils', () => {
 
             const result = TSCompilerUtils.buildDotNotationPath(deepStringLiteral);
             expect(result).toBe('level1.level2.level3.deep');
+        });
+
+        it('collapses paths inside a function-valued property to that property', () => {
+            const sourceFile = createSourceFile(
+                Str.dedent(`
+                    const strings = {
+                        workspace: {
+                            codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                                one: \`copied 1 merchant rule from \${sourcePolicyName}\`,
+                                other: (count: number) => \`copied \${count} merchant rules from \${sourcePolicyName}\`,
+                            }),
+                        },
+                    };
+                `),
+            );
+
+            const stringsDeclaration = getStatement(sourceFile, 0, ts.isVariableStatement, 'variable statement');
+            const stringsObject = expectNode(stringsDeclaration.declarationList.declarations.at(0)?.initializer, ts.isObjectLiteralExpression, 'strings object');
+            const workspaceObject = getObjectLiteralInitializer(findPropertyAssignment(stringsObject, 'workspace'));
+            const codingRulesProperty = findPropertyAssignment(workspaceObject, 'codingRules');
+            const codingRulesFn = expectNode(codingRulesProperty.initializer, ts.isArrowFunction, 'codingRules arrow function');
+            const pluralObject = expectNode(codingRulesFn.body, ts.isParenthesizedExpression, 'parenthesized plural object').expression;
+            const pluralLiteral = expectNode(pluralObject, ts.isObjectLiteralExpression, 'plural object');
+
+            const oneTemplate = expectNode(findPropertyAssignment(pluralLiteral, 'one').initializer, ts.isTemplateExpression, 'one template');
+            const otherFn = expectNode(findPropertyAssignment(pluralLiteral, 'other').initializer, ts.isArrowFunction, 'other arrow function');
+            const otherTemplate = expectNode(otherFn.body, ts.isTemplateExpression, 'other template');
+
+            expect(TSCompilerUtils.buildDotNotationPath(oneTemplate)).toBe('workspace.codingRules');
+            expect(TSCompilerUtils.buildDotNotationPath(otherTemplate)).toBe('workspace.codingRules');
         });
     });
 

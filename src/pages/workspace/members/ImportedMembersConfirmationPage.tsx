@@ -1,10 +1,10 @@
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -156,13 +156,12 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             />
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ReportActionAvatars
+                    <MultiAccountAvatar
                         size={CONST.AVATAR_SIZE.XXX_LARGE}
                         accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
-                        horizontalStacking={{
+                        horizontalOptions={{
                             maxRows: 2,
                         }}
-                        secondaryAvatarContainerStyle={[styles.secondAvatarInline]}
                     />
                 </View>
                 <View style={[styles.mb5]}>

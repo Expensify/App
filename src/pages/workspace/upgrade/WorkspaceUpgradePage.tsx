@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
@@ -20,6 +21,7 @@ import {
     canEditWorkspaceSettings,
     canModifyPlan,
     getDefaultApprover,
+    getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getUserFriendlyWorkspaceType,
     isControlPolicy,
@@ -29,6 +31,7 @@ import {
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import {setWorkspaceDistanceAutoUpdate} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 
 import CONST from '@src/CONST';
@@ -86,6 +89,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyID = route.params?.policyID;
     const reportID = route.params?.reportID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     // A submit2026 policy can only be upgraded via the UpgradeSubmit command (the server rejects
     // UpgradeToCorporate for it with a 402), and its owner holds the editor role, so the upgrade
     // flow below must key off the policy type rather than admin checks.
@@ -120,6 +124,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [priorLastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
 
@@ -137,6 +142,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     });
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
     const categoryId = route.params?.categoryId;
 
     const defaultApprover = getDefaultApprover(policy);
@@ -218,7 +224,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         if (!feature) {
             if (featureNameAlias === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) {
-                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE], getReviewWorkspaceSettingsTaskCompletion());
             }
             return;
         }
@@ -264,6 +270,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 // Re-enabling would re-run the sidebar's "just enabled" highlight on a row that already shows.
                 if (!policy?.areRulesEnabled) {
                     enablePolicyRules(policy, true, false, policyDataRef.current);
+                }
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
+                if (distanceRateCustomUnit) {
+                    setWorkspaceDistanceAutoUpdate(policyID, distanceRateCustomUnit, true, governmentMileageRates ?? [], policy?.outputCurrency);
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
@@ -333,6 +344,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         policy,
         route.params.featureName,
         perDiemCustomUnit?.customUnitID,
+        distanceRateCustomUnit,
+        governmentMileageRates,
         defaultApprover,
         accountID,
         email,
@@ -340,6 +353,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
         categoryId,
+        getReviewWorkspaceSettingsTaskCompletion,
         isTrackIntentUser,
     ]);
 

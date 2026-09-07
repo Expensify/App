@@ -21,10 +21,10 @@ type InfoBadgeProps = {
     /** Action badge key used to derive the badge label. */
     actionBadge: OptionData['actionBadge'];
     /** Whether to show the "Mark as Done" state for this row. */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
-function InfoBadge({brickRoadIndicator, actionBadge, isMarkAsDone}: InfoBadgeProps) {
+function InfoBadge({brickRoadIndicator, actionBadge, shouldShowMarkAsDoneCopy}: InfoBadgeProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -34,7 +34,7 @@ function InfoBadge({brickRoadIndicator, actionBadge, isMarkAsDone}: InfoBadgePro
         return null;
     }
 
-    const actionBadgeText = getActionBadgeText(actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = getActionBadgeText(actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     if (actionBadgeText) {
         return (

@@ -47,7 +47,7 @@ function FixPolicyConnection({connectionName, policyID, policyName, integrationN
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(fixRoute)}
-            buttonProps={{danger: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

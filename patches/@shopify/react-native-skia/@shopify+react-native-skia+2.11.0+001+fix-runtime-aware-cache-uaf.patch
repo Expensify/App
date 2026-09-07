@@ -9,7 +9,7 @@ index 18d68d3..e7d9bde 100644
 -    if (getMainJsRuntime() != rt) {
 +    if (getMainJsRuntime() == rt) {
 +      // Release the primary cache here, while the runtime is still valid, instead
-+      // of in ~RuntimeAwareCache which may run later (main queue) after the
++      // of in ~RuntimeAwareCache, which may run later on the main queue after the
 +      // runtime is freed -> UAF. Reset by move-assigning a fresh T: this is the
 +      // same point in the runtime's lifecycle at which the secondary branch below
 +      // erases its entries. See patches/@shopify/react-native-skia.

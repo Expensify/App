@@ -83,6 +83,69 @@ describe('actions/Policy', () => {
             mockFetch?.resume?.();
         });
 
+        it('forwards the user-reported integration name to CreateWorkspace', async () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID: Policy.generatePolicyID(),
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: CONST.CURRENCY.USD,
+                userReportedIntegration: 'other',
+                userReportedIntegrationName: 'Acme Books',
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                activePolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_WORKSPACE,
+                expect.objectContaining({
+                    userReportedIntegration: 'other',
+                    userReportedIntegrationName: 'Acme Books',
+                }),
+                expect.anything(),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('omits the user-reported integration name from CreateWorkspace when it is undefined', async () => {
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID: Policy.generatePolicyID(),
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: CONST.CURRENCY.USD,
+                userReportedIntegration: 'other',
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                activePolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const calls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(calls.length).toBeGreaterThan(0);
+            const body = calls.at(-1)?.[1]?.body;
+            expect(body).toBeInstanceOf(FormData);
+            const formEntries = body instanceof FormData ? Object.fromEntries(body) : {};
+            expect(formEntries.userReportedIntegrationName).toBeUndefined();
+        });
+
         it('creates a new workspace', async () => {
             mockFetch?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
@@ -153,7 +216,6 @@ describe('actions/Policy', () => {
             expect(policy?.arePerDiemRatesEnabled).toBe(false);
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
             expect(policy?.approver).toBe(ESH_EMAIL);
-            expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {email: ESH_EMAIL, submitsTo: ESH_EMAIL, errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
             expect(policy?.mccGroup).toBeDefined();
@@ -374,7 +436,6 @@ describe('actions/Policy', () => {
             expect(policy?.arePerDiemRatesEnabled).toBe(true);
             expect(policy?.approvalMode).toBe(fakePolicy.approvalMode);
             expect(policy?.approver).toBe(fakePolicy.approver);
-            expect(policy?.isPolicyExpenseChatEnabled).toBe(fakePolicy.isPolicyExpenseChatEnabled);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.employeeList).toEqual(fakePolicy.employeeList);
             expect(policy?.mccGroup).toBe(fakePolicy.mccGroup);
@@ -1451,9 +1512,8 @@ describe('actions/Policy', () => {
 
         it('should mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is true', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins). Set a concierge
-            // report ID so prepareOnboardingOnyxData can resolve a target chat and does not early-return.
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-report-1');
+            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins), so the concierge
+            // chat is passed below and prepareOnboardingOnyxData does not early-return.
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
@@ -1465,7 +1525,7 @@ describe('actions/Policy', () => {
             // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
             // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
-                conciergeChat: undefined,
+                conciergeChat: {reportID: 'concierge-report-1', type: CONST.REPORT.TYPE.CHAT},
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1501,9 +1561,8 @@ describe('actions/Policy', () => {
 
         it('should not mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is false', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins). Set a concierge
-            // report ID so prepareOnboardingOnyxData can resolve a target chat and does not early-return.
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-report-1');
+            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins), so the concierge
+            // chat is passed below and prepareOnboardingOnyxData does not early-return.
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
@@ -1515,7 +1574,7 @@ describe('actions/Policy', () => {
             // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
             // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
-                conciergeChat: undefined,
+                conciergeChat: {reportID: 'concierge-report-1', type: CONST.REPORT.TYPE.CHAT},
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -4278,6 +4337,98 @@ describe('actions/Policy', () => {
             });
 
             expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
+        });
+
+        it('should clear reimbursement account errors when no admin group workspace remains after deleting a workspace', async () => {
+            const reimbursementAccountError = {};
+            const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            policyToDelete.pendingAction = null;
+            policyToDelete.role = CONST.POLICY.ROLE.ADMIN;
+
+            const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
+            personalPolicy.pendingAction = null;
+            personalPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`, policyToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
+            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: reimbursementAccountError});
+            await waitForBatchedUpdates();
+
+            mockFetch.pause();
+
+            Policy.deleteWorkspace({
+                policies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`]: policyToDelete,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
+                },
+                policyID: policyToDelete.id,
+                personalPolicyID: personalPolicy.id,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+            expect(reimbursementAccount?.errors).toBeUndefined();
+
+            await mockFetch.resume?.();
+        });
+
+        it('should keep reimbursement account errors when another admin group workspace remains after deleting a workspace', async () => {
+            const reimbursementAccountError = {};
+            const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            policyToDelete.pendingAction = null;
+            policyToDelete.role = CONST.POLICY.ROLE.ADMIN;
+
+            const remainingGroupPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT);
+            remainingGroupPolicy.pendingAction = null;
+            remainingGroupPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`, policyToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${remainingGroupPolicy.id}`, remainingGroupPolicy);
+            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: reimbursementAccountError});
+            await waitForBatchedUpdates();
+
+            mockFetch.pause();
+
+            Policy.deleteWorkspace({
+                policies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`]: policyToDelete,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${remainingGroupPolicy.id}`]: remainingGroupPolicy,
+                },
+                policyID: policyToDelete.id,
+                personalPolicyID: undefined,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+            expect(reimbursementAccount?.errors).toEqual(reimbursementAccountError);
+
+            await mockFetch.resume?.();
         });
 
         it('should reset lastAccessedWorkspacePolicyID when deleting the last accessed workspace', async () => {
@@ -7133,7 +7284,6 @@ describe('actions/Policy', () => {
             expect(policyDraft?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policyDraft?.outputCurrency).toBe('USD');
             expect(policyDraft?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(policyDraft?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policyDraft?.areCategoriesEnabled).toBe(true);
             expect(policyDraft?.areCompanyCardsEnabled).toBe(true);
             expect(policyDraft?.areExpensifyCardsEnabled).toBe(false);

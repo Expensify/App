@@ -204,7 +204,7 @@ function OptionRowLHNData({
         return isReportFocused ? null : <View style={placeholderRowStyle} />;
     }
 
-    const shouldUseMarkAsDone =
+    const shouldShowMarkAsDoneCopy =
         shouldShowMarkAsDone({
             report: fullReport,
             isTrackIntentUser,
@@ -218,7 +218,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             hasDraftComment={hasDraftComment}
-            isMarkAsDone={shouldUseMarkAsDone}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
         />
     );
 }

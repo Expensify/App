@@ -1,5 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Avatar from '@components/Avatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Badge from '@components/Badge';
 import {useIsCompactMenu} from '@components/CompactMenuContext';
@@ -17,7 +19,6 @@ import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import RadioButton from '@components/RadioButton';
 import RenderHTML from '@components/RenderHTML';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
@@ -39,6 +40,7 @@ import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -277,9 +279,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether this item is selected */
         isSelected?: boolean;
-
-        /** Prop to identify if we should load avatars vertically instead of diagonally */
-        shouldStackHorizontally?: boolean;
 
         /** Prop to represent the size of the avatar images to be shown */
         avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -563,7 +562,6 @@ function MenuItem({
     isLabelHoverable = true,
     rightLabel,
     isSelected = false,
-    shouldStackHorizontally = false,
     shouldShowDescriptionOnTop = false,
     shouldShowRightComponent = false,
     rightComponent,
@@ -838,6 +836,10 @@ function MenuItem({
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
+    // A known account renders straight from the personal-details context. Only the report-derived avatars need `ReportAvatar`.
+    const rightIconAccountIDNumber = Number(rightIconAccountID);
+    const hasRightIconAccount = !!rightIconAccountID && rightIconAccountIDNumber > 0;
+
     return (
         <View
             style={rootWrapperStyle}
@@ -884,7 +886,10 @@ function MenuItem({
                                         isCompact && styles.optionRowCompact,
                                         isCompactPopoverItem && (description ? styles.compactPopoverMenuItemBase : styles.compactPopoverMenuItem),
                                         !shouldRemoveBackground &&
-                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                                            StyleUtils.getButtonBackgroundColorStyle(
+                                                getButtonState({isActive: focused || isHovered, isPressed: pressed, isComplete: success, isDisabled: disabled, isInteractive: interactive}),
+                                                true,
+                                            ),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
@@ -923,20 +928,31 @@ function MenuItem({
                                                     ]}
                                                 >
                                                     {!!leftComponent && <View style={[styles.mr3]}>{leftComponent}</View>}
-                                                    {isIDPassed && (
-                                                        <ReportActionAvatars
-                                                            subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
-                                                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                                                            size={avatarSize}
-                                                            secondaryAvatarContainerStyle={[
-                                                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                                pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
-                                                                isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
-                                                            ]}
-                                                            reportID={iconReportID}
-                                                            accountIDs={iconAccountID ? [iconAccountID] : undefined}
-                                                        />
-                                                    )}
+                                                    {isIDPassed &&
+                                                        (iconAccountID ? (
+                                                            <AccountAvatar
+                                                                accountID={iconAccountID}
+                                                                size={avatarSize}
+                                                                containerStyle={[styles.actionAvatar, styles.mr3]}
+                                                            />
+                                                        ) : (
+                                                            <ReportAvatar
+                                                                subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(
+                                                                    isHovered,
+                                                                    pressed,
+                                                                    theme.hoverComponentBG,
+                                                                    theme.buttonHoveredBG,
+                                                                )}
+                                                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                                                size={avatarSize}
+                                                                secondaryAvatarContainerStyle={[
+                                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                                                    pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
+                                                                    isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
+                                                                ]}
+                                                                reportID={iconReportID}
+                                                            />
+                                                        ))}
                                                     {!icon && iconType !== CONST.ICON_TYPE_WORKSPACE && shouldPutLeftPaddingWhenNoIcon && (
                                                         <View
                                                             style={[
@@ -973,11 +989,17 @@ function MenuItem({
                                                                                 : typeof iconFill === 'function'
                                                                                   ? iconFill(isHovered)
                                                                                   : (iconFill ??
-                                                                                    StyleUtils.getIconFillColor(
-                                                                                        getButtonState(focused || isHovered, pressed, success, disabled, interactive),
-                                                                                        true,
-                                                                                        isPaneMenu,
-                                                                                    ))
+                                                                                    StyleUtils.getIconFillColor({
+                                                                                        buttonState: getButtonState({
+                                                                                            isActive: focused || isHovered,
+                                                                                            isPressed: pressed,
+                                                                                            isComplete: success,
+                                                                                            isDisabled: disabled,
+                                                                                            isInteractive: interactive,
+                                                                                        }),
+                                                                                        isMenuIcon: true,
+                                                                                        isPane: isPaneMenu,
+                                                                                    }))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
@@ -993,13 +1015,12 @@ function MenuItem({
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
-                                                                <Avatar
-                                                                    imageStyles={[styles.alignSelfCenter]}
+                                                                <UserAvatar
+                                                                    imageStyles={styles.alignSelfCenter}
                                                                     source={icon}
-                                                                    avatarID={avatarID}
+                                                                    accountID={getAccountIDFromAvatarID(avatarID)}
                                                                     fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
                                                                     size={avatarSize}
-                                                                    type={CONST.ICON_TYPE_AVATAR}
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_PLAID && !!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}
@@ -1014,7 +1035,16 @@ function MenuItem({
                                                                 height={iconHeight}
                                                                 fill={
                                                                     secondaryIconFill ??
-                                                                    StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true)
+                                                                    StyleUtils.getIconFillColor({
+                                                                        buttonState: getButtonState({
+                                                                            isActive: focused || isHovered,
+                                                                            isPressed: pressed,
+                                                                            isComplete: success,
+                                                                            isDisabled: disabled,
+                                                                            isInteractive: interactive,
+                                                                        }),
+                                                                        isMenuIcon: true,
+                                                                    })
                                                                 }
                                                             />
                                                         </View>
@@ -1134,19 +1164,20 @@ function MenuItem({
                                                 )}
                                                 {(!!rightIconAccountID || !!rightIconReportID) && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
-                                                        <ReportActionAvatars
-                                                            subscriptAvatarBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr2]}
-                                                            reportID={rightIconReportID}
-                                                            size={CONST.AVATAR_SIZE.SMALL}
-                                                            horizontalStacking={
-                                                                shouldStackHorizontally && {
-                                                                    isHovered,
-                                                                    isPressed: pressed,
-                                                                }
-                                                            }
-                                                            accountIDs={!!rightIconAccountID && Number(rightIconAccountID) > 0 ? [Number(rightIconAccountID)] : undefined}
-                                                        />
+                                                        {hasRightIconAccount ? (
+                                                            <AccountAvatar
+                                                                accountID={rightIconAccountIDNumber}
+                                                                containerStyle={[styles.actionAvatar, styles.mr2]}
+                                                                size={CONST.AVATAR_SIZE.SMALL}
+                                                            />
+                                                        ) : (
+                                                            <ReportAvatar
+                                                                subscriptAvatarBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
+                                                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr2]}
+                                                                reportID={rightIconReportID}
+                                                                size={CONST.AVATAR_SIZE.SMALL}
+                                                            />
+                                                        )}
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (
@@ -1187,7 +1218,15 @@ function MenuItem({
                                                             fill={
                                                                 shouldDimIconRight
                                                                     ? theme.icon
-                                                                    : StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))
+                                                                    : StyleUtils.getIconFillColor({
+                                                                          buttonState: getButtonState({
+                                                                              isActive: focused || isHovered,
+                                                                              isPressed: pressed,
+                                                                              isComplete: success,
+                                                                              isDisabled: disabled,
+                                                                              isInteractive: interactive,
+                                                                          }),
+                                                                      })
                                                             }
                                                             width={variables.iconSizeNormal}
                                                             height={variables.iconSizeNormal}

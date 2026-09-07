@@ -1,6 +1,14 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {exportSearchItemsToCSV, getExportTemplates, getFooterConvertedAmounts, openSearch, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {
+    exportSearchItemsToCSV,
+    getChatReportWithFallback,
+    getExportTemplates,
+    getFooterConvertedAmounts,
+    openSearch,
+    queueExportSearchItemsToCSV,
+    queueExportSearchWithTemplate,
+} from '@libs/actions/Search';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import fileDownload from '@libs/fileDownload';
@@ -10,7 +18,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -346,5 +354,21 @@ describe('getExportTemplates', () => {
         const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, makePolicyWithOutputCurrency(CONST.CURRENCY.CAD), true, false, false);
 
         expect(defaultTemplates.map((template) => template.templateName)).not.toContain(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT);
+    });
+});
+
+describe('getChatReportWithFallback', () => {
+    const loadedChatReport = {reportID: 'chat1', policyID: 'policyA', type: CONST.REPORT.TYPE.CHAT} as Report;
+
+    it('returns the loaded chat report when it is available', () => {
+        expect(getChatReportWithFallback(loadedChatReport, 'chat2', 'policyB')).toEqual({chatReport: loadedChatReport, isFallbackChatReport: false});
+    });
+
+    it('builds a fallback chat report from the known IDs when the chat is not loaded', () => {
+        expect(getChatReportWithFallback(undefined, 'chat2', 'policyB')).toEqual({chatReport: {reportID: 'chat2', policyID: 'policyB'}, isFallbackChatReport: true});
+    });
+
+    it('returns no chat report when the chat is not loaded and there is no fallback chatReportID', () => {
+        expect(getChatReportWithFallback(undefined, undefined, 'policyB')).toEqual({chatReport: undefined, isFallbackChatReport: false});
     });
 });

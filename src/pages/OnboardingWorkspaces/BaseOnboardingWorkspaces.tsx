@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
@@ -40,7 +39,7 @@ import {View} from 'react-native';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
 function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar', 'DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const {isOffline} = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -122,7 +121,10 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         .sort((a, b) => b.employeeCount - a.employeeCount)
         .map((policyInfo) => ({
             text: policyInfo.policyName,
-            alternateText: translate('onboarding.workspaceMemberList', policyInfo.employeeCount, policyInfo.policyOwner),
+            alternateText: translate('onboarding.workspaceMemberList', {count: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
+            // The user is not a member of these workspaces yet, so they are absent from Onyx and the avatar falls back
+            // to the default one seeded from `text` - the same icon this list used to build by hand.
+            policyID: policyInfo.policyID,
             keyForList: policyInfo.policyID,
             isDisabled: true,
             rightElement: (
@@ -138,15 +140,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     <Button.Text>{policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}</Button.Text>
                 </Button>
             ),
-            icons: [
-                {
-                    id: policyInfo.policyID,
-                    source: getDefaultWorkspaceAvatar(policyInfo.policyName),
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
-                    name: policyInfo.policyName,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                },
-            ],
         }));
 
     const hasMoreThanLimit = allPolicyIDItems.length > CONST.ONBOARDING_JOINABLE_WORKSPACES_LIMIT;

@@ -54,6 +54,8 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
+                isMovingTransactionFromTrackExpense: false,
             }),
         ).toBeUndefined();
     });
@@ -69,6 +71,8 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
+                isMovingTransactionFromTrackExpense: false,
             }),
         ).toBeUndefined();
     });
@@ -83,13 +87,58 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
         });
 
         expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
     });
 
-    it('returns report route when report pre-insert is eligible', () => {
+    it('returns report route when the destination is not the report the user is looking at', () => {
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: {reportID: '123'},
+            isFromGlobalCreate: false,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
+        });
+
+        expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
+    });
+
+    it('returns undefined when relocating a tracked expense over a different visible report', () => {
+        // The single-workspace "Submit to my employer" shape: the user is reading their self-DM while the expense is
+        // bound to the workspace chat. Both are reports, so there is no tab to switch to and the pre-insert would
+        // replace the report on screen - leaving the cancel path to rebuild it from a snapshot (#97437).
         mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue('456');
+
+        expect(
+            getSubmitExpensePreMountDestinationRoute({
+                isTransactionReady: true,
+                destinationReportID: '123',
+                destinationReport: {reportID: '123'},
+                isFromGlobalCreate: false,
+                canPreInsertSearch: false,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                isCreatingTrackExpense: false,
+                isSelfDMDestination: false,
+                isLookingAroundUser: false,
+                isMovingTransactionFromTrackExpense: true,
+            }),
+        ).toBeUndefined();
+    });
+
+    it('keeps the pre-insert for an in-place expense whose destination is a different visible report', () => {
+        // Same navigation topology as the case above, but the expense is created in place rather than relocated (e.g. the
+        // per-diem chat-report destination), so it keeps the pre-mount instead of being caught by the track-expense guard.
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue('456');
 
         const route = getSubmitExpensePreMountDestinationRoute({
             isTransactionReady: true,
@@ -100,6 +149,31 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
+        });
+
+        expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
+    });
+
+    it('stays eligible once it has pre-inserted, so the hook does not tear down its own insert', () => {
+        // After the pre-insert the visible report *is* the destination, so the same-tab check reads as safe on its own.
+        // Assert it through the explicit pre-inserted flag too, since that is what keeps the result stable.
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue('456');
+        jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(true);
+
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: {reportID: '123'},
+            isFromGlobalCreate: false,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: true,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -115,6 +189,8 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.TRACK,
             isCreatingTrackExpense: true,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -130,9 +206,30 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.CREATE,
             isCreatingTrackExpense: false,
             isSelfDMDestination: true,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
+    });
+
+    it('does NOT pre-insert the self-DM report for a LOOKING_AROUND user (they are routed to Search after submit)', () => {
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: {reportID: '123'},
+            isFromGlobalCreate: true,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.CREATE,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: true,
+            isLookingAroundUser: true,
+            isMovingTransactionFromTrackExpense: false,
+        });
+
+        expect(route).toBeUndefined();
     });
 
     it('returns the report route for a report-bound global create (PAY)', () => {
@@ -145,6 +242,27 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.PAY,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
+        });
+
+        expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
+    });
+
+    it('still pre-inserts the report for a LOOKING_AROUND user when the destination is a real report, not the self-DM (PAY)', () => {
+        // A LOOKING_AROUND user who later has a workspace and submits to a real report/friend must keep the report
+        // pre-insert - the LOOKING_AROUND gate is scoped to isSelfDMDestination, so it does not fire here.
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: {reportID: '123'},
+            isFromGlobalCreate: true,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.PAY,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: false,
+            isLookingAroundUser: true,
+            isMovingTransactionFromTrackExpense: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -163,6 +281,8 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
+                isMovingTransactionFromTrackExpense: false,
             }),
         ).toBeUndefined();
     });
@@ -181,6 +301,8 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
+                isMovingTransactionFromTrackExpense: false,
             }),
         ).toBeUndefined();
     });
@@ -202,6 +324,8 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -221,6 +345,8 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
+                isMovingTransactionFromTrackExpense: false,
             }),
         ).toBeUndefined();
     });
@@ -240,6 +366,8 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
         });
 
         expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
@@ -264,6 +392,8 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
         });
 
         expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));

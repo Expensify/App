@@ -4,6 +4,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -20,9 +21,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isMerchantRequired} from '@libs/MoneyRequestUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
-import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
+import {getMerchantError, isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -67,6 +69,7 @@ function DynamicIOURequestStepMerchant({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
@@ -88,27 +91,26 @@ function DynamicIOURequestStepMerchant({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
 
-    const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+    const isMerchantFieldRequired = isMerchantRequired(report, transaction);
 
     const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
-            const {isValid, byteLength} = isValidInputLength(value.moneyRequestMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
+            const merchantError = getMerchantError(value.moneyRequestMerchant, isMerchantFieldRequired);
 
-            const trimmedMerchant = value.moneyRequestMerchant?.trim();
-            if (isMerchantRequired && !trimmedMerchant) {
+            if (merchantError?.type === 'required') {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
-            } else if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+            } else if (merchantError?.type === 'invalidValue') {
                 errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
-            } else if (!isValid) {
-                errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
+            } else if (merchantError?.type === 'tooLong') {
+                errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', merchantError.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
             }
 
             return errors;
         },
-        [isMerchantRequired, translate],
+        [isMerchantFieldRequired, translate],
     );
 
     const updateMerchantRef = (value: string) => {
@@ -121,7 +123,7 @@ function DynamicIOURequestStepMerchant({
         const newMerchant = value.moneyRequestMerchant?.trim();
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant}, getCurrencyDecimals, getCurrencySymbol);
             setIsSaved(true);
             armNavigateBack();
             return;
@@ -158,6 +160,8 @@ function DynamicIOURequestStepMerchant({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
         } else if (!newMerchant) {
             clearMoneyRequestMerchant(transactionID);

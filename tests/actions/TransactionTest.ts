@@ -11,8 +11,8 @@ import '@libs/actions/IOU/MoneyRequest';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {createNewReport} from '@libs/actions/Report';
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getOriginalMessage, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -36,12 +36,12 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -60,6 +60,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         selfDMReportActions,
         delegateAccountID: undefined,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
+        getCurrencySymbol: getCurrencySymbolLocal,
         ...rest,
     });
 }
@@ -369,6 +370,84 @@ describe('actions/Transaction', () => {
             expect(updatedExpenseReport?.unheldNonReimbursableTotal).toBe(-amount);
         });
 
+        it('stops rendering the self-DM report action once its expense moves to a report, even when the action still carries a pending state', async () => {
+            // Given an unreported expense in the self-DM whose IOU action is still marked as pending, which happens when
+            // an earlier optimistic write on that action was never resolved
+            const selfDMReport: Report = {...createRandomReport(77, CONST.REPORT.CHAT_TYPE.SELF_DM), reportID: '77'};
+            const movePolicy: Policy = {...createRandomPolicy(78, CONST.POLICY.TYPE.TEAM, 'Move Workspace'), id: 'policy-for-move'};
+            const workspaceChat: Report = {...createRandomReport(79, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: '79', policyID: movePolicy.id};
+            const destinationReport: Report = {
+                ...createRandomReport(80),
+                reportID: '80',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: movePolicy.id,
+                chatReportID: workspaceChat.reportID,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+            };
+            const movedTransaction: Transaction = {
+                transactionID: 'transaction-to-move',
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                comment: {comment: ''},
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const trackedExpenseAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                    transactionID: movedTransaction.transactionID,
+                    isPersonalTrackingExpense: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                }),
+                reportID: selfDMReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReport.reportID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${movePolicy.id}`, movePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${movedTransaction.transactionID}`, movedTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[trackedExpenseAction.reportActionID]: trackedExpenseAction});
+            await waitForBatchedUpdates();
+
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+
+            // When the expense is moved to a workspace report
+            changeTransactionsReport({
+                transactionIDs: [movedTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CARLOS_ACCOUNT_ID,
+                email: CARLOS_EMAIL,
+                newReport: destinationReport,
+                policy: movePolicy,
+                allTransactions,
+                policyTagList: {},
+                transactionViolations: {},
+                reports: allReports,
+                selfDMReportActions: {[trackedExpenseAction.reportActionID]: trackedExpenseAction},
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the action left behind in the self-DM holds no transaction, no pending state, and is not rendered
+            const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const retiredAction = selfDMActions?.[trackedExpenseAction.reportActionID];
+            expect(isMoneyRequestAction(retiredAction) ? getOriginalMessage(retiredAction)?.IOUTransactionID : undefined).toBeFalsy();
+            expect(retiredAction?.pendingAction).toBeFalsy();
+            expect(shouldReportActionBeVisible(retiredAction, trackedExpenseAction.reportActionID, true, CARLOS_ACCOUNT_ID)).toBe(false);
+        });
+
         it('recomputes a distance expense amount/merchant/currency from the destination workspace rate when moved', async () => {
             // Given a destination workspace whose default distance rate is defined in GBP (200/mi)
             const policyID = generatePolicyID();
@@ -470,7 +549,7 @@ describe('actions/Transaction', () => {
              * Seeds an expense sitting in a source report (whose state/status decide whether it is a draft),
              * along with its IOU action and transaction thread, and moves it to `newReport`.
              */
-            async function moveExpenseOutOf(sourceReportStatus: Pick<Report, 'stateNum' | 'statusNum'>, newReport: Report | undefined) {
+            async function moveExpenseFromTo(sourceReportStatus: Pick<Report, 'stateNum' | 'statusNum'>, newReport: Report | undefined) {
                 const policyID = generatePolicyID();
                 const policy: Policy = {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM, 'Moved Message Workspace'), id: policyID};
 
@@ -552,33 +631,44 @@ describe('actions/Transaction', () => {
             const draftReportStatus = {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
             const submittedReportStatus = {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
 
-            const destinationReport = {
-                reportID: DESTINATION_REPORT_ID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: RORY_ACCOUNT_ID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as Report;
+            const buildDestinationReport = (destinationReportStatus: Pick<Report, 'stateNum' | 'statusNum'>) =>
+                ({
+                    reportID: DESTINATION_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    ...destinationReportStatus,
+                }) as Report;
 
-            it('should not create a MOVED_TRANSACTION action when the expense is moved out of a draft report', async () => {
-                // Given an expense in a draft (open) report, when it is moved to another report
-                const actions = await moveExpenseOutOf(draftReportStatus, destinationReport);
+            const countMovedActions = (actions: Array<ReportAction | undefined>) => actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION).length;
 
-                // Then no moved system message is created, because moves between drafts aren't part of the audit trail
-                expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)).toHaveLength(0);
+            it.each([
+                ['draft', draftReportStatus],
+                ['submitted', submittedReportStatus],
+            ])('should not create a MOVED_TRANSACTION action when the expense is moved from a %s report into a draft report', async (_sourceLabel, sourceReportStatus) => {
+                // Given an expense being moved into a draft (open) report, which the backend never adopts the message on
+                const actions = await moveExpenseFromTo(sourceReportStatus, buildDestinationReport(draftReportStatus));
+
+                // Then no moved system message is created, so the App doesn't hold an action the server will never return
+                expect(countMovedActions(actions)).toBe(0);
             });
 
-            it('should create a MOVED_TRANSACTION action when the expense is moved out of a submitted report', async () => {
-                // Given an expense in a submitted report, when it is moved to another report
-                const actions = await moveExpenseOutOf(submittedReportStatus, destinationReport);
+            it.each([
+                ['draft', draftReportStatus],
+                ['submitted', submittedReportStatus],
+            ])('should create a MOVED_TRANSACTION action when the expense is moved from a %s report into a submitted report', async (_sourceLabel, sourceReportStatus) => {
+                // Given an expense being moved into a submitted report, which the backend does create the message on
+                const actions = await moveExpenseFromTo(sourceReportStatus, buildDestinationReport(submittedReportStatus));
 
-                // Then the moved system message is still created, since the audit trail starts once a report is submitted
-                expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)).toHaveLength(1);
+                // Then the moved system message is created optimistically to match the backend
+                expect(countMovedActions(actions)).toBe(1);
             });
 
-            it('should create an UNREPORTED_TRANSACTION action when the expense is moved to personal space from a draft report', async () => {
-                // Given an expense in a draft report, when it is moved to personal space (no destination report)
-                const actions = await moveExpenseOutOf(draftReportStatus, undefined);
+            it.each([
+                ['draft', draftReportStatus],
+                ['submitted', submittedReportStatus],
+            ])('should create an UNREPORTED_TRANSACTION action when the expense is moved to personal space from a %s report', async (_sourceLabel, sourceReportStatus) => {
+                // Given an expense being moved to personal space (no destination report), which the backend always creates the message on
+                const actions = await moveExpenseFromTo(sourceReportStatus, undefined);
 
                 // Then the moved message is still created, because the expense leaves the report entirely
                 expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)).toHaveLength(1);
@@ -759,6 +849,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -941,6 +1032,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1137,6 +1229,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1362,6 +1455,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
                 await waitForBatchedUpdates();
