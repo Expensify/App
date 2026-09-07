@@ -51,6 +51,7 @@ exports[`Column availability single source of truth the derived picker lists mat
   "attendees",
   "totalPerAttendee",
   "tag",
+  "violations",
   "tagGLCode",
   "exchangeRate",
   "originalamount",

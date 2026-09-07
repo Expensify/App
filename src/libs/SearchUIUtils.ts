@@ -122,6 +122,7 @@ import Parser from './Parser';
 import {getLoginByAccountID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
+    arePolicyRulesEnabled,
     canSendInvoice,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -145,6 +146,9 @@ import {
     isMoneyRequestAction,
     isReportActionVisible,
     isResolvedActionableWhisper,
+    isAddExpenseOnSubmittedAction,
+    isSubmittedAction,
+    isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
 import {deprecatedGetReportName} from './ReportNameUtils';
@@ -444,6 +448,7 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+    CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
 ]);
 
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
@@ -573,6 +578,7 @@ const SEARCH_TYPE_MENU_ICON_NAMES = [
     'CreditCardHourglass',
     'Bank',
     'User',
+    'UserEye',
     'Folder',
     'Basket',
     'CalendarSolid',
@@ -1056,6 +1062,38 @@ function getSuggestedSearches(
             CONST.SEARCH.TOP_SEARCH_LIMIT,
             CONST.SEARCH.VIEW.PIE,
         ),
+        [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: {
+            key: CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
+            translationPath: 'search.tabs.violationsBySubmitter',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: 'UserEye',
+            searchQuery: buildQueryStringFromFilterFormValues(
+                {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                    submittedOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                    has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
+                    view: CONST.SEARCH.VIEW.TABLE,
+                    limit: String(CONST.SEARCH.TOP_SEARCH_LIMIT),
+                },
+                {
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                },
+            ),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
         [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: {
             key: CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
             translationPath: 'search.spendOverTime',
@@ -1107,6 +1145,9 @@ function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserE
  * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
  * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
  * a single report). The workflow-config checks below only cover standing approvers, which is not enough on their own.
+ *
+ * @param policyCategories - Needed for migrated Control workspaces where `areRulesEnabled` is undefined; the Violations
+ * by submitter insight then falls back to Classic category rules via `arePolicyRulesEnabled`.
  */
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
@@ -1115,6 +1156,7 @@ function getSuggestedSearchesVisibility(
     defaultExpensifyCard: CardFeedForDisplay | undefined,
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
+    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
 ): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
@@ -1128,6 +1170,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowTopSpendersSuggestion = false;
     let shouldShowTopCategoriesSuggestion = false;
     let shouldShowTopMerchantsSuggestion = false;
+    let shouldShowViolationsBySubmitterSuggestion = false;
     let hasEligibleGroupPolicies = false;
     let shouldShowSpendOverTimeSuggestion = false;
     const topSpendersPolicyIDs: string[] = [];
@@ -1175,6 +1218,11 @@ function getSuggestedSearchesVisibility(
         const isEligibleForTopSpendersSuggestion = isGroupPolicyEligible && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
         const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
+        const isEligibleForViolationsBySubmitterSuggestion =
+            isGroupPolicyEligible &&
+            (isAdmin || isAuditor) &&
+            arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined) &&
+            memberCount >= 2;
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -1191,6 +1239,7 @@ function getSuggestedSearchesVisibility(
         }
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
+        shouldShowViolationsBySubmitterSuggestion ||= isEligibleForViolationsBySubmitterSuggestion;
         hasEligibleGroupPolicies ||=
             isGroupPolicyEligible &&
             !policy.isJoinRequestPending &&
@@ -1214,6 +1263,7 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion && !isTrackIntentWithWorkflowsDisabled,
             [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: shouldShowTopCategoriesSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
+            [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: shouldShowViolationsBySubmitterSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
         },
         hasEligibleGroupPolicies,
@@ -2160,9 +2210,13 @@ function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, repo
         });
     }
 
-    return status.value.some((expenseStatus) => {
-        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report, transactionItemReportID) : false;
-    });
+    // Invalid statuses should be treated as if there were no status filter, mirroring backend behaviour.
+    const validStatuses = status.value.filter(isValidExpenseStatus);
+    if (validStatuses.length === 0) {
+        return true;
+    }
+
+    return validStatuses.some((expenseStatus) => expenseStatusActionMapping[expenseStatus](report, transactionItemReportID));
 }
 
 /**
@@ -3223,10 +3277,7 @@ function getReportSections({
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
                 const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived);
 
-                const isRejectedReport =
-                    reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
-                    reportItem.ownerAccountID === currentAccountID &&
-                    reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
+                const isRejectedReport = reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN && reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
                 const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
                 const primaryActionExclusions: SearchTransactionAction[] = [
                     ...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []),
@@ -4602,6 +4653,23 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
     );
 }
 
+/**
+ * Inserts `columnId` immediately before the total-amount column, or appends it if that column is missing.
+ */
+function insertColumnBeforeTotalAmount<T extends SearchColumnType>(columns: T[], columnId: T) {
+    if (columns.includes(columnId)) {
+        return;
+    }
+
+    const totalAmountIndex = columns.findIndex((column) => column === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+    if (totalAmountIndex === -1) {
+        columns.push(columnId);
+        return;
+    }
+
+    columns.splice(totalAmountIndex, 0, columnId);
+}
+
 function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -4724,6 +4792,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'common.type';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
+        case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+            return 'common.violations';
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             return 'common.purchaseAmount';
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
@@ -4938,6 +5008,7 @@ type TypeMenuSectionsParams = {
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
+    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
@@ -4954,6 +5025,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         draftTransactionIDs,
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
+        policyCategories,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -4962,7 +5034,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         hasEligibleGroupPolicies,
         shouldShowExpensifyCard,
         topSpendersPolicyIDs,
-    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser);
+    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser, policyCategories);
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, topSpendersPolicyIDs, activeExpensifyCardFeedID);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
@@ -5117,6 +5189,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
+            CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
         ];
 
         for (const key of insightsSearchKeys) {
@@ -5275,6 +5348,74 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
         default:
             return [];
     }
+}
+
+type SubmittedTransactionViolationShortName = ValueOf<typeof CONST.VIOLATIONS>;
+
+const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(Object.values(CONST.VIOLATIONS));
+
+function isSubmittedTransactionViolationShortName(name: string): name is SubmittedTransactionViolationShortName {
+    return SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET.has(name);
+}
+
+/**
+ * Returns a parameter-free display label for a submitted violation name.
+ * Falls back to the raw identifier when no short-name translation exists.
+ */
+function getSubmittedViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
+}
+
+/**
+ * Collects a transaction's submitted violations from its report's submit actions.
+ * A report can be submitted more than once, so this aggregates across every submit action,
+ * dedupes by violation name, and returns a comma-separated display string.
+ * When `translate` is provided, violation identifiers are converted to localized short labels.
+ *
+ * Itemized receipt required supersedes receipt required (same rule as `filterReceiptViolations`),
+ * so both are never shown together for a single expense.
+ */
+function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
+    if (!reportActions?.length || !transactionID) {
+        return undefined;
+    }
+
+    const violationNames = new Set<string>();
+    for (const action of reportActions) {
+        // An expense added to a report that was already awaiting approval is not in that report's submit snapshot,
+        // so its violations live on their own add-expense-on-submitted action instead.
+        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isAddExpenseOnSubmittedAction(action)) {
+            continue;
+        }
+
+        const originalMessage = getOriginalMessage(action);
+        const transactionViolations = originalMessage?.violations?.transactions?.[transactionID];
+        if (!transactionViolations?.length) {
+            continue;
+        }
+
+        for (const violation of transactionViolations) {
+            if (violation.name) {
+                violationNames.add(violation.name);
+            }
+        }
+    }
+
+    if (violationNames.size === 0) {
+        return undefined;
+    }
+
+    // Match ViolationMessages / submitter surfaces: only one of these receipt rules can apply.
+    if (violationNames.has(CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED)) {
+        violationNames.delete(CONST.VIOLATIONS.RECEIPT_REQUIRED);
+    }
+
+    const names = Array.from(violationNames);
+    if (!translate) {
+        return names.join(', ');
+    }
+
+    return names.map((name) => getSubmittedViolationDisplayName(name, translate)).join(', ');
 }
 
 function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
@@ -6454,6 +6595,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MCC]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: false,
@@ -6487,6 +6629,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MCC]: false,
@@ -6595,6 +6738,13 @@ function getColumnsToShow({
         }
         if (hasTag) {
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
+        }
+
+        if (!isExpenseReportView && !Array.isArray(data)) {
+            const reportActions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {});
+            if (getSubmittedViolationsForTransaction(reportActions, transaction.transactionID)) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS] = true;
+            }
         }
 
         // Data-presence checks for columns that are hidden when empty.
@@ -6712,6 +6862,9 @@ function getColumnsToShow({
     }
 
     if (customResult) {
+        if (columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]) {
+            insertColumnBeforeTotalAmount(customResult, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        }
         return customResult;
     }
 
@@ -6979,6 +7132,7 @@ const FLEX_COLUMNS = new Set<string>([
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
+    CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
     CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
     CONST.SEARCH.TABLE_COLUMNS.CARD,
     CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
@@ -7116,7 +7270,9 @@ export {
     getWithdrawalStatusOptions,
     getWithdrawalStatusDisplayText,
     getColumnsToShow,
+    insertColumnBeforeTotalAmount,
     getHasOptions,
+    getSubmittedViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,
