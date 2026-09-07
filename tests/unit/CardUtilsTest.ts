@@ -1318,10 +1318,12 @@ describe('CardUtils', () => {
 
     describe('checkIfNewFeedConnected', () => {
         it('Should retain the Plaid feed after the initial feed update', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed keys that CompanyCardFeedWithDomainID cannot represent.
             const plaidFeed = 'plaid.ins_123456#1' as CompanyCardFeedWithDomainID;
             const cardFeeds = createMock<CombinedCardFeeds>({
                 [plaidFeed]: {
                     domainID: 1,
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed keys that CompanyCardFeed cannot represent.
                     feed: 'plaid.ins_123456' as CompanyCardFeed,
                     pending: false,
                 },
