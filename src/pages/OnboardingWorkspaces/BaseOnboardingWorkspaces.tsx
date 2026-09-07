@@ -49,7 +49,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {onboardingMessages, joinWorkspaceMessages} = useOnboardingMessages();
+    const {joinWorkspaceMessages} = useOnboardingMessages();
     const [showAll, setShowAll] = useState(false);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -124,13 +124,15 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
         completeOnboarding({
             engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
-            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+            onboardingMessage: joinWorkspaceMessages.joinWorkspace,
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
             companySize: onboardingCompanySize,
             introSelected,
             isSelfTourViewed,
             conciergeChat,
+            companyDomain: session?.email ? getEmailDomain(session.email) : '',
+            workEmail: session?.email ?? '',
         });
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
