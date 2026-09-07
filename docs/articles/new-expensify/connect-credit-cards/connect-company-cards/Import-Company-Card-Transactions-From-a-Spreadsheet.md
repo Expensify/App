@@ -1,22 +1,22 @@
 ---
-title: Import Company Card Transactions From a Spreadsheet 
-description: Learn how Workspace Admins can upload company card transactions manually from a spreadsheet file.
+title: Import Company Card Transactions From a Spreadsheet
+description: Learn how workspace admins can upload company card transactions manually from a spreadsheet file.
 keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import]
-internalScope: Audience is Workspace Admins. Covers how to import, update, and delete company card CSV feeds. Does not cover personal card imports or Plaid connections.
+internalScope: Audience is workspace admins. Covers how to import, update, and delete company card CSV feeds. Does not cover personal card imports or Plaid connections.
 order: 5
 ---
 
-# Import Company Card Transactions From a Spreadsheet 
+# Import Company Card Transactions From a Spreadsheet
 
 If your bank isn't supported by a direct connection, you can still import company card transactions into Expensify using a CSV, TXT, XLS, or XLSX file. This lets you bring your own card (BYOC) and manually upload company card transactions when a direct bank connection is unavailable.
 
-If your bank does support a direct connection, you can connect your account to automatically import transactions. [Learn how to set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection). 
+If your bank does support a direct connection, you can connect your account to automatically import transactions. [Learn how to set up a direct connection for company cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards).
 
 ---
 
-## Who can import company card transactions from a spreadsheet 
+## Who can import company card transactions from a spreadsheet
 
-Only **Workspace Admins** can import transactions for company cards.
+Only workspace admins can import transactions for company cards.
 
 **Company Cards** must be enabled in the workspace before you can import transactions. If you don't see **Company Cards**, enable it under **More features > Company Cards**.
 
@@ -24,16 +24,16 @@ Only **Workspace Admins** can import transactions for company cards.
 
 ## How to import company card transactions from a spreadsheet
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to the **Workspaces** and select your workspace.
-2. Click **Company Cards**.
-3. Click on **Add card**.
- - If you already have a company card feed set up, click the feed name to see **Add Card**.
-5. Choose **Import transactions from file**.
-6. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
-7. Enter a name for the card feed.
-8. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
-9. Assign cards to users based on the transactions in the file.
-10. Click **Import**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces** and select your workspace.
+2. Select **Company cards**.
+3. Select **Add cards**.
+    - If you already have a company card feed set up, select the feed name to see **Add cards**.
+4. Choose **Import transactions from file**.
+5. Choose the CSV, TXT, XLS, or XLSX file you want to upload.
+6. Enter a name for the card feed.
+7. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
+8. Assign cards to users based on the transactions in the file.
+9. Select **Import**.
 
 You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
@@ -43,21 +43,21 @@ You must map at least one card-identity column — a **Card number** or a **Card
 
 ## What happens after you import company card transactions from a spreadsheet
 
-- Imported transactions appear in the assigned cardholder's account. 
+- Imported transactions appear in the assigned cardholder's account.
 - The cardholder can edit, categorize, and submit these expenses on a report.
-- A Workspace Admin can upload additional files to update the assigned cards with new transactions. 
+- A workspace admin can upload additional files to update the assigned cards with new transactions.
 
 ---
 
 ## How to upload additional transactions to an existing card feed
 
-1. Go to **Workspaces > Company Cards**.
+1. Go to **Workspaces > Company cards**.
 2. Select the name of the card feed you want to update.
-3. Click **Settings**.
+3. Select **Settings**.
 4. Choose **Import spreadsheet**.
-5. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
+5. Choose the CSV, TXT, XLS, or XLSX file you want to upload.
 6. Review and confirm the field mappings.
-7. Click **Import**.
+7. Select **Import**.
 
 **Note:** Previously mapped fields will auto-fill to save time.
 
@@ -65,13 +65,13 @@ You must map at least one card-identity column — a **Card number** or a **Card
 
 ## How to delete a company card CSV feed
 
-1. Go to **Workspaces > Company Cards**.
-2. Select the name of the card feed you want to delete. 
-3. Click **Settings**.
+1. Go to **Workspaces > Company cards**.
+2. Select the name of the card feed you want to delete.
+3. Select **Settings**.
 4. Select **Remove card feed**.
 5. Confirm deletion.
 
-**Note:** This removes the card feed and any **Deleted**, **Unreported**, and **Draft** expenses. **Outstanding**, **Approved** and **Paid** expenses are not deleted. [Learn more about expense and report statuses](/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions#report-statuses). 
+**Note:** This removes the card feed and any **Deleted**, **Unreported**, and **Draft** expenses. **Outstanding**, **Approved**, and **Paid** expenses are not deleted. [Learn more about expense and report statuses](/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions#report-statuses).
 
 ---
 
@@ -101,7 +101,7 @@ Instead of a **Card number**, you can map a **Card name** column, and Expensify 
 
 You’ll see an error message and won’t be able to proceed until the issue is resolved.
 
-## Why am I seeing an "Oops!" error about empty values? 
+## Why am I seeing an "Oops!" error about empty values?
 
 If you map a required field such as **Date**, **Merchant**, or **Amount** — or the **Card number** or **Card name** column you're using to identify each card — to a column that contains one or more empty cells, you'll see an "Oops!" error and won't be able to continue. Review the column you mapped, fill in any missing values, and then try importing again.
 

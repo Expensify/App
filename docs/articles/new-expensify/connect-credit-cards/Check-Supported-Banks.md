@@ -23,11 +23,11 @@ Any Expensify user can check whether their bank or card issuer is supported. No 
 ## How to check if your bank or card issuer is supported in Expensify
 
 1. Review the list of commonly supported banks and card issuers below.
-2. If your bank is listed, learn how to set up a [direct feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Company-Card-Feed-Connection) or [commercial feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Card-Feed-Connection) to connect it.
+2. If your bank is listed, learn how to set up a [direct connection](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards) or [commercial feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards) to connect it.
 3. If your bank is not listed, check the Plaid coverage pages for your region:
-   - US/Canada: https://plaid.com/docs/institutions/
-   - UK/Europe: https://plaid.com/docs/institutions/europe/
-4. If your bank appears on the Plaid coverage pages, you can connect it through Plaid when setting up a direct feed.
+   - [Plaid coverage page for US/Canada](https://plaid.com/docs/institutions/)
+   - [Plaid coverage page for UK/Europe](https://plaid.com/docs/institutions/europe/)
+4. If your bank appears on the Plaid coverage pages, you can connect it through Plaid when setting up a direct connection.
 
 ---
 
@@ -35,7 +35,7 @@ Any Expensify user can check whether their bank or card issuer is supported. No 
 
 The following banks and card issuers are most commonly connected to Expensify. This is not a complete list.
 
-### Major US Banks
+### Major US banks
 - JPMorgan Chase
 - Bank of America
 - American Express (Amex)
@@ -67,7 +67,7 @@ The following banks and card issuers are most commonly connected to Expensify. T
 - Cullen/Frost Bankers
 - BOK Financial
 
-### Major Canadian Banks
+### Major Canadian banks
 - Royal Bank of Canada (RBC)
 - Toronto-Dominion Bank (TD Bank)
 - BMO Harris / BMO
@@ -75,7 +75,7 @@ The following banks and card issuers are most commonly connected to Expensify. T
 - CIBC
 - National Bank of Canada
 
-### Major European Banks
+### Major European banks
 - BNP Paribas
 - HSBC
 - Barclays
@@ -122,7 +122,7 @@ The following banks and card issuers are most commonly connected to Expensify. T
 - Allied Irish Banks (AIB)
 - Bank of Ireland
 
-### Corporate Card and Spend Management Platforms
+### Corporate card and spend management platforms
 - Brex
 - Ramp
 - Navan (TripActions)
@@ -157,4 +157,4 @@ New banks are added regularly through Plaid's network. Even if your bank isn't s
 
 ## What if my bank isn't supported by Plaid?
 
-If your bank isn't supported through Plaid, you may still be able to connect it using a [commercial feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Card-Feed-Connection). Commercial feeds work directly with your bank to establish a connection. Contact your bank to confirm whether they support commercial card feeds with Expensify.
+If your bank isn't supported through Plaid, you may still be able to connect it using a [commercial feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards). Commercial feeds work directly with your bank to establish a connection. Contact your bank to confirm whether they support commercial card feeds with Expensify.

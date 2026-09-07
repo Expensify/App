@@ -4,16 +4,18 @@ description: Learn why card connections fail in Expensify and the difference bet
 keywords: [card connection issues Expensify, card connection failed, card stopped importing transactions, broken card connection, reauthenticate card connection, reconnect card Expensify, bank connection issue, company card connection issue, personal card connection issue]
 internalScope: Audience is members with personal cards and workspace admins and card admins with company card feeds. Covers why new and existing card connections can fail, the difference between reauthentication and a broken connection, where connection issues appear, and how they affect expenses. Does not cover specific connection errors or step-by-step troubleshooting.
 retrievalIntent: Why a card connection failed or stopped importing and what the difference is between reauthentication and a broken connection.
+contentType: topic
+platform: new
 order: 1
 ---
 
 # Understand Card Connection Issues
 
-Expensify establishes a secure connection with your bank to import card transactions If Expensify is unable to establish a connection with your bank, or the connection is established but later breaks, new transactions will stop importing. 
+Expensify establishes a secure connection with your bank to import card transactions. If Expensify is unable to establish a connection with your bank, or the connection is established but later breaks, new transactions stop importing.
 
 The cause can range from a bank authentication requirement to a temporary bank outage or a change to the account itself. Understanding where the connection is failing can help you find the right troubleshooting steps.
 
-This applies to personal cards that members manage in **Wallet** and company cards workspace admins and card admins manage under **Company cards**.
+This applies to personal cards that members manage in **Wallet** and company cards that workspace admins and card admins manage under **Company cards**.
 
 ---
 
@@ -23,8 +25,7 @@ A card connection depends on your bank authorizing Expensify to access eligible 
 
 - Your bank requires additional authentication or an action in its portal.
 - Your bank's authorization expires.
-- Your banking credentials change.
-- Online banking credentials or account numbers change.
+- Your online banking credentials or account numbers change.
 - The bank changes or stops supporting the connection method.
 - The bank is temporarily unavailable.
 
@@ -32,13 +33,13 @@ When you first connect a card, these issues can prevent Expensify from establish
 
 ---
 
-## What It means when a card connection needs reauthentication
+## What it means when a card connection needs reauthentication
 
 A connection that needs reauthentication is paused because your bank requires you to authorize Expensify again. This commonly happens when the bank's authorization expires and does not mean the connection itself has failed.
 
 Once the connection is reauthenticated, Expensify can resume importing transactions.
 
-[Learn how to re-authenticate a card connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Reauthenticate-a-Card-Connection).
+[Learn how to reauthenticate a card connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Reauthenticate-a-Card-Connection).
 
 ---
 
@@ -48,33 +49,21 @@ A broken connection means Expensify can no longer retrieve transactions through 
 
 Resolving a broken connection may require reconnecting the account, reassigning company cards, using another available connection method, or waiting for the bank to resolve an issue.
 
-[Learn how to fix a broken card connection](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error).
-
----
-
-## How Expensify shows an existing card connection issue
-
-When an existing connection needs attention, Expensify surfaces the issue in a few places:
-
- - A notification appears in the **Time Sensitive** section on **Home**.
- - A red dot appears on the affected card or feed with a message describing the problem and a **Fix** action.
- - For company card feeds, Concierge also posts a message in the **#admins** room.
-
-These reminders appear while the connection has recently broken. If a company card feed has gone 90 days or more without a successful sync, the **Time Sensitive** notification on **Home** and the red dot on the workspace row stop showing. The "Card feed connection is broken" banner remains on the **Company cards** page for direct (bank-connected) feeds, so a Workspace Admin can still reconnect the feed at any time.
-
-The message can indicate whether the connection needs to be reauthenticated or is broken and direct you toward the appropriate action.
+[Learn how to fix a card connection error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error).
 
 ---
 
 ## Where card connection issues appear
 
-When an existing connection needs attention, Expensify may surface the issue in several places:
+When an existing connection needs attention, Expensify surfaces the issue in a few places:
 
-- In the **Time Sensitive** section on **Home**.
-- On the affected card or feed, with a message describing the issue and a **Fix** action.
-- For company card feeds, in a message from Concierge in the **#admins** room.
+- A notification appears in the **Time Sensitive** section on **Home**.
+- A red dot appears on the affected card or feed, with a message describing the problem and a **Fix** action.
+- For company card feeds, Concierge also posts a message in the **#admins** room.
 
-Use the message shown in Expensify to find the troubleshooting guidance for that specific issue.
+The message indicates whether the connection needs to be reauthenticated or is broken, and directs you toward the appropriate action.
+
+These reminders appear while the connection has recently broken. If a company card feed has gone 90 days or more without a successful sync, the **Time Sensitive** notification on **Home** and the red dot on the workspace row stop showing. For direct (bank-connected) feeds, the "Card feed connection is broken" banner remains on the **Company cards** page, so a workspace admin or card admin can still reconnect the feed at any time.
 
 ---
 
@@ -110,4 +99,4 @@ Commercial card feeds rarely experience connection errors because the bank maint
 
 ## Why did the Home notification and workspace red dot disappear while the feed is still broken?
 
-If a company card feed has gone 90 days or more without a successful sync, Expensify stops showing the proactive reminders — the **Time Sensitive** notification on **Home** and the red dot on the workspace row. For direct (bank-connected) feeds, the "Card feed connection is broken" banner stays on the **Company cards** page, so a Workspace Admin can still reconnect the feed and clear the error whenever they're ready.
+If a company card feed has gone 90 days or more without a successful sync, Expensify stops showing the proactive reminders — the **Time Sensitive** notification on **Home** and the red dot on the workspace row. For direct (bank-connected) feeds, the "Card feed connection is broken" banner stays on the **Company cards** page, so a workspace admin or card admin can still reconnect the feed and clear the error whenever they're ready.

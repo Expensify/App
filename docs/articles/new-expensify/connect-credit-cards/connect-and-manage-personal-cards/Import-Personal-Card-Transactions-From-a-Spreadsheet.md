@@ -1,16 +1,16 @@
 ---
-title: Import personal card transactions from a spreadsheet
-description: Learn how Members can manually import personal card transactions using a spreadsheet in Wallet. 
+title: Import Personal Card Transactions From a Spreadsheet
+description: Learn how members can manually import personal card transactions using a spreadsheet in Wallet.
 keywords: [New Expensify, import personal card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, Wallet, card feed, reimbursable, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import]
 internalScope: Audience is all members. Covers how to import, update, and delete personal card transactions via CSV. Does not cover company cards or Plaid connections.
 order: 3
 ---
 
-# Import personal card transactions from a spreadsheet
+# Import Personal Card Transactions From a Spreadsheet
 
 If your bank isn't supported by a direct connection, you can still import personal card transactions into Expensify using a spreadsheet file. This allows you to track and submit expenses without connecting your bank account.
 
-If your bank is supported, you can connect your account to automatically import transactions. [Learn how to manage personal cards](/articles/new-expensify/connect-credit-cards/Manage-Personal-Cards). 
+If your bank is supported, you can connect your account to automatically import transactions. [Learn how to manage personal cards](/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Manage-Personal-Cards). 
 
 ---
 
@@ -66,6 +66,6 @@ You’ll see an error message and won’t be able to proceed until the issue is 
 
 Yes. You can simply repeat the import process.
 
-## Can I delete personal card spreadsheet imports? 
+## Can I delete personal card spreadsheet imports?
 
 You cannot delete the imported file, but you can delete the individual expenses that were created. [Learn how to delete expenses](/articles/new-expensify/reports-and-expenses/How-to-Delete-Expenses). 

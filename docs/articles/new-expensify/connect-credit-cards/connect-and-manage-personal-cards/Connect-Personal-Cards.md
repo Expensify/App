@@ -1,12 +1,12 @@
 ---
-title: Connect a personal card
+title: Connect Personal Cards
 description: Learn how to connect a new personal credit card to your Expensify account to automatically import transactions.
 keywords: [New Expensify, personal cards, connect card, Wallet, Plaid, bank connection, card import, credit card, New Expensify, oAuth, add card]
 internalScope: Audience is members who want to connect a new personal credit card. Covers the card connection flow including country selection, bank selection, oAuth and Plaid connections, company card warnings, and free card limits. Does not cover managing existing cards or company card programs.
 order: 1
 ---
 
-# Connect a personal card 
+# Connect Personal Cards
 
 Connect your personal credit card to Expensify to automatically import transactions, eliminating the need to manually create expenses or scan receipts. Expensify supports over 10,000 banks across the United States, Canada, the United Kingdom, and the European Union.
 
@@ -34,7 +34,7 @@ Once your card is connected, it will appear under **Cards** in the **Wallet**, a
 
 ## What to do if you see a company card warning
 
-If you're a member of a Workspace or domain that has a company card feed, Expensify will ask you to confirm that the card you're adding is a personal card.
+If you're a member of a workspace or domain that has a company card feed, Expensify will ask you to confirm that the card you're adding is a personal card.
 
 - **If you're an employee:** You'll see options to ask your admin if you should be assigned a company card, or continue adding a personal card.
 - **If you're an admin:** You'll see options to confirm this is a company card (which redirects you to the company card connection flow) or proceed with adding it as a personal card.
@@ -64,4 +64,4 @@ You can connect up to two personal cards for free. To add more, you'll need a pa
 
 ## How do I manage a personal card after connecting it?
 
-Once connected, your card appears in **Account > Wallet** under **Cards**. [Learn how to manage your personal cards](/articles/new-expensify/connect-credit-cards/Manage-Personal-Cards).
+Once connected, your card appears in **Account > Wallet** under **Cards**. [Learn how to manage your personal cards](/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Manage-Personal-Cards).
