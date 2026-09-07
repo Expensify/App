@@ -11,14 +11,11 @@ import useParentReportAction from './useParentReportAction';
 /**
  * Whether the report is the transaction thread of its parent report's only expense.
  *
- * This is the reactive counterpart of `ReportUtils.isOneTransactionThread`. That util resolves the parent report, its
- * report actions and the chat report through module globals, so it does not re-run when any of them change and cannot
- * be used to drive rendering. Both end up on the same `getOneTransactionThreadReportID` derivation - here through
- * `useOneTransactionThreadReportID`.
+ * Reactive counterpart of `ReportUtils.isOneTransactionThread`, which reads module globals and so cannot drive
+ * rendering. Both share the same `getOneTransactionThreadReportID` derivation.
  *
- * That shared derivation does not exclude send money: `getOneTransactionThreadReportAction` returns the send money
- * action early. The exclusion - send money's thread is not interchangeable with its report - comes only from the
- * explicit `isSentMoneyReportAction` guard below, so do not drop that guard as redundant.
+ * That derivation does not exclude send money, so the `isSentMoneyReportAction` guard below is not redundant: a send
+ * money thread is not interchangeable with its report.
  */
 function useIsOneTransactionThread(report: OnyxEntry<Report>): boolean {
     const parentReportID = getNonEmptyStringOnyxID(report?.parentReportID);

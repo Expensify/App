@@ -75,7 +75,7 @@ const threadReport: Report = {
     type: CONST.REPORT.TYPE.EXPENSE,
 };
 
-/** Seeds the chat report, the expense report with the given server transaction count, the thread and the parent's IOU actions. */
+/** Seeds the chat report, the expense report with the given transaction count, the thread and the parent's IOU actions. */
 async function seedOnyx(transactionCount: number, actions: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
     await act(async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
@@ -92,9 +92,8 @@ async function seedOnyx(transactionCount: number, actions: Array<ReportAction<ty
 }
 
 /**
- * Unlike `OneTransactionThreadRedirectHandlerTest`, which mocks the hooks to pin down the decision table, this suite
- * feeds the handler real Onyx data. It is what catches a wrong Onyx key or the wrong reportID being handed to
- * `useOneTransactionThreadReportID` - mistakes the mocked suite would happily pass.
+ * `OneTransactionThreadRedirectHandlerTest` mocks the hooks to pin down the decision table; this suite feeds the
+ * handler real Onyx data, so it catches a wrong Onyx key or reportID that the mocked suite would happily pass.
  */
 describe('OneTransactionThreadRedirectHandler with real Onyx data', () => {
     beforeAll(() => {

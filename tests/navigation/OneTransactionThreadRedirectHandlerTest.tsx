@@ -213,8 +213,8 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
         render(<OneTransactionThreadRedirectHandler />);
 
-        // The redirect is deferred behind `isNavigationReady()`, so the pending microtasks have to be flushed before
-        // "nothing happened" means anything - `waitFor` would resolve on the first tick and pass either way.
+        // The redirect is deferred behind `isNavigationReady()`, so microtasks have to flush before "nothing happened"
+        // means anything - `waitFor` would resolve on the first tick and pass either way.
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).not.toHaveBeenCalled();
