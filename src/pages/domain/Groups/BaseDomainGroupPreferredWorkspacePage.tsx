@@ -11,9 +11,9 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -68,7 +68,6 @@ function BaseDomainGroupPreferredWorkspacePage({
 }: BaseDomainGroupPreferredWorkspacePageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector(selectedPolicyID)});
 
@@ -88,7 +87,10 @@ function BaseDomainGroupPreferredWorkspacePage({
     }
     workspaceOptions.sort((a, b) => localeCompare(a.created ?? '', b.created ?? ''));
 
-    const filteredWorkspaceOptions = tokenizedSearch(workspaceOptions, debouncedSearchTerm, (option) => [option.text ?? '']);
+    const [searchTerm, setSearchTerm, filteredWorkspaceOptions] = useSearchResults(
+        workspaceOptions,
+        (option, searchInput) => tokenizedSearch([option], searchInput, () => [option.text ?? '']).length > 0,
+    );
 
     // The search input is gated on the unfiltered list length so it doesn't disappear once a query narrows the results.
     const shouldShowSearchInput = workspaceOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;

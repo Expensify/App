@@ -74,6 +74,16 @@ async function setUpDomainAdminWithPolicies(policyCount: number) {
     await waitForBatchedUpdatesWithAct();
 }
 
+/** Deletes the given workspaces, which is one of the ways the list can shrink while the page is already open. */
+async function removeWorkspaces(policyIDs: string[]) {
+    await act(async () => {
+        for (const policyID of policyIDs) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
+        }
+    });
+    await waitForBatchedUpdatesWithAct();
+}
+
 /** Merges a security group entry for the domain, so the edit page under test finds an existing group. */
 async function setUpSecurityGroup(groupID: string, group: Partial<DomainSecurityGroup>) {
     const securityGroupKey: SecurityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
@@ -196,6 +206,28 @@ describe('Domain group preferred workspace pages', () => {
             // Then no search input is rendered, but the workspaces still are
             expect(screen.queryByTestId('selection-list-text-input')).toBeNull();
             expect(getRenderedWorkspaceIDs()).toHaveLength(CONST.STANDARD_LIST_ITEM_LIMIT - 1);
+        });
+
+        it('clears an active search when the list shrinks below the standard list item limit', async () => {
+            // Given a domain admin with more workspaces than the standard list item limit
+            await setUpDomainAdminWithPolicies(CONST.STANDARD_LIST_ITEM_LIMIT + 3);
+            renderCreatePreferredWorkspacePage();
+            await waitForBatchedUpdatesWithAct();
+
+            // And a search that narrows the list down to a single workspace
+            fireEvent.changeText(screen.getByTestId('selection-list-text-input'), 'Workspace 05');
+            await waitFor(() => {
+                expect(getRenderedWorkspaceIDs()).toEqual(['policy05']);
+            });
+
+            // When enough workspaces are deleted for the search input to be hidden again
+            await removeWorkspaces(['policy01', 'policy02', 'policy03', 'policy04']);
+
+            // Then the search input is gone, and the query is cleared along with it instead of leaving the list filtered
+            expect(screen.queryByTestId('selection-list-text-input')).toBeNull();
+            await waitFor(() => {
+                expect(getRenderedWorkspaceIDs()).toHaveLength(CONST.STANDARD_LIST_ITEM_LIMIT - 1);
+            });
         });
 
         it('keeps sorting the workspaces by creation date, in parity with OldDot', async () => {
