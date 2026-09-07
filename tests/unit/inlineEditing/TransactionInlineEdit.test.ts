@@ -644,6 +644,12 @@ describe('TransactionInlineEdit', () => {
                 isTrackIntentUser: false,
                 getCurrencyDecimals: () => 2,
                 getCurrencySymbol: () => '$',
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: snapshotTransaction},
+                transactionViolations: {},
+                betas: [],
+                introSelected: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                currentUserEmail: '',
             };
         }
 
