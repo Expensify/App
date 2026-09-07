@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type CorpayPayModal from '@src/types/onyx/CorpayPayModal';
 
-import {useEffect, useEffectEvent, useRef} from 'react';
+import {useEffect, useEffectEvent} from 'react';
 
 import {useLockedAccountActions, useLockedAccountState} from './LockedAccountModalProvider';
 import {ModalActions} from './Modal/Global/ModalContext';
@@ -22,58 +22,42 @@ function EnableGlobalReimbursementsPayModal() {
     const {showConfirmModal} = useConfirmModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const isModalOpenRef = useRef(false);
-    const pendingModalDataRef = useRef<CorpayPayModal | null>(null);
 
     const showCorpayPayModal = useEffectEvent(async (modalData: CorpayPayModal) => {
-        let nextModalData: CorpayPayModal | null = modalData;
+        const navigationPathAtSignal = Navigation.getActiveRoute();
+        const result = await showConfirmModal({
+            id: 'corpayPayModal',
+            title: translate('common.corpayPayModalTitle'),
+            prompt: translate('common.corpayPayModalPrompt'),
+            confirmText: translate('common.enableGlobalReimbursements'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        });
 
-        while (nextModalData) {
-            if (isModalOpenRef.current) {
-                pendingModalDataRef.current = nextModalData;
-                return;
-            }
-
-            isModalOpenRef.current = true;
-            const navigationPathAtSignal = Navigation.getActiveRoute();
-            // eslint-disable-next-line no-await-in-loop -- process queued modal signals one at a time
-            const result = await showConfirmModal({
-                title: translate('common.corpayPayModalTitle'),
-                prompt: translate('common.corpayPayModalPrompt'),
-                confirmText: translate('common.enableGlobalReimbursements'),
-                cancelText: translate('common.cancel'),
-                shouldShowCancelButton: true,
-            });
-            isModalOpenRef.current = false;
-
-            if (result.action === ModalActions.CONFIRM) {
-                const {bankAccountID, bankCountry, bankCurrency} = nextModalData;
-                if (typeof bankAccountID !== 'number' || Number.isNaN(bankAccountID)) {
-                    clearCorpayPayModal();
-                } else if (isAccountLocked) {
-                    showLockedAccountModal();
-                    clearCorpayPayModal();
-                } else {
-                    Navigation.navigate(
-                        getEnableGlobalReimbursementsBusinessNavigationRoute(
-                            bankAccountID,
-                            CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
-                            {
-                                bankCountry,
-                                bankCurrency,
-                            },
-                            navigationPathAtSignal,
-                        ),
-                        {skipMatchingFullScreenRoute: true},
-                    );
-                    clearCorpayPayModal();
-                }
+        if (result.action === ModalActions.CONFIRM) {
+            const {bankAccountID, bankCountry, bankCurrency} = modalData;
+            if (typeof bankAccountID !== 'number' || Number.isNaN(bankAccountID)) {
+                clearCorpayPayModal();
+            } else if (isAccountLocked) {
+                showLockedAccountModal();
+                clearCorpayPayModal();
             } else {
+                Navigation.navigate(
+                    getEnableGlobalReimbursementsBusinessNavigationRoute(
+                        bankAccountID,
+                        CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
+                        {
+                            bankCountry,
+                            bankCurrency,
+                        },
+                        navigationPathAtSignal,
+                    ),
+                    {skipMatchingFullScreenRoute: true},
+                );
                 clearCorpayPayModal();
             }
-
-            nextModalData = pendingModalDataRef.current;
-            pendingModalDataRef.current = null;
+        } else {
+            clearCorpayPayModal();
         }
     });
 

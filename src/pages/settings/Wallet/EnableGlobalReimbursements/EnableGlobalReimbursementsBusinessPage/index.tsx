@@ -13,7 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import {clearCorpayPayModal} from '@userActions/App';
 import {clearErrors} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
@@ -22,7 +21,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 
 import type {BusinessInfoSubPageProps} from './types';
 
@@ -48,56 +47,20 @@ const pages = [
 function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimbursementsBusinessPageProps) {
     const {translate} = useLocalize();
     const bankAccountID = route.params?.bankAccountID;
-    const [corpayPayModal] = useOnyx(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL);
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
+    const country = (route.params?.bankCountry ?? bankAccount?.bankCountry ?? '') as Country;
+    const currency = route.params?.bankCurrency ?? bankAccount?.bankCurrency ?? '';
 
-    const modalMatchesAccount = corpayPayModal?.bankAccountID === Number(bankAccountID);
-    const {countryCode, currency} = useMemo(() => {
-        const routeCountry = route.params?.bankCountry;
-        const routeCurrency = route.params?.bankCurrency;
-
-        if (routeCountry || routeCurrency) {
-            return {
-                countryCode: routeCountry ?? bankAccount?.bankCountry ?? '',
-                currency: routeCurrency ?? bankAccount?.bankCurrency ?? '',
-            };
-        }
-
-        if (modalMatchesAccount && corpayPayModal) {
-            return {
-                countryCode: corpayPayModal.bankCountry ?? '',
-                currency: corpayPayModal.bankCurrency ?? '',
-            };
-        }
-
-        return {
-            countryCode: bankAccount?.bankCountry ?? '',
-            currency: bankAccount?.bankCurrency ?? '',
-        };
-    }, [bankAccount?.bankCountry, bankAccount?.bankCurrency, corpayPayModal, modalMatchesAccount, route.params?.bankCountry, route.params?.bankCurrency]);
-    const country = countryCode as Country;
-
-    const persistedRouteParams = useMemo(
-        () => ({
-            bankCountry: route.params?.bankCountry ?? (country || undefined),
-            bankCurrency: route.params?.bankCurrency ?? (currency || undefined),
-        }),
-        [route.params?.bankCountry, route.params?.bankCurrency, country, currency],
-    );
+    const persistedRouteParams = {
+        bankCountry: route.params?.bankCountry ?? (country || undefined),
+        bankCurrency: route.params?.bankCurrency ?? (currency || undefined),
+    };
 
     const {getAgreementsRoute, getBusinessRoute, getRootBackPath, isDynamic} = useEnableGlobalReimbursementsNavigation();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((navigationRoute) => isFullScreenName(navigationRoute.name)));
     const activeTab = getActiveTabName(topmostFullScreenRoute);
 
     const buildBusinessRoute = (subPage: string, action?: 'edit') => getBusinessRoute(Number(bankAccountID), subPage, action, persistedRouteParams);
-
-    useEffect(() => {
-        if (!modalMatchesAccount || !corpayPayModal) {
-            return;
-        }
-
-        clearCorpayPayModal();
-    }, [corpayPayModal, modalMatchesAccount]);
 
     const goToAgreementsPage = () => {
         Navigation.navigate(getAgreementsRoute(Number(bankAccountID), persistedRouteParams), isDynamic ? {forceReplace: true} : undefined);
