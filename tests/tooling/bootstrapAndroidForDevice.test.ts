@@ -3,9 +3,11 @@
 import {describe, expect, test} from 'bun:test';
 
 import {
+    DEFAULT_PLATFORMS,
     androidApplicationIDs,
     defaultBundleIdentifier,
     parseBuildVariants,
+    parsePlatforms,
     patchAndroidAppName,
     patchAndroidBuildGradle,
     patchAndroidManifest,
@@ -47,6 +49,13 @@ const googleServicesFixture = {
 /* eslint-enable @typescript-eslint/naming-convention */
 
 describe('bootstrapAndroidForDevice', () => {
+    test('selects both platforms by default and only the explicitly selected platform otherwise', () => {
+        expect(DEFAULT_PLATFORMS).toEqual(['ios', 'android']);
+        expect(parsePlatforms('android')).toEqual(['android']);
+        expect(parsePlatforms('ios')).toEqual(['ios']);
+        expect(() => parsePlatforms('web')).toThrow('Platform must be one of: ios, android');
+    });
+
     test('creates the default Android application ID from a GitHub username', () => {
         expect(defaultBundleIdentifier('Example-Developer', 'android')).toBe('com.example_developer.expensify');
         expect(defaultBundleIdentifier('123Developer', 'android')).toBe('com.developer_123developer.expensify');

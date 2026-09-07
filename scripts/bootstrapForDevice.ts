@@ -21,6 +21,9 @@ import {bootstrapIOSForDevice} from './lib/bootstrapForDevice/ios';
 import {BUILD_VARIANTS, DEFAULT_BUILD_VARIANTS, PLATFORMS, parseBuildVariants} from './lib/bootstrapForDevice/shared';
 
 type Platform = TupleToUnion<typeof PLATFORMS>;
+type Platforms = readonly [Platform, ...Platform[]];
+
+const DEFAULT_PLATFORMS: Platforms = PLATFORMS;
 
 async function main(rootDirectory: string): Promise<void> {
     // The CLI framework requires kebab-case named argument keys, which the naming-convention rule cannot express.
@@ -29,9 +32,9 @@ async function main(rootDirectory: string): Promise<void> {
         positionalArgs: [
             {
                 name: 'platform',
-                description: `Native platform to bootstrap (${PLATFORMS.join(', ')})`,
-                default: 'ios' as Platform,
-                parse: parsePlatform,
+                description: `Native platform to bootstrap (${PLATFORMS.join(', ')}); omit to bootstrap both`,
+                default: DEFAULT_PLATFORMS,
+                parse: parsePlatforms,
             },
         ],
         namedArgs: {
@@ -60,21 +63,23 @@ async function main(rootDirectory: string): Promise<void> {
     });
     /* eslint-enable @typescript-eslint/naming-convention */
 
-    const platform = parsePlatform(String(cli.positionalArgs.platform));
+    const platforms = cli.positionalArgs.platform;
     const username = cli.namedArgs['github-username'] ?? (cli.namedArgs['bundle-identifier'] ? undefined : await githubUsername());
-    const bundleIdentifier = cli.namedArgs['bundle-identifier'] ?? defaultBundleIdentifier(username ?? '', platform);
-    if (platform === 'android') {
-        await bootstrapAndroidForDevice({rootDirectory, bundleIdentifier, buildVariants: cli.namedArgs['build-variants'], suffix: cli.namedArgs.suffix});
-        return;
+    for (const platform of platforms) {
+        const bundleIdentifier = cli.namedArgs['bundle-identifier'] ?? defaultBundleIdentifier(username ?? '', platform);
+        if (platform === 'android') {
+            await bootstrapAndroidForDevice({rootDirectory, bundleIdentifier, buildVariants: cli.namedArgs['build-variants'], suffix: cli.namedArgs.suffix});
+            continue;
+        }
+        const developmentTeam = await resolveDevelopmentTeam(cli.namedArgs['development-team']);
+        await bootstrapIOSForDevice({
+            rootDirectory,
+            developmentTeam,
+            bundleIdentifier,
+            buildVariants: cli.namedArgs['build-variants'],
+            suffix: cli.namedArgs.suffix,
+        });
     }
-    const developmentTeam = await resolveDevelopmentTeam(cli.namedArgs['development-team']);
-    await bootstrapIOSForDevice({
-        rootDirectory,
-        developmentTeam,
-        bundleIdentifier,
-        buildVariants: cli.namedArgs['build-variants'],
-        suffix: cli.namedArgs.suffix,
-    });
 }
 
 /**
@@ -102,6 +107,11 @@ function defaultBundleIdentifier(username: string, platform: Platform = 'ios'): 
         throw new Error(`GitHub username cannot be used in a bundle identifier: ${username}`);
     }
     return platform === 'ios' ? `com.${normalizedUsername}.expensify.expensifylite` : `com.${normalizeAndroidIdentifierSegment(normalizedUsername)}.expensify`;
+}
+
+/** Selects one explicit platform while reserving the default non-empty tuple for both platforms. */
+function parsePlatforms(value: string): Platforms {
+    return [parsePlatform(value)];
 }
 
 function parsePlatform(value: string): Platform {
@@ -136,7 +146,7 @@ if (import.meta.main) {
     });
 }
 
-export {bootstrapAndroidForDevice, bootstrapIOSForDevice, defaultBundleIdentifier, main, resolveDevelopmentTeam};
+export {DEFAULT_PLATFORMS, bootstrapAndroidForDevice, bootstrapIOSForDevice, defaultBundleIdentifier, main, parsePlatforms, resolveDevelopmentTeam};
 export {
     androidApplicationIDs,
     patchAndroidAppName,
@@ -149,4 +159,4 @@ export {
 export {entitlementContents, patchIOSAppDisplayName, patchProject, targetBundleIdentifier} from './lib/bootstrapForDevice/ios';
 export {BUILD_VARIANTS, DEFAULT_BUILD_VARIANTS, parseBuildVariants, validateSuffix} from './lib/bootstrapForDevice/shared';
 export {installedDevelopmentTeams, parseDevelopmentTeamFromProvisioningProfile} from './lib/bootstrapForDevice/developmentTeams';
-export type {AndroidApplicationIDs, AndroidBootstrapOptions, BootstrapOptions, BuildVariant, BuildVariants, Configuration, DevelopmentTeam, Platform, Target};
+export type {AndroidApplicationIDs, AndroidBootstrapOptions, BootstrapOptions, BuildVariant, BuildVariants, Configuration, DevelopmentTeam, Platform, Platforms, Target};
