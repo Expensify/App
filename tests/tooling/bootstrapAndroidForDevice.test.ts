@@ -5,6 +5,7 @@ import {describe, expect, test} from 'bun:test';
 import {
     androidApplicationIDs,
     defaultBundleIdentifier,
+    parseBuildVariants,
     patchAndroidAppName,
     patchAndroidBuildGradle,
     patchAndroidManifest,
@@ -62,32 +63,63 @@ describe('bootstrapAndroidForDevice', () => {
         });
     });
 
+    test('parses a deduplicated list of build variants', () => {
+        expect(parseBuildVariants('release, debug,ad-hoc,release')).toEqual(['release', 'debug', 'adhoc']);
+        expect(() => parseBuildVariants('release,profile')).toThrow('release, debug, adhoc');
+        expect(() => parseBuildVariants('')).toThrow('release, debug, adhoc');
+    });
+
     test('uses local debug signing and disables R8 for release builds', () => {
         const buildGradle = `
             defaultConfig {
                 applicationId "org.me.mobiexpensifyg"
             }
-            release {
-                signingConfig signingConfigs.release
-                minifyEnabled true
-                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildTypes {
+                release {
+                    signingConfig signingConfigs.release
+                    minifyEnabled true
+                    proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+                }
             }`;
 
         const patched = patchAndroidBuildGradle(buildGradle, 'com.example.expensify.branch');
         expect(patched).toContain('applicationId "com.example.expensify.branch"');
         expect(patched).toContain('signingConfig signingConfigs.debug');
-        expect(patched).toContain('// minifyEnabled true');
+        expect(patched).toContain('minifyEnabled false');
         expect(patched).toContain("// proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'");
         expect(patchAndroidBuildGradle(patched, 'com.example.expensify.branch')).toBe(patched);
     });
 
-    test('adds synthetic Google Services clients while retaining registered Firebase resources', () => {
+    test('only patches the selected release-derived Android build types', () => {
+        const buildGradle = `
+            defaultConfig {
+                applicationId "org.me.mobiexpensifyg"
+            }
+            buildTypes {
+                release {
+                    signingConfig signingConfigs.release
+                    minifyEnabled true
+                }
+                adhoc {
+                    initWith release
+                    applicationIdSuffix ".adhoc"
+                }
+            }`;
+
+        const patched = patchAndroidBuildGradle(buildGradle, 'com.example.expensify.branch', ['adhoc']);
+        expect(patched).toContain('applicationId "com.example.expensify.branch"');
+        expect(patched).toContain('signingConfig signingConfigs.release');
+        expect(patched).toContain('minifyEnabled true');
+        expect(patched).toContain('initWith release\n                    minifyEnabled false\n                    signingConfig signingConfigs.debug');
+    });
+
+    test('adds a synthetic Google Services client for the release build by default', () => {
         const identifiers = androidApplicationIDs('com.example.expensify', 'branch');
         const patched = patchGoogleServicesConfig(googleServicesFixture, identifiers);
         const {client: clients} = patched;
         const syntheticRelease = clients.find((client) => JSON.stringify(client).includes(identifiers.release));
 
-        expect(clients).toHaveLength(8);
+        expect(clients).toHaveLength(5);
         /* eslint-disable @typescript-eslint/naming-convention */
         const expectedClient = {
             client_info: {
@@ -100,6 +132,17 @@ describe('bootstrapAndroidForDevice', () => {
         /* eslint-enable @typescript-eslint/naming-convention */
         expect(syntheticRelease).toMatchObject(expectedClient);
         expect(patchGoogleServicesConfig(patched, identifiers)).toEqual(patched);
+    });
+
+    test('adds synthetic Google Services clients for every selected build variant', () => {
+        const identifiers = androidApplicationIDs('com.example.expensify', 'branch');
+        const patched = patchGoogleServicesConfig(googleServicesFixture, identifiers, ['release', 'debug', 'adhoc']);
+
+        expect(patched.client).toHaveLength(7);
+        expect(patched.client.some((client) => JSON.stringify(client).includes(identifiers.release))).toBe(true);
+        expect(patched.client.some((client) => JSON.stringify(client).includes(identifiers.debug))).toBe(true);
+        expect(patched.client.some((client) => JSON.stringify(client).includes(identifiers.adhoc))).toBe(true);
+        expect(patched.client.some((client) => JSON.stringify(client).includes(`branch.appTestFork`))).toBe(false);
     });
 
     test('patches package-dependent Android resources', () => {

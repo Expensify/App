@@ -22,7 +22,7 @@ The app uses `console.warn` for this opt-in output because production bundles re
 
 ## Bootstrap side-by-side native apps
 
-Use the device bootstrap script before producing a local release build. Unless `--bundle-identifier` is provided, it derives a unique identifier from a GitHub username. The script resolves that username in this order:
+Use the device bootstrap script before producing a local native build. It patches the release build variant by default. Unless `--bundle-identifier` is provided, it derives a unique identifier from a GitHub username. The script resolves that username in this order:
 
 1. The value passed to `--github-username`.
 2. The user returned by `gh api user` when the GitHub CLI is installed. The CLI checks `GH_TOKEN`, then `GITHUB_TOKEN`, then its stored active account.
@@ -31,13 +31,22 @@ Use the device bootstrap script before producing a local release build. Unless `
 If the GitHub CLI is installed but cannot resolve a user, run `gh auth login` or pass `--github-username` or `--bundle-identifier`. If the CLI is not installed, set `GH_TOKEN` or pass one of those identifier options. A suffix is useful when the same developer needs separate apps for multiple branches or worktrees:
 
 ```shell
-npm run bootstrap-device -- android --suffix baseline
-npm run bootstrap-device -- ios --suffix baseline
+nr bootstrap-device -- android --suffix baseline
+nr bootstrap-device -- ios --suffix baseline
+```
+
+Pass a comma-separated list to `--build-variants` to patch `release`, `debug`, or `adhoc` builds. Select every variant that you intend to build after bootstrapping:
+
+```shell
+nr bootstrap-device -- android --suffix baseline --build-variants release,debug,adhoc
+nr bootstrap-device -- ios --suffix baseline --build-variants release,debug,adhoc
 ```
 
 Pass `--bundle-identifier` to replace the generated base identifier, or `--github-username` to override only the username used by the default. Android converts hyphens in GitHub usernames and suffixes to underscores because Android application ID segments are Java identifiers. The suffix is also included in the launcher display name, for example `Expensify (baseline)` and `Expensify Debug (baseline)`.
 
-On Android, bootstrapping changes every build type's application ID, switches release-derived builds to the checked-in debug keystore, and disables R8/ProGuard so a local release APK can be signed and assembled. It also creates package-matched entries in the local `google-services.json` by reusing the registered Expensify Firebase resources. This avoids a Firebase dashboard change and keeps Firebase startup behavior present in benchmark builds.
+On Android, bootstrapping changes the shared base application ID, then patches only the selected variants' Firebase clients, shortcut resources, and app names. Selected release-derived variants use the checked-in debug keystore with minification disabled so they can be signed and assembled locally. The package-matched entries added to `google-services.json` reuse the registered Expensify Firebase resources. This avoids a Firebase dashboard change and keeps Firebase startup behavior present in benchmark builds.
+
+On iOS, bootstrapping changes signing settings and bundle identifiers only for the selected Xcode build configurations. It updates the entitlement files used by those configurations and the shared app display name.
 
 The synthetic package is not a newly registered Firebase Android app. Package/signing-restricted services, notably Google Sign-In, do not work with it, and Firebase data may be attributed to the registered Expensify app whose resources were reused. Do not distribute or upload this build. Disabling Google Services is not recommended for performance comparisons: it removes production startup work and can change application behavior, making the result less representative.
 

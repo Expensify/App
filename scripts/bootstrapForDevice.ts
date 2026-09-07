@@ -13,12 +13,12 @@ import CLI from 'expensify-common/CLI';
 import type {AndroidApplicationIDs} from './lib/bootstrapForDevice/android';
 import type {DevelopmentTeam} from './lib/bootstrapForDevice/developmentTeams';
 import type {Configuration, Target} from './lib/bootstrapForDevice/ios';
-import type {AndroidBootstrapOptions, BootstrapOptions} from './lib/bootstrapForDevice/shared';
+import type {AndroidBootstrapOptions, BootstrapOptions, BuildVariant, BuildVariants} from './lib/bootstrapForDevice/shared';
 
 import {bootstrapAndroidForDevice, normalizeAndroidIdentifierSegment} from './lib/bootstrapForDevice/android';
 import {resolveDevelopmentTeam} from './lib/bootstrapForDevice/developmentTeams';
 import {bootstrapIOSForDevice} from './lib/bootstrapForDevice/ios';
-import {PLATFORMS} from './lib/bootstrapForDevice/shared';
+import {BUILD_VARIANTS, DEFAULT_BUILD_VARIANTS, PLATFORMS, parseBuildVariants} from './lib/bootstrapForDevice/shared';
 
 type Platform = TupleToUnion<typeof PLATFORMS>;
 
@@ -51,6 +51,11 @@ async function main(rootDirectory: string): Promise<void> {
                 description: 'GitHub username used to create the default bundle identifier (defaults to the active gh CLI user or GH_TOKEN user)',
                 required: false,
             },
+            'build-variants': {
+                description: `Comma-separated native build variants to patch (${BUILD_VARIANTS.join(', ')})`,
+                default: DEFAULT_BUILD_VARIANTS,
+                parse: parseBuildVariants,
+            },
         },
     });
     /* eslint-enable @typescript-eslint/naming-convention */
@@ -59,7 +64,7 @@ async function main(rootDirectory: string): Promise<void> {
     const username = cli.namedArgs['github-username'] ?? (cli.namedArgs['bundle-identifier'] ? undefined : await githubUsername());
     const bundleIdentifier = cli.namedArgs['bundle-identifier'] ?? defaultBundleIdentifier(username ?? '', platform);
     if (platform === 'android') {
-        await bootstrapAndroidForDevice({rootDirectory, bundleIdentifier, suffix: cli.namedArgs.suffix});
+        await bootstrapAndroidForDevice({rootDirectory, bundleIdentifier, buildVariants: cli.namedArgs['build-variants'], suffix: cli.namedArgs.suffix});
         return;
     }
     const developmentTeam = await resolveDevelopmentTeam(cli.namedArgs['development-team']);
@@ -67,6 +72,7 @@ async function main(rootDirectory: string): Promise<void> {
         rootDirectory,
         developmentTeam,
         bundleIdentifier,
+        buildVariants: cli.namedArgs['build-variants'],
         suffix: cli.namedArgs.suffix,
     });
 }
@@ -141,6 +147,6 @@ export {
     validateAndroidApplicationID,
 } from './lib/bootstrapForDevice/android';
 export {entitlementContents, patchIOSAppDisplayName, patchProject, targetBundleIdentifier} from './lib/bootstrapForDevice/ios';
-export {validateSuffix} from './lib/bootstrapForDevice/shared';
+export {BUILD_VARIANTS, DEFAULT_BUILD_VARIANTS, parseBuildVariants, validateSuffix} from './lib/bootstrapForDevice/shared';
 export {installedDevelopmentTeams, parseDevelopmentTeamFromProvisioningProfile} from './lib/bootstrapForDevice/developmentTeams';
-export type {AndroidApplicationIDs, AndroidBootstrapOptions, BootstrapOptions, Configuration, DevelopmentTeam, Platform, Target};
+export type {AndroidApplicationIDs, AndroidBootstrapOptions, BootstrapOptions, BuildVariant, BuildVariants, Configuration, DevelopmentTeam, Platform, Target};

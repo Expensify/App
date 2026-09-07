@@ -119,16 +119,27 @@ describe('bootstrapIOSForDevice', () => {
         expect(patchIOSAppDisplayName(infoPlist, 'new')).toBe('<key>CFBundleDisplayName</key>\n<string>Expensify (new)</string>');
     });
 
-    test('patches debug, release, and adhoc configurations for every target', () => {
+    test('patches only release configurations by default', () => {
         const patched = patchProject(projectFixture(), 'com.example.expensify', 'local', 'ABCDEFGHIJ');
+
+        expect(patched.match(/CODE_SIGN_STYLE = Automatic;/g)).toHaveLength(5);
+        expect(patched.match(/DEVELOPMENT_TEAM = ABCDEFGHIJ;/g)).toHaveLength(5);
+        expect(patched).toContain('Old profile');
+        expect(patched).toContain('368M544MTT');
+        expect(patched).toContain('PRODUCT_BUNDLE_IDENTIFIER = com.example.expensify.local;');
+        expect(patched).toContain('PRODUCT_BUNDLE_IDENTIFIER = com.expensify.Expensify;');
+        expect(patched).toContain('PRODUCT_BUNDLE_IDENTIFIER = com.expensify.adhoc.Expensify;');
+        expect(patched).toContain('CODE_SIGN_ENTITLEMENTS = Expensify/ExpensifyRelease.entitlements;');
+    });
+
+    test('patches every selected configuration for every target', () => {
+        const patched = patchProject(projectFixture(), 'com.example.expensify', 'local', 'ABCDEFGHIJ', ['release', 'debug', 'adhoc']);
 
         expect(patched.match(/CODE_SIGN_STYLE = Automatic;/g)).toHaveLength(15);
         expect(patched.match(/DEVELOPMENT_TEAM = ABCDEFGHIJ;/g)).toHaveLength(15);
         expect(patched).not.toContain('Old profile');
         expect(patched).not.toContain('368M544MTT');
-        expect(patched).toContain('PRODUCT_BUNDLE_IDENTIFIER = com.example.expensify.local;');
         expect(patched).toContain('PRODUCT_BUNDLE_IDENTIFIER = com.example.expensify.local.adhoc.LiveActivityExtension;');
-        expect(patched).toContain('CODE_SIGN_ENTITLEMENTS = Expensify/ExpensifyRelease.entitlements;');
     });
 
     test('is idempotent', () => {

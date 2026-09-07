@@ -5,31 +5,48 @@ import type {TupleToUnion} from 'type-fest';
 import {file, write} from 'bun';
 import {resolve} from 'node:path';
 
-import type {BootstrapOptions} from './shared';
+import type {BootstrapOptions, BuildVariant, BuildVariants} from './shared';
 
-import {validateSuffix} from './shared';
+import {DEFAULT_BUILD_VARIANTS, validateSuffix} from './shared';
 
-const CONFIGURATIONS = ['Debug', 'Release', 'AdHoc'] as const;
 const TARGETS = ['Expensify', 'SmartScanExtension', 'NotificationServiceExtension', 'LiveActivityExtension', 'ExpensifyTests'] as const;
 const BUNDLE_IDENTIFIER_PATTERN = /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
 const TEAM_ID_PATTERN = /^[A-Z0-9]{10}$/;
-const APP_GROUP_ENTITLEMENT_FILES = [
-    'Expensify/Expensify.entitlements',
-    'Expensify/ExpensifyRelease.entitlements',
-    'LiveActivityExtensionAdHoc.entitlements',
-    'LiveActivityExtensionDebug.entitlements',
-    'LiveActivityExtensionRelease.entitlements',
-    'NotificationServiceExtension/NotificationServiceExtension.entitlements',
-    'SmartScanExtension/SmartScanExtension.entitlements',
-] as const;
 
-type Configuration = TupleToUnion<typeof CONFIGURATIONS>;
+type Configuration = 'Debug' | 'Release' | 'AdHoc';
 type Target = TupleToUnion<typeof TARGETS>;
+
+const CONFIGURATION_BY_BUILD_VARIANT: Record<BuildVariant, Configuration> = {
+    release: 'Release',
+    debug: 'Debug',
+    adhoc: 'AdHoc',
+};
+const APP_GROUP_ENTITLEMENT_FILES_BY_BUILD_VARIANT: Record<BuildVariant, readonly string[]> = {
+    release: [
+        'Expensify/ExpensifyRelease.entitlements',
+        'LiveActivityExtensionRelease.entitlements',
+        'NotificationServiceExtension/NotificationServiceExtension.entitlements',
+        'SmartScanExtension/SmartScanExtension.entitlements',
+    ],
+    debug: [
+        'Expensify/Expensify.entitlements',
+        'LiveActivityExtensionDebug.entitlements',
+        'NotificationServiceExtension/NotificationServiceExtension.entitlements',
+        'SmartScanExtension/SmartScanExtension.entitlements',
+    ],
+    adhoc: [
+        'Expensify/Expensify.entitlements',
+        'LiveActivityExtensionAdHoc.entitlements',
+        'NotificationServiceExtension/NotificationServiceExtension.entitlements',
+        'SmartScanExtension/SmartScanExtension.entitlements',
+    ],
+};
 
 /** Rewrites the native iOS project, display name, and app-group entitlements for local device signing. */
 async function bootstrapIOSForDevice(options: BootstrapOptions): Promise<void> {
     const iosDirectory = resolve(options.rootDirectory, 'Mobile-Expensify/iOS');
     const projectPath = resolve(iosDirectory, 'Expensify.xcodeproj/project.pbxproj');
+    const buildVariants = options.buildVariants ?? DEFAULT_BUILD_VARIANTS;
     const suffix = validateSuffix(options.suffix);
     const baseIdentifier = validateIdentifier(options.bundleIdentifier, 'Bundle identifier');
     if (!TEAM_ID_PATTERN.test(options.developmentTeam)) {
@@ -37,7 +54,7 @@ async function bootstrapIOSForDevice(options: BootstrapOptions): Promise<void> {
     }
 
     const project = await file(projectPath).text();
-    const patchedProject = patchProject(project, baseIdentifier, suffix, options.developmentTeam);
+    const patchedProject = patchProject(project, baseIdentifier, suffix, options.developmentTeam, buildVariants);
     await write(projectPath, patchedProject);
 
     const infoPlistPath = resolve(iosDirectory, 'Expensify/Expensify-Info.plist');
@@ -46,22 +63,28 @@ async function bootstrapIOSForDevice(options: BootstrapOptions): Promise<void> {
 
     const appGroup = `group.${[baseIdentifier, suffix].filter(Boolean).join('.')}`;
     const entitlements = entitlementContents(appGroup);
-    for (const entitlementFile of APP_GROUP_ENTITLEMENT_FILES) {
+    const entitlementFiles = new Set(buildVariants.flatMap((buildVariant) => APP_GROUP_ENTITLEMENT_FILES_BY_BUILD_VARIANT[buildVariant]));
+    for (const entitlementFile of entitlementFiles) {
         await write(resolve(iosDirectory, entitlementFile), entitlements);
     }
 
-    console.log('Configured Mobile-Expensify for automatic iOS signing.');
+    console.log(`Configured Mobile-Expensify iOS build variants: ${buildVariants.join(', ')}.`);
     console.table({
         developmentTeam: options.developmentTeam,
-        debugBundleIdentifier: targetBundleIdentifier(baseIdentifier, 'Expensify', 'Debug', suffix),
-        releaseBundleIdentifier: targetBundleIdentifier(baseIdentifier, 'Expensify', 'Release', suffix),
         appGroup,
+        ...Object.fromEntries(
+            buildVariants.map((buildVariant) => [
+                `${buildVariant}BundleIdentifier`,
+                targetBundleIdentifier(baseIdentifier, 'Expensify', CONFIGURATION_BY_BUILD_VARIANT[buildVariant], suffix),
+            ]),
+        ),
     });
 }
 
-/** Applies automatic signing and unique bundle identifiers to every supported Xcode target and configuration. */
-function patchProject(project: string, baseIdentifier: string, suffix: string | undefined, developmentTeam: string): string {
-    const configurationsByTarget = configurationIDsByTarget(project);
+/** Applies automatic signing and unique bundle identifiers to the selected configurations of every supported Xcode target. */
+function patchProject(project: string, baseIdentifier: string, suffix: string | undefined, developmentTeam: string, buildVariants: BuildVariants = DEFAULT_BUILD_VARIANTS): string {
+    const selectedConfigurations = buildVariants.map((buildVariant) => CONFIGURATION_BY_BUILD_VARIANT[buildVariant]);
+    const configurationsByTarget = configurationIDsByTarget(project, selectedConfigurations);
     let patched = project.replaceAll('ProvisioningStyle = Manual;', 'ProvisioningStyle = Automatic;');
 
     for (const target of TARGETS) {
@@ -75,6 +98,38 @@ function patchProject(project: string, baseIdentifier: string, suffix: string | 
         }
     }
     return patched;
+}
+
+/** Adds the optional local suffix to the iOS display name so side-by-side installations remain distinguishable. */
+function patchIOSAppDisplayName(infoPlist: string, suffix: string | undefined): string {
+    const displayNamePattern = /(<key>CFBundleDisplayName<\/key>\s*<string>)[^<]*(<\/string>)/;
+    if (!displayNamePattern.test(infoPlist)) {
+        throw new Error('Could not find CFBundleDisplayName in Mobile-Expensify/iOS/Expensify/Expensify-Info.plist.');
+    }
+    const suffixLabel = suffix ? ` (${suffix})` : '';
+    return infoPlist.replace(displayNamePattern, `$1Expensify${suffixLabel}$2`);
+}
+
+/** Composes a unique bundle identifier from the local suffix, build configuration, and native target. */
+function targetBundleIdentifier(baseIdentifier: string, target: Target, configuration: Configuration, suffix?: string): string {
+    const configurationSuffix = configuration === 'AdHoc' ? 'adhoc' : undefined;
+    const targetSuffix = target === 'Expensify' ? undefined : target;
+    return [baseIdentifier, suffix, configurationSuffix, targetSuffix].filter(Boolean).join('.');
+}
+
+/** Creates the minimal entitlements plist shared by the locally signed app and its extensions. */
+function entitlementContents(appGroup: string): string {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+\t<key>com.apple.security.application-groups</key>
+\t<array>
+\t\t<string>${appGroup}</string>
+\t</array>
+</dict>
+</plist>
+`;
 }
 
 /** Configures one Xcode build configuration for automatic local signing and its derived bundle identifier. */
@@ -101,18 +156,8 @@ function patchBuildConfiguration(project: string, identifier: string, bundleIden
     return project.replace(block, patched);
 }
 
-/** Adds the optional local suffix to the iOS display name so side-by-side installations remain distinguishable. */
-function patchIOSAppDisplayName(infoPlist: string, suffix: string | undefined): string {
-    const displayNamePattern = /(<key>CFBundleDisplayName<\/key>\s*<string>)[^<]*(<\/string>)/;
-    if (!displayNamePattern.test(infoPlist)) {
-        throw new Error('Could not find CFBundleDisplayName in Mobile-Expensify/iOS/Expensify/Expensify-Info.plist.');
-    }
-    const suffixLabel = suffix ? ` (${suffix})` : '';
-    return infoPlist.replace(displayNamePattern, `$1Expensify${suffixLabel}$2`);
-}
-
-/** Maps each native target and build configuration to its XCBuildConfiguration identifier in the Xcode project. */
-function configurationIDsByTarget(project: string): Map<Target, Map<Configuration, string>> {
+/** Maps each native target and selected build configuration to its XCBuildConfiguration identifier in the Xcode project. */
+function configurationIDsByTarget(project: string, selectedConfigurations: readonly Configuration[]): Map<Target, Map<Configuration, string>> {
     const result = new Map<Target, Map<Configuration, string>>();
     for (const target of TARGETS) {
         const listPattern = new RegExp(`\\/\\* Build configuration list for PBXNativeTarget "${target}" \\*\\/ = \\{[\\s\\S]*?buildConfigurations = \\(\\s*([\\s\\S]*?)\\s*\\);`);
@@ -121,40 +166,16 @@ function configurationIDsByTarget(project: string): Map<Target, Map<Configuratio
             throw new Error(`Could not find build configurations for the ${target} target.`);
         }
         const configurations = new Map<Configuration, string>();
-        for (const configuration of CONFIGURATIONS) {
+        for (const configuration of selectedConfigurations) {
             const identifier = list.match(new RegExp(`([A-F0-9]{24}) \\/\\* ${configuration} \\*\\/`))?.at(1);
-            if (identifier) {
-                configurations.set(configuration, identifier);
+            if (!identifier) {
+                throw new Error(`Could not find the ${configuration} configuration for the ${target} target.`);
             }
-        }
-        if (!configurations.has('Debug') || !configurations.has('Release')) {
-            throw new Error(`The ${target} target must have both Debug and Release configurations.`);
+            configurations.set(configuration, identifier);
         }
         result.set(target, configurations);
     }
     return result;
-}
-
-/** Composes a unique bundle identifier from the local suffix, build configuration, and native target. */
-function targetBundleIdentifier(baseIdentifier: string, target: Target, configuration: Configuration, suffix?: string): string {
-    const configurationSuffix = configuration === 'AdHoc' ? 'adhoc' : undefined;
-    const targetSuffix = target === 'Expensify' ? undefined : target;
-    return [baseIdentifier, suffix, configurationSuffix, targetSuffix].filter(Boolean).join('.');
-}
-
-/** Creates the minimal entitlements plist shared by the locally signed app and its extensions. */
-function entitlementContents(appGroup: string): string {
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-\t<key>com.apple.security.application-groups</key>
-\t<array>
-\t\t<string>${appGroup}</string>
-\t</array>
-</dict>
-</plist>
-`;
 }
 
 /** Replaces a build setting in an XCBuildConfiguration block or inserts it when absent. */
