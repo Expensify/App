@@ -80,10 +80,96 @@ function buildWorkspaceNavigationState(...workspaceSplits: WorkspaceScopeRoute[]
     };
 }
 
+function renderCentralOnlySplits(...workspaceSplits: WorkspaceScopeRoute[]) {
+    // Mount two root entries first, matching an in-app cross-tab deep link. A cold root adds a sidebar.
+    const initialState: InitialState = {index: 1, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}, {name: NAVIGATORS.TAB_NAVIGATOR}]};
+    const view = render(<TestNavigationContainer initialState={initialState} />);
+    act(() => {
+        navigationRef.resetRoot({
+            index: 1,
+            routes: [{name: NAVIGATORS.TAB_NAVIGATOR}, ...buildWorkspaceNavigationState(...workspaceSplits).routes],
+        });
+    });
+    return {view, initialState};
+}
+
+function getActiveWorkspaceState() {
+    const root = navigationRef.getRootState();
+    const tabState = root.routes.at(root.index)?.state;
+    return tabState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+}
+
 describe('Go back on the narrow layout', () => {
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
         mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
+    });
+
+    describe('central-only scoped splits', () => {
+        const workspaceA = {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.WORKSPACE.PROFILE, params: {policyID: 'policy-a'}}]}};
+        const workspaceB = {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.WORKSPACE.MEMBERS, params: {policyID: 'policy-b'}}]}};
+        const domainA = {name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.DOMAIN.SAML, params: {domainAccountID: 1}}]}};
+        const domainB = {name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.DOMAIN.MEMBERS, params: {domainAccountID: 2}}]}};
+
+        it.each([
+            {scope: 'workspace', first: workspaceA, second: workspaceB, route: ROUTES.WORKSPACE_OVERVIEW.getRoute('policy-a'), expectedParams: {policyID: 'policy-a'}},
+            {scope: 'domain', first: domainA, second: domainB, route: ROUTES.DOMAIN_SAML.getRoute(1), expectedParams: {domainAccountID: '1'}},
+        ])('restores central-only $scope history for both parameter comparison modes', ({first, second, route, expectedParams}) => {
+            const {view} = renderCentralOnlySplits(first, second);
+            for (const compareParams of [true, false]) {
+                if (!compareParams) {
+                    act(() => {
+                        navigationRef.resetRoot({index: 1, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}, ...buildWorkspaceNavigationState(first, second).routes]});
+                    });
+                }
+                const before = getActiveWorkspaceState();
+                const originalSplit = before?.routes.at(0);
+                expect(originalSplit?.state?.routes).toHaveLength(1);
+                expect(before?.routes.at(1)?.state?.routes).toHaveLength(1);
+                act(() => {
+                    Navigation.goBack(route, {compareParams});
+                });
+                const after = getActiveWorkspaceState();
+                expect(after?.routes).toHaveLength(1);
+                expect(after?.routes.at(0)?.key).toBe(originalSplit?.key);
+                expect(after?.routes.at(0)?.state?.routes.at(-1)?.name).toBe(first.state.routes.at(0)?.name);
+                expect(after?.routes.at(0)?.state?.routes.at(-1)?.params).toMatchObject(expectedParams);
+            }
+            view.unmount();
+        });
+
+        it('keeps workspace identity coherent after cross-scope navigation, widening, and Back', () => {
+            const categoriesA = {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.WORKSPACE.CATEGORIES, params: {policyID: 'policy-a'}}]}};
+            const {view, initialState} = renderCentralOnlySplits(categoriesA);
+            const originalSplit = getActiveWorkspaceState()?.routes.at(0);
+            expect(originalSplit?.state?.routes).toHaveLength(1);
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute('policy-b'));
+            });
+            const afterNavigate = getActiveWorkspaceState();
+            expect(afterNavigate?.routes).toHaveLength(2);
+            expect(afterNavigate?.routes.at(0)?.key).toBe(originalSplit?.key);
+            expect(afterNavigate?.routes.at(-1)?.state?.routes.at(-1)?.params).toMatchObject({policyID: 'policy-b'});
+
+            mockedGetIsNarrowLayout.mockReturnValue(false);
+            mockedUseResponsiveLayout.mockReturnValue({
+                ...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE,
+                shouldUseNarrowLayout: false,
+                isSmallScreenWidth: false,
+                isLargeScreenWidth: true,
+            });
+            view.rerender(<TestNavigationContainer initialState={initialState} />);
+            act(() => {
+                Navigation.goBack();
+            });
+            const restored = getActiveWorkspaceState();
+            expect(restored?.routes).toHaveLength(1);
+            expect(restored?.routes.at(0)?.key).toBe(originalSplit?.key);
+            expect(restored?.routes.at(0)?.state?.routes).toEqual([
+                expect.objectContaining({name: SCREENS.WORKSPACE.INITIAL, params: expect.objectContaining({policyID: 'policy-a'})}),
+                expect.objectContaining({name: SCREENS.WORKSPACE.CATEGORIES, params: expect.objectContaining({policyID: 'policy-a'})}),
+            ]);
+        });
     });
 
     describe('called without params', () => {

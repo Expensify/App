@@ -33,7 +33,9 @@ function getSplitScopeComparisonValues(currentRoute: NavigationRoute, payload: u
     const sidebarScreen = SPLIT_TO_SIDEBAR[currentRoute.name];
     const scopeParams = getParamsFromRoute(sidebarScreen);
     const sidebarRoute = currentRoute.state.routes.find((route) => route.name === sidebarScreen);
-    const currentParams: unknown = sidebarRoute?.params;
+    // Narrow layouts can contain only central screens. Keep an existing sidebar authoritative.
+    const scopeRoute = sidebarRoute ?? currentRoute.state.routes.at(currentRoute.state.index ?? -1);
+    const currentParams: unknown = scopeRoute?.params;
     const targetParams = payload.params?.params;
     if (!scopeParams.length || !isRecord(currentParams) || !isRecord(targetParams)) {
         return;
