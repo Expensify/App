@@ -1,11 +1,8 @@
 /**
- * NumericInput – a composable numeric editing experience for symbol and
- * number-pad interactions.
+ * NumericInput – a composable numeric editing experience for symbol and number-pad interactions.
  *
- * The root owns the canonical value, the selection, and validation through the
- * same root-instantiated edit controller as NumericField. The symbol is a
- * primitive the composition places itself, in the order it wants and inside the
- * row it lays out.
+ * The root owns the canonical value, the selection, and validation through the same root-instantiated
+ * edit controller as NumericField. Primitives are placed by the composition, in the order and layout it wants.
  *
  * @example
  * ```tsx
@@ -16,16 +13,13 @@
  *   onInputChange={setAmount}
  *   decimals={2}
  * >
- *   <View style={[styles.flexRow, styles.alignItemsCenter]}>
+ *   <NumericInput.Container>
  *     <NumericInput.Symbol>$</NumericInput.Symbol>
  *     <NumericInput.TextInput />
- *   </View>
+ *   </NumericInput.Container>
  * </NumericInput>
  * ```
  *
- * A suffix symbol is the same composition with the symbol placed after the input. The `Container` primitive provides the
- * centered full-size amount layout when a composition needs the
- * legacy empty-area refocus behavior. The number pad, controls, and footer primitives arrive in a later PR.
  */
 import NumericInputComponent from './NumericInput';
 import NumericInputContainer from './primitives/NumericInputContainer';

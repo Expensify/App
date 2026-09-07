@@ -16,10 +16,7 @@ import type {MouseEvent} from 'react';
 import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
-/**
- * Renders the number itself. The root owns the canonical value, and the symbol primitive can be placed beside it by the
- * composition.
- */
+/** Renders the number itself, displaying and editing the canonical value owned by the root. */
 function NumericTextInput({
     style,
     ref,
@@ -52,7 +49,6 @@ function NumericTextInput({
     const {formattedNumber, inputRef, selection} = useNumericInputState();
     const {handleKeyPress, handleSelectionChange, setNumber} = useNumericInputActions();
 
-    // The browser needs the caret read from the element on press; native syncs it through the selection change event.
     const handlePress = useNumericPressSelection(onPress);
 
     const handleInputKeyPress = (event: NumericEditingKeyPressEvent) => {
@@ -104,6 +100,7 @@ function NumericTextInput({
             prefixCharacter={prefixCharacter}
             prefixContainerStyle={prefixContainerStyle}
             prefixStyle={prefixStyle}
+            // The root's ref drives focus and the web caret sync, so the caller's ref is merged into it.
             ref={mergeRefs(inputRef, ref)}
             selection={selection}
             shouldAllowFocusInLandscapeMode

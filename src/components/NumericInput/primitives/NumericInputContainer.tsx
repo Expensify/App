@@ -20,6 +20,7 @@ function NumericInputContainer({children, style, testID}: NumericInputContainerP
     const numberViewId = useId();
 
     const handleMouseDown = (event: MouseEvent<Element>) => {
+        // Only the container's own empty area refocuses the input. Presses bubbling up from children keep their caret.
         const targetId = isHTMLElement(event.nativeEvent?.target) ? event.nativeEvent.target.id : undefined;
         if (targetId !== numberViewId) {
             return;

@@ -51,7 +51,7 @@ type NumericTextInputProps = {
 >;
 
 type NumericSymbolProps = {
-    /** Symbol (currency or unit) rendered beside the number. The composition decides where it sits and whether it renders at all. */
+    /** Symbol (currency or unit) rendered beside the number. */
     children: ReactNode;
 
     /** Style applied to the symbol text, appended to the primitive's defaults. */

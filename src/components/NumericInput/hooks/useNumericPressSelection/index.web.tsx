@@ -7,8 +7,8 @@ function getSelectableElement(input: BaseTextInputRef | null): HTMLInputElement 
 }
 
 /**
- * The browser moves the caret on click without emitting a selection change, so the controlled selection would snap the
- * caret back to where it was. Reading the caret from the root's input element on press keeps the root selection in sync.
+ * The browser moves the caret on click without emitting a selection change, so the controlled selection would snap it
+ * back. Reading the caret from the input element on press keeps the root selection in sync.
  */
 function useNumericPressSelection(onPress?: BaseTextInputProps['onPress']): BaseTextInputProps['onPress'] {
     const {handleSelectionChange} = useNumericInputActions();

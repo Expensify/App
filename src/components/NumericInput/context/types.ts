@@ -4,30 +4,30 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {RefObject} from 'react';
 
 type NumericInputStateContextValue = {
-    /** The text the composed input displays, rendered with locale digits. */
+    /** Canonical value rendered with locale digits. */
     formattedNumber: string;
 
-    /** The selection to render, clamped to the displayed magnitude. */
+    /** Selection clamped to the displayed text. */
     selection: NumericEditingSelection;
 
-    /** The underlying text input, owned by the root. The text input primitive fills it in; the web caret sync reads the element from it. */
+    /** Underlying text input, filled in by the text input primitive and read by focus handling and the web caret sync. */
     inputRef: RefObject<BaseTextInputRef | null>;
 };
 
 type NumericInputActionsContextValue = {
-    /** Normalizes, validates, and commits the value displayed by the composed input. */
+    /** Normalizes, validates, and commits displayed text. */
     setNumber: (text: string) => void;
 
-    /** Collapses the current selection to its end. */
+    /** Places the caret at the selection end, clearing any highlighted range. */
     clearSelection: () => void;
 
-    /** Applies a native selection change, dropping the stale event emitted alongside a manual update. */
+    /** Applies a native selection change, dropping stale events from manual updates. */
     handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
 
-    /** Tracks forward-delete key presses. */
+    /** Tracks forward-delete key presses for caret positioning. */
     handleKeyPress: (event: NumericEditingKeyPressEvent) => void;
 
-    /** Focuses the underlying text input when a layout container is clicked. */
+    /** Focuses the underlying text input. */
     focusInput: () => void;
 };
 

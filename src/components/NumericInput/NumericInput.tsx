@@ -12,7 +12,7 @@ import type {NumericInputActionsContextValue, NumericInputStateContextValue} fro
 import {NumericInputActionsContext, NumericInputStateContext} from './context';
 
 type NumericInputProps = {
-    /** The canonical value shared by composed primitives. Only a reset to an empty string re-initializes the editing state. */
+    /** Canonical value shared by composed primitives. Only an empty value resets editing state. */
     value?: string;
 
     /** Called with the canonical value when a composed primitive changes it. */
@@ -24,9 +24,10 @@ type NumericInputProps = {
     /** Maximum number of integer digits accepted by the composer. */
     maxLength?: number;
 
-    /** Reference exposing the number editing imperative API. */
+    /** Ref exposing the number editing imperative API. */
     numericInputRef?: ForwardedRef<NumericEditingRef>;
 
+    /** Composed primitives that consume NumericInput state and actions through context. */
     children: ReactNode;
 };
 

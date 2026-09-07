@@ -3,11 +3,7 @@ import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-/**
- * Renders the symbol (currency or unit) displayed beside the number. The composition decides what the symbol is, where
- * it sits, and whether it renders at all, so the primitive only renders the styled symbol and leaves layout to its
- * parent.
- */
+/** Renders the symbol (currency or unit) displayed beside the number, leaving placement to the parent composition. */
 function NumericSymbol({children, textStyle}: NumericSymbolProps) {
     const styles = useThemeStyles();
 
