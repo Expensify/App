@@ -154,25 +154,21 @@ function RequireTwoFactorAuthenticationOverlay() {
                                     {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
                                 </Text>
                             </View>
-                            <View style={[styles.flexRow, styles.gap2, styles.alignSelfStretch]}>
-                                <View style={styles.flex1}>
-                                    <Button
-                                        size={CONST.BUTTON_SIZE.LARGE}
-                                        onPress={confirmSignOut}
-                                    >
-                                        <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
-                                    </Button>
-                                </View>
-                                <View style={styles.flex1}>
-                                    <Button
-                                        size={CONST.BUTTON_SIZE.LARGE}
-                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                        onPress={enableTwoFactorAuth}
-                                    >
-                                        <Button.KeyboardShortcut />
-                                        <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
-                                    </Button>
-                                </View>
+                            <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
+                                <Button
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                    onPress={confirmSignOut}
+                                >
+                                    <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
+                                </Button>
+                                <Button
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    onPress={enableTwoFactorAuth}
+                                >
+                                    <Button.KeyboardShortcut />
+                                    <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
+                                </Button>
                             </View>
                         </View>
                     </View>

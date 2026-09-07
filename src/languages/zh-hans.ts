@@ -2398,6 +2398,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copy: '复制',
         disable: '禁用',
         enableTwoFactorAuth: '启用双重身份验证',
+        enable2FA: '启用 2FA',
         pleaseEnableTwoFactorAuth: '请启用双重身份验证。',
         twoFactorAuthIsRequiredDescription: '出于安全原因，Xero 要求使用双重身份验证才能连接此集成。',
         twoFactorAuthIsRequiredForAdminsHeader: '需要启用双重身份验证',

@@ -2518,6 +2518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copy: 'Kopiuj',
         disable: 'Wyłącz',
         enableTwoFactorAuth: 'Włącz uwierzytelnianie dwuskładnikowe',
+        enable2FA: 'Włącz 2FA',
         pleaseEnableTwoFactorAuth: 'Włącz uwierzytelnianie dwuskładnikowe.',
         twoFactorAuthIsRequiredDescription: 'Ze względów bezpieczeństwa Xero wymaga uwierzytelniania dwuskładnikowego, aby połączyć integrację.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Wymagane uwierzytelnianie dwuskładnikowe',

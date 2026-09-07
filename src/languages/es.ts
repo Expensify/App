@@ -2412,6 +2412,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copy: 'Copiar',
         disable: 'Deshabilitar',
         enableTwoFactorAuth: 'Activar la autenticación de dos factores',
+        enable2FA: 'Activar 2FA',
         pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
         twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticación de dos factores requerida',
