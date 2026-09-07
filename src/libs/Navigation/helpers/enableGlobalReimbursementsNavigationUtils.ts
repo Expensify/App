@@ -85,7 +85,6 @@ function getEnableGlobalReimbursementsBusinessNavigationRoute(
 
 export type {EnableGlobalReimbursementsRouteParams};
 export {
-    ENABLE_GLOBAL_REIMBURSEMENTS_PATH_PREFIX,
     getDynamicBasePathFromNavigationPath,
     getEnableGlobalReimbursementsBusinessNavigationRoute,
     getEnableGlobalReimbursementsRootBackPath,
