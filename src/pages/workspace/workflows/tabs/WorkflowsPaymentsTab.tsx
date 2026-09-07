@@ -205,7 +205,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const bankAccountMenuItemProps: React.ComponentProps<typeof MenuItem> = {
         title: bankTitle,
         description: getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate),
-        onPress: canInteractWithBankAccountRow ? handleBankAccountPress : undefined,
+        onPress: canInteractWithBankAccountRow ? (handleFixValidationFailedPress ?? handleBankAccountPress) : undefined,
         displayInDefaultIconColor: true,
         icon: bankIcon.icon,
         iconHeight: bankIcon.iconHeight ?? bankIcon.iconSize,
