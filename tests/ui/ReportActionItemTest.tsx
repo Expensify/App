@@ -2863,7 +2863,7 @@ describe('ReportActionItem', () => {
         it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection 30 days', async () => {
             const CARD_ID_KEY = '100';
 
-            (openLink as jest.Mock).mockClear();
+            jest.mocked(openLink).mockClear();
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.CARD_LIST, {
                     [CARD_ID_KEY]: {cardID: 100, cardName: 'Broken Card', lastScrapeResult: 401},
