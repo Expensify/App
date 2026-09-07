@@ -15,7 +15,14 @@ import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
 import {getCategoryTaxRulesTableData} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {getExpenseDefaultRuleSummaryFields, getPolicyExpenseDefaultRules, getRuleFilterLeaves, isEditableMerchantRule, isExpenseDefaultTaxValue} from './ExpenseDefaultRuleUtils';
+import {
+    getExpenseDefaultRuleSummaryFields,
+    getPolicyExpenseDefaultRules,
+    getRuleFilterLeaves,
+    getRuleMerchantMatchSummary,
+    isEditableMerchantRule,
+    isExpenseDefaultTaxValue,
+} from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from './PolicyUtils';
 
@@ -134,10 +141,7 @@ function getMerchantRulesTableData({
         .sort((first, second) => ((second.rule.created ?? '') < (first.rule.created ?? '') ? -1 : 1))
         .map(({ruleID, rule}) => {
             const summaryFields = getExpenseDefaultRuleSummaryFields(rule);
-            const merchantName = getRuleFilterLeaves(rule.filters)
-                .filter((leaf) => leaf.left === FIELD.MERCHANT)
-                .flatMap((leaf) => [leaf.right].flat())
-                .join(', ');
+            const {merchants: merchantName} = getRuleMerchantMatchSummary(rule.filters);
 
             const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
             const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');

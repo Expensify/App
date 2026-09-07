@@ -353,6 +353,21 @@ function getRuleFilterLeaves(filters: RuleFilterNode | undefined): RuleFilterCom
     return [...getRuleFilterLeaves(filters.left), ...getRuleFilterLeaves(filters.right)];
 }
 
+/**
+ * Summarizes the merchants a rule matches on, for the condition text and the search index.
+ *
+ * Derived from the filter tree rather than from `getMerchantRuleFormValues`, so a rule the editor can't
+ * represent still shows what it matches and can still be found by merchant while staying read-only.
+ */
+function getRuleMerchantMatchSummary(filters: RuleFilterNode | undefined): {merchants: string; isExactMatch: boolean} {
+    const merchantLeaves = getRuleFilterLeaves(filters).filter((leaf) => leaf.left === FIELD.MERCHANT);
+
+    return {
+        merchants: merchantLeaves.flatMap((leaf) => [leaf.right].flat()).join(', '),
+        isExactMatch: merchantLeaves.length > 0 && merchantLeaves.every((leaf) => leaf.operator === EQUAL_TO),
+    };
+}
+
 /** A single field a rule sets, normalized for display. */
 type ExpenseDefaultRuleSummaryField = {
     /** The expense field being set */
@@ -439,6 +454,7 @@ export {
     getMerchantRuleFormValues,
     getPolicyExpenseDefaultRules,
     getRuleFilterLeaves,
+    getRuleMerchantMatchSummary,
     hasExpenseDefaultRuleErrors,
     isEditableMerchantRule,
     isExpenseDefaultRule,

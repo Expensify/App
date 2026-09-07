@@ -5,6 +5,7 @@ import {
     getMerchantRuleFormValues,
     getPolicyExpenseDefaultRules,
     getRuleFilterLeaves,
+    getRuleMerchantMatchSummary,
     hasExpenseDefaultRuleErrors,
     isExpenseDefaultRule,
 } from '@libs/ExpenseDefaultRuleUtils';
@@ -280,6 +281,62 @@ describe('ExpenseDefaultRuleUtils', () => {
 
         it('is false when no rule carries an error', () => {
             expect(hasExpenseDefaultRuleErrors({[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(merchantRuleBody)}, POLICY_ID)).toBe(false);
+        });
+    });
+
+    describe('getRuleMerchantMatchSummary', () => {
+        it('reads a single merchant leaf', () => {
+            expect(getRuleMerchantMatchSummary(merchantFilter)).toEqual({merchants: 'Starbucks', isExactMatch: false});
+        });
+
+        it('flags an exact match', () => {
+            expect(getRuleMerchantMatchSummary({left: FIELD.MERCHANT, operator: EQUAL_TO, right: 'Starbucks'})).toEqual({merchants: 'Starbucks', isExactMatch: true});
+        });
+
+        it('joins the values of a merchant leaf holding a list, which the editor cannot represent', () => {
+            const filters: RuleFilterComparison = {left: FIELD.MERCHANT, operator: EQUAL_TO, right: ['Starbucks', 'Costa']};
+
+            expect(getRuleMerchantMatchSummary(filters)).toEqual({merchants: 'Starbucks, Costa', isExactMatch: true});
+        });
+
+        it('joins the merchants of a nested tree, which the editor cannot represent', () => {
+            const filters: RuleFilterNode = {
+                left: merchantFilter,
+                operator: AND,
+                right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Costa'},
+            };
+
+            expect(getRuleMerchantMatchSummary(filters)).toEqual({merchants: 'Starbucks, Costa', isExactMatch: false});
+            // The same rule stays read-only, so the summary is the only thing the row can show.
+            expect(getMerchantRuleFormValues(asStoredRule({...merchantRuleBody, filters}))).toBeUndefined();
+        });
+
+        it('is not an exact match when the merchant leaves disagree on the operator', () => {
+            const filters: RuleFilterNode = {
+                left: {left: FIELD.MERCHANT, operator: EQUAL_TO, right: 'Starbucks'},
+                operator: OR,
+                right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Costa'},
+            };
+
+            expect(getRuleMerchantMatchSummary(filters).isExactMatch).toBe(false);
+        });
+
+        it('ignores leaves on other fields', () => {
+            const filters: RuleFilterNode = {
+                left: merchantFilter,
+                operator: AND,
+                right: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+            };
+
+            expect(getRuleMerchantMatchSummary(filters)).toEqual({merchants: 'Starbucks', isExactMatch: false});
+        });
+
+        it('is empty without a merchant leaf', () => {
+            expect(getRuleMerchantMatchSummary({left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'})).toEqual({merchants: '', isExactMatch: false});
+        });
+
+        it('is empty without filters', () => {
+            expect(getRuleMerchantMatchSummary(undefined)).toEqual({merchants: '', isExactMatch: false});
         });
     });
 

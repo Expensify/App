@@ -16,7 +16,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getExpenseDefaultRuleSummaryFields, getMerchantRuleFormValues, getPolicyExpenseDefaultRules, isExpenseDefaultTaxValue} from '@libs/ExpenseDefaultRuleUtils';
+import {
+    getExpenseDefaultRuleSummaryFields,
+    getMerchantRuleFormValues,
+    getPolicyExpenseDefaultRules,
+    getRuleMerchantMatchSummary,
+    isExpenseDefaultTaxValue,
+} from '@libs/ExpenseDefaultRuleUtils';
 import type {RuleWithID} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
@@ -112,7 +118,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
     const visibleRules = useMemo(() => sortedRules.filter(({rule}) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [sortedRules, isOffline]);
 
     const filterRule = (ruleWithID: RuleWithID, searchInput: string) =>
-        tokenizedSearch([ruleWithID], searchInput, () => [getMerchantRuleFormValues(ruleWithID.rule)?.merchantToMatch ?? '']).length > 0;
+        tokenizedSearch([ruleWithID], searchInput, () => [getRuleMerchantMatchSummary(ruleWithID.rule.filters).merchants]).length > 0;
 
     const [ruleSearchInput, setRuleSearchInput, filteredRules] = useSearchResults(visibleRules, filterRule);
 
@@ -158,9 +164,10 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                         // A rule the editor can't represent is listed but not opened - saving it back would drop
                         // whatever the form couldn't show. See `getMerchantRuleFormValues`.
                         const formValues = getMerchantRuleFormValues(rule);
-                        const merchantName = formValues?.merchantToMatch ?? '';
-                        const isExactMatch = formValues?.matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
-                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
+                        // Read off the filter tree, not the form values, so a rule the editor can't represent
+                        // still says what it matches instead of rendering an empty merchant.
+                        const {merchants, isExactMatch} = getRuleMerchantMatchSummary(rule.filters);
+                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchants, isExactMatch);
                         const ruleDescription = getRuleDescription(rule, translate, fieldLabels, policy);
 
                         return (
