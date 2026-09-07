@@ -28,6 +28,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
+jest.mock('@components/RenderHTML', () => {
+    function MockRenderHTML() {
+        return null;
+    }
+
+    return MockRenderHTML;
+});
+
 jest.mock('@components/ButtonComposed', () => {
     function MockButton({children}: {children: React.ReactNode}) {
         return mockReact.createElement('mock-button', null, children);
