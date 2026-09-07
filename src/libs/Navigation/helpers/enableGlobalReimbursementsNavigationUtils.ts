@@ -2,7 +2,7 @@
  * Route helpers for Enable Global Reimbursements in wallet settings or on search and report screens.
  */
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 import createDynamicRoute from './dynamicRoutesUtils/createDynamicRoute';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
