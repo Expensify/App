@@ -79,28 +79,25 @@ describe('NumericInput', () => {
             expect(screen.getByText('km')).toBeOnTheScreen();
         });
 
-        it('renders no button when the symbol is not pressable', () => {
+        it('renders a passive symbol without a button', () => {
             renderNumericInput({value: '12'}, <NumericInput.Symbol>$</NumericInput.Symbol>);
 
             expect(screen.getByText('$')).toBeOnTheScreen();
             expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: SYMBOL_ACCESSIBILITY_LABEL})).toHaveLength(0);
         });
 
-        it('calls onSymbolButtonPress when the pressable symbol is pressed', () => {
-            const onSymbolButtonPress = jest.fn();
+        it('calls onPress when the symbol button is pressed', () => {
+            const onPress = jest.fn();
             renderNumericInput(
                 {value: '12'},
-                <NumericInput.Symbol
-                    isSymbolPressable
-                    onSymbolButtonPress={onSymbolButtonPress}
-                >
+                <NumericInput.SymbolButton onPress={onPress}>
                     $
-                </NumericInput.Symbol>,
+                </NumericInput.SymbolButton>,
             );
 
             fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: SYMBOL_ACCESSIBILITY_LABEL}));
 
-            expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
+            expect(onPress).toHaveBeenCalledTimes(1);
         });
     });
 

@@ -56,17 +56,22 @@ type NumericTextInputProps = {
 >;
 
 type NumericSymbolProps = {
-    /** Symbol (currency or unit) rendered beside the number. The composition decides whether to render it at all. */
+    /** Symbol (currency or unit) rendered beside the number. The composition decides where it sits and whether it renders at all. */
     children: ReactNode;
-
-    /** Whether the symbol can be pressed. Prefer a dedicated currency control for new compositions. */
-    isSymbolPressable?: boolean;
-
-    /** Called when the symbol is pressed. Prefer a dedicated currency control for new compositions. */
-    onSymbolButtonPress?: () => void;
 
     /** Style applied to the symbol text, appended to the primitive's defaults. */
     textStyle?: StyleProp<TextStyle>;
 };
 
-export type {NumericInputContainerProps, NumericSymbolProps, NumericTextInputProps};
+type NumericSymbolButtonProps = {
+    /** Symbol (currency or unit) rendered inside the button. */
+    children: ReactNode;
+
+    /** Called when the symbol button is pressed. */
+    onPress?: () => void;
+
+    /** Style applied to the symbol text, appended to the primitive's defaults. */
+    textStyle?: StyleProp<TextStyle>;
+};
+
+export type {NumericInputContainerProps, NumericSymbolButtonProps, NumericSymbolProps, NumericTextInputProps};
