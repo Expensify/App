@@ -1303,7 +1303,7 @@ type SageIntacctConnectionData = {
     /** Collection of bank accounts */
     bankAccounts: SageIntacctDataElement[];
 
-    /** Expense accounts, the only ones a currency conversion cost can be charged to. Undefined until Integration-Server has synced them for the workspace. */
+    /** Expense accounts, the only ones a currency conversion cost can be charged to. */
     expenseAccounts?: SageIntacctDataElement[];
 
     /** Collection of vendors */
