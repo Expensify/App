@@ -47,7 +47,7 @@ type WorkspaceRoomsTableProps = {
     headerComponent?: React.ReactElement;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onEndReachedThreshold, onSortingChange, headerComponent}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onSortingChange, headerComponent}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -151,7 +151,6 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
             onSearchStringChange={onSearchStringChange}
             onSortingChange={onSortingChange}
             onEndReached={onEndReached}
-            onEndReachedThreshold={onEndReachedThreshold}
             ListFooterComponent={listFooterComponent}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
