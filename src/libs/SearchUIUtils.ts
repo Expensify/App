@@ -5330,16 +5330,54 @@ function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes) 
     }
 }
 
-function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
+/**
+ * Which expense `has:` options can apply for the current user, based on accessible workspaces.
+ * When `policies` is omitted, every option is treated as available (display/validation paths).
+ */
+function getHasOptionAvailability(policies?: OnyxCollection<OnyxTypes.Policy>, policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>) {
+    if (policies === undefined) {
+        return {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true};
+    }
+
+    let shouldShowTag = false;
+    let shouldShowCategory = false;
+    let shouldShowSubmittedViolation = false;
+
+    for (const policy of Object.values(policies)) {
+        if (!policy || !isGroupPolicy(policy)) {
+            continue;
+        }
+
+        shouldShowTag ||= policy.areTagsEnabled === true;
+        shouldShowCategory ||= policy.areCategoriesEnabled === true;
+        // Migrated Control workspaces leave areRulesEnabled undefined; fall back to Classic category rules.
+        shouldShowSubmittedViolation ||= arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined);
+
+        if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation) {
+            break;
+        }
+    }
+
+    return {shouldShowTag, shouldShowCategory, shouldShowSubmittedViolation};
+}
+
+/**
+ * Options for the `has:` filter / autocomplete. Tag, Category, and Submitted violation are omitted when
+ * no accessible workspace has the matching feature enabled. Pass `policies` from the picker and autocomplete;
+ * omit it for display/validation so already-selected values still resolve to labels.
+ */
+function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, policies?: OnyxCollection<OnyxTypes.Policy>, policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>) {
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE: {
+            const {shouldShowTag, shouldShowCategory, shouldShowSubmittedViolation} = getHasOptionAvailability(policies, policyCategories);
             return [
                 {text: translate('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
                 {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
-                {text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
-                {text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
-                {text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+                ...(shouldShowTag ? [{text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG}] : []),
+                ...(shouldShowCategory ? [{text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY}] : []),
+                ...(shouldShowSubmittedViolation ? [{text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}] : []),
             ];
+        }
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
                 {text: translate('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
@@ -6259,9 +6297,15 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
     return [];
 }
 
-function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: SearchDataTypes, translate: LocalizedTranslate) {
+function getMultiSelectFilterOptions(
+    filterKey: SearchAdvancedFiltersKey,
+    type: SearchDataTypes,
+    translate: LocalizedTranslate,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
+) {
     if (filterKey === FILTER_KEYS.HAS) {
-        return getHasOptions(translate, type);
+        return getHasOptions(translate, type, policies, policyCategories);
     }
 
     if (filterKey === FILTER_KEYS.IS) {

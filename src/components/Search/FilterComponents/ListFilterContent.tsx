@@ -1,6 +1,7 @@
 import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps, SearchTextFilterKeys} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isFilterNegatable} from '@libs/SearchQueryUtils';
@@ -8,6 +9,7 @@ import {getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/S
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -77,7 +79,10 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
 
 function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
-    const items = getMultiSelectFilterOptions(baseFilterKey, type, translate);
+    // Tag / Category / Submitted violation are only offered when an accessible workspace has that feature.
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const items = getMultiSelectFilterOptions(baseFilterKey, type, translate, baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS ? policies : undefined, policyCategories);
     const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
 
     return (

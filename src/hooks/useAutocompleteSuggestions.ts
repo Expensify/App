@@ -565,7 +565,7 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
-            const hasAutocompleteList = getHasOptions(translate, currentType);
+            const hasAutocompleteList = getHasOptions(translate, currentType, policies, allPolicyCategories);
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());
             });
