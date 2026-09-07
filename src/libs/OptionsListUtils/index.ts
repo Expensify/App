@@ -2771,6 +2771,23 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
     return filteredReports;
 }
 
+function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[]): boolean {
+    let searchText = `${report.text ?? ''}${report.login ?? ''}`;
+    if (report.isThread) {
+        searchText += report.alternateText ?? '';
+    } else if (report.isChatRoom) {
+        searchText += report.subtitle ?? '';
+    } else if (report.isPolicyExpenseChat) {
+        searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
+    } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
+        const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
+        searchText += participantsSearchText;
+    }
+    searchText = deburr(searchText.toLocaleLowerCase());
+
+    return searchTerms.every((term) => searchText.includes(term)) || filterReports([report], searchTerms).length > 0;
+}
+
 function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
     const filteredReports = searchTerms.reduceRight(
         (items, term) =>
@@ -3034,6 +3051,7 @@ export {
     createFilteredOptionList,
     hydrateContactOption,
     createOption,
+    doesReportMatchSearchTerms,
     filterAndOrderOptions,
     filterReports,
     filterSelfDMChat,

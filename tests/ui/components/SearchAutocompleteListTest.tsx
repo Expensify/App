@@ -6,7 +6,7 @@ import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 
 import useFilteredOptions from '@hooks/useFilteredOptions';
 
-import {combineOrderingOfReportsAndPersonalDetails, createOptionFromReport} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, createOptionFromReport, doesReportMatchSearchTerms} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import type {OptionData} from '@libs/ReportUtils';
 
@@ -17,6 +17,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../../utils/collections/reportActions';
+import {createRandomReport} from '../../utils/collections/reports';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -79,6 +80,7 @@ jest.mock('@libs/OptionsListUtils', () => ({
     })),
     combineOrderingOfReportsAndPersonalDetails: jest.fn(() => ({recentReports: [], personalDetails: []})),
     createOptionFromReport: jest.fn(),
+    doesReportMatchSearchTerms: jest.fn(() => false),
     getAlternateText: jest.fn(),
 }));
 
@@ -280,9 +282,18 @@ describe('SearchAutocompleteList', () => {
     it('does not display a report when only Auth matches its hidden email', async () => {
         const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
         const mockCreateOptionFromReport = jest.mocked(createOptionFromReport);
+        const mockDoesReportMatchSearchTerms = jest.mocked(doesReportMatchSearchTerms);
 
         // Given App has a report whose visible name is 123123 but does not match "a"
         mockCombineOrdering.mockReturnValue({recentReports: [], personalDetails: []});
+        mockCreateOptionFromReport.mockReturnValue({
+            reportID: '456',
+            keyForList: '456',
+            text: '123123',
+            alternateText: '',
+            lastMessageText: '',
+            item: createRandomReport(456, undefined),
+        });
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}456`, {reportID: '456'});
             await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['456']);
@@ -305,6 +316,7 @@ describe('SearchAutocompleteList', () => {
 
         // Then the report is not added to "Search results"
         expect(JSON.stringify(toJSON())).not.toContain('123123');
-        expect(mockCreateOptionFromReport).not.toHaveBeenCalled();
+        expect(mockCreateOptionFromReport).toHaveBeenCalled();
+        expect(mockDoesReportMatchSearchTerms).toHaveBeenCalledWith(expect.objectContaining({reportID: '456'}), ['a']);
     });
 });

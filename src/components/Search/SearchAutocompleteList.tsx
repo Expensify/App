@@ -24,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, createOptionFromReport, doesReportMatchSearchTerms, getSearchOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
@@ -435,6 +435,35 @@ function SearchAutocompleteList({
         }
 
         if (searchResultReportIDs && searchResultReportIDs.length > 0) {
+            const searchTerms = autocompleteQueryValue.split(' ').filter(Boolean);
+            const matchedReportIDs = new Set(reportOptions.map((option) => option.reportID).filter(Boolean));
+            for (const reportID of searchResultReportIDs) {
+                if (matchedReportIDs.has(reportID)) {
+                    continue;
+                }
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                if (!report) {
+                    continue;
+                }
+                const reportOption = createOptionFromReport({
+                    dateFnsLocale,
+                    convertToDisplayString,
+                    report,
+                    personalDetails,
+                    privateIsArchived: undefined,
+                    policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+                    sortedActions,
+                    conciergeReportID,
+                    visibleReportActionsData,
+                    isTrackIntentUser,
+                });
+                if (!doesReportMatchSearchTerms(reportOption, searchTerms)) {
+                    continue;
+                }
+                reportOptions.push(reportOption);
+                matchedReportIDs.add(reportID);
+            }
+
             const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
             const rankOf = (option: OptionData) => {
                 if (option.isSelfDM) {
@@ -446,7 +475,21 @@ function SearchAutocompleteList({
         }
 
         return searchResultReportIDs && searchResultReportIDs.length > 0 ? reportOptions : reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions, searchResultReportIDs]);
+    }, [
+        autocompleteQueryValue,
+        hasActiveSearchResults,
+        searchOptions,
+        searchResultReportIDs,
+        reports,
+        dateFnsLocale,
+        personalDetails,
+        policies,
+        sortedActions,
+        conciergeReportID,
+        visibleReportActionsData,
+        isTrackIntentUser,
+        convertToDisplayString,
+    ]);
 
     // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
