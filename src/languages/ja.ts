@@ -942,10 +942,10 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: 'ここから始めましょう！',
     },
     homePage: {
-        forYou: 'あなた向け',
+        toDos: 'To-do リスト',
         timeSensitiveSection: {
             title: '時間に敏感',
-            addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '住所を追加'},
+            addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '追加'},
             addPaymentCard: {title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください', subtitle: 'アカウント ＞ サブスクリプション', cta: '追加'},
             addBankAccount: {title: '銀行口座を追加して払い戻しを受け取りましょう'},
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
@@ -968,7 +968,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
             validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
-            addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '住所を追加'},
+            addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
                 workspaceTitle: 'ビジネス用銀行口座がロックされました',
@@ -976,7 +976,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'ウォレット',
             },
-            addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '詳細を追加'},
+            addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '追加'},
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
         },
         discoverSection: {
@@ -1106,7 +1106,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'あなたの支出',
             awaitingApproval: '承認待ち',
             repaidLast30Days: '過去30日間の返済',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
         recentlyAddedSection: {

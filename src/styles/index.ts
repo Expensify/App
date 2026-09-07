@@ -7285,15 +7285,12 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
-        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
-            ({
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: variables.componentBorderRadiusNormal,
-                width: variables.componentSizeNormal,
-                height: variables.componentSizeNormal,
-                backgroundColor,
-            }) satisfies ViewStyle,
+        widgetItemIconContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+        },
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({

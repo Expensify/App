@@ -970,7 +970,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: 'Ξεκινήστε εδώ!',
     },
     homePage: {
-        forYou: 'Για εσάς',
+        toDos: 'Εκκρεμότητες',
         timeSensitiveSection: {
             title: 'Χρονικά ευαίσθητο',
             ctaFix: 'Διόρθωση',
@@ -988,15 +988,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Χώρος εργασίας',
                 subtitle: ({policyName}: {policyName: string}) => policyName,
             },
-            addShippingAddress: {
-                title: 'Χρειαζόμαστε τη διεύθυνση αποστολής σας',
-                subtitle: 'Δώστε μια διεύθυνση για να λάβετε την Κάρτα Expensify.',
-                cta: 'Προσθήκη διεύθυνσης',
-            },
+            addShippingAddress: {title: 'Χρειαζόμαστε τη διεύθυνση αποστολής σας', subtitle: 'Δώστε μια διεύθυνση για να λάβετε την Κάρτα Expensify.', cta: 'Προσθήκη'},
             addVirtualCardPersonalDetails: {
                 title: 'Προσθέστε τα στοιχεία σας για να δείτε και να αρχίσετε να χρησιμοποιείτε την Κάρτα Expensify.',
                 subtitle: 'Κάρτα Expensify',
-                cta: 'Προσθέστε λεπτομέρειες',
+                cta: 'Προσθήκη',
             },
             addPaymentCard: {
                 title: 'Προσθέστε μια κάρτα πληρωμής για να συνεχίσετε να χρησιμοποιείτε το Expensify',
@@ -1022,7 +1018,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Λογαριασμός',
                 cta: 'Επικυρώστε',
             },
-            addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθήκη διεύθυνσης'},
+            addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθήκη'},
             fixFailedBilling: {
                 title: 'Δεν μπορέσαμε να χρεώσουμε την αποθηκευμένη κάρτα σας',
                 subtitle: 'Συνδρομή',
@@ -1058,7 +1054,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Οι δαπάνες σας',
             awaitingApproval: 'Εκκρεμεί έγκριση',
             repaidLast30Days: 'Εξοφλήθηκε τις τελευταίες 30 ημέρες',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `Πρόσφατες συναλλαγές • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Δείτε ακόμα ${count}`,
         discoverSection: {

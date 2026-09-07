@@ -951,10 +951,10 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: 'Starte hier!',
     },
     homePage: {
-        forYou: 'Für dich',
+        toDos: 'Aufgaben',
         timeSensitiveSection: {
             title: 'Zeitkritisch',
-            addShippingAddress: {title: 'Wir benötigen deine Versandadresse', subtitle: 'Geben Sie eine Adresse an, um Ihre Expensify Karte zu erhalten.', cta: 'Adresse hinzufügen'},
+            addShippingAddress: {title: 'Wir benötigen deine Versandadresse', subtitle: 'Geben Sie eine Adresse an, um Ihre Expensify Karte zu erhalten.', cta: 'Hinzufügen'},
             addPaymentCard: {title: 'Fügen Sie eine Zahlungskarte hinzu, um Expensify weiter zu nutzen', subtitle: 'Konto > Abonnement', cta: 'Hinzufügen'},
             addBankAccount: {title: 'Fügen Sie ein Bankkonto hinzu, um eine Erstattung zu erhalten'},
             activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
@@ -980,7 +980,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Wallet',
             },
             validateAccount: {title: 'Bestätigen Sie Ihr Konto', subtitle: 'Konto', cta: 'Bestätigen'},
-            addHomeAddress: {title: 'Fügen Sie Ihre Privatadresse zur Entfernungserfassung hinzu', subtitle: 'Konto', cta: 'Adresse hinzufügen'},
+            addHomeAddress: {title: 'Fügen Sie Ihre Privatadresse zur Entfernungserfassung hinzu', subtitle: 'Konto', cta: 'Hinzufügen'},
             fixFailedBilling: {title: 'Wir konnten Ihre hinterlegte Karte nicht belasten', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Ihr Geschäftskonto wurde gesperrt',
@@ -988,11 +988,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Geldbörse',
             },
-            addVirtualCardPersonalDetails: {
-                title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.',
-                subtitle: 'Expensify Karte',
-                cta: 'Details hinzufügen',
-            },
+            addVirtualCardPersonalDetails: {title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.', subtitle: 'Expensify Karte', cta: 'Hinzufügen'},
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
         },
         discoverSection: {
@@ -1122,7 +1118,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Ihre Ausgaben',
             awaitingApproval: 'Ausstehende Genehmigung',
             repaidLast30Days: 'Letzte 30 Tage zurückgezahlt',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `Aktuelle Transaktionen • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `${count} weitere anzeigen`,
         recentlyAddedSection: {

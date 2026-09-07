@@ -917,10 +917,10 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: '从这里开始！',
     },
     homePage: {
-        forYou: '为你',
+        toDos: '待办事项',
         timeSensitiveSection: {
             title: '时间敏感',
-            addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加地址'},
+            addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加'},
             addPaymentCard: {title: '添加支付卡以继续使用 Expensify', subtitle: '账户 ＞ 订阅', cta: '添加'},
             addBankAccount: {title: '添加银行账户以接收报销'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
@@ -943,7 +943,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
             validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
-            addHomeAddress: {title: '添加您的家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加地址'},
+            addHomeAddress: {title: '添加您的家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -951,7 +951,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: '钱包',
             },
-            addVirtualCardPersonalDetails: {title: '添加你的详细信息以查看并开始使用 Expensify 卡。', subtitle: 'Expensify 卡', cta: '添加详细信息'},
+            addVirtualCardPersonalDetails: {title: '添加你的详细信息以查看并开始使用 Expensify 卡。', subtitle: 'Expensify 卡', cta: '添加'},
             enterSignerInfo: {title: '需要签署人信息', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `银行账户 ${bankAccountLastFour}`},
         },
         discoverSection: {
@@ -1077,7 +1077,7 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravel: '设置差旅',
             setupTravelSubText: '配置差旅专用规则',
         },
-        yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
+        yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天已偿还'},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
         recentlyAddedSection: {title: '最近添加', viewAll: '查看所有报销费用', emptyStateTitle: '最近没有报销记录', emptyStateMessage: '创建一个或将收据拖到这里'},
         insightsSection: {chartUnavailable: '图表不可用', notEnoughData: '我们目前没有足够的数据来填充此图表'},

@@ -950,10 +950,10 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: 'Begin hier!',
     },
     homePage: {
-        forYou: 'Voor jou',
+        toDos: 'To-do’s',
         timeSensitiveSection: {
             title: 'Tijdgevoelig',
-            addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Adres toevoegen'},
+            addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Toevoegen'},
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
             addBankAccount: {title: 'Voeg een bankrekening toe om je terugbetaling te ontvangen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
@@ -979,7 +979,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portemonnee',
             },
             validateAccount: {title: 'Valideer je account', subtitle: 'Account', cta: 'Valideren'},
-            addHomeAddress: {title: 'Voeg je thuisadres toe voor afstandsregistratie', subtitle: 'Account', cta: 'Adres toevoegen'},
+            addHomeAddress: {title: 'Voeg je thuisadres toe voor afstandsregistratie', subtitle: 'Account', cta: 'Toevoegen'},
             fixFailedBilling: {title: 'We konden je kaart in ons bestand niet belasten', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Je zakelijke bankrekening is geblokkeerd',
@@ -987,11 +987,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portemonnee',
             },
-            addVirtualCardPersonalDetails: {
-                title: 'Voeg je gegevens toe om je Expensify Kaart te bekijken en te gebruiken.',
-                subtitle: 'Expensify Kaart',
-                cta: 'Details toevoegen',
-            },
+            addVirtualCardPersonalDetails: {title: 'Voeg je gegevens toe om je Expensify Kaart te bekijken en te gebruiken.', subtitle: 'Expensify Kaart', cta: 'Toevoegen'},
             enterSignerInfo: {title: 'Ondertekenaargegevens vereist', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankrekening ${bankAccountLastFour}`},
         },
         discoverSection: {
@@ -1121,7 +1117,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Je uitgaven',
             awaitingApproval: 'In afwachting van goedkeuring',
             repaidLast30Days: 'Terugbetaald afgelopen 30 dagen',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Bekijk nog ${count}`,
         recentlyAddedSection: {
