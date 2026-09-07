@@ -5987,6 +5987,48 @@ describe('ReportUtils', () => {
 
             expect(canDeleteMoneyRequestReport(expenseReport, [], [], currentUserAccountID, undefined)).toBe(true);
         });
+
+        it('should allow deletion as the policy admin', async () => {
+            const adminPolicy = createMock<Policy>({
+                id: 'report-id-123',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
+
+            const expenseReport: Report = {
+                reportID: 'policy-id-123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 777,
+                managerID: 888,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+                policyID: adminPolicy.id,
+            };
+
+            // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport, since it relies on the
+            // session subscription for currentUserAccountID.
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.SESSION}`,
+                    callback: () => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                    },
+                });
+            });
+
+            expect(canDeleteMoneyRequestReport(expenseReport, [], [], currentUserAccountID, adminPolicy)).toBe(true);
+        });
     });
 
     describe('isReportPendingDelete', () => {
