@@ -99,7 +99,13 @@ When **Payments** is enabled, you can set an **Authorized payer** even if no ban
 
 ## What happens after you set an authorized payer
 
-Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts. Other admins can still open a report and pay it.
+Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts.
+
+Any other Workspace Admin can still pay an approved report, whether or not a bank account is connected to the workspace. They'll see the **Pay** button on the report preview, in the report header, and on the **Reports** page under **Spend**—they're just never prompted to use it.
+
+Other admins pay from a business bank account they have access to, or select **Mark as paid** to record a payment made outside of Expensify. Paying from a different bank account does not change the workspace's connected bank account.
+
+Learn how to [pay expenses submitted on a workspace](/articles/new-expensify/wallet-and-payments/Pay-Expenses#who-can-pay-workspace-expenses).
 
 ---
 
