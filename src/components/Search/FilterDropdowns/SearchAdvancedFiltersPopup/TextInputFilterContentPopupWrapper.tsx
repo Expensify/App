@@ -7,7 +7,7 @@ import {isFilterNegatable} from '@libs/SearchQueryUtils';
 
 import React from 'react';
 
-function TextInputFilterContentPopupWrapper({baseFilterKey, value, isNegated, merchantOperator, onChange}: TextInputFilterContentWrapperProps) {
+function TextInputFilterContentPopupWrapper({baseFilterKey, value, isNegated, onChange}: TextInputFilterContentWrapperProps) {
     const styles = useThemeStyles();
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
 
@@ -16,7 +16,6 @@ function TextInputFilterContentPopupWrapper({baseFilterKey, value, isNegated, me
             baseFilterKey={baseFilterKey}
             value={value}
             isNegated={isNegated}
-            merchantOperator={merchantOperator}
             style={[isFilterKeyNegatable ? styles.pt6 : styles.pt5]}
             onChange={onChange}
         />
