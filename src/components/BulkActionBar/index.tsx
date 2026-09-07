@@ -183,39 +183,42 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
 
     // This layer spans the container, so laying it out measures the width the bar has to fit into.
     const [availableWidth, setAvailableWidth] = useState<number>();
-    const [inlineActionCount, setInlineActionCount] = useState<number>(startingActionCount);
+
+    // The width the bar took at each action count it has been laid out at. The bar is sized by its contents, so a given
+    // count always comes out the same width whatever the container is doing — which makes these worth keeping. Once a
+    // count has been measured, resizing picks the right one outright instead of laying the bar out to find it again.
+    const [measuredWidths, setMeasuredWidths] = useState<Record<number, number>>({});
     const [fitKey, setFitKey] = useState<string>();
 
-    // A measurement is tagged with the action count it was taken at, so it can be recognized as stale rather than
-    // discarded. `onLayout` only fires when a view's size changes, so a measurement thrown away while the bar happens
-    // to stay the same size is never replaced — which would leave the bar hidden for good.
-    const [measurement, setMeasurement] = useState<{width: number; actionCount: number}>();
-
-    // The width the bar has to stay within, keeping it clear of the container's edges rather than flush against them.
-    //
-    // The fit is derived rather than decided in a layout handler: the bar and the layer around it are laid out in
-    // whichever order the platform chooses, so this has to re-run whenever either measurement lands.
-    const widthBudget = availableWidth === undefined ? undefined : availableWidth - CONST.BULK_ACTION_BAR.EDGE_MARGIN;
-
-    const currentFitKey = `${availableWidth}|${options.length}|${startingActionCount}`;
-    const isMeasurementCurrent = measurement?.actionCount === inlineActionCount;
-    const isOverflowing = isMeasurementCurrent && widthBudget !== undefined && measurement.width > widthBudget;
+    // The measurements describe one particular set of buttons, so they are dropped when that set changes. The
+    // container's width is deliberately not part of this: it changes on every frame of a resize, and throwing the
+    // measurements away that often is what makes the bar lay itself out wide before shedding back down.
+    const currentFitKey = `${options.map((option) => option.text).join('|')}|${startingActionCount}`;
 
     if (currentFitKey !== fitKey) {
-        // The space, the action list or the breakpoint changed, so start again from the top: a container that grew can
-        // fill back up, and a shrunken one sheds again. Any measurement taken at that count still applies.
         setFitKey(currentFitKey);
-        setInlineActionCount(startingActionCount);
-    } else if (isOverflowing && inlineActionCount > 0) {
-        // Shedding an action always makes the bar narrower, so this settles rather than oscillating. Changing the count
-        // changes the bar's size, so a fresh measurement is guaranteed to follow.
-        setInlineActionCount(inlineActionCount - 1);
+        setMeasuredWidths({});
     }
 
-    // Shown straight away at the starting count, so a container with the room for it needs no measuring pass to appear.
-    // It is only hidden once a measurement says it overflows and there is still an action to shed, which is the one case
-    // where what is on screen is about to be replaced.
-    const hasSettled = !(isOverflowing && inlineActionCount > 0);
+    // The width the bar has to stay within, keeping it clear of the container's edges rather than flush against them.
+    const widthBudget = availableWidth === undefined ? undefined : availableWidth - CONST.BULK_ACTION_BAR.EDGE_MARGIN;
+
+    // Shed from the starting count until the bar is known to fit. A count that has never been measured is assumed to
+    // fit, so a roomy container draws the bar at full width immediately rather than measuring its way up to it. Since
+    // dropping an action only ever makes the bar narrower, this walks in one direction and settles.
+    let inlineActionCount = startingActionCount;
+    while (inlineActionCount > 0 && widthBudget !== undefined && (measuredWidths[inlineActionCount] ?? 0) > widthBudget) {
+        inlineActionCount -= 1;
+    }
+
+    // Laying out a count for the first time is a guess that may not survive its own measurement, so it is kept hidden
+    // until it lands — otherwise a bar that turns out to be too wide is briefly on screen at that width. The exception
+    // is the very first layout of all, which shows immediately: there is nothing on screen yet for a correction to
+    // disturb, and waiting for a measurement there is what would make the bar late to appear.
+    //
+    // A hidden layout is always resolved: changing the count changes the bar's width, so its `onLayout` is certain to
+    // follow, and every count below one already measured has itself been measured on the way down.
+    const hasSettled = measuredWidths[inlineActionCount] !== undefined || Object.keys(measuredWidths).length === 0;
 
     // The bar appears where nothing was before, so it springs up into place to draw the eye there, the same way the
     // report's floating message counter animates itself in. It waits for the fitting pass so the motion is only ever
@@ -257,7 +260,7 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
                         onSubItemSelected={onSubItemSelected}
                         barRef={barRef}
                         inlineActionCount={inlineActionCount}
-                        onBarLayout={(width) => setMeasurement({width, actionCount: inlineActionCount})}
+                        onBarLayout={(width) => setMeasuredWidths((widths) => (widths[inlineActionCount] === width ? widths : {...widths, [inlineActionCount]: width}))}
                     />
                 </ThemeStylesProvider>
             </ThemeProvider>
