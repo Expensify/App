@@ -1,8 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Text from '@components/Text';
 
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
@@ -18,32 +16,18 @@ import type {TokenizationStatus} from '@expensify/react-native-wallet';
 
 import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
 import React, {useCallback, useEffect, useState} from 'react';
-import {Alert, View} from 'react-native';
+import {Alert} from 'react-native';
 
 import type AddToWalletButtonProps from './types';
 
+import useIsCardInWallet from './useIsCardInWallet';
+
 function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
     const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
-    const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
-    const {translate} = useLocalize();
-    const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
     const isIOS = getPlatform() === CONST.PLATFORM.IOS;
-    const platform = isIOS ? 'Apple' : 'Google';
     const styles = useThemeStyles();
-
-    const checkIfCardIsInWallet = useCallback(() => {
-        isCardInWallet(card)
-            .then((result) => {
-                setIsInWallet(result);
-            })
-            .catch(() => {
-                setIsInWallet(false);
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }, [card]);
+    const {isInWallet, isLoading: isCardLoading, isCardAvailable} = useIsCardInWallet(card);
 
     const handleOnPress = useCallback(() => {
         setIsLoading(true);
@@ -71,24 +55,6 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
             return;
         }
 
-        checkIfCardIsInWallet();
-    }, [checkIfCardIsInWallet, isCardAvailable, card]);
-
-    // Recheck card status when app regains focus in case user manually adds card to wallet outside the app
-    useAppFocusEvent(
-        useCallback(() => {
-            if (!isCardAvailable) {
-                return;
-            }
-            checkIfCardIsInWallet();
-        }, [checkIfCardIsInWallet, isCardAvailable]),
-    );
-
-    useEffect(() => {
-        if (!isCardAvailable) {
-            return;
-        }
-
         checkIfWalletIsAvailable()
             .then((result) => {
                 setIsWalletAvailable(result);
@@ -98,20 +64,12 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
             });
     }, [isCardAvailable]);
 
-    if (!isWalletAvailable || isInWallet == null || !isCardAvailable) {
+    if (!isWalletAvailable || isInWallet == null || isInWallet || !isCardAvailable) {
         return null;
     }
 
-    if (isLoading) {
+    if (isLoading || isCardLoading) {
         return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
-    }
-
-    if (isInWallet) {
-        return (
-            <View style={style}>
-                <Text style={[styles.textLabelSupporting, styles.mt6]}>{translate('cardPage.cardAddedToWallet', {platform})}</Text>
-            </View>
-        );
     }
 
     // The system provides control over the correct appearance and language

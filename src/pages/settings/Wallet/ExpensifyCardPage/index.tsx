@@ -1,6 +1,7 @@
 import cardScarf from '@assets/images/card-scarf.svg';
 
 import ActivityIndicator from '@components/ActivityIndicator';
+import AddToWalletStatusText from '@components/AddToWalletButton/AddToWalletStatusText';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/ButtonComposed';
 import CardPreview from '@components/CardPreview';
@@ -614,6 +615,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
                                             }
                                         }}
+                                    />
+                                )}
+                                {cardToAdd !== undefined && (
+                                    <AddToWalletStatusText
+                                        card={cardToAdd}
+                                        style={styles.pv3}
                                     />
                                 )}
                                 {shouldShowActionRows && (
