@@ -69,7 +69,7 @@ You can use the following operators to filter expenses:
 - `category:` – expense category label
 - `tag:` – tag or multiple tags
 - `amount:` / `purchase-amount:` – supports `=`, `>`, `<`, `>=`, `<=`
-- `status:` – unreported, draft, outstanding, approved, paid, done
+- `status:` – unreported, drafts, outstanding, approved, paid, done
 - `date:` – expense date, supports relative dates like `date:this-month`, `date:last-month`, `date:year-to-date`, `date:this-week`. Also supports comparisons (`date>=2024-01-01 date<=2024-01-31`) for date ranges
 - `has:` – attachment, receipt, category, tag
 - `expense-type:` – cash, card, distance, per-diem
@@ -91,7 +91,7 @@ You can use the following operators to filter expenses:
 You can use the following operators to filter reports:
 
 - `report-id:` – unique report reference
-- `status:` – draft, outstanding, approved, paid, done
+- `status:` – drafts, outstanding, approved, paid, done
 - `submitted:` / `approved:` / `paid:` / `exported:` – supports absolute or relative dates, and comparisons for date ranges (e.g., `submitted>=2024-01-01 submitted<=2024-01-31`)
 - `exported-to:` – filter by where reports or expenses were exported, such as a connected accounting integration.
 - `title:` – report title
@@ -232,6 +232,12 @@ Yes, but only when they make sense together. For example, combining `type:expens
 ## What happens if I enter an invalid operator?
 
 If the search operator isn’t recognized, the system will ignore it and return results based on any valid parts of the query.
+
+## What happens if I enter a status value that isn’t supported?
+
+Unsupported `status:` values are ignored, so the status filter doesn’t narrow your results and you see everything that matches the rest of your query. For example, `all` isn’t a supported status value, so `type:expense status:all` returns your expenses in every status.
+
+If you combine a supported value with an unsupported one, only the supported value applies. For example, `type:expense status:all,outstanding` returns only outstanding expenses.
 
 ## Do I need to use quotes for everything?
 
