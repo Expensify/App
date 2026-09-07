@@ -69,6 +69,12 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
         .at(0);
     const hasAdminPolicies = !!firstAdminPolicy;
 
+    const canEnableCardPreferredWorkspace = preferredWorkspace && isDomainUsingCard;
+    // Derive the effective value instead of trusting the local state alone: if the domain loses its card feed while
+    // the page is open (e.g. the feed is removed from another device), the setting must not stay on. Otherwise the
+    // toggle would render on but locked, and the group would be created with a stale "on" value.
+    const isCardPreferredWorkspaceActive = expensifyCardPreferredWorkspace && canEnableCardPreferredWorkspace;
+
     useEffect(() => {
         return () => {
             clearDomainGroupCreatePreferredPolicyID();
@@ -112,7 +118,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                                 enableStrictPolicyRules: strictlyEnforceWorkspaceRules,
                                 enableRestrictedPrimaryPolicy: preferredWorkspace,
                                 restrictedPrimaryPolicyID: preferredPolicyID ?? firstAdminPolicy?.id,
-                                overridePreferredPolicyWithCardPolicy: expensifyCardPreferredWorkspace,
+                                overridePreferredPolicyWithCardPolicy: isCardPreferredWorkspaceActive,
                             },
                             defaultGroupForNewMembers,
                             defaultSecurityGroupID,
@@ -215,8 +221,8 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.expensifyCardPreferredWorkspace')}
                         subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}
                         switchAccessibilityLabel={translate('domain.groups.expensifyCardPreferredWorkspace')}
-                        isActive={expensifyCardPreferredWorkspace}
-                        disabled={!preferredWorkspace || !isDomainUsingCard}
+                        isActive={isCardPreferredWorkspaceActive}
+                        disabled={!canEnableCardPreferredWorkspace}
                         disabledAction={() => {
                             // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
                             if (isCardEligibilityLoading) {
