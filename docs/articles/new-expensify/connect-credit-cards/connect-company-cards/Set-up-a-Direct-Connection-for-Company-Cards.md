@@ -69,6 +69,20 @@ New cards will then be available for assignment.
 
 If you receive an error while connecting your bank or card provider, [find the error and follow the recommended troubleshooting steps](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error).
 
+## What should I do if I can't connect to my bank?
+
+If you have trouble connecting American Express, Bank of America, Brex, Capital One, Chase, Citibank, Stripe, or Wells Fargo using the connection shown in the bank list, try connecting through Plaid using the **Other** option instead:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace name]**.
+2. Select **Company cards**.
+3. Select **Add cards**.
+ - If you don't see **Add cards**, select your existing company card connection, then select **Add cards**.
+4. Choose the country your bank is located in and select **Next**.
+5. Select **Other**, then search for and select your bank or card provider.
+6. Follow the prompts to authenticate the connection using the master online banking credentials for your organization.
+
+If you're still unable to connect to your bank, you can [import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/connect-company-cards/Import-Company-Card-Transactions-From-a-Spreadsheet) instead.
+
 ## Can I connect the same company card account across different workspaces?
 
 Yes, direct connections can be shared across workspaces. [Learn how to share a company card connection across workspaces](/articles/new-expensify/connect-credit-cards/connect-company-cards/Share-a-Company-Card-Connection-Across-Workspaces).
