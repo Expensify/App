@@ -175,6 +175,7 @@ Open a report to see available actions.
 - **Export** → sends report data externally
 - **Reject** → sends report back for updates
 - **Unapprove** → reopens the report before payment
+- **Cancel payment** → returns the report to the status it had before payment, such as **Approved** or **Done**, and adds a message in the report chat recording the cancellation
 
 ---
 
@@ -187,6 +188,12 @@ An error message appears with next steps. You can fix the issue and retry the ex
 ## Why can’t I cancel a payment?
 
 Payments can only be canceled before processing begins. Manual payments cannot be canceled.
+
+## How can I tell that a payment was canceled?
+
+Open the report and look for the message in the report chat that records the cancellation. That message is the only place a canceled payment is reported.
+
+The report itself returns to the status it had before payment, so its status badge reads **Approved** or **Done** rather than **Paid**. Expensify does not add a separate canceled label to the report preview, the expense, or the expense count beside the status badge.
 
 ## Why can’t I see “Bypass approvers”?
 
