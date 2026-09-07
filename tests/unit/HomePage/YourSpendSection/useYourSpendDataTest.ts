@@ -495,9 +495,7 @@ describe('useYourSpendData — cardRows', () => {
 
         const {result} = renderHook(() => useYourSpendData());
 
-        expect(result.current.cardRows).toEqual([
-            expect.objectContaining({cardID: CARD_ID_1, lastFour: CARD_LAST_FOUR_1, total: 1500, currency: 'USD', query: CARD_QUERY_1}),
-        ]);
+        expect(result.current.cardRows).toEqual([expect.objectContaining({cardID: CARD_ID_1, lastFour: CARD_LAST_FOUR_1, total: 1500, currency: 'USD', query: CARD_QUERY_1})]);
     });
 
     it('shows the combo card row when only the virtual half of the duo has spend', () => {
