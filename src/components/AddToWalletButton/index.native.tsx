@@ -28,8 +28,8 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     const {translate} = useLocalize();
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
-    const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
     const isIOS = getPlatform() === CONST.PLATFORM.IOS;
+    const platform = isIOS ? 'Apple' : 'Google';
     const styles = useThemeStyles();
 
     const checkIfCardIsInWallet = useCallback(() => {

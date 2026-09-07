@@ -402,13 +402,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             </CardDetailsActionButtons>
                         )}
                         {cardToAdd !== undefined && (
-                            <View style={[styles.alignItemsCenter, styles.mb6, styles.mt7]}>
-                                <AddToWalletButton
-                                    card={cardToAdd}
-                                    cardHolderName={displayName ?? ''}
-                                    cardDescription={expensifyCardTitle}
-                                />
-                            </View>
+                            <AddToWalletButton
+                                card={cardToAdd}
+                                cardHolderName={displayName ?? ''}
+                                cardDescription={expensifyCardTitle}
+                                style={[styles.alignSelfCenter, styles.mb6, styles.mt7]}
+                            />
                         )}
                         {shouldShowChangePINRow && isCardPINBlocked && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mb5]}>

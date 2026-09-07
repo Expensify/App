@@ -82,6 +82,4 @@ function CardAddedToWalletPage({
     );
 }
 
-CardAddedToWalletPage.displayName = 'CardAddedToWalletPage';
-
 export default CardAddedToWalletPage;
