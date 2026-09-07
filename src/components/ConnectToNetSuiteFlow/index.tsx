@@ -96,6 +96,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
                 anchorPosition={reuseConnectionPopoverPosition}
                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                 anchorRef={threeDotsMenuContainerRef}
+                enableEdgeToEdgeBottomSafeAreaPadding
             />
         );
     }

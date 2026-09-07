@@ -13,7 +13,9 @@
  *
  * <MenuItem.Root onPress={onNavigate}>
  *     <MenuItem.Row>
- *         <MenuItem.Icon src={icons.Gear} />
+ *         <MenuItem.Leading>
+ *             <MenuItem.Icon src={icons.Gear} />
+ *         </MenuItem.Leading>
  *         <MenuItem.Content>
  *             <MenuItem.Title>{translate('common.settings')}</MenuItem.Title>
  *         </MenuItem.Content>
@@ -25,24 +27,30 @@
  * ```
  */
 import MenuItemContent from './layout/MenuItemContent';
+import MenuItemLeading from './layout/MenuItemLeading';
 import MenuItemRoot from './layout/MenuItemRoot';
 import MenuItemRow from './layout/MenuItemRow';
 import MenuItemTrailing from './layout/MenuItemTrailing';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
-import MenuItemDescription from './leaves/text/MenuItemDescription';
+import MenuItemDescription from './leaves/text/description/MenuItemDescription';
+import MenuItemDescriptionPlaceholder from './leaves/text/description/MenuItemDescriptionPlaceholder';
 import MenuItemTitle from './leaves/text/MenuItemTitle';
 import MenuItemChevron from './leaves/trailing/MenuItemChevron';
+import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
 
 const MenuItem = Object.assign(LegacyMenuItem, {
     Root: MenuItemRoot,
     Row: MenuItemRow,
+    Leading: MenuItemLeading,
     Content: MenuItemContent,
     Trailing: MenuItemTrailing,
     Icon: MenuItemIcon,
     Title: MenuItemTitle,
     Description: MenuItemDescription,
+    DescriptionPlaceholder: MenuItemDescriptionPlaceholder,
     Chevron: MenuItemChevron,
+    RightLabel: MenuItemRightLabel,
 });
 
 export default MenuItem;

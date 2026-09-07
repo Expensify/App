@@ -25,9 +25,11 @@ Follow these steps to build an expense report manually.
 1. Open an expense report that includes at least one expense.
 2. Select **Submit**.
 
-After submitting, the report status updates and a **”submitted”** entry appears in the activity at the bottom of the report. For details on what each report status means, see [Understanding Report Statuses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
+After submitting, the report status updates and a **”submitted”** entry appears in the activity at the bottom of the report. For details on what each report status means, see [Understanding Report Statuses](/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
 
 **Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**. 
+
+**Note:** If some expenses on the report are on hold when you submit, the held expenses move to a new report in the **Draft** state, while the unheld expenses stay on the submitted report.
 
 ---
 
@@ -161,7 +163,7 @@ Examples:
 - Add the expenses to the report.
 - Submit the report based on your internal process.
 
-**Note:** You can only include expenses captured in your own account. Expenses can’t be transferred between members. To manage or submit a report from another account, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access).
+**Note:** You can only include expenses captured in your own account. Expenses can’t be transferred between members. To manage or submit a report from another account, ask them to add you as a [Copilot](articles/new-expensify/settings/Copilot-Access).
 
 ---
 
@@ -169,7 +171,7 @@ Examples:
 
 ## How can an Admin take these actions for another member?
 
-Workspace Admins can create reports on behalf of members by moving expenses to a new report. Workspace Admins can also submit and reject reports for members within their Workspace. If you are not a Workspace Admin and need to submit or manage someone else's reports, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access).
+Workspace Admins can create reports on behalf of members by moving expenses to a new report. Workspace Admins can also submit and reject reports for members within their Workspace. If you are not a Workspace Admin and need to submit or manage someone else's reports, ask them to add you as a [Copilot](/articles/new-expensify/settings/Copilot-Access).
 
 ## What happens if I forget to submit a report?
 
@@ -182,6 +184,14 @@ The **Submit** button only appears once your report includes at least one valid 
 ## Why can’t I submit a report with pending Expensify Card transactions?
 
 If all transactions on your report are pending Expensify Card transactions, the report can't be submitted yet. The **Submit** button won't appear, and the report isn't counted in your **Submit** to-do. Pending transactions may take a few days to post. After at least one transaction has posted, the **Submit** button appears again and you can submit the report.
+
+## What happens to held expenses when I submit a report?
+
+When you submit a report that has a mix of held and unheld expenses, the held expenses move to a new report in the **Draft** state, and only the unheld expenses stay on the submitted report. You can submit the held expenses later once you take them off hold.
+
+## Why can’t I submit a report when all expenses are on hold?
+
+If every expense on the report is on hold, you’ll see the message **Unable to submit report**. Take at least one expense off hold, then submit the report again.
 
 ## Can I remove an expense after submitting?
 

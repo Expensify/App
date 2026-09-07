@@ -70,6 +70,7 @@ const createMonthListItem = (year: number, month: number, options: Partial<Trans
     year,
     month,
     formattedMonth: options.formattedMonth ?? `January ${year}`,
+    shortFormattedMonth: options.shortFormattedMonth ?? `Jan ’${String(year).slice(-2)}`,
     count: options.count ?? 5,
     currency: options.currency ?? 'USD',
     total: options.total ?? 250,
