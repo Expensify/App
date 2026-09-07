@@ -95,8 +95,8 @@ type WriteMockCall = [string, Record<PropertyKey, unknown>, unknown?];
 
 const isWriteMockCallForCommand =
     (command: string) =>
-    (call: unknown[]): call is WriteMockCall =>
-        call.at(0) === command && isObject(call.at(1));
+    (call: unknown): call is WriteMockCall =>
+        Array.isArray(call) && call.at(0) === command && isObject(call.at(1));
 
 OnyxUpdateManager();
 describe('actions/Duplicate', () => {
@@ -2019,7 +2019,7 @@ describe('actions/Duplicate', () => {
 
             await waitForBatchedUpdates();
 
-            const trackExpenseCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            const trackExpenseCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
             expect(trackExpenseCall).toBeDefined();
             expect(trackExpenseCall?.[1]).toEqual(
                 expect.objectContaining({
@@ -2099,9 +2099,9 @@ describe('actions/Duplicate', () => {
 
             await waitForBatchedUpdates();
 
-            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
+            const distanceCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
             expect(distanceCall).toBeDefined();
-            expect(writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE))).toBeUndefined();
+            expect((writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE))).toBeUndefined();
             expect(distanceCall?.[1]).toEqual(
                 expect.objectContaining({
                     distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
@@ -2699,7 +2699,7 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             // Then the API should have been called with REQUEST_MONEY
-            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
 
             // And the transactionThreadReportID in the API call should NOT be the childReportID
@@ -2755,8 +2755,8 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             // Then the API should have been called with TRACK_EXPENSE instead of REQUEST_MONEY
-            const trackExpenseCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
-            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const trackExpenseCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            const requestMoneyCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
 
             expect(trackExpenseCall).toBeDefined();
             expect(requestMoneyCall).toBeUndefined();
@@ -3047,7 +3047,7 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
 
-            const createReportCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_APP_REPORT));
+            const createReportCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_APP_REPORT));
             expect(createReportCall?.[1]).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -3202,7 +3202,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
 
             const today = new Date().toISOString().slice(0, 10);
@@ -3217,7 +3217,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([txWithReceipt]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]).toEqual(expect.objectContaining({receipt: undefined}));
         });
@@ -3231,7 +3231,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]).toEqual(expect.objectContaining({merchant: 'Modified Merchant'}));
         });
@@ -3244,7 +3244,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx1, tx2, tx3]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCalls = (writeSpy.mock.calls as unknown[][]).filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(3);
 
             const firstPreviewID = requestMoneyCalls.at(0)?.[1]?.reportPreviewReportActionID;
@@ -3261,7 +3261,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx1, tx2]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCalls = (writeSpy.mock.calls as unknown[][]).filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(2);
 
             const firstChatReportID = requestMoneyCalls.at(0)?.[1]?.chatReportID;
@@ -3319,7 +3319,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([splitDistanceTx]));
             await waitForBatchedUpdates();
 
-            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
+            const distanceCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
             expect(distanceCall).toBeDefined();
             expect(distanceCall?.[1]).toEqual(expect.objectContaining({waypoints: 'null'}));
         });
@@ -3343,7 +3343,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([distanceTx]));
             await waitForBatchedUpdates();
 
-            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
+            const distanceCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
             expect(distanceCall).toBeDefined();
 
             const waypoints = distanceCall?.[1]?.waypoints;
@@ -3404,7 +3404,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]).toEqual(
                 expect.objectContaining({
@@ -3435,7 +3435,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([splitDistanceTx]));
             await waitForBatchedUpdates();
 
-            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
+            const distanceCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
             expect(distanceCall).toBeDefined();
 
             let duplicatedTransactions: Transaction[] = [];
@@ -3460,7 +3460,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]?.modifiedAmount).toBeUndefined();
         });
@@ -3482,7 +3482,7 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx1, tx2]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCalls = (writeSpy.mock.calls as unknown[][]).filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(2);
 
             for (const call of requestMoneyCalls) {
@@ -3643,8 +3643,8 @@ describe('actions/Duplicate', () => {
 
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
-            const trackExpenseCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            const requestMoneyCalls = (writeSpy.mock.calls as unknown[][]).filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const trackExpenseCalls = (writeSpy.mock.calls as unknown[][]).filter(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
             expect(requestMoneyCalls).toHaveLength(1);
             expect(trackExpenseCalls).toHaveLength(1);
             expect(requestMoneyCalls.at(0)?.[1].shouldDeferAutoSubmit).toBeFalsy();
@@ -3998,7 +3998,7 @@ describe('actions/Duplicate', () => {
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
 
-            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]?.chatReportID).toBe(ACTIVE_PEC_REPORT_ID);
         });
@@ -4034,7 +4034,7 @@ describe('actions/Duplicate', () => {
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
 
-            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]?.chatReportID).toBe(ACTIVE_PEC_REPORT_ID);
         });
@@ -4216,7 +4216,7 @@ describe('actions/Duplicate', () => {
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
 
-            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const requestMoneyCall = (writeSpy.mock.calls as unknown[][]).find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCall).toBeDefined();
             expect(requestMoneyCall?.[1]?.chatReportID).toBe('parentChat');
         });

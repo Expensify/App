@@ -1002,7 +1002,7 @@ describe('actions/Domain', () => {
 
         it('calls APIModule.write with CHANGE_DOMAIN_SECURITY_GROUP command', () => {
             const apiWriteSpy = jest.mocked(APIModule.write);
-            apiWriteSpy.mockImplementation(() => {});
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
@@ -1012,7 +1012,7 @@ describe('actions/Domain', () => {
 
         it('passes correct parameters to APIModule.write', () => {
             const apiWriteSpy = jest.mocked(APIModule.write);
-            apiWriteSpy.mockImplementation(() => {});
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
             const [, parameters] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
@@ -1027,7 +1027,7 @@ describe('actions/Domain', () => {
 
         it('optimisticData moves account from current to target security group and sets pending action', () => {
             const apiWriteSpy = jest.mocked(APIModule.write);
-            apiWriteSpy.mockImplementation(() => {});
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
             const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
@@ -1058,7 +1058,7 @@ describe('actions/Domain', () => {
 
         it('successData clears pending action and errors for the member', () => {
             const apiWriteSpy = jest.mocked(APIModule.write);
-            apiWriteSpy.mockImplementation(() => {});
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
             const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
@@ -1073,7 +1073,7 @@ describe('actions/Domain', () => {
 
         it('failureData reverts domain state, clears pending action and sets move member error', () => {
             const apiWriteSpy = jest.mocked(APIModule.write);
-            apiWriteSpy.mockImplementation(() => {});
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
             const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
@@ -1091,7 +1091,7 @@ describe('actions/Domain', () => {
 
         it('extracts newID correctly from targetSecurityGroupKey', () => {
             const apiWriteSpy = jest.mocked(APIModule.write);
-            apiWriteSpy.mockImplementation(() => {});
+            apiWriteSpy.mockImplementation(() => Promise.resolve());
             const customTargetKey: SecurityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}999`;
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, customTargetKey);
 
