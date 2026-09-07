@@ -1,6 +1,8 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 
+import useConfirmModal from '@hooks/useConfirmModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -33,6 +35,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountLoading = account?.isLoading;
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
 
     useEffect(() => {
         const sessionEmail = session?.email;
@@ -68,7 +72,17 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         // Even if the user was already authenticated in NewDot, we need to reauthenticate them with shortLivedAuthToken,
         // because the old authToken stored in Onyx may be invalid.
-        signInWithShortLivedAuthToken(shortLivedAuthToken, false, session?.authToken);
+        signInWithShortLivedAuthToken(shortLivedAuthToken, false, session?.authToken).then((response) => {
+            if (response?.type !== CONST.ERROR_TYPE.ACCOUNT_MISMATCH) {
+                return;
+            }
+            showConfirmModal({
+                title: translate('deeplinkWrapper.notValid'),
+                prompt: translate('deeplinkWrapper.sessionMismatch'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+        });
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-hooks/exhaustive-deps
