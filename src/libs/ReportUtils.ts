@@ -13100,6 +13100,9 @@ function prepareOnboardingOnyxData({
                 setupCategoriesAndTags: null,
                 setupTags: null,
                 reviewWorkspaceSettings: null,
+                addWorkEmail: null,
+                validateEmail: null,
+                joinWorkspace: null,
             },
         },
     );
