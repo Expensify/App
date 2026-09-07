@@ -6,6 +6,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {useDebounceWithControls} from '@hooks/useDebounce';
 import useOnyx from '@hooks/useOnyx';
+import usePointerMovement from '@hooks/usePointerMovement';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -166,31 +167,20 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
         waitForCursorToRest();
     };
 
-    // Where the cursor last counted as moving; a hand shaking within the rest radius does not restart the wait.
-    const restAnchorRef = useRef<{x: number; y: number} | null>(null);
-    const trackPointerMovement = (event: {clientX: number; clientY: number}) => {
-        const anchor = restAnchorRef.current;
-        if (anchor && Math.hypot(event.clientX - anchor.x, event.clientY - anchor.y) < CONST.SEARCH.HOVER_INTENT_REST_RADIUS_PX) {
-            return;
-        }
+    const {trackMovement: trackPointerMovement, stopTracking} = usePointerMovement(CONST.SEARCH.HOVER_INTENT_REST_RADIUS_PX, waitForCursorToRest);
 
-        restAnchorRef.current = {x: event.clientX, y: event.clientY};
-        waitForCursorToRest();
-    };
-
-    // Nothing is left to wait for once the cursor is gone, so the row it ended on releases what it was withholding,
-    // but only for a cursor heading toward the content. The direction comes from the last tracked position rather than
-    // from the exit point alone, because `SafeTriangle` covers that path with an overlay of its own and the cursor
-    // leaves the list above it as often as through its edge.
+    // The row the cursor ended on stays on show, so it releases what it was withholding either way: at once for a
+    // cursor heading toward the content, and once the wait left running elapses for one heading away. The direction
+    // comes from the last tracked position rather than from the exit point alone, because `SafeTriangle` covers that
+    // path with an overlay of its own and the cursor leaves the list above it as often as through its edge.
     const stopTrackingPointer = (event: {clientX: number}) => {
-        cancelReadyWait();
-        const anchor = restAnchorRef.current;
-        restAnchorRef.current = null;
+        const lastMovement = stopTracking();
 
-        if (anchor && event.clientX <= anchor.x) {
+        if (lastMovement && event.clientX <= lastMovement.x) {
             return;
         }
 
+        cancelReadyWait();
         markShownFilterReady();
     };
 
