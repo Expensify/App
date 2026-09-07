@@ -415,6 +415,7 @@ const CONST = {
     AUTH_TOKEN_TYPES: {
         ANONYMOUS: 'anonymousAccount',
         SUPPORT: 'support',
+        DELEGATE: 'delegate',
     },
 
     AUTH_METHOD: {
@@ -1069,6 +1070,7 @@ const CONST = {
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
+        REPORT_MERGE: 'reportMerge',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

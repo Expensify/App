@@ -23,7 +23,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import getOnyxValue from '../utils/getOnyxValue';
-import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const CURRENT_USER_LOGIN = 'test@example.com';
@@ -163,6 +163,7 @@ async function computeBothSurfaces({
         translate: translateLocal,
         dateFnsLocale: undefined,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         localeCompare,
         isReportArchived,
         lastActionReport,
@@ -199,6 +200,7 @@ async function computeBothSurfaces({
             transactionThreadIDs: sortedData?.transactionThreadIDs,
             lastActions: sortedData?.lastActions,
             dateFnsLocale: undefined,
+            convertToDisplayString,
             conciergeReportID: CONCIERGE_REPORT_ID,
             isSearching: true,
         },
@@ -210,6 +212,7 @@ async function computeBothSurfaces({
 
     const {options: searchResults} = getSearchOptions({
         dateFnsLocale: undefined,
+        convertToDisplayString,
         options: optionList,
         draftComments: {},
         loginList: {},

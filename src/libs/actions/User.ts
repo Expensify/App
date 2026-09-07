@@ -7,7 +7,6 @@ import type {
     CloseAccountParams,
     DeleteContactMethodParams,
     GetStatementPDFParams,
-    PusherPingParams,
     RequestContactMethodValidateCodeParams,
     ResendValidateCodeParams,
     RevokeDeviceParams,
@@ -31,11 +30,8 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import {getIsOffline} from '@libs/NetworkState';
-import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
-import type {PingPongEvent} from '@libs/Pusher/types';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -51,7 +47,7 @@ import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantT
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type {CurrentUserPersonalDetails, Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
@@ -808,81 +804,6 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
     });
 }
 
-let lastPingSentTimestamp = Date.now();
-let lastPongReceivedTimestamp = Date.now();
-function subscribeToPusherPong(currentUserAccountID: number) {
-    // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
-        Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
-        lastPongReceivedTimestamp = Date.now();
-
-        const pongEvent = pushJSON as PingPongEvent;
-        const latency = Date.now() - Number(pongEvent.pingTimestamp);
-        Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
-    });
-}
-
-const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
-
-const MISSING_PONG_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
-
-function pingPusher() {
-    if (getIsOffline()) {
-        Log.info('[Pusher PINGPONG] Skipping PING because the client is offline');
-        return;
-    }
-    const pingID = NumberUtils.rand64();
-    const pingTimestamp = Date.now();
-
-    // In local development, there can end up being multiple intervals running because when JS code is replaced with hot module replacement, the old interval is not cleared
-    // and keeps running. This little bit of logic will attempt to keep multiple pings from happening.
-    if (pingTimestamp - lastPingSentTimestamp < PING_INTERVAL_LENGTH_IN_SECONDS * 1000) {
-        return;
-    }
-    lastPingSentTimestamp = pingTimestamp;
-
-    const parameters: PusherPingParams = {pingID, pingTimestamp};
-
-    // The heartbeat is a probe, not a user's write, so it must not be persisted to disk, retried, or hold the
-    // head of the queue while a real write waits behind it. The Logging middleware already logs any failure.
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING, parameters).catch(() => {});
-    Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
-
-    const timeSinceLastPongReceived = pingTimestamp - lastPongReceivedTimestamp;
-    if (timeSinceLastPongReceived > MISSING_PONG_THRESHOLD_IN_SECONDS * 1000) {
-        Log.info(`[Pusher PINGPONG] The server has not sent a PONG in ${timeSinceLastPongReceived} ms, leaving recovery to the Pusher SDK`);
-    }
-}
-
-let pingPusherIntervalID: ReturnType<typeof setInterval>;
-function initializePusherPingPong(currentUserAccountID: number) {
-    // Only run the ping pong from the leader client
-    if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
-        return;
-    }
-
-    Log.info(`[Pusher PINGPONG] Starting Pusher PING PONG and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
-
-    lastPongReceivedTimestamp = Date.now();
-
-    // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
-    // so there could be a little delay before the client is actually listening to this event.
-    subscribeToPusherPong(currentUserAccountID);
-
-    // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
-    if (pingPusherIntervalID) {
-        clearInterval(pingPusherIntervalID);
-    }
-
-    pingPusherIntervalID = setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
-}
-
 /**
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
@@ -914,9 +835,7 @@ function subscribeToUserEvents(
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             lastUpdateID: Number(pushEventData.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
-            // specific key type is not known from the Pusher event data
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            updates: (pushEventData.updates as Array<OnyxUpdateEvent<any>>) ?? [],
+            updates: pushEventData.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
         Log.info('[subscribeToUserEvents] Applying Onyx updates');
@@ -964,8 +883,6 @@ function subscribeToUserEvents(
         reconnectApp();
         return Promise.resolve();
     });
-
-    initializePusherPingPong(currentUserAccountID);
 }
 
 /**

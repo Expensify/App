@@ -1,5 +1,6 @@
 import {usePersonalDetails, useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -195,6 +196,7 @@ function useSearchSelectorBase({
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, dateFnsLocale, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -295,6 +297,7 @@ function useSearchSelectorBase({
                     options: optionsWithContacts,
                     draftComments,
                     dateFnsLocale,
+                    convertToDisplayString,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -330,6 +333,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas: betas ?? [],
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
@@ -371,6 +375,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas,
                         selectedOptions,
                         includeMultipleParticipantReports: true,
@@ -414,6 +419,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas: betas ?? [],
                         includeP2P: true,
                         includeSelectedOptions: false,

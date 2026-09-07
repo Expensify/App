@@ -2,10 +2,11 @@ import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import {convertToDisplayString as convertToDisplayStringUtil} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsInteger, getCurrencyDecimals, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
@@ -15,6 +16,7 @@ import MaxHeap from '@libs/MaxHeap';
 import MinHeap from '@libs/MinHeap';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
+import {formatToParts} from '@libs/NumberFormatUtils';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -245,6 +247,8 @@ type GetAlternateTextConfig = {
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;
     isTrackIntentUser?: boolean;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
     currentUserLogin?: string;
@@ -272,6 +276,31 @@ function fallbackLocaleCompare(a: string, b: string): number {
 }
 
 /**
+ * Fallback for callers that cannot provide the hook-bound convertToDisplayStringWithoutCurrency.
+ * Mirrors CurrencyListContextProvider's implementation against the active locale, reading currency
+ * decimals through CurrencyUtils' module-scope Onyx fallback.
+ */
+function fallbackConvertToDisplayStringWithoutCurrency(amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    const decimals = getCurrencyDecimals(sanitizedCurrency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+    return formatToParts(IntlStore.getCurrentLocale(), convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: decimals,
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
+    })
+        .filter((x) => x.type !== 'currency')
+        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+        .map((x) => x.value)
+        .join('');
+}
+
+/**
  * Update alternate text for the option when applicable
  */
 function getAlternateText(
@@ -284,6 +313,8 @@ function getAlternateText(
         invoiceReceiverPolicy,
         visibleReportActionsData = {},
         translate,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         dateFnsLocale,
         reportAttributesDerived,
         policyTags,
@@ -343,7 +374,8 @@ function getAlternateText(
                 localeCompare: localeCompare ?? fallbackLocaleCompare,
                 formatPhoneNumber: formatPhoneNumber ?? formatPhoneNumberPhoneUtils,
                 dateFnsLocale,
-                convertToDisplayString: convertToDisplayStringUtil,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency: convertToDisplayStringWithoutCurrency ?? fallbackConvertToDisplayStringWithoutCurrency,
             });
         }
         if (option.lastMessageText) {
@@ -405,6 +437,7 @@ type CreateOptionParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     translate?: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     isTrackIntentUser?: boolean;
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
@@ -450,6 +483,7 @@ function createOption({
     policyTags,
     visibleReportActionsData = {},
     translate,
+    convertToDisplayString,
     dateFnsLocale,
     isTrackIntentUser,
     conciergeReportID,
@@ -534,6 +568,7 @@ function createOption({
         const {lastAction, movedFromReport, movedToReport} = resolveLastActionContext(report, result.private_isArchived, visibleReportActionsData, transactionThreadIDs?.[report.reportID]);
         result.lastMessageText = getLastMessageTextForReport({
             translate: translateFn,
+            convertToDisplayString,
             dateFnsLocale,
             report,
             personalDetails,
@@ -567,6 +602,7 @@ function createOption({
                           policy,
                           visibleReportActionsData,
                           translate: translateFn,
+                          convertToDisplayString,
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
@@ -639,16 +675,17 @@ function getReportOption(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     reportDraft: OnyxEntry<Report>,
     currentUserAccountID: number,
-    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined},
+    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']},
     policyTags?: OnyxCollection<PolicyTagLists>,
 ): OptionData {
-    const {translate, dateFnsLocale} = localize;
+    const {translate, dateFnsLocale, convertToDisplayString} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
     const option = createOption({
         dateFnsLocale,
+        convertToDisplayString,
         accountIDs: visibleParticipantAccountIDs,
         personalDetails: personalDetails ?? {},
         report: !isEmptyObject(report) ? report : undefined,
@@ -705,6 +742,7 @@ type GetReportDisplayOptionParams = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /**
@@ -718,6 +756,7 @@ function getReportDisplayOption({
     policy,
     conciergeReportID,
     translate,
+    convertToDisplayString,
     dateFnsLocale,
     currentUserAccountID,
     reportAttributesDerived,
@@ -728,6 +767,7 @@ function getReportDisplayOption({
 
     const option = createOption({
         dateFnsLocale,
+        convertToDisplayString,
         accountIDs: visibleParticipantAccountIDs,
         personalDetails: personalDetails ?? {},
         report: !isEmptyObject(report) ? report : undefined,
@@ -773,19 +813,20 @@ function getPolicyExpenseReportOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined},
+    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']},
     currentUserAccountID: number,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): SearchOptionData {
-    const {translate, dateFnsLocale} = localize;
+    const {translate, dateFnsLocale, convertToDisplayString} = localize;
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
 
     const option = createOption({
         dateFnsLocale,
+        convertToDisplayString,
         accountIDs: visibleParticipantAccountIDs,
         personalDetails: personalDetails ?? {},
         report: !isEmptyObject(expenseReport) ? expenseReport : null,
@@ -923,8 +964,10 @@ function processReport(
         lastActions,
         currentUserAccountID,
         currentUserLogin,
+        convertToDisplayString,
     }: {
         currentUserAccountID: number;
+        convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
         policyTags?: OnyxEntry<PolicyTagLists>;
         visibleReportActionsData?: VisibleReportActionsDerivedValue;
@@ -960,6 +1003,7 @@ function processReport(
             item: report,
             ...createOption({
                 dateFnsLocale,
+                convertToDisplayString,
                 accountIDs,
                 personalDetails,
                 report,
@@ -1056,6 +1100,7 @@ function buildFullOption(accountID: number, item: PersonalDetails | null, report
         currentUserAccountID,
         dateFnsLocale,
         translate,
+        convertToDisplayString,
     } = context;
     const privateIsArchived = report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined;
     const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -1065,6 +1110,7 @@ function buildFullOption(accountID: number, item: PersonalDetails | null, report
         item,
         ...createOption({
             dateFnsLocale,
+            convertToDisplayString,
             accountIDs: [accountID],
             personalDetails,
             report,
@@ -1146,6 +1192,7 @@ function createFilteredOptionList(
         transactionThreadIDs?: Record<string, string | undefined>;
         lastActions?: Record<string, ReportAction>;
         dateFnsLocale: DateFnsLocale | undefined;
+        convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         conciergeReportID: string | undefined;
         maxRecentReports?: number;
         /** Whether to build contact shells. */
@@ -1207,6 +1254,9 @@ function createFilteredOptionList(
         // date-fns locale are part of the output.
         activeLocale,
         options.dateFnsLocale,
+        // Money-request previews format amounts with this function; the provider memoizes it on the
+        // currency list and locale, so a new reference signals the formatting inputs changed.
+        options.convertToDisplayString,
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
@@ -1268,6 +1318,7 @@ function createFilteredOptionList(
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
         const {reportMapEntry, reportOption} = processReport(report, personalDetails, privateIsArchived, policy, conciergeReportID, options.dateFnsLocale, {
+            convertToDisplayString: options.convertToDisplayString,
             reportAttributesDerived,
             policyTags: reportPolicyTags,
             visibleReportActionsData,
@@ -1311,6 +1362,7 @@ function createFilteredOptionList(
               conciergeReportID,
               currentUserAccountID,
               dateFnsLocale: options.dateFnsLocale,
+              convertToDisplayString: options.convertToDisplayString,
               translate: translateInActiveLocale,
           })
         : [];
@@ -1358,6 +1410,7 @@ type CreateOptionFromReportParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     isTrackIntentUser?: boolean;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 function createOptionFromReport({
@@ -1377,6 +1430,7 @@ function createOptionFromReport({
     policyTags,
     visibleReportActionsData = {},
     isTrackIntentUser,
+    convertToDisplayString,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -1384,6 +1438,7 @@ function createOptionFromReport({
         item: report,
         ...createOption({
             dateFnsLocale,
+            convertToDisplayString,
             accountIDs,
             personalDetails,
             report,
@@ -1705,6 +1760,7 @@ function canCreateOptimisticPersonalDetailOption({
  */
 function getUserToInviteOption({
     dateFnsLocale,
+    convertToDisplayString,
     searchValue,
     personalDetails,
     searchInputValue,
@@ -1750,6 +1806,7 @@ function getUserToInviteOption({
     };
     const userToInvite = createOption({
         dateFnsLocale,
+        convertToDisplayString,
         accountIDs: [optimisticAccountID],
         personalDetails: personalDetailsExtended,
         report: null,
@@ -1953,6 +2010,7 @@ function prepareReportOptionsForDisplay(
     isOffline: boolean,
     config: GetValidReportsConfig & {
         translate: LocalizedTranslate;
+        convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         dateFnsLocale: DateFnsLocale | undefined;
         currentUserAccountID?: number;
         currentUserLogin?: string;
@@ -1984,6 +2042,7 @@ function prepareReportOptionsForDisplay(
         shouldUnreadBeBold = false,
         personalDetails,
         translate,
+        convertToDisplayString,
         currentUserAccountID,
         currentUserLogin,
         cardList,
@@ -2029,6 +2088,8 @@ function prepareReportOptionsForDisplay(
                 policy,
                 invoiceReceiverPolicy,
                 visibleReportActionsData,
+                translate,
+                convertToDisplayString,
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
                 conciergeReportID,
@@ -2497,6 +2558,7 @@ function getValidOptions(
             countryCode,
             {
                 dateFnsLocale,
+                convertToDisplayString: config.convertToDisplayString,
                 excludeLogins: loginsToExclude,
                 shouldAcceptName,
                 searchInputValue,
@@ -2519,6 +2581,7 @@ function getValidOptions(
 
 type SearchOptionsConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     options: OptionList;
     draftComments: OnyxCollection<string>;
     betas?: Beta[];
@@ -2592,6 +2655,7 @@ function getSearchOptions({
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
     translate,
+    convertToDisplayString,
 }: SearchOptionsConfig): OptionsResult {
     const optionList = getValidOptions(
         options,
@@ -2603,6 +2667,7 @@ function getSearchOptions({
         conciergeReportID,
         {
             dateFnsLocale,
+            convertToDisplayString,
             betas,
             includeRecentReports,
             includeMultipleParticipantReports: true,
@@ -2771,6 +2836,7 @@ function formatSectionsFromSearchTerm(
     currentUserAccountID: number,
     allPolicies: OnyxCollection<Policy>,
     translate: LocalizedTranslate,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     dateFnsLocale: DateFnsLocale | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
@@ -2801,7 +2867,7 @@ function formatSectionsFromSearchTerm(
                                   personalDetails,
                                   expenseReport,
                                   expenseReportPolicy,
-                                  {translate, dateFnsLocale},
+                                  {translate, dateFnsLocale, convertToDisplayString},
                                   currentUserAccountID,
                                   reportAttributesDerived,
                               );
@@ -2842,7 +2908,7 @@ function formatSectionsFromSearchTerm(
                               personalDetails,
                               expenseReport,
                               expenseReportPolicy,
-                              {translate, dateFnsLocale},
+                              {translate, dateFnsLocale, convertToDisplayString},
                               currentUserAccountID,
                               reportAttributesDerived,
                           );
@@ -2948,10 +3014,10 @@ function filterUserToInvite(
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-    config?: FilterUserToInviteConfig,
+    countryCode: number,
+    config: FilterUserToInviteConfig,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}, dateFnsLocale} = config ?? {};
+    const {canInviteUser = true, excludeLogins = {}} = config;
     if (!canInviteUser) {
         return null;
     }
@@ -2972,7 +3038,6 @@ function filterUserToInvite(
         ...excludeLogins,
     };
     return getUserToInviteOption({
-        dateFnsLocale,
         searchValue,
         personalDetails,
         loginsToExclude,
@@ -2995,7 +3060,7 @@ function filterOptions<T extends SearchOptionData>(
     currentUserEmail: string,
     currentUserAccountID: number,
     personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
-    config?: FilterUserToInviteConfig,
+    config: FilterUserToInviteConfig,
 ): Options<T> {
     const trimmedSearchInput = searchInputValue.trim();
     const searchInputValueForInvite = config?.searchInputValue ?? trimmedSearchInput;
@@ -3020,8 +3085,6 @@ function filterOptions<T extends SearchOptionData>(
         countryCode,
         {
             ...config,
-            // `config` is optional, so the required locale has to be set explicitly rather than relying on the spread.
-            dateFnsLocale: config?.dateFnsLocale,
             searchInputValue: searchInputValueForInvite,
         },
     );
@@ -3085,7 +3148,7 @@ function filterAndOrderOptions<T extends SearchOptionData>(
     currentUserEmail: string,
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    config?: FilterAndOrderConfig,
+    config: FilterAndOrderConfig,
 ): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {

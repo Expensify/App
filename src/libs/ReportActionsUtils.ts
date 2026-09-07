@@ -57,7 +57,7 @@ import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils
 
 import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
+import {convertAmountToDisplayString, convertToBackendAmount, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getFormattedDistanceInUnits} from './DistanceDisplayUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
@@ -4787,13 +4787,19 @@ function getRoomChangeLogMessage(translate: LocalizedTranslate, reportAction: Re
 function getActionableCard3DSTransactionApprovalMessage(
     translate: LocalizedTranslate,
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
 ) {
     const originalMessage = getOriginalMessage(reportAction);
     if (!originalMessage) {
         return undefined;
     }
     const {amount, currency, merchant} = originalMessage;
-    const formattedAmount = amount ? convertToDisplayStringWithExplicitCurrency(amount, currency) : '';
+    let formattedAmount = '';
+    if (amount) {
+        // Show the amount without any currency symbol when the message carries no currency, rather than defaulting to USD.
+        formattedAmount = currency ? convertToDisplayString(amount, currency) : convertToDisplayStringWithoutCurrency(amount);
+    }
     return translate('report.actions.type.actionableCard3DSTransactionApproval', formattedAmount, merchant);
 }
 

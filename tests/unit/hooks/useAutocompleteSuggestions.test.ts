@@ -29,6 +29,7 @@ jest.mock('@components/OnyxListItemProvider', () => ({
 }));
 jest.mock('@libs/actions/Search', () => ({openSearchCategoryFiltersPage: jest.fn()}));
 
+const mockConvertToDisplayString = jest.fn(() => '$0.00');
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListState: () => ({
         currencyList: {
@@ -40,6 +41,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
             RETIRED_CURRENCY: {symbol: 'X', name: 'Retired', retired: true},
         },
     }),
+    useCurrencyListActions: () => ({convertToDisplayString: mockConvertToDisplayString}),
 }));
 
 jest.mock('@libs/SearchAutocompleteUtils', () => ({
