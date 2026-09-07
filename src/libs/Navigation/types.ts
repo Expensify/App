@@ -11,6 +11,7 @@ import type RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounti
 
 import type {Country, EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from '@src/CONST';
 import type CONST from '@src/CONST';
+import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -1646,6 +1647,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.HR_MERGE_GROUPS]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.HR_MERGE_EXISTING_CONNECTIONS]: {
+        policyID: string;
+        providerSlug: MergeHRProviderSlug;
     };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
         policyID: string;

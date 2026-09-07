@@ -34,7 +34,9 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {reusableMergeHRProviderSlugsSelector} from '@src/selectors/HR';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
@@ -58,6 +60,9 @@ function WorkspaceHRPage({
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(policyID);
+    const [reusableProviderSlugs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => reusableMergeHRProviderSlugsSelector(policies, policyID),
+    });
     const policyEmployeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
@@ -66,7 +71,9 @@ function WorkspaceHRPage({
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
-    useNetwork({onReconnect: () => openPolicyHRPage(policyID)});
+    const {isOffline} = useNetwork({
+        onReconnect: () => openPolicyHRPage(policyID),
+    });
 
     useEffect(() => {
         openPolicyHRPage(policyID);
@@ -104,7 +111,7 @@ function WorkspaceHRPage({
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const handleConnect = (card: HRCardDescriptor) => {
-        if (!card.setupLink) {
+        if (!card.setupLink || isOffline) {
             return;
         }
 
@@ -121,6 +128,11 @@ function WorkspaceHRPage({
                 shouldShowCancelButton: false,
                 innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
             });
+            return;
+        }
+
+        if (!card.isConnected && card.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR && card.mergeSlug && reusableProviderSlugs?.includes(card.mergeSlug)) {
+            Navigation.navigate(ROUTES.WORKSPACE_HR_MERGE_EXISTING_CONNECTIONS.getRoute(policyID, card.mergeSlug));
             return;
         }
 

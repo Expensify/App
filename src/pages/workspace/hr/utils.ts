@@ -54,6 +54,9 @@ type HRCardDescriptor = {
     /** The Onyx connection name that identifies this HR provider. */
     connectionName: HRConnectionName;
 
+    /** Provider slug used to connect to or reuse a specific Merge HR integration. */
+    mergeSlug?: MergeHRProviderSlug;
+
     /** Human-readable provider name shown in the UI (e.g. "Gusto", "Zenefits"). */
     displayName: string;
 
@@ -375,6 +378,7 @@ function getHRCards({
         cards.push({
             key: `merge_${slug}`,
             connectionName: mergeConnectionName,
+            mergeSlug: slug,
             displayName: providerEntry.displayName,
             icon: providerEntry.iconUrl,
             setupLink: getMergeSetupLink(policyID, slug),
