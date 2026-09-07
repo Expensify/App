@@ -978,7 +978,7 @@ type NetSuiteConnectionData = {
     /** Collection of the payable accounts */
     payableList: NetSuiteAccount[];
 
-    /** Expense accounts, the only ones a currency conversion cost can be charged to. Undefined until Integration-Server has synced them for the workspace. */
+    /** Expense accounts, the only ones a currency conversion cost can be charged to. */
     expenseAccounts?: NetSuiteAccount[];
 
     /** Collection of tax accounts */
