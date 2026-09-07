@@ -23,52 +23,43 @@ import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function XeroFxExpenseAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
 
-    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const policyID = policy?.id;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const {config} = policy?.connections?.xero ?? {};
+    const {config, data} = policy?.connections?.xero ?? {};
     const {syncReimbursedReports} = config?.sync ?? {};
     const fxExpenseAccount = config?.fxExpenseAccount;
-    const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroExpenseAccounts(policy ?? undefined, fxExpenseAccount), [fxExpenseAccount, policy]);
+    const xeroSelectorOptions = getXeroExpenseAccounts(data?.expenseAccounts, fxExpenseAccount);
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.fxExpenseAccountDescription')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.fxExpenseAccountDescription')}</Text>
+        </View>
     );
 
-    const initiallyFocusedOptionKey = useMemo(() => xeroSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [xeroSelectorOptions]);
+    const initiallyFocusedOptionKey = xeroSelectorOptions.find((option) => option.isSelected)?.keyForList;
 
-    const updateAccount = useCallback(
-        ({value}: SelectorType) => {
-            updateXeroFxExpenseAccount(policyID, value, fxExpenseAccount);
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
-        },
-        [policyID, fxExpenseAccount],
-    );
+    const updateAccount = ({value}: SelectorType) => {
+        updateXeroFxExpenseAccount(policyID, value, fxExpenseAccount);
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.xero.noAccountsFound')}
-                subtitle={translate('workspace.xero.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.xero.noAccountsFound')}
+            subtitle={translate('workspace.xero.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (
