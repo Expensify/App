@@ -224,7 +224,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
             <HomeTaskGroup
                 title={translate('homePage.toDos')}
                 rows={visibleForYouRows}
-                reducedTopGap
+                reducedTopGap={timeSensitiveItems.length > 0}
             >
                 {getForYouFallback()}
             </HomeTaskGroup>
