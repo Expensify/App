@@ -14,6 +14,8 @@ import type {PublicScreensParamList} from '@libs/Navigation/types';
 
 import SAMLSignInPage from '@pages/signin/SAMLSignInPage/index.native';
 
+import {setIsAuthenticatingWithShortLivedToken} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -118,6 +120,7 @@ describe('SAMLSignInPage', () => {
         unmount();
 
         expect(dismissAuthSession).toHaveBeenCalledTimes(1);
+        expect(setIsAuthenticatingWithShortLivedToken).toHaveBeenLastCalledWith(false);
     });
 
     it('leaves once when the user cancels the in-app browser', async () => {

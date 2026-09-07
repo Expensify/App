@@ -63,6 +63,9 @@ function SAMLSignInPage() {
             hasExitedSAMLFlow.current = true;
             isAuthSessionOpen.current = false;
             dismissAuthSession();
+
+            // The exit that normally clears this guard is skipped above, and a stuck guard blocks the next SAML attempt.
+            setIsAuthenticatingWithShortLivedToken(false);
         },
         [],
     );
