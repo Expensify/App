@@ -64,6 +64,7 @@ import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 
+import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
@@ -409,10 +410,18 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     ];
 
     const listHeaderComponent = (
-        <ReportActionsListHeader
-            reportID={reportID}
-            isDraftPendingCompletion={isDraftPendingCompletion}
-        />
+        <>
+            <ConciergeChatHistoryToggle
+                reportID={reportID}
+                hasPreviousMessages={!!hasPreviousMessages}
+                shouldShowFullHistory={!showHiddenHistory}
+                onShowPreviousMessages={onShowPreviousMessages}
+            />
+            <ReportActionsListHeader
+                reportID={reportID}
+                isDraftPendingCompletion={isDraftPendingCompletion}
+            />
+        </>
     );
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);

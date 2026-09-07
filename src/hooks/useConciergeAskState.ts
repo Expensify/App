@@ -55,4 +55,3 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
 }
 
 export default useConciergeAskState;
-export type {ConciergeAskState};
