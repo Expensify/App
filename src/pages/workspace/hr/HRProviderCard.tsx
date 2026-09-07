@@ -83,6 +83,19 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                 </TextLink>
             </>
         );
+    } else if (card.staleGroupsRoute) {
+        const staleGroupsRoute = card.staleGroupsRoute;
+        lastSyncErrorMessage = (
+            <>
+                {`${translate('workspace.hr.mergeHR.groups.staleSelectionError', card.displayName)} `}
+                <TextLink
+                    style={[styles.link, styles.fontSizeLabel]}
+                    onPress={() => Navigation.navigate(staleGroupsRoute)}
+                >
+                    {translate('workspace.hr.mergeHR.groups.updateSelectionLink')}
+                </TextLink>
+            </>
+        );
     } else if (card.hasError) {
         const genericError = translate('workspace.hr.syncError', card.displayName);
         lastSyncErrorMessage = card.lastSyncErrorMessage ? `${genericError} ("${card.lastSyncErrorMessage}")` : genericError;
@@ -218,7 +231,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
                                     title={row.title}
                                     style={styles.sectionMenuItemTopDescription}
                                     shouldShowRightIcon={canWriteMoreFeatures}
-                                    brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={row.errors || row.hasInvalidValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     onPress={() => Navigation.navigate(row.route)}
                                     interactive={canWriteMoreFeatures}
                                 />

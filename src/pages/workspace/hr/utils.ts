@@ -7,7 +7,7 @@ import {getMergeSetupLink} from '@libs/actions/connections/merge';
 import type {MergeConnectionErrorFieldName} from '@libs/actions/connections/merge';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {formatList} from '@libs/Localize';
-import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
+import {getConnectedHRProvider, getHRApprovalMode, hasStaleMergeHRGroups, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
 import type {HRConnectionName} from '@libs/merge/HRUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
@@ -45,6 +45,9 @@ type HRConfigRow = {
 
     /** Errors for this field when the last update failed. */
     errors?: Errors | null;
+
+    /** Whether the saved value itself is no longer valid, as opposed to the last update having failed. */
+    hasInvalidValue?: boolean;
 };
 
 type HRCardDescriptor = {
@@ -74,6 +77,9 @@ type HRCardDescriptor = {
 
     /** Navigation route to the post-connect setup RHP (group selection). Set only while the admin still needs to finish setup. */
     completeSetupRoute?: Route;
+
+    /** Navigation route to the group selector. Set only while the saved selection points at groups the HR system no longer has. */
+    staleGroupsRoute?: Route;
 
     /** ISO date string of the last successful sync, used for "last synced" display. */
     successfulDate?: string;
@@ -340,6 +346,7 @@ function getHRCards({
         const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
         const mergeConfig = state.isConnected ? policy?.connections?.merge_hris?.config : undefined;
         const needsSetup = state.isConnected && !state.needsReconnect && isMergeHRCompleteSetupNeeded(policy);
+        const hasStaleGroups = state.isConnected && !state.needsReconnect && !needsSetup && hasStaleMergeHRGroups(policy);
         const groupsRoute = ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID);
 
         const configRows: HRConfigRow[] =
@@ -352,6 +359,7 @@ function getHRCards({
                           route: groupsRoute,
                           pendingAction: mergeConfig?.pendingFields?.groups,
                           errors: mergeConfig?.errorFields?.groups,
+                          hasInvalidValue: hasStaleGroups,
                       },
                       {
                           field: 'approvalMode',
@@ -380,6 +388,7 @@ function getHRCards({
             setupLink: getMergeSetupLink(policyID, slug),
             ...(state.isConnected ? state : disconnectedState),
             completeSetupRoute: needsSetup ? groupsRoute : undefined,
+            staleGroupsRoute: hasStaleGroups ? groupsRoute : undefined,
             config: mergeConfig,
             configRows,
         });

@@ -7499,6 +7499,8 @@ const translations = {
                 groups: {
                     title: 'Groups',
                     description: 'Choose the groups of employees you would like to sync with this workspace',
+                    staleSelectionError: (providerName: string) => `Some of the groups you selected no longer exist in ${providerName}, so their employees have stopped syncing.`,
+                    updateSelectionLink: 'Update your groups.',
                 },
             },
         },

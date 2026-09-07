@@ -8465,7 +8465,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 completeSetup: 'Zakończ konfigurację',
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Połączono. ${setupLink ? `<a href="${setupLink}">Zakończ konfigurację</a>` : 'Zakończ konfigurację'}, aby zaimportować pracowników.</muted-text-label>`,
-                groups: {title: 'Grupy', description: 'Wybierz grupy pracowników, które chcesz zsynchronizować z tą przestrzenią roboczą'},
+                groups: {
+                    title: 'Grupy',
+                    description: 'Wybierz grupy pracowników, które chcesz zsynchronizować z tą przestrzenią roboczą',
+                    staleSelectionError: (providerName: string) =>
+                        `Niektóre z wybranych przez ciebie grup już nie istnieją w ${providerName}, więc synchronizacja ich pracowników została zatrzymana.`,
+                    updateSelectionLink: 'Zaktualizuj swoje grupy.',
+                },
             },
             notSync: 'Niesynchronizowane',
             authenticationError: (providerName: string) => `Nie można połączyć z ${providerName} z powodu wygasłego połączenia.`,

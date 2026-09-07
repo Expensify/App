@@ -8447,7 +8447,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 completeSetup: 'Configuratie voltooien',
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Instellen voltooien</a>` : 'Configuratie voltooien'} om werknemers te importeren.</muted-text-label>`,
-                groups: {title: 'Groepen', description: 'Kies de groepen werknemers die je met deze workspace wilt synchroniseren'},
+                groups: {
+                    title: 'Groepen',
+                    description: 'Kies de groepen werknemers die je met deze workspace wilt synchroniseren',
+                    staleSelectionError: (providerName: string) =>
+                        `Sommige groepen die je hebt geselecteerd, bestaan niet meer in ${providerName}, waardoor hun medewerkers niet meer worden gesynchroniseerd.`,
+                    updateSelectionLink: 'Werk je groepen bij.',
+                },
             },
             notSync: 'Niet gesynchroniseerd',
             authenticationError: (providerName: string) => `Kan geen verbinding maken met ${providerName} vanwege een verlopen koppeling.`,
