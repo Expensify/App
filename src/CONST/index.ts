@@ -6425,12 +6425,6 @@ const CONST = {
         /** How many of a selection's actions get a button of their own in the bar before the rest move behind "More". */
         MAX_INLINE_ACTIONS: 3,
 
-        /**
-         * The same, at the in-between widths that are wide enough for the bar but too narrow for three buttons — a
-         * third button would squeeze the bar's contents, so it moves behind "More" instead.
-         */
-        MAX_INLINE_ACTIONS_MEDIUM_SCREEN: 2,
-
         /** How far the bar floats above the bottom of the container it is rendered in. */
         BOTTOM_OFFSET: 20,
 
@@ -6444,7 +6438,13 @@ const CONST = {
         LIST_GAP: 12,
 
         /** How far below its resting place the bar starts before it springs up into view. */
-        SLIDE_IN_DISTANCE: 12,
+        SLIDE_IN_DISTANCE: 24,
+
+        /**
+         * Spring the bar settles into place with. Overdamped, matching the canvas gestures, so it arrives quickly and
+         * without a bounce — the default spring wobbles noticeably over this short a travel.
+         */
+        SLIDE_IN_SPRING: {mass: 1, stiffness: 1000, damping: 500},
     },
 
     BUTTON_REMOVE_BORDER_RADIUS: {

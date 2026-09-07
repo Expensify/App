@@ -12,7 +12,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -36,24 +35,51 @@ import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popove
  * specially. Split out from `BulkActionBar` because these styles have to resolve from the inverted theme, while the
  * positioning layer around it belongs to the page's own.
  */
-function BulkActionBarContent<TValueType>({selectedCount, isSelectedCountLoading, options, onClearSelection, onSubItemSelected, barRef}: Omit<BulkActionBarProps<TValueType>, 'style'>) {
+type BulkActionBarContentProps<TValueType> = Omit<BulkActionBarProps<TValueType>, 'style'> & {
+    /** The width the bar has to fit into, once the layer around it has been laid out. */
+    availableWidth: number | undefined;
+
+    /** Called once the bar has been laid out at a width that fits, so it can be revealed and animated in. */
+    onSettled: () => void;
+};
+
+function BulkActionBarContent<TValueType>({
+    selectedCount,
+    isSelectedCountLoading,
+    options,
+    onClearSelection,
+    onSubItemSelected,
+    barRef,
+    availableWidth,
+    onSettled,
+}: BulkActionBarContentProps<TValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'DownArrow', 'ThreeDots', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
-    const {isMediumScreenWidth} = useResponsiveLayout();
 
     const moreAnchorRef = useRef<View | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
     const [moreMenuAnchorPosition, setMoreMenuAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
 
     // Only the highest-priority actions are given a button of their own; the rest stay reachable behind "More".
-    // One fewer fits at the in-between widths, where three buttons would squeeze the bar.
-    const maxInlineActions = isMediumScreenWidth ? CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS_MEDIUM_SCREEN : CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS;
-    const hasMoreMenu = options.length > maxInlineActions;
-    const inlineOptions = hasMoreMenu ? options.slice(0, maxInlineActions) : options;
-    const moreOptions = hasMoreMenu ? options.slice(maxInlineActions) : [];
+    //
+    // How many that is has to come from the width the bar actually has, not from a screen breakpoint: the bar sits in a
+    // content pane whose width depends on the sidebar and the layout around it, and the buttons' own widths depend on
+    // how long their labels are in the viewer's language. So the bar is laid out at the largest count, and drops one
+    // action at a time into "More" until it fits. `hasSettled` keeps it hidden until it does, so an overflowing first
+    // pass is never shown.
+    const [fittedLayout, setFittedLayout] = useState<{availableWidth: number; actionCount: number; optionCount: number}>();
+
+    // A fitted count only holds for the width and action list it was measured against. Anything else — a container that
+    // grew, a selection whose actions changed — starts again from the largest count, so a wider bar fills up again.
+    const hasFittedLayout = fittedLayout?.availableWidth === availableWidth && fittedLayout?.optionCount === options.length;
+    const inlineActionCount = hasFittedLayout ? fittedLayout.actionCount : CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS;
+
+    const hasMoreMenu = options.length > inlineActionCount;
+    const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
+    const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
 
     // Esc dismisses the selection, as it does for this kind of bulk-select bar elsewhere. It sits below the default
     // priority so that an open menu's own Esc handling closes the menu first rather than clearing the selection.
@@ -71,6 +97,21 @@ function BulkActionBarContent<TValueType>({selectedCount, isSelectedCountLoading
         <View
             ref={barRef}
             style={styles.bulkActionBar}
+            onLayout={(event) => {
+                const {width} = event.nativeEvent.layout;
+                if (availableWidth === undefined) {
+                    return;
+                }
+
+                // Shedding an action always makes the bar narrower, so this settles rather than oscillating. At zero
+                // inline actions only the count, "More" and the close button remain, which fits any usable width.
+                if (width > availableWidth && inlineActionCount > 0) {
+                    setFittedLayout({availableWidth, actionCount: inlineActionCount - 1, optionCount: options.length});
+                    return;
+                }
+
+                onSettled();
+            }}
         >
             {/* Sized for a three-digit count so the bar keeps still as the selection grows, and so swapping the
                 spinner for the count does not resize it either. */}
@@ -158,18 +199,31 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
     const invertedTheme = useInvertedThemePreference();
     const isReducedMotionEnabled = Accessibility.useReducedMotion();
 
+    // This layer spans the container, so laying it out measures the width the bar has to fit into.
+    const [availableWidth, setAvailableWidth] = useState<number>();
+    const [settledWidth, setSettledWidth] = useState<number>();
+
+    // A change in available width sends the bar back to the largest number of actions, so it has to prove it fits again
+    // before being shown — hence comparing against the width it last settled at rather than keeping a plain flag.
+    const hasSettled = availableWidth !== undefined && settledWidth === availableWidth;
+
     // The bar appears where nothing was before, so it springs up into place to draw the eye there, the same way the
-    // report's floating message counter animates itself in.
+    // report's floating message counter animates itself in. It waits for the fitting pass so the motion is only ever
+    // run on the layout the viewer actually sees.
     const translateY = useSharedValue<number>(CONST.BULK_ACTION_BAR.SLIDE_IN_DISTANCE);
 
     useEffect(() => {
+        if (!hasSettled) {
+            return;
+        }
+
         if (isReducedMotionEnabled) {
             translateY.set(0);
             return;
         }
 
-        translateY.set(withSpring(0));
-    }, [isReducedMotionEnabled, translateY]);
+        translateY.set(withSpring(0, CONST.BULK_ACTION_BAR.SLIDE_IN_SPRING));
+    }, [hasSettled, isReducedMotionEnabled, translateY]);
 
     const layerAnimatedStyle = useAnimatedStyle(() => ({
         transform: [{translateY: translateY.get()}],
@@ -177,8 +231,9 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
 
     return (
         <Animated.View
-            style={[styles.bulkActionBarLayer, style, layerAnimatedStyle]}
+            style={[styles.bulkActionBarLayer, style, layerAnimatedStyle, !hasSettled && styles.opacity0]}
             pointerEvents="box-none"
+            onLayout={(event) => setAvailableWidth(event.nativeEvent.layout.width)}
         >
             {/* ThemeStylesProvider has to come with ThemeProvider: without it `useThemeStyles` keeps resolving against
                 the page's theme while `useTheme` resolves against this one, and the bar renders half-inverted. */}
@@ -191,6 +246,8 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
                         onClearSelection={onClearSelection}
                         onSubItemSelected={onSubItemSelected}
                         barRef={barRef}
+                        availableWidth={availableWidth}
+                        onSettled={() => setSettledWidth(availableWidth)}
                     />
                 </ThemeStylesProvider>
             </ThemeProvider>
