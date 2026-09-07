@@ -574,7 +574,8 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
 
         dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
 
-        const sidebarScreen = isSplitNavigatorName(minimalActionPayload.name) ? SPLIT_TO_SIDEBAR[minimalActionPayload.name] : undefined;
+        const splitNavigatorName = minimalActionPayload.name;
+        const sidebarScreen = typeof splitNavigatorName === 'string' && isSplitNavigatorName(splitNavigatorName) ? SPLIT_TO_SIDEBAR[splitNavigatorName] : undefined;
         const focusedRouteInSplit = matchingSplitState.routes.at(matchingSplitState.index ?? -1);
         // Keep the sidebar in history when the restored split has no central screen to replace.
         if (indexOfNestedBackToRoute === -1 && nestedTarget.screen !== sidebarScreen && focusedRouteInSplit?.name === sidebarScreen) {
