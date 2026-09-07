@@ -3397,7 +3397,7 @@ function canDeleteMoneyRequestReport(
         }
 
         const isReportSubmitter = isCurrentUserSubmitter(report, currentUserAccountID);
-        return isReportSubmitter && (isOpenReport(report) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report)));
+        return (isReportSubmitter || isPolicyAdmin(policy)) && (isOpenReport(report) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report)));
     }
 
     return false;
