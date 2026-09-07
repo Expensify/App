@@ -61,14 +61,17 @@ type HorizontalTableScrollProps = {
 function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey, columnMinWidths, columnContentWidths, availableWidth}: HorizontalTableScrollProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide, columnMinWidths);
+    // The row chrome is counted only alongside real column widths, which is the same thing as saying only for a table
+    // whose columns were sized. Left off, this is the arithmetic every view had before any of them were sized.
+    const isSizingColumns = !!columnMinWidths;
+    const minTableWidth = getTableMinWidth(columns, type, isActionColumnWide, columnMinWidths, isSizingColumns);
     const tableWidth = availableWidth && availableWidth > 0 ? availableWidth : windowWidth;
 
     // Whether to scroll is decided on the minimums, so the table only gives up on fitting once it truly cannot. The
     // scrolled content is then laid out from what the columns want, since there is no longer any room to save by
     // squeezing them, and never narrower than the space already available.
     const shouldScrollHorizontally = isHeaderVisible && minTableWidth > tableWidth;
-    const contentTableWidth = Math.max(getTableMinWidth(columns, type, isActionColumnWide, columnContentWidths), minTableWidth, tableWidth);
+    const contentTableWidth = Math.max(getTableMinWidth(columns, type, isActionColumnWide, columnContentWidths, isSizingColumns), minTableWidth, tableWidth);
 
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
 

@@ -104,11 +104,16 @@ function SearchListViewLayout({
 
     // The scroller decides whether to scroll by summing what each column refuses to shrink below, which it otherwise has
     // to estimate. Every minimum it can be told exactly is resolved here instead: a dynamic column measured its own, and
-    // any other column that declares a width is never laid out narrower than it.
+    // any other column that declares a width is never laid out narrower than it. The estimates run several columns 70px
+    // or more over their real width, so a table left on them reserves room it never uses, scrolls before it has run out
+    // of space, and then stretches its columns across the width it wrongly claimed.
     //
-    // This applies to every view, sized or not. The estimates run several columns 70px or more over their real width, so
-    // a table left on them reserves room it never uses, scrolls before it has run out of space, and then stretches its
-    // columns across the width it wrongly claimed.
+    // Only for a table that is being sized. Correcting the scroller's arithmetic changes how wide the table lays out,
+    // and a view that isn't sized has rows built for the widths it already had - a grouped view nests a whole table of
+    // its own inside its rows, tuned against the old numbers. Handing those views a better answer to a question this
+    // branch isn't yet answering for them moves their columns for no gain.
+    const isSizingColumns = Object.keys(columnWidths).length > 0;
+
     const columnMinWidths: Partial<Record<SearchColumnType, number>> = {};
 
     // The columns this table lays out, so the sizing below is applied to those and to nothing else that renders under it.
@@ -154,9 +159,9 @@ function SearchListViewLayout({
                     isActionColumnWide={isActionColumnWide}
                     isHeaderVisible={isHeaderVisible}
                     dataKey={dataKey}
-                    columnMinWidths={columnMinWidths}
-                    columnContentWidths={columnContentWidths}
-                    availableWidth={tableWidth}
+                    columnMinWidths={isSizingColumns ? columnMinWidths : undefined}
+                    columnContentWidths={isSizingColumns ? columnContentWidths : undefined}
+                    availableWidth={isSizingColumns ? tableWidth : undefined}
                 >
                     <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>{children}</View>
                 </HorizontalTableScroll>

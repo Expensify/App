@@ -7022,14 +7022,16 @@ function getTableMinWidth(
     type?: SearchDataTypes,
     isActionColumnWide?: boolean,
     columnMinWidths?: Partial<Record<SearchColumnType, number>>,
-    shouldIncludeRowChrome = true,
+    shouldIncludeRowChrome = false,
 ) {
     // The row lays out the checkbox, then every column, then the trailing arrow, as flex children of one gapped row, so
     // it spends a gap between each adjacent pair: one more than there are columns. Those gaps, the arrow, the checkbox,
     // and the row's own margin and padding are all width the table needs on top of the columns themselves.
     //
-    // A caller sizing something the rows only partly fill leaves this out, since reserving room the rows don't use there
-    // widens the table past what its heading covers.
+    // Off unless a caller asks for it, because it is worth well over 200px on a wide table and so decides whether the
+    // table scrolls at all. Only a caller that also passes real column widths has the rest of the arithmetic right;
+    // adding it on top of the estimates below, which already run several columns over, makes a table reserve room twice
+    // and scroll while it still has space.
     let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : SEARCH_TABLE_ROW_CHECKBOX_WIDTH;
 
     for (const column of columns) {

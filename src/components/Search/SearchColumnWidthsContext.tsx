@@ -55,7 +55,13 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
     return (columnName, options = {}) => {
         // Only for the table's own columns, and only where the caller didn't answer: an inner table rendered below this
         // one sizes its columns from its own rows, and a caller that names a variant knows something this doesn't.
-        const columnStyles = StyleUtils.getReportTableColumnStyles(columnName, sizedColumns.has(columnName) ? {...columnOptions, ...options} : options);
+        //
+        // Only while this table is being sized, too. The table-wide variants exist to stop a sized row and its heading
+        // disagreeing about a width, so with nothing sized they answer a question nobody asked - and answering it does
+        // harm. These variants are decided across the whole search, while a group expanded inside it decides its own
+        // from its own transactions and passes them to its heading and its rows. Filling the gaps from the search-wide
+        // set leaves a row on one answer and its heading on the other, which slides every column after it sideways.
+        const columnStyles = StyleUtils.getReportTableColumnStyles(columnName, isSizingColumns && sizedColumns.has(columnName) ? {...columnOptions, ...options} : options);
         const sizing = columnWidths[columnName];
 
         if (!sizing) {
