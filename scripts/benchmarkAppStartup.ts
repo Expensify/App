@@ -21,13 +21,6 @@ const BENCHMARK_SPANS_ENVIRONMENT_VARIABLE = 'EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS
 const RESULTS_COMMAND = 'results';
 const BENCHMARK_COMMANDS = [...PLATFORM_NAMES, RESULTS_COMMAND] as const;
 
-if (import.meta.main) {
-    main(`${import.meta.dirname}/..`).catch((error: Error) => {
-        console.error(error.message);
-        process.exitCode = 1;
-    });
-}
-
 async function main(rootDirectory: string): Promise<void> {
     // The CLI framework requires kebab-case named argument keys, which the naming-convention rule cannot express.
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -293,6 +286,13 @@ function parseChoice<T extends string>(value: string, choices: readonly T[], lab
         throw new Error(`${label} must be one of: ${choices.join(', ')}. Received: ${value}`);
     }
     return choice;
+}
+
+if (import.meta.main) {
+    main(`${import.meta.dirname}/..`).catch((error: Error) => {
+        console.error(error.message);
+        process.exitCode = 1;
+    });
 }
 
 export {benchmarkAppStartupsAlternating, benchmarkAlternatingStartups, benchmarkAppStartups, benchmarkStartups, createBenchmarkRecorder, main, parseSpanNames, selectBenchmarkSpanNames};

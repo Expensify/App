@@ -22,13 +22,6 @@ import {PLATFORMS} from './lib/bootstrapForDevice/shared';
 
 type Platform = TupleToUnion<typeof PLATFORMS>;
 
-if (import.meta.main) {
-    main(`${import.meta.dirname}/..`).catch((error: Error) => {
-        console.error(error.message);
-        process.exitCode = 1;
-    });
-}
-
 async function main(rootDirectory: string): Promise<void> {
     // The CLI framework requires kebab-case named argument keys, which the naming-convention rule cannot express.
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -128,6 +121,13 @@ async function githubUsernameFromToken(): Promise<string> {
     } catch {
         throw new Error('Could not determine your GitHub username. Check GH_TOKEN, or pass --github-username/--bundle-identifier.');
     }
+}
+
+if (import.meta.main) {
+    main(`${import.meta.dirname}/..`).catch((error: Error) => {
+        console.error(error.message);
+        process.exitCode = 1;
+    });
 }
 
 export {bootstrapAndroidForDevice, bootstrapIOSForDevice, defaultBundleIdentifier, main, resolveDevelopmentTeam};
