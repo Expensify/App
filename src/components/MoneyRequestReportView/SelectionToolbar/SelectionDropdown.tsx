@@ -92,6 +92,7 @@ function SelectionDropdown({
             })}
             isSplitButton={false}
             shouldAlwaysShowDropdownMenu
+            shouldPutHeaderTextAfterBackButton
             shouldPopoverUseScrollView={shouldPopoverUseScrollView}
             wrapperStyle={isInLandscapeMode ? undefined : [styles.w100, styles.ph5]}
         />

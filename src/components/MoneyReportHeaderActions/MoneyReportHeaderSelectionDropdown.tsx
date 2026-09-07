@@ -362,6 +362,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                 isSplitButton={false}
                 shouldAlwaysShowDropdownMenu
+                shouldPutHeaderTextAfterBackButton
                 shouldPopoverUseScrollView={popoverUseScrollView}
                 wrapperStyle={wrapperStyle}
             />

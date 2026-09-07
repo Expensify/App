@@ -19,7 +19,7 @@ import type {ModalProps} from './ModalContext';
 type HoldMenuModalWrapperProps = ModalProps & {
     reportID: string | undefined;
     chatReportID: string | undefined;
-    /** Which action the modal confirms. Chat surfaces surface the approval choice up front via the approve
+    /** Which action the modal confirms. Chat surfaces the approval choice up front via the approve
      *  dropdown and never open this modal to approve, so it defaults to the pay copy when omitted. The Search
      *  page still routes its approve action here until it gets the same treatment. */
     requestType?: ActionHandledType;
