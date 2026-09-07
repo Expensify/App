@@ -7,13 +7,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {getActivePolicies, getAdminsPrivateEmailDomains, hasAcceptedTravelTerms, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
@@ -85,6 +85,7 @@ function BookTravelButton({
     const {showConfirmModal} = useConfirmModal();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
 
@@ -111,7 +112,7 @@ function BookTravelButton({
 
     const navigateToPublicDomainError = () => {
         const dynamicSuffix = getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR, activePolicyID);
-        Navigation.navigate(createDynamicRoute(dynamicSuffix));
+        Navigation.navigate(buildDynamicRoute(dynamicSuffix));
     };
 
     useEffect(() => {
@@ -141,7 +142,7 @@ function BookTravelButton({
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
-            const phoneErrorMethodsRoute = `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path)}`;
+            const phoneErrorMethodsRoute = `${environmentURL}/${buildDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path)}`;
             setErrorMessage(<RenderHTML html={translate('travel.phoneError', phoneErrorMethodsRoute)} />);
             return;
         }
@@ -162,7 +163,7 @@ function BookTravelButton({
         }
 
         if (groupPaidPolicies.length < 1) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path));
+            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path));
             return;
         }
 

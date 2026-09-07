@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
+import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -119,13 +120,15 @@ const workspaceWithoutTravel: Policy = {
 
 const renderBookTravelButton = (shouldShowVerifyAccountModal = true) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <BookTravelButton
-                text="Book a trip"
-                activePolicyID={POLICY_ID}
-                shouldShowVerifyAccountModal={shouldShowVerifyAccountModal}
-            />
-        </ComposeProviders>,
+        <NavigationContainer>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <BookTravelButton
+                    text="Book a trip"
+                    activePolicyID={POLICY_ID}
+                    shouldShowVerifyAccountModal={shouldShowVerifyAccountModal}
+                />
+            </ComposeProviders>
+        </NavigationContainer>,
     );
 
 const seedOnyx = async (isValidated: boolean, policy: Policy = provisionedPolicy) => {
