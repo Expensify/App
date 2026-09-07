@@ -55,7 +55,7 @@ If you already have an Expensify Card feed on another workspace, you can select 
 
 You can issue virtual or physical cards to employees:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), head to **Workspaces > [Workspace Name] > Expensify Cards**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), head to **Workspaces > [Workspace Name] > Expensify Card**
 2. Click **Issue new card**
 3. Select the employee
 4. Choose **Virtual** or **Physical**
@@ -72,6 +72,11 @@ You can issue virtual or physical cards to employees:
    - **When disabled:** The card does not expire automatically.
 8. Name the card for easier tracking
 9. Click **Issue card** to confirm
+10. Enter the security code sent to your email to confirm it's you
+
+Expensify asks for a security code before issuing a card because issuing a card is a high-risk change. The email that carries the code names the action it will authorize, so you can confirm the code matches what you are doing. If you receive a card issuance security code you did not request, do not enter or share it. [Learn how to avoid common scams involving security codes](/articles/new-expensify/settings/Avoiding-common-scams).
+
+If a card was issued to the same member less than 10 minutes ago, you may not be asked for a new security code.
 
 When issuing a card, you can also apply an existing Spend Rule or create a new one so the card has real-time spending controls from its first use. To learn more, [learn how to set up Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 

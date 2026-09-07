@@ -42,6 +42,8 @@ The **security code** is a one-time login code Expensify emails or texts to you 
 
 **Don’t click suspicious links, and never share your security code in email. Expensify will only generate a security code for you when you take an action in the app, such as logging in or making a high-risk change.**
 
+Security code emails name the action the code will authorize — for example, issuing a new Expensify Card. If the action named in the email isn’t something you just did, don’t enter or share the code.
+
 ---
 
 ## How to protect your Expensify account
