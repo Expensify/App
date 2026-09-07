@@ -35,7 +35,7 @@ import useStyleUtils from './useStyleUtils';
 function useSafeAreaPaddings(isUsingEdgeToEdgeBottomSafeAreaPadding = false) {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {paddingTop, paddingBottom} = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
+    const {paddingTop, paddingBottom, paddingLeft, paddingRight} = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
 
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
     const isSafeAreaTopPaddingApplied = screenWrapperStatusContext?.isSafeAreaTopPaddingApplied ?? false;
@@ -66,9 +66,13 @@ function useSafeAreaPaddings(isUsingEdgeToEdgeBottomSafeAreaPadding = false) {
     return {
         paddingTop: isSafeAreaTopPaddingApplied ? 0 : paddingTop,
         paddingBottom: adaptedPaddingBottom,
+        paddingLeft,
+        paddingRight,
         unmodifiedPaddings: {
             top: paddingTop,
             bottom: paddingBottom,
+            left: paddingLeft,
+            right: paddingRight,
         },
         insets: adaptedInsets,
         safeAreaPaddingBottomStyle,

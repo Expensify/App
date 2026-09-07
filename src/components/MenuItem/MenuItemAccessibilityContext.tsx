@@ -1,11 +1,21 @@
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {createContext, useContext, useEffect, useState} from 'react';
 
-/** The label slots a `MenuItem` row can contribute, in the order they are announced */
+/** The text slots a `MenuItem` row can contribute to its label, in the order they are announced */
 const MENU_ITEM_LABEL_SLOTS = ['title', 'description'] as const;
 
 type MenuItemLabelSlot = TupleToUnion<typeof MENU_ITEM_LABEL_SLOTS>;
+
+/** Accessibility facts a sub-component can contribute about its row, announced after the label as their own sentences */
+const MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT = {
+    OPENS_IN_NEW_TAB: 'opensInNewTab',
+} as const;
+
+type MenuItemAccessibilityAnnouncement = ValueOf<typeof MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT>;
+
+/** The announcement slots in the order they are announced */
+const MENU_ITEM_ANNOUNCEMENT_SLOTS = Object.values(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT);
 
 type MenuItemAccessibilityActions = {
     /** Registers a label (the title or description text) under a fixed slot key */
@@ -13,6 +23,12 @@ type MenuItemAccessibilityActions = {
 
     /** Removes the label registered under the given slot */
     unregisterLabel: (slot: MenuItemLabelSlot) => void;
+
+    /** Announces a fact about the row under a fixed slot key. Announcing the same fact twice announces it once */
+    registerAnnouncement: (announcement: MenuItemAccessibilityAnnouncement, text: string) => void;
+
+    /** Stops announcing the given fact */
+    unregisterAnnouncement: (announcement: MenuItemAccessibilityAnnouncement) => void;
 };
 
 const MenuItemAccessibilityContext = createContext<MenuItemAccessibilityActions | undefined>(undefined);
@@ -36,31 +52,45 @@ function useMenuItemAccessibilityLabel(slot: MenuItemLabelSlot, text: string | u
     }, [slot, text, registerLabel, unregisterLabel]);
 }
 
-/**
- * Small `slot -> text` registry backed by an immutable `Map`.
- * Writes are no-ops when the value is unchanged, so unrelated re-renders don't churn the map identity.
- */
-function useLabelSlotRegistry() {
-    const [entries, setEntries] = useState<Map<MenuItemLabelSlot, string>>(() => new Map());
+/** Contributes an already translated announcement about the row */
+function useMenuItemAccessibilityAnnouncement(announcement: MenuItemAccessibilityAnnouncement | undefined, text: string | undefined) {
+    const actions = useContext(MenuItemAccessibilityContext);
+    const registerAnnouncement = actions?.registerAnnouncement;
+    const unregisterAnnouncement = actions?.unregisterAnnouncement;
 
-    const register = (slot: MenuItemLabelSlot, value: string) => {
+    useEffect(() => {
+        if (!announcement || !text || !registerAnnouncement || !unregisterAnnouncement) {
+            return;
+        }
+        registerAnnouncement(announcement, text);
+        return () => unregisterAnnouncement(announcement);
+    }, [announcement, text, registerAnnouncement, unregisterAnnouncement]);
+}
+
+/** Small `key -> value` registry backed by an immutable `Map`.
+ * Writes are no-ops when the value is unchanged, so unrelated re-renders don't churn the map identity
+ */
+function useKeyedRegistry<TKey, TValue>() {
+    const [entries, setEntries] = useState<Map<TKey, TValue>>(() => new Map());
+
+    const register = (key: TKey, value: TValue) => {
         setEntries((prev) => {
-            if (prev.get(slot) === value) {
+            if (prev.get(key) === value) {
                 return prev;
             }
             const next = new Map(prev);
-            next.set(slot, value);
+            next.set(key, value);
             return next;
         });
     };
 
-    const unregister = (slot: MenuItemLabelSlot) => {
+    const unregister = (key: TKey) => {
         setEntries((prev) => {
-            if (!prev.has(slot)) {
+            if (!prev.has(key)) {
                 return prev;
             }
             const next = new Map(prev);
-            next.delete(slot);
+            next.delete(key);
             return next;
         });
     };
@@ -68,22 +98,25 @@ function useLabelSlotRegistry() {
     return {entries, register, unregister};
 }
 
-/**
- * Collects the text registered by `Title`/`Description` sub-components and derives the row's accessibility label.
- * Returns the props to spread on the pressable plus the value for `MenuItemAccessibilityContext.Provider`.
- */
+/** Assembles the row's accessibility label from what its sub-components registered, plus the value for `MenuItemAccessibilityContext.Provider` */
 function useMenuItemAccessibility() {
-    // Text contributed by Title/Description children, keyed by fixed slot
-    const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useLabelSlotRegistry();
+    // Text contributed by Title/Description children, keyed by slot
+    const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useKeyedRegistry<MenuItemLabelSlot, string>();
 
-    const accessibilityActions: MenuItemAccessibilityActions = {registerLabel, unregisterLabel};
+    // Facts contributed by any child, keyed by the fact
+    const {entries: announcements, register: registerAnnouncement, unregister: unregisterAnnouncement} = useKeyedRegistry<MenuItemAccessibilityAnnouncement, string>();
 
-    const accessibilityLabel = MENU_ITEM_LABEL_SLOTS.map((slot) => labels.get(slot))
+    const accessibilityActions: MenuItemAccessibilityActions = {registerLabel, unregisterLabel, registerAnnouncement, unregisterAnnouncement};
+
+    const derivedLabel = MENU_ITEM_LABEL_SLOTS.map((slot) => labels.get(slot))
         .filter(Boolean)
         .join(', ');
+
+    const announcementTexts = MENU_ITEM_ANNOUNCEMENT_SLOTS.map((announcement) => announcements.get(announcement)).filter(Boolean);
+    const accessibilityLabel = [derivedLabel, ...announcementTexts].filter(Boolean).join('. ');
 
     return {accessibilityLabel, accessibilityActions};
 }
 
 export default MenuItemAccessibilityContext;
-export {useMenuItemAccessibilityLabel, useMenuItemAccessibility};
+export {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibilityLabel, useMenuItemAccessibilityAnnouncement, useMenuItemAccessibility};

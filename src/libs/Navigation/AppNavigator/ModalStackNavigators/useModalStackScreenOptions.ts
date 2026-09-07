@@ -2,6 +2,7 @@ import {animatedSuperWideRHPWidth, useWideRHPState} from '@components/WideRHPCon
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
@@ -23,6 +24,8 @@ import {Animated} from 'react-native';
 
 function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
     // We have to use isSmallScreenWidth, otherwise the content of RHP 'jumps' on Safari - its width is set to size of screen and only after rerender it is set to the correct value
@@ -68,13 +71,13 @@ function useWideModalStackScreenOptions() {
                     contentStyle: styles.navigationScreenCardStyle,
                 },
                 web: {
-                    cardStyle: styles.navigationScreenCardStyle,
+                    cardStyle: isSmallScreenWidth ? StyleUtils.getStyleWithEnvSafeAreaPadding(styles.navigationScreenCardStyle) : styles.navigationScreenCardStyle,
                     cardStyleInterpolator,
                     transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
                 },
             };
         },
-        [isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
+        [StyleUtils, isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
 }
 

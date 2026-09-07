@@ -1,7 +1,7 @@
 import type {Emoji} from '@assets/emojis/types';
 
 import type {TextSelection} from '@components/Composer/types';
-import type {Mention} from '@components/MentionSuggestions';
+import type Mention from '@components/MentionSuggestions/types';
 
 import type {ReportActionEditMessageState} from '@pages/inbox/report/ReportActionEditMessageContext';
 

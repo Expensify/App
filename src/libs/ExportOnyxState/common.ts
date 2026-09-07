@@ -143,6 +143,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['id', 'type', 'role', 'outputCurrency', 'areCategoriesEnabled', 'areTagsEnabled'],
         maskList: ['name', 'avatar'],
     },
+    // Vendor names can reveal a workspace's suppliers, so keep the collection structure but mask names in exports.
+    [ONYXKEYS.COLLECTION.POLICY_VENDORS]: {
+        allowList: ['externalID', 'enabled', 'origin'],
+        maskList: ['name'],
+    },
     [ONYXKEYS.USER_WALLET]: {
         allowList: ['currentBalance', 'availableBalance', 'tierName'],
         maskList: [],
@@ -164,6 +169,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
 const safeOnyxKeys = new Set<string>([
     ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
     ONYXKEYS.ACTIVE_CLIENTS,
+    ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.AGENT_RULE_SUGGESTIONS,
     ONYXKEYS.AGENT_TEMPLATES,
     ONYXKEYS.ARE_AGENTS_LOADED,
@@ -334,6 +340,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING,
     ONYXKEYS.SHOULD_MASK_ONYX_STATE,
     ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key is still on device until the migration drains it, so it stays in the safe-to-export set
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT,
     ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE,

@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -7,6 +8,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@libs/Log', () => ({
     warn: jest.fn(),
+    alert: jest.fn(),
 }));
 
 jest.mock('@src/ROUTES', () => ({
@@ -25,6 +27,8 @@ jest.mock('@src/ROUTES', () => ({
 
 describe('createDynamicRoute', () => {
     const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock doesn't rely on `this` binding
+    const mockLogAlert = jest.mocked(Log.alert);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -141,13 +145,43 @@ describe('createDynamicRoute', () => {
         expect(result).toBe(expectedPath);
     });
 
-    it('should throw an error when suffix query param collides with base path query param', () => {
+    it('should let the suffix query param win when it collides with a base path query param', () => {
+        const activeRoute = 'settings/profile/address?country=GB';
+        const suffixWithQuery = 'country?country=US';
+        const expectedPath = 'settings/profile/address/country?country=US';
+
+        mockGetActiveRoute.mockReturnValue(activeRoute);
+
+        const result = createDynamicRoute(suffixWithQuery);
+
+        expect(result).toBe(expectedPath);
+    });
+
+    it('should report the name of a colliding query param without its values', () => {
         const activeRoute = 'settings/profile/address?country=GB';
         const suffixWithQuery = 'country?country=US';
 
         mockGetActiveRoute.mockReturnValue(activeRoute);
 
-        expect(() => createDynamicRoute(suffixWithQuery)).toThrow('[createDynamicRoute] Query param "country" exists in both base path and dynamic suffix. This is not allowed.');
+        createDynamicRoute(suffixWithQuery);
+
+        expect(mockLogAlert).toHaveBeenCalledTimes(1);
+        // The `[createDynamicRoute]` prefix is what routes this line to Sentry, see FORWARDED_LOG_PREFIXES.
+        // Only the param name is logged - a query param value can carry private data, so it must never be logged.
+        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('[createDynamicRoute]'), {key: 'country'});
+    });
+
+    it('should not report when a colliding query param has the same value in base and suffix', () => {
+        const activeRoute = 'settings/profile/address?country=US';
+        const suffixWithQuery = 'country?country=US';
+        const expectedPath = 'settings/profile/address/country?country=US';
+
+        mockGetActiveRoute.mockReturnValue(activeRoute);
+
+        const result = createDynamicRoute(suffixWithQuery);
+
+        expect(result).toBe(expectedPath);
+        expect(mockLogAlert).not.toHaveBeenCalled();
     });
 
     it('should append parametric suffix with single param to path', () => {

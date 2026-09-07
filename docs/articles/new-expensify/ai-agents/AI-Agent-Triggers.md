@@ -304,10 +304,10 @@ To react to this event, include phrases like:
 - When a manager or admin removes a receipt from a submitted expense
 - When a receipt is detached from an expense after the report has already been submitted
 
-**SmartScan (receipt OCR) finished reading a receipt on a submitted expense, so the merchant, amount, date, and itemized line items are now available. This is the earliest point at which the contents of a receipt can be checked against a rule — including a receipt that was matched onto an expense imported from a credit card.**
+**SmartScan (receipt OCR) finished reading a receipt, so the merchant, amount, date, and itemized line items are now available. This is the earliest point at which the contents of a receipt can be checked against a rule — including a receipt that was matched onto an expense imported from a credit card. It fires whether the report is still a draft or already submitted.**
 
 To react to this event, include phrases like:
-- When a receipt finishes scanning on a submitted expense
+- When a receipt finishes scanning on an expense
 - When SmartScan finishes reading an itemized receipt
 - When a scanned receipt is matched onto an existing credit card expense
 - When receipt details need to be checked against workspace rules once the scan completes
@@ -741,6 +741,18 @@ To react to this event, include phrases like:
 - When a member's final approver (forward-to) is changed
 - When expense report forwarding is updated for an employee
 
+**A workspace admin changed which person approves a specific workspace member's reports above a set amount, or removed that approver.**
+
+To react to this event, include phrases like:
+- When a member's approver for reports over a set amount is changed
+- When large expense reports from a specific employee will now go to a different approver
+
+**A workspace admin changed the amount above which a specific workspace member's reports need an extra approver.**
+
+To react to this event, include phrases like:
+- When the approval amount for a specific member is changed
+- When the amount that sends an employee's reports to an extra approver is updated
+
 **A workspace admin created a new conditional approval rule (e.g., expenses over a certain amount go to a specific approver).**
 
 To react to this event, include phrases like:
@@ -887,4 +899,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 121 events AI Agents can react to.*
+*This reference covers all 123 events AI Agents can react to.*

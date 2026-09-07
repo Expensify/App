@@ -23,6 +23,7 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {startTransition, useCallback, useEffect, useMemo} from 'react';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
@@ -37,6 +38,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const personalDetails = usePersonalDetails();
 
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -147,6 +149,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {
                     introSelected,
                     conciergeChat,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     betas,
                     currentUserEmail,
                     currentUserAccountID,
@@ -186,6 +190,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 const transactionThreadReport = createTransactionThreadReport({
                     introSelected,
                     conciergeChat,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     currentUserLogin: currentUserEmail ?? '',
                     currentUserAccountID,
                     betas,
@@ -218,6 +224,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {
                     introSelected,
                     conciergeChat,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     betas,
                     currentUserEmail,
                     currentUserAccountID,
@@ -257,6 +265,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 const transactionThreadReport = createTransactionThreadReport({
                     introSelected,
                     conciergeChat,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     currentUserLogin: currentUserEmail ?? '',
                     currentUserAccountID,
                     betas,

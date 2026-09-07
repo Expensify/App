@@ -1,6 +1,6 @@
-import '@libs/Middleware/register';
 import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
+import registerMiddlewares from '@libs/Middleware/register';
 import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import {setDeviceID} from '@userActions/Device';
@@ -21,6 +21,8 @@ import telemetry from './telemetry';
 const enableDevTools = Config?.USE_REDUX_DEVTOOLS === 'true';
 
 export default function () {
+    registerMiddlewares();
+
     telemetry();
 
     toSortedPolyfill.shim();

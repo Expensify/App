@@ -11,7 +11,6 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 
 import {useIsFocused} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 
 import SidebarLinks from './SidebarLinks';
@@ -27,11 +26,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
-    const {filteredReports, orderedReportIDs, currentReportID} = useSidebarOrderedReportsState();
-
-    const currentReportIDRef = useRef(currentReportID);
-    currentReportIDRef.current = currentReportID;
-    const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
+    const {filteredReports, orderedReportIDs} = useSidebarOrderedReportsState();
 
     const onLayout = useInboxTabSpanLifecycle();
 
@@ -48,7 +43,6 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
                 insets={insets}
                 priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
                 // Data props:
-                isActiveReport={isActiveReport}
                 optionListItems={filteredReports}
                 hasReportData={orderedReportIDs.length > 0}
             />

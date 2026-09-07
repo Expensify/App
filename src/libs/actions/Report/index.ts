@@ -393,8 +393,8 @@ type OpenReportActionParams = {
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
 
-    /** This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411 */
-    conciergeChat?: OnyxEntry<Report>;
+    /** The Concierge chat report used to build the guided setup onboarding data */
+    conciergeChat: OnyxEntry<Report>;
 };
 
 type PregeneratedResponseParams = {
@@ -462,10 +462,9 @@ type MergeReportsProps = {
     policyCategories?: OnyxEntry<PolicyCategories>;
     policyTagList: OnyxEntry<PolicyTagLists>;
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
-    allReports: OnyxCollection<Report>;
+    allReports?: OnyxCollection<Report>;
     allReportsTransactions?: Record<string, Transaction[]>;
-    sourceReportActions: Record<string, OnyxEntry<ReportActions>>;
-    sourceParentReportActions: Record<string, OnyxEntry<ReportAction>>;
+    allReportActions?: Record<string, OnyxEntry<ReportActions>>;
     hash?: number;
     bankAccountList: OnyxEntry<BankAccountList>;
     isTrackIntentUser: boolean | undefined;
@@ -8534,8 +8533,7 @@ function mergeReports({
     allReportsTransactions,
     bankAccountList,
     allReports: allReportsParam,
-    sourceReportActions,
-    sourceParentReportActions,
+    allReportActions = {},
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
@@ -8625,7 +8623,7 @@ function mergeReports({
         });
 
         // Mark comments on the source report as deleted
-        const reportActions = sourceReportActions[sourceReportID];
+        const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`];
         deleteOptimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`,
@@ -8642,7 +8640,7 @@ function mergeReports({
         const parentReportID = sourceReport.parentReportID;
         const parentReportActionID = sourceReport.parentReportActionID;
         if (parentReportID && parentReportActionID) {
-            const parentReportAction = sourceParentReportActions[sourceReportID];
+            const parentReportAction = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID];
             const {
                 optimisticData: parentOptimisticData,
                 successData: parentSuccessData,
@@ -8671,6 +8669,14 @@ function mergeReports({
     if (hash) {
         const optimisticSnapshotData: SearchResultDataType = {};
         const failureSnapshotData: SearchResultDataType = {};
+        for (const transaction of transactionsToMove) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+                ...transaction,
+                reportID: destinationReportID,
+            };
+
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        }
         for (const sourceReportID of sourceReportIDs) {
             const sourceReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
             if (sourceReport) {
@@ -8713,8 +8719,8 @@ function mergeReports({
     }
 
     const parameters: MergeReportsParams = {
-        destinationReportID,
-        sourceReportIDs,
+        reportID: destinationReportID,
+        sourceReportIDList: sourceReportIDs,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
     };
 

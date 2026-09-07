@@ -9,7 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {useAccountingState} from '@pages/workspace/accounting/AccountingContext';
+import {useAccountingState} from '@pages/workspace/accounting/AccountingContext/contexts';
 import {getInitialSubPageForNetsuiteTokenInput} from '@pages/workspace/accounting/netsuite/utils';
 
 import type {AnchorPosition} from '@styles/index';

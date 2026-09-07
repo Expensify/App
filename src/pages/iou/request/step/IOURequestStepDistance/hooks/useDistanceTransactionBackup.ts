@@ -32,6 +32,12 @@ type UseDistanceTransactionBackupParams = {
     /** The Concierge chat report */
     conciergeChat: OnyxEntry<Report>;
 
+    /** Whether the user has seen the self tour. Used by the offline-recovery `openReport` call. */
+    isSelfTourViewed: boolean | undefined;
+
+    /** Whether the user has completed the guided setup flow. Used by the offline-recovery `openReport` call. */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
     /** Caller-owned ref. Set `.current = true` once the user has confirmed a save so the cleanup drops the backup instead of restoring it. */
     transactionWasSavedRef: React.RefObject<boolean>;
 };
@@ -44,6 +50,8 @@ function useDistanceTransactionBackup({
     introSelected,
     betas,
     conciergeChat,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
     transactionWasSavedRef,
 }: UseDistanceTransactionBackupParams): void {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -72,7 +80,16 @@ function useDistanceTransactionBackup({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport({reportID: transaction?.reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
+            openReport({
+                reportID: transaction?.reportID,
+                introSelected,
+                conciergeChat,
+                betas,
+                hasReportActions: true,
+                currentUserAccountID,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+            });
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount-only effect: backup on mount, restore-or-drop on unmount, never re-runs
     }, []);

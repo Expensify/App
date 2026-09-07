@@ -19,6 +19,7 @@ import useNavigationSuggestions, {
 } from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import {setSearchContext} from '@libs/actions/Search';
+import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync';
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
@@ -55,6 +56,7 @@ const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceIte
 const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
 const mockClearSelectedTransactions = jest.fn();
 const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
+const mockShouldUseNarrowLayout = jest.fn(() => false);
 const mockUseNetwork = jest.fn<{isOffline: boolean}, []>(() => ({isOffline: false}));
 const mockIsBetaEnabled = jest.fn<boolean, [beta: string]>(() => false);
 const currentUserAccountID = 1;
@@ -131,7 +133,7 @@ jest.mock('@hooks/usePermissions', () => ({
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
-    default: () => ({shouldUseNarrowLayout: false}),
+    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout()}),
 }));
 
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
@@ -151,6 +153,11 @@ jest.mock('@pages/workspace/getWorkspaceMenuItems', () => {
 
 jest.mock('@libs/actions/Search', () => ({
     setSearchContext: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -498,10 +505,10 @@ describe('Domain Search Router navigation source', () => {
         for (const item of items) {
             item.action?.();
         }
-        expect(onSelect).toHaveBeenNthCalledWith(1, ROUTES.DOMAIN_MEMBERS.getRoute(123));
-        expect(onSelect).toHaveBeenNthCalledWith(2, ROUTES.DOMAIN_ADMINS.getRoute(123));
-        expect(onSelect).toHaveBeenNthCalledWith(3, ROUTES.DOMAIN_GROUPS.getRoute(123));
-        expect(onSelect).toHaveBeenNthCalledWith(4, ROUTES.DOMAIN_SAML.getRoute(123));
+        expect(onSelect).toHaveBeenNthCalledWith(1, ROUTES.DOMAIN_MEMBERS.getRoute(123), 123);
+        expect(onSelect).toHaveBeenNthCalledWith(2, ROUTES.DOMAIN_ADMINS.getRoute(123), 123);
+        expect(onSelect).toHaveBeenNthCalledWith(3, ROUTES.DOMAIN_GROUPS.getRoute(123), 123);
+        expect(onSelect).toHaveBeenNthCalledWith(4, ROUTES.DOMAIN_SAML.getRoute(123), 123);
     });
 
     it('matches Domain rows by subpage label or domain name', () => {
@@ -561,6 +568,9 @@ describe('Domain Search Router navigation source', () => {
             throw new Error('Expected Domain navigation context to be a React element');
         }
         expect(rightElement.props).toMatchObject({text: 'example.com', icon: domainIcons.Globe});
+
+        result.current.at(0)?.action?.();
+        expect(navigateToDomainRouteWithSidebarSync).toHaveBeenCalledWith(ROUTES.DOMAIN_MEMBERS.getRoute(123), 123, false);
     });
 });
 

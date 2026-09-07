@@ -173,8 +173,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const isTableTab =
         activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
     const isAgentsTab = activeTab === RULES_TAB.AGENTS;
+    const isGeneralTab = activeTab === RULES_TAB.GENERAL;
     const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
-    const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;
+    const shouldShowAddRuleButton = isGeneralTab || !shouldShowBulkActions;
 
     const handleBackButtonPress = () => {
         if (isMobileSelectionModeEnabled) {
@@ -355,6 +356,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             </View>
         </View>
     );
+    // Outside the list so it stays pinned: it counts selected rows, which is useless once it scrolls away.
+    const separateLineButtons =
+        shouldDisplayButtonsInSeparateLine && !!headerButtons ? <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View> : null;
     const sharedTableTabProps = {
         policyID,
         canWriteRules,
@@ -371,7 +375,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         >
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
-                shouldUseScrollView={activeTab === RULES_TAB.GENERAL}
                 headerText={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
@@ -384,23 +387,23 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
-                    {!isTableTab && !isAgentsTab && rulesTabSelector}
-                    {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
+                    {separateLineButtons}
                     <View
                         style={[
                             styles.flex1,
                             styles.mnh0,
                             styles.w100,
                             shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                            (isTableTab || isAgentsTab) && styles.mw100,
+                            (isTableTab || isAgentsTab || isGeneralTab) && styles.mw100,
                         ]}
                     >
-                        {activeTab === RULES_TAB.GENERAL && (
+                        {isGeneralTab && (
                             <RulesGeneralTab
                                 policyID={policyID}
                                 canWriteRules={canWriteRules}
                                 isAgentsRulesBannerDismissed={isAgentsRulesBannerDismissed}
                                 onOpenAgentsTab={() => handleTabPress(RULES_TAB.AGENTS)}
+                                headerComponent={rulesTabSelector}
                             />
                         )}
                         {isTableTab && (

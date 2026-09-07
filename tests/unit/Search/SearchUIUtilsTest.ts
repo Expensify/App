@@ -6131,16 +6131,31 @@ describe('SearchUIUtils', () => {
                 expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
             });
 
-            it('should exclude transactions when queryJSON status is an invalid string', () => {
+            it('should include transactions when queryJSON status is an invalid string', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
                 const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['not_a_valid_status'])});
-                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
             });
 
-            it('should exclude transactions when queryJSON status array contains only invalid strings', () => {
+            it('should include transactions when queryJSON status array contains only invalid strings', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
                 const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['invalid1', 'invalid2'])});
-                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should include transactions when queryJSON status is the backend-only all value', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['all'])});
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should filter on the valid status when queryJSON status mixes a valid status with an invalid one', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [outstandingSections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['all', CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING])});
+                expect(outstandingSections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+
+                const [draftsSections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['all', CONST.SEARCH.STATUS.EXPENSE.DRAFTS])});
+                expect(draftsSections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
             });
 
             it('should include transactions when queryJSON status is ALL', () => {
@@ -6512,6 +6527,12 @@ describe('SearchUIUtils', () => {
                     queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.PAID]),
                 });
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should include report when queryJSON status is the backend-only all value', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON(['all'])});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
             });
 
             it('should include report when negated status excludes a different status than the report state', () => {

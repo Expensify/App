@@ -9,6 +9,8 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
@@ -18,6 +20,9 @@ import type {ExpenseDefaultTableItem} from './WorkspaceExpenseDefaultsTableRow';
 import WorkspaceExpenseDefaultsTableRow from './WorkspaceExpenseDefaultsTableRow';
 
 type ExpenseDefaultsTableColumnKey = 'type' | 'condition' | 'rule' | 'actions';
+
+/** The order the `Expense defaults` subsections render in, per the design. */
+const SECTION_ORDER = [CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES, CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS, CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES] as const;
 
 type WorkspaceExpenseDefaultsTableProps = {
     rulesData: ExpenseDefaultTableItem[];
@@ -62,8 +67,9 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
     const compareItems: CompareItemsCallback<ExpenseDefaultTableItem, ExpenseDefaultsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
-        if (a.isMerchantType !== b.isMerchantType) {
-            return a.isMerchantType ? 1 : -1;
+        // Sections stay grouped and in a fixed order whatever the column sort is. Sorting only reorders rows inside a section.
+        if (a.section !== b.section) {
+            return SECTION_ORDER.indexOf(a.section) - SECTION_ORDER.indexOf(b.section);
         }
 
         if (activeSorting.columnKey === 'type') {

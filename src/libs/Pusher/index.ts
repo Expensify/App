@@ -86,7 +86,6 @@ function init(args: Args): Promise<void> {
 
         const options: Options = {
             cluster: args.cluster,
-            authEndpoint: args.authEndpoint,
         };
 
         if (customAuthorizer) {

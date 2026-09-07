@@ -34,6 +34,7 @@ import {
     haveWaypointAddressesChanged,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
+    isMapBasedDistanceRequest,
     isOnHold,
     isScanning,
     removeTransactionFromDuplicateTransactionViolation,
@@ -1716,6 +1717,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     if (shouldFlagMerchantPending) {
         pendingFields.merchant = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     }
+
+    // Odometer and pure manual receipts are uploaded, not regenerated, so their page count has to survive the edit.
+    const shouldClearReceiptPageCount = shouldFlagMerchantPending && isMapBasedDistanceRequest(transaction);
     const clearedPendingFields = getClearedPendingFields(transactionChanges);
     // `getClearedPendingFields` only clears `merchant` for distance edits, so when we artificially
     // flag it for waypoint/rate edits we must also clear it here. Otherwise the flag persists past
@@ -1947,6 +1951,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             ...updatedTransaction,
+            // Clear the stale page count until the regenerated receipt arrives.
+            ...(shouldClearReceiptPageCount && updatedTransaction?.receipt ? {receipt: {...updatedTransaction.receipt, pageCount: null}} : {}),
             pendingFields,
             errorFields: null,
             reportID: newTransactionReportID ?? updatedTransaction?.reportID,
@@ -2386,6 +2392,11 @@ function getUpdateTrackExpenseParams(
         dataToIncludeInParams.distance = transactionChanges.distance;
     }
 
+    // Same page count clear as `getUpdateMoneyRequestParams`.
+    const shouldClearReceiptPageCount =
+        ('waypoints' in transactionChanges || 'distance' in transactionChanges || 'customUnitRateID' in transactionChanges || 'selectedRouteKey' in transactionChanges) &&
+        isMapBasedDistanceRequest(transaction);
+
     const apiParams: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
         reportID: chatReport?.reportID,
@@ -2485,6 +2496,7 @@ function getUpdateTrackExpenseParams(
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             ...updatedTransaction,
+            ...(shouldClearReceiptPageCount && updatedTransaction?.receipt ? {receipt: {...updatedTransaction.receipt, pageCount: null}} : {}),
             pendingFields,
             errorFields: null,
         },

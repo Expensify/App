@@ -357,7 +357,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
-    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 
     // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
@@ -694,7 +694,8 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
 }
 
 function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot: TryNewDot | undefined, credentialsParam: Credentials | undefined) {
-    const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- OldDot's handoff payload still carries the boolean, and this is where it gets converted to ACTIVE_SERVER
+    const {hybridApp, [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: shouldUseStagingServer, ...newDotOnyxValues} = hybridAppSettings;
 
     const clearOnyxIfSigningIn = () => {
         if (!hybridApp.useNewDotSignInPage) {
@@ -797,13 +798,23 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 readyToShowAuthScreens: !hybridApp?.useNewDotSignInPage,
             };
 
-            const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP | keyof typeof newDotOnyxValues>> = [
+            const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP | typeof ONYXKEYS.ACTIVE_SERVER | keyof typeof newDotOnyxValues>> = [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.HYBRID_APP,
                     value: hybridAppUpdate,
                 },
             ];
+
+            // A payload without the field says nothing about the server, and writing a default here would pin staging and adhoc builds to production.
+            // `setActiveServer` is the wrong helper: it reports the choice back to OldDot through HybridAppModule.
+            if (shouldUseStagingServer !== undefined) {
+                onyxUpdates.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.ACTIVE_SERVER,
+                    value: shouldUseStagingServer ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION,
+                });
+            }
 
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
                 onyxUpdates.push({

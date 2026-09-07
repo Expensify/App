@@ -54,7 +54,6 @@ const basicProps = {
     transactionDetails: {},
     isBillSplit: false,
     shouldShowRBR: false,
-    shouldShowCanceledStatus: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
     currentUserEmail: '',
@@ -256,16 +255,10 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('does not show the canceled status inside a report preview, because the preview header already shows it', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: false};
+        it('does not show the canceled status, because a cancelled payment is only recorded by its system message', () => {
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewStatusText).toEqual([]);
-        });
-
-        it('shows the canceled status in a standalone preview, because nothing else on that surface reports it', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: true};
-            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.canceled'});
         });
 
         it('does not show the approved status when the report is approved, because it is redundant with the report status badge', () => {
@@ -536,12 +529,6 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, transactionDetails: {merchant: 'Valid Merchant', comment: 'Valid Comment'}};
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowDescription).toBeFalsy();
-        });
-
-        it("should show tag if it's a policy expense chat and tag is present", () => {
-            const functionArgs = {...basicProps, isReportAPolicyExpenseChat: true, transactionDetails: {tag: 'Transport'}};
-            const result = createTransactionPreviewConditionals(functionArgs);
-            expect(result.shouldShowTag).toBeTruthy();
         });
 
         it('should correctly show violation message if there are multiple violations', () => {

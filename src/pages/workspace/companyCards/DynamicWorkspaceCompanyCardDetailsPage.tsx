@@ -24,7 +24,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isUsingStagingApi} from '@libs/ApiUtils';
+import {getActiveServer} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
     getCardFeedIcon,
@@ -105,7 +105,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const {canWrite: canWriteCompanyCards} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -137,7 +137,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
 
     // Show "Break connection" only when Mock Bank requests target non-production APIs.
     const isMockBank = bank?.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
-    const isUsingNonProductionAPI = shouldUseStagingServer || CONFIG.IS_USING_LOCAL_WEB;
+    const isUsingNonProductionAPI = activeServer !== CONST.SERVER.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB;
     const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
 
     const lastScrape = card?.lastScrape

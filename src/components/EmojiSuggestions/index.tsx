@@ -1,20 +1,11 @@
 import type {Emoji} from '@assets/emojis/types';
 
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
+import AutoCompleteSuggestions from '@components/AutoCompleteSuggestions';
+import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 
-import * as EmojiUtils from '@libs/EmojiUtils';
-import getStyledTextArray from '@libs/GetStyledTextArray';
+import React from 'react';
 
-import type {ReactElement} from 'react';
-
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-
-import type {MeasureParentContainerAndCursorCallback} from './AutoCompleteSuggestions/types';
-
-import AutoCompleteSuggestions from './AutoCompleteSuggestions';
-import Text from './Text';
+import EmojiSuggestionItem from './EmojiSuggestionItem';
 
 type EmojiSuggestionsProps = {
     /** The index of the highlighted emoji */
@@ -60,43 +51,16 @@ function EmojiSuggestions({
     measureParentContainerAndReportCursor = () => {},
     resetSuggestions,
 }: EmojiSuggestionsProps) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    /**
-     * Render an emoji suggestion menu item component.
-     */
-    const renderSuggestionMenuItem = useCallback(
-        (item: Emoji): ReactElement => {
-            const styledTextArray = getStyledTextArray(item.name, prefix);
-
-            return (
-                <View style={styles.autoCompleteSuggestionContainer}>
-                    <Text style={styles.emojiSuggestionsEmoji}>{EmojiUtils.getEmojiCodeWithSkinColor(item, preferredSkinToneIndex)}</Text>
-                    <Text
-                        numberOfLines={2}
-                        style={styles.emojiSuggestionsText}
-                    >
-                        :
-                        {styledTextArray.map(({text, isColored}) => (
-                            <Text
-                                key={`${text}+${isColored}`}
-                                style={StyleUtils.getColoredBackgroundStyle(isColored)}
-                            >
-                                {text}
-                            </Text>
-                        ))}
-                        :
-                    </Text>
-                </View>
-            );
-        },
-        [prefix, styles.autoCompleteSuggestionContainer, styles.emojiSuggestionsEmoji, styles.emojiSuggestionsText, preferredSkinToneIndex, StyleUtils],
-    );
-
     return (
         <AutoCompleteSuggestions
             suggestions={emojis}
-            renderSuggestionMenuItem={renderSuggestionMenuItem}
+            renderSuggestionMenuItem={(item: Emoji) => (
+                <EmojiSuggestionItem
+                    item={item}
+                    prefix={prefix}
+                    preferredSkinToneIndex={preferredSkinToneIndex}
+                />
+            )}
             keyExtractor={keyExtractor}
             highlightedSuggestionIndex={highlightedEmojiIndex}
             onSelect={onSelect}

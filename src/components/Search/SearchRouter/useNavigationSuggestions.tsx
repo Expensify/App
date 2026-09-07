@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync';
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
@@ -182,7 +183,7 @@ type BuildDomainNavigationItemsParams = {
     getItemText: (translationKey: TranslationPaths) => string;
     getDestinationText: (destination: string) => string;
     getDomainContext: (domainName: string) => ReactNode;
-    onSelect: (route: Route) => void;
+    onSelect: (route: Route, domainAccountID: number) => void;
 };
 
 type BuildAccountNavigationItemsParams = {
@@ -332,7 +333,7 @@ function buildDomainNavigationItems({
             return {
                 text: getDestinationText(itemText),
                 singleIcon: item.icon,
-                action: () => onSelect(item.route),
+                action: () => onSelect(item.route, domain.accountID),
                 keyForList: `domain_${domain.accountID}_${item.screenName}`,
                 rightElement: domainContext,
                 matchTerms: [itemText, domainName],
@@ -441,7 +442,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
                 textStyle={[styles.textLabelSupporting, styles.label]}
             />
         ),
-        onSelect: (route) => Navigation.navigate(route),
+        onSelect: (route, domainAccountID) => navigateToDomainRouteWithSidebarSync(route, domainAccountID, shouldUseNarrowLayout),
     });
 
     const accountItems = buildAccountNavigationItems({

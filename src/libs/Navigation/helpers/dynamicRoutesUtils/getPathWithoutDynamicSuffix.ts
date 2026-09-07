@@ -1,5 +1,6 @@
 import type {Route} from '@src/ROUTES';
 
+import findAllMatchingDynamicSuffixes from './findAllMatchingDynamicSuffixes';
 import getDynamicRouteQueryParams from './getDynamicRouteQueryParams';
 import splitPathAndQuery from './splitPathAndQuery';
 
@@ -26,8 +27,16 @@ function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string, pa
     const paramsToStrip = getDynamicRouteQueryParams(patternSuffix ?? dynamicSuffix);
     let filteredQuery = query;
     if (paramsToStrip?.length && query) {
+        // The base path can itself end with a dynamic suffix, and sibling suffixes share param names, so stripping
+        // wholesale would leave that base suffix without the params it needs. We can't tell which of the matching
+        // candidates is the real one without the navigation state, so keep any param one of them could own -
+        // over-keeping is harmless, dropping one breaks the base route.
+        const paramsOwnedByBase = new Set(findAllMatchingDynamicSuffixes(pathWithoutDynamicSuffix).flatMap((match) => getDynamicRouteQueryParams(match.pattern) ?? []));
         const params = new URLSearchParams(query);
         for (const key of paramsToStrip) {
+            if (paramsOwnedByBase.has(key)) {
+                continue;
+            }
             params.delete(key);
         }
         const result = params.toString();
