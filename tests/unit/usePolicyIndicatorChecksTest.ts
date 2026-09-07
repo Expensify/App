@@ -348,7 +348,7 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.domainStatus).toBe(CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS);
+            expect(result.current.domainErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS);
         });
     });
 
@@ -441,7 +441,7 @@ describe('usePolicyIndicatorChecks', () => {
 
             expect(result.current.policyErrorStatus).toBeUndefined();
             expect(result.current.policyInfoStatus).toBeUndefined();
-            expect(result.current.domainStatus).toBeUndefined();
+            expect(result.current.domainErrorStatus).toBeUndefined();
             expect(result.current.indicatorPolicyID).toBeUndefined();
         });
     });
@@ -458,7 +458,7 @@ describe('usePolicyIndicatorChecks', () => {
 
             expect(result.current.policyErrorStatus).toBeUndefined();
             expect(result.current.policyInfoStatus).toBeUndefined();
-            expect(result.current.domainStatus).toBeUndefined();
+            expect(result.current.domainErrorStatus).toBeUndefined();
             expect(result.current.indicatorPolicyID).toBeUndefined();
         });
     });
