@@ -114,11 +114,12 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
 
-                // A validated account already has the work email needed to look up joinable workspaces, so it skips
-                // straight to the list. An unvalidated one needs a work email first: a public-domain account has none
-                // on file yet, while a private-domain one already has one and only needs to validate it.
+                // A validated private-domain account already has the work email needed to look up joinable workspaces,
+                // so it skips straight to the list. A public-domain account has no work email on file regardless of
+                // validation, so it still needs to add one; an unvalidated private-domain one already has one and
+                // only needs to validate it.
                 if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
-                    if (isValidated) {
+                    if (isValidated && !account?.isFromPublicDomain) {
                         Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
                         return;
                     }
