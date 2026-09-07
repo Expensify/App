@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {findEmojiByName, hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -22,6 +23,7 @@ import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 /** How long the thanks acknowledgement stays up after a thumbs up before the row goes quiet. */
 const THANKS_VISIBLE_DURATION_MS = 4000;
@@ -90,6 +92,8 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [reactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
+    const [parentReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: (report) => report?.parentReportActionID});
+    const [parentReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${getNonEmptyStringOnyxID(parentReportActionID)}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
@@ -129,22 +133,36 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
         return null;
     }
 
+    // A thumbs down makes the backend open a thread on the rated message and post its own request for
+    // detail into it. That request is a Concierge comment like any other, so without this the newest
+    // comment in the feedback thread is the request itself and the user is asked to rate being asked.
+    const isFeedbackThread = hasReactedWithEmoji(thumbsUp, parentReactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, parentReactions, currentUserAccountID);
+
+    if (isFeedbackThread) {
+        return null;
+    }
+
     return (
         <ActionableItemButtons
             layout="horizontal"
             style={styles.alignItemsCenter}
         >
             <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.prompt')}</Text>
-            <ConciergeFeedbackThumb
-                emoji={thumbsUp}
-                label={translate('concierge.feedback.useful')}
-                onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp, true))}
-            />
-            <ConciergeFeedbackThumb
-                emoji={thumbsDown}
-                label={translate('concierge.feedback.notUseful')}
-                onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown, false))}
-            />
+            {/* The thumbs sit flush against each other, as they do in the mock. The row's own gap would
+                otherwise push them ~10px further apart than the design, on top of the padding each 28px
+                target already carries. */}
+            <View style={styles.flexRow}>
+                <ConciergeFeedbackThumb
+                    emoji={thumbsUp}
+                    label={translate('concierge.feedback.useful')}
+                    onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp, true))}
+                />
+                <ConciergeFeedbackThumb
+                    emoji={thumbsDown}
+                    label={translate('concierge.feedback.notUseful')}
+                    onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown, false))}
+                />
+            </View>
         </ActionableItemButtons>
     );
 }
