@@ -78,7 +78,7 @@ function BulkActionBarContent<TValueType>({selectedCount, isSelectedCountLoading
                 {isSelectedCountLoading ? (
                     <ActivityIndicator color={theme.spinner} />
                 ) : (
-                    <Text style={[styles.textLabel, styles.textStrong]}>{translate('workspace.common.selected', {count: selectedCount})}</Text>
+                    <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter]}>{translate('workspace.common.selected', {count: selectedCount})}</Text>
                 )}
             </View>
             {inlineOptions.map((option) => (
