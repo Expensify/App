@@ -1,5 +1,6 @@
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
+import createWorkspaceNavigator from '@libs/Navigation/AppNavigator/createWorkspaceNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {
     AuthScreensParamList,
@@ -19,7 +20,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-import type {InitialState, NavigatorScreenParams} from '@react-navigation/native';
+import type {InitialState, NavigatorScreenParams, ParamListBase, RouteProp} from '@react-navigation/native';
 
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
@@ -42,7 +43,7 @@ const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
 const WorkspaceSplit = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 const DomainSplit = createSplitNavigator<DomainSplitNavigatorParamList>();
-const WorkspaceStack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
+const WorkspaceStack = createWorkspaceNavigator<WorkspaceNavigatorParamList>();
 const RightModalNavigatorStack = createSplitNavigator<RightModalNavigatorParamList>();
 
 const getEmptyComponent = () => jest.fn();
@@ -88,9 +89,9 @@ function TestWorkspaceSplitNavigator() {
     );
 }
 
-function TestWorkspaceNavigator() {
+function TestWorkspaceNavigator({route}: {route: RouteProp<ParamListBase>}) {
     return (
-        <WorkspaceStack.Navigator>
+        <WorkspaceStack.Navigator parentRoute={route}>
             <WorkspaceStack.Screen
                 name={SCREENS.WORKSPACES_LIST}
                 component={getEmptyComponent()}
