@@ -150,7 +150,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency || bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
-    const bankConnectionStatus = getBankAccountConnectionStatus(accountData, bankAccountCurrency);
+    const bankConnectionStatus = getBankAccountConnectionStatus(bankAccountConnectedToWorkspace?.accountData, bankAccountCurrency);
     const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
     const bankConnectionStatusAddon = bankConnectionStatus ? (
         <ConnectionStatusBadge
