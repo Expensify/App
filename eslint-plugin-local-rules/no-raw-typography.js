@@ -6,7 +6,17 @@ const meta = {
         description: 'Disallow raw numeric fontSize/lineHeight values. Type must come from the typography scale so it cannot drift from the design system.',
         recommended: 'error',
     },
-    schema: [],
+    schema: [
+        {
+            type: 'object',
+            properties: {
+                // For the styles layer, which is the code that composes tokens out of `variables`. Raw
+                // numeric literals stay banned there.
+                allowVariablesReferences: {type: 'boolean'},
+            },
+            additionalProperties: false,
+        },
+    ],
     messages: {
         rawTypography: 'Raw `{{property}}: {{value}}` is not allowed. Use a `<Text variant="...">` or a token from src/styles/typography.ts (https://github.com/Expensify/App/issues/37503).',
         rawTypographyVariable:
@@ -103,6 +113,11 @@ function findVariable(scope, variableName) {
  * identifier name are followed — a `let` binding or a destructuring pattern has no single value to
  * trace, so those are left alone rather than guessed at.
  *
+ * Only `variables.*` references are traced through an alias, never bare numbers. A `const FONT_SIZE = 12`
+ * is indistinguishable from any other numeric constant, so following it turns test fixtures and layout
+ * math into typography violations. `variables.fontSize*` is unambiguous, and it is the escape hatch this
+ * tracing exists to close.
+ *
  * @param {import('eslint').Scope.Variable} variable
  * @returns {import('estree').Node | undefined}
  */
@@ -120,12 +135,15 @@ function getConstInitializer(variable) {
 /**
  * Flags object properties (`{fontSize: 17}`), JSX attributes (`<Text fontSize={17}>`), and
  * `getFontSizeStyle()`/`getLineHeightStyle()` arguments that set type outside the typography scale —
- * both numeric literals and `variables.fontSize*` / `variables.lineHeight*` references.
+ * both numeric literals and `variables.fontSize*` / `variables.lineHeight*` references. With
+ * `allowVariablesReferences`, only the numeric literals are banned.
  *
  * @param {import('eslint').Rule.RuleContext} context
  * @returns {import('eslint').Rule.RuleListener}
  */
 function create(context) {
+    const allowVariablesReferences = context.options.at(0)?.allowVariablesReferences ?? false;
+
     function report(valueNode, propertyName, bannedValue) {
         context.report({
             node: valueNode,
@@ -145,18 +163,20 @@ function create(context) {
      *
      * @param {import('estree').Node} valueNode
      * @param {Set<import('eslint').Scope.Variable>} visitedVariables guards against cyclic aliases
+     * @param {boolean} isBehindAlias set once the walk has stepped through a `const`, after which bare
+     * numbers are no longer attributable to a typography decision
      * @returns {{messageId: string, node: import('estree').Node} | undefined}
      */
-    function findBannedValue(valueNode, visitedVariables) {
+    function findBannedValue(valueNode, visitedVariables, isBehindAlias) {
         const unwrapped = unwrap(valueNode);
-        if (isNumericLiteral(unwrapped)) {
+        if (!isBehindAlias && isNumericLiteral(unwrapped)) {
             return {messageId: 'rawTypography', node: unwrapped};
         }
-        if (isVariablesTypographyReference(unwrapped)) {
+        if (!allowVariablesReferences && isVariablesTypographyReference(unwrapped)) {
             return {messageId: 'rawTypographyVariable', node: unwrapped};
         }
         if (unwrapped.type === 'ConditionalExpression') {
-            return findBannedValue(unwrapped.consequent, visitedVariables) ?? findBannedValue(unwrapped.alternate, visitedVariables);
+            return findBannedValue(unwrapped.consequent, visitedVariables, isBehindAlias) ?? findBannedValue(unwrapped.alternate, visitedVariables, isBehindAlias);
         }
         if (unwrapped.type !== 'Identifier') {
             return undefined;
@@ -167,11 +187,11 @@ function create(context) {
         }
         visitedVariables.add(variable);
         const initializer = getConstInitializer(variable);
-        return initializer ? findBannedValue(initializer, visitedVariables) : undefined;
+        return initializer ? findBannedValue(initializer, visitedVariables, true) : undefined;
     }
 
     function getBannedValue(valueNode) {
-        return findBannedValue(valueNode, new Set());
+        return findBannedValue(valueNode, new Set(), false);
     }
 
     /**

@@ -71,6 +71,19 @@ describe('no-raw-typography', () => {
             'let size = 17; size = fontScale.text; const style = {fontSize: size};',
             'const style = {fontSize: props.fontSize};',
             'const style = {fontSize: isSmall ? fontScale.micro : fontScale.text};',
+            // Only `variables.*` is traced through an alias. A bare number behind a `const` is
+            // indistinguishable from any other constant — test fixtures and layout math live there too.
+            'const FONT_SIZE = 12; const style = {fontSize: FONT_SIZE};',
+            'const size = isSmall ? fontScale.micro : 17; const style = {fontSize: size};',
+            // The styles layer composes tokens out of `variables`, so it reads them by name.
+            {
+                code: 'const style = {fontSize: variables.fontSizeNormal};',
+                options: [{allowVariablesReferences: true}],
+            },
+            {
+                code: 'const style = StyleUtils.getFontSizeStyle(variables.fontSizeMedium);',
+                options: [{allowVariablesReferences: true}],
+            },
         ],
         invalid: [
             {
@@ -139,10 +152,6 @@ describe('no-raw-typography', () => {
                 errors: [{messageId: 'rawTypographyVariable'}],
             },
             {
-                code: 'const size = 17; const style = {fontSize: size};',
-                errors: [{messageId: 'rawTypography'}],
-            },
-            {
                 code: 'const size = variables.fontSizeNormal; const jsx = <Text fontSize={size}>hi</Text>;',
                 errors: [{messageId: 'rawTypographyVariable'}],
             },
@@ -156,7 +165,23 @@ describe('no-raw-typography', () => {
                 errors: [{messageId: 'rawTypographyVariable'}],
             },
             {
-                code: 'const size = isSmall ? fontScale.micro : 17; const style = {fontSize: size};',
+                code: 'const style = {fontSize: isSmall ? fontScale.micro : 17};',
+                errors: [{messageId: 'rawTypography'}],
+            },
+            {
+                code: 'const size = isSmall ? variables.fontSizeXXSmall : fontScale.micro; const style = {fontSize: size};',
+                errors: [{messageId: 'rawTypographyVariable'}],
+            },
+            // `allowVariablesReferences` only lifts the named ban. Raw numeric literals stay banned, which is
+            // what keeps the styles layer's grandfathered literals ratcheting down.
+            {
+                code: 'const style = {fontSize: 17};',
+                options: [{allowVariablesReferences: true}],
+                errors: [{messageId: 'rawTypography'}],
+            },
+            {
+                code: 'const style = StyleUtils.getFontSizeStyle(17);',
+                options: [{allowVariablesReferences: true}],
                 errors: [{messageId: 'rawTypography'}],
             },
         ],
