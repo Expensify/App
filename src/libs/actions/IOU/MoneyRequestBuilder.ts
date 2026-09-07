@@ -164,9 +164,26 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     shouldSkipReportHighlightRail?: boolean;
 };
 
+/**
+ * Absolute optimistic report totals to apply regardless of whether the incoming transaction's currency
+ * matches the report currency. Used by the duplicate-report flow, where copied transactions can be in a
+ * different currency than the (pre-created) duplicate report, so the normal same-currency accumulation is
+ * skipped and the totals would otherwise stay at 0. Only defined fields are applied (`!== undefined`), so
+ * a valid zero total is honored.
+ */
+type ReportTotalsOverride = {
+    total?: number;
+    reimbursableTotal?: number;
+    nonReimbursableTotal?: number;
+    unheldTotal?: number;
+    unheldReimbursableTotal?: number;
+    unheldNonReimbursableTotal?: number;
+};
+
 type RequestMoneyInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    reportTotalsOverride?: ReportTotalsOverride;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     gpsPoint?: GPSPoint;
@@ -215,6 +232,7 @@ type MoneyRequestInformationParams = {
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
     newReportTotal?: number;
     newNonReimbursableTotal?: number;
+    reportTotalsOverride?: ReportTotalsOverride;
     testDriveCommentReportActionID?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
@@ -1271,6 +1289,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         retryParams,
         newReportTotal,
         newNonReimbursableTotal,
+        reportTotalsOverride,
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -1468,6 +1487,23 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         }
     } else {
         iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, reportAmount, currency);
+    }
+
+    // The duplicate-report flow pre-creates the report in the policy currency and copies transactions that may be in a
+    // different currency, so the currency-guarded accumulation above is skipped and the totals stay at 0. When an explicit
+    // snapshot is provided we apply it directly, so the optimistic report — and its preview, which reads the reimbursable /
+    // non-reimbursable buckets via getMoneyRequestSpendBreakdown, not `total` alone — reflects the converted totals.
+    if (reportTotalsOverride && isPolicyExpenseChat && iouReport) {
+        iouReport = {
+            ...iouReport,
+            ...(reportTotalsOverride.total !== undefined && {total: reportTotalsOverride.total}),
+            ...(reportTotalsOverride.reimbursableTotal !== undefined && {reimbursableTotal: reportTotalsOverride.reimbursableTotal}),
+            ...(reportTotalsOverride.nonReimbursableTotal !== undefined && {nonReimbursableTotal: reportTotalsOverride.nonReimbursableTotal}),
+            ...(reportTotalsOverride.unheldTotal !== undefined && {unheldTotal: reportTotalsOverride.unheldTotal}),
+            ...(reportTotalsOverride.unheldReimbursableTotal !== undefined && {unheldReimbursableTotal: reportTotalsOverride.unheldReimbursableTotal}),
+            ...(reportTotalsOverride.unheldNonReimbursableTotal !== undefined && {unheldNonReimbursableTotal: reportTotalsOverride.unheldNonReimbursableTotal}),
+        };
+        didUpdateOptimisticTotal = true;
     }
 
     // For selfDM split, use UNREPORTED_REPORT_ID for the transaction
@@ -1907,4 +1943,4 @@ export {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 };
-export type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformation, MoneyRequestInformationParams, OneOnOneIOUReport, RequestMoneyInformation};
+export type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformation, MoneyRequestInformationParams, OneOnOneIOUReport, ReportTotalsOverride, RequestMoneyInformation};
