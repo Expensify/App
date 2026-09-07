@@ -1,3 +1,7 @@
+/**
+ * RHP step shown when a vacation delegate is missing from workspaces: lets the user invite them into the
+ * workspaces they admin, skip, or just confirm the delegate.
+ */
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/ButtonComposed';
@@ -100,7 +104,7 @@ function VacationDelegateMissingWorkspacesPage() {
                     key={policyID}
                     style={index < policyIDs.length - 1 ? styles.borderBottom : undefined}
                 >
-                    {/* MenuItem.Root's built-in padding is ph5 (20px); mhn1 pulls it back to ph4 (16px) to align with the section title */}
+                    {/* MenuItem.Root's built-in padding is ph5 (20px). mhn1 pulls it back to ph4 (16px) to align with the section title */}
                     <View style={styles.mhn1}>
                         <MenuItem.Root>
                             <MenuItem.Row>
