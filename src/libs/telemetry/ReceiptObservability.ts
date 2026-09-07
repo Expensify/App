@@ -278,7 +278,6 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
     const now = Date.now();
     const isClear = trigger === 'signOut';
     const pendingTransactionIDs = new Set<string>();
-    const reportedKeys = new Set<string>();
     const rows: PendingReceiptRow[] = [];
 
     // Include the ongoing request. Once processNextRequest moves a receipt into the ongoing slot it is the one
@@ -304,14 +303,16 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
             pendingTransactionIDs.add(transactionID);
         }
 
-        const dedupeKey = data.receipt.receiptTraceId ?? transactionID;
+        // Receipts queued before receiptTraceId existed have none, so fall back to the request's own client index
+        // rather than the transaction id: ReplaceReceipt can queue twice against one transaction, and keying on the
+        // transaction would collapse the second row.
+        const dedupeKey = data.receipt.receiptTraceId ?? (request.requestIndex !== undefined ? `request-${request.requestIndex}` : transactionID);
         if (isClear && dedupeKey) {
             const reportedAt = clearReportedAtByReceipt.get(dedupeKey);
             if (reportedAt !== undefined && now - reportedAt < CLEAR_DEDUPE_MS) {
                 continue;
             }
             clearReportedAtByReceipt.set(dedupeKey, now);
-            reportedKeys.add(dedupeKey);
         }
 
         const enqueuedAt = data.receipt.receiptEnqueuedAt ?? (transactionID ? enqueuedAtByTransactionID.get(transactionID) : undefined);
@@ -351,8 +352,10 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger, reason?: SignO
         enqueuedAtByTransactionID.delete(transactionID);
     }
 
+    // Expiry is the only thing that drops an entry. Keying this on what the current snapshot emitted would let a
+    // background snapshot, which never writes to the map, wipe the guard a teardown snapshot just set.
     for (const [key, reportedAt] of clearReportedAtByReceipt) {
-        if (reportedKeys.has(key) && now - reportedAt < CLEAR_DEDUPE_MS) {
+        if (now - reportedAt < CLEAR_DEDUPE_MS) {
             continue;
         }
         clearReportedAtByReceipt.delete(key);
