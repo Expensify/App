@@ -13,6 +13,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicy from '@hooks/usePolicy';
@@ -118,6 +119,7 @@ function IOURequestEditReportCommon({
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
+    const {isOffline} = useNetwork();
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -339,6 +341,21 @@ function IOURequestEditReportCommon({
         );
     }, [createReport, hasMultipleSubmitters, isEditing, isOwner, isAdmin, handleCreateReport, icons.Document, translate, policyForMovingExpensesName]);
 
+    // The destinations are chosen server-side, so there is nothing to apply optimistically and nothing to show for a
+    // queued request. Blocking offline keeps the screen open and says why, rather than silently discarding the action.
+    const handleAutoReport = useCallback(() => {
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.offlinePrompt'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+        autoReport?.();
+    }, [isOffline, showConfirmModal, translate, autoReport]);
+
     const autoReportOption = useMemo(() => {
         if (!autoReport || !hasMultipleSubmitters) {
             return undefined;
@@ -346,13 +363,13 @@ function IOURequestEditReportCommon({
 
         return (
             <MenuItem
-                onPress={autoReport}
+                onPress={handleAutoReport}
                 title={translate('iou.autoReport')}
                 description={translate('iou.autoReportDescription')}
                 icon={icons.DocumentMagicWand}
             />
         );
-    }, [icons.DocumentMagicWand, autoReport, hasMultipleSubmitters, translate]);
+    }, [icons.DocumentMagicWand, autoReport, handleAutoReport, hasMultipleSubmitters, translate]);
 
     const listHeaderContent = createReportOption ?? autoReportOption;
 
