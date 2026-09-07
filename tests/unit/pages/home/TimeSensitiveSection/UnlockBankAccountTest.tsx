@@ -59,6 +59,7 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLay
 
 jest.mock('@libs/actions/BankAccounts', () => ({
     pressLockedBankAccount: jest.fn(),
+    openDepositAccountSetup: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Report', () => ({

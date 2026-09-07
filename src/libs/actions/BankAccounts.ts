@@ -170,6 +170,32 @@ function openPersonalBankAccountSetupView({
 }
 
 /**
+ * Fetches the reimbursement countries for each of the user's policies and merges them into the policy_ Onyx
+ * collection. The personal bank account setup flow uses policy.reimbursement.enabled/countries to decide whether to
+ * collect international deposit details (IBAN/SWIFT), and this data is intentionally not part of the policy summary.
+ */
+function openDepositAccountSetup() {
+    const onyxData: OnyxData<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
+                value: true,
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
+                value: false,
+            },
+        ],
+    };
+
+    API.read(READ_COMMANDS.OPEN_DEPOSIT_ACCOUNT_SETUP, null, onyxData);
+}
+
+/**
  * Open the personal bank account setup flow using Plaid, with an optional exitReportID to redirect to once the flow is finished.
  */
 function openPersonalBankAccountSetupWithPlaid(exitReportID?: string) {
@@ -1885,6 +1911,7 @@ export {
     deletePaymentBankAccount,
     handlePlaidError,
     openPersonalBankAccountSetupView,
+    openDepositAccountSetup,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,

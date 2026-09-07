@@ -34,6 +34,12 @@ jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAcc
     })),
 );
 
+jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddDepositAccount', () =>
+    jest.fn(() => ({
+        shouldShowAddDepositAccount: false,
+    })),
+);
+
 jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard', () =>
     jest.fn(() => ({
         shouldShowAddPaymentCard: false,
