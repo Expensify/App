@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateNetSuiteFxExpenseAccount} from '@libs/actions/connections/NetSuiteCommands';
@@ -40,6 +41,7 @@ function NetSuiteFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
         () => getNetSuiteExpenseAccountOptions(policy ?? undefined, config?.fxExpenseAccount),
         [config?.fxExpenseAccount, policy],
     );
+    const {filteredData, textInputOptions} = useSelectionListSearch(netsuiteFxExpenseAccountOptions);
 
     const initiallyFocusedOptionKey = useMemo(() => netsuiteFxExpenseAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteFxExpenseAccountOptions]);
 
@@ -83,7 +85,8 @@ function NetSuiteFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteFxExpenseAccountSelectPage"
             headerContent={headerContent}
-            data={netsuiteFxExpenseAccountOptions}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             onSelectRow={updateFxExpenseAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
