@@ -557,7 +557,6 @@
 "../../src/libs/Navigation/AppNavigator/AuthScreens.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/AuthScreensInitHandler.tsx"	"no-restricted-syntax"	6
 "../../src/libs/Navigation/AppNavigator/AuthScreensInitHandler.tsx"	"react-hooks/refs"	1
-"../../src/libs/Navigation/AppNavigator/DelegatorConnectGate.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/FreezeWrapper/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/NewChatHandler.tsx"	"no-restricted-syntax"	2
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/SearchHandler.tsx"	"no-restricted-syntax"	1
