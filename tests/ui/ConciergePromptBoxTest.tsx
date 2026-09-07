@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 
 import type {Emoji} from '@assets/emojis/types';
 
-import type {Mention} from '@components/MentionSuggestions';
+import type Mention from '@components/MentionSuggestions/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
 
