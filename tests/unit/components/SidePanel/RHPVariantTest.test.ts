@@ -3,6 +3,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {OnboardingRHPVariant} from '@src/types/onyx';
 
 import type * as RHPVariantTest from '../../../../src/components/SidePanel/RHPVariantTest/index';
 
@@ -54,7 +55,30 @@ jest.mock('@libs/actions/SidePanel', () => ({
     },
 }));
 
-const {handleRHPVariantNavigation} = jest.requireActual<typeof RHPVariantTest>('../../../../src/components/SidePanel/RHPVariantTest/index.ts');
+const {handleRHPVariantNavigation, shouldOpenRHPVariant} = jest.requireActual<typeof RHPVariantTest>('../../../../src/components/SidePanel/RHPVariantTest/index.ts');
+
+describe('shouldOpenRHPVariant', () => {
+    it('opens the side panel for the rhpHomePage variant at any company size', () => {
+        expect(shouldOpenRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE)).toBe(true);
+    });
+
+    it('opens the side panel for the trackExpensesWithConcierge variant', () => {
+        expect(shouldOpenRHPVariant(CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE)).toBe(true);
+    });
+
+    it('does not open the side panel for the inboxAdminsBespoke variant, which lands in the #admins room instead', () => {
+        expect(shouldOpenRHPVariant(CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE)).toBe(false);
+    });
+
+    // control, rhpConciergeDm, and rhpAdminsRoom are retired arms. Accounts still hold these values,
+    // so they must fall through to the default post-onboarding navigation rather than open the panel.
+    it.each<OnboardingRHPVariant>(['control', CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM])(
+        'does not open the side panel for the retired %s variant',
+        (variant) => {
+            expect(shouldOpenRHPVariant(variant)).toBe(false);
+        },
+    );
+});
 
 describe('handleRHPVariantNavigation', () => {
     beforeEach(() => {

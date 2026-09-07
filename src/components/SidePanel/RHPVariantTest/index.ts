@@ -14,7 +14,6 @@ import Onyx from 'react-native-onyx';
 import type {HandleRHPVariantNavigation, ShouldOpenRHPVariant} from './types';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
-let onboardingCompanySize: OnyxEntry<string>;
 
 // We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied directly to the UI.
 Onyx.connectWithoutView({
@@ -24,16 +23,9 @@ Onyx.connectWithoutView({
     },
 });
 
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
-    callback: (value) => {
-        onboardingCompanySize = value;
-    },
-});
-
 /**
  * Determines if the user should be navigated to the RHP variant side panel after onboarding.
- * The existing micro-company RHP variants (rhpConciergeDm, rhpAdminsRoom) are only shown to micro companies.
+ * The rhpHomePage variant is assigned at every company size, so there is no size gate here.
  * The trackExpensesWithConcierge variant is controlled entirely by the backend and applies regardless of company size.
  *
  * Accepts an optional variantOverride to bypass the module-level Onyx variable, avoiding a race
@@ -47,15 +39,7 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
         return true;
     }
 
-    const isMicroCompany =
-        onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL ||
-        onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM ||
-        onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
-    const isRHPConciergeDM = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
-    const isRHPAdminsRoom = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
-    const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
-
-    return isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom || isRHPHomePage);
+    return variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 };
 
 /**
