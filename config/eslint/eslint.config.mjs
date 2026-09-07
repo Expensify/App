@@ -717,6 +717,32 @@ const config = defineConfig([
         },
     },
 
+    // `OnyxUtils` lives in `react-native-onyx/dist/*`, which is package internals rather than the public API.
+    // This uses the typescript-eslint variant of `no-restricted-imports` (a separate rule name, so it stacks
+    // with the base rule above instead of overriding it) because only that variant supports `allowTypeImports`,
+    // and `src/types/onyx/Request.ts` legitimately does `import type OnyxUtils from 'react-native-onyx/dist/OnyxUtils'`.
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        plugins: {
+            '@typescript-eslint': tseslint.plugin,
+        },
+        rules: {
+            '@typescript-eslint/no-restricted-imports': [
+                'error',
+                {
+                    paths: [
+                        {
+                            name: 'react-native-onyx/dist/OnyxUtils',
+                            message:
+                                'OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.',
+                            allowTypeImports: true,
+                        },
+                    ],
+                },
+            ],
+        },
+    },
+
     {
         files: ['src/**/*'],
         ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
