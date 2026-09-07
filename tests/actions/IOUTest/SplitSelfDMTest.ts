@@ -15,12 +15,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import type {MockFetch} from '../../utils/TestHelper';
-
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createSelfDM} from '../../utils/collections/reports';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -71,9 +70,6 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let mockFetch: MockFetch;
-
 const currentUserPersonalDetails: CurrentUserPersonalDetails = {
     ...createPersonalDetails(RORY_ACCOUNT_ID),
     login: RORY_EMAIL,
@@ -97,7 +93,6 @@ beforeAll(() => {
 beforeEach(() => {
     jest.clearAllTimers();
     global.fetch = getGlobalFetchMock();
-    mockFetch = fetch as MockFetch;
     return Onyx.clear().then(waitForBatchedUpdates);
 });
 
@@ -175,6 +170,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -219,6 +215,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -262,6 +259,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -306,6 +304,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -329,11 +328,16 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         // Set up a snapshot that contains the original transaction, simulating the state
         // where the user is on the Expenses screen and the snapshot has the tracked expense
         const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}-2` as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
-        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`;
-        await Onyx.merge(snapshotKey, {
-            data: {[originalTransactionSnapshotKey]: originalTransaction},
-            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
-        } as unknown as SearchResults);
+        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}` satisfies `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+        const snapshotFixtureData: SearchResults['data'] = {};
+        snapshotFixtureData[originalTransactionSnapshotKey] = originalTransaction;
+        await Onyx.merge(
+            snapshotKey,
+            createMock<SearchResults>({
+                data: snapshotFixtureData,
+                search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
+            }),
+        );
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -368,6 +372,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -413,6 +418,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -462,6 +468,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         // Step 1: Create the splits
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -506,6 +513,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -523,6 +531,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         // Step 3: Edit the splits (change amounts)
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -567,6 +576,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -613,6 +623,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -657,6 +668,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();

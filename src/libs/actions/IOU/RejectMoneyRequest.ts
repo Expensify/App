@@ -14,7 +14,6 @@ import {
     buildOptimisticExpenseReport,
     buildOptimisticMarkedAsResolvedReportAction,
     buildOptimisticMoneyRequestEntities,
-    buildOptimisticMovedTransactionAction,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
     buildOptimisticReportLevelRejectAction,
@@ -170,7 +169,6 @@ function prepareRejectMoneyRequestData({
     let urlToNavigateBack;
     let reportPreviewAction: OnyxTypes.ReportAction | undefined;
     let createdIOUReportActionID;
-    let expenseMovedReportActionID;
     let expenseCreatedReportActionID;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
@@ -206,10 +204,9 @@ function prepareRejectMoneyRequestData({
     // Create system messages in both expense report and expense thread
     // The "rejected this expense" action should come before the reject comment
     const baseTimestamp = DateUtils.getDBTime();
-    const optimisticRejectReportAction = buildOptimisticRejectReportAction(baseTimestamp);
+    const optimisticRejectReportAction = buildOptimisticRejectReportAction(delegateAccountID, baseTimestamp);
     const parsedComment = getParsedComment(comment);
-    const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
-    let movedTransactionAction;
+    const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, delegateAccountID, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
 
     // Build successData and failureData to prevent duplication
     const successData: Array<
@@ -517,9 +514,9 @@ function prepareRejectMoneyRequestData({
             });
 
             reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, undefined, transaction, undefined, undefined, delegateAccountID);
-            movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
+            // The reject action posted below already tells the user this expense left the report,
+            // so a MOVED_TRANSACTION action in the same thread would repeat it
             createdIOUReportActionID = iouAction.reportActionID;
-            expenseMovedReportActionID = movedTransactionAction.reportActionID;
             expenseCreatedReportActionID = createdActionForExpenseReport.reportActionID;
             newExpenseReport.parentReportActionID = reportPreviewAction.reportActionID;
             options?.setExistingRejectedReport?.(newExpenseReport);
@@ -769,7 +766,6 @@ function prepareRejectMoneyRequestData({
         value: {
             [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction,
             [optimisticRejectReportActionComment.reportActionID]: optimisticRejectReportActionComment,
-            ...(movedTransactionAction ? {[movedTransactionAction.reportActionID]: movedTransactionAction} : {}),
         },
     });
 
@@ -924,7 +920,6 @@ function prepareRejectMoneyRequestData({
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
         rejectedCommentReportActionID: optimisticRejectReportActionComment.reportActionID,
         createdIOUReportActionID,
-        expenseMovedReportActionID,
         expenseCreatedReportActionID,
     };
 
@@ -1041,17 +1036,26 @@ function rejectExpenseReport(
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
     isTrackIntentUser: boolean | undefined,
+    delegateAccountID: number | undefined,
 ) {
     const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
     const baseTimestamp = DateUtils.getDBTime();
-    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, baseTimestamp);
+    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(
+        isRejectToSubmitter,
+        currentUserAccountID,
+        currentUserDisplayName,
+        currentUserAvatarSource,
+        delegateAccountID,
+        baseTimestamp,
+    );
     const parsedComment = getParsedComment(comment);
     const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(
         parsedComment,
         currentUserAccountID,
         currentUserDisplayName,
         currentUserAvatarSource,
+        delegateAccountID,
         DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1),
     );
 

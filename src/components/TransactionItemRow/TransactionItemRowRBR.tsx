@@ -27,6 +27,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ViewStyle} from 'react-native';
 
+import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -72,9 +73,10 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     const transactionThreadId = iouAction?.childReportID;
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const [currentUserAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const isMarkAsCash = parentReport && currentUserLogin && violations ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
-    const canEdit = wasActionTakenByCurrentUser(iouAction);
+    const canEdit = wasActionTakenByCurrentUser(iouAction, currentUserAccountID);
     const RBRMessages = ViolationsUtils.getRBRMessages({
         dateFnsLocale,
         transaction,

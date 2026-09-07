@@ -8,9 +8,6 @@ type BaseAvatarProps = {
     /** Size of the avatar(s) to render */
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Whether to show the user-details tooltip on hover */
-    shouldShowTooltip: boolean;
-
     /** Display name used as a fallback for the avatar tooltip */
     fallbackDisplayName?: string;
 };

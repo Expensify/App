@@ -1,5 +1,5 @@
+import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
 import Checkbox from '@components/Checkbox';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -90,11 +90,11 @@ function CardListItemHeaderImpl({
             >
                 <UserDetailsTooltip accountID={cardItem.accountID}>
                     <View>
-                        <ReportActionAvatars
-                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                            subscriptAvatarBorderColor={backgroundColor}
-                            noRightMarginOnSubscriptContainer
-                            accountIDs={[cardItem.accountID]}
+                        <AccountAvatarWithCardFeed
+                            accountID={cardItem.accountID}
+                            cardFeed={cardItem.bank as CompanyCardFeed}
+                            borderColor={backgroundColor}
+                            containerStyle={styles.mr0}
                             size={CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
@@ -164,11 +164,11 @@ function CardListItemHeaderImpl({
                     )}
                     {!isLargeScreenWidth && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                            <ReportActionAvatars
-                                subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                                subscriptAvatarBorderColor={backgroundColor}
-                                noRightMarginOnSubscriptContainer
-                                accountIDs={[cardItem.accountID]}
+                            <AccountAvatarWithCardFeed
+                                accountID={cardItem.accountID}
+                                cardFeed={cardItem.bank as CompanyCardFeed}
+                                borderColor={backgroundColor}
+                                containerStyle={styles.mr0}
                             />
                             <View style={[styles.gap1, styles.flexShrink1]}>
                                 <TextWithTooltip

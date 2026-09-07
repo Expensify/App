@@ -2,7 +2,10 @@
 # `import` and `require()`, so scripts don't load the real Flow-typed RN packages at runtime).
 preload = ["./scripts/stubReactNative.js"]
 
-# Bun test discovery for server-side tooling (Jest owns src/ and tests/).
+# Where a bare `bun test` looks. Both suites are actually run through the `test:bun` npm script, which passes
+# their roots explicitly along with the --parallel and --preload flags they need (see tests/tooling/README.md).
 [test]
 root = "server"
-pathIgnorePatterns = ["**/fixtures/**", "**/dist/**", "**/.dev/**", "**/__output__/**", "**/__golden__/**"]
+# `evals/` is listed even though `root` already excludes it: the evals spend real OpenAI tokens on every
+# run and must never be swept into CI if that root is ever widened.
+pathIgnorePatterns = ["**/fixtures/**", "**/dist/**", "**/.dev/**", "**/__output__/**", "**/__golden__/**", "**/evals/**"]

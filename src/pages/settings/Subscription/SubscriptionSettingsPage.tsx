@@ -4,7 +4,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,6 +18,7 @@ import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
+import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -33,7 +33,6 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew']);
     useDocumentTitle(translate('workspace.common.subscription'));
     useEffect(() => {
         openSubscriptionPage();
@@ -41,13 +40,14 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const shouldShowPage = !!subscriptionPlan || (amountOwed ?? 0) > 0;
+    const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (shouldShowPage || isAppLoading) {
+        if (shouldShowPage || isAppLoading || !isFocused) {
             return;
         }
         Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
-    }, [isAppLoading, shouldShowPage]);
+    }, [isAppLoading, shouldShowPage, isFocused]);
 
     if (!shouldShowPage && isAppLoading) {
         return <FullScreenLoadingIndicator />;
@@ -74,7 +74,6 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
-                icon={illustrations.CreditCardsNew}
                 shouldUseHeadlineHeader
             />
             <ScrollView style={styles.pt3}>

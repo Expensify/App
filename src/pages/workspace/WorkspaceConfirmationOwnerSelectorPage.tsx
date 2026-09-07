@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,7 +16,6 @@ import {setDraftValues} from '@libs/actions/FormActions';
 import {searchInServer} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage, getUserToInviteOption} from '@libs/PersonalDetailOptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +39,7 @@ function WorkspaceConfirmationOwnerSelectorPageContent({currentOwner}: Workspace
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.OWNER_SELECTOR.path);
 
-    const ownerPersonalDetails = getPersonalDetailByEmail(currentOwner);
+    const ownerPersonalDetails = usePersonalDetailByLogin(currentOwner);
 
     // When the current owner isn't in the personal details list (e.g. an external email), build an optimistic option to seed the selection
     const ownerExtraOption =

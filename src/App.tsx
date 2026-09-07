@@ -11,6 +11,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
+import {AvatarTooltipsProvider} from './components/Avatar/tooltips/AvatarTooltipContext';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
 import {CurrencyListContextProvider} from './components/CurrencyListContextProvider';
@@ -127,6 +128,7 @@ function App() {
                                         ModalProvider,
                                         SidePanelContextProvider,
                                         EditingCellProvider,
+                                        AvatarTooltipsProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />

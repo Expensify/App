@@ -299,9 +299,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const accountID = credentials?.accountID;
         if (accountID) {
-            signInWithValidateCode(accountID, validateCode, preferredLocale, recoveryCodeOr2faCode);
+            signInWithValidateCode(accountID, validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.validateCode, credentials?.authToken);
         } else {
-            signIn(validateCode, preferredLocale, recoveryCodeOr2faCode);
+            signIn(validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.login, credentials?.validateCode, credentials?.authToken);
         }
     }, [
         account?.isLoading,
@@ -309,6 +309,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         account?.requiresTwoFactorAuth,
         credentials?.validateCode,
         credentials?.accountID,
+        credentials?.login,
+        credentials?.authToken,
         isUsingRecoveryCode,
         recoveryCode,
         twoFactorAuthCode,

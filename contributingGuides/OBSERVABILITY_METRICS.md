@@ -130,34 +130,34 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Span ID**: Based on reportID
 **Attributes**: `iou_type`, `iou_request_type`, `report_id`, `route_from`
 
-### Open Share Extension Submit Flow
+### Open Share Submit Flow
 
 **Constant**: `CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW`
 **Sentry Name**: `ShareExtensionOpenSubmitFlow`
 **Threshold**: 1s (P90)
-**What's Measured**: Time from selecting a recipient (workspace chat or DM) in the iOS Share Extension to the submit-details (confirm) screen rendering
-**Start**: Recipient selected in the Share Extension participants selector — an existing report or a new DM created from the selected account (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`)
+**What's Measured**: Time from selecting a recipient in the Share Submit flow to the submit-details (confirm) screen rendering
+**Start**: Recipient selected in the in-app Share participants selector, using an existing report or an account that requires an optimistic DM (`src/components/Share/ShareTabParticipantsSelector.tsx`, `onParticipantsAdded`).
 **End**:
 - User sees: Confirm-details screen
 - Technical: Confirm-details container layout complete (onLayout event)
 **Attributes**: `report_id`, `route_from`
-**Notes**: Scoped to the submit flow only (route `SHARE_SUBMIT_DETAILS`); the shared selector's track/share flow (`SHARE_DETAILS`) is not instrumented. Abandoned attempts (user backs out before the screen renders) are canceled on unmount and tagged `canceled`.
+**Notes**: The flow enters through a native OS share surface (the iOS Share Extension or Android share intent) and continues in the loaded app’s participant selector. It is scoped to the submit flow only (route `SHARE_SUBMIT_DETAILS`); the shared selector's track/share flow (`SHARE_DETAILS`) is not instrumented. Abandoned attempts (user backs out before the screen renders) are canceled on unmount and tagged `canceled`. The existing `ShareExtensionOpenSubmitFlow` name is retained for Sentry historical continuity.
 
 ### Send Message
 
-**Constant**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE`
-**Sentry Name**: `ManualSendMessage`
-**Threshold**: 100ms (P90)
-**What's Measured**: Time from submitting message to message rendered
-**Start**: Message submitted in composer ([`src/pages/home/report/ReportActionCompose/ReportActionCompose.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/home/report/ReportActionCompose/ReportActionCompose.tsx#L344))
+**Constant**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE`
+**Sentry Name**: `ManualSendMessageVisible`
+**Threshold**: 300ms (P90)
+**What's Measured**: Time from submitting a message to the message actually laid out on screen (`onLayout`), i.e. user-perceived send latency
+**Start**: Message submitted in composer, only when scrolled to bottom ([`src/pages/inbox/report/ReportActionCompose/useComposerSubmit.ts`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/ReportActionCompose/useComposerSubmit.ts))
 **End**:
 - User sees: Their message appears in chat
-- Technical: Message text rendered in report ([`src/pages/home/report/comment/TextCommentFragment.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/home/report/comment/TextCommentFragment.tsx#L70))
-**Span ID**: Based on reportID
+- Technical: Message layout complete (`onLayout` event) in [`src/pages/inbox/report/comment/TextCommentFragment.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/comment/TextCommentFragment.tsx)
+**Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}` (optimistic report action ID)
 **Attributes**: `report_id`, `message_length`, `canceled_by_skeleton`, `send_message_source`, `report_action_count`, `money_request_preview_count`
-**Cancellation (report-actions skeleton)**: While a report-actions skeleton is on screen, we listen for `ManualSendMessage` spans started for that report and cancel them immediately, tagging `canceled: true` plus `canceled_by_skeleton` with the skeleton that caused it.
+**Cancellation (report-actions skeleton)**: While a report-actions skeleton is on screen, we listen for `ManualSendMessageVisible` spans started for that report and cancel them immediately, tagging `canceled: true` plus `canceled_by_skeleton` with the skeleton that caused it.
 - `canceled_by_skeleton` values (`CONST.TELEMETRY.CANCELED_BY_SKELETON`) based on skeleton condition
-**Cancellation (report unmount / navigate away)**: If the user leaves the report before their message renders, any pending `ManualSendMessage` span is cancelled via `cancelSpansByPrefix()` to avoid orphaned spans. Cancelled this way the span gets `canceled: true` but **no** `canceled_by_skeleton` (a blanket cancel by span-id prefix, not scoped to one `report_id`).
+**Cancellation (report unmount / navigate away)**: If the user leaves the report before their message renders, any pending `ManualSendMessageVisible` span is cancelled via `cancelSpansByPrefix()` to avoid orphaned spans. Cancelled this way the span gets `canceled: true` but **no** `canceled_by_skeleton` (a blanket cancel by span-id prefix, not scoped to one `report_id`).
 **Notes**: `send_message_source` = `<tab>_<scenario>` (+ `_rhp` in the RHP, + `_from_report` when drilled in from a report) — slice the metric by send path.
 `report_action_count` / `money_request_preview_count` — how many renderable actions the chat's list holds and how many of them are `REPORT_PREVIEW` items — slice the metric by list weight (e.g. chats with many `MoneyRequestReportPreview` items).
 

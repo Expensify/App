@@ -16,6 +16,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 
 describe('ReportActionsUtils', () => {
     describe('validateAmount', () => {
@@ -207,7 +208,8 @@ describe('ReportActionsUtils', () => {
         describe('invalid inputs', () => {
             it('should return false for nullish and NaN values', () => {
                 expect(isValidMoneyRequestAmount(undefined, CONST.IOU.TYPE.SUBMIT)).toBe(false);
-                expect(isValidMoneyRequestAmount(null as unknown as number, CONST.IOU.TYPE.SUBMIT)).toBe(false);
+                // @ts-expect-error -- Deliberately verifies the defensive runtime behavior for null input.
+                expect(isValidMoneyRequestAmount(null, CONST.IOU.TYPE.SUBMIT)).toBe(false);
                 expect(isValidMoneyRequestAmount(NaN, CONST.IOU.TYPE.SUBMIT)).toBe(false);
             });
         });
@@ -274,15 +276,15 @@ describe('ReportActionsUtils', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
         } as Report;
 
-        const unreportedTransaction = {
+        const unreportedTransaction = createMock<Transaction>({
             reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             amount: 0,
-        } as Transaction;
+        });
 
-        const reportedTransaction = {
+        const reportedTransaction = createMock<Transaction>({
             reportID: '123',
             amount: 0,
-        } as Transaction;
+        });
 
         describe('empty merchants', () => {
             it('should return true for empty/undefined merchant when transaction is unreported or IOU', () => {
@@ -295,12 +297,15 @@ describe('ReportActionsUtils', () => {
                 expect(isValidMerchant(undefined, reportedTransaction, iouReport)).toBe(true);
             });
 
-            it('should return false for empty/undefined merchant when transaction is reported or missing', () => {
-                expect(isValidMerchant('', reportedTransaction)).toBe(false);
+            it('should return true for empty/undefined merchant when the report is missing, matching the normal edit flow', () => {
+                expect(isValidMerchant('', reportedTransaction)).toBe(true);
+                expect(isValidMerchant('')).toBe(true);
+            });
+
+            it('should return false for empty/undefined merchant on an expense report', () => {
                 expect(isValidMerchant('', reportedTransaction, expenseReport)).toBe(false);
                 expect(isValidMerchant('   ', reportedTransaction, expenseReport)).toBe(false);
                 expect(isValidMerchant(undefined, reportedTransaction, expenseReport)).toBe(false);
-                expect(isValidMerchant('')).toBe(false);
             });
         });
 
@@ -328,6 +333,30 @@ describe('ReportActionsUtils', () => {
 
 describe('getAmountHasUnsavedChanges', () => {
     const sameCurrency = {selectedCurrency: 'USD', originalCurrency: 'USD'};
+
+    it('flags a changed sign when the amount is empty', () => {
+        expect(
+            getAmountHasUnsavedChanges({
+                ...sameCurrency,
+                typedAmount: '',
+                committedAmount: 0,
+                isCreateEntry: true,
+                isSignChanged: true,
+            }),
+        ).toBe(true);
+    });
+
+    it('does not flag an empty amount when the sign matches its initial value', () => {
+        expect(
+            getAmountHasUnsavedChanges({
+                ...sameCurrency,
+                typedAmount: '',
+                committedAmount: 0,
+                isCreateEntry: true,
+                isSignChanged: false,
+            }),
+        ).toBe(false);
+    });
 
     describe('create entry (any input counts)', () => {
         it('flags a typed value', () => {

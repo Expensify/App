@@ -1,6 +1,6 @@
 import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
-import Button from '@components/Button';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
 
@@ -130,14 +130,13 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     />
                 </View>
             ) : (
-                <Avatar
+                <UserAvatar
                     containerStyles={avatarStyle}
                     imageStyles={avatarStyle}
                     source={avatarURL}
-                    avatarID={accountID}
+                    accountID={accountID}
                     fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    type={CONST.ICON_TYPE_AVATAR}
                 />
             )}
             <AttachmentPicker
@@ -149,15 +148,16 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     if (menuItems?.length <= 1) {
                         return (
                             <Button
-                                icon={icons.Upload}
-                                text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                     });
                                 }}
-                            />
+                            >
+                                <Button.Icon src={icons.Upload} />
+                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                            </Button>
                         );
                     }
 

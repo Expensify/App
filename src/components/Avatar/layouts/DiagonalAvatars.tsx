@@ -1,15 +1,14 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import AvatarNamesTooltip from '@components/Avatar/tooltips/AvatarNamesTooltip';
+import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
-import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getUserDetailTooltipText} from '@libs/ReportUtils';
-
 import CONST from '@src/CONST';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -18,9 +17,11 @@ import {View} from 'react-native';
 
 import type {MultipleAvatarsProps} from './types';
 
-import Avatar from '..';
 import DiagonalAvatarsFrame from './DiagonalAvatarsFrame';
 import getDiagonalAvatarSizing from './getDiagonalAvatarSizing';
+
+// Rendered when the icons array is unexpectedly short. Falls back to the default user avatar.
+const EMPTY_USER_ICON: Icon = {source: '', type: CONST.ICON_TYPE_AVATAR};
 
 type DiagonalAvatarsProps = MultipleAvatarsProps & {
     /** Style for the secondary avatar container */
@@ -33,16 +34,13 @@ type DiagonalAvatarsProps = MultipleAvatarsProps & {
 /** `DiagonalAvatars` renders two avatars stacked diagonally — the primary in the top-left and the secondary in the bottom-right.
  * When more than two `icons` are passed, the secondary slot shows a "+N" overflow count instead of the second avatar.
  */
-function DiagonalAvatars({size, shouldShowTooltip, icons, isInReportAction, secondaryAvatarContainerStyle, isHovered = false, fallbackDisplayName}: DiagonalAvatarsProps) {
+function DiagonalAvatars({size, icons, isInReportAction, secondaryAvatarContainerStyle, isHovered = false, fallbackDisplayName}: DiagonalAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {formatPhoneNumber, translate} = useLocalize();
 
     const primaryIcon = icons.at(0);
     const secondaryIcon = icons.at(1);
-
-    const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : [''];
 
     const {avatarSize, singleAvatarStyleKey} = getDiagonalAvatarSizing(size);
     const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
@@ -52,64 +50,39 @@ function DiagonalAvatars({size, shouldShowTooltip, icons, isInReportAction, seco
             size={size}
             iconCount={icons.length}
             containerStyle={StyleUtils.getContainerStyles(size, isInReportAction)}
-            primaryContainerStyle={primaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, primaryIcon.type)}
-            secondaryContainerStyle={[secondaryAvatarContainerStyles, secondaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, secondaryIcon.type)]}
+            primaryContainerStyle={primaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE)}
+            secondaryContainerStyle={[
+                secondaryAvatarContainerStyles,
+                secondaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE),
+            ]}
             primary={
-                <UserDetailsTooltip
-                    accountID={Number(primaryIcon?.id)}
-                    icon={primaryIcon}
-                    fallbackUserDetails={{
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: fallbackDisplayName || primaryIcon?.name,
-                    }}
-                    shouldRender={shouldShowTooltip}
+                <AvatarTooltip
+                    avatar={primaryIcon}
+                    fallbackDisplayName={fallbackDisplayName}
                 >
-                    {/* View is necessary for tooltip to show for multiple avatars in LHN */}
-                    <View>
-                        <Avatar
-                            type={primaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
-                            source={primaryIcon?.source}
-                            name={primaryIcon?.name ?? ''}
-                            avatarID={primaryIcon?.id ?? CONST.DEFAULT_NUMBER_ID}
-                            fallbackIcon={primaryIcon?.fallbackIcon}
-                            fill={primaryIcon?.fill}
-                            size={avatarSize}
-                            imageStyles={styles[singleAvatarStyleKey]}
-                            testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
-                        />
-                    </View>
-                </UserDetailsTooltip>
+                    <AvatarFromIcon
+                        icon={primaryIcon ?? EMPTY_USER_ICON}
+                        size={avatarSize}
+                        imageStyles={styles[singleAvatarStyleKey]}
+                        testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
+                    />
+                </AvatarTooltip>
             }
             secondary={
                 icons.length === 2 ? (
-                    <UserDetailsTooltip
-                        accountID={Number(secondaryIcon?.id)}
-                        icon={secondaryIcon}
-                        fallbackUserDetails={{
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            displayName: fallbackDisplayName || secondaryIcon?.name,
-                        }}
-                        shouldRender={shouldShowTooltip}
+                    <AvatarTooltip
+                        avatar={secondaryIcon}
+                        fallbackDisplayName={fallbackDisplayName}
                     >
-                        <View>
-                            <Avatar
-                                type={secondaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
-                                source={secondaryIcon?.source}
-                                name={secondaryIcon?.name ?? ''}
-                                avatarID={secondaryIcon?.id ?? CONST.DEFAULT_NUMBER_ID}
-                                fallbackIcon={secondaryIcon?.fallbackIcon}
-                                fill={secondaryIcon?.fill}
-                                size={avatarSize}
-                                imageStyles={styles[singleAvatarStyleKey]}
-                                testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
-                            />
-                        </View>
-                    </UserDetailsTooltip>
+                        <AvatarFromIcon
+                            icon={secondaryIcon ?? EMPTY_USER_ICON}
+                            size={avatarSize}
+                            imageStyles={styles[singleAvatarStyleKey]}
+                            testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
+                        />
+                    </AvatarTooltip>
                 ) : (
-                    <Tooltip
-                        text={tooltipTexts.slice(1).join(', ')}
-                        shouldRender={shouldShowTooltip}
-                    >
+                    <AvatarNamesTooltip avatars={icons.slice(1)}>
                         <View
                             style={[styles[singleAvatarStyleKey], styles.alignItemsCenter, styles.justifyContentCenter]}
                             testID="ReportActionAvatars-MultipleAvatars-LimitReached"
@@ -121,7 +94,7 @@ function DiagonalAvatars({size, shouldShowTooltip, icons, isInReportAction, seco
                                 {`+${icons.length - 1}`}
                             </Text>
                         </View>
-                    </Tooltip>
+                    </AvatarNamesTooltip>
                 )
             }
         />

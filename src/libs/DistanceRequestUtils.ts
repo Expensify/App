@@ -2,6 +2,7 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import type {IOURequestType} from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -20,7 +21,6 @@ import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import replaceAllDigits from './replaceAllDigits';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
-import {getUnitTranslationKey} from './WorkspacesSettingsUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -337,10 +337,40 @@ function getCommuterExclusionDisplayData(customUnit: TransactionCustomUnit | und
     };
 }
 
+/**
+ * Whether a workspace's commuter exclusion applies to a distance expense of this request type.
+ *
+ * Only a distance the app itself measured describes a route the workspace can recognize a commute in, so a manually
+ * entered or odometer distance is reimbursed in full.
+ */
+function isCommuterExclusionApplicableToRequestType(iouRequestType: IOURequestType | undefined): boolean {
+    return iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL && iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+}
+
+/**
+ * Returns the distance a workspace excludes from a distance of `distance` units, expressed in that same unit.
+ *
+ * Returns 0 when the workspace excludes nothing, so callers can treat it as "no exclusion applies". The exclusion never
+ * exceeds the distance itself, which is what keeps a reimbursable distance from going negative.
+ */
+function getPolicyCommuterExclusionForDistance(policy: OnyxEntry<Policy>, distance: number, distanceUnit: Unit): number {
+    const commuterExclusions = policy?.commuterExclusions;
+    if (commuterExclusions?.method !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
+        return 0;
+    }
+
+    const fixedDistanceUnit: Unit =
+        commuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(commuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
+
+    return Math.max(0, Math.min(fixedDistanceInRequestUnit, distance));
+}
+
 function getTransactionCommuterExclusionData({
     transaction,
     policy,
     customUnit,
+    storedCustomUnit,
     translate,
     toLocaleDigit,
     getCurrencySymbol,
@@ -349,17 +379,13 @@ function getTransactionCommuterExclusionData({
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     customUnit?: TransactionCustomUnit;
+    storedCustomUnit?: TransactionCustomUnit;
     translate?: LocaleContextProps['translate'];
     toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
     personalPolicyOutputCurrency?: string;
 }): (Pick<Transaction, 'modifiedMerchant'> & {modifiedAmount: number; customUnit: TransactionCustomUnit}) | undefined {
-    const policyCommuterExclusions = policy?.commuterExclusions;
-    if (
-        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
-        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
-        policyCommuterExclusions?.method !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE
-    ) {
+    if (!isCommuterExclusionApplicableToRequestType(transaction?.iouRequestType)) {
         return;
     }
 
@@ -385,15 +411,20 @@ function getTransactionCommuterExclusionData({
         return;
     }
 
-    const fixedDistanceUnit: Unit =
-        policyCommuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(policyCommuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), requestDistanceUnit);
-
-    if (fixedDistanceInRequestUnit <= 0) {
-        return;
+    // Preserve the commuter exclusion stored on the expense at creation time; fall back to the current
+    // policy setting only when there is no stored exclusion (i.e. a brand-new expense being created).
+    const storedCommuterExclusion = storedCustomUnit?.commuterExclusion;
+    let commuterExclusion: number;
+    if (typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0) {
+        const storedExclusionInRequestUnit = convertDistanceUnit(
+            convertToDistanceInMeters(storedCommuterExclusion, storedCustomUnit?.distanceUnit ?? requestDistanceUnit),
+            requestDistanceUnit,
+        );
+        commuterExclusion = Math.max(0, Math.min(storedExclusionInRequestUnit, routeDistance));
+    } else {
+        commuterExclusion = getPolicyCommuterExclusionForDistance(policy, routeDistance, requestDistanceUnit);
     }
 
-    const commuterExclusion = Math.min(fixedDistanceInRequestUnit, routeDistance);
     if (commuterExclusion <= 0) {
         return;
     }
@@ -459,11 +490,15 @@ function getDistanceDisplayDetailsWithCommuter(
     const originalDistance = reimbursableDistance + commuterExclusion;
     const originalDistanceFormatted = getFormattedDistanceInUnits(originalDistance, unitToUse, translate, true);
     const commuterDistance = commuterExclusion.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
-    const commuterUnit = translate(getUnitTranslationKey(unitToUse));
-
     return {
         distanceToDisplayDescription: `${baseLabel} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original', {formattedDistance: originalDistanceFormatted})}`,
-        distanceToDisplayHintText: translate('distance.commuterExclusion.removedCommuterDistance', {distance: commuterDistance, unit: commuterUnit}),
+        distanceToDisplayHintText: translate(
+            unitToUse === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'distance.commuterExclusion.removedCommuterDistance.mi' : 'distance.commuterExclusion.removedCommuterDistance.km',
+            {
+                distance: commuterDistance,
+                count: commuterExclusion,
+            },
+        ),
     };
 }
 
@@ -761,6 +796,25 @@ function getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID: string 
 }
 
 /**
+ * Resolve a mileage rate from the supplied policy, falling back to any policy that owns an enabled rate with the same ID.
+ */
+function getRateByCustomUnitRateIDAcrossPolicies({
+    customUnitRateID,
+    policy,
+    policies,
+}: {
+    customUnitRateID: string | undefined;
+    policy?: OnyxEntry<Policy>;
+    policies?: OnyxCollection<Policy>;
+}): MileageRate | undefined {
+    if (!customUnitRateID) {
+        return undefined;
+    }
+
+    return getRateByCustomUnitRateID({customUnitRateID, policy}) ?? getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID, policies);
+}
+
+/**
  * Returns whether the selected custom unit rate is out of its valid date range for the given expense date.
  */
 function isCustomUnitRateOutOfDateRange({
@@ -849,6 +903,8 @@ export default {
     getDistanceMerchant,
     getDistanceRequestAmount,
     getCommuterExclusionDisplayData,
+    getPolicyCommuterExclusionForDistance,
+    isCommuterExclusionApplicableToRequestType,
     getTransactionCommuterExclusionData,
     getDistanceDisplayDetailsWithCommuter,
     getFormattedRateValue,
@@ -865,6 +921,7 @@ export default {
     getUpdatedDistanceUnit,
     getRate,
     getRateByCustomUnitRateID,
+    getRateByCustomUnitRateIDAcrossPolicies,
     getEnabledRateByCustomUnitRateIDFromAnyPolicy,
     getDistanceForDisplayLabel,
     convertDistanceUnit,
@@ -879,4 +936,4 @@ export default {
     getRateDateLabel,
 };
 
-export type {MileageRate};
+export type {MileageRate, CommuterExclusionData};

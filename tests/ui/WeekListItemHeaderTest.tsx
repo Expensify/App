@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -24,7 +25,7 @@ jest.mock('@libs/Navigation/Navigation');
 
 // Mock useResponsiveLayout to control screen size in tests
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 const mockSearchStateContext = {
     currentSearchHash: 12345,
@@ -45,7 +46,7 @@ const mockSearchStateContext = {
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
-    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    suggestedSearches: createMock<SearchStateContextValue['suggestedSearches']>({}),
     sortedReportIDs: [],
     hasSelectedTransactions: false,
 } satisfies SearchStateContextValue;
@@ -67,6 +68,7 @@ const mockSearchActionsContext = {
 const createWeekListItem = (week: string, options: Partial<TransactionWeekGroupListItemType> = {}): TransactionWeekGroupListItemType => ({
     week,
     formattedWeek: options.formattedWeek ?? 'Jan 25 - Jan 31, 2026',
+    shortFormattedWeek: options.shortFormattedWeek ?? 'Jan 25 - 31, ’26',
     count: options.count ?? 5,
     currency: options.currency ?? 'USD',
     total: options.total ?? 250,

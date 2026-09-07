@@ -191,7 +191,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
 /**
  * Creates an optimistic card object for the imported transactions
  */
-function buildOptimisticCard(cardDisplayName: string, accountID: number): {card: Card; cardID: number} {
+function buildOptimisticCard(cardDisplayName: string, accountID: number, isReimbursable: boolean): {card: Card; cardID: number} {
     const cardID = generateCardID();
     return {
         cardID,
@@ -209,6 +209,9 @@ function buildOptimisticCard(cardDisplayName: string, accountID: number): {card:
             scrapeMinDate: '',
             fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
             lastUpdated: DateUtils.getDBTime(),
+            // Persist the user's reimbursable selection so the card details toggle matches it immediately,
+            // instead of falling back to the enabled default until the card is re-fetched from the server.
+            reimbursable: isReimbursable,
             nameValuePairs: {
                 cardTitle: cardDisplayName,
             } as Card['nameValuePairs'],
@@ -310,7 +313,7 @@ async function importTransactionsFromCSV(
     if (isAddingToExistingCard) {
         cardID = existingCardID;
     } else {
-        const optimisticCardData = buildOptimisticCard(cardDisplayName, accountID);
+        const optimisticCardData = buildOptimisticCard(cardDisplayName, accountID, isReimbursable);
         cardID = optimisticCardData.cardID;
         optimisticCard = optimisticCardData.card;
     }
@@ -333,7 +336,7 @@ async function importTransactionsFromCSV(
     const importFinalModal: ImportFinalModal = {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importTransactionsSuccessfulDescription',
-        promptKeyParams: {transactions: transactionList.length},
+        promptKeyParams: {count: transactionList.length},
     };
     const importFinalModalID = getImportFinalModalID();
     const importFinalModalResult = waitForImportFinalModal(importFinalModalID);

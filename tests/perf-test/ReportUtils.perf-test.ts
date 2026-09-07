@@ -37,6 +37,7 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -95,13 +96,13 @@ describe('ReportUtils', () => {
         });
 
         await waitForBatchedUpdates();
-        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, openOnAdminRoom));
+        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, undefined, openOnAdminRoom));
     });
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
         const reportID = '1';
         const transaction = createRandomTransaction(1);
-        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
+        const reportAction = createMock<ReportAction>({...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
 
         await waitForBatchedUpdates();
         await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined, 1));
@@ -196,6 +197,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: undefined,
                 isReportArchived: false,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             }),
         );
@@ -304,6 +306,6 @@ describe('ReportUtils', () => {
         };
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString));
+        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, undefined));
     });
 });

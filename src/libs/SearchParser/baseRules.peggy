@@ -32,6 +32,9 @@ category = "category"i { return "category"; }
 to = "to"i { return "to"; }
 exporter = "exporter"i { return "exporter"; }
 payer = "payer"i { return "payer"; }
+paidBy
+  = "paidBy"
+  / "paid-by"i { return "paidBy"; }
 taxRate
   = "taxRate"i
   / "tax-rate"i { return "taxRate"; }
@@ -95,6 +98,8 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
+amountDebited = "amountDebited"i / "amount-debited"i {return "amountDebited"}
+amountReimbursed = "amountReimbursed"i / "amount-reimbursed"i {return "amountReimbursed"}
 columns = "columns"i {
   isColumnsContext = true;
   return "columns";
@@ -130,6 +135,8 @@ columnsValues
   / groupWithdrawalId
   / groupAmountDebited
   / groupAmountReimbursed
+  / amountDebitedColumn
+  / amountReimbursedColumn
   / groupCategory
   / groupTag
   / groupMerchant
@@ -166,6 +173,8 @@ groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "gr
 groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
 groupAmountDebited      = "group-amount-debited"i &wordBoundary     { return "groupAmountDebited"; }
 groupAmountReimbursed   = "group-amount-reimbursed"i &wordBoundary  { return "groupAmountReimbursed"; }
+amountDebitedColumn     = "amount-debited"i &wordBoundary           { return "amountDebited"; }
+amountReimbursedColumn  = "amount-reimbursed"i &wordBoundary        { return "amountReimbursed"; }
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
@@ -192,7 +201,11 @@ filterOperator
       return o;
   }
 
-alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
+// A backslash only escapes the characters the grammar would otherwise consume. Anything else keeps the backslash
+// as a literal, so values already persisted in saved searches and shared URLs still parse the way they used to.
+escapedChar = "\\" c:[,"”“\\] { return c; }
+
+alphanumeric "word" = chars:(escapedChar / [^ ,\t\n\r\xA0])+ { return chars.join("").trim(); } //handle no-breaking space
 
 logicalAnd = _ { 
   isColumnsContext = false;
@@ -207,13 +220,14 @@ quotedString
   / simpleQuotedString
 
 simpleQuotedString "quote"
-  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:[^"”“\r\n]* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
+  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:(escapedChar / [^"”“\r\n])* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
       return [...start, '"', ...inner, '"', ...end].join("");
     }
 
 nestedQuotedString "quote"
   = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”")    // Opening quote
-    inner:([^"”“\r\n]
+    inner:(escapedChar
+    / [^"”“\r\n]
     / (!closingQuote "“" {return "“"}) / (!closingQuote "”" {return "”"}) / (!closingQuote "\"" {return "\""} )
     )*                                              // Allow anything inside, but exclude true closing quotes
     end:closingQuote                                // Detect the actual closing quote

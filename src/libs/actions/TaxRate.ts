@@ -704,6 +704,10 @@ function setPolicyTaxCode(
         },
     };
 
+    // Mirror the rename history the back-end persists so that expenses referencing any older code keep resolving to
+    // this rate while the rename is still optimistic or was made offline.
+    const previousTaxCodes = [...new Set([...(originalTaxRate.previousTaxCodes ?? []), oldTaxCode])];
+
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -721,6 +725,7 @@ function setPolicyTaxCode(
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {code: null},
                                 previousTaxCode: oldTaxCode,
+                                previousTaxCodes,
                                 optimisticPreviousTaxCode: oldTaxCode,
                             },
                         },
@@ -742,10 +747,11 @@ function setPolicyTaxCode(
                             [newTaxCode]: {
                                 ...originalTaxRate,
                                 code: newTaxCode,
+                                previousTaxCode: oldTaxCode,
+                                previousTaxCodes,
                                 pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: null},
-                                previousTaxCode: oldTaxCode,
                                 optimisticPreviousTaxCode: null,
                             },
                         },

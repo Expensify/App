@@ -8,7 +8,7 @@ import {revealTravelCardDetails} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTravelInvoicingCard} from '@libs/TravelInvoicingUtils';
+import {getTravelBillingCard} from '@libs/TravelBillingUtils';
 
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,7 +31,7 @@ function TravelCVVVerifyAccountPage() {
     const {setCvv, setIsLoading, setValidateError} = useTravelCVVActions();
 
     const primaryLogin = usePrimaryContactMethod();
-    const travelCard = getTravelInvoicingCard(cardList);
+    const travelCard = getTravelBillingCard(cardList);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET_TRAVEL_CVV);

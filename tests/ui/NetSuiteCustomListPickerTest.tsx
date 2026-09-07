@@ -8,6 +8,10 @@ import NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/impor
 
 import ROUTES from '@src/ROUTES';
 
+import type {GestureResponderEvent} from 'react-native';
+
+import createMock from '../utils/createMock';
+
 jest.mock('@components/MenuItemWithTopDescription', () => jest.fn(() => null));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -30,7 +34,7 @@ describe('NetSuiteCustomListPicker', () => {
     it('navigates to the selector route using the route policyID when the picker is pressed', () => {
         render(<NetSuiteCustomListPicker policyID="P1" />);
 
-        mockedMenuItem.mock.lastCall?.[0].onPress?.({} as never);
+        mockedMenuItem.mock.lastCall?.[0].onPress?.(createMock<GestureResponderEvent>({}));
 
         expect(mockedNavigate).toHaveBeenCalledTimes(1);
         expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute('P1'));
@@ -39,7 +43,7 @@ describe('NetSuiteCustomListPicker', () => {
     it('does not navigate when policyID is undefined so an "undefined" deep link is never produced', () => {
         render(<NetSuiteCustomListPicker />);
 
-        mockedMenuItem.mock.lastCall?.[0].onPress?.({} as never);
+        mockedMenuItem.mock.lastCall?.[0].onPress?.(createMock<GestureResponderEvent>({}));
 
         expect(mockedNavigate).not.toHaveBeenCalled();
     });

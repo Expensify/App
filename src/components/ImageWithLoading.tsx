@@ -51,6 +51,9 @@ function ImageWithLoading({
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    // The full-resolution image is not guaranteed to ever emit `onLoad`/`onError` (e.g. a receipt derivative that is
+    // still being generated server-side), so `isLoading` can stay `true` indefinitely. Once the low-resolution preview
+    // is on screen we have something readable to show, so the loading state must stop being visible at that point.
     const [isThumbnailLoading, setIsThumbnailLoading] = useState(!!previewUri);
     const {isOffline} = useNetwork();
 
@@ -149,3 +152,4 @@ function ImageWithLoading({
 ImageWithLoading.displayName = 'ImageWithLoading';
 
 export default React.memo(ImageWithLoading);
+export type {ImageWithSizeLoadingProps};

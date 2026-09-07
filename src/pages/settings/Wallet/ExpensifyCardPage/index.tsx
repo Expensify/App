@@ -9,7 +9,8 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
@@ -339,13 +340,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         }
                     >
                         <CardDetailsActionButton
-                            medium
-                            text={translate('workspace.common.viewTransactions')}
-                            icon={expensifyIcons.MoneySearch}
                             onPress={navigateToTransactions}
                             innerStyles={styles.ph2}
                             style={styles.w100}
-                        />
+                        >
+                            <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                            <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                        </CardDetailsActionButton>
                     </FrozenCardHeader>
                 ) : (
                     <View style={[styles.flex1, styles.mb3, styles.mt8]}>
@@ -383,19 +384,21 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             <CardDetailsActionButtons style={styles.mb0}>
                                 {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
-                                        text={translate('cardPage.freezeCard')}
-                                        icon={expensifyIcons.FreezeCard}
                                         onPress={handleFreezePress}
                                         isDisabled={isOffline}
                                         style={styles.flexShrink0}
-                                    />
+                                    >
+                                        <CardDetailsActionButton.Icon src={expensifyIcons.FreezeCard} />
+                                        <CardDetailsActionButton.Text>{translate('cardPage.freezeCard')}</CardDetailsActionButton.Text>
+                                    </CardDetailsActionButton>
                                 )}
                                 <CardDetailsActionButton
-                                    text={translate('workspace.common.viewTransactions')}
-                                    icon={expensifyIcons.MoneySearch}
                                     onPress={navigateToTransactions}
                                     style={styles.flexShrink0}
-                                />
+                                >
+                                    <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                                    <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                                </CardDetailsActionButton>
                             </CardDetailsActionButtons>
                         )}
                         {shouldShowChangePINRow && isCardPINBlocked && (
@@ -592,10 +595,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         {(shouldShowChangePINRow || shouldShowActionRows) && (
                             <View style={styles.mt4}>
                                 {shouldShowChangePINRow && (
-                                    <MenuItem
+                                    <MenuItemNavigation
                                         title={translate('cardPage.changePin')}
                                         icon={expensifyIcons.Key}
-                                        shouldShowRightIcon
                                         onPress={() => {
                                             const physicalCardID = String(currentPhysicalCard?.cardID);
                                             if (isOfflinePINMarket(countryByIp)) {
@@ -641,10 +643,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 />
                                             ))}
                                         {shouldShowReportLostCardButton && (
-                                            <MenuItem
+                                            <MenuItemNavigation
                                                 title={translate('reportCardLostOrDamaged.screenTitle')}
                                                 icon={expensifyIcons.Flag}
-                                                shouldShowRightIcon
                                                 onPress={() => {
                                                     if (isAccountLocked) {
                                                         showLockedAccountModal();
@@ -661,7 +662,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         )}
 
                                         {shouldShowEditSpendRules && (
-                                            <MenuItem
+                                            <MenuItemAction
                                                 icon={expensifyIcons.CreditCardLock}
                                                 title={translate('cardPage.editSpendRules')}
                                                 onPress={navigateToSpendRulesPage}
@@ -715,7 +716,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 prompt={translate('cardPage.freezeDescription')}
                 confirmText={translate('cardPage.freezeCard')}
                 cancelText={translate('common.cancel')}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
             <ConfirmModal
                 title={`${translate('cardPage.unfreezeCard')}?`}

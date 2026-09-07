@@ -139,6 +139,11 @@ compute: ([reports, personalDetails]) => {
 - Document any special cases or performance considerations
 - Include type annotations for better developer experience
 
+### - Recompute rate is monitored in production
+Every derived value flush passes through `detectOnyxDerivedLoop` (`src/libs/telemetry/detectOnyxDerivedLoop.ts`). If one derived key recomputes more than `RECOMPUTE_THRESHOLD` times inside `WINDOW_MS`, it reports `[OnyxDerived] recompute loop detected for <key>` once per key per session to Sentry (fingerprinted `['onyx-derived-loop', <key>]`) and to the server log, with a per-dependency count showing which dependency is driving the churn. Recomputes during app startup are ignored, since dependencies legitimately hydrate in bursts.
+
+If your derived value trips it, look at the dependency counts to find which dependency recomputed the most. There are two common causes: the derived value depends on a key that updates much more often than it needs, or it depends on another derived value that in turn depends back on it.
+
 ## Onyx State Export
 
 Users can export their Onyx state from **Settings → Troubleshoot → Export Onyx state** (used mainly to attach state to bug reports). Because Onyx holds sensitive data (credentials, tokens, banking data, personal details), the export is passed through `maskOnyxState` (`src/libs/ExportOnyxState/common.ts`) which removes or masks fragile data before it ever leaves the device.

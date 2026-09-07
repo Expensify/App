@@ -6,6 +6,8 @@ import {FlashList} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
 
+import createMock from '../utils/createMock';
+
 type CellProps = {
     index: number;
     onLayout: (event: LayoutChangeEvent) => void;
@@ -72,11 +74,13 @@ describe('FlashList - stale onLayout after rapid data change', () => {
         // Pre-fix: this throws "index out of bounds, not enough layouts"
         // Post-fix: validateItemSize bails when tryGetLayout returns undefined
         expect(() => {
-            staleOnLayout?.({
-                nativeEvent: {
-                    layout: {x: 0, y: 0, width: 100, height: 50},
-                },
-            } as LayoutChangeEvent);
+            staleOnLayout?.(
+                createMock<LayoutChangeEvent>({
+                    nativeEvent: {
+                        layout: {x: 0, y: 0, width: 100, height: 50},
+                    },
+                }),
+            );
         }).not.toThrow();
     });
 });

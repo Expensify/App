@@ -1,6 +1,14 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {exportSearchItemsToCSV, getExportTemplates, getFooterConvertedAmounts, openSearch, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {
+    exportSearchItemsToCSV,
+    getChatReportWithFallback,
+    getExportTemplates,
+    getFooterConvertedAmounts,
+    openSearch,
+    queueExportSearchItemsToCSV,
+    queueExportSearchWithTemplate,
+} from '@libs/actions/Search';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import fileDownload from '@libs/fileDownload';
@@ -10,9 +18,10 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
+import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 
 const translateForTest: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
@@ -280,6 +289,7 @@ describe('getExportTemplates', () => {
     const translateForTemplates = translateLocal;
     const localeCompare = (first: string, second: string) => first.localeCompare(second);
     const makeTemplate = (name: string): ExportTemplate => ({name, templateName: name, type: '', policyID: undefined, description: ''});
+    const makePolicyWithOutputCurrency = (outputCurrency: string): Policy => ({...createRandomPolicy(1), outputCurrency});
 
     it('returns the custom templates and the default templates as separate groups, each sorted alphabetically', () => {
         const integrationsExportTemplates: ExportTemplate[] = [makeTemplate('Zebra integration'), makeTemplate('Apple integration')];
@@ -320,5 +330,45 @@ describe('getExportTemplates', () => {
         expect(names).toEqual(
             [translateForTemplates('export.expenseLevelExport'), translateForTemplates('export.reportLevelExport'), translateForTemplates('export.basicExport')].sort(localeCompare),
         );
+    });
+
+    it('includes the Canadian Multiple Tax Export template when the policy outputs in CAD', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, makePolicyWithOutputCurrency(CONST.CURRENCY.CAD));
+
+        expect(defaultTemplates.map((template) => template.templateName)).toContain(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT);
+    });
+
+    it('excludes the Canadian Multiple Tax Export template when the policy outputs in another currency', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, makePolicyWithOutputCurrency(CONST.CURRENCY.USD));
+
+        expect(defaultTemplates.map((template) => template.templateName)).not.toContain(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT);
+    });
+
+    it('includes the Canadian Multiple Tax Export template when includeMultipleTaxExport is true without a policy', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, undefined, true, false, true);
+
+        expect(defaultTemplates.map((template) => template.templateName)).toContain(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT);
+    });
+
+    it('excludes the Canadian Multiple Tax Export template when includeMultipleTaxExport is false for a CAD policy', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, makePolicyWithOutputCurrency(CONST.CURRENCY.CAD), true, false, false);
+
+        expect(defaultTemplates.map((template) => template.templateName)).not.toContain(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT);
+    });
+});
+
+describe('getChatReportWithFallback', () => {
+    const loadedChatReport = {reportID: 'chat1', policyID: 'policyA', type: CONST.REPORT.TYPE.CHAT} as Report;
+
+    it('returns the loaded chat report when it is available', () => {
+        expect(getChatReportWithFallback(loadedChatReport, 'chat2', 'policyB')).toEqual({chatReport: loadedChatReport, isFallbackChatReport: false});
+    });
+
+    it('builds a fallback chat report from the known IDs when the chat is not loaded', () => {
+        expect(getChatReportWithFallback(undefined, 'chat2', 'policyB')).toEqual({chatReport: {reportID: 'chat2', policyID: 'policyB'}, isFallbackChatReport: true});
+    });
+
+    it('returns no chat report when the chat is not loaded and there is no fallback chatReportID', () => {
+        expect(getChatReportWithFallback(undefined, undefined, 'policyB')).toEqual({chatReport: undefined, isFallbackChatReport: false});
     });
 });

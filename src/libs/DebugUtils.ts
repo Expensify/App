@@ -371,6 +371,9 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
         }
 
         for (const [key, val] of Object.entries(test)) {
+            if (val === null) {
+                continue;
+            }
             const expectedValueType = type[key];
             // val is a constant enum
             if (typeof expectedValueType === 'object') {
@@ -381,6 +384,22 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
                 throw new ObjectError(expectedType);
             }
         }
+    }
+}
+
+/**
+ * Validates that a value is a flat object mapping string keys to string values (e.g. Record<string, string>).
+ */
+function validateStringRecord(value: string) {
+    if (isEmptyValue(value)) {
+        return;
+    }
+
+    const object = parseJSON(value);
+    if (typeof object !== 'object' || object === null || Array.isArray(object) || Object.values(object).some((val) => typeof val !== 'string')) {
+        throw new SyntaxError('debug.invalidValue', {
+            cause: {expectedValues: 'Record<string, string> | undefined'},
+        });
     }
 }
 
@@ -461,6 +480,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'submitterUserID':
         case 'submitterPayrollID':
         case 'orderDealNumbers':
+        case 'debitedCurrency':
+        case 'creditedCurrency':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -487,6 +508,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'reimbursableTotal':
         case 'unheldReimbursableTotal':
         case 'transactionCount':
+        case 'debitedAmount':
+        case 'creditedAmount':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
@@ -565,6 +588,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 actorAccountID: 'number',
                 eta: 'object',
                 iconFill: 'string',
+                requiredDepositCurrency: 'string',
             });
         case 'tripData':
             return validateObject<ObjectElement<Report, 'tripData'>>(value, {
@@ -602,6 +626,10 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 submitterUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 submitterPayrollID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 orderDealNumbers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                debitedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                debitedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -828,6 +856,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                pageCount: 'number',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -1032,6 +1061,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
         case 'selectedTransactionIDs':
             return validateArray(value, 'string');
+        case 'bulkEditTagChanges':
+            return validateStringRecord(value);
         case 'participants':
             return validateArray<ArrayElement<Transaction, 'participants'>>(value, {
                 accountID: 'number',
@@ -1136,6 +1167,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     routeDistanceMeters: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    bulkEditTagChanges: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1179,6 +1211,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1196,6 +1229,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                pageCount: 'number',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
@@ -1232,6 +1266,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 odometerStartImage: 'object',
                 odometerEndImage: 'object',
                 tripID: 'string',
+                selectedRouteKey: 'string',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1469,6 +1504,7 @@ function getReasonForShowingRowInLHN({
     currentUserLogin,
     currentUserAccountID,
     conciergeReportID,
+    hasGuidesEmails,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1480,6 +1516,7 @@ function getReasonForShowingRowInLHN({
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
+    hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
@@ -1501,6 +1538,7 @@ function getReasonForShowingRowInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1564,7 +1602,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
             report,
             chatReport,
             reportActions,
@@ -1574,8 +1612,8 @@ function getReasonAndReportActionForRBRInLHNRow(
             isOffline,
             currentUserAccountID,
             transactionViolations,
-            isArchivedReport,
-        ) ?? {};
+            isReportArchived: isArchivedReport,
+        }) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};
@@ -1606,6 +1644,7 @@ const DebugUtils = {
     validateDate,
     validateConstantEnum,
     validateArray,
+    validateStringRecord,
     validateObject,
     validateString,
     validateReportDraftProperty,

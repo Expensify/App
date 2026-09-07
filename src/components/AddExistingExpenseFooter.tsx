@@ -25,7 +25,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
 
@@ -47,11 +47,11 @@ type AddExistingExpenseFooterProps = {
 };
 
 function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -96,6 +96,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         selfDMReportActions,
                         delegateAccountID,
                         isTrackIntentUser,
+                        formatPhoneNumber,
                     });
                 } else {
                     changeTransactionsReport({
@@ -113,7 +114,9 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,
+                        delegateAccountID,
                         getCurrencyDecimals,
+                        getCurrencySymbol,
                     });
                 }
             },
@@ -130,14 +133,14 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                 />
             )}
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.justifyContentCenter]}
-                text={translate('iou.addExistingExpenseConfirm')}
                 onPress={handleConfirm}
-                pressOnEnter
-                enterKeyEventListenerPriority={1}
-            />
+            >
+                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                <Button.Text>{translate('iou.addExistingExpenseConfirm')}</Button.Text>
+            </Button>
         </>
     );
 }

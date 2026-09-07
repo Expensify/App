@@ -18,7 +18,10 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        '^.+\\.[jt]sx?$': 'babel-jest',
+        // Reassure re-transforms ~7k files under `--max-opt=1` (V8 sparkplug only), which
+        // makes Babel ~half of each measure job. OXC + esbuild is native and stays fast
+        // without TurboFan. Test files stay on babel-jest so `jest.mock` is still hoisted.
+        '^.+\\.[jt]sx?$': isPerfTestRun ? '<rootDir>/config/babel/oxcJestTransformer.js' : 'babel-jest',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: [
@@ -26,7 +29,10 @@ module.exports = {
         // Prevent Babel from transforming worklets in this file so they are treated as normal functions, otherwise FormatSelectionUtilsTest won't run.
         '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
     ],
-    testPathIgnorePatterns: ['<rootDir>/node_modules'],
+    // tests/tooling/ covers .github/ and scripts/ and runs under `bun test` instead (see the `test:bun` npm
+    // script), so those files import `bun:test` rather than Jest's globals. They aren't in testMatch above, and
+    // this keeps them out even if a future testMatch entry broadens to all of tests/.
+    testPathIgnorePatterns: ['<rootDir>/node_modules', '<rootDir>/tests/tooling/'],
     // .worktrees/ and .claude/worktrees/ hold parallel git worktrees a developer may check out locally.
     // Each one carries its own modules/hybrid-app/package.json, which trips
     // jest-haste-map's "duplicate package name" assertion. Skip them entirely.

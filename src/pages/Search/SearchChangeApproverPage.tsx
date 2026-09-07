@@ -271,7 +271,9 @@ function SearchChangeApproverPage() {
     const listHeader =
         selectedPolicies.length === 1 ? (
             <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`)} />
+                <RenderHTML
+                    html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id, CONST.TAB.WORKFLOWS.APPROVALS)}`)}
+                />
             </View>
         ) : (
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
