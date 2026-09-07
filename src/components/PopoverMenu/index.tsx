@@ -662,7 +662,11 @@ function BasePopoverMenu({
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            stylesArray.push({maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)});
+            // Cap to the window, without the old CONST.POPOVER_MENU_MAX_HEIGHT floor: that floor is taller than a
+            // short window, so it let the menu run past the screen edge on one. There is no need to bound this by
+            // the anchor either, because PopoverWithMeasuredContentBase already shifts a popover that would
+            // overflow back inside the window.
+            stylesArray.push({maxHeight: windowHeight - variables.compactPopoverMenuVerticalMargin});
         }
 
         return stylesArray;

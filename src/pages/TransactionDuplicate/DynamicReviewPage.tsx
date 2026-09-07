@@ -20,7 +20,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {clearDeleteTransactionNavigateBackUrl, openReport} from '@libs/actions/Report';
 import {dismissDuplicateTransactionViolation, getDuplicateTransactionDetails} from '@libs/actions/Transaction';
-import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {CAROUSEL_SOURCE, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -29,6 +29,7 @@ import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils'
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import {doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
+import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,7 +71,17 @@ function DynamicReviewPage() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
-    const originalTransactionIDsListRef = useRef<string[] | null>(null);
+    // The whole carousel this screen is about to displace, so the restore effect below can hand it back exactly as
+    // it was. The owner has to be the screen the carousel came from (Search, or a report's list): re-seeding the
+    // previous screen's list under duplicate review's own source would leave that screen unable to refresh or
+    // release its own carousel. The snapshot hash and descriptors have to come back too, or a snapshot-backed
+    // carousel loses the data its siblings are resolved from.
+    const displacedCarouselRef = useRef<{
+        ids: string[];
+        source: string | undefined;
+        snapshotHash: number | undefined;
+        descriptors: Record<string, TransactionThreadNavigationDescriptor> | undefined;
+    } | null>(null);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
@@ -171,23 +182,32 @@ function DynamicReviewPage() {
 
     useFocusEffect(
         useCallback(() => {
-            if (!originalTransactionIDsListRef.current) {
+            const displaced = displacedCarouselRef.current;
+            if (!displaced) {
                 return;
             }
-            setActiveTransactionIDs(originalTransactionIDsListRef.current);
+            setActiveTransactionIDs(displaced.ids, {source: displaced.source, snapshotHash: displaced.snapshotHash, descriptors: displaced.descriptors});
         }, []),
     );
 
     const onPreviewPressed = (reportID: string) => {
+        // Capture the carousel we are about to displace before overwriting it, on the first press only, so the
+        // restore effect re-seeds what was active when this screen mounted. setActiveTransactionIDs updates the
+        // module mirror synchronously, so reading it afterwards would only ever return our own write back.
+        if (!displacedCarouselRef.current) {
+            const active = getActiveTransactionIDs();
+            displacedCarouselRef.current = {
+                ids: active.ids ?? transactionIDsList,
+                source: active.source ?? undefined,
+                snapshotHash: active.snapshotHash ?? undefined,
+                descriptors: active.descriptors ?? undefined,
+            };
+        }
+
         const siblingTransactionIDsList = transactions.map((transaction) => transaction.transactionID);
-        setActiveTransactionIDs(siblingTransactionIDsList).then(() => {
+        setActiveTransactionIDs(siblingTransactionIDsList, {source: CAROUSEL_SOURCE.duplicateReview(transactionID)}).then(() => {
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
         });
-        // Store the initial value of transactionIDsList and only save it when the item is clicked for the first time
-        // to ensure that transactionIDsList reflects its original value when this component is mounted
-        if (!originalTransactionIDsListRef.current) {
-            originalTransactionIDsListRef.current = transactionIDsList;
-        }
     };
 
     const currentTransactionViolations = transactionIDs.map((id) => ({

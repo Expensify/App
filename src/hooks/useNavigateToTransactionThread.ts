@@ -4,7 +4,7 @@ import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getExpenseCreationIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,6 +33,9 @@ type NavigateToTransactionThreadParams = {
     /** Ordered list of sibling transaction IDs used to drive the prev/next carousel in the thread RHP */
     siblingTransactionIDs: string[];
 
+    /** Identity of the screen seeding the carousel, so it can later refresh or release only its own list */
+    carouselSource?: string;
+
     /** Route to return to when navigating back; defaults to the current active route */
     backTo?: string;
 };
@@ -56,14 +59,21 @@ function useNavigateToTransactionThread() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
-    return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, backTo}: NavigateToTransactionThreadParams) => {
-        const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
+    return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, carouselSource, backTo}: NavigateToTransactionThreadParams) => {
+        // The action that created the expense, not merely one referencing it. In an approved or paid report the
+        // approval and payment actions carry the same IOUTransactionID, and matching one of those would open its
+        // system message thread instead of the expense. The carousel this seeds resolves siblings the same way, so
+        // using the loose lookup here made a row press and a prev/next step onto the same expense disagree.
+        const iouAction = getExpenseCreationIOUActionForTransactionID(reportActions, transactionID);
         const resolvedBackTo = backTo ?? Navigation.getActiveRoute();
         let reportIDToNavigate = iouAction?.childReportID;
 
-        const routeParams: {reportID: string | undefined; reportActionID?: string; backTo?: string} = {
+        const routeParams: {reportID: string | undefined; reportActionID?: string; backTo?: string; anchorTransactionID?: string} = {
             reportID: reportIDToNavigate,
             backTo: resolvedBackTo,
+            // Anchors the thread to this expense so the header can show the carousel before the thread's own
+            // parent report action has loaded.
+            anchorTransactionID: transactionID,
         };
 
         if (!reportIDToNavigate) {
@@ -89,8 +99,10 @@ function useNavigateToTransactionThread() {
         }
 
         // Single transaction report opens in RHP. We seed every sibling transaction ID so the RHP can
-        // display prev/next arrows for navigation between expenses.
-        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
+        // display prev/next arrows for navigation between expenses. The pressed row's own screen takes ownership
+        // of the carousel: an earlier version kept a broader list (e.g. the Spend page's) alive here, which left
+        // the report showing a counter and arrows for expenses that weren't in it.
+        setActiveTransactionIDs(siblingTransactionIDs, {source: carouselSource}).then(() => {
             if (reportIDToNavigate) {
                 markReportRHPWidth(reportIDToNavigate, 'wide');
             }
