@@ -124,7 +124,7 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
-    it('keeps the unread marker when Concierge hidden history is revealed at once (side panel "Show history")', () => {
+    it('does not push the read watermark on a bulk history reveal without a session boundary (marker appears on the next render)', () => {
         const greeting = makeAction(CONST.CONCIERGE_GREETING_ACTION_ID, {created: LAST_READ_TIME});
         const createdAction = makeAction('created', {created: '2023-01-01 08:00:00.000', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
         const welcomeActions = [greeting, createdAction];
