@@ -41,19 +41,19 @@ export default function DomainAdminRequestsTableRow({item, rowIndex}: DomainAdmi
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={item.approve}
                 isDisabled={isActionDisabled}
-                accessibilityLabel={[translate('domain.admins.approve'), item.name].filter(Boolean).join(', ')}
+                accessibilityLabel={[translate('common.approve'), item.name].filter(Boolean).join(', ')}
                 sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.REQUEST_APPROVE}
             >
-                <Button.Text>{translate('domain.admins.approve')}</Button.Text>
+                <Button.Text>{translate('common.approve')}</Button.Text>
             </Button>
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={item.deny}
                 isDisabled={isActionDisabled}
-                accessibilityLabel={[translate('domain.admins.deny'), item.name].filter(Boolean).join(', ')}
+                accessibilityLabel={[translate('common.deny'), item.name].filter(Boolean).join(', ')}
                 sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.REQUEST_DENY}
             >
-                <Button.Text>{translate('domain.admins.deny')}</Button.Text>
+                <Button.Text>{translate('common.deny')}</Button.Text>
             </Button>
         </View>
     );

@@ -63,6 +63,8 @@ const translations = {
         unshare: 'Unshare',
         yes: 'Yes',
         no: 'No',
+        approve: 'Approve',
+        deny: 'Deny',
         dontChange: 'Don’t change',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
         ok: 'OK',
@@ -11163,8 +11165,6 @@ const translations = {
             addAdmin: 'Add admin',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
             requests: 'Requests',
-            approve: 'Approve',
-            deny: 'Deny',
             approveRequestError: 'Unable to approve this request. Please try again.',
             declineRequestError: 'Unable to deny this request. Please try again.',
             revokeAdminAccess: 'Revoke admin access',
