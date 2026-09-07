@@ -16,9 +16,13 @@ import SCREENS from '@src/SCREENS';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
+// `RHPReportScreen` also backs `SCREENS.RIGHT_MODAL.AGENT_REPORT`, whose route carries neither `backTo` nor
+// `reportActionID`. Redirecting from there would force-replace the RHP with an inbox route and eject the user out of
+// the modal, so this handler opts in by route name rather than assuming every screen that mounts it is redirectable.
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.AGENT_REPORT>;
 
 /**
  * Whether `backTo` points at the report we are about to redirect to. `backTo` is captured from the active route when
@@ -32,7 +36,17 @@ function isBackToParentReport(backTo: Route | undefined, parentReportID: string)
 
     // The active route is captured with a leading slash and may carry query params of its own.
     const backToPath = backTo.replace(/^\//, '').replace(/\?.*$/, '');
-    return backToPath === ROUTES.REPORT_WITH_ID.getRoute(parentReportID) || backToPath === ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID});
+
+    // Every route that renders the parent expense report itself: the inbox report, the search RHP report, the search
+    // money request report and the expense report RHP. `backTo` is whichever of them the thread was opened from.
+    const parentReportRoutes: string[] = [
+        ROUTES.REPORT_WITH_ID.getRoute(parentReportID),
+        ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID}),
+        ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: parentReportID}),
+        ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: parentReportID}),
+    ];
+
+    return parentReportRoutes.includes(backToPath);
 }
 
 /**
@@ -47,7 +61,11 @@ function isBackToParentReport(backTo: Route | undefined, parentReportID: string)
  */
 function OneTransactionThreadRedirectHandler() {
     const route = useRoute<ReportScreenRoute>();
-    const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+
+    // Only the two routes this handler was written for. Anything else that mounts `ReportScreen` is left alone.
+    const redirectableRoute = route.name === SCREENS.REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route : undefined;
+
+    const reportIDFromRoute = getNonEmptyStringOnyxID(redirectableRoute?.params?.reportID);
     const isFocused = useIsFocused();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
@@ -68,14 +86,14 @@ function OneTransactionThreadRedirectHandler() {
 
     // A message deep link is left alone: it points at an action inside the thread, and dropping the thread
     // route would drop the anchor the link was opened for.
-    const hasLinkedReportAction = !!route.params?.reportActionID;
+    const hasLinkedReportAction = !!redirectableRoute?.params?.reportActionID;
 
     // A push notification opens the report it targets with `referrer=notification`, and for a comment on a single
     // expense that target is this thread. The param is what lets `useMarkAsRead` mark the report read without
     // waiting on window focus, so it has to survive the redirect. It only exists on the inbox route.
-    const referrer = route.name === SCREENS.REPORT ? route.params?.referrer : undefined;
+    const referrer = redirectableRoute?.name === SCREENS.REPORT ? redirectableRoute.params?.referrer : undefined;
 
-    const shouldRedirectToParentReport = !!parentReportID && !hasLinkedReportAction && !!isParentOneTransactionReport && isOneTransactionThread;
+    const shouldRedirectToParentReport = !!redirectableRoute && !!parentReportID && !hasLinkedReportAction && !!isParentOneTransactionReport && isOneTransactionThread;
 
     // The replace unmounts this screen, but Onyx updates can land before the transition finishes. Keyed by the
     // report we redirected away from so a later route onto a different thread still redirects.
@@ -89,7 +107,7 @@ function OneTransactionThreadRedirectHandler() {
 
         // Reuse the route's own `backTo` rather than the active route, otherwise back would return to the thread
         // we are replacing and bounce the user straight back here.
-        const backTo = route.params?.backTo;
+        const backTo = redirectableRoute?.params?.backTo;
 
         // When the thread was opened from the parent report, that parent is both where we want to end up and where
         // `backTo` already points. Replacing the thread with a copy of it would leave `parent -> parent?backTo=parent`
@@ -103,14 +121,14 @@ function OneTransactionThreadRedirectHandler() {
         }
 
         const reportRoute =
-            route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT
+            redirectableRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT
                 ? ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, backTo})
                 : ROUTES.REPORT_WITH_ID.getRoute(parentReportID, undefined, referrer, backTo);
 
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(reportRoute, {forceReplace: true});
         });
-    }, [isFocused, shouldRedirectToParentReport, reportIDFromRoute, parentReportID, route.name, route.params?.backTo, referrer]);
+    }, [isFocused, shouldRedirectToParentReport, reportIDFromRoute, parentReportID, redirectableRoute?.name, redirectableRoute?.params?.backTo, referrer]);
 
     return null;
 }

@@ -10,6 +10,8 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
 const THREAD_REPORT_ID = '12345';
 const EXPENSE_REPORT_ID = '54321';
 
@@ -187,7 +189,36 @@ describe('OneTransactionThreadRedirectHandler', () => {
         render(<OneTransactionThreadRedirectHandler />);
 
         await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+        expect(mockGoBack).toHaveBeenCalledWith(`/search/view/${EXPENSE_REPORT_ID}?q=whatever`);
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['the search money request report', `/search/r/${EXPENSE_REPORT_ID}`],
+        ['the expense report RHP', `/e/${EXPENSE_REPORT_ID}`],
+    ])('goes back to the parent report instead of stacking a duplicate when backTo points at %s', async (_name, backTo) => {
+        mockRouteName = SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+        expect(mockGoBack).toHaveBeenCalledWith(backTo);
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('leaves the route alone on a screen other than the inbox report and the search RHP report', async () => {
+        // `RHPReportScreen` also backs `AGENT_REPORT`; redirecting from there would eject the user out of the RHP.
+        mockRouteName = SCREENS.RIGHT_MODAL.AGENT_REPORT;
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        // The redirect is deferred behind `isNavigationReady()`, so the pending microtasks have to be flushed before
+        // "nothing happened" means anything - `waitFor` would resolve on the first tick and pass either way.
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('replaces the route when backTo points at a report other than the parent', async () => {
