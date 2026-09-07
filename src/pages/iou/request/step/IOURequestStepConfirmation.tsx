@@ -1029,7 +1029,10 @@ function IOURequestStepConfirmationContent({
                                         suppressDiscardPrompt?.();
                                         onConfirm();
                                     }}
-                                    onSendMoney={handleSendMoney}
+                                    onSendMoney={(paymentMethod) => {
+                                        suppressDiscardPrompt?.();
+                                        handleSendMoney(paymentMethod);
+                                    }}
                                     showRemoveExpenseConfirmModal={() => {
                                         confirmRemoveCurrentTransaction();
                                     }}
