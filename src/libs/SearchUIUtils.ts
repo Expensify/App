@@ -2431,11 +2431,7 @@ function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportI
     return transactions;
 }
 
-/**
- * Whether the snapshot holds a row the server hasn't confirmed yet: an expense or report created or edited while the
- * page was open and merged in optimistically. The whole-search figures don't cover it, so they trail the list until
- * the response that counts it lands.
- */
+/** Row merged in optimistically while the page was open: listed, but not yet in the whole-search figures. */
 function hasPendingSnapshotRow(searchResults: OnyxEntry<OnyxTypes.SearchResults>): boolean {
     const data = searchResults?.data;
     if (!data) {
@@ -2457,18 +2453,10 @@ function hasPendingSnapshotRow(searchResults: OnyxEntry<OnyxTypes.SearchResults>
 }
 
 /**
- * Snapshot update that removes reports from a search result: their rows, their expenses, and the whole-search figures.
+ * Removes reports from a search snapshot: their rows, their expenses, and the whole-search figures.
  *
- * Submit/approve/pay drop the acted-on report from the snapshot so the list keeps up without a refetch, but only the
- * Search API writes `search.count`, `search.reportCount` and `search.total`, so the footer kept counting rows that
- * were no longer listed. Onyx merges values rather than deltas, so the figures here are absolute, computed from the
- * snapshot as it stands; the next response overwrites them with the server's own.
- *
- * Reports already gone from the snapshot contribute nothing, so applying this twice for one report is harmless.
- * Returns undefined when there is nothing to remove, or for search types whose rows are not reports.
- *
- * `total` is only adjusted when every removed expense carries a `groupAmount` in the snapshot's currency: the server
- * total is converted, and a raw amount in another currency is not comparable. The count is currency-free.
+ * Figures are absolute, not deltas, since Onyx merges values. `total` is only adjusted when every removed expense has
+ * a `groupAmount` in the snapshot's currency; a raw amount in another currency isn't comparable.
  */
 function getSnapshotRemovalUpdate(searchResults: OnyxEntry<OnyxTypes.SearchResults>, reportIDs: string[]): NullishDeep<OnyxTypes.SearchResults> | undefined {
     const data = searchResults?.data;

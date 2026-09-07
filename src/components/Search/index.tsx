@@ -369,8 +369,7 @@ function Search({
     const [skeletonWasDisplayed, setSkeletonWasDisplayed] = useState(false);
     const onSkeletonLayout = useCallback(() => setSkeletonWasDisplayed(true), []);
 
-    // Show a skeleton whenever heavy work is deferred, so we never fall through to the
-    // empty-state check with stale zero-length data.
+    // without this we fall through to the empty-state check with stale zero-length data
     const isDeferringHeavyWork = !isOffline && shouldDeferHeavySearchWork;
     const isSearchLoadingWithNoResults = isSearchPending(searchResults) && Array.isArray(searchResults?.data) && searchResults.data.length === 0;
     // Every write of `errors` stores the response code next to them, so a reload keeps the classification

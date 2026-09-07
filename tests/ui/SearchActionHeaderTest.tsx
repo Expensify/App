@@ -36,7 +36,7 @@ function renderSearchActionHeader(action: ReportAction, report: Report | undefin
     return render(
         <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
             <SearchScopeProvider isOnSearch={isOnSearch}>
-                {/* A falsy currentSearchHash keeps useOnyx reading from real Onyx collections instead of a search snapshot, since this test doesn't set up snapshot data */}
+                {/* hash 0 makes useOnyx read real collections instead of a snapshot, which this test doesn't set up */}
                 <SearchQueryContext.Provider
                     value={{
                         currentSearchHash: 0,

@@ -142,9 +142,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const metadata = searchResults?.search;
     const metadataCurrency = metadata?.currency;
 
-    // The skeleton belongs to the load that opened the page, not to later refreshes, which already have figures on
-    // screen worth keeping. Cached searches render their stored (stale) figures before the refresh starts, so track
-    // the loading-to-loaded transition rather than whether figures exist.
+    // cached searches render stale figures before the refresh starts, so track the load transition, not whether figures exist
     const [loadState, setLoadState] = useState<{hash: number; hasSettled: boolean}>();
     const isLoadStateForCurrentSearch = loadState?.hash === currentSearchHash;
     const hasSettledFigures = !!isLoadStateForCurrentSearch && loadState.hasSettled;
@@ -155,11 +153,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         setLoadState({hash: currentSearchHash, hasSettled: true});
     }
 
-    // A row action in flight is about to move these figures and its removal hasn't landed, so the figures are stale.
+    // the removal hasn't landed yet, so the figures are stale
     const isActionInFlight = useActionLoadingReportIDs().size > 0;
 
-    // Same for a refresh that will count an expense created while the page was open: the row is listed
-    // optimistically but the figures aren't, so leaving them up shows a number that jumps when the response lands.
+    // row is in the snapshot optimistically but not in the figures, so the number jumps when the response lands
     const isCountingPendingRow = isRefreshingFirstPage && hasPendingSnapshotRow(searchResults);
 
     const metadataCount = metadata?.count;
@@ -570,9 +567,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         return null;
     }
 
-    // A partial selection shows a client-side subtotal that is ready immediately, so the search-loading skeleton
-    // only applies to the whole-search total. Load-more requests also set metadata.isLoading without recalculating
-    // totals, hence the offset 0 gate.
+    // partial selection is a client-side subtotal; offset 0 gate because load-more also sets isLoading without recalculating totals
     const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isActionInFlight || isCountingPendingRow || (!hasSettledFigures && isRefreshingFirstPage)));
 
     return (

@@ -186,7 +186,6 @@ function useSearchHighlightAndScroll({
     ]);
 
     useEffect(() => {
-        // Wait for isLoading to become false after the API call completes.
         if (searchResults?.search?.isLoading) {
             return;
         }

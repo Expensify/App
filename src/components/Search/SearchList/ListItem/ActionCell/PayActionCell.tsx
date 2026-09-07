@@ -42,8 +42,7 @@ type PayActionCellProps = {
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
-    // Paying from a row drops it from the Ready to pay snapshot, the same as every other action path. Without the
-    // search key the removal is skipped, and the list and the footer keep the report until the next refetch.
+    // without the search key the paid report stays in the Ready to pay snapshot until the next refetch
     const {currentSearchKey} = useSearchQueryContext();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();

@@ -93,7 +93,6 @@ function buildSearchResults(currency: string | undefined, count = 1, total = -10
     };
 }
 
-/** A one-report expense-report snapshot: one expense of 1000, counted by the server. */
 function buildExpenseReportSearchResults(isLoading: boolean): SearchResults {
     const data: SearchResults['data'] = {};
     data[`${ONYXKEYS.COLLECTION.REPORT}1`] = {reportID: '1', currency: CONST.CURRENCY.USD};
@@ -178,7 +177,7 @@ describe('SearchSelectionFooter', () => {
         };
         mockSelectedTransactions.current = {};
 
-        // The page's own load runs and settles first; the report overlay opens and closes over this same footer.
+        // page load settles first, then the report overlay opens and closes over the same footer
         const {rerender} = render(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(true)} />);
         await waitForBatchedUpdates();
         rerender(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(false)} />);
@@ -234,7 +233,7 @@ describe('SearchSelectionFooter', () => {
         rerender(<SearchSelectionFooter searchResults={buildExpenseReportSearchResults(false)} />);
         await waitForBatchedUpdates();
 
-        // The new expense is merged into the snapshot optimistically; the figures still predate it.
+        // expense merged in optimistically, figures still predate it
         const refreshing = buildExpenseReportSearchResults(true);
         refreshing.data[`${ONYXKEYS.COLLECTION.TRANSACTION}11`] = {
             ...createRandomTransaction(11),
