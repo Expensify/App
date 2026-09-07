@@ -3,7 +3,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
@@ -30,7 +30,7 @@ import {View} from 'react-native';
 function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -81,7 +81,7 @@ function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
             data={filteredData}
             textInputOptions={textInputOptions}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            shouldBeBlocked={!syncReimbursedReports || !isGlobalReimbursementFXEnabled}
+            shouldBeBlocked={!syncReimbursedReports || !canConfigureCurrencyConversionFees}
             onSelectRow={updateAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={expenseAccountOptions.find((mode) => mode.isSelected)?.keyForList}

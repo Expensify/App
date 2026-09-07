@@ -4,7 +4,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,7 +41,7 @@ function getReimbursedAccountName(bankAccounts: SageIntacctDataElement[], reimbu
 
 function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id;
     const styles = useThemeStyles();
 
@@ -166,7 +166,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         brickRoadIndicator={areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
-                {isGlobalReimbursementFXEnabled && (
+                {canConfigureCurrencyConversionFees && (
                     <OfflineWithFeedback
                         key={translate('workspace.sageIntacct.fxExpenseAccount')}
                         pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}
