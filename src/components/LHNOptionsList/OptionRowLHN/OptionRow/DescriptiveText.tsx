@@ -1,4 +1,4 @@
-import Text from '@components/Text';
+import PlainText from '@components/PlainText';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -26,7 +26,7 @@ function DescriptiveText({optionItem}: DescriptiveTextProps) {
             style={[styles.flexWrap]}
             fsClass={FS.getChatFSClass(optionItem)}
         >
-            <Text style={[styles.textLabel]}>{descriptiveText}</Text>
+            <PlainText style={[styles.textLabel]}>{descriptiveText}</PlainText>
         </View>
     );
 }
