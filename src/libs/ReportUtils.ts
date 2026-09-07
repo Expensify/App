@@ -3345,11 +3345,16 @@ function getAddExpenseDropdownOptions({
 /**
  * Checks whether the card transaction support deleting based on liability type
  */
-function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transaction>): boolean {
+function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): boolean {
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     if (!isCardTransaction) {
         return true;
     }
+
+    if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
+        return true;
+    }
+
     return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
