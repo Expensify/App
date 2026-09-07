@@ -10,8 +10,15 @@ import type ReportPreviewActionButton from '@components/ReportActionItem/MoneyRe
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
+import type * as WideRHPContextProvider from '@components/WideRHPContextProvider';
 
+import useNetwork from '@hooks/useNetwork';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
+import * as ReportActions from '@libs/actions/Report';
+import * as TransactionThreadNavigation from '@libs/actions/TransactionThreadNavigation';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -19,6 +26,8 @@ import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import {getReportName} from '@src/libs/ReportNameUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -59,6 +68,9 @@ jest.mock('react', () => {
 
 jest.mock('@react-navigation/native');
 
+jest.mock('@hooks/useNetwork');
+const mockUseNetwork = jest.mocked(useNetwork);
+
 jest.mock('@rnmapbox/maps', () => {
     return {
         default: jest.fn(),
@@ -74,8 +86,44 @@ jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () => ({
     default: (...args: Parameters<typeof mockUseReportWithTransactionsAndViolations>) => mockUseReportWithTransactionsAndViolations(...args),
 }));
 
-// The preview reads `iouReport` from a prop (provided stable by the parent) and its transactions from the
-// scoped `useReportTransactionsCollection` hook, so the test drives those two sources directly.
+// Left undefined, every other test runs the real hook, so the wide-layout tests keep their behavior.
+let mockResponsiveLayoutOverride: ResponsiveLayoutResult | undefined;
+jest.mock('@hooks/useResponsiveLayout', () => {
+    const actual = jest.requireActual<{default: () => ResponsiveLayoutResult}>('@hooks/useResponsiveLayout');
+    return {
+        __esModule: true,
+        default: () => mockResponsiveLayoutOverride ?? actual.default(),
+    };
+});
+
+const narrowResponsiveLayout: ResponsiveLayoutResult = {
+    shouldUseNarrowLayout: true,
+    isSmallScreenWidth: true,
+    isInNarrowPaneModal: false,
+    isExtraSmallScreenHeight: false,
+    isMediumScreenWidth: false,
+    isLargeScreenWidth: false,
+    isExtraLargeScreenWidth: false,
+    isExtraSmallScreenWidth: false,
+    isSmallScreen: true,
+    onboardingIsMediumOrLargerScreenWidth: false,
+    isInLandscapeMode: false,
+};
+
+const wideResponsiveLayout: ResponsiveLayoutResult = {
+    shouldUseNarrowLayout: false,
+    isSmallScreenWidth: false,
+    isInNarrowPaneModal: false,
+    isExtraSmallScreenHeight: false,
+    isMediumScreenWidth: false,
+    isLargeScreenWidth: true,
+    isExtraLargeScreenWidth: false,
+    isExtraSmallScreenWidth: false,
+    isSmallScreen: false,
+    onboardingIsMediumOrLargerScreenWidth: true,
+    isInLandscapeMode: false,
+};
+
 let mockIOUReportProp: OnyxEntry<Report> = mockIOUReport;
 
 const mockUseReportTransactionsCollection = jest.fn(() => toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, defaultPreviewTransactions, (transaction) => transaction.transactionID));
@@ -87,9 +135,7 @@ jest.mock('@hooks/useReportTransactionsCollection', () => ({
 
 type OnHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
 
-// Capture the onHoldMenuOpen callback the preview passes to the pay button so a held-expense payment can be triggered
-// directly with a selected bank account, mirroring a user picking an account in the dropdown for a held report.
-// The wrapper still renders the real component so these tests keep exercising it.
+// Capture onHoldMenuOpen so a held-expense payment can be triggered with a chosen bank account.
 const mockOnHoldMenuOpenHolder: {current?: OnHoldMenuOpen} = {current: undefined};
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton', () => {
     const actualReact = jest.requireActual<typeof React>('react');
@@ -98,7 +144,6 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewA
     return {
         __esModule: true,
         default: function MockReportPreviewActionButton() {
-            // ReportPreviewActionButton now reads from context instead of props; capture onHoldMenuOpen from the context.
             const {onHoldMenuOpen} = useReportPreviewActions();
             mockOnHoldMenuOpenHolder.current = onHoldMenuOpen;
             return actualReact.createElement(actualModule.default);
@@ -106,7 +151,17 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewA
     };
 });
 
-// Capture the props the preview forwards to the hold menu so the selected bank account that reaches it can be asserted.
+// The RHP widths never reach the rendered output, so capture the calls to assert they are requested and released.
+const mockMarkReportRHPWidth = jest.fn();
+const mockUnmarkReportRHPWidth = jest.fn();
+jest.mock('@components/WideRHPContextProvider', () => ({
+    ...jest.requireActual<typeof WideRHPContextProvider>('@components/WideRHPContextProvider'),
+    useWideRHPActions: () => ({
+        markReportRHPWidth: mockMarkReportRHPWidth,
+        unmarkReportRHPWidth: mockUnmarkReportRHPWidth,
+    }),
+}));
+
 const mockHoldMenuPropsHolder: {current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}} = {current: undefined};
 jest.mock('@components/ProcessMoneyReportHoldMenu', () => ({
     __esModule: true,
@@ -252,6 +307,7 @@ describe('MoneyRequestReportPreview', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseNetwork.mockReturnValue({isOffline: false});
         mockDeferredValueOverride = undefined;
         mockOnHoldMenuOpenHolder.current = undefined;
         mockHoldMenuPropsHolder.current = undefined;
@@ -486,5 +542,687 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         expect(screen.queryByText(TestHelper.translateLocal('search.moneyRequestReport.emptyStateTitle'))).not.toBeOnTheScreen();
+    });
+
+    describe('pressing a transaction in the carousel', () => {
+        const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+        // A distinct thread per transaction, so the assertions prove the *pressed* card drives navigation.
+        const buildActionWithThread = (reportID: string | undefined, transactionID: string | undefined) => {
+            if (!reportID || !transactionID) {
+                return undefined;
+            }
+            return {...mockAction, childReportID: `thread_${transactionID}`, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
+        };
+
+        const renderAndPopulateCarousel = async () => {
+            renderPage({});
+            await waitForBatchedUpdatesWithAct();
+            setCurrentWidth();
+            await act(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const pressSecondTransaction = async () => {
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockSecondTransaction);
+            fireEvent.press(screen.getByText(transactionDisplayAmount));
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        // Both layouts open the report first and the pressed expense on a short timer; let that timer run.
+        const settleCascade = async () => {
+            await act(async () => {
+                jest.advanceTimersByTime(400);
+                await Promise.resolve();
+            });
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const narrowReportRoute = () => ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
+
+        beforeEach(() => {
+            navigateSpy.mockImplementation(() => {});
+            jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('');
+            // The cascade guards its delayed navigation on isActiveRoute; default to "still on the report".
+            jest.spyOn(Navigation, 'isActiveRoute').mockReturnValue(true);
+        });
+
+        afterEach(() => {
+            mockResponsiveLayoutOverride = undefined;
+            jest.useFakeTimers();
+        });
+
+        it('opens the report in the wide RHP and then the pressed expense on top (after a short delay) on wide layouts', async () => {
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            // The report opens first and sits below, so back returns to it rather than the Inbox.
+            const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''});
+            expect(navigateSpy).toHaveBeenCalledTimes(2);
+            expect(navigateSpy).toHaveBeenNthCalledWith(1, reportRoute);
+            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
+        });
+
+        it('does not reopen the pressed expense if the user leaves the report during the wide-layout cascade delay', async () => {
+            // Regression: navigating away before the timer fires must not reopen the expense over the new screen.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            jest.spyOn(Navigation, 'isActiveRoute').mockReturnValue(false);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''});
+            expect(navigateSpy).toHaveBeenCalledWith(reportRoute);
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
+        });
+
+        it('keeps backTo pointing at the chat when a second card is pressed inside the cascade window', async () => {
+            // Regression: the second press read backTo from the active route, which press 1 had already
+            // moved to the report, so the report was pushed with a backTo pointing at itself.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            // The constant getActiveRoute mock in beforeEach hides this bug: let the route follow navigation.
+            // The real getActiveRoute returns a leading slash that the route builders never emit, so model that too.
+            let activeRoute = '';
+            jest.spyOn(Navigation, 'getActiveRoute').mockImplementation(() => activeRoute);
+            navigateSpy.mockImplementation((route) => {
+                activeRoute = `/${String(route)}`;
+            });
+
+            await renderAndPopulateCarousel();
+
+            const {transactionDisplayAmount: firstAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            const {transactionDisplayAmount: secondAmount} = getTransactionDisplayAmountAndMetadataText(mockSecondTransaction);
+
+            // The first amount also appears in the report total, so take the card.
+            const [firstCard] = screen.getAllByText(firstAmount);
+            fireEvent.press(firstCard);
+            await waitForBatchedUpdatesWithAct();
+            // Second press lands before the 180ms cascade timer fires, while the carousel is still mounted.
+            fireEvent.press(screen.getByText(secondAmount));
+            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            // The report is pushed exactly once, with the chat as backTo, and the second expense lands on top of it.
+            const chatBackedReportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''});
+            const reportRoutes = navigateSpy.mock.calls.map(([route]) => String(route)).filter((route) => route.startsWith(`e/${mockIOUReport.reportID}`));
+            expect(reportRoutes).toEqual([chatBackedReportRoute]);
+            expect(navigateSpy).toHaveBeenCalledTimes(2);
+            expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: chatBackedReportRoute}));
+        });
+
+        it('pushes the report once, with the chat as backTo, when "View" is pressed inside the cascade window', async () => {
+            // Regression: "View" read backTo from the live route, which the card press had already moved to the
+            // report, so the report was pushed a second time with a backTo pointing at itself.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            let activeRoute = '';
+            jest.spyOn(Navigation, 'getActiveRoute').mockImplementation(() => activeRoute);
+            navigateSpy.mockImplementation((route) => {
+                activeRoute = `/${String(route)}`;
+            });
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.view')));
+            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            expect(navigateSpy).toHaveBeenCalledTimes(1);
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
+        it('opens the report and then the pressed expense on top of it (after a short delay) on narrow layouts', async () => {
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            // Back returns to the report and back again to the chat, matching the wide layout's order.
+            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
+            expect(navigateSpy).toHaveBeenCalledTimes(2);
+            expect(navigateSpy).toHaveBeenNthCalledWith(1, reportRoute);
+            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
+        });
+
+        it('keeps the pressed expense out of the split stack on narrow layouts', async () => {
+            // Deploy blocker #97183: removeScreenByKey only filters the root navigator, so a nested split screen can never be removed.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            const threadID = `thread_${mockSecondTransactionID}`;
+            const threadAsReportScreen = navigateSpy.mock.calls.map(([route]) => String(route)).filter((route) => route.startsWith(`r/${threadID}`));
+            expect(threadAsReportScreen).toEqual([]);
+            expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadID, backTo: narrowReportRoute()}));
+        });
+
+        it('does not open the pressed expense if the user leaves the report during the narrow cascade delay', async () => {
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            jest.spyOn(Navigation, 'isActiveRoute').mockReturnValue(false);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
+            expect(navigateSpy).toHaveBeenCalledWith(reportRoute);
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
+        });
+
+        it('fetches the report actions when the thread resolved only from the transaction, so the carousel can resolve siblings', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            // Cache-clear shape: no report actions, but each transaction still carries its own thread id.
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    [
+                        {...mockTransaction, transactionThreadReportID: `thread_${mockTransaction.transactionID}`},
+                        {...mockTransaction, transactionID: mockSecondTransactionID, transactionThreadReportID: `thread_${mockSecondTransactionID}`},
+                    ],
+                    (transaction) => transaction.transactionID,
+                ),
+            );
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            await settleCascade();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
+            // The actions must still be fetched, or an arrow press mints a duplicate thread with no parent.
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
+        });
+
+        it('does not let a deferred press hijack an explicit "View" of the report', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            // Cold cache: the press cannot resolve a thread, so it defers and nothing opens.
+            const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // Opening the report explicitly must supersede the deferred press.
+            navigateSpy.mockClear();
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.view')));
+            await waitForBatchedUpdatesWithAct();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
+            // The suite pins getActiveRoute, so model the real navigation for the assertion below to mean anything.
+            jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID) as Route);
+
+            navigateSpy.mockClear();
+            getIOUActionSpy.mockImplementation(buildActionWithThread);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_late`]: mockAction});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(navigateSpy).not.toHaveBeenCalled();
+        });
+
+        it('does not let a deferred press hijack a later press once its fetch lands', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            // First card has no resolvable thread (its press defers); second card resolves immediately.
+            const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, transactionThreadReportID: `thread_${mockSecondTransactionID}`}],
+                    (transaction) => transaction.transactionID,
+                ),
+            );
+
+            await renderAndPopulateCarousel();
+
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            const [firstCard] = screen.getAllByText(transactionDisplayAmount);
+            fireEvent.press(firstCard);
+            await waitForBatchedUpdatesWithAct();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            navigateSpy.mockClear();
+            await pressSecondTransaction();
+            await settleCascade();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
+
+            // The first press's fetch finally lands. It must NOT navigate — the user has moved on.
+            navigateSpy.mockClear();
+            getIOUActionSpy.mockImplementation(buildActionWithThread);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_late`]: mockAction});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(navigateSpy).not.toHaveBeenCalled();
+        });
+
+        it('seeds every transaction when online, so the new filter changes nothing there', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // Online, delete-pending rows are already filtered upstream, so the seed must equal the full visible list.
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(defaultPreviewTransactions.map((transaction) => transaction.transactionID));
+        });
+
+        it('still renders an offline-deleted expense card in the carousel', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+                    (transaction) => transaction.transactionID,
+                ),
+            );
+
+            await renderAndPopulateCarousel();
+
+            // Issue #26939: an offline-deleted expense stays visible but non-navigable, so both cards still render.
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            expect(screen.getAllByText(transactionDisplayAmount).length).toBeGreaterThanOrEqual(2);
+        });
+
+        it('keeps an offline-deleted sibling out of the expense view prev/next carousel', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+                    (transaction) => transaction.transactionID,
+                ),
+            );
+
+            await renderAndPopulateCarousel();
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            const [liveRow] = screen.getAllByText(transactionDisplayAmount);
+            fireEvent.press(liveRow);
+            await waitForBatchedUpdatesWithAct();
+
+            // Deploy blocker #97149: seeding a deleted sibling makes the next arrow land on "It's not here".
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalled();
+            const seededIDs = setActiveTransactionIDsSpy.mock.calls.at(-1)?.at(0);
+            expect(seededIDs).not.toContain(mockSecondTransactionID);
+        });
+
+        it('opens the parent report instead of an expense deleted while offline', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            // Deploy blocker #97149: the thread is already gone, so pressing the row must not land on "It's not here".
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+                    (transaction) => transaction.transactionID,
+                ),
+            );
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+        });
+
+        it('seeds the optimistic transaction thread before opening an existing (possibly uncached) expense', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            const seedSpy = jest.spyOn(ReportActions, 'setOptimisticTransactionThread').mockImplementation(() => {});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // The thread may not be cached, so its optimistic shell is seeded before navigating.
+            expect(seedSpy).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`, mockIOUReport.reportID, expect.anything(), expect.anything());
+        });
+
+        it('opens the parent report (like View) instead of a dead tap when offline and the thread is unresolved', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            // Offline, and the IOU action isn't loaded, so the thread can't be resolved at press time.
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // openReport can't fetch offline, so rather than leaving the tap dead we open the cached parent report.
+            expect(openReportSpy).not.toHaveBeenCalled();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
+        it('fetches the report actions and opens the pressed expense once they load, instead of the parent report, after a cache clear', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            // Cache clear: the report's actions are not loaded, so the thread cannot resolve at press time.
+            const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
+            expect(navigateSpy).not.toHaveBeenCalled();
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+
+            getIOUActionSpy.mockImplementation(buildActionWithThread);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_loaded`]: mockAction});
+                await waitForBatchedUpdatesWithAct();
+            });
+            await settleCascade();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
+        });
+
+        it('falls back to the parent report when the re-fetch settles with no report actions at all', async () => {
+            // Nothing is ever cached here, so the fallback must key off the fetch settling, not off there being actions.
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: false});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
+        it('falls back to the parent report once the re-fetch settles when the expense has no IOU action at all', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            // A legacy expense: the actions are loaded but this expense's IOU action is missing, and refetching finds nothing.
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+
+            await renderAndPopulateCarousel();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[mockAction.reportActionID]: mockAction});
+                await waitForBatchedUpdatesWithAct();
+            });
+            await pressSecondTransaction();
+
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // Regression: the drain used to wait for an action-count change that never came, leaving the tap dead.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: false});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
+        it('opens the pressed expense after re-fetching when only part of the report actions were cached', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+
+            await renderAndPopulateCarousel();
+            // Partially seeded cache: some actions are present, but not the pressed expense's IOU action.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[mockAction.reportActionID]: mockAction});
+                await waitForBatchedUpdatesWithAct();
+            });
+            await pressSecondTransaction();
+
+            // Regression: the press used to give up immediately because some actions were cached.
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            getIOUActionSpy.mockImplementation(buildActionWithThread);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_loaded`]: mockAction});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // The expense must end up on top; stopping at the report would mean the press fell back to it.
+            expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
+        });
+
+        it('falls back to opening the parent report when the pressed expense has no thread', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActions, 'createTransactionThreadReport').mockReturnValue(undefined);
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation((reportID, transactionID) => {
+                if (!reportID || !transactionID) {
+                    return undefined;
+                }
+                return {...mockAction, childReportID: undefined, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
+            });
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
+        it('falls back to the full report view, not the super-wide RHP, when the pressed expense has no thread on narrow layouts', async () => {
+            // Narrow has no super-wide RHP, so the fallback lands on the report screen itself.
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActions, 'createTransactionThreadReport').mockReturnValue(undefined);
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation((reportID, transactionID) => {
+                if (!reportID || !transactionID) {
+                    return undefined;
+                }
+                return {...mockAction, childReportID: undefined, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
+            });
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
+        it('widens the RHP for the report and the pressed expense, and narrows the expense back when the press is abandoned', async () => {
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            // The user leaves the report before the cascade fires, so the expense's reserved width must be released.
+            jest.spyOn(Navigation, 'isActiveRoute').mockReturnValue(false);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(mockMarkReportRHPWidth).toHaveBeenCalledWith(mockIOUReport.reportID, 'super-wide');
+            expect(mockMarkReportRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`, 'wide');
+            expect(mockUnmarkReportRHPWidth).not.toHaveBeenCalled();
+
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            expect(mockUnmarkReportRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`);
+        });
+
+        it('seeds the expense view carousel in the order the cards are rendered, not collection order', async () => {
+            // Supplied newest-first and rendered oldest-first, so the arrows must walk render order, not collection order.
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            const olderTransaction = {...mockTransaction, transactionID: 'ordering_older', created: '2026-08-01 00:00:00', amount: mockTransaction.amount * 3};
+            const newerTransaction = {...mockTransaction, transactionID: 'ordering_newer', created: '2026-08-20 00:00:00', amount: mockTransaction.amount * 5};
+            mockUseReportWithTransactionsAndViolations.mockImplementation(() => [mockIOUReport, [newerTransaction, olderTransaction], {}]);
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, [newerTransaction, olderTransaction], (transaction) => transaction.transactionID),
+            );
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
+
+            renderPage({});
+            await waitForBatchedUpdatesWithAct();
+            setCurrentWidth();
+            await act(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${olderTransaction.transactionID}`]: olderTransaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${newerTransaction.transactionID}`]: newerTransaction,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText(getTransactionDisplayAmountAndMetadataText(olderTransaction).transactionDisplayAmount));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith([olderTransaction.transactionID, newerTransaction.transactionID]);
+            expect(setActiveTransactionIDsSpy).not.toHaveBeenCalledWith([newerTransaction.transactionID, olderTransaction.transactionID]);
+        });
+
+        it('does not open the pressed expense over the report when "View" is tapped during the cascade delay', async () => {
+            // Regression: "View" opens the same report route, so the cascade's navigate-away guard does not catch it.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // Tap "View" while the cascade timer is still pending.
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.view')));
+            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''});
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
+        });
+
+        it('seeds every expense into the arrows, not just the ones the carousel renders', async () => {
+            // Regression: seeding the capped list left the next arrow disabled on the last drawn card.
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            const many = Array.from({length: 14}, (_, index) => ({
+                ...mockTransaction,
+                transactionID: `bulk_${index}`,
+                created: `2026-08-${String(index + 1).padStart(2, '0')} 00:00:00`,
+                amount: mockTransaction.amount - (index + 1) * 1300,
+            }));
+            mockUseReportWithTransactionsAndViolations.mockImplementation(() => [mockIOUReport, many, {}]);
+            mockUseReportTransactionsCollection.mockImplementation(() => toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, many, (transaction) => transaction.transactionID));
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
+
+            renderPage({});
+            await waitForBatchedUpdatesWithAct();
+            setCurrentWidth();
+            await act(async () => {
+                await Onyx.mergeCollection(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    Object.fromEntries(many.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction])) as Record<
+                        `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`,
+                        Transaction
+                    >,
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText(getTransactionDisplayAmountAndMetadataText(many.at(0) ?? mockTransaction).transactionDisplayAmount));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(many.map((transaction) => transaction.transactionID));
+        });
+
+        it('opens the report instead of the lone expense for a single-expense report', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            setReportPreviewData({transactions: [mockTransaction]});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            renderPage({});
+            await waitForBatchedUpdatesWithAct();
+            setCurrentWidth();
+            await act(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            fireEvent.press(screen.getByText(transactionDisplayAmount));
+            await waitForBatchedUpdatesWithAct();
+
+            // A single-expense report opens the report itself, never the lone expense thread.
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockTransaction.transactionID}`, backTo: ''}));
+        });
     });
 });
