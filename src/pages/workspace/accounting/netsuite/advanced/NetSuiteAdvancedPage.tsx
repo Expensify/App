@@ -3,7 +3,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -50,7 +50,7 @@ import {useSharedValue} from 'react-native-reanimated';
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const config = policy?.connections?.netsuite?.options?.config;
@@ -156,7 +156,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_FX_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             title: selectedFxExpenseAccount ? selectedFxExpenseAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT],
-            shouldHide: shouldHideReimbursedReportsSection(config) || !isGlobalReimbursementFXEnabled,
+            shouldHide: shouldHideReimbursedReportsSection(config) || !canConfigureCurrencyConversionFees,
         },
         {
             type: 'divider',

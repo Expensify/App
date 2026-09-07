@@ -3,7 +3,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
@@ -31,7 +31,7 @@ import {View} from 'react-native';
 function NetSuiteFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
 
     const policyID = policy?.id;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -94,7 +94,7 @@ function NetSuiteFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
             title="workspace.netsuite.advancedConfig.fxExpenseAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldBeBlocked={shouldHideReimbursedReportsSection(config) || !isGlobalReimbursementFXEnabled}
+            shouldBeBlocked={shouldHideReimbursedReportsSection(config) || !canConfigureCurrencyConversionFees}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}
             errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}

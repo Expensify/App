@@ -6,7 +6,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -40,7 +40,7 @@ type CurrencyConversionFeesItem = {
 function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: WorkspaceWorkflowsCurrencyConversionFeesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
 
     const selectedPreference = policy?.globalReimbursementFXPreferCompany
         ? CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY
@@ -87,7 +87,7 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isGlobalReimbursementFXEnabled}
+            shouldBeBlocked={!canConfigureCurrencyConversionFees}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
