@@ -216,7 +216,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             }
             const group: unknown = data[key];
             if (group && typeof group === 'object' && 'total' in group && typeof group.total === 'number') {
-                sources[key] = -Math.abs(group.total);
+                sources[key] = -group.total;
             }
         }
         return sources;

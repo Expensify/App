@@ -208,7 +208,6 @@ import {
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
-    getAmount,
     getAttendees,
     getCategory,
     getDescription,
@@ -4416,7 +4415,7 @@ function getSortedTransactionData(
             if (!attendeesCount) {
                 return 0;
             }
-            const totalAmount = getAmount(t, t.report?.type === CONST.REPORT.TYPE.EXPENSE);
+            const totalAmount = getTransactionDisplayAmount(t, t.report, t.policy);
             return totalAmount / attendeesCount;
         };
 

@@ -192,6 +192,18 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 6000}));
     });
 
+    it('adds back an excluded credit rather than subtracting it from the server total', async () => {
+        // The server total already counts the credit as -$100, so dropping it from the selection raises the total.
+        mockSelectedTransactions.current = {};
+        mockExcludedTransactions.current = {transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -10000}};
+        mockAreAllMatchingItemsSelected.current = true;
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 46000, currency: CONST.CURRENCY.USD}));
+    });
+
     it("offers the user's live payment currency as the Reset target when there is no active workspace", async () => {
         // A fresh no-workspace account: the active policy is the personal policy, and the only selected expense
         // happens to be in a different currency (JPY) from the live payment currency (GBP).
