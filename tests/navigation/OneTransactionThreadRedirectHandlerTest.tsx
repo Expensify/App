@@ -14,11 +14,13 @@ const THREAD_REPORT_ID = '12345';
 const EXPENSE_REPORT_ID = '54321';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         navigate: (...args: unknown[]) => mockNavigate(...args),
+        goBack: (...args: unknown[]) => mockGoBack(...args),
         isNavigationReady: () => Promise.resolve(),
     },
 }));
@@ -75,6 +77,7 @@ function createIOUAction(type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, IOU
 describe('OneTransactionThreadRedirectHandler', () => {
     beforeEach(() => {
         mockNavigate.mockClear();
+        mockGoBack.mockClear();
         mockRouteName = SCREENS.REPORT;
         mockRouteParams = {reportID: THREAD_REPORT_ID};
         mockIsFocused = true;
@@ -147,5 +150,47 @@ describe('OneTransactionThreadRedirectHandler', () => {
         render(<OneTransactionThreadRedirectHandler />);
 
         await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
+    });
+
+    it('goes back to the parent report instead of stacking a duplicate when backTo already points at it', async () => {
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/r/${EXPENSE_REPORT_ID}`};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+        expect(mockGoBack).toHaveBeenCalledWith(`/r/${EXPENSE_REPORT_ID}`);
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('goes back to the parent report in the search RHP when backTo already points at it', async () => {
+        mockRouteName = SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/search/view/${EXPENSE_REPORT_ID}?q=whatever`};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('replaces the route when backTo points at a report other than the parent', async () => {
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: '/r/99999'};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=${encodeURIComponent('/r/99999')}`, {forceReplace: true});
+        expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('redirects only once for the same thread when the effect re-runs before the transition finishes', async () => {
+        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+
+        // A late Onyx update re-runs the effect while the route being replaced is still mounted.
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: 'home'};
+        rerender(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
     });
 });
