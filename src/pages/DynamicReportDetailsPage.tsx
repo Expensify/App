@@ -57,7 +57,7 @@ import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActi
 import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
-    canDeleteCardTransactionByLiabilityType,
+    canDeleteCardTransaction,
     canDeleteTransaction,
     canEditReportDescription as canEditReportDescriptionUtil,
     canEditReportTitle,
@@ -372,7 +372,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         reportActions: requestParentReportAction ? [requestParentReportAction] : [],
         policy,
     });
-    const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
+    const isCardTransactionCanBeDeleted = canDeleteCardTransaction(iouTransaction, policy);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
     let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', requestParentReportAction);

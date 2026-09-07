@@ -3358,7 +3358,13 @@ function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: O
     return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
-function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions: ReportAction[], currentUserAccountID: number): boolean {
+function canDeleteMoneyRequestReport(
+    report: OnyxEntry<Report>,
+    reportTransactions: Transaction[],
+    reportActions: ReportAction[],
+    currentUserAccountID: number,
+    policy: OnyxEntry<Policy>,
+): boolean {
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
     const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === currentUserAccountID : false;
@@ -3370,7 +3376,7 @@ function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactio
     }
 
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction);
+    const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy);
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
     }
@@ -3411,14 +3417,14 @@ function canDeleteReportAction(
 ): boolean {
     const report = getReportOrDraftReport(reportID);
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? undefined;
 
     if (isDemoTransaction(transaction)) {
         return true;
     }
 
     if (isMoneyRequestAction(reportAction)) {
-        const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction);
+        const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy);
         // For now, users cannot delete split actions
         const isSplitAction = getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
@@ -3443,6 +3449,7 @@ function canDeleteReportAction(
             Object.values(transactions ?? {}).filter((t): t is Transaction => !!t),
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
             currentUserAccountID,
+            policy,
         );
     }
 
@@ -14580,7 +14587,7 @@ export {
     getRoom,
     getRootParentReport,
     getRouteFromLink,
-    canDeleteCardTransaction as canDeleteCardTransaction,
+    canDeleteCardTransaction,
     getAddExpenseDropdownOptions,
     isTeachersUniteReport,
     getTaskAssigneeChatOnyxData,
