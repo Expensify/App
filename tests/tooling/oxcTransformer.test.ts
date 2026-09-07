@@ -71,6 +71,16 @@ describe('oxcTransformer', () => {
         expect(result.code).toContain('module.exports');
     });
 
+    it('does not hoist jest.mock nested inside a function', () => {
+        const source = `
+            export function setup() {
+                jest.mock('./foo');
+            }
+        `;
+        const result = oxcTransformer.process(source, path.resolve('tests/unit/Hello.test.ts'), transformOptions);
+        expect(result.code).toMatch(/function setup\(\) \{[\s\S]*jest\.mock\(['"]\.\/foo['"]\)/);
+    });
+
     it('lowers dynamic import() so Jest still owns the module graph', () => {
         const source = `
             export function loadLazy() {
