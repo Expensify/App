@@ -55,7 +55,7 @@ function AccountAvatarWithCardFeed({
             cardFeedIconSize={cardFeedIconSize}
             size={size}
             containerStyle={containerStyle}
-            subscriptAvatarBorderColor={borderColor}
+            backdropColor={borderColor}
             fallbackDisplayName={fallbackDisplayName}
         />
     );

@@ -1,6 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useAccountIcons from '@components/Avatar/connected/useAccountIcons';
+import useAccountIcons, {useSeededAccountIcons} from '@components/Avatar/connected/useAccountIcons';
+
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
@@ -90,5 +92,23 @@ describe('useAccountIcons', () => {
         const {result} = renderHook(() => useAccountIcons([]));
 
         expect(result.current).toEqual([]);
+    });
+});
+
+describe('useSeededAccountIcons', () => {
+    beforeEach(() => {
+        mockPersonalDetails = {
+            [ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: LOGIN, avatar: AVATAR_URL},
+        };
+    });
+
+    it.each([
+        ['keep the uploaded avatar for an account with personal details', ACCOUNT_ID, AVATAR_URL],
+        ['seed the default avatar from the account ID for an account with no personal details', OTHER_ACCOUNT_ID, getDefaultAvatarURL({accountID: OTHER_ACCOUNT_ID})],
+        ['keep the generic fallback for the unknown account', CONST.DEFAULT_NUMBER_ID, MockFallbackAvatar],
+    ])('should %s', (_case, accountID, expectedSource) => {
+        const {result} = renderHook(() => useSeededAccountIcons([accountID]));
+
+        expect(result.current).toEqual([expect.objectContaining({id: accountID, source: expectedSource})]);
     });
 });
