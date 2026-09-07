@@ -321,5 +321,7 @@ describe('useConciergeSidePanelReportActions (main DM sent-message retention)', 
         expect(result.current.showConciergeSidePanelWelcome).toBe(false);
         // ...and the read history is still collapsed behind "Show history".
         expect(result.current.filteredReportActions.map((action) => action.reportActionID)).not.toContain('11');
+        // ...and the "Show history" button is still offered.
+        expect(result.current.hasPreviousMessages).toBe(true);
     });
 });
