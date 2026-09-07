@@ -2,10 +2,11 @@ import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterC
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isFilterNegatable} from '@libs/SearchQueryUtils';
-import {getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
+import {getHasOptionAvailability, getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -79,9 +80,28 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
 
 function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const isHasFilter = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS;
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const items = getMultiSelectFilterOptions(baseFilterKey, type, translate, baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS ? policies : undefined, policyCategories);
+    // Reduce the hot policy collection to three booleans so unrelated policy writes do not re-render this list.
+    const [hasOptionAvailability] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => (isHasFilter ? getHasOptionAvailability(policies ?? {}, policyCategories, isRulesRevampEnabled) : undefined),
+    });
+    const items = isHasFilter
+        ? getHasOptions(
+              translate,
+              type,
+              undefined,
+              undefined,
+              isRulesRevampEnabled,
+              hasOptionAvailability ?? {
+                  shouldShowTag: false,
+                  shouldShowCategory: false,
+                  shouldShowSubmittedViolation: false,
+              },
+          )
+        : getMultiSelectFilterOptions(baseFilterKey, type, translate);
     const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
 
     return (
