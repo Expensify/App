@@ -72,7 +72,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         taskReport: addWorkEmailTaskReport,
         taskParentReport: addWorkEmailTaskParentReport,
         isOnboardingTaskParentReportArchived: isAddWorkEmailTaskParentReportArchived,
-        hasOutstandingChildTask: addWorkEmailTaskHasOutstandingChildTask,
         parentReportAction: addWorkEmailTaskParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
     const isAddWorkEmailTaskCompleted = addWorkEmailTaskReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
@@ -112,8 +111,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         // Opened from a Concierge task after onboarding is done: this screen is a standalone destination, not a step
         // in the guided flow, so go straight to the workspace list once validated instead of resuming onboarding.
         if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
-            // The task is done, so this screen has nothing left to offer. This also closes the screen right after a
-            // successful submission, since that optimistically completes the task.
+            // The task is done, so this screen has nothing left to offer. Auth completes it once the submitted work
+            // email is validated or merged, which lands here as a real-time update to addWorkEmailTaskReport.
             if (isAddWorkEmailTaskCompleted) {
                 returnToOriginReport();
                 return;
@@ -192,19 +191,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 addWorkEmailTaskReport,
                 addWorkEmailTaskParentReport,
                 isAddWorkEmailTaskParentReportArchived,
-                addWorkEmailTaskHasOutstandingChildTask,
                 addWorkEmailTaskParentReportAction,
                 currentUserPersonalDetails.accountID,
             );
         },
-        [
-            addWorkEmailTaskReport,
-            addWorkEmailTaskParentReport,
-            isAddWorkEmailTaskParentReportArchived,
-            addWorkEmailTaskHasOutstandingChildTask,
-            addWorkEmailTaskParentReportAction,
-            currentUserPersonalDetails.accountID,
-        ],
+        [addWorkEmailTaskReport, addWorkEmailTaskParentReport, isAddWorkEmailTaskParentReportArchived, addWorkEmailTaskParentReportAction, currentUserPersonalDetails.accountID],
     );
 
     useEffect(() => {
