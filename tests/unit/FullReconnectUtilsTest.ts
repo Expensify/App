@@ -6,16 +6,15 @@ import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
 const CLIENT_NOW = '2026-06-12 10:00:00.000';
 const BEFORE_CLIENT_NOW = '2026-06-12 09:59:00.000';
 const AFTER_CLIENT_NOW = '2026-06-12 10:05:00.000';
 
 function cutoffEntry(cutoff: string): AnyOnyxUpdate {
     return {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, value: cutoff};
-}
-
-function recordedTimeEntry(time: string): AnyOnyxUpdate {
-    return {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.LAST_FULL_RECONNECT_TIME, value: time};
 }
 
 function someOtherEntry(): AnyOnyxUpdate {
@@ -62,7 +61,13 @@ describe('FullReconnectUtils', () => {
     });
 
     describe('recordFullReconnectTimeFromResponse', () => {
-        beforeEach(() => {
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
             jest.spyOn(DateUtils, 'getDBTime').mockReturnValue(CLIENT_NOW);
         });
 
@@ -70,47 +75,52 @@ describe('FullReconnectUtils', () => {
             jest.restoreAllMocks();
         });
 
-        it('records the reconnect time right before the delivered cutoff', () => {
+        it('writes the reconnect time to Onyx from the delivered cutoff', async () => {
             const responseOnyxData = [someOtherEntry(), cutoffEntry(AFTER_CLIENT_NOW)];
 
-            recordFullReconnectTimeFromResponse(responseOnyxData, '');
+            await recordFullReconnectTimeFromResponse(responseOnyxData, '');
 
-            expect(responseOnyxData).toEqual([someOtherEntry(), recordedTimeEntry(AFTER_CLIENT_NOW), cutoffEntry(AFTER_CLIENT_NOW)]);
+            expect(responseOnyxData).toEqual([someOtherEntry(), cutoffEntry(AFTER_CLIENT_NOW)]);
+            expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(AFTER_CLIENT_NOW);
         });
 
-        it('records client-now when the response delivers no cutoff and none is held', () => {
+        it('writes client-now to Onyx when the response delivers no cutoff and none is held', async () => {
             const responseOnyxData = [someOtherEntry()];
 
-            recordFullReconnectTimeFromResponse(responseOnyxData, '');
+            await recordFullReconnectTimeFromResponse(responseOnyxData, '');
 
-            expect(responseOnyxData).toEqual([someOtherEntry(), recordedTimeEntry(CLIENT_NOW)]);
+            expect(responseOnyxData).toEqual([someOtherEntry()]);
+            expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(CLIENT_NOW);
         });
 
-        it('records the held cutoff when the response delivers no cutoff, so an already-held cutoff never reads as stale again', () => {
+        it('writes the held cutoff to Onyx when the response delivers no cutoff, so an already-held cutoff never reads as stale again', async () => {
             const responseOnyxData = [someOtherEntry()];
 
-            recordFullReconnectTimeFromResponse(responseOnyxData, AFTER_CLIENT_NOW);
+            await recordFullReconnectTimeFromResponse(responseOnyxData, AFTER_CLIENT_NOW);
 
-            expect(responseOnyxData).toEqual([someOtherEntry(), recordedTimeEntry(AFTER_CLIENT_NOW)]);
+            expect(responseOnyxData).toEqual([someOtherEntry()]);
+            expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(AFTER_CLIENT_NOW);
         });
 
-        it('records the held cutoff when the response delivers an older one, so a Pusher update that overtook the response never reads as stale again', () => {
+        it('writes the held cutoff to Onyx when the response delivers an older one, so a Pusher update that overtook the response never reads as stale again', async () => {
             const responseOnyxData = [cutoffEntry(BEFORE_CLIENT_NOW)];
 
-            recordFullReconnectTimeFromResponse(responseOnyxData, AFTER_CLIENT_NOW);
+            await recordFullReconnectTimeFromResponse(responseOnyxData, AFTER_CLIENT_NOW);
 
-            expect(responseOnyxData).toEqual([recordedTimeEntry(AFTER_CLIENT_NOW), cutoffEntry(BEFORE_CLIENT_NOW)]);
+            expect(responseOnyxData).toEqual([cutoffEntry(BEFORE_CLIENT_NOW)]);
+            expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(AFTER_CLIENT_NOW);
         });
 
-        it('never records a time that would ask for another reconnect at the delivered or the held cutoff', () => {
+        it('never records a time that would ask for another reconnect at the delivered or the held cutoff', async () => {
             for (const deliveredCutoff of ['', BEFORE_CLIENT_NOW, CLIENT_NOW, AFTER_CLIENT_NOW]) {
                 for (const heldCutoff of ['', BEFORE_CLIENT_NOW, CLIENT_NOW, AFTER_CLIENT_NOW]) {
+                    await Onyx.clear();
+                    await waitForBatchedUpdates();
                     const responseOnyxData = deliveredCutoff === '' ? [] : [cutoffEntry(deliveredCutoff)];
 
-                    recordFullReconnectTimeFromResponse(responseOnyxData, heldCutoff);
+                    await recordFullReconnectTimeFromResponse(responseOnyxData, heldCutoff);
 
-                    const recordedTime: unknown = responseOnyxData.at(0)?.value;
-                    const recorded = typeof recordedTime === 'string' ? recordedTime : '';
+                    const recorded = (await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)) ?? '';
                     expect(shouldTriggerFullReconnect(recorded, deliveredCutoff)).toBe(false);
                     expect(shouldTriggerFullReconnect(recorded, heldCutoff)).toBe(false);
                 }

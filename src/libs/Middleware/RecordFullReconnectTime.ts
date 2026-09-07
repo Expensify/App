@@ -13,13 +13,12 @@ import type Middleware from './types';
  * can land below it and fire extra full reconnects right after downloading everything.
  */
 const recordFullReconnectTime: Middleware = (requestResponse, request) =>
-    requestResponse.then((response) => {
+    requestResponse.then(async (response) => {
         if (!isFullDownloadRequest(request) || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
             return response;
         }
 
-        response.onyxData ??= [];
-        recordFullReconnectTimeFromResponse(response.onyxData as AnyOnyxUpdate[], getServerReconnectCutoff());
+        await recordFullReconnectTimeFromResponse(response.onyxData as AnyOnyxUpdate[] | undefined, getServerReconnectCutoff());
         return response;
     });
 
