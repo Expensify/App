@@ -18,11 +18,11 @@ type EnableGlobalReimbursementsRouteParams = {
     bankCurrency?: string;
 };
 
-const ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS: DynamicRouteSuffix[] = [
+const ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS = new Set<DynamicRouteSuffix>([
     DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path,
     DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.path,
     DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.path,
-];
+]);
 
 const ENABLE_GLOBAL_REIMBURSEMENTS_PATH_PREFIX = DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path.split('/').at(0) ?? 'enable-global-reimbursements';
 
@@ -33,7 +33,7 @@ function getDynamicBasePathFromNavigationPath(path: string | undefined): string 
 
     const pathWithoutLeadingSlash = path.replaceAll(/^\/+/g, '');
     const suffixMatches = findAllMatchingDynamicSuffixes(pathWithoutLeadingSlash);
-    const match = suffixMatches.find((suffixMatch) => ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS.includes(suffixMatch.pattern));
+    const match = suffixMatches.find((suffixMatch) => ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS.has(suffixMatch.pattern));
     if (match) {
         return getPathWithoutDynamicSuffix(match.pathUsedForMatching, match.actualSuffix, match.pattern);
     }

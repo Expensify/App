@@ -62,6 +62,15 @@ function buildCorpayPayModalResponse(jsonCode: number = CONST.JSON_CODE.UNABLE_T
     } as Response<OnyxKey>;
 }
 
+function getFailureData(request: Request<OnyxKey>): AnyOnyxUpdate[] {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return (request.failureData ?? []) as AnyOnyxUpdate[];
+}
+
+function findFailureUpdate(request: Request<OnyxKey>, key: string): AnyOnyxUpdate | undefined {
+    return getFailureData(request).find((update) => update.key === key);
+}
+
 describe('GlobalReimbursementPayError middleware', () => {
     it('replaces optimistic PAY action error with null in failureData when payment fails with corpayPayModal', async () => {
         const request = buildPayRequest();
@@ -70,7 +79,7 @@ describe('GlobalReimbursementPayError middleware', () => {
         const result = await globalReimbursementPayError(Promise.resolve(response), request, false);
 
         expect(result).toBe(response);
-        const actionsUpdate = (request.failureData as AnyOnyxUpdate[]).find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`);
+        const actionsUpdate = findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`);
         expect(actionsUpdate?.value).toEqual({
             [REPORT_ACTION_ID]: null,
             [OTHER_REPORT_ACTION_ID]: {errors: {error: 'Other error'}},
@@ -84,7 +93,7 @@ describe('GlobalReimbursementPayError middleware', () => {
         const result = await globalReimbursementPayError(Promise.resolve(response), request, false);
 
         expect(result).toBe(response);
-        const actionsUpdate = (request.failureData as AnyOnyxUpdate[]).find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`);
+        const actionsUpdate = findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`);
         expect(actionsUpdate?.value).toEqual({
             [REPORT_ACTION_ID]: null,
             [OTHER_REPORT_ACTION_ID]: {errors: {error: 'Other error'}},
@@ -97,7 +106,7 @@ describe('GlobalReimbursementPayError middleware', () => {
 
         await globalReimbursementPayError(Promise.resolve(response), request, false);
 
-        const actionsUpdate = (request.failureData as AnyOnyxUpdate[]).find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`);
+        const actionsUpdate = findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`);
         expect(actionsUpdate?.value).toEqual({
             [REPORT_ACTION_ID]: {errors: {error: 'Failed to pay'}},
             [OTHER_REPORT_ACTION_ID]: {errors: {error: 'Other error'}},
@@ -110,7 +119,7 @@ describe('GlobalReimbursementPayError middleware', () => {
 
         await globalReimbursementPayError(Promise.resolve(response), request, false);
 
-        const actionsUpdate = (request.failureData as AnyOnyxUpdate[]).find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`);
+        const actionsUpdate = findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`);
         expect(actionsUpdate?.value).toEqual({
             [REPORT_ACTION_ID]: {errors: {error: 'Failed to pay'}},
             [OTHER_REPORT_ACTION_ID]: {errors: {error: 'Other error'}},
@@ -132,7 +141,7 @@ describe('GlobalReimbursementPayError middleware', () => {
 
         await globalReimbursementPayError(Promise.resolve(response), request, false);
 
-        const actionsUpdate = (request.failureData as AnyOnyxUpdate[]).find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`);
+        const actionsUpdate = findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`);
         expect(actionsUpdate?.value).toEqual({
             [REPORT_ACTION_ID]: {errors: {error: 'Failed to pay'}},
             [OTHER_REPORT_ACTION_ID]: {errors: {error: 'Other error'}},
@@ -160,6 +169,7 @@ describe('GlobalReimbursementPayError middleware', () => {
                 {
                     onyxMethod: 'merge',
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`,
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                     value: 'invalid' as unknown as Record<string, unknown>,
                 },
             ],
