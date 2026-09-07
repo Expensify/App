@@ -40,9 +40,6 @@ type WorkspaceRoomsTableProps = {
     /** Callback when scrolling to the bottom of the list */
     onEndReached?: () => void;
 
-    /** Threshold for the end-reached callback */
-    onEndReachedThreshold?: number;
-
     /** Callback when the active sorting configuration changes */
     onSortingChange?: (sorting: ActiveSorting<WorkspaceRoomsTableColumnKey>) => void;
 
