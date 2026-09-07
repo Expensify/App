@@ -1267,6 +1267,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.HR_MERGE_GROUPS]: {
                             path: ROUTES.WORKSPACE_HR_MERGE_GROUPS.route,
                         },
+                        [SCREENS.WORKSPACE.HR_MERGE_EXISTING_CONNECTIONS]: {
+                            path: ROUTES.WORKSPACE_HR_MERGE_EXISTING_CONNECTIONS.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_CUSTOM]: {
                             path: ROUTES.RULES_CUSTOM.route,
                         },

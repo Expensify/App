@@ -10,6 +10,7 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
+import type {MergeHRProviderSlug} from './CONST/MERGE_HR_PROVIDERS';
 import type {ReplacementReason} from './libs/actions/Card';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {Screen} from './SCREENS';
@@ -3334,6 +3335,10 @@ const ROUTES = {
     WORKSPACE_HR_MERGE_GROUPS: {
         route: 'workspaces/:policyID/hr/merge/groups',
         getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/groups` as const,
+    },
+    WORKSPACE_HR_MERGE_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/hr/merge/:providerSlug/existing-connections',
+        getRoute: (policyID: string, providerSlug: MergeHRProviderSlug) => `workspaces/${policyID}/hr/merge/${providerSlug}/existing-connections` as const,
     },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',
