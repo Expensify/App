@@ -7,6 +7,9 @@ type PendingConciergeResponse = {
 
     /** Timestamp (ms) after which the response should be displayed */
     displayAfter: number;
+
+    /** The reportActionID of the user's question that started this turn */
+    questionReportActionID?: string;
 };
 
 export default PendingConciergeResponse;

@@ -1,13 +1,13 @@
 import {clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction, hidePendingFollowupList} from '@libs/actions/Report/SuggestedFollowup';
-import AgentZeroOptimisticStore, {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
+import {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
 import {ACCELERATED_REMAINING_MS, getOptimisticRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
-import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
+import {hasUserMessageSinceQuestion, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
-import {getReportActionHtml} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getReportActionHtml} from '@libs/ReportActionsUtils';
 
 import {useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 
@@ -97,9 +97,9 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         const html = pendingFollowupAction ? getReportActionHtml(pendingFollowupAction) : '';
         const hardClearIndicator = () => {
             // Follow-up lists are a Concierge feature, so this clears Concierge's indicator slot.
-            // Skip clearing when a newer Concierge request has kicked off.
-            const optimisticEntry = AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE);
-            const hasNewerRequest = !!optimisticEntry && optimisticEntry.startedAt > pendingFollowupList.createdAt;
+            // Skip clearing when the user sent another message after this turn's question — the
+            // server indicator now tracks that newer in-flight request, not the completed turn.
+            const hasNewerRequest = hasUserMessageSinceQuestion(getAllReportActions(reportID), pendingFollowupList.questionReportActionID, CONST.ACCOUNT_ID.CONCIERGE);
             if (!hasNewerRequest) {
                 clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
             }
@@ -149,7 +149,7 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         // and get the smooth trickle.
         const shouldTrickle = snapshotTokens.length >= MIN_TRICKLE_TOKEN_COUNT && !!snapshotHtml;
         if (!shouldTrickle) {
-            const timer = setTimeout(() => applyPendingConciergeAction(reportID, reportAction), Math.max(0, remainingDelay));
+            const timer = setTimeout(() => applyPendingConciergeAction(reportID, reportAction, snapshot.questionReportActionID), Math.max(0, remainingDelay));
             return () => clearTimeout(timer);
         }
 
@@ -216,7 +216,7 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             if (arrival || trickleInputsRef.current.persistedAction) {
                 discardPendingConciergeAction(reportID);
             } else {
-                applyPendingConciergeAction(reportID, reportAction);
+                applyPendingConciergeAction(reportID, reportAction, snapshot.questionReportActionID);
             }
         };
 
