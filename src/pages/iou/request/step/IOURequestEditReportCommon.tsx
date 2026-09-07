@@ -48,6 +48,7 @@ type Props = {
     transactionIDs?: string[];
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;
+    isDistanceRequest: boolean;
     selectedReportID?: string;
     selectedPolicyID?: string;
     transactionPolicyID?: string;
@@ -68,6 +69,7 @@ function IOURequestEditReportCommon({
     transactionIDs,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    isDistanceRequest,
     selectReport,
     selectedReportID,
     selectedPolicyID,
@@ -115,6 +117,7 @@ function IOURequestEditReportCommon({
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
+        isDistanceRequest,
     });
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
