@@ -1,9 +1,9 @@
 ---
-ruleId: CONSISTENCY-15
+ruleId: CONSISTENCY-14
 title: Commenting "Why"
 ---
 
-## [CONSISTENCY-15] Commenting "Why"
+## [CONSISTENCY-14] Commenting "Why"
 
 ### Reasoning
 

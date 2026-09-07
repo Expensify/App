@@ -2436,6 +2436,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                   .map(({reportID}) => currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])
                   .filter((report) => !!report?.reportID && report.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         if (
+            isBetaEnabled(CONST.BETAS.REPORT_MERGE) &&
             selectedMergeReports.length === selectedReports.length &&
             queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
             canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID)
