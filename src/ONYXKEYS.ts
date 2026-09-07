@@ -907,8 +907,11 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
-        // Must persist (not RAM-only): if the app is killed before submit, the marker is how the next launch
-        // finds and deletes the pre-mounted report_<id> row.
+        // Boolean marker (no report data) flagging that report_<id> is a speculative copy of reportDraft_<id>, written by
+        // preMountDraftReport so a pre-mounted destination can render before submit. Must persist (not RAM-only): the
+        // report_<id> row it points at lives in the persisted REPORT collection, and Onyx RAM-only applies per key or whole
+        // collection, not per row, so that row survives an app kill (where no unmount cleanup runs). A RAM-only marker would
+        // vanish while the row stays behind. The next launch uses this marker to find and delete it.
         REPORT_PRE_MOUNTED_DRAFT: 'reportPreMountedDraft_',
         // REPORT_METADATA holds report-level business state that is NOT the report itself
         // (optimistic flag, pending chat members, report-level errors, DEW pendingExpenseAction).

@@ -91,8 +91,9 @@ function getSubmitExpensePreMountDestinationRoute({
     // slot before falling back to the draft slot - and that is intentional: the caller copies that draft into
     // COLLECTION.REPORT before reveal, so it is safe to treat as renderable.
     const isDestinationReportRenderable = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
-    // Only pre-insert a report that's actually renderable - a report that resolves to neither a loaded report
-    // nor a pre-mounted draft can show an infinite skeleton after backing out.
+    // Only pre-insert a report that's actually renderable. This is false when the destination ID points at a report
+    // that exists on the server but isn't in Onyx yet (e.g. deep-linked or evicted reportID with no draft) - pre-inserting
+    // it would show an infinite skeleton after backing out.
     // An optimistic new chat is the one exception: it has no report row yet, but that's fine since submit
     // will create it under this same ID.
     const isDestinationReportLoaded = isOptimisticNewChatDestination || isDestinationReportRenderable;

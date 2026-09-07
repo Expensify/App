@@ -5,7 +5,12 @@ import type {OnyxCollection, OnyxMultiSetInput} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-/** Startup cleanup for speculative report rows left by interrupted draft pre-mounts. */
+/**
+ * Startup cleanup for speculative report rows left by interrupted draft pre-mounts.
+ * REPORT_PRE_MOUNTED_DRAFT holds no report data, only a boolean marker saying report_<id> was copied from reportDraft_<id>
+ * by preMountDraftReport. The draft itself lives in REPORT_DRAFT (written by createDraftWorkspace) until submit runs
+ * the real CreateWorkspace, which clears the draft and takes over report_<id>.
+ */
 function getPreMountedDraftReportCleanupData(markers: OnyxCollection<boolean>, reportDrafts: OnyxCollection<Report>): OnyxMultiSetInput {
     const cleanupData: OnyxMultiSetInput = {};
 
@@ -14,6 +19,8 @@ function getPreMountedDraftReportCleanupData(markers: OnyxCollection<boolean>, r
         const markerKey: `${typeof ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${string}` = `${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportID}`;
         cleanupData[markerKey] = null;
 
+        // If the draft still exists, submit never ran (CreateWorkspace clears the draft on submit), so report_<id> is still
+        // just our speculative copy and is safe to delete. If the draft is gone, submit happened and report_<id> is real now.
         if (reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]) {
             const reportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
             cleanupData[reportKey] = null;
