@@ -1,5 +1,4 @@
 import {createTransaction, getMoneyRequestParticipantOptions, setMoneyRequestCommuterExclusionFields} from '@libs/actions/IOU/MoneyRequest';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -30,7 +29,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, translateLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU', () => {
@@ -834,7 +833,7 @@ describe('MoneyRequest', () => {
                 backTo,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -847,7 +846,7 @@ describe('MoneyRequest', () => {
                 backTo,
                 draftTransactionIDs: undefined,
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -868,7 +867,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1, getCurrencyDecimalsLocal);
@@ -885,7 +884,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
@@ -900,7 +899,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
@@ -950,7 +949,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const transactionParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0)?.transactionParams;
@@ -989,7 +988,7 @@ describe('MoneyRequest', () => {
                 optimisticTransactionID: 'optimistic-should-be-ignored',
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1013,7 +1012,7 @@ describe('MoneyRequest', () => {
                 optimisticTransactionID: 'optimistic-should-be-ignored',
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1073,7 +1072,7 @@ describe('MoneyRequest', () => {
                     } as OptionData,
                 ],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1141,7 +1140,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1186,7 +1185,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1230,7 +1229,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1268,7 +1267,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -1311,7 +1310,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -1326,7 +1325,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -1351,7 +1350,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 8010,
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -1378,7 +1377,7 @@ describe('MoneyRequest', () => {
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -1402,7 +1401,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: fakePolicy,
                 iouType: CONST.IOU.TYPE.CREATE,
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             const lastCallArgs = jest.mocked(shouldUseDefaultExpensePolicy).mock.calls.at(-1) ?? [];
@@ -1418,7 +1417,7 @@ describe('MoneyRequest', () => {
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1440,7 +1439,7 @@ describe('MoneyRequest', () => {
                     capturedParticipants = participants;
                 },
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1463,7 +1462,7 @@ describe('MoneyRequest', () => {
                     capturedParticipants = participants;
                 },
                 delegateAccountID: undefined,
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1486,7 +1485,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
@@ -1503,7 +1502,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -1529,7 +1528,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -1553,7 +1552,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1576,7 +1575,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: undefined,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
-                getCurrencySymbol,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -1648,7 +1647,7 @@ describe('MoneyRequest', () => {
             distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
             translate: translateLocal,
             toLocaleDigit: (digit: string) => digit,
-            getCurrencySymbol,
+            getCurrencySymbol: getCurrencySymbolLocal,
         };
 
         afterEach(async () => {

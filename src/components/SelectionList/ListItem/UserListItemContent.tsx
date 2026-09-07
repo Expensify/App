@@ -1,8 +1,8 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemContext} from '@components/SelectionList/ListItemContext';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -85,11 +85,11 @@ function UserListItemContent<TItem extends ListItem>({
     const isHovered = hovered && !shouldDisableHoverStyle;
     const fallbackDisplayName = item.text ?? item.alternateText ?? undefined;
 
-    // A report resolves its own avatars, so it keeps going through `ReportActionAvatars`, otherwise using Account/Policy.
+    // A report resolves its own avatars, so it keeps going through `ReportAvatar`, otherwise using Account/Policy.
     let avatar: React.ReactNode;
     if (reportExists) {
         avatar = (
-            <ReportActionAvatars
+            <ReportAvatar
                 subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                 secondaryAvatarContainerStyle={[
                     StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
@@ -155,7 +155,7 @@ function UserListItemContent<TItem extends ListItem>({
                 <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                     <Icon
                         src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isHovered, false, false, !!isDisabled, item.isInteractive !== false))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered, isDisabled: !!isDisabled, isInteractive: item.isInteractive !== false})})}
                     />
                 </View>
             )}
