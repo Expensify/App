@@ -41,6 +41,8 @@ const {startMoneyRequest} = jest.requireMock<{startMoneyRequest: jest.Mock}>('@l
 
 const POLICY_ID = '1';
 
+const CURRENT_USER_ACCOUNT_ID = 5;
+
 // Trial dates relative to today so the 60-day Getting Started window check
 // (isWithinGettingStartedPeriod) doesn't drift out of bounds as wall time
 // passes. The previously-hardcoded values passed at landing time but started
@@ -107,6 +109,62 @@ async function setupTrackPersonalScenario(overrides: {policy?: Partial<Policy>; 
     await waitForBatchedUpdates();
 }
 
+/**
+ * Builds a DB-style timestamp (UTC, no timezone suffix) the given number of days in the past, matching what
+ * `DateUtils.getDBTime` writes to `policy.created`.
+ */
+function daysAgoDBTime(days: number): string {
+    return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').replace('Z', '');
+}
+
+/**
+ * The Submit intent runs on a free `submit` workspace, so unlike the other intents there is no free trial and
+ * NVP_FIRST_DAY_FREE_TRIAL is unset. The 60-day window is anchored on the Submit workspace's own creation time instead.
+ */
+async function setupSubmitScenario(
+    overrides: {
+        policy?: Partial<Policy>;
+        firstPolicyCreatedDate?: string;
+        firstDayTrial?: string;
+        intent?: typeof CONST.ONBOARDING_CHOICES.EMPLOYER | typeof CONST.ONBOARDING_CHOICES.SUBMIT;
+        intentSource?: 'introSelected' | 'onboardingPurpose';
+    } = {},
+) {
+    // Submit workspaces use a flat role model: `getRoleForCallerOnNewPolicy` gives even the creator the `editor` role, so a
+    // realistic fixture must be `editor` + owned by the current user. Building it as an admin would hide the fact that
+    // `isPolicyAdmin` can never gate this intent.
+    // New workspaces enable Categories by default, so keep the categories step visible unless a test opts out.
+    const policy = buildPolicy({
+        type: CONST.POLICY.TYPE.SUBMIT,
+        role: CONST.POLICY.ROLE.EDITOR,
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        areCategoriesEnabled: true,
+        // The 60-day window is anchored on this, so a realistic fixture must carry a creation time.
+        created: daysAgoDBTime(7),
+        ...overrides.policy,
+    });
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+    await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
+
+    const intent = overrides.intent ?? CONST.ONBOARDING_CHOICES.EMPLOYER;
+    if (overrides.intentSource === 'onboardingPurpose') {
+        await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, intent);
+    } else {
+        await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: intent});
+    }
+
+    await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
+
+    const createdDate = overrides.firstPolicyCreatedDate ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+    await Onyx.merge(ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE, createdDate);
+
+    if (overrides.firstDayTrial) {
+        await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, overrides.firstDayTrial);
+    }
+
+    await waitForBatchedUpdates();
+}
+
 async function setupManageTeamScenario(overrides: {policy?: Partial<Policy>; accounting?: OnboardingAccounting; firstDayTrial?: string; lastDayTrial?: string} = {}) {
     // New workspaces enable Categories by default, so keep the categories step visible unless a test opts out.
     const policy = buildPolicy({areCategoriesEnabled: true, ...overrides.policy});
@@ -159,7 +217,7 @@ describe('useGettingStartedItems', () => {
         });
 
         it('should return no items when ONBOARDING_PURPOSE_SELECTED is set to a non-manage-team value and NVP_INTRO_SELECTED is not loaded', async () => {
-            await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
+            await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.LOOKING_AROUND);
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             const policy = buildPolicy();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
@@ -1844,6 +1902,217 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
             await Onyx.merge(ONYXKEYS.CARD_LIST, {testCard: {cardID: 1}});
             await setupTrackPersonalScenario({policy: {areCategoriesEnabled: true}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            await waitFor(() => expect(result.current.shouldShowSection).toBe(false));
+            expect(result.current.items).toEqual([]);
+        });
+    });
+
+    describe('Submit intent', () => {
+        const customCategories: PolicyCategories = {
+            'Custom Category': {
+                name: 'Custom Category',
+                enabled: true,
+                unencodedName: 'Custom Category',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+                previousCategoryName: undefined,
+            },
+        };
+
+        describe('visibility rules', () => {
+            it('should return items for the EMPLOYER intent on a free submit workspace with no free trial', async () => {
+                await setupSubmitScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.length).toBeGreaterThan(0);
+            });
+
+            it('should return items for the SUBMIT intent', async () => {
+                await setupSubmitScenario({intent: CONST.ONBOARDING_CHOICES.SUBMIT});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.length).toBeGreaterThan(0);
+            });
+
+            it('should fall back to ONBOARDING_PURPOSE_SELECTED when NVP_INTRO_SELECTED is not available', async () => {
+                await setupSubmitScenario({intentSource: 'onboardingPurpose'});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.length).toBeGreaterThan(0);
+            });
+
+            // Submit workspaces make every member an editor, including the creator, so the role alone cannot tell the two
+            // apart. Ownership is what separates a self-created workspace from one the user was invited to.
+            it('should be visible for the editor who owns the auto-created Submit workspace', async () => {
+                await setupSubmitScenario({policy: {role: CONST.POLICY.ROLE.EDITOR, ownerAccountID: CURRENT_USER_ACCOUNT_ID}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.length).toBeGreaterThan(0);
+            });
+
+            it('should be hidden when the user was invited to someone else’s Submit workspace', async () => {
+                await setupSubmitScenario({policy: {role: CONST.POLICY.ROLE.EDITOR, ownerAccountID: CURRENT_USER_ACCOUNT_ID + 1}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(false);
+                expect(result.current.items).toEqual([]);
+            });
+
+            it('should be hidden when the workspace has no creation time', async () => {
+                await setupSubmitScenario({policy: {created: undefined}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(false);
+                expect(result.current.items).toEqual([]);
+            });
+
+            it('should render from the optimistic workspace creation time while the user is offline', async () => {
+                // A user who onboards offline has an optimistically created workspace but no NVPs, because only the server writes those.
+                await setupSubmitScenario({firstPolicyCreatedDate: '', policy: {created: daysAgoDBTime(7)}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'linkPersonalCard']);
+            });
+
+            it('should be hidden after the 60-day Getting Started window', async () => {
+                await setupSubmitScenario({policy: {created: daysAgoDBTime(61)}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(false);
+                expect(result.current.items).toEqual([]);
+            });
+
+            it('should be hidden when the active workspace is a paid group policy rather than a Submit workspace', async () => {
+                // useAutoCreateSubmitWorkspace skips creating a Submit workspace when the user already owns an editable
+                // group workspace, so this intent can land on a Team or Corporate workspace these steps do not describe.
+                await setupSubmitScenario({policy: {type: CONST.POLICY.TYPE.TEAM}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(false);
+                expect(result.current.items).toEqual([]);
+            });
+
+            // The account-level NVP points at the first workspace the account ever created, which can be one the user has
+            // since deleted. A Submit workspace created today must get its own full window, not the older workspace's.
+            it('should use the new workspace creation time even when the first policy creation NVP is long expired', async () => {
+                const sixtyOneDaysAgo = new Date(Date.now() - 61 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+                await setupSubmitScenario({firstPolicyCreatedDate: sixtyOneDaysAgo, policy: {created: daysAgoDBTime(1)}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'linkPersonalCard']);
+            });
+
+            it('should ignore a stale free trial start date left over from an earlier paid workspace', async () => {
+                const sixtyOneDaysAgo = new Date(Date.now() - 61 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+                await setupSubmitScenario({firstDayTrial: sixtyOneDaysAgo, policy: {created: daysAgoDBTime(1)}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+            });
+
+            // There is no "Create a workspace" step for this intent, so a user with no Submit workspace gets nothing rather
+            // than a step that creates a paid workspace and makes the section vanish.
+            it('should be hidden on a personal (non group) policy instead of showing a create-workspace step', async () => {
+                await setupSubmitScenario({policy: {type: CONST.POLICY.TYPE.PERSONAL}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(false);
+                expect(result.current.items).toEqual([]);
+            });
+
+            it('should be hidden when there is no active workspace', async () => {
+                await setupSubmitScenario();
+                await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, null);
+                await waitForBatchedUpdates();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(false);
+                expect(result.current.items).toEqual([]);
+            });
+        });
+
+        describe('items and check states', () => {
+            it('should return the two to-dos in order, without a createWorkspace step', async () => {
+                await setupSubmitScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'linkPersonalCard']);
+            });
+
+            it('should omit customizeExpenseCategories when the Categories feature is disabled', async () => {
+                await setupSubmitScenario({policy: {areCategoriesEnabled: false}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.items.map((item) => item.key)).toEqual(['linkPersonalCard']);
+            });
+
+            it('should resolve customizeExpenseCategories to the categories route', async () => {
+                await setupSubmitScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.items.find((item) => item.key === 'customizeExpenseCategories')?.route).toBe(ROUTES.WORKSPACE_CATEGORIES.getRoute(POLICY_ID));
+            });
+
+            it('should mark customizeExpenseCategories incomplete with only default categories and complete with a custom one', async () => {
+                await setupSubmitScenario();
+
+                const {result: defaultResult} = renderHook(() => useGettingStartedItems());
+                expect(defaultResult.current.items.find((item) => item.key === 'customizeExpenseCategories')?.isComplete).toBe(false);
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
+                await waitForBatchedUpdates();
+
+                const {result: customResult} = renderHook(() => useGettingStartedItems());
+                expect(customResult.current.items.find((item) => item.key === 'customizeExpenseCategories')?.isComplete).toBe(true);
+            });
+
+            it('should resolve linkPersonalCard to the wallet route and reflect linked-card state', async () => {
+                await setupSubmitScenario();
+
+                const {result: noCards} = renderHook(() => useGettingStartedItems());
+                const linkCardItem = noCards.current.items.find((item) => item.key === 'linkPersonalCard');
+                expect(linkCardItem?.route).toBe(ROUTES.SETTINGS_WALLET);
+                expect(linkCardItem?.isComplete).toBe(false);
+
+                await Onyx.merge(ONYXKEYS.CARD_LIST, {testCard: {cardID: 1}});
+                await waitForBatchedUpdates();
+
+                const {result: withCard} = renderHook(() => useGettingStartedItems());
+                expect(withCard.current.items.find((item) => item.key === 'linkPersonalCard')?.isComplete).toBe(true);
+            });
+        });
+
+        it('should hide the section once every to-do is complete', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {testCard: {cardID: 1}});
+            await setupSubmitScenario();
 
             const {result} = renderHook(() => useGettingStartedItems());
 
