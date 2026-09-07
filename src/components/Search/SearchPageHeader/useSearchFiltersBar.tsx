@@ -2,6 +2,7 @@ import {ListFilterHeightContextProvider} from '@components/Search/FilterComponen
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import ListPopup from '@components/Search/FilterDropdowns/ListPopup';
+import MerchantFilterPopup from '@components/Search/FilterDropdowns/MerchantFilterPopup';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
 import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
@@ -107,6 +108,18 @@ function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, se
             <ReportFieldPopup
                 values={searchAdvancedFiltersForm}
                 closeOverlay={closeOverlay}
+                updateFilterForm={closeModalAndUpdateFilterForm}
+            />
+        );
+    }
+
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        return (
+            <MerchantFilterPopup
+                baseFilterKey={baseFilterKey}
+                values={searchAdvancedFiltersForm}
+                closeOverlay={closeOverlay}
+                label={label}
                 updateFilterForm={closeModalAndUpdateFilterForm}
             />
         );
