@@ -123,8 +123,38 @@ describe('actions/connections/Xero', () => {
             );
         });
 
+        it('reverts fxExpenseAccount to the old value on failure', () => {
+            updateXeroFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const call = writeSpy.mock.calls.at(0);
+            if (!call) {
+                throw new Error('API.write was not called');
+            }
+            const [, , onyxData] = call;
+            const failureUpdate = onyxData?.failureData?.at(0);
+            expect(failureUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
+
+            expect(failureUpdate?.value).toEqual(
+                expect.objectContaining({
+                    connections: expect.objectContaining({
+                        xero: expect.objectContaining({
+                            config: expect.objectContaining({
+                                [CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT]: 'old-account',
+                            }),
+                        }),
+                    }),
+                }),
+            );
+        });
+
         it('does not write when the account did not change', () => {
             updateXeroFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'account-123');
+
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('does not write when policyID is missing', () => {
+            updateXeroFxExpenseAccount(undefined, 'account-123', 'old-account');
 
             expect(writeSpy).not.toHaveBeenCalled();
         });

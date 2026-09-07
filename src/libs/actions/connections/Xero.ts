@@ -554,6 +554,7 @@ function updateXeroFxExpenseAccount(policyID: string | undefined, settingValue: 
 
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
+        // Auth rejects a setting value it cannot parse as JSON, so the ID is sent quoted
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT),
     };
