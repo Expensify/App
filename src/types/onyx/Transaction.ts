@@ -273,6 +273,9 @@ type Receipt = {
     /** Collection of reservations */
     reservationList?: Reservation[];
 
+    /** Number of pages in a receipt stored as a PDF. Absent for images, for PDFs uploaded before the backend reported a count, and null while a replacement receipt is pending. */
+    pageCount?: number | null;
+
     /** Whether this is a test receipt */
     isTestReceipt?: true;
 
