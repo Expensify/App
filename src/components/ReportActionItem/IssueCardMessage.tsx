@@ -6,6 +6,7 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -53,11 +54,12 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const shouldShowActivateButton = isAssigneeCurrentUser && shouldShowActivateCard(action?.actionName, expensifyCard, privatePersonalDetails);
 
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     return (
         <>
             <RenderHTML
-                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, expensifyCard, companyCard, translate, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID})}</muted-text>`}
+                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, buildDynamicRoute, expensifyCard, companyCard, translate, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID})}</muted-text>`}
             />
             {shouldShowAddMissingDetailsButton && (
                 <Button
