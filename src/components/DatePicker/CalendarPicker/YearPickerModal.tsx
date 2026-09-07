@@ -41,7 +41,8 @@ function YearPickerModal({isVisible, years, currentYear, onYearChange, onClose, 
     const [searchText, setSearchText] = useState('');
     const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
     const headerMessage = !yearsList.length ? translate('common.noResultsFound') : '';
-    const data = yearsList.sort((a, b) => b.value - a.value);
+    // Copy before sorting: with an empty search `yearsList` is the `years` prop itself, and sorting it in place would mutate the caller's state during render.
+    const data = [...yearsList].sort((a, b) => b.value - a.value);
 
     useEffect(() => {
         if (isVisible) {

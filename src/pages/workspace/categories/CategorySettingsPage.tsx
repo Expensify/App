@@ -435,7 +435,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                             )}
                             {/*
                              * Legacy category rule entry points. When removing the RULES_REVAMP beta,
-                             * delete this entire non-revamp block (and related useMemo values) instead
+                             * delete this entire non-revamp block (and the values it reads) instead
                              * of keeping these Category settings routes.
                              */}
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>

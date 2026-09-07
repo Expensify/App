@@ -319,7 +319,11 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
     const transactionThreadParentReportActionID = transactionThreadReport?.parentReportActionID;
-    const requestParentReportAction = caseID === CASES.MONEY_REPORT ? reportActions?.find((action) => action.reportActionID === transactionThreadParentReportActionID) : parentReportAction;
+    // Without an ID to match, the scan can only ever miss, so skip it rather than walking every action.
+    const transactionThreadParentReportAction = transactionThreadParentReportActionID
+        ? reportActions?.find((action) => action.reportActionID === transactionThreadParentReportActionID)
+        : undefined;
+    const requestParentReportAction = caseID === CASES.MONEY_REPORT ? transactionThreadParentReportAction : parentReportAction;
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
