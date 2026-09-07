@@ -402,7 +402,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             </CardDetailsActionButtons>
                         )}
                         {cardToAdd !== undefined && (
-                            <View style={[styles.alignItemsCenter, styles.mb3, styles.mt6]}>
+                            <View style={[styles.alignItemsCenter, styles.mb6, styles.mt7]}>
                                 <AddToWalletButton
                                     card={cardToAdd}
                                     cardHolderName={displayName ?? ''}
