@@ -61,6 +61,7 @@ export default function useReportUnreadMessageScrollTracking({
         isFocused: boolean;
         onUnreadActionVisible: () => void;
         actionBadgeTargetIndex: number;
+        shouldDisablePillTracking: boolean;
     }>({
         reportID,
         unreadMarkerReportActionIndex,
@@ -68,6 +69,7 @@ export default function useReportUnreadMessageScrollTracking({
         isFocused: true,
         onUnreadActionVisible,
         actionBadgeTargetIndex,
+        shouldDisablePillTracking,
     });
     // We want to save the updated value on ref to use it in onViewableItemsChanged
     // because FlatList requires the callback to be stable and we cannot add a dependency on the useCallback.
@@ -161,9 +163,14 @@ export default function useReportUnreadMessageScrollTracking({
         }
 
         // Track whether the action badge target is above or below the viewport (i.e., not visible), so the pill can point
-        // toward it with the correct arrow direction.
+        // toward it with the correct arrow direction. While pill tracking is disabled (initial linked-message positioning)
+        // the list is still settling on its final offset, so any direction we computed here would be based on a transient
+        // viewport and would flash the pill. The consumer re-runs this once positioning finishes.
         const badgeTargetIndex = ref.current.actionBadgeTargetIndex;
-        if (badgeTargetIndex !== -1) {
+        if (ref.current.shouldDisablePillTracking) {
+            setIsActionBadgeAboveViewport(false);
+            setIsActionBadgeBelowViewport(false);
+        } else if (badgeTargetIndex !== -1) {
             // In an inverted list, higher indexes are "above" (older messages) and lower indexes are "below" (newer messages).
             // The target is above the viewport when its index is greater than the max visible index, and below when its index
             // is less than the min visible index.
@@ -196,6 +203,13 @@ export default function useReportUnreadMessageScrollTracking({
         ref.current.actionBadgeTargetIndex = actionBadgeTargetIndex;
         onViewableItemsChanged({viewableItems: ref.current.previousViewableItems, changed: []});
     }, [onViewableItemsChanged, actionBadgeTargetIndex]);
+
+    // Once initial linked-message positioning finishes, recalculate the badge direction against the settled viewport.
+    // Without this the flags would stay false until the user happens to scroll, since viewability may not change again.
+    useEffect(() => {
+        ref.current.shouldDisablePillTracking = shouldDisablePillTracking;
+        onViewableItemsChanged({viewableItems: ref.current.previousViewableItems, changed: []});
+    }, [onViewableItemsChanged, shouldDisablePillTracking]);
 
     return {
         isFloatingMessageCounterVisible,

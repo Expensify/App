@@ -27,14 +27,27 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+// The arrow icons render inside an accessibility-hidden wrapper, so they can't be queried by text. Record which
+// one was rendered instead, so tests can assert the direction the pill points.
+const mockRenderedArrows: string[] = [];
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({
-        DownArrow: () => null,
-        UpArrow: () => null,
+        DownArrow: () => {
+            mockRenderedArrows.push('DownArrow');
+            return null;
+        },
+        UpArrow: () => {
+            mockRenderedArrows.push('UpArrow');
+            return null;
+        },
     }),
 }));
 
 describe('FloatingMessageCounter', () => {
+    beforeEach(() => {
+        mockRenderedArrows.length = 0;
+    });
+
     it('renders the new messages pill when hasNewMessages is true and no action badge', () => {
         render(
             <FloatingMessageCounter
@@ -153,9 +166,29 @@ describe('FloatingMessageCounter', () => {
 
         expect(screen.getByText('Approve')).toBeTruthy();
         expect(screen.queryByText('New messages')).toBeNull();
+        expect(mockRenderedArrows).toContain('DownArrow');
+        expect(mockRenderedArrows).not.toContain('UpArrow');
 
         fireEvent.press(screen.getByText('Approve'));
         expect(onActionBadgePressMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('points the action badge pill up when the target is above the viewport', () => {
+        render(
+            <FloatingMessageCounter
+                isActive
+                hasNewMessages
+                onClick={jest.fn()}
+                actionBadge={CONST.REPORT.ACTION_BADGE.APPROVE}
+                actionBadgeBrickRoadStatus={CONST.BRICK_ROAD_INDICATOR_STATUS.INFO}
+                isActionBadgeBelowViewport={false}
+                onActionBadgePress={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByText('Approve')).toBeTruthy();
+        expect(mockRenderedArrows).toContain('UpArrow');
+        expect(mockRenderedArrows).not.toContain('DownArrow');
     });
 
     it('does not show action badge pill when only actionBadge is provided without actionBadgeBrickRoadStatus', () => {
