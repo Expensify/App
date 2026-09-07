@@ -7,8 +7,9 @@ import fs from 'fs';
  * Four properties keep that safe and effective, and each is an agreement between two files that
  * breaks silently rather than failing a check. These tests are the enforcement:
  *
- * 1. Every copy of the cache key is byte-identical - a restore keyed differently from the save is a
- *    permanent miss and the perf jobs just go cold again.
+ * 1. Every copy of this mechanism's cache key is byte-identical - a restore keyed differently from
+ *    the save is a permanent miss and the perf jobs just go cold again. (test.yml caches the same
+ *    .jest-cache path under its own key and policy; deliberate, and out of scope here.)
  * 2. A push-triggered workflow calls the seed. With no paths filter and no schedule, probing every
  *    push to main is both how the entry stays warm and how it recovers from an eviction.
  * 3. No `restore-keys` anywhere: babel-jest does not hash plugin versions into an entry's name, so

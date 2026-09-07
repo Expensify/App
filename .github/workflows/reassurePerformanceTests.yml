@@ -38,7 +38,8 @@ jobs:
       # Restore-only, so nothing an untrusted PR runs can end up in an entry a later run executes.
       # No restore-keys: babel-jest does not hash Babel plugin versions into an entry's name, so a
       # prefix fallback could serve output built by an older babel-plugin-react-compiler and move
-      # the render counts this workflow gates at COUNT_DEVIATION: 0. Keep all four keys identical.
+      # the render counts this workflow gates at COUNT_DEVIATION: 0. Keep this key identical to the
+      # other three: the other measure job, and seedJestPerfCache.yml's lookup and save.
       - name: Restore Jest transform cache
         id: restoreJestCache
         # v5.0.1
@@ -95,7 +96,8 @@ jobs:
       # Restore-only, so nothing an untrusted PR runs can end up in an entry a later run executes.
       # No restore-keys: babel-jest does not hash Babel plugin versions into an entry's name, so a
       # prefix fallback could serve output built by an older babel-plugin-react-compiler and move
-      # the render counts this workflow gates at COUNT_DEVIATION: 0. Keep all four keys identical.
+      # the render counts this workflow gates at COUNT_DEVIATION: 0. Keep this key identical to the
+      # other three: the other measure job, and seedJestPerfCache.yml's lookup and save.
       - name: Restore Jest transform cache
         id: restoreJestCache
         # v5.0.1

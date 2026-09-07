@@ -8,8 +8,8 @@ name: Seed Jest perf cache
 # main is also what keeps the shared entry out of reach of fork PRs.
 #
 # Called by seedStickyDisks.yml on every push to main. No paths filter and no schedule: a run that
-# finds the entry already present skips the populate and exits in well under a minute, and that
-# cheap probe rebuilds an evicted entry on the next merge rather than up to a day later.
+# finds the entry already present skips the populate, so the probe is cheap enough to rebuild an
+# evicted entry on the next merge without a scheduled job.
 #
 # workflow_dispatch re-seeds by hand. Concurrency is deliberately the caller's: a called workflow
 # runs inside the caller's run, so seedStickyDisks.yml's group gates this job too, and its
@@ -43,7 +43,8 @@ jobs:
       # behavior nor arbitrary env values into an entry's name (only NODE_ENV, BABEL_ENV and
       # process.version). No job here creates a `.env`, so all three inline the same EXPO_PUBLIC_*
       # defaults and agree. A step that gave one job a `.env` would make restored output wrong
-      # rather than stale, and would have to be hashed in here.
+      # rather than stale, and would have to be hashed in here. Same for DEBUG_BABEL_TRACE and
+      # CAPTURE_METRICS, which babel.config.js also reads at require time to add plugins.
       #
       # No restore-keys, here or in the perf workflow: a prefix fallback would carry over output
       # built by the previous toolchain, which is what the lockfile hash exists to prevent.
