@@ -33,7 +33,7 @@ import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -74,6 +74,12 @@ type PopoverMenuItem = MenuItemProps & {
     shouldCloseAllModals?: boolean;
 
     pendingAction?: PendingAction;
+
+    /** Errors to display under the menu item (e.g. when an inline toggle's save fails) */
+    errors?: Errors | null;
+
+    /** Callback to dismiss the item's errors */
+    onCloseError?: () => void;
 
     rightIcon?: IconAsset;
 
@@ -513,7 +519,12 @@ function BasePopoverMenu({
             <React.Fragment key={reactKey}>
                 {/* Compact popovers need tighter divider spacing than full-page sections. */}
                 {addSeparatorBefore === true && menuIndex > 0 && <View style={[styles.sectionDividerLine, styles.mh4, styles.mv2]} />}
-                <OfflineWithFeedback pendingAction={item.pendingAction}>
+                <OfflineWithFeedback
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
+                    onClose={item.onCloseError}
+                    errorRowStyles={styles.ph5}
+                >
                     <FocusableMenuItem
                         key={reactKey}
                         pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
@@ -525,9 +536,7 @@ function BasePopoverMenu({
                         shouldShowRightIcon={!!item.rightIcon}
                         brickRoadIndicator={item.brickRoadIndicator}
                         onFocus={() => {
-                            // Inert rows (e.g. an inline toggle row whose only control is a Switch) shouldn't become the
-                            // focused/highlighted item. Otherwise focus bubbling from the inner control leaves the row highlighted.
-                            if (!shouldUpdateFocusedIndex || item.interactive === false) {
+                            if (!shouldUpdateFocusedIndex) {
                                 return;
                             }
                             setFocusedIndex(menuIndex);

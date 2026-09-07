@@ -68,6 +68,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import {close} from '@userActions/Modal';
+import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -503,8 +504,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        // Under the revamp the Settings page is gone, so its remaining rows (custom tag name and the GL codes toggle)
-        // are surfaced directly in this menu using the same visibility rules the Settings page used.
         if (isRulesRevampEnabled) {
             if (canWriteTags && !isMultiLevelTags) {
                 menuItems.push({
@@ -519,14 +518,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 menuItems.push({
                     text: translate('workspace.tags.showTagGLCodes'),
                     value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-                    // The row itself is inert. Only the Switch handles the toggle so the menu stays open.
-                    interactive: false,
+                    // Selecting the row (click or Enter) toggles it; the Switch is a display-only indicator. Keep the menu open on select.
                     shouldCloseModalOnSelect: false,
+                    onSelected: () => setPolicyShowTagGLCodes(policyID, !(policy?.showTagGLCodes ?? false), policy?.showTagGLCodes),
                     // Let the label wrap fully and keep the Switch centered against it on narrow screens.
                     numberOfLinesTitle: 0,
                     innerContainerStyle: styles.alignItemsCenter,
                     titleStyle: [styles.textLabel, styles.fontWeightNormal],
                     pendingAction: policy?.pendingFields?.showTagGLCodes,
+                    errors: policy?.errorFields?.showTagGLCodes,
+                    onCloseError: () => clearPolicyErrorField(policyID, 'showTagGLCodes'),
                     switchProps: {
                         isOn: policy?.showTagGLCodes ?? false,
                         accessibilityLabel: translate('workspace.tags.showTagGLCodes'),
@@ -617,6 +618,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         policy?.showTagGLCodes,
         policy?.areTagsEnabled,
         policy?.pendingFields?.showTagGLCodes,
+        policy?.errorFields?.showTagGLCodes,
         styles.alignItemsCenter,
         styles.textLabel,
         styles.fontWeightNormal,

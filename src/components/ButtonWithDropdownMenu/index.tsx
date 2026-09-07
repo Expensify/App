@@ -349,8 +349,17 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     containerStyles={containerStyles}
                     menuItems={options.map((item, index) => ({
                         ...item,
-                        // Build the Switch here from typed data so callers pass `switchProps` instead of threading JSX through the option config.
-                        ...(item.switchProps ? {shouldShowRightComponent: true, rightComponent: <Switch {...item.switchProps} />} : {}),
+                        ...(item.switchProps
+                            ? {
+                                  shouldShowRightComponent: true,
+                                  // The Switch is display-only; the interactive row handles the toggle (mouse and keyboard) via onSelected, so there's no double-fire.
+                                  rightComponent: (
+                                      <View pointerEvents="none">
+                                          <Switch {...item.switchProps} />
+                                      </View>
+                                  ),
+                              }
+                            : {}),
                         onSelected: item.onSelected
                             ? () => {
                                   item.onSelected?.();

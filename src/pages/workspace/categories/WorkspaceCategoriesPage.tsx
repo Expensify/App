@@ -55,6 +55,7 @@ import {
     setPolicyShowCategoryGLCodes,
     setWorkspaceCategoryEnabled,
 } from '@userActions/Policy/Category';
+import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -379,13 +380,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 menuItems.push({
                     text: translate('workspace.categories.showCategoryGLCodes'),
                     value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-                    // The row itself is inert. Only the Switch handles the toggle so the menu stays open.
-                    interactive: false,
+                    // Selecting the row (click or Enter) toggles it; the Switch is a display-only indicator. Keep the menu open on select.
                     shouldCloseModalOnSelect: false,
+                    onSelected: () => setPolicyShowCategoryGLCodes(policyId, !(policy?.showCategoryGLCodes ?? false)),
                     numberOfLinesTitle: 0,
-                    innerContainerStyle: styles.alignItemsStart,
+                    innerContainerStyle: styles.alignItemsCenter,
                     titleStyle: [styles.textLabel, styles.fontWeightNormal],
                     pendingAction: policy?.pendingFields?.showCategoryGLCodes,
+                    errors: policy?.errorFields?.showCategoryGLCodes,
+                    onCloseError: () => clearPolicyErrorField(policyId, 'showCategoryGLCodes'),
                     switchProps: {
                         isOn: policy?.showCategoryGLCodes ?? false,
                         accessibilityLabel: translate('workspace.categories.showCategoryGLCodes'),
@@ -449,12 +452,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         policy?.showCategoryGLCodes,
         policy?.areCategoriesEnabled,
         policy?.pendingFields?.showCategoryGLCodes,
+        policy?.errorFields?.showCategoryGLCodes,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,
         isOffline,
         policyId,
-        styles.alignItemsStart,
+        styles.alignItemsCenter,
         styles.textLabel,
         styles.fontWeightNormal,
     ]);
