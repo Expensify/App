@@ -48,10 +48,10 @@ jest.mock('@sentry/react-native', () => {
 
 /** Start a send-message span the way the composer does, for a given report. Returns the (typed-as-Sentry) span. */
 function sendMessageWhileLoading(reportID: string) {
-    const spanID = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${Math.random()}`;
+    const spanID = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${Math.random()}`;
     const span = startSpan(spanID, {
-        name: 'send-message',
-        op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
+        name: 'send-message-visible',
+        op: CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE,
         attributes: {[CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID},
     });
     return {spanID, span};

@@ -109,9 +109,9 @@ To learn more about each insight, see [Learn how to use Insights in Expensify](/
 
 ## How the Getting started section works on Home
 
-The **Getting started** section shows a checklist of key steps to set up your Expensify account. 
+The **Getting started** section shows a checklist of key setup tasks and appears only under certain conditions during onboarding.
 
-This section appears only if you have setup tasks to complete. 
+The checklist items vary based on the intent selected when setting up your Expensify account.
 
 ---
 
@@ -140,7 +140,7 @@ The **Your spend** section gives you a quick summary of your recent card spendin
 It can include:
 
 - **Awaiting approval** — the total amount of your reimbursable expenses that are waiting for approval.
-- **Repaid in the last 30 days** — the total amount reimbursed to you in the last 30 days.
+- **Repaid last 30 days** — the total amount reimbursed to you in the last 30 days.
 - **Recent transactions • 1234** — a row for each card showing recent spending activity and the last four digits of the card number.
 
 Select any row to open the matching expenses on the **Spend** page.

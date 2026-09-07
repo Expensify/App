@@ -72,6 +72,8 @@ jest.mock('@components/Table', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.Header = () => <View testID="WorkspaceCompanyCardsTableHeader" />;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    MockTable.ListHeader = ({children}: {children?: React.ReactNode}) => children ?? null;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.Body = () => <View testID="WorkspaceCompanyCardsTableBody" />;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.EmptyState = () => <View testID="WorkspaceCompanyCardsTableEmptyState" />;
@@ -83,6 +85,9 @@ jest.mock('@components/Table', () => {
         __esModule: true,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         default: MockTable,
+        // The wrapper composes its scrolling header with this helper, so the real implementation is kept.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        composeTableListHeader: jest.requireActual('@components/Table/composeTableListHeader').default,
     };
 });
 

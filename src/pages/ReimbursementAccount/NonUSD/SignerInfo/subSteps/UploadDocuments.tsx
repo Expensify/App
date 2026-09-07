@@ -70,7 +70,6 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const STEP_FIELDS: Array<FormOnyxKeys<'reimbursementAccount'>> = [COPY_OF_ID, ADDRESS_PROOF, PROOF_OF_DIRECTORS, CODICE_FISCALE];
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        setIsPDSandFSGDownloadedTouched(true);
         return getFieldRequiredErrors(values, STEP_FIELDS, translate);
     };
 
@@ -122,6 +121,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmitWithDownload}
+            onBeforeSubmit={() => setIsPDSandFSGDownloadedTouched(true)}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}

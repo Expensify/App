@@ -8,6 +8,7 @@ import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {setIsGPSInProgressModalOpen} from '@libs/actions/isGPSInProgressModalOpen';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function GPSInProgressModal() {
@@ -32,7 +33,7 @@ function GPSInProgressModal() {
             confirmText={translate('gps.switchToODWarningTripInProgress.confirm')}
             cancelText={translate('common.cancel')}
             prompt={translate('gps.switchToODWarningTripInProgress.prompt')}
-            danger
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

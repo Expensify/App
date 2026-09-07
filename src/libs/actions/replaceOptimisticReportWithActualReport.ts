@@ -73,6 +73,11 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         return;
     }
 
+    // API sometimes returns the parent as the preexisting report, which would parent it to itself
+    if (preexistingReportID === parentReportID) {
+        return;
+    }
+
     // Handle cleanup of stale optimistic IOU report and its report preview separately
     if (isMoneyRequestReport(report) && parentReportID && parentReportActionID) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {

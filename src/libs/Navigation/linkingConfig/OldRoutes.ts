@@ -50,6 +50,8 @@ const oldRoutes: Record<string, string> = {
     '/r/*/duplicates/review/billable': '/r/$1/billable/$1',
     '/r/*/duplicates/review': '/r/$1/duplicates/review/$1',
     '/r/*/duplicates/confirm': '/r/$1/confirm/$1',
+    '/r/*/trip/*/*/*': '/r/$1/trip-details/$1/$2/$3/$4',
+    '/r/*/trip/*': '/r/$1/trip-summary/$1/$2',
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
@@ -76,6 +78,8 @@ const oldRoutes: Record<string, string> = {
         '/workspaces/$1/accounting/quickbooks-online/advanced/quickbooks-online-autosync/quickbooks-online-accounting-method',
     '/workspaces/*/connections/quickbooks-online/advanced/autosync': '/workspaces/$1/accounting/quickbooks-online/advanced/quickbooks-online-autosync',
     '/travel/upgrade': '/travel/travel-upgrade',
+    '/travel/upgrade/workspace/confirmation': '/travel/travel-upgrade/workspace-confirmation',
+    '/travel/verify-account': '/travel/travel-verify-account',
     '/workspaces/*/accounting/quickbooks-desktop/export/company-card-expense-account': '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-company-card-expense-account',
     '/workspaces/*/accounting/quickbooks-desktop/export/company-card-expense-account-select': '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-company-card-expense-account-select',
     '/workspaces/*/accounting/quickbooks-desktop/export/company-card-expense-account/account-select':
@@ -164,6 +168,7 @@ const oldRoutes: Record<string, string> = {
     '/*/*/taxRate/*/*': '/r/$4/taxRate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxAmount/*/*': '/r/$4/taxAmount?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/attendees/*/*': '/r/$4/attendees?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/edit/split-expense/overview/*/*/*': '/create/split-expense/overview/$1/$2/0/split-expense/edit/$1/$3',
     '/*/*/accountant/*/*': '/r/$4/accountant?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/upgrade/*/*/*': '/r/$4/money-request-upgrade?action=$1&iouType=$2&transactionID=$3&reportID=$4&upgradePath=$5',
     '/*/*/upgrade/*/*': '/r/$4/money-request-upgrade?action=$1&iouType=$2&transactionID=$3&reportID=$4',
@@ -175,6 +180,8 @@ const oldRoutes: Record<string, string> = {
     '/*/*/date/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/participants/participants-details/*': '/$1/$2/participants/participants-details/$3',
     '/*/*/participants/*/*': '/r/$4/expense-participants?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/scan/*/*': '/r/$4/expense-scan?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/waypoint/*/*/*': '/r/$4/expense-distance/expense-waypoint?action=$1&iouType=$2&transactionID=$3&reportID=$4&pageIndex=$5',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 
