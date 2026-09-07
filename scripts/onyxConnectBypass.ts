@@ -173,16 +173,17 @@ function lineNumberAtOffset(source: string, offset: number): number {
 }
 
 function blanketDirectiveCoversCall(source: string, match: DirectiveMatch, callOffsets: number[], enableMatches: DirectiveMatch[]): boolean {
-    const directiveLine = lineNumberAtOffset(source, match.index ?? 0);
+    const directiveLine = lineNumberAtOffset(source, match.index);
     const kind = directiveKind(match);
     const directiveEnd = match.index + match.text.length;
+    const directiveEndLine = lineNumberAtOffset(source, Math.max(match.index, directiveEnd - 1));
     return callOffsets.some((callOffset) => {
         const callLine = lineNumberAtOffset(source, callOffset);
         if (kind === '-line') {
             return callLine === directiveLine;
         }
         if (kind === '-next-line') {
-            return callLine === directiveLine + 1;
+            return callLine === directiveEndLine + 1;
         }
         if (callOffset <= directiveEnd) {
             return false;

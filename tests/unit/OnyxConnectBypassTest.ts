@@ -55,6 +55,12 @@ describe('collectDisableDirectivesFromSource', () => {
         ]);
     });
 
+    it('flags a multiline blanket eslint-disable-next-line covering the line after the comment ends', () => {
+        const source = ['/* eslint-disable-next-line', '*/', onyxConnectCall('x')].join('\n');
+
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
     it('ignores blanket disables that do not cover a banned call', () => {
         const source = ['/* eslint-disable */', 'console.log(1);', '// eslint-disable-next-line', 'console.log(2);'].join('\n');
 
