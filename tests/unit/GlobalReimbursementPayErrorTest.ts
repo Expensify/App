@@ -46,7 +46,6 @@ function buildPayRequest(overrides: PayRequestOverrides = {}): Request<OnyxKey> 
             },
         ],
         ...overrides,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     } as Request<OnyxKey>;
 }
 
@@ -67,13 +66,8 @@ function buildCorpayPayModalResponse(jsonCode: number | string = CONST.JSON_CODE
     } as Response<OnyxKey>;
 }
 
-function getFailureData(request: Request<OnyxKey>): AnyOnyxUpdate[] {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return (request.failureData ?? []) as AnyOnyxUpdate[];
-}
-
-function findFailureUpdate(request: Request<OnyxKey>, key: string): AnyOnyxUpdate | undefined {
-    return getFailureData(request).find((update) => update.key === key);
+function findFailureUpdate(request: Request<OnyxKey>, key: string) {
+    return request.failureData?.find((update) => update.key === key);
 }
 
 describe('GlobalReimbursementPayError middleware', () => {
