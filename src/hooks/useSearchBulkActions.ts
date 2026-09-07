@@ -1819,7 +1819,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const exportOptions: ExportMenuItem[] = [];
 
             const isReportsTab = isExpenseReportType;
-            const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
@@ -2078,7 +2077,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 addSeparatorBefore: true,
             });
 
-            if (!allSelectedAreDeleted && !includesGroupExport) {
+            // A group selection is exported through a query filter (see `addSelectedGroupsFilter`) rather than a list of IDs, so the templates work for it just like they do for an individual selection.
+            if (!allSelectedAreDeleted) {
                 // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
                 const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): ExportMenuItem => {
                     // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
