@@ -76,7 +76,7 @@ function IOURequestStepAmount({
 }: IOURequestStepAmountProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -135,10 +135,18 @@ function IOURequestStepAmount({
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
     const isAmountCreateEntry = !backTo && !isEditing;
-    // Mirrors the amount input, signed the same way the form composes it. `undefined` until the form reports
-    // a change, so the baseline below stands in and a prefilled amount starts clean.
+    // `undefined` until the form reports a change, so the baseline below stands in and a prefilled amount starts clean.
     const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
+    const [isSignDirty, setIsSignDirty] = useState(false);
+    const [prevRequestType, setPrevRequestType] = useState(iouRequestType);
+    if (prevRequestType !== iouRequestType) {
+        setPrevRequestType(iouRequestType);
+        setTypedAmount(undefined);
+        setIsSignDirty(false);
+    }
+
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
@@ -147,6 +155,7 @@ function IOURequestStepAmount({
                 isCreateEntry: isAmountCreateEntry,
                 selectedCurrency,
                 originalCurrency,
+                isSignChanged: isSignDirty,
             }),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -223,6 +232,7 @@ function IOURequestStepAmount({
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
                   dateFnsLocale,
+                  convertToDisplayString,
               });
     });
     const participant = participants.at(0);
@@ -244,6 +254,7 @@ function IOURequestStepAmount({
         submitAmount({
             getCurrencyDecimals,
             getCurrencySymbol,
+            convertToDisplayString,
             translate,
             dateFnsLocale,
             report,
@@ -330,6 +341,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={handleSubmit}
                 onAmountChange={setTypedAmount}
+                onSignDirtyChange={setIsSignDirty}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}

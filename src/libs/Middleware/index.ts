@@ -1,6 +1,7 @@
 import FailureTracking from './FailureTracking';
 import FraudMonitoring from './FraudMonitoring';
 import handleDeletedAccount from './HandleDeletedAccount';
+import HandleMovedScanFailedExpenses from './HandleMovedScanFailedExpenses';
 import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
 import LoadPostDataForOpenOrReconnect from './LoadPostDataForOpenOrReconnect';
 import LoadTest from './LoadTest';
@@ -15,6 +16,7 @@ import SupportalPermission from './SupportalPermission';
 
 export {
     ReplaceOptimisticAgentAccountID,
+    HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,
     LoadTest,
     Logging,

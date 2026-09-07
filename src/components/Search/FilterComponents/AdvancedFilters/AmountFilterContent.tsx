@@ -218,7 +218,6 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
                         <SingleSelectListItem
                             item={config}
                             showTooltip={false}
-                            keyForList={config.keyForList}
                             onSelectRow={() => setSelectedModifier(config.keyForList)}
                             wrapperStyle={styles.optionRowCompact}
                         />

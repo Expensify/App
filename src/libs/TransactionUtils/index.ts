@@ -8,9 +8,9 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
-import {isTravelCardTransaction} from '@libs/CardUtils';
+import {isPersonalCard, isTravelCardTransaction} from '@libs/CardUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencySymbol as getCurrencySymbolFromCurrencyUtils} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -212,12 +212,14 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     policy,
     policies,
     translate,
+    getCurrencySymbol,
 }: {
     transaction: OnyxEntry<Transaction>;
     isPolicyExpenseChat: boolean;
     policy?: OnyxEntry<Policy>;
     policies?: OnyxCollection<Policy>;
     translate: LocaleContextProps['translate'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): OnyxEntry<Transaction> {
     const hasCommuterExclusion = hasAppliedCommuterExclusion(transaction);
     if (!transaction || (hasCommuterExclusion && isPolicyExpenseChat)) {
@@ -249,7 +251,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         rate,
         currency,
         translate,
-        getCurrencySymbol: getCurrencySymbolFromCurrencyUtils,
+        getCurrencySymbol,
     });
 
     return {
@@ -2063,18 +2065,40 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
         violation.name === CONST.VIOLATIONS.RTER &&
         (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION ||
             violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531 ||
             violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH)
     );
 }
 
 /**
- * Finds the broken-connection violation that drives the money-request header status and its personal-card
- * suppression. It intentionally excludes the `brokenCardConnection530` subtype (scraper being fixed on
- * Expensify's side): 530 keeps its own dedicated `brokenConnection530Error` header regardless of card type,
- * so it must never be swallowed by the personal-card suppression.
+ * Suppresses the report-level status only when every broken connection belongs to a personal card.
+ * Reports with company-card or retry-later violations must retain a status so their required action is visible.
  */
-function getBrokenConnectionViolation(transactionViolations: TransactionViolation[] | undefined): TransactionViolation | undefined {
-    return transactionViolations?.find((violation) => isBrokenConnectionViolation(violation) && violation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
+function shouldSuppressBrokenConnectionStatus(brokenConnectionViolations: TransactionViolation[], cardList: OnyxEntry<CardList>) {
+    return (
+        brokenConnectionViolations.length > 0 &&
+        brokenConnectionViolations.every((violation) => {
+            if (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return false;
+            }
+
+            const cardID = violation.data?.cardID;
+            const card = cardID ? cardList?.[cardID] : undefined;
+            return !!card && isPersonalCard(card);
+        })
+    );
+}
+
+/** Returns a report transaction that has a broken connection status which must remain visible. */
+function getUnsuppressibleBrokenConnectionTransactionID(
+    transactions: Transaction[],
+    transactionViolations: OnyxCollection<TransactionViolations>,
+    cardList: OnyxEntry<CardList>,
+): string | undefined {
+    return transactions.find((transaction) => {
+        const brokenConnectionViolations = (transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? []).filter(isBrokenConnectionViolation);
+        return brokenConnectionViolations.length > 0 && !shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList);
+    })?.transactionID;
 }
 
 function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
@@ -2200,6 +2224,17 @@ function shouldShowViolation(
     const isReportOpen = isOpenExpenseReport(iouReport);
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);
+    }
+
+    // The violation is not saved in the backend cache, so it has to be re-evaluated here rather than trusted from
+    // whenever the expense was created or edited.
+    if (violationName === CONST.VIOLATIONS.FUTURE_DATE) {
+        // Without a transaction the rule cannot be evaluated, so show the violation rather than hiding one the
+        // backend reported.
+        if (!transaction) {
+            return true;
+        }
+        return DateUtils.isTransactionDateFuture(getCreated(transaction));
     }
 
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
@@ -3618,6 +3653,34 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
     );
 }
 
+/**
+ * Whether a scan-failed expense is one that the backend moves to its own report on payment. Auth only moves it when
+ * both the merchant and the amount are unset, so anything with an amount has to stay put to keep the payment total in
+ * sync with the server.
+ */
+function isScanFailedTransactionMovedOnPayment(transaction: Transaction, report: OnyxEntry<Report>): boolean {
+    if (!hasSmartScanFailedWithMissingFields([transaction], report)) {
+        return false;
+    }
+    return getMerchant(transaction) === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && getAmount(transaction, true) === 0;
+}
+
+/**
+ * Whether the report has scan-failed expenses to move out and at least one other expense left behind to pay.
+ */
+function shouldSplitScanFailedTransactions(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    let hasScanFailedTransaction = false;
+    let hasRemainingTransaction = false;
+    for (const transaction of transactions) {
+        if (isScanFailedTransactionMovedOnPayment(transaction, report)) {
+            hasScanFailedTransaction = true;
+        } else {
+            hasRemainingTransaction = true;
+        }
+    }
+    return hasScanFailedTransaction && hasRemainingTransaction;
+}
+
 function getDistanceRequestType(transaction: OnyxEntry<Transaction>): string | undefined {
     const requestType = getRequestType(transaction);
     return isDistanceExpenseType(requestType) ? requestType : undefined;
@@ -3749,7 +3812,7 @@ export {
     hasMissingSmartscanFields,
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
-    getBrokenConnectionViolation,
+    getUnsuppressibleBrokenConnectionTransactionID,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
@@ -3766,6 +3829,8 @@ export {
     hasSubmissionBlockingViolationInReport,
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
+    isBrokenConnectionViolation,
+    shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
@@ -3838,6 +3903,8 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    isScanFailedTransactionMovedOnPayment,
+    shouldSplitScanFailedTransactions,
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,
