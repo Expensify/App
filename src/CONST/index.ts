@@ -6443,9 +6443,8 @@ const CONST = {
         /** Breathing room left between the bar and the last row of the list it floats over. */
         LIST_GAP: 12,
 
-        /** How far the bar rises into place when it appears, and how long that takes. */
+        /** How far below its resting place the bar starts before it springs up into view. */
         SLIDE_IN_DISTANCE: 12,
-        SLIDE_IN_DURATION: 240,
     },
 
     BUTTON_REMOVE_BORDER_RADIUS: {

@@ -23,18 +23,12 @@ import type {AnchorPosition} from '@src/styles';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Animated, {Easing, Keyframe} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 
 import type {BulkActionBarProps} from './types';
 
 import BulkActionBarButton from './BulkActionBarButton';
 import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popoverPosition';
-
-// The bar appears in a spot nothing else occupies, so it rises the last few pixels into place to draw the eye there.
-const SlideIn = new Keyframe({
-    from: {opacity: 0, transform: [{translateY: CONST.BULK_ACTION_BAR.SLIDE_IN_DISTANCE}]},
-    to: {opacity: 1, transform: [{translateY: 0}], easing: Easing.bezier(0.76, 0.0, 0.24, 1.0).factory()},
-}).duration(CONST.BULK_ACTION_BAR.SLIDE_IN_DURATION);
 
 /**
  * The bar's contents. Everything here takes its colors from the theme it is rendered under, which `BulkActionBar`
@@ -164,10 +158,26 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
     const invertedTheme = useInvertedThemePreference();
     const isReducedMotionEnabled = Accessibility.useReducedMotion();
 
+    // The bar appears where nothing was before, so it springs up into place to draw the eye there, the same way the
+    // report's floating message counter animates itself in.
+    const translateY = useSharedValue<number>(CONST.BULK_ACTION_BAR.SLIDE_IN_DISTANCE);
+
+    useEffect(() => {
+        if (isReducedMotionEnabled) {
+            translateY.set(0);
+            return;
+        }
+
+        translateY.set(withSpring(0));
+    }, [isReducedMotionEnabled, translateY]);
+
+    const layerAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [{translateY: translateY.get()}],
+    }));
+
     return (
         <Animated.View
-            entering={isReducedMotionEnabled ? undefined : SlideIn}
-            style={[styles.bulkActionBarLayer, style]}
+            style={[styles.bulkActionBarLayer, style, layerAnimatedStyle]}
             pointerEvents="box-none"
         >
             {/* ThemeStylesProvider has to come with ThemeProvider: without it `useThemeStyles` keeps resolving against
