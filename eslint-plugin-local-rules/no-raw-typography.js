@@ -10,8 +10,7 @@ const meta = {
         {
             type: 'object',
             properties: {
-                // For the styles layer, which is the code that composes tokens out of `variables`. Raw
-                // numeric literals stay banned there.
+                // For the styles layer, which composes tokens out of `variables`. Raw numeric literals stay banned there.
                 allowVariablesReferences: {type: 'boolean'},
             },
             additionalProperties: false,
@@ -65,15 +64,8 @@ function isNumericLiteral(node) {
 }
 
 /**
- * Matches `variables.fontSizeNormal`, `variables.lineHeightXLarge`, and friends. This is the named
- * escape hatch around the typography scale. Only the `variables` module is matched. Unrelated objects
- * that happen to have a `fontSize*` key are left alone.
- *
- * This is a syntactic match on the `variables.<name>` shape, not a resolved-import check, so it is a
- * convention guard rather than an airtight ban. Renaming the import (`import vars from '@styles/variables'`),
- * destructuring (`const {fontSizeNormal} = variables`), and computed access (`variables['fontSizeNormal']`)
- * all read as something else and are not flagged. The app imports the module as `variables` everywhere,
- * so in practice the only bypass is a deliberate one.
+ * Matches `variables.fontSize*` / `variables.lineHeight*`, the named escape hatch around the scale.
+ * Syntactic match on the `variables.<name>` shape, so a renamed or destructured import is not flagged.
  *
  * @param {import('estree').Node} node
  * @returns {boolean}
@@ -108,15 +100,8 @@ function findVariable(scope, variableName) {
 }
 
 /**
- * The expression a `const` alias was assigned, so `const size = variables.fontSizeXXSmall` followed by
- * `getFontSizeStyle(size)` is still caught. Only single-definition `const` bindings with a plain
- * identifier name are followed. A `let` binding or a destructuring pattern has no single value to
- * trace, so those are left alone rather than guessed at.
- *
- * Only `variables.*` references are traced through an alias, never bare numbers. A `const FONT_SIZE = 12`
- * is indistinguishable from any other numeric constant, so following it turns test fixtures and layout
- * math into typography violations. `variables.fontSize*` is unambiguous, and it is the escape hatch this
- * tracing exists to close.
+ * The expression a single-definition `const` alias was assigned, so `const size = variables.fontSizeXXSmall`
+ * plus `getFontSizeStyle(size)` is still caught. Only `variables.*` is traced, never bare numbers.
  *
  * @param {import('eslint').Scope.Variable} variable
  * @returns {import('estree').Node | undefined}
@@ -133,10 +118,8 @@ function getConstInitializer(variable) {
 }
 
 /**
- * Flags object properties (`{fontSize: 17}`), JSX attributes (`<Text fontSize={17}>`), and
- * `getFontSizeStyle()`/`getLineHeightStyle()` arguments that set type outside the typography scale.
- * That covers both numeric literals and `variables.fontSize*` / `variables.lineHeight*` references.
- * With `allowVariablesReferences`, only the numeric literals are banned.
+ * Flags object properties, JSX attributes, and `getFontSizeStyle()`/`getLineHeightStyle()` arguments that
+ * set type outside the typography scale. With `allowVariablesReferences`, only numeric literals are banned.
  *
  * @param {import('eslint').Rule.RuleContext} context
  * @returns {import('eslint').Rule.RuleListener}
@@ -150,8 +133,6 @@ function create(context) {
             messageId: bannedValue.messageId,
             data: {
                 property: propertyName,
-                // The offending expression, which is what the alias was assigned when the value reached
-                // us through a `const`. Naming the identifier instead would just echo the property back.
                 value: context.sourceCode.getText(bannedValue.node),
             },
         });
@@ -163,8 +144,7 @@ function create(context) {
      *
      * @param {import('estree').Node} valueNode
      * @param {Set<import('eslint').Scope.Variable>} visitedVariables guards against cyclic aliases
-     * @param {boolean} isBehindAlias set once the walk has stepped through a `const`, after which bare
-     * numbers are no longer attributable to a typography decision
+     * @param {boolean} isBehindAlias set once the walk has stepped through a `const`, after which bare numbers are not flagged
      * @returns {{messageId: string, node: import('estree').Node} | undefined}
      */
     function findBannedValue(valueNode, visitedVariables, isBehindAlias) {

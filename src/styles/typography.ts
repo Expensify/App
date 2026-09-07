@@ -16,8 +16,7 @@ const fontScale = {
     text: variables.fontSizeNormal,
     pageHeader: variables.fontSizeLarge,
     h2: variables.fontSizeH2,
-    // `h1` is the 22/28 size. The legacy `fontSizeH1` variable was 19, the same value as `fontSizeH2`, so
-    // anything that used to read `fontSizeH1` belongs on `h2`, not here. Do not reintroduce a separate 19px "H1".
+    // Legacy `fontSizeH1` was 19, the same as `fontSizeH2`, so old `fontSizeH1` call sites belong on `h2`.
     h1: variables.fontSizeXLarge,
     introHeadline: variables.fontSizeHero,
 } as const;

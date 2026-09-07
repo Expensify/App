@@ -690,12 +690,7 @@ const config = defineConfig([
         },
     },
 
-    // The styles layer is what composes tokens out of `variables`, so it keeps reading them by name.
-    // What is left here after the token migration is the handful of sizes the scale has no entry for
-    // (`fontSizeMedium`, `fontSizeXXLarge`, `fontSizeXXXLarge`, the emoji and sign-in hero sizes, and the
-    // `lineHeight*` steps above `pageHeader`). Adding those is a design call, not a refactor, so there
-    // is nothing a seatbelt row here could ratchet down to yet. Raw numeric literals stay banned, and
-    // the seatbelt still carries those so they keep ratcheting.
+    // The styles layer composes tokens out of `variables`, so it reads them by name. Raw numeric literals stay banned.
     {
         files: ['src/styles/**'],
         ignores: ['src/styles/typography.ts', 'src/styles/variables.ts'],
