@@ -1658,7 +1658,7 @@ function getChangeTransactionsReportOnyxData({
         let movedAction;
         if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             movedAction = buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
-        } else if (!isOpenReport(oldReport)) {
+        } else if (!isOpenReport(newReport)) {
             movedAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
         }
 
@@ -2012,11 +2012,20 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     }
 
     if (props.jsonQuery && props.hash !== undefined) {
-        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
-        const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
-        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+        // The backend resolves the whole matching set from the query, but the client has only loaded part of it.
+        // Build the normal optimistic updates for the transactions that ARE loaded so their rows leave the list
+        // immediately, exactly as a per-page selection does; the unloaded remainder arrives with the response.
+        // This returns undefined when none of the loaded transactions actually move (they may already sit in the
+        // destination), and the request still has to go out for the expenses the client never loaded.
+        const loadedTransactionsOnyxData = getChangeTransactionsReportOnyxData(props);
+
+        const optimisticData = [...(loadedTransactionsOnyxData?.optimisticData ?? [])];
+        const successData = [...(loadedTransactionsOnyxData?.successData ?? [])];
+        const failureData = [...(loadedTransactionsOnyxData?.failureData ?? [])];
 
         if (props.newReport) {
+            // The loaded rows are already updated above, but expenses the client never loaded are still being
+            // moved server-side, so the destination stays flagged as pending for the whole request.
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
@@ -2034,10 +2043,19 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
             });
         }
 
+        const transactionIDToUpdatedCustomUnitRateID = loadedTransactionsOnyxData?.transactionIDToUpdatedCustomUnitRateID ?? {};
+
         const queryParameters: ChangeTransactionsReportParams = {
+            // The explicit list must stay empty so the backend moves every matching expense via the query
+            // rather than just the page the client happens to have loaded.
             transactionList: '',
             reportID,
-            transactionIDToReportActionAndThreadData: '{}',
+            // Hand over the report action and thread IDs we just created optimistically for the loaded
+            // transactions so the backend reuses them instead of adding a second moved message to each.
+            transactionIDToReportActionAndThreadData: JSON.stringify(loadedTransactionsOnyxData?.transactionIDToReportActionAndThreadData ?? {}),
+            ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
+                transactionIDToUpdatedCustomUnitRateID: JSON.stringify(transactionIDToUpdatedCustomUnitRateID),
+            }),
             jsonQuery: props.jsonQuery,
             hash: props.hash,
         };
