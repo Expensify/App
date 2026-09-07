@@ -9,7 +9,7 @@ import type {TransactionYearGroupListItemType} from './types';
 
 import BaseListItemHeader from './BaseListItemHeader';
 
-type YearListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey'> & {
+type YearListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The year group currently being looked at */
     year: TransactionYearGroupListItemType;
 };
@@ -32,6 +32,7 @@ function YearListItemHeader<TItem extends ListItem>({
             item={yearItem}
             displayName={yearName}
             groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR}
+            columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR}
             onCheckboxPress={onCheckboxPress}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}

@@ -9,7 +9,7 @@ import type {TransactionWeekGroupListItemType} from './types';
 
 import BaseListItemHeader from './BaseListItemHeader';
 
-type WeekListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey'> & {
+type WeekListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The week group currently being looked at */
     week: TransactionWeekGroupListItemType;
 };
@@ -32,6 +32,7 @@ function WeekListItemHeader<TItem extends ListItem>({
             item={weekItem}
             displayName={weekName}
             groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK}
+            columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK}
             onCheckboxPress={onCheckboxPress}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}

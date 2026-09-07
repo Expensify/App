@@ -9,7 +9,7 @@ import type {TransactionQuarterGroupListItemType} from './types';
 
 import BaseListItemHeader from './BaseListItemHeader';
 
-type QuarterListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey'> & {
+type QuarterListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The quarter group currently being looked at */
     quarter: TransactionQuarterGroupListItemType;
 };
@@ -32,6 +32,7 @@ function QuarterListItemHeader<TItem extends ListItem>({
             item={quarterItem}
             displayName={quarterName}
             groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER}
+            columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER}
             onCheckboxPress={onCheckboxPress}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}

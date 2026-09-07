@@ -9,7 +9,7 @@ import type {TransactionTagGroupListItemType} from './types';
 
 import BaseListItemHeader from './BaseListItemHeader';
 
-type TagListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey'> & {
+type TagListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The tag currently being looked at */
     tag: TransactionTagGroupListItemType;
 };
@@ -33,6 +33,7 @@ function TagListItemHeader<TItem extends ListItem>({
             item={tagItem}
             displayName={tagName}
             groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG}
+            columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.TAG}
             onCheckboxPress={onCheckboxPress}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}

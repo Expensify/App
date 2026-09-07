@@ -9,7 +9,7 @@ import type {TransactionMonthGroupListItemType} from './types';
 
 import BaseListItemHeader from './BaseListItemHeader';
 
-type MonthListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey'> & {
+type MonthListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The month group currently being looked at */
     month: TransactionMonthGroupListItemType;
 };
@@ -32,6 +32,7 @@ function MonthListItemHeader<TItem extends ListItem>({
             item={monthItem}
             displayName={monthName}
             groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}
+            columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}
             onCheckboxPress={onCheckboxPress}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}

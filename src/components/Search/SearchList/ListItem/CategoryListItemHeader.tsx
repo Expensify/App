@@ -11,7 +11,7 @@ import type {TransactionCategoryGroupListItemType} from './types';
 
 import BaseListItemHeader from './BaseListItemHeader';
 
-type CategoryListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey'> & {
+type CategoryListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The category currently being looked at */
     category: TransactionCategoryGroupListItemType;
 };
@@ -38,6 +38,7 @@ function CategoryListItemHeader<TItem extends ListItem>({
             item={categoryItem}
             displayName={categoryName}
             groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY}
+            columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.CATEGORY}
             onCheckboxPress={onCheckboxPress}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}

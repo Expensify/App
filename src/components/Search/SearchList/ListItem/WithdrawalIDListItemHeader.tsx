@@ -2,7 +2,6 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
-import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import StatusBadge from '@components/StatusBadge';
@@ -12,6 +11,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -79,7 +79,7 @@ function WithdrawalIDListItemHeaderImpl({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const getSearchColumnStyles = useSearchColumnStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, dateFnsLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
@@ -119,7 +119,7 @@ function WithdrawalIDListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
-                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}
             >
                 <Icon
                     src={icon}
@@ -132,7 +132,7 @@ function WithdrawalIDListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT}
-                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT)}
             >
                 <TextWithTooltip
                     text={accountLabel}
@@ -143,9 +143,9 @@ function WithdrawalIDListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN}
-                // No per-row variant: one group carrying a past-year date widens the column for the table, and a row
-                // answering only for itself would sit a narrower cell under a wider heading.
-                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN, {
+                    isWithdrawnColumnWide: !!withdrawalIDItem.shouldShowYearWithdrawn,
+                })}
             >
                 <TextWithTooltip
                     text={formattedWithdrawalDate}
@@ -156,7 +156,7 @@ function WithdrawalIDListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS}
-                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS)}
             >
                 {statusBadge}
             </View>
@@ -164,7 +164,7 @@ function WithdrawalIDListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID}
-                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)}
             >
                 <TextWithTooltip
                     text={withdrawalIDItem.entryID?.toString() ?? ''}
@@ -175,7 +175,7 @@ function WithdrawalIDListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.EXPENSES}
-                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
             >
                 <TextCell text={String(withdrawalIDItem.count)} />
             </View>
@@ -184,7 +184,7 @@ function WithdrawalIDListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED}
-                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED)}
             >
                 {!!debitedAmount && !!debitedCurrency && (
                     <TotalCell
@@ -197,7 +197,7 @@ function WithdrawalIDListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED}
-                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED)}
             >
                 {!!creditedAmount && !!creditedCurrency && (
                     <TotalCell
@@ -210,7 +210,7 @@ function WithdrawalIDListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.TOTAL}
-                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, {shouldRemoveTotalColumnFlex: true})}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
                     total={withdrawalIDItem.total}
