@@ -3289,7 +3289,7 @@ ${amount} pour ${merchant} - ${date}`,
         errorSelection: 'Sélectionnez une option pour continuer',
         purpose: {
             title: 'Que voulez-vous faire aujourd’hui ?',
-            errorContinue: 'Appuyez sur Continuer pour procéder à la configuration',
+            errorContinue: 'Veuillez appuyer sur Continuer pour procéder à la configuration',
             errorBackButton: 'Veuillez terminer les questions de configuration pour commencer à utiliser l’application',
             [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Rejoindre l’espace de travail de mon entreprise',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Soumettre des dépenses à mon employeur',
