@@ -3,7 +3,7 @@
  *  - existing accounts (personal details present) for both email and phone-number logins
  *  - new accounts (personal details missing, e.g. after cache clear) for both email and phone-number logins
  */
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
@@ -56,23 +56,16 @@ jest.mock('@components/OfflineWithFeedback', () => {
     return MockOfflineWithFeedback;
 });
 
-// Capture the props passed to the MenuItem so the test can assert against `title`, `description`,
-// and `avatarID` directly (rather than re-encoding through `toJSON()`).
-const capturedMenuItemProps: Array<Record<string, unknown>> = [];
+// Capture the props passed to the MenuItemAvater so the test can assert against `avatarID` directly
+// (rather than re-encoding through `toJSON()`).
+const capturedAvatarProps: Array<Record<string, unknown>> = [];
 
-jest.mock('@components/MenuItem', () => {
-    function MockMenuItem(props: Record<string, unknown>) {
-        capturedMenuItemProps.push(props);
+jest.mock('@components/Avatar/UserAvatar', () => {
+    function MockUserAvatar(props: Record<string, unknown>) {
+        capturedAvatarProps.push(props);
         return null;
     }
-    return MockMenuItem;
-});
-
-jest.mock('@components/Text', () => {
-    function MockText({children}: {children: React.ReactNode}) {
-        return children;
-    }
-    return MockText;
+    return MockUserAvatar;
 });
 
 const mockUseVacationDelegatePersonalDetails = jest.mocked(useVacationDelegatePersonalDetails);
@@ -82,16 +75,30 @@ const PHONE_DELEGATE_WITH_SMS_DOMAIN = '+919789942470@expensify.sms';
 const PHONE_DELEGATE_RAW = '+919789942470';
 const PHONE_DELEGATE_LOCALIZED = '97899 42470';
 
-function lastMenuItemProps() {
-    return capturedMenuItemProps.at(-1) ?? {};
+function lastAvatarProps() {
+    return capturedAvatarProps.at(-1) ?? {};
 }
 
 describe('VacationDelegateMenuItem', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        capturedMenuItemProps.length = 0;
+        capturedAvatarProps.length = 0;
         mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
     });
+
+    function renderMenuItem(delegate?: string) {
+        render(
+            <VacationDelegateMenuItem
+                vacationDelegate={delegate ? {delegate} : undefined}
+                onCloseError={jest.fn()}
+                onPress={jest.fn()}
+            />,
+        );
+    }
+
+    function textOccurrences(text: string) {
+        return screen.queryAllByText(text).length;
+    }
 
     describe('existing account (personal details available)', () => {
         it('renders the displayName for an email delegate without `@expensify.sms` artifacts', () => {
@@ -102,19 +109,12 @@ describe('VacationDelegateMenuItem', () => {
             };
             mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: EMAIL_DELEGATE}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            renderMenuItem(EMAIL_DELEGATE);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe('Jane Doe');
-            expect(props.description).toBe(EMAIL_DELEGATE);
-            expect(props.avatarID).toBe(42);
-            expect(JSON.stringify(props)).not.toContain('@expensify.sms');
+            expect(screen.getByText('Jane Doe')).toBeTruthy();
+            expect(screen.getByText(EMAIL_DELEGATE)).toBeTruthy();
+            expect(lastAvatarProps().accountID).toBe(42);
+            expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
 
         // The backend defaults `displayName` to the login, so the title has to be formatted rather than
@@ -127,20 +127,12 @@ describe('VacationDelegateMenuItem', () => {
             };
             mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: PHONE_DELEGATE_WITH_SMS_DOMAIN}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
-            expect(props.description).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(props.avatarID).toBe(43);
-            expect(JSON.stringify(props)).not.toContain('@expensify.sms');
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(2);
+            expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
+            expect(lastAvatarProps().accountID).toBe(43);
+            expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
 
         // Bug #89578 — the reported case: the backend hands back the login as the display name with the SMS domain
@@ -153,17 +145,10 @@ describe('VacationDelegateMenuItem', () => {
             };
             mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: PHONE_DELEGATE_WITH_SMS_DOMAIN}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(2);
+            expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
         });
 
         it('keeps the name a phone-number account did set, and localizes the number below it', () => {
@@ -174,17 +159,11 @@ describe('VacationDelegateMenuItem', () => {
             };
             mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: PHONE_DELEGATE_WITH_SMS_DOMAIN}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe('Jane Doe');
-            expect(props.description).toBe(PHONE_DELEGATE_LOCALIZED);
+            expect(screen.getByText('Jane Doe')).toBeTruthy();
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(1);
+            expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
         });
 
         // A local contact is stored without the country code. Personal details come back as E.164, which used
@@ -197,17 +176,11 @@ describe('VacationDelegateMenuItem', () => {
             };
             mockUseVacationDelegatePersonalDetails.mockReturnValue(personalDetails);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: '9789942470@expensify.sms'}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            renderMenuItem('9789942470@expensify.sms');
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
+            expect(screen.getByText(PHONE_DELEGATE_LOCALIZED)).toBeTruthy();
+            expect(screen.getByText('9789942470')).toBeTruthy();
+            expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
         });
     });
 
@@ -215,50 +188,28 @@ describe('VacationDelegateMenuItem', () => {
         it('renders the raw email as title and description when no personal details exist', () => {
             mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: EMAIL_DELEGATE}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            renderMenuItem(EMAIL_DELEGATE);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe(EMAIL_DELEGATE);
-            expect(props.description).toBe(EMAIL_DELEGATE);
-            expect(JSON.stringify(props)).not.toContain('@expensify.sms');
+            expect(textOccurrences(EMAIL_DELEGATE)).toBe(2);
+            expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
 
         // Bug #89578 — the exact scenario reported.
         it('renders the localized phone number when no personal details exist', () => {
             mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
 
-            render(
-                <VacationDelegateMenuItem
-                    vacationDelegate={{delegate: PHONE_DELEGATE_WITH_SMS_DOMAIN}}
-                    onCloseError={jest.fn()}
-                    onPress={jest.fn()}
-                />,
-            );
+            renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            const props = lastMenuItemProps();
-            expect(props.title).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(props.title).not.toBe(PHONE_DELEGATE_RAW);
-            expect(props.description).toBe(PHONE_DELEGATE_LOCALIZED);
-            expect(JSON.stringify(props)).not.toContain('@expensify.sms');
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(2);
+            expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
+            expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
     });
 
     it('renders the empty-state menu item when no vacation delegate is set', () => {
-        render(
-            <VacationDelegateMenuItem
-                onCloseError={jest.fn()}
-                onPress={jest.fn()}
-            />,
-        );
+        renderMenuItem();
 
-        const props = lastMenuItemProps();
-        expect(props.description).toBe('common.vacationDelegate');
-        expect(props.title).toBeUndefined();
+        expect(screen.getByText('common.vacationDelegate')).toBeTruthy();
+        expect(capturedAvatarProps).toHaveLength(0);
     });
 });

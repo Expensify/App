@@ -71,7 +71,7 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 1. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
 2. **TypeScript**: Run `npm run typecheck` after changes that may affect typing (types, interfaces, or function signatures). It runs the TypeScript 7 native compiler and is the required merge gate in CI.
 3. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
-4. **Spelling**: Run `npm run spell-changed -- <files you changed>` to catch spelling errors (cspell needs an explicit file list). CI validates with cspell, which remains the required merge gate.
+4. **Spelling**: Run `npm run spell-changed` to catch spelling errors (it discovers changed files itself; pass an explicit file list only if you want to check specific files instead). CI validates with cspell, which remains the required merge gate.
 
 ### Testing
 

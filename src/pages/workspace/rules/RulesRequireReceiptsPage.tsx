@@ -2,6 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -17,6 +18,7 @@ import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/Cur
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isMaxExpenseAmountSet} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -27,16 +29,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesRequireReceiptsForm';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type RulesRequireReceiptsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS>;
-
-function isAmountEnabled(value: number | undefined): boolean {
-    return value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE && value !== 0;
-}
 
 function RulesRequireReceiptsPage({
     route: {
@@ -54,8 +51,8 @@ function RulesRequireReceiptsPage({
     const decimals = getCurrencyDecimals(policyCurrency);
     const formRef = useRef<FormRef>(null);
 
-    const initialReceiptEnabled = isAmountEnabled(policy?.maxExpenseAmountNoReceipt);
-    const initialItemizedEnabled = isAmountEnabled(policy?.maxExpenseAmountNoItemizedReceipt);
+    const initialReceiptEnabled = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoReceipt);
+    const initialItemizedEnabled = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoItemizedReceipt);
 
     const initialReceiptAmount = useMemo(
         () => (initialReceiptEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt ?? 0, decimals) : ''),
@@ -70,6 +67,11 @@ function RulesRequireReceiptsPage({
     const [itemizedEnabled, setItemizedEnabled] = useState(initialItemizedEnabled);
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
 
+    // The two amounts share one constraint, so neither field is individually wrong when it breaks. Following the
+    // two-fields-one-constraint pattern in IOURequestStepDistanceOdometer, the violation is shown as a single message
+    // below the pair rather than as an error on either input, raised on a save attempt and cleared on the next edit.
+    const [amountConflictError, setAmountConflictError] = useState('');
+
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
     }, [policyID]);
@@ -80,8 +82,8 @@ function RulesRequireReceiptsPage({
         }
 
         syncedPolicyIDRef.current = policy.id;
-        setReceiptEnabled(isAmountEnabled(policy.maxExpenseAmountNoReceipt));
-        setItemizedEnabled(isAmountEnabled(policy.maxExpenseAmountNoItemizedReceipt));
+        setReceiptEnabled(isMaxExpenseAmountSet(policy.maxExpenseAmountNoReceipt));
+        setItemizedEnabled(isMaxExpenseAmountSet(policy.maxExpenseAmountNoItemizedReceipt));
     }, [policy?.id, policy?.isLoading, policy?.maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoItemizedReceipt]);
 
     const validate = useCallback(
@@ -102,31 +104,26 @@ function RulesRequireReceiptsPage({
                 errors.maxExpenseAmountNoItemizedReceipt = emptyAmountError;
             }
 
-            if (!isEmptyObject(errors)) {
-                return errors;
-            }
-
-            if (receiptEnabled && itemizedEnabled && values.maxExpenseAmountNoReceipt && values.maxExpenseAmountNoItemizedReceipt) {
-                const receiptCents = convertToBackendAmount(Number(values.maxExpenseAmountNoReceipt) || 0);
-                const itemizedCents = convertToBackendAmount(Number(values.maxExpenseAmountNoItemizedReceipt) || 0);
-
-                if (receiptCents > itemizedCents) {
-                    errors.maxExpenseAmountNoReceipt = translate('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {
-                        amount: convertToFrontendAmountAsString(itemizedCents, decimals),
-                    });
-                    errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
-                        amount: convertToFrontendAmountAsString(receiptCents, decimals),
-                    });
-                }
-            }
-
             return errors;
         },
-        [receiptEnabled, itemizedEnabled, decimals, translate],
+        [receiptEnabled, itemizedEnabled, translate],
     );
+
+    const clearAmountConflictError = useCallback(() => setAmountConflictError(''), []);
 
     const handleSubmit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>) => {
+            // Checked here rather than in `validate` because this runs only on a real save. The message is shown once
+            // below the pair instead of on either field, and the inputs clear it again on the next edit.
+            if (
+                receiptEnabled &&
+                itemizedEnabled &&
+                convertToBackendAmount(Number(values.maxExpenseAmountNoReceipt) || 0) > convertToBackendAmount(Number(values.maxExpenseAmountNoItemizedReceipt) || 0)
+            ) {
+                setAmountConflictError(translate('workspace.rules.requireReceipts.receiptAmountGreaterThanItemizedError'));
+                return;
+            }
+
             const receiptChanged = receiptEnabled !== initialReceiptEnabled || (receiptEnabled && values.maxExpenseAmountNoReceipt !== initialReceiptAmount);
             const itemizedChanged = itemizedEnabled !== initialItemizedEnabled || (itemizedEnabled && values.maxExpenseAmountNoItemizedReceipt !== initialItemizedAmount);
 
@@ -175,6 +172,7 @@ function RulesRequireReceiptsPage({
             policy?.maxExpenseAmountNoReceipt,
             policy?.maxExpenseAmountNoItemizedReceipt,
             getReviewWorkspaceSettingsTaskCompletion,
+            translate,
         ],
     );
 
@@ -203,6 +201,10 @@ function RulesRequireReceiptsPage({
                     onSubmit={handleSubmit}
                     validate={validate}
                     submitButtonText={translate('workspace.rules.requireReceipts.saveRule')}
+                    // onSubmit returns early when the two amounts conflict, and nothing external ever flips the loading
+                    // flag back off on this screen, so the default press-loading spinner would stick and swallow every
+                    // later press. Opt out so the button stays live after a blocked save (same reason as PIN.tsx).
+                    shouldShowLoadingImmediatelyOnPress={false}
                     enabledWhenOffline
                     addBottomSafeAreaPadding
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_RECEIPTS_SAVE}
@@ -220,6 +222,7 @@ function RulesRequireReceiptsPage({
                         onCloseError={() => clearPolicyErrorField(policyID, 'maxExpenseAmountNoReceipt')}
                         onToggle={(newValue) => {
                             setReceiptEnabled(newValue);
+                            clearAmountConflictError();
                             if (!newValue) {
                                 formRef.current?.resetFormFieldError(INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT);
                             }
@@ -235,6 +238,7 @@ function RulesRequireReceiptsPage({
                                 isCurrencyPressable={false}
                                 displayAsTextInput
                                 label={translate('workspace.rules.requireReceipts.requireAboveAmount')}
+                                onValueChange={clearAmountConflictError}
                             />
                         </View>
                     )}
@@ -252,6 +256,7 @@ function RulesRequireReceiptsPage({
                         onCloseError={() => clearPolicyErrorField(policyID, 'maxExpenseAmountNoItemizedReceipt')}
                         onToggle={(newValue) => {
                             setItemizedEnabled(newValue);
+                            clearAmountConflictError();
                             if (!newValue) {
                                 formRef.current?.resetFormFieldError(INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT);
                             }
@@ -267,8 +272,16 @@ function RulesRequireReceiptsPage({
                                 isCurrencyPressable={false}
                                 displayAsTextInput
                                 label={translate('workspace.rules.requireReceipts.requireAboveAmount')}
+                                onValueChange={clearAmountConflictError}
                             />
                         </View>
+                    )}
+
+                    {!!amountConflictError && (
+                        <FormHelpMessage
+                            style={styles.mt2}
+                            message={amountConflictError}
+                        />
                     )}
                 </FormProvider>
             </ScreenWrapper>
