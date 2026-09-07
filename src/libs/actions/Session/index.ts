@@ -870,7 +870,7 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
+function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo?: string) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
     // Set the in-flight guard synchronously, before awaiting device info. optimisticData below (which also sets this key)
@@ -883,6 +883,11 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
         API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
     });
     NetworkStore.setLastShortAuthToken(authToken);
+    if (exitTo) {
+        // exitTo is a path the navigator produced, so it is always a valid route.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        handleExitToNavigation(exitTo as Route);
+    }
 }
 
 /**
