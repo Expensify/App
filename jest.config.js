@@ -19,8 +19,8 @@ module.exports = {
     ],
     transform: {
         // OXC compiles TS/JSX (and React Compiler on app sources). esbuild then emits CJS
-        // and lowers import(). Top-level jest.mock calls are spliced above require() so
-        // Jest still intercepts them. Native OXC + esbuild stays fast under Reassure's
+        // and lowers import(). oxc-parser splices top-level jest.mock calls above require()
+        // so Jest still intercepts them. Native OXC + esbuild stays fast under Reassure's
         // `--max-opt=1` (V8 sparkplug only).
         '^.+\\.[jt]sx?$': '<rootDir>/config/babel/oxcJestTransformer.js',
         '^.+\\.svg?$': 'jest-transformer-svg',

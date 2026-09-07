@@ -2,9 +2,11 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const esbuild = require('esbuild');
+const {parseSync} = require('oxc-parser');
 const {transformSync} = require('oxc-transform-react');
 
 const babelJest = require('babel-jest');
+const OXC_PARSER_VERSION = require('oxc-parser/package.json').version;
 const OXC_TRANSFORM_REACT_VERSION = require('oxc-transform-react/package.json').version;
 const BaseReactCompilerConfig = require('./reactCompilerConfig');
 
@@ -15,7 +17,7 @@ const TESTS_RE = /[/\\]tests[/\\]/;
 const JEST_SETUP_RE = /[/\\]jest[/\\]/;
 const MOCKS_RE = /[/\\]__mocks__[/\\]/;
 const JEST_HOIST_RE = /\bjest\s*\.\s*(mock|unmock|deepUnmock|disableAutomock|enableAutomock)\b/;
-const HOISTABLE_JEST_CALL_RE = /^jest\s*\.\s*(mock|unmock|deepUnmock|disableAutomock|enableAutomock)\b/;
+const HOISTABLE_JEST_FNS = new Set(['mock', 'unmock', 'deepUnmock', 'disableAutomock', 'enableAutomock']);
 
 const TRANSFORMER_SOURCE = fs.readFileSync(__filename);
 const REACT_COMPILER_CONFIG_KEY = JSON.stringify(BaseReactCompilerConfig);
@@ -45,134 +47,29 @@ function shouldRunReactCompiler(filename) {
     return !TESTS_RE.test(filename) && !JEST_SETUP_RE.test(filename) && !MOCKS_RE.test(filename);
 }
 
-function skipString(code, start, quote) {
-    let index = start + 1;
-    while (index < code.length) {
-        if (code[index] === '\\') {
-            index += 2;
-            continue;
-        }
-        if (code[index] === quote) {
-            return index + 1;
-        }
-        index += 1;
-    }
-    return index;
+function isJestIdentifier(expression) {
+    return expression?.type === 'Identifier' && expression.name === 'jest';
 }
 
-function skipLineComment(code, start) {
-    let index = start;
-    while (index < code.length && code[index] !== '\n') {
-        index += 1;
+function isHoistableJestCall(expression) {
+    if (expression?.type !== 'CallExpression' || expression.optional) {
+        return false;
     }
-    return index;
+
+    const callee = expression.callee;
+    if (callee?.type !== 'MemberExpression' || callee.computed || callee.optional) {
+        return false;
+    }
+
+    if (callee.property?.type !== 'Identifier' || !HOISTABLE_JEST_FNS.has(callee.property.name)) {
+        return false;
+    }
+
+    return isJestIdentifier(callee.object) || isHoistableJestCall(callee.object);
 }
 
-function skipBlockComment(code, start) {
-    let index = start + 2;
-    while (index < code.length && !(code[index] === '*' && code[index + 1] === '/')) {
-        index += 1;
-    }
-    return index + 2;
-}
-
-function skipTemplate(code, start) {
-    let index = start + 1;
-    while (index < code.length) {
-        if (code[index] === '\\') {
-            index += 2;
-            continue;
-        }
-        if (code[index] === '`') {
-            return index + 1;
-        }
-        if (code[index] === '$' && code[index + 1] === '{') {
-            // eslint-disable-next-line no-use-before-define -- skipTemplate and skipDelimited recurse for nested templates
-            index = skipDelimited(code, index + 1, '{', '}');
-            continue;
-        }
-        index += 1;
-    }
-    return index;
-}
-
-function skipDelimited(code, start, open, close) {
-    let depth = 1;
-    let index = start + 1;
-    while (index < code.length && depth > 0) {
-        const char = code[index];
-        if (char === "'" || char === '"') {
-            index = skipString(code, index, char);
-            continue;
-        }
-        if (char === '`') {
-            index = skipTemplate(code, index);
-            continue;
-        }
-        if (char === '/' && code[index + 1] === '/') {
-            index = skipLineComment(code, index);
-            continue;
-        }
-        if (char === '/' && code[index + 1] === '*') {
-            index = skipBlockComment(code, index);
-            continue;
-        }
-        if (char === open) {
-            depth += 1;
-        } else if (char === close) {
-            depth -= 1;
-        }
-        index += 1;
-    }
-    return index;
-}
-
-function skipWhitespaceAndComments(code, start) {
-    let index = start;
-    while (index < code.length) {
-        const char = code[index];
-        if (char === ' ' || char === '\t' || char === '\n' || char === '\r') {
-            index += 1;
-            continue;
-        }
-        if (char === '/' && code[index + 1] === '/') {
-            index = skipLineComment(code, index);
-            continue;
-        }
-        if (char === '/' && code[index + 1] === '*') {
-            index = skipBlockComment(code, index);
-            continue;
-        }
-        break;
-    }
-    return index;
-}
-
-function skipIdentifier(code, start) {
-    let index = start;
-    while (index < code.length && /\w/.test(code[index])) {
-        index += 1;
-    }
-    return index;
-}
-
-function skipJestCallChain(code, start) {
-    let index = skipIdentifier(code, start);
-    index = skipWhitespaceAndComments(code, index);
-    while (index < code.length && code[index] === '.') {
-        index += 1;
-        index = skipWhitespaceAndComments(code, index);
-        index = skipIdentifier(code, index);
-        index = skipWhitespaceAndComments(code, index);
-        if (code[index] === '(') {
-            index = skipDelimited(code, index, '(', ')');
-            index = skipWhitespaceAndComments(code, index);
-        }
-    }
-    if (code[index] === ';') {
-        index += 1;
-    }
-    return index;
+function statementSpan(statement) {
+    return statement.range ?? [statement.start, statement.end];
 }
 
 function hoistJestMocks(code) {
@@ -180,55 +77,32 @@ function hoistJestMocks(code) {
         return code;
     }
 
+    const {program, errors} = parseSync('hoist.js', code, {sourceType: 'script', range: true});
+    if (errors.length > 0) {
+        return code;
+    }
+
     const hoisted = [];
     const rest = [];
-    let i = 0;
     let cursor = 0;
-    while (i < code.length) {
-        i = skipWhitespaceAndComments(code, i);
-        if (i >= code.length) {
-            break;
-        }
-        if (HOISTABLE_JEST_CALL_RE.test(code.slice(i))) {
-            if (i > cursor) {
-                rest.push(code.slice(cursor, i));
-            }
-            const end = skipJestCallChain(code, i);
-            hoisted.push(code.slice(i, end).trim());
-            cursor = end;
-            i = end;
-            continue;
-        }
 
-        const char = code[i];
-        if (char === "'" || char === '"') {
-            i = skipString(code, i, char);
-            continue;
+    for (const statement of program.body) {
+        const [start, end] = statementSpan(statement);
+        if (statement.type === 'ExpressionStatement' && isHoistableJestCall(statement.expression)) {
+            if (start > cursor) {
+                rest.push(code.slice(cursor, start));
+            }
+            hoisted.push(code.slice(start, end).trim());
+            cursor = end;
         }
-        if (char === '`') {
-            i = skipTemplate(code, i);
-            continue;
-        }
-        if (char === '(') {
-            i = skipDelimited(code, i, '(', ')');
-            continue;
-        }
-        if (char === '{') {
-            i = skipDelimited(code, i, '{', '}');
-            continue;
-        }
-        if (char === '[') {
-            i = skipDelimited(code, i, '[', ']');
-            continue;
-        }
-        i += 1;
-    }
-    if (cursor < code.length) {
-        rest.push(code.slice(cursor));
     }
 
     if (hoisted.length === 0) {
         return code;
+    }
+
+    if (cursor < code.length) {
+        rest.push(code.slice(cursor));
     }
 
     return `${hoisted.join('\n')}\n${rest.join('')}`;
@@ -272,6 +146,7 @@ module.exports = {
             .update(TRANSFORMER_SOURCE)
             .update(REACT_COMPILER_CONFIG_KEY)
             .update(esbuild.version)
+            .update(OXC_PARSER_VERSION)
             .update(OXC_TRANSFORM_REACT_VERSION)
             .digest('hex');
     },
