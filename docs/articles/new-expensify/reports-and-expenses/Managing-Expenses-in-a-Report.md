@@ -54,7 +54,7 @@ You can move expenses to a different report, create a new report, or remove them
 1. In the left side tabs, choose **Spend** > **Reports**
 2. Click the report with the expense(s) you want to move. 
 3. Click the checkbox next to each expense you want to move.
-4. Click the green selected count button — for example, **3 selected** — then click **Move to report**.
+4. Click the green **1 selected** button > **Move to report**. The count in the button label matches the number of expenses you selected.
 5. Choose a destination report, select **Create report** to create a new report, or select **Remove from report** to move the expenses to your personal space.
 
 **Note:** A system message records the move in the expense when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message, because a draft report is not yet part of the audit trail.

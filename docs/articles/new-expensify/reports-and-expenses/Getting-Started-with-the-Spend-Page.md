@@ -67,7 +67,7 @@ Each row represents an expense and includes:
 2. Click **Move to report** from the bulk action menu.
 3. In the right-hand panel, select from the following options:
    - Create report
-   - An existing draft report
+   - An existing draft or submitted report
    - Remove from report 
 4. The expenses are moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
 
@@ -77,7 +77,7 @@ Each row represents an expense and includes:
 2. Click **Move to report** from the bulk action menu.
 3. In the right-hand panel, select from the following options:
    - Create report
-   - An existing draft report
+   - An existing draft or submitted report
    - Remove from report 
 4. The expense is moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
 
