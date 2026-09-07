@@ -24,7 +24,6 @@ function EnableGlobalReimbursementsPayModal() {
     const {showLockedAccountModal} = useLockedAccountActions();
     const isModalOpenRef = useRef(false);
     const pendingModalDataRef = useRef<CorpayPayModal | null>(null);
-    const navigationPathAtSignalRef = useRef<string | undefined>(undefined);
 
     const showCorpayPayModal = useEffectEvent(async (modalData: CorpayPayModal) => {
         let nextModalData: CorpayPayModal | null = modalData;
@@ -36,7 +35,7 @@ function EnableGlobalReimbursementsPayModal() {
             }
 
             isModalOpenRef.current = true;
-            navigationPathAtSignalRef.current = Navigation.getActiveRoute();
+            const navigationPathAtSignal = Navigation.getActiveRoute();
             // eslint-disable-next-line no-await-in-loop -- process queued modal signals one at a time
             const result = await showConfirmModal({
                 title: translate('common.corpayPayModalTitle'),
@@ -63,7 +62,7 @@ function EnableGlobalReimbursementsPayModal() {
                                 bankCountry,
                                 bankCurrency,
                             },
-                            navigationPathAtSignalRef.current,
+                            navigationPathAtSignal,
                         ),
                         {skipMatchingFullScreenRoute: true},
                     );

@@ -11,7 +11,10 @@ import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard
 import getStateFromPath from './getStateFromPath';
 
 type EnableGlobalReimbursementsRouteParams = {
+    /** The country of the bank account */
     bankCountry?: string;
+
+    /** The currency of the bank account */
     bankCurrency?: string;
 };
 
@@ -79,6 +82,7 @@ function getEnableGlobalReimbursementsBusinessNavigationRoute(
     return ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(bankAccountID, subPage, undefined, params);
 }
 
+export type {EnableGlobalReimbursementsRouteParams};
 export {
     getDynamicBasePathFromNavigationPath,
     getEnableGlobalReimbursementsBusinessNavigationRoute,

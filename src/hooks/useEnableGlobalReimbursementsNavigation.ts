@@ -4,6 +4,7 @@
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isDynamicRouteScreen from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteScreen';
+import type {EnableGlobalReimbursementsRouteParams} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import {
     getDynamicBasePathFromNavigationPath,
     getEnableGlobalReimbursementsRootBackPath,
@@ -20,11 +21,6 @@ import {useRoute} from '@react-navigation/native';
 import {useEffect, useMemo, useState} from 'react';
 
 import useRootNavigationState from './useRootNavigationState';
-
-type EnableGlobalReimbursementsRouteParams = {
-    bankCountry?: string;
-    bankCurrency?: string;
-};
 
 function useEnableGlobalReimbursementsNavigation() {
     const route = useRoute();
