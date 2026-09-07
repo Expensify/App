@@ -65,7 +65,6 @@ export default {
     fontSizeMedium: getValueUsingPixelRatio(16, 22),
     fontSizeLarge: getValueUsingPixelRatio(17, 19),
     fontSizeHero: 36,
-    fontSizeH1: 19,
     fontSizeH2: 19,
     fontSizeXLarge: getValueUsingPixelRatio(22, 28),
     fontSizeXXLarge: 28,
