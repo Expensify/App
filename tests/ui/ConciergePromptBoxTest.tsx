@@ -34,14 +34,14 @@ const mockAskConciergeWithAttachment = jest.fn();
 const mockPickAttachments = jest.fn();
 const mockOpenPicker = jest.fn();
 
-const mockPickerHandler: {onConfirm?: (files: FileObject | FileObject[]) => void} = {};
+const pickerHandler: {onConfirm?: (files: FileObject | FileObject[]) => void} = {};
 
 jest.mock('@components/Search/SearchRouter/useAskConcierge', () => jest.fn());
 
 jest.mock('@pages/home/ForYouSection/useConciergeAttachmentPicker', () => ({
     __esModule: true,
     default: (_reportID: string | undefined, onConfirm: (files: FileObject | FileObject[]) => void) => {
-        mockPickerHandler.onConfirm = onConfirm;
+        pickerHandler.onConfirm = onConfirm;
         return {pickAttachments: mockPickAttachments, PDFValidationComponent: null};
     },
 }));
@@ -175,7 +175,7 @@ function measureLongPlaceholder(height: number) {
 describe('ConciergePromptBox', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockPickerHandler.onConfirm = undefined;
+        pickerHandler.onConfirm = undefined;
         setAskConcierge();
         setResponsiveLayout(false);
         setKeyboardShown(false);
@@ -335,7 +335,7 @@ describe('ConciergePromptBox', () => {
             fireEvent.changeText(getInput(), 'Here it is');
 
             // When the modal confirms
-            act(() => mockPickerHandler.onConfirm?.(files));
+            act(() => pickerHandler.onConfirm?.(files));
 
             // Then the attachments are sent with the message and the input is emptied
             expect(mockAskConciergeWithAttachment).toHaveBeenCalledWith(files, 'Here it is');
@@ -431,7 +431,7 @@ describe('ConciergePromptBox', () => {
             render(<ConciergePromptBoxWrapper />);
 
             // When the modal confirms
-            act(() => mockPickerHandler.onConfirm?.(files));
+            act(() => pickerHandler.onConfirm?.(files));
 
             // Then nothing is sent and the sign in flow opens
             expect(mockAskConciergeWithAttachment).not.toHaveBeenCalled();

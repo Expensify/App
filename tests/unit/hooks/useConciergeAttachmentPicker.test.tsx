@@ -13,12 +13,12 @@ import React from 'react';
 const REPORT_ID = '100';
 
 const mockValidateFiles = jest.fn();
-const mockValidationHandler: {onFilesValidated?: (files: FileObject[]) => void} = {};
+const validationHandler: {onFilesValidated?: (files: FileObject[]) => void} = {};
 
 jest.mock('@hooks/useFilesValidation', () => ({
     __esModule: true,
     default: (onFilesValidated: (files: FileObject[]) => void) => {
-        mockValidationHandler.onFilesValidated = onFilesValidated;
+        validationHandler.onFilesValidated = onFilesValidated;
         return {validateFiles: mockValidateFiles, PDFValidationComponent: null};
     },
 }));
@@ -53,7 +53,7 @@ function renderPicker(reportID: string | undefined, onConfirm: (files: FileObjec
 describe('useConciergeAttachmentPicker', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockValidationHandler.onFilesValidated = undefined;
+        validationHandler.onFilesValidated = undefined;
     });
 
     describe('pickAttachments', () => {
@@ -87,7 +87,7 @@ describe('useConciergeAttachmentPicker', () => {
             renderPicker(REPORT_ID, onConfirm);
 
             // When validation completes
-            mockValidationHandler.onFilesValidated?.(FILES);
+            validationHandler.onFilesValidated?.(FILES);
 
             // Then the preview modal is handed the files and the caller's onConfirm, and confirming leaves the screen
             expect(mockSetCurrentAttachment).toHaveBeenCalledWith({
@@ -105,7 +105,7 @@ describe('useConciergeAttachmentPicker', () => {
             renderPicker(REPORT_ID, jest.fn());
 
             // When validation completes with no valid file left
-            mockValidationHandler.onFilesValidated?.([]);
+            validationHandler.onFilesValidated?.([]);
 
             // Then no modal is opened
             expect(mockSetCurrentAttachment).not.toHaveBeenCalled();

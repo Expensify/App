@@ -17,11 +17,11 @@ jest.mock('@libs/LauncherStack', () => ({
     pickLauncher: jest.fn(() => null),
 }));
 
-let mockCapturedOptions: FocusTrapProps['focusTrapOptions'] | null = null;
+let capturedOptions: FocusTrapProps['focusTrapOptions'] | null = null;
 
 jest.mock('focus-trap-react', () => ({
     FocusTrap: ({focusTrapOptions, children}: Pick<FocusTrapProps, 'focusTrapOptions' | 'children'>) => {
-        mockCapturedOptions = focusTrapOptions;
+        capturedOptions = focusTrapOptions;
         return children;
     },
 }));
@@ -51,7 +51,7 @@ function withActiveElement<T>(element: HTMLElement, fn: () => T): T {
 
 describe('FocusTrapForModal — launcher capture', () => {
     beforeEach(() => {
-        mockCapturedOptions = null;
+        capturedOptions = null;
         jest.mocked(setActivePopoverLauncher).mockClear();
         jest.mocked(markActivePopoverLauncherDeactivated).mockClear();
         jest.mocked(hasLauncher).mockClear();
@@ -70,8 +70,8 @@ describe('FocusTrapForModal — launcher capture', () => {
         render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
 
         withActiveElement(launcher, () => {
-            mockCapturedOptions?.onActivate?.();
-            mockCapturedOptions?.onPostDeactivate?.();
+            capturedOptions?.onActivate?.();
+            capturedOptions?.onPostDeactivate?.();
         });
 
         expect(setActivePopoverLauncher).toHaveBeenCalledWith(launcher);
@@ -93,8 +93,8 @@ describe('FocusTrapForModal — launcher capture', () => {
         );
 
         withActiveElement(launcher, () => {
-            mockCapturedOptions?.onActivate?.();
-            mockCapturedOptions?.onPostDeactivate?.();
+            capturedOptions?.onActivate?.();
+            capturedOptions?.onPostDeactivate?.();
         });
 
         expect(setActivePopoverLauncher).toHaveBeenCalledWith(launcher);
@@ -111,9 +111,9 @@ describe('FocusTrapForModal — launcher capture', () => {
         render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
 
         withActiveElement(launcher, () => {
-            mockCapturedOptions?.onActivate?.();
+            capturedOptions?.onActivate?.();
             try {
-                mockCapturedOptions?.onPostDeactivate?.();
+                capturedOptions?.onPostDeactivate?.();
             } catch {
                 // swallow — mocked throw, the assertion below pins markActive ran first
             }
@@ -126,8 +126,8 @@ describe('FocusTrapForModal — launcher capture', () => {
         render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
 
         withActiveElement(document.body, () => {
-            mockCapturedOptions?.onActivate?.();
-            mockCapturedOptions?.onPostDeactivate?.();
+            capturedOptions?.onActivate?.();
+            capturedOptions?.onPostDeactivate?.();
         });
 
         expect(setActivePopoverLauncher).not.toHaveBeenCalled();
@@ -151,8 +151,8 @@ describe('FocusTrapForModal — launcher capture', () => {
             );
 
             withActiveElement(document.body, () => {
-                mockCapturedOptions?.onActivate?.();
-                mockCapturedOptions?.onPostDeactivate?.();
+                capturedOptions?.onActivate?.();
+                capturedOptions?.onPostDeactivate?.();
             });
 
             expect(setActivePopoverLauncher).toHaveBeenCalledWith(anchor);
@@ -176,7 +176,7 @@ describe('FocusTrapForModal — launcher capture', () => {
             );
 
             withActiveElement(focused, () => {
-                mockCapturedOptions?.onActivate?.();
+                capturedOptions?.onActivate?.();
             });
 
             expect(setActivePopoverLauncher).toHaveBeenCalledWith(focused);
@@ -195,8 +195,8 @@ describe('FocusTrapForModal — launcher capture', () => {
             );
 
             withActiveElement(document.body, () => {
-                mockCapturedOptions?.onActivate?.();
-                mockCapturedOptions?.onPostDeactivate?.();
+                capturedOptions?.onActivate?.();
+                capturedOptions?.onPostDeactivate?.();
             });
 
             expect(setActivePopoverLauncher).not.toHaveBeenCalled();
@@ -222,8 +222,8 @@ describe('FocusTrapForModal — launcher capture', () => {
             );
 
             withActiveElement(document.body, () => {
-                mockCapturedOptions?.onActivate?.();
-                mockCapturedOptions?.onPostDeactivate?.();
+                capturedOptions?.onActivate?.();
+                capturedOptions?.onPostDeactivate?.();
             });
 
             expect(setActivePopoverLauncher).toHaveBeenCalledWith(anchor);
@@ -242,8 +242,8 @@ describe('FocusTrapForModal — launcher capture', () => {
             render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
 
             withActiveElement(document.body, () => {
-                mockCapturedOptions?.onActivate?.();
-                mockCapturedOptions?.onPostDeactivate?.();
+                capturedOptions?.onActivate?.();
+                capturedOptions?.onPostDeactivate?.();
             });
 
             expect(setActivePopoverLauncher).toHaveBeenCalledWith(fab);
@@ -267,7 +267,7 @@ describe('FocusTrapForModal — launcher capture', () => {
             );
 
             withActiveElement(document.body, () => {
-                mockCapturedOptions?.onActivate?.();
+                capturedOptions?.onActivate?.();
             });
 
             expect(setActivePopoverLauncher).toHaveBeenCalledWith(anchor);
@@ -292,10 +292,10 @@ describe('FocusTrapForModal — launcher capture', () => {
 
             withActiveElement(document.body, () => {
                 // Nothing else was open when we activated...
-                mockCapturedOptions?.onActivate?.();
+                capturedOptions?.onActivate?.();
                 // ...but a modal opened on top before we finished closing (focus-trap removes us before onPostDeactivate).
                 sharedTrapStack.length = 1;
-                mockCapturedOptions?.onPostDeactivate?.();
+                capturedOptions?.onPostDeactivate?.();
             });
 
             expect(mockRestoreFocusWithModality).not.toHaveBeenCalled();
@@ -317,8 +317,8 @@ describe('FocusTrapForModal — launcher capture', () => {
             );
 
             withActiveElement(document.body, () => {
-                mockCapturedOptions?.onActivate?.();
-                mockCapturedOptions?.onPostDeactivate?.();
+                capturedOptions?.onActivate?.();
+                capturedOptions?.onPostDeactivate?.();
             });
 
             expect(mockRestoreFocusWithModality).toHaveBeenCalledWith(anchor, expect.anything());

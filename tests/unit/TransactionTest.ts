@@ -48,22 +48,6 @@ import * as TestHelper from '../utils/TestHelper';
 import {hasDefinedProperty, parseJSONRecord, readProperty, isReportMergeUpdate, isReportStateMergeUpdate} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@libs/API', () => {
-    const actual = jest.requireActual<typeof API>('@libs/API');
-    return {
-        ...actual,
-        write: jest.fn(actual.write),
-    };
-});
-
-jest.mock('@libs/NextStepUtils', () => {
-    const actual = jest.requireActual<typeof NextStepUtils>('@libs/NextStepUtils');
-    return {
-        ...actual,
-        buildOptimisticNextStep: jest.fn(actual.buildOptimisticNextStep),
-    };
-});
-
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
     'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol'
@@ -310,8 +294,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles reportNextStep parameter when moving transactions between reports', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockResolvedValue(undefined);
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -362,8 +345,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles reportNextStep parameter when moving transactions to unreported report', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockResolvedValue(undefined);
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -414,8 +396,7 @@ describe('Transaction', () => {
         });
 
         it('keeps sibling duplicate violations cleaned after moving a duplicate transaction to unreported', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
             const transaction = generateTransaction({
                 transactionID: 'txn_a',
@@ -478,8 +459,7 @@ describe('Transaction', () => {
         });
 
         it('removes every selected transaction from shared sibling duplicate violations when moving multiple transactions to unreported', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
             const firstTransaction = generateTransaction({
                 transactionID: 'txn_a',
@@ -560,8 +540,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles undefined reportNextStep parameter', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockResolvedValue(undefined);
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -604,9 +583,8 @@ describe('Transaction', () => {
         });
 
         it('updates the source submitted report next step and reopens it when it becomes empty', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockResolvedValue(undefined);
-            const buildOptimisticNextStepSpy = jest.mocked(NextStepUtils.buildOptimisticNextStep);
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            const buildOptimisticNextStepSpy = jest.spyOn(NextStepUtils, 'buildOptimisticNextStep');
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -673,8 +651,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles ASAP submit beta enabled when moving transactions', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockResolvedValue(undefined);
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -716,8 +693,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles different account IDs and emails when moving transactions', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockResolvedValue(undefined);
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -1434,8 +1410,7 @@ describe('Transaction', () => {
         });
 
         it('should not call API.write when the transaction is already on the target report', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockResolvedValue(undefined);
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_NEW_REPORT_ID,
@@ -2100,8 +2075,7 @@ describe('Transaction', () => {
         });
 
         it('should not create MOVED_TRANSACTION action when moving expenses into a Draft report', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 
             const submittedReport = {
                 ...createRandomReport(10, undefined),
@@ -2148,8 +2122,7 @@ describe('Transaction', () => {
         });
 
         it('should create MOVED_TRANSACTION action when moving expenses into a non-Draft report', async () => {
-            const mockAPIWrite = jest.mocked(API.write);
-            mockAPIWrite.mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 
             const draftReport = {
                 ...createRandomReport(11, undefined),

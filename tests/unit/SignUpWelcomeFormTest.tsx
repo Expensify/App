@@ -49,14 +49,6 @@ jest.mock('@pages/signin/Terms', () => () => null);
 
 jest.mock('@pages/signin/ChangeExpensifyLoginLink', () => () => null);
 
-jest.mock('@libs/actions/Session', () => {
-    const actual = jest.requireActual<typeof Session>('@libs/actions/Session');
-    return {
-        ...actual,
-        signUpUser: jest.fn(actual.signUpUser),
-    };
-});
-
 const PHONE_LOGIN = '+15555550100@expensify.sms';
 const EMAIL_LOGIN = 'test@expensify.com';
 
@@ -80,7 +72,7 @@ describe('SignUpWelcomeForm', () => {
     let signUpUserSpy: jest.SpyInstance;
 
     beforeEach(() => {
-        signUpUserSpy = jest.mocked(Session.signUpUser).mockImplementation(jest.fn());
+        signUpUserSpy = jest.spyOn(Session, 'signUpUser').mockImplementation(jest.fn());
     });
 
     afterEach(async () => {

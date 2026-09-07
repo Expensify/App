@@ -21,13 +21,7 @@ import Onyx from 'react-native-onyx';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@libs/API', () => {
-    const actual = jest.requireActual<typeof API>('@libs/API');
-    return {
-        ...actual,
-        write: jest.fn(actual.write),
-    };
-});
+jest.mock('@libs/API');
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {
@@ -35,7 +29,7 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
     },
 }));
 
-const writeSpy = jest.mocked(API.write);
+const writeSpy = jest.spyOn(API, 'write');
 
 const MOCK_POLICY_ID = 'MOCK_POLICY_ID';
 const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}` as const;

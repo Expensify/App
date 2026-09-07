@@ -6,8 +6,8 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-const mockAnimatedHighlightStyle = {backgroundColor: 'animated-highlight'};
-jest.mock('@hooks/useAnimatedHighlightStyle', () => jest.fn(() => mockAnimatedHighlightStyle));
+const animatedHighlightStyleMock = {backgroundColor: 'animated-highlight'};
+jest.mock('@hooks/useAnimatedHighlightStyle', () => jest.fn(() => animatedHighlightStyleMock));
 
 const mockUseAnimatedHighlightStyle = jest.mocked(useAnimatedHighlightStyle);
 
@@ -48,7 +48,7 @@ describe('useListItemHighlight', () => {
         // background here would mask the still-running animation on the wrapper underneath.
         expect(highlight.pressableStyle).toContain(styles.bgTransparent);
         expect(highlight.pressableWrapperStyle).toContain(styles.mh5);
-        expect(highlight.pressableWrapperStyle).toContain(mockAnimatedHighlightStyle);
+        expect(highlight.pressableWrapperStyle).toContain(animatedHighlightStyleMock);
     });
 
     it('paints the selected background when selected', () => {
@@ -60,6 +60,6 @@ describe('useListItemHighlight', () => {
     it('returns the animated highlight style for rows that own their pressable layout', () => {
         const {highlight} = renderHighlightHook();
 
-        expect(highlight.animatedHighlightStyle).toBe(mockAnimatedHighlightStyle);
+        expect(highlight.animatedHighlightStyle).toBe(animatedHighlightStyleMock);
     });
 });

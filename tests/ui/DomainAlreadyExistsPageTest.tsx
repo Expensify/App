@@ -26,19 +26,10 @@ import Onyx from 'react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@libs/API', () => {
-    const actual = jest.requireActual<typeof API>('@libs/API');
-    return {
-        ...actual,
-        write: jest.fn(actual.write),
-    };
-});
-
 const DOMAIN_ACCOUNT_ID = 4242;
 const CURRENT_USER_ACCOUNT_ID = 1;
 
-const apiWriteSpy = jest.mocked(API.write);
-apiWriteSpy.mockImplementation(() => Promise.resolve());
+const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();

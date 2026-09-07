@@ -9,8 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-const mockAnimatedHighlightStyle = {backgroundColor: 'animated-highlight'};
-jest.mock('@hooks/useAnimatedHighlightStyle', () => jest.fn(() => mockAnimatedHighlightStyle));
+const animatedHighlightStyleMock = {backgroundColor: 'animated-highlight'};
+jest.mock('@hooks/useAnimatedHighlightStyle', () => jest.fn(() => animatedHighlightStyleMock));
 
 let mockIsLargeScreenWidth = false;
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isLargeScreenWidth: mockIsLargeScreenWidth}));
@@ -88,6 +88,6 @@ describe('useSearchTableItemHighlight', () => {
     it('returns the animated highlight style for rows that own their pressable layout', () => {
         const {highlight} = renderHighlightHook();
 
-        expect(highlight.animatedHighlightStyle).toBe(mockAnimatedHighlightStyle);
+        expect(highlight.animatedHighlightStyle).toBe(animatedHighlightStyleMock);
     });
 });

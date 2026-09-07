@@ -76,11 +76,11 @@ jest.mock('@react-navigation/core', () => ({
 }));
 
 // FlashList never lays out here, so stand in for it to get at onEndReached.
-const mockListProps: {onEndReached?: () => void} = {};
+const listProps: {onEndReached?: () => void} = {};
 jest.mock('@components/Search/SearchList/BaseSearchList', () => ({
     __esModule: true,
     default: (props: {onEndReached?: () => void}) => {
-        mockListProps.onEndReached = props.onEndReached;
+        listProps.onEndReached = props.onEndReached;
         return null;
     },
 }));
@@ -260,7 +260,7 @@ describe('SearchPageNarrow', () => {
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
         mockSearchQueryParam.mockReturnValue(FAILED_QUERY);
         mockIsFocused.mockReturnValue(true);
-        mockListProps.onEndReached = undefined;
+        listProps.onEndReached = undefined;
     });
 
     it('SearchPageNarrow renders correctly', async () => {
@@ -411,14 +411,14 @@ describe('SearchPageNarrow', () => {
             jest.advanceTimersByTime(0);
         });
 
-        expect(mockListProps.onEndReached).toBeDefined();
+        expect(listProps.onEndReached).toBeDefined();
 
         // Mount refresh still in flight when the end of the list is reached.
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: true}});
         });
         await act(async () => {
-            mockListProps.onEndReached?.();
+            listProps.onEndReached?.();
         });
         await act(async () => {
             jest.advanceTimersByTime(0);
@@ -452,7 +452,7 @@ describe('SearchPageNarrow', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: true}});
         });
         await act(async () => {
-            mockListProps.onEndReached?.();
+            listProps.onEndReached?.();
         });
         await act(async () => {
             jest.advanceTimersByTime(0);
@@ -483,7 +483,7 @@ describe('SearchPageNarrow', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: true}});
         });
         await act(async () => {
-            mockListProps.onEndReached?.();
+            listProps.onEndReached?.();
         });
         await act(async () => {
             jest.advanceTimersByTime(0);
@@ -511,7 +511,7 @@ describe('SearchPageNarrow', () => {
         });
 
         await act(async () => {
-            mockListProps.onEndReached?.();
+            listProps.onEndReached?.();
         });
         await act(async () => {
             jest.advanceTimersByTime(0);
@@ -539,7 +539,7 @@ describe('SearchPageNarrow', () => {
             jest.advanceTimersByTime(0);
         });
         await act(async () => {
-            mockListProps.onEndReached?.();
+            listProps.onEndReached?.();
         });
         await act(async () => {
             jest.advanceTimersByTime(0);
@@ -559,7 +559,7 @@ describe('SearchPageNarrow', () => {
         });
 
         await act(async () => {
-            mockListProps.onEndReached?.();
+            listProps.onEndReached?.();
         });
         await act(async () => {
             jest.advanceTimersByTime(0);
@@ -602,7 +602,7 @@ describe('SearchPageNarrow', () => {
         });
 
         await act(async () => {
-            mockListProps.onEndReached?.();
+            listProps.onEndReached?.();
         });
         await act(async () => {
             jest.advanceTimersByTime(0);

@@ -60,14 +60,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
 }));
 
-jest.mock('@libs/actions/Policy/Member', () => {
-    const actual = jest.requireActual<typeof Member>('@libs/actions/Policy/Member');
-    return {
-        ...actual,
-        importPolicyMembers: jest.fn(actual.importPolicyMembers),
-    };
-});
-
 // A Submit (non-Control) workspace, so the import gate's "requires Control" check fires.
 function buildSubmitPolicy(): Policy {
     return {
@@ -215,7 +207,7 @@ describe('ImportedMembersPage', () => {
             PEOPLE_ADMIN_EMAIL,
             PEOPLE_ADMIN_ACCOUNT_ID,
         );
-        const importPolicyMembersSpy = jest.mocked(Member.importPolicyMembers).mockResolvedValue({
+        const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers').mockResolvedValue({
             titleKey: 'spreadsheet.importSuccessfulTitle',
             promptKey: 'spreadsheet.importMembersAdded',
             promptKeyParams: {count: 1},

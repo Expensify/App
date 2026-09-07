@@ -18,11 +18,11 @@ type CapturedPressableProps = {
     onMouseDown?: (event: TestMouseDownEvent) => void;
 };
 
-const mockCapturedProps: {current: CapturedPressableProps | null} = {current: null};
+const capturedProps: {current: CapturedPressableProps | null} = {current: null};
 jest.mock('@components/Pressable/PressableWithFeedback', () => ({
     __esModule: true,
     default: (props: CapturedPressableProps) => {
-        mockCapturedProps.current = props;
+        capturedProps.current = props;
         return null;
     },
 }));
@@ -51,7 +51,7 @@ function makeMouseDownEvent(shiftKey: boolean): TestMouseDownEvent {
 }
 
 function getCapturedMouseDown(): (event: TestMouseDownEvent) => void {
-    const onMouseDown = mockCapturedProps.current?.onMouseDown;
+    const onMouseDown = capturedProps.current?.onMouseDown;
     if (!onMouseDown) {
         throw new Error('PressableWithFeedback did not receive onMouseDown');
     }
@@ -60,7 +60,7 @@ function getCapturedMouseDown(): (event: TestMouseDownEvent) => void {
 
 describe('SelectionButton shift+mousedown', () => {
     beforeEach(() => {
-        mockCapturedProps.current = null;
+        capturedProps.current = null;
         if (document.activeElement instanceof HTMLElement) {
             document.activeElement.blur();
         }

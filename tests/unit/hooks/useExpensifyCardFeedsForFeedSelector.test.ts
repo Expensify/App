@@ -10,7 +10,7 @@ const US_PROGRAM = CONST.COUNTRY.US;
 
 const currentPolicyID = 'policy_current';
 const otherPolicyID = 'policy_other';
-const mockCurrentUserAccountID = 1001;
+const currentUserAccountID = 1001;
 const orphanDomainFundID = 5555;
 
 jest.mock('@hooks/useOnyx', () => jest.fn());
@@ -19,7 +19,7 @@ const mockUseOnyx = jest.mocked(useOnyx);
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: () => ({accountID: mockCurrentUserAccountID}),
+    default: () => ({accountID: currentUserAccountID}),
 }));
 
 function adminPolicy(policyID: string) {
@@ -107,7 +107,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
-                return [{...domainWithAdmin(111, mockCurrentUserAccountID), ...domainWithAdmin(222, mockCurrentUserAccountID)}, {status: 'loaded'}];
+                return [{...domainWithAdmin(111, currentUserAccountID), ...domainWithAdmin(222, currentUserAccountID)}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -143,7 +143,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
-                return [{...domainWithAdmin(10, mockCurrentUserAccountID), ...domainWithAdmin(20, mockCurrentUserAccountID)}, {status: 'loaded'}];
+                return [{...domainWithAdmin(10, currentUserAccountID), ...domainWithAdmin(20, currentUserAccountID)}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -178,7 +178,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
-                return [domainWithAdmin(77, mockCurrentUserAccountID), {status: 'loaded'}];
+                return [domainWithAdmin(77, currentUserAccountID), {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -213,7 +213,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                 return [{...adminPolicy(policyIdUpper), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
-                return [domainWithAdmin(88, mockCurrentUserAccountID), {status: 'loaded'}];
+                return [domainWithAdmin(88, currentUserAccountID), {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -243,7 +243,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
-                return [domainWithAdmin(7, mockCurrentUserAccountID), {status: 'loaded'}];
+                return [domainWithAdmin(7, currentUserAccountID), {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -296,7 +296,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                 return [{...adminPolicy(currentPolicyID)}, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
-                return [domainWithAdmin(orphanDomainFundID, mockCurrentUserAccountID), {status: 'loaded'}];
+                return [domainWithAdmin(orphanDomainFundID, currentUserAccountID), {status: 'loaded'}];
             }
             if (key === ONYXKEYS.CARD_LIST) {
                 return [{card1: {bank: CONST.EXPENSIFY_CARD.BANK, fundID: orphanDomainFundID.toString()}}, {status: 'loaded'}];

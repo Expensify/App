@@ -60,25 +60,6 @@ jest.mock('@components/OfflineWithFeedback', () => {
     return jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children));
 });
 
-jest.mock('@libs/MoneyRequestReportUtils', () => {
-    const actual = jest.requireActual<typeof MoneyRequestReportUtils>('@libs/MoneyRequestReportUtils');
-    return {
-        ...actual,
-        getAllNonDeletedTransactions: jest.fn(actual.getAllNonDeletedTransactions),
-        shouldWaitForTransactions: jest.fn(actual.shouldWaitForTransactions),
-        shouldDisplayReportTableView: jest.fn(actual.shouldDisplayReportTableView),
-    };
-});
-
-jest.mock('@libs/ReportActionsUtils', () => {
-    const actual = jest.requireActual<typeof ReportActionsUtils>('@libs/ReportActionsUtils');
-    return {
-        ...actual,
-        getFilteredReportActionsForReportView: jest.fn(actual.getFilteredReportActionsForReportView),
-        getOneTransactionThreadReportID: jest.fn(actual.getOneTransactionThreadReportID),
-    };
-});
-
 const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
@@ -177,11 +158,11 @@ describe('MoneyRequestReportView', () => {
 
         // Drive the branch deterministically: no transactions, a resolved transaction-thread id (so the
         // report isn't treated as empty), and a non-empty filtered action set.
-        jest.mocked(MoneyRequestReportUtils.getAllNonDeletedTransactions).mockReturnValue([]);
-        jest.mocked(MoneyRequestReportUtils.shouldWaitForTransactions).mockReturnValue(false);
-        jest.mocked(MoneyRequestReportUtils.shouldDisplayReportTableView).mockReturnValue(false);
-        jest.mocked(ReportActionsUtils.getFilteredReportActionsForReportView).mockReturnValue(mockReportActions);
-        jest.mocked(ReportActionsUtils.getOneTransactionThreadReportID).mockReturnValue('thread-1');
+        jest.spyOn(MoneyRequestReportUtils, 'getAllNonDeletedTransactions').mockReturnValue([]);
+        jest.spyOn(MoneyRequestReportUtils, 'shouldWaitForTransactions').mockReturnValue(false);
+        jest.spyOn(MoneyRequestReportUtils, 'shouldDisplayReportTableView').mockReturnValue(false);
+        jest.spyOn(ReportActionsUtils, 'getFilteredReportActionsForReportView').mockReturnValue(mockReportActions);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue('thread-1');
     });
 
     afterEach(async () => {
@@ -210,7 +191,7 @@ describe('MoneyRequestReportView', () => {
     });
 
     it('mounts the money-request table view (not the chat body or typing listener) when a table view should display', () => {
-        jest.mocked(MoneyRequestReportUtils.shouldDisplayReportTableView).mockReturnValue(true);
+        jest.spyOn(MoneyRequestReportUtils, 'shouldDisplayReportTableView').mockReturnValue(true);
 
         renderMoneyRequestReportView(jest.fn());
 

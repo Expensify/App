@@ -258,13 +258,13 @@ jest.mock('@components/Search/SearchContext', () => ({
 
 const mockGetExportTemplates = jest.mocked(getExportTemplates);
 
-const mockCurrentUserAccountID = 1;
+const CURRENT_USER_ACCOUNT_ID = 1;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         login: 'test@example.com',
-        accountID: mockCurrentUserAccountID,
+        accountID: CURRENT_USER_ACCOUNT_ID,
         email: 'test@example.com',
     })),
 }));
@@ -335,7 +335,7 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         total: 100,
         currency: 'USD',
         chatReportID: undefined,
-        ownerAccountID: mockCurrentUserAccountID,
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ...overrides,
     };
@@ -364,14 +364,14 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
 /** A complete report as it arrives from the search API (lives in the snapshot, not live Onyx on a fresh load). */
 function makeSnapshotReport(reportID: string = REPORT_ID, policyID: string = POLICY_ID): Report {
     return {
-        ...createRandomReport(mockCurrentUserAccountID, undefined),
+        ...createRandomReport(CURRENT_USER_ACCOUNT_ID, undefined),
         reportID,
         policyID,
         reportName: 'Approved report',
         type: CONST.REPORT.TYPE.EXPENSE,
         stateNum: CONST.REPORT.STATE_NUM.APPROVED,
         statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-        ownerAccountID: mockCurrentUserAccountID,
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
     };
 }
 
@@ -474,7 +474,7 @@ describe('useSearchBulkActions - export options', () => {
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
         mockAreAllMatchingItemsSelected = false;
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: mockCurrentUserAccountID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         // A policy connected to NetSuite so the integration export branch is reachable.
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
             id: POLICY_ID,
@@ -521,7 +521,7 @@ describe('useSearchBulkActions - export options', () => {
 
         // The export gate received the snapshot report even though live Onyx had none.
         expect(mockGetSecondaryExportReportActions).toHaveBeenCalledWith(
-            mockCurrentUserAccountID,
+            CURRENT_USER_ACCOUNT_ID,
             'test@example.com',
             expect.objectContaining({reportID: REPORT_ID}),
             undefined,

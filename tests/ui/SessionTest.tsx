@@ -31,31 +31,6 @@ jest.mock('@libs/BootSplash', () => ({
     hide: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('@libs/actions/Session', () => {
-    const actual = jest.requireActual<typeof Session>('@libs/actions/Session');
-    return {
-        ...actual,
-        signInWithShortLivedAuthToken: jest.fn(actual.signInWithShortLivedAuthToken),
-        signInWithSupportAuthToken: jest.fn(actual.signInWithSupportAuthToken),
-    };
-});
-
-jest.mock('@libs/actions/App', () => {
-    const actual = jest.requireActual<typeof AppActions>('@libs/actions/App');
-    return {
-        ...actual,
-        openApp: jest.fn(actual.openApp),
-    };
-});
-
-jest.mock('@libs/actions/Device', () => {
-    const actual = jest.requireActual<typeof Device>('@libs/actions/Device');
-    return {
-        ...actual,
-        getDeviceInfoWithID: jest.fn(actual.getDeviceInfoWithID),
-    };
-});
-
 const TEST_USER_ACCOUNT_ID_1 = 123;
 const TEST_USER_LOGIN_1 = 'test@test.com';
 // cspell:disable-next-line
@@ -125,7 +100,7 @@ describe('Deep linking', () => {
         // the real signInWithShortLivedAuthToken so it sets NetworkStore.lastShortAuthToken —
         // the token-cache guard in LogInWithShortLivedAuthTokenPage reads that value to skip
         // re-authentication after sign-out, which is exactly what the second test asserts.
-        jest.mocked(Session.signInWithShortLivedAuthToken).mockImplementation(() => {
+        jest.spyOn(Session, 'signInWithShortLivedAuthToken').mockImplementation(() => {
             Onyx.multiSet({
                 [ONYXKEYS.CREDENTIALS]: {
                     login: TEST_USER_LOGIN_1,
@@ -157,7 +132,7 @@ describe('Deep linking', () => {
         // the relationship between the computed report collection key and its production value type.
         const reportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
         const reportData = createMock<Pick<OnyxMultiSetInput, typeof reportKey>>({[reportKey]: report});
-        jest.mocked(AppActions.openApp).mockImplementation(() =>
+        jest.spyOn(AppActions, 'openApp').mockImplementation(() =>
             Onyx.multiSet({
                 ...reportData,
                 [ONYXKEYS.IS_LOADING_APP]: false,
@@ -283,10 +258,10 @@ describe('Support auth token login', () => {
         jest.restoreAllMocks();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
 
-        jest.mocked(Session.signInWithSupportAuthToken).mockImplementation(() => {});
+        jest.spyOn(Session, 'signInWithSupportAuthToken').mockImplementation(() => {});
 
         // Set the keys the app needs to finish loading rather than going through a full OpenApp round-trip.
-        jest.mocked(AppActions.openApp).mockImplementation(() =>
+        jest.spyOn(AppActions, 'openApp').mockImplementation(() =>
             Onyx.multiSet({
                 [ONYXKEYS.IS_LOADING_APP]: false,
                 [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
@@ -433,7 +408,7 @@ describe('signInWithShortLivedAuthToken', () => {
     // optimisticData never runs; the flag can therefore only be true if it was set synchronously.
     it('sets the in-flight guard synchronously, before the device-info promise resolves', async () => {
         let resolveDeviceInfo!: (value: string) => void;
-        jest.mocked(Device.getDeviceInfoWithID).mockReturnValue(
+        jest.spyOn(Device, 'getDeviceInfoWithID').mockReturnValue(
             new Promise<string>((resolve) => {
                 resolveDeviceInfo = resolve;
             }),

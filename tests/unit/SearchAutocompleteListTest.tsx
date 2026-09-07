@@ -154,14 +154,6 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-jest.mock('@libs/OptionsListUtils', () => {
-    const actual = jest.requireActual<typeof OptionsListUtils>('@libs/OptionsListUtils');
-    return {
-        ...actual,
-        createOptionFromReport: jest.fn(actual.createOptionFromReport),
-    };
-});
-
 const getMockedReports = (length = 10) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
@@ -382,7 +374,7 @@ describe('SearchAutocompleteList', () => {
             participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
         };
         mockRootNavigationState.mockReturnValue({contextualReportID, isSearchRouterScreen: true});
-        const createOptionFromReportSpy = jest.mocked(OptionsListUtils.createOptionFromReport);
+        const createOptionFromReportSpy = jest.spyOn(OptionsListUtils, 'createOptionFromReport');
 
         await waitForBatchedUpdates();
         await Onyx.multiSet({

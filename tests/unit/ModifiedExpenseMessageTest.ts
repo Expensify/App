@@ -27,14 +27,10 @@ jest.mock('@libs/PolicyUtils', () => ({
 }));
 
 // Mock ReportNameUtils so buildReportNameFromParticipantNames is controllable.
-jest.mock('@libs/ReportNameUtils', () => {
-    const actual = jest.requireActual<typeof ReportNameUtils>('@libs/ReportNameUtils');
-    return {
-        ...actual,
-        buildReportNameFromParticipantNames: jest.fn(),
-        getReportName: jest.fn(actual.getReportName),
-    };
-});
+jest.mock('@libs/ReportNameUtils', () => ({
+    ...jest.requireActual<typeof ReportNameUtils>('@libs/ReportNameUtils'),
+    buildReportNameFromParticipantNames: jest.fn(),
+}));
 
 const MOVED_TO_REPORT_ID = '1';
 const MOVED_FROM_REPORT_ID = '2';
@@ -47,7 +43,7 @@ describe('ModifiedExpenseMessage', () => {
 
     beforeEach(() => {
         // The `getReportName` method is quite complex, and we don't need to test it here
-        jest.mocked(ReportNameUtils.getReportName).mockImplementation((report) => report?.reportName ?? '');
+        jest.spyOn(ReportNameUtils, 'getReportName').mockImplementation((report) => report?.reportName ?? '');
     });
 
     afterEach(() => {
@@ -1119,7 +1115,7 @@ describe('ModifiedExpenseMessage', () => {
                     outputCurrency: 'USD',
                 };
 
-                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(true);
+                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -1843,7 +1839,7 @@ describe('ModifiedExpenseMessage', () => {
             });
 
             it('returns the non-admin MCC message when a valid policy is provided but user is not an admin', () => {
-                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(false);
+                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(false);
 
                 const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
 
@@ -1876,7 +1872,7 @@ describe('ModifiedExpenseMessage', () => {
                     outputCurrency: 'USD',
                 };
 
-                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(true);
+                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
 
                 const result = getForReportAction({
                     convertToDisplayString,

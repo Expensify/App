@@ -40,14 +40,6 @@ jest.mock('@libs/ActiveClientManager', () => ({
     isReady: jest.fn(() => Promise.resolve()),
     init: jest.fn(),
 }));
-
-jest.mock('@libs/Network/SequentialQueue', () => {
-    const actual = jest.requireActual<typeof SequentialQueue>('@libs/Network/SequentialQueue');
-    return {
-        ...actual,
-        unpause: jest.fn(actual.unpause),
-    };
-});
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 
 const OnyxUpdates = jest.requireMock<OnyxUpdatesMock<never>>('@userActions/OnyxUpdates');
@@ -447,7 +439,7 @@ describe('OnyxUpdateManager', () => {
     });
 
     it('should resume the SequentialQueue exactly once when a duplicate arrives while a fetch is already in flight', async () => {
-        const unpauseSpy = jest.mocked(SequentialQueue.unpause);
+        const unpauseSpy = jest.spyOn(SequentialQueue, 'unpause');
 
         // Fire a duplicate mid-cycle, after the deferred queue is drained but while the fetch is still in flight, to simulate a concurrent Pusher update.
         ApplyUpdates.mockValues.beforeApplyUpdates = async () => {
@@ -669,7 +661,7 @@ describe('OnyxUpdateManager', () => {
         await OnyxUpdateManager.queryPromise;
 
         // The backed-off cycle must still finalize and resume the queue, or the app would freeze.
-        const unpauseSpy = jest.mocked(SequentialQueue.unpause);
+        const unpauseSpy = jest.spyOn(SequentialQueue, 'unpause');
         OnyxUpdateManager.handleMissingOnyxUpdates(update5);
         // queryPromise resolves on the first finalize, so drain microtasks first: a leaked second finalize
         // would resume the queue a second time and must get the chance to surface before the assertion.

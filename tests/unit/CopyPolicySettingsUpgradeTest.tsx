@@ -19,13 +19,13 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const mockSourcePolicyID = 'source-policy-1';
+const SOURCE_POLICY_ID = 'source-policy-1';
 const TARGET_POLICY_ID = 'target-policy-1';
 const TEST_USER_EMAIL = 'test@expensify.com';
 const TEST_USER_ACCOUNT_ID = 12345;
 
 // Capture the props passed to the upgrade intro card so the test can drive onUpgrade and read loading.
-let mockCapturedIntroProps: UpgradeIntroViewProps | null = null;
+let capturedIntroProps: UpgradeIntroViewProps | null = null;
 
 // jest.mock factories can't reference imported bindings, but `mock`-prefixed locals are allowed.
 const MockView = View;
@@ -33,7 +33,7 @@ const MockView = View;
 jest.mock('@pages/workspace/upgrade/UpgradeIntroView', () => ({
     __esModule: true,
     default: (props: UpgradeIntroViewProps) => {
-        mockCapturedIntroProps = props;
+        capturedIntroProps = props;
         return <MockView testID="upgrade-intro" />;
     },
 }));
@@ -65,7 +65,7 @@ jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualNav,
-        useRoute: () => ({params: {policyID: mockSourcePolicyID}}),
+        useRoute: () => ({params: {policyID: SOURCE_POLICY_ID}}),
         useIsFocused: () => true,
         useNavigation: () => ({
             navigate: jest.fn(),
@@ -129,13 +129,13 @@ describe('CopyPolicySettingsUpgradePage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockCapturedIntroProps = null;
+        capturedIntroProps = null;
         await Onyx.clear();
         // Control source, Collect (Team) target, with a Control-only part selected so an upgrade is required.
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${mockSourcePolicyID}`, createTestPolicy(mockSourcePolicyID, 'Source Workspace', CONST.POLICY.TYPE.CORPORATE));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, createTestPolicy(SOURCE_POLICY_ID, 'Source Workspace', CONST.POLICY.TYPE.CORPORATE));
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_ID}`, createTestPolicy(TARGET_POLICY_ID, 'Target Workspace', CONST.POLICY.TYPE.TEAM));
         await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
-            sourcePolicyID: mockSourcePolicyID,
+            sourcePolicyID: SOURCE_POLICY_ID,
             targetPolicyIDs: [TARGET_POLICY_ID],
             parts: ['rules'] as Part[],
         });
@@ -158,7 +158,7 @@ describe('CopyPolicySettingsUpgradePage', () => {
 
         // When the user presses Upgrade, the bulk upgrade fires.
         act(() => {
-            mockCapturedIntroProps?.onUpgrade();
+            capturedIntroProps?.onUpgrade();
         });
         await waitForBatchedUpdates();
         expect(mockBulkUpgradeToCorporate).toHaveBeenCalledTimes(1);
@@ -172,7 +172,7 @@ describe('CopyPolicySettingsUpgradePage', () => {
         // Success must not show while the upgrade is pending; the intro button shows loading instead.
         expect(screen.queryByTestId('upgrade-success')).toBeNull();
         expect(screen.getByTestId('upgrade-intro')).toBeTruthy();
-        expect(mockCapturedIntroProps?.loading).toBe(true);
+        expect(capturedIntroProps?.loading).toBe(true);
 
         // When the backend confirms (isPendingUpgrade cleared), the success confirmation is shown.
         await act(async () => {
@@ -183,7 +183,7 @@ describe('CopyPolicySettingsUpgradePage', () => {
         expect(screen.getByTestId('upgrade-success')).toBeTruthy();
         expect(screen.queryByTestId('upgrade-intro')).toBeNull();
         // Showing success must not, by itself, navigate to Confirm.
-        expect(mockNavigate).not.toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(mockSourcePolicyID));
+        expect(mockNavigate).not.toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(SOURCE_POLICY_ID));
     });
 
     it('does not show success when the bulk upgrade fails', async () => {
@@ -191,7 +191,7 @@ describe('CopyPolicySettingsUpgradePage', () => {
         await waitForBatchedUpdates();
 
         act(() => {
-            mockCapturedIntroProps?.onUpgrade();
+            capturedIntroProps?.onUpgrade();
         });
         await waitForBatchedUpdates();
 
@@ -210,7 +210,7 @@ describe('CopyPolicySettingsUpgradePage', () => {
         // The intro stays visible (so the user can retry), success is never shown, and Continue isn't reachable.
         expect(screen.getByTestId('upgrade-intro')).toBeTruthy();
         expect(screen.queryByTestId('upgrade-success')).toBeNull();
-        expect(mockCapturedIntroProps?.loading).toBe(false);
-        expect(mockNavigate).not.toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(mockSourcePolicyID));
+        expect(capturedIntroProps?.loading).toBe(false);
+        expect(mockNavigate).not.toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(SOURCE_POLICY_ID));
     });
 });

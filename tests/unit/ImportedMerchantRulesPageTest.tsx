@@ -23,7 +23,7 @@ import Onyx from 'react-native-onyx';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const mockPolicyID = 'imported-merchant-rules-test-policy';
+const POLICY_ID = 'imported-merchant-rules-test-policy';
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_ACCOUNT_ID = 1;
 
@@ -45,7 +45,7 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: () => true,
         useFocusEffect: jest.fn(),
         usePreventRemove: jest.fn(),
-        useRoute: () => ({key: 'test-route', name: 'Rules_Merchant_Imported', params: {policyID: mockPolicyID}}),
+        useRoute: () => ({key: 'test-route', name: 'Rules_Merchant_Imported', params: {policyID: POLICY_ID}}),
     };
 });
 
@@ -61,19 +61,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
 }));
 
-jest.mock('@libs/actions/Policy/Rules', () => {
-    const actual = jest.requireActual<typeof Rules>('@libs/actions/Policy/Rules');
-    return {
-        ...actual,
-        importMerchantRulesSpreadsheet: jest.fn(actual.importMerchantRulesSpreadsheet),
-    };
-});
-
 // A Control workspace with Rules enabled and the current user as admin, so the page's
 // AccessOrNotFoundWrapper renders the import content instead of the not-found fallback.
 function buildRulesEnabledControlPolicy(): Policy {
     return {
-        id: mockPolicyID,
+        id: POLICY_ID,
         name: 'Test Control Workspace',
         type: CONST.POLICY.TYPE.CORPORATE,
         role: CONST.POLICY.ROLE.ADMIN,
@@ -134,7 +126,7 @@ function buildInvalidCategorySpreadsheet(): ImportedSpreadsheet {
 const mockRoute = {
     key: 'test-route',
     name: 'Rules_Merchant_Imported',
-    params: {policyID: mockPolicyID},
+    params: {policyID: POLICY_ID},
 };
 
 function renderImportedMerchantRulesPage() {
@@ -151,7 +143,7 @@ function renderImportedMerchantRulesPage() {
 async function seedOnyx(isOffline: boolean, spreadsheet: ImportedSpreadsheet = buildSpreadsheet()) {
     await act(async () => {
         await Onyx.clear();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicyID}`, buildRulesEnabledControlPolicy());
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildRulesEnabledControlPolicy());
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ADMIN_ACCOUNT_ID]: buildPersonalDetails(ADMIN_EMAIL, ADMIN_ACCOUNT_ID, 'admin')});
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
@@ -353,7 +345,7 @@ describe('ImportedMerchantRulesPage', () => {
             // every category invalid. The short-circuit hinges on categories we couldn't validate, so it isn't safe offline.
             await seedOnyx(true, buildInvalidCategorySpreadsheet());
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicyID}`, {areCategoriesEnabled: true});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true});
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -374,7 +366,7 @@ describe('ImportedMerchantRulesPage', () => {
 
         it('short-circuits locally without calling the import API when pressing Import offline for the all-skipped path', async () => {
             await seedOnyx(true, buildInvalidCategorySpreadsheet());
-            const importSpy = jest.mocked(Rules.importMerchantRulesSpreadsheet);
+            const importSpy = jest.spyOn(Rules, 'importMerchantRulesSpreadsheet');
 
             renderImportedMerchantRulesPage();
             await waitForBatchedUpdatesWithAct();

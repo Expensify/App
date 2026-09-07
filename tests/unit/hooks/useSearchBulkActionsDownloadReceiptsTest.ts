@@ -95,13 +95,13 @@ jest.mock('@components/Search/SearchContext', () => ({
     }),
 }));
 
-const mockCurrentUserAccountID = 1;
+const CURRENT_USER_ACCOUNT_ID = 1;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         login: 'test@example.com',
-        accountID: mockCurrentUserAccountID,
+        accountID: CURRENT_USER_ACCOUNT_ID,
         email: 'test@example.com',
     })),
 }));
@@ -156,7 +156,7 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         total: 100,
         currency: 'USD',
         chatReportID: undefined,
-        ownerAccountID: mockCurrentUserAccountID,
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ...overrides,
     };
@@ -247,10 +247,10 @@ describe('useSearchBulkActions - Download receipts', () => {
         mockCurrentSearchResults = undefined;
         mockAreAllMatchingItemsSelected = false;
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: mockCurrentUserAccountID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
             reportID: '1',
-            ownerAccountID: mockCurrentUserAccountID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             reportName: 'Report 1',
         });
@@ -293,7 +293,7 @@ describe('useSearchBulkActions - Download receipts', () => {
         it('sends the selected report IDs to exportReceiptsToZip', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
                 reportID: '2',
-                ownerAccountID: mockCurrentUserAccountID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 reportName: 'Report 2',
             });

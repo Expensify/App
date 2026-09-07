@@ -1,5 +1,4 @@
 import {importCSVCompanyCards} from '@libs/actions/CompanyCards';
-import * as APIModule from '@libs/API';
 import type {ImportCSVCompanyCardsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
@@ -12,14 +11,6 @@ import type {CardFeeds} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-jest.mock('@libs/API', () => {
-    const actual = jest.requireActual<typeof APIModule>('@libs/API');
-    return {
-        ...actual,
-        write: jest.fn(actual.write),
-    };
-});
 
 const POLICY_ID = 'POLICY_1';
 const DOMAIN_ACCOUNT_ID = 777;
@@ -40,8 +31,7 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
 
     it('targets the feed-owning domain account when re-importing a domain feed surfaced via a preferred workspace', () => {
         // Given a domain feed (its NVPs live on the +@domain account, not the workspace account) that is re-imported
-        const apiWriteSpy = jest.mocked(APIModule.write);
-        apiWriteSpy.mockImplementation(() => Promise.resolve());
+        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
         // When importing with an explicit domainAccountID and no cached feeds for that account
         importCSVCompanyCards({
@@ -84,8 +74,7 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
 
     it('does not optimistically create the feed when it already exists on the target account', () => {
         // Given the target account already has the feed and a nickname for it
-        const apiWriteSpy = jest.mocked(APIModule.write);
-        apiWriteSpy.mockImplementation(() => Promise.resolve());
+        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
         const existingFeeds: CardFeeds = {
             settings: {
@@ -127,7 +116,7 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
 
         beforeEach(() => {
             sentImports.length = 0;
-            jest.mocked(APIModule.write).mockImplementation((...args: unknown[]) => {
+            jest.spyOn(require('@libs/API'), 'write').mockImplementation((...args: unknown[]) => {
                 const parameters = args.at(1);
                 if (isImportCSVCompanyCardsParams(parameters)) {
                     sentImports.push(parameters);

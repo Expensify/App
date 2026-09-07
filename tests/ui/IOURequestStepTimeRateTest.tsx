@@ -4,8 +4,6 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import * as MoneyRequestActions from '@libs/actions/IOU/MoneyRequest';
-
 import IOURequestStepTimeRate from '@pages/iou/request/step/IOURequestStepTimeRate';
 
 import type {IOUAction} from '@src/CONST';
@@ -62,16 +60,6 @@ jest.mock('@hooks/useResponsiveLayout', () => () => ({
     isLargeScreenWidth: true,
 }));
 
-jest.mock('@libs/actions/IOU/MoneyRequest', () => {
-    const actual = jest.requireActual<typeof MoneyRequestActions>('@libs/actions/IOU/MoneyRequest');
-    return {
-        ...actual,
-        setMoneyRequestAmount: jest.fn(actual.setMoneyRequestAmount),
-        setMoneyRequestMerchant: jest.fn(actual.setMoneyRequestMerchant),
-        setMoneyRequestTimeRate: jest.fn(actual.setMoneyRequestTimeRate),
-    };
-});
-
 const ACCOUNT_ID = 1;
 const ACCOUNT_LOGIN = 'test@user.com';
 const TRANSACTION_ID = 'transaction-1';
@@ -93,9 +81,9 @@ describe('IOURequestStepTimeRate', () => {
         jest.clearAllMocks();
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
-        setMoneyRequestAmountSpy = jest.mocked(MoneyRequestActions.setMoneyRequestAmount);
-        setMoneyRequestMerchantSpy = jest.mocked(MoneyRequestActions.setMoneyRequestMerchant);
-        setMoneyRequestTimeRateSpy = jest.mocked(MoneyRequestActions.setMoneyRequestTimeRate);
+        setMoneyRequestAmountSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestAmount');
+        setMoneyRequestMerchantSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestMerchant');
+        setMoneyRequestTimeRateSpy = jest.spyOn(require('@libs/actions/IOU/MoneyRequest'), 'setMoneyRequestTimeRate');
     });
 
     afterEach(async () => {

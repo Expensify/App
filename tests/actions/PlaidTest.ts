@@ -4,14 +4,10 @@ import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 
-jest.mock('@libs/API', () => {
-    const actual = jest.requireActual<typeof API>('@libs/API');
-    return {
-        ...actual,
-        read: jest.fn(actual.read),
-        write: jest.fn(actual.write),
-    };
-});
+jest.mock('@libs/API', () => ({
+    read: jest.fn(),
+    write: jest.fn(),
+}));
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {
@@ -19,8 +15,8 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
     },
 }));
 
-const readSpy = jest.mocked(API.read);
-const writeSpy = jest.mocked(API.write);
+const readSpy = jest.spyOn(API, 'read');
+const writeSpy = jest.spyOn(API, 'write');
 
 describe('actions/Plaid', () => {
     beforeEach(() => {

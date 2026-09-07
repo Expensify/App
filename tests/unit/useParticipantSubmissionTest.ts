@@ -4,7 +4,7 @@ import type {UseParticipantSubmissionParams} from '@hooks/useParticipantSubmissi
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
 
 import Navigation from '@libs/Navigation/Navigation';
-// ReportUtils has only named exports, so a namespace import is required to mock findSelfDMReportID (below).
+// ReportUtils has only named exports, so a namespace import is required to jest.spyOn findSelfDMReportID (below).
 // eslint-disable-next-line no-restricted-imports -- findSelfDMReportID is not a billing/paid-only helper; the rule only warns because the namespace also exposes isPaidGroupPolicy*, which this test never uses.
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -49,19 +49,11 @@ jest.mock('@hooks/usePersonalPolicy', () => ({__esModule: true, default: () => u
 jest.mock('@hooks/usePolicyForMovingExpenses', () => ({__esModule: true, default: () => ({policyForMovingExpenses: undefined})}));
 jest.mock('@hooks/useTransactionsByID', () => ({__esModule: true, default: () => [[]]}));
 
-jest.mock('@libs/ReportUtils', () => {
-    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
-    return {
-        ...actual,
-        findSelfDMReportID: jest.fn(actual.findSelfDMReportID),
-    };
-});
-
 const mockGoBack = jest.mocked(Navigation.goBack);
-// Keep the real ReportUtils and mock only findSelfDMReportID: goToNextStep anchors the reconstructed SUBMIT backTo on the
+// Keep the real ReportUtils and spy only on findSelfDMReportID: goToNextStep anchors the reconstructed SUBMIT backTo on the
 // self DM, so a test needs to pin that reportID to assert the picker route targets the writable self DM (or, when it resolves
 // to undefined, to assert the cold-start fallback).
-const mockFindSelfDMReportID = jest.mocked(ReportUtils.findSelfDMReportID);
+const mockFindSelfDMReportID = jest.spyOn(ReportUtils, 'findSelfDMReportID');
 
 const RECIPIENT: Participant = {accountID: 2, login: 'recipient@example.com', reportID: 'R2'};
 

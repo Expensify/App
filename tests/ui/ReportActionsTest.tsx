@@ -26,13 +26,13 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const mockReportID = '123';
+const REPORT_ID = '123';
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
         ...actualNav,
-        useRoute: jest.fn(() => ({params: {reportID: mockReportID}})),
+        useRoute: jest.fn(() => ({params: {reportID: REPORT_ID}})),
     };
 });
 
@@ -87,7 +87,7 @@ const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportA
 };
 
 const mockReport: OnyxTypes.Report = {
-    reportID: mockReportID,
+    reportID: REPORT_ID,
     reportName: 'Test Report',
     chatReportID: '456',
     ownerAccountID: 123,
@@ -114,7 +114,7 @@ const setupUseOnyx = (options: {report?: OnyxTypes.Report | undefined; isLoading
         if (key.includes('reportLoadingState')) {
             return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true, ...loadingState}, {status: 'loaded'}];
         }
-        if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`) {
+        if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
             return [report, {status: 'loaded'}];
         }
         return [undefined, {status: 'loaded'}];
@@ -187,7 +187,7 @@ describe('ReportActions (orchestrator)', () => {
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         expect(mockMoneyRequestList).not.toHaveBeenCalled();
         expect(mockReportActionsListBody).toHaveBeenCalled();
-        expect(mockReportActionsListBody.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({reportID: mockReportID}));
+        expect(mockReportActionsListBody.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({reportID: REPORT_ID}));
         expect(mockUserTypingEventListener).toHaveBeenCalled();
         expect(mockUserTypingEventListener.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({report: mockReport}));
     });
@@ -199,7 +199,7 @@ describe('ReportActions (orchestrator)', () => {
 
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
-        expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReportID, mockReport, {warm: false});
+        expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(REPORT_ID, mockReport, {warm: false});
     });
 
     it('mounts the body (not the orchestrator app-load skeleton) for a Concierge report during app load', () => {

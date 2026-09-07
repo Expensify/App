@@ -43,23 +43,15 @@ const optimisticAction = {
     childManagerAccountID: iouReportR14932.managerID,
     isOptimisticAction: true,
 };
-const mockCurrentUserEmail = 'test@example.com';
-const mockCurrentUserAccountID = 1;
+const CURRENT_USER_EMAIL = 'test@example.com';
+const CURRENT_USER_ACCOUNT_ID = 1;
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({
-        email: mockCurrentUserEmail,
-        accountID: mockCurrentUserAccountID,
+        email: CURRENT_USER_EMAIL,
+        accountID: CURRENT_USER_ACCOUNT_ID,
     })),
 }));
-
-jest.mock('@src/libs/PersonalDetailsUtils', () => {
-    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@src/libs/PersonalDetailsUtils');
-    return {
-        ...actual,
-        getPersonalDetailByEmail: jest.fn(actual.getPersonalDetailByEmail),
-    };
-});
 
 describe('useReportPreviewSenderID', () => {
     const mockedDMChatRoom = {...chatReportR14932, chatType: undefined};
@@ -73,12 +65,12 @@ describe('useReportPreviewSenderID', () => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: mockCurrentUserAccountID, email: mockCurrentUserEmail},
+                [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL},
             },
         });
 
         initOnyxDerivedValues();
-        jest.mocked(PersonalDetailsUtils.getPersonalDetailByEmail).mockImplementation((email?: string) => {
+        jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockImplementation((email?: string) => {
             if (!email) {
                 return undefined;
             }
@@ -214,6 +206,6 @@ describe('useReportPreviewSenderID', () => {
             {wrapper: OnyxListItemProvider},
         );
         await waitForBatchedUpdatesWithAct();
-        expect(result.current).toBe(mockCurrentUserAccountID);
+        expect(result.current).toBe(CURRENT_USER_ACCOUNT_ID);
     });
 });

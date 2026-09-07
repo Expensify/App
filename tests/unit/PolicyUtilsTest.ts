@@ -103,11 +103,11 @@ const CARLOS_EMAIL = 'cmartins@expensifail.com';
 function toLocaleDigitMock(dot: string): string {
     return dot;
 }
-const mockGeneratedAccountID = '555555';
+const GENERATED_ACCOUNT_ID = '555555';
 
 jest.mock('@libs/UserUtils', () => ({
-    // generateAccountID: () => mockGeneratedAccountID,
-    generateAccountID: jest.fn(() => mockGeneratedAccountID),
+    // generateAccountID: () => GENERATED_ACCOUNT_ID,
+    generateAccountID: jest.fn().mockReturnValue(GENERATED_ACCOUNT_ID),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({

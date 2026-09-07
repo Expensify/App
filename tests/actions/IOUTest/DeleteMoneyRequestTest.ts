@@ -37,7 +37,7 @@ import PusherHelper from '../../utils/PusherHelper';
 import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockTopMostReportID = '23423423';
+const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
@@ -46,7 +46,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigateBackToLastSuperWideRHPScreen: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
-    getTopmostReportId: jest.fn(() => mockTopMostReportID),
+    getTopmostReportId: jest.fn(() => topMostReportID),
     setNavigationActionToMicrotaskQueue: jest.fn(),
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),

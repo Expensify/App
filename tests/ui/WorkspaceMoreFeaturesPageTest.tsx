@@ -48,7 +48,7 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
 jest.mock('@hooks/useIsPolicyConnectedToUberReceiptPartner', () => ({__esModule: true, default: jest.fn(() => false)}));
 
 jest.mock('@libs/CardUtils', () => {
-    const actual: typeof CardUtils = jest.requireActual<typeof CardUtils>('@libs/CardUtils');
+    const actual: typeof CardUtils = jest.requireActual('@libs/CardUtils');
     return {
         ...actual,
         isSmartLimitEnabled: jest.fn(() => false),
@@ -57,19 +57,11 @@ jest.mock('@libs/CardUtils', () => {
 });
 
 jest.mock('@libs/PolicyUtils', () => {
-    const actual: typeof PolicyUtils = jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils');
+    const actual: typeof PolicyUtils = jest.requireActual('@libs/PolicyUtils');
     return {
         ...actual,
         hasAccountingConnections: jest.fn(() => false),
         hasAccountingFeatureConnection: jest.fn(() => false),
-    };
-});
-
-jest.mock('@userActions/Report', () => {
-    const actual = jest.requireActual<typeof ReportActions>('@userActions/Report');
-    return {
-        ...actual,
-        navigateToConciergeChat: jest.fn(actual.navigateToConciergeChat),
     };
 });
 
@@ -132,7 +124,7 @@ const hasAccountingFeatureConnectionMock = jest.mocked(PolicyUtils.hasAccounting
 const useIsUberConnectedMock = jest.mocked(useIsPolicyConnectedToUberReceiptPartner);
 
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => undefined);
-const navigateToConciergeChatSpy = jest.mocked(ReportActions.navigateToConciergeChat).mockImplementation(() => Promise.resolve());
+const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => Promise.resolve());
 
 function escapeRegExp(value: string): string {
     return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');

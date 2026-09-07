@@ -46,14 +46,6 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import {createGlobalFetchMock, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@libs/API', () => {
-    const actual = jest.requireActual<typeof API>('@libs/API');
-    return {
-        ...actual,
-        write: jest.fn(actual.write),
-    };
-});
-
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -2151,8 +2143,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
     describe('updateMoneyRequestDate distance rate recalculation', () => {
         it('calls UpdateMoneyRequestDistanceRate with created when a workspace distance expense date change selects a different rate', async () => {
-            const writeSpy = jest.mocked(API.write);
-            writeSpy.mockImplementation(jest.fn());
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_rate_switch';
             const transactionThreadReportID = 'thread_date_rate_switch';
             const expenseReportID = 'expense_report_date_rate_switch';
@@ -2286,8 +2277,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
         it('calls UpdateMoneyRequestDate only when the current rate remains eligible for the new date', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify date-only update path.
-            const writeSpy = jest.mocked(API.write);
-            writeSpy.mockImplementation(jest.fn());
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_same_rate';
             const transactionThreadReportID = 'thread_date_same_rate';
             const expenseReportID = 'expense_report_date_same_rate';
@@ -2395,8 +2385,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
         it('calls UpdateMoneyRequestDistanceRate when the current rate is missing from the policy', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify distance rate update path.
-            const writeSpy = jest.mocked(API.write);
-            writeSpy.mockImplementation(jest.fn());
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_orphan_rate';
             const transactionThreadReportID = 'thread_date_orphan_rate';
             const expenseReportID = 'expense_report_date_orphan_rate';
@@ -2505,8 +2494,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
         it('calls UpdateMoneyRequestDate only when no mileage rate is eligible for the new date', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify date-only update path.
-            const writeSpy = jest.mocked(API.write);
-            writeSpy.mockImplementation(jest.fn());
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_no_eligible_rate';
             const transactionThreadReportID = 'thread_date_no_eligible_rate';
             const expenseReportID = 'expense_report_date_no_eligible_rate';
@@ -2618,8 +2606,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
         it('calls UpdateMoneyRequestDistanceRate with created when a Self DM track distance expense date change selects a different rate', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify date-only update path.
-            const writeSpy = jest.mocked(API.write);
-            writeSpy.mockImplementation(jest.fn());
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_self_dm';
             const transactionThreadReportID = 'thread_date_self_dm';
             const selfDMReportID = 'self_dm_date_rate';

@@ -7,7 +7,6 @@ import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
 
 import {search} from '@libs/actions/Search';
-import * as TransactionActions from '@libs/actions/Transaction';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -30,14 +29,6 @@ jest.mock('@rnmapbox/maps', () => ({
 
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
-
-jest.mock('@libs/actions/Transaction', () => {
-    const actual = jest.requireActual<typeof TransactionActions>('@libs/actions/Transaction');
-    return {
-        ...actual,
-        mergeTransactionIdsHighlightOnSearchRoute: jest.fn(actual.mergeTransactionIdsHighlightOnSearchRoute),
-    };
-});
 
 const mockUseIsFocused = jest.fn().mockReturnValue(true);
 
@@ -590,7 +581,9 @@ describe('useSearchHighlightAndScroll', () => {
     });
 
     it('should return new search result keys for manually highlighted expenses', async () => {
-        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.mocked(TransactionActions.mergeTransactionIdsHighlightOnSearchRoute).mockImplementationOnce(jest.fn());
+        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest
+            .spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute')
+            .mockImplementationOnce(jest.fn());
         // We need to mock requestAnimationFrame to mimic long Onyx merge overhead
         jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
             callback(performance.now());

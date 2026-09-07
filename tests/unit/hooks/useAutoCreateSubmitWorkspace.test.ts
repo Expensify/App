@@ -31,31 +31,6 @@ jest.mock('@hooks/useLocalize');
 jest.mock('@hooks/usePreferredPolicy');
 jest.mock('@hooks/useOnboardingMessages');
 
-jest.mock('@userActions/Report', () => {
-    const actual = jest.requireActual<typeof Report>('@userActions/Report');
-    return {
-        ...actual,
-        completeOnboarding: jest.fn(actual.completeOnboarding),
-    };
-});
-
-jest.mock('@userActions/Welcome', () => {
-    const actual = jest.requireActual<typeof Welcome>('@userActions/Welcome');
-    return {
-        ...actual,
-        setOnboardingAdminsChatReportID: jest.fn(actual.setOnboardingAdminsChatReportID),
-        setOnboardingPolicyID: jest.fn(actual.setOnboardingPolicyID),
-    };
-});
-
-jest.mock('@userActions/Policy/Policy', () => {
-    const actual = jest.requireActual<typeof Policy>('@userActions/Policy/Policy');
-    return {
-        ...actual,
-        createWorkspace: jest.fn(actual.createWorkspace),
-    };
-});
-
 const mockTranslate: LocalizedTranslate = (path, ...parameters) => {
     parameters.some(() => false);
     return path;
@@ -109,15 +84,15 @@ function setupDefaultMocks() {
 }
 
 describe('useAutoCreateSubmitWorkspace', () => {
-    const createWorkspaceSpy = jest.mocked(Policy.createWorkspace).mockReturnValue(
+    const createWorkspaceSpy = jest.spyOn(Policy, 'createWorkspace').mockReturnValue(
         createMock<ReturnType<typeof Policy.createWorkspace>>({
             policyID: MOCK_POLICY_ID,
             adminsChatReportID: MOCK_ADMINS_CHAT_REPORT_ID,
         }),
     );
-    const completeOnboardingSpy = jest.mocked(Report.completeOnboarding).mockImplementation(jest.fn());
-    const setOnboardingAdminsChatReportIDSpy = jest.mocked(Welcome.setOnboardingAdminsChatReportID).mockImplementation(jest.fn());
-    const setOnboardingPolicyIDSpy = jest.mocked(Welcome.setOnboardingPolicyID).mockImplementation(jest.fn());
+    const completeOnboardingSpy = jest.spyOn(Report, 'completeOnboarding').mockImplementation(jest.fn());
+    const setOnboardingAdminsChatReportIDSpy = jest.spyOn(Welcome, 'setOnboardingAdminsChatReportID').mockImplementation(jest.fn());
+    const setOnboardingPolicyIDSpy = jest.spyOn(Welcome, 'setOnboardingPolicyID').mockImplementation(jest.fn());
     const navigateSpy = jest.spyOn(navigateAfterOnboarding, 'navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue').mockImplementation(jest.fn());
 
     beforeAll(() => {

@@ -39,14 +39,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     },
 }));
 
-jest.mock('@libs/ReportUtils', () => {
-    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
-    return {
-        ...actual,
-        canAddTransaction: jest.fn(actual.canAddTransaction),
-    };
-});
-
 describe('IOUUtils', () => {
     describe('calculateAmount', () => {
         let currencyListProvider: RenderAPI;
@@ -970,7 +962,7 @@ describe('getExistingTransactionID', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
             const routeReport = makeRouteReport('100');
-            jest.mocked(ReportUtils.canAddTransaction).mockReturnValue(true);
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(true);
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
@@ -986,7 +978,7 @@ describe('getExistingTransactionID', () => {
             const transactionReport = makeOutstandingReport('500');
             const routeReport = makeRouteReport('100');
             const reportNameValuePair: ReportNameValuePairs = {private_isArchived: testDate};
-            jest.mocked(ReportUtils.canAddTransaction).mockReturnValue(false);
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(false);
 
             expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, reportNameValuePair})).toBeUndefined();
         });
@@ -998,7 +990,7 @@ describe('getExistingTransactionID', () => {
                 policyID: 'someOtherPolicy',
             };
             const routeReport = makeRouteReport('100');
-            jest.mocked(ReportUtils.canAddTransaction).mockReturnValue(false);
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(false);
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
@@ -1026,7 +1018,7 @@ describe('getExistingTransactionID', () => {
         it('falls back to the transaction report when no route report exists (the !routeReport branch)', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
-            jest.mocked(ReportUtils.canAddTransaction).mockReturnValue(true);
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(true);
             expect(
                 IOUUtils.resolveReportForMoneyRequest({
                     transaction,
@@ -1045,7 +1037,7 @@ describe('getExistingTransactionID', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const routeReport = makeRouteReport('100');
-            jest.mocked(ReportUtils.canAddTransaction).mockReturnValue(true);
+            jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(true);
 
             expect(
                 IOUUtils.resolveReportForMoneyRequest({

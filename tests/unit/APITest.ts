@@ -51,14 +51,6 @@ const readParams = (reportID: string): ApiRequestCommandParameters[typeof MOCK_R
 
 jest.mock('@src/libs/Log');
 
-jest.mock('@src/libs/Request', () => {
-    const actual = jest.requireActual<typeof Request>('@src/libs/Request');
-    return {
-        ...actual,
-        processWithMiddleware: jest.fn(actual.processWithMiddleware),
-    };
-});
-
 Onyx.init({
     keys: ONYXKEYS,
 });
@@ -572,7 +564,7 @@ describe('APITests', () => {
 
     test('Sequential queue will not run until credentials are read', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr');
-        const processWithMiddleware = jest.mocked(Request.processWithMiddleware);
+        const processWithMiddleware = jest.spyOn(Request, 'processWithMiddleware');
 
         // Given a simulated a condition where the credentials have not yet been read from storage and we are offline
         setHasRadio(false);

@@ -221,13 +221,13 @@ jest.mock('@components/Search/SearchContext', () => ({
     }),
 }));
 
-const mockCurrentUserAccountID = 1;
+const CURRENT_USER_ACCOUNT_ID = 1;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         login: 'test@example.com',
-        accountID: mockCurrentUserAccountID,
+        accountID: CURRENT_USER_ACCOUNT_ID,
         email: 'test@example.com',
     })),
 }));
@@ -263,7 +263,7 @@ function makeIOUAction(overrides: Partial<ReportAction> = {}): ReportAction {
     return createMock<ReportAction>({
         reportActionID: IOU_ACTION_ID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-        actorAccountID: mockCurrentUserAccountID,
+        actorAccountID: CURRENT_USER_ACCOUNT_ID,
         created: '2026-01-01 10:00:00',
         originalMessage: {
             IOUTransactionID: TRANSACTION_ID,
@@ -317,7 +317,7 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
         mockCurrentSearchResults = undefined;
         mockShouldShowDeleteOption = false;
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: mockCurrentUserAccountID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
     });
 
     afterEach(async () => {

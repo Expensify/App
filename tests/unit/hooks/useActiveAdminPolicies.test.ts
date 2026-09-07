@@ -11,11 +11,11 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockTestLogin = 'admin@expensify.com';
+const TEST_LOGIN = 'admin@expensify.com';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: jest.fn(() => ({login: mockTestLogin})),
+    default: jest.fn(() => ({login: TEST_LOGIN})),
 }));
 
 function buildPolicy(id: number, overrides: Partial<Policy>): Policy {

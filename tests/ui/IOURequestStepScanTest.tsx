@@ -26,7 +26,7 @@ import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-let mockTriggerFileSelection: ((files: FileObject[]) => void) | null = null;
+let triggerFileSelection: ((files: FileObject[]) => void) | null = null;
 
 jest.mock('react-native-permissions', () => ({
     RESULTS: {GRANTED: 'granted', DENIED: 'denied', UNAVAILABLE: 'unavailable', BLOCKED: 'blocked', LIMITED: 'limited'},
@@ -46,7 +46,7 @@ jest.mock('react-native-permissions', () => ({
 jest.mock('@hooks/useFilesValidation', () => {
     const ReactLib = jest.requireActual<typeof React>('react');
     return (callback: (files: FileObject[]) => void) => {
-        mockTriggerFileSelection = callback;
+        triggerFileSelection = callback;
         return {
             validateFiles: (files: FileObject[]) => callback(files),
             PDFValidationComponent: ReactLib.createElement(ReactLib.Fragment),
@@ -96,7 +96,7 @@ describe('IOURequestStepScan', () => {
     });
 
     beforeEach(() => {
-        mockTriggerFileSelection = null;
+        triggerFileSelection = null;
     });
 
     afterEach(async () => {
@@ -155,14 +155,14 @@ describe('IOURequestStepScan', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockTriggerFileSelection).not.toBeNull();
+        expect(triggerFileSelection).not.toBeNull();
 
         const replacementFile = {name: 'replacement-receipt.png', type: 'image/png', size: 100, uri: 'file://replacement-receipt.png'} as FileObject;
         await act(async () => {
-            if (!mockTriggerFileSelection) {
+            if (!triggerFileSelection) {
                 return;
             }
-            mockTriggerFileSelection([replacementFile]);
+            triggerFileSelection([replacementFile]);
         });
         await waitForBatchedUpdates();
 
@@ -213,14 +213,14 @@ describe('IOURequestStepScan', () => {
         });
         await waitForBatchedUpdates();
 
-        expect(mockTriggerFileSelection).not.toBeNull();
+        expect(triggerFileSelection).not.toBeNull();
 
         const secondFile = {name: 'second-receipt.png', type: 'image/png', size: 200, uri: 'file://second-receipt.png'} as FileObject;
         await act(async () => {
-            if (!mockTriggerFileSelection) {
+            if (!triggerFileSelection) {
                 return;
             }
-            mockTriggerFileSelection([secondFile]);
+            triggerFileSelection([secondFile]);
         });
         await waitForBatchedUpdates();
 

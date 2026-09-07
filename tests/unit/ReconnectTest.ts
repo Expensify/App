@@ -22,14 +22,6 @@ jest.mock('@libs/AppStateMonitor', () => ({
     },
 }));
 
-jest.mock('@src/libs/NetworkState', () => {
-    const actual = jest.requireActual<typeof NetworkStateType>('@src/libs/NetworkState');
-    return {
-        ...actual,
-        refresh: jest.fn(actual.refresh),
-    };
-});
-
 // Capture the foreground callback registered by Reconnect.ts at module load time.
 // Must be extracted before any beforeEach clears mock call history.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- extracting callback captured during module load
@@ -139,7 +131,7 @@ describe('Reconnect', () => {
 
     test('foreground refreshes network state when app becomes active while offline', async () => {
         const NetworkState = require<typeof NetworkStateType>('@libs/NetworkState');
-        const refreshSpy = jest.mocked(NetworkState.refresh).mockImplementation(() => {});
+        const refreshSpy = jest.spyOn(NetworkState, 'refresh').mockImplementation(() => {});
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
         await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);

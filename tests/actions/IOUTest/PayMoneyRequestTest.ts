@@ -3,7 +3,7 @@ import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, pay
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
-import * as ReportActionModule from '@libs/actions/Report';
+import {notifyNewAction} from '@libs/actions/Report';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -25,6 +25,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../../utils/TestHelper';
@@ -38,7 +39,7 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockTopMostReportID = '23423423';
+const topMostReportID = '23423423';
 
 function chatReportPolicyFromChat(chatReport: OnyxEntry<Report>): Policy {
     return {...createRandomPolicy(0), id: chatReport?.policyID ?? CONST.POLICY.ID_FAKE};
@@ -52,7 +53,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigateBackToLastSuperWideRHPScreen: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
-    getTopmostReportId: jest.fn(() => mockTopMostReportID),
+    getTopmostReportId: jest.fn(() => topMostReportID),
     setNavigationActionToMicrotaskQueue: jest.fn(),
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -68,11 +69,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual<typeof ReportActionModule>('@src/libs/actions/Report');
+    const originalModule = jest.requireActual('@src/libs/actions/Report');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...originalModule,
         notifyNewAction: jest.fn(),
-        completeOnboarding: jest.fn(originalModule.completeOnboarding),
     };
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
@@ -865,7 +866,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
-                    const partialPayChatReport = {reportID: mockTopMostReportID, policyID: CONST.POLICY.ID_FAKE};
+                    const partialPayChatReport = {reportID: topMostReportID, policyID: CONST.POLICY.ID_FAKE};
                     payMoneyRequest({
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -889,7 +890,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 })
                 .then(() => {
                     // Then notifyNewAction should be called on the top most report.
-                    expect(ReportActionModule.notifyNewAction).toHaveBeenCalledWith(mockTopMostReportID, undefined, true);
+                    expect(notifyNewAction).toHaveBeenCalledWith(topMostReportID, undefined, true);
                 });
         });
 
@@ -2138,7 +2139,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
         let completeOnboardingSpy: jest.SpyInstance;
 
         beforeEach(async () => {
-            completeOnboardingSpy = jest.mocked(ReportActionModule.completeOnboarding).mockImplementation(jest.fn());
+            completeOnboardingSpy = jest.spyOn(require('@libs/actions/Report'), 'completeOnboarding').mockImplementation(jest.fn());
             await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [CARLOS_ACCOUNT_ID]: {

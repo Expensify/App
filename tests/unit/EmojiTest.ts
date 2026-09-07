@@ -8,14 +8,6 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import type FrequentlyUsedEmoji from '@src/types/onyx/FrequentlyUsedEmoji';
 import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 
-jest.mock('@libs/Browser', () => {
-    const actual = jest.requireActual<typeof Browser>('@libs/Browser');
-    return {
-        ...actual,
-        isSafari: jest.fn(actual.isSafari),
-    };
-});
-
 // Unmock to use real parseExpensiMark for code block detection tests
 jest.unmock('@expensify/react-native-live-markdown');
 
@@ -486,7 +478,7 @@ describe('EmojiTest', () => {
 
         // Mock isSafari to return true for these tests since the function only applies on Safari
         beforeEach(() => {
-            jest.mocked(Browser.isSafari).mockReturnValue(true);
+            jest.spyOn(Browser, 'isSafari').mockReturnValue(true);
         });
 
         afterEach(() => {
@@ -631,7 +623,7 @@ describe('EmojiTest', () => {
 
         it('should return input unchanged on non-Safari browsers', () => {
             // Given we're not on Safari
-            jest.mocked(Browser.isSafari).mockReturnValue(false);
+            jest.spyOn(Browser, 'isSafari').mockReturnValue(false);
             // When we process a digit + emoji string
             const input = '234😄';
             const result = EmojiUtils.insertTextVSBetweenDigitAndEmoji(input);

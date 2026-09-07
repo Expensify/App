@@ -16,14 +16,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Mock the PolicyUtils module
 jest.mock('@libs/PolicyUtils');
 
-jest.mock('@libs/ReportUtils', () => {
-    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
-    return {
-        ...actual,
-        canCreateRequest: jest.fn(actual.canCreateRequest),
-    };
-});
-
 const mockedPolicyUtils = jest.mocked(PolicyUtils);
 
 describe('QuickActionUtils', () => {
@@ -146,7 +138,7 @@ describe('QuickActionUtils', () => {
                 jest.clearAllMocks();
             });
             it('should allow per diem action when policy has per diem rates', () => {
-                jest.mocked(ReportUtils.canCreateRequest).mockReturnValue(true);
+                jest.spyOn(ReportUtils, 'canCreateRequest').mockReturnValue(true);
                 const perDiemCustomUnit = {
                     name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
                     customUnitID: 'ABCDEF',
@@ -217,7 +209,7 @@ describe('QuickActionUtils', () => {
         describe('Policy with time tracking', () => {
             it('should allow requestTime action when policy has time tracking enabled', () => {
                 mockedPolicyUtils.isTimeTrackingEnabled.mockReturnValue(true);
-                jest.mocked(ReportUtils.canCreateRequest).mockReturnValue(true);
+                jest.spyOn(ReportUtils, 'canCreateRequest').mockReturnValue(true);
                 expect(
                     isQuickActionAllowed(
                         {action: CONST.QUICK_ACTIONS.REQUEST_TIME},

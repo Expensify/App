@@ -36,7 +36,6 @@ import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import {setHasRadio} from '@src/libs/NetworkState';
 import * as ReportUtils from '@src/libs/ReportUtils';
-import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import type * as SearchQueryUtilsType from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -72,14 +71,6 @@ jest.mock('@libs/NextStepUtils', () => ({
 // Only the layout-specific tests below override this, so it keeps the real implementation as its default and every
 // other test in this file keeps behaving exactly as it did before.
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(jest.requireActual<{default: () => boolean}>('@libs/getIsNarrowLayout').default));
-jest.mock('@libs/API', () => {
-    const actual = jest.requireActual<typeof API>('@libs/API');
-    return {
-        ...actual,
-        write: jest.fn(actual.write),
-    };
-});
-
 const mockGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 
 const MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID = '1234';
@@ -122,12 +113,11 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 
 const UTC = 'UTC';
 jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual<typeof Report>('@src/libs/actions/Report');
+    const originalModule = jest.requireActual<Report>('@src/libs/actions/Report');
 
     return {
         ...originalModule,
         showReportActionNotification: jest.fn(),
-        navigateToAndOpenReport: jest.fn(originalModule.navigateToAndOpenReport),
     };
 });
 
@@ -269,7 +259,7 @@ describe('actions/Report', () => {
             setImmediate(jest.runOnlyPendingTimers);
         }
         global.fetch = TestHelper.createGlobalFetchMock();
-        apiWriteSpy = jest.mocked(API.write);
+        apiWriteSpy = jest.spyOn(API, 'write');
 
         // Clear the queue before each test to avoid test pollution
         SequentialQueue.resetQueue();
@@ -3004,7 +2994,7 @@ describe('actions/Report', () => {
     });
 
     it('should add the report preview action to the chat snapshot when it is created', async () => {
-        jest.mocked(SearchQueryUtils.getCurrentSearchQueryJSON).mockImplementationOnce(() =>
+        jest.spyOn(require('@src/libs/SearchQueryUtils'), 'getCurrentSearchQueryJSON').mockImplementationOnce(() =>
             createMock<SearchQueryJSON>({
                 hash: currentHash,
                 inputQuery: 'test',
@@ -5409,7 +5399,7 @@ describe('actions/Report', () => {
 
         it('should respect checkIfCurrentPageActive callback when creating new concierge chat', async () => {
             const checkIfCurrentPageActive = jest.fn(() => false);
-            const navigateToAndOpenReportSpy = jest.mocked(Report.navigateToAndOpenReport);
+            const navigateToAndOpenReportSpy = jest.spyOn(Report, 'navigateToAndOpenReport');
 
             // Don't set CONCIERGE_REPORT_ID to simulate undefined state
             await waitForBatchedUpdates();

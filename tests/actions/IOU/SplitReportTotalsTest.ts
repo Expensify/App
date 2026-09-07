@@ -3,7 +3,6 @@ import '@libs/actions/IOU/MoneyRequest';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
 import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import * as TransactionActions from '@libs/actions/Transaction';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
@@ -28,7 +27,7 @@ import createMock from '../../utils/createMock';
 import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockTopMostReportID = '23423423';
+const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
@@ -37,7 +36,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigateBackToLastSuperWideRHPScreen: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
-    getTopmostReportId: jest.fn(() => mockTopMostReportID),
+    getTopmostReportId: jest.fn(() => topMostReportID),
     setNavigationActionToMicrotaskQueue: jest.fn(),
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -85,15 +84,15 @@ jest.mock('@libs/deferredLayoutWrite', () => ({
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
-const mockUnapprovedCashHash = 71801560;
-const mockUnapprovedCashSimilarSearchHash = 1832274510;
+const unapprovedCashHash = 71801560;
+const unapprovedCashSimilarSearchHash = 1832274510;
 jest.mock('@src/libs/SearchQueryUtils', () => {
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
         getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
-            hash: mockUnapprovedCashHash,
+            hash: unapprovedCashHash,
             query: 'test',
             type: 'expense',
             status: ['drafts', 'outstanding'],
@@ -101,7 +100,7 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
             flatFilters: [{key: 'reimbursable', filters: [{operator: 'eq', value: 'yes'}]}],
             inputQuery: '',
             recentSearchHash: 89,
-            similarSearchHash: mockUnapprovedCashSimilarSearchHash,
+            similarSearchHash: unapprovedCashSimilarSearchHash,
             sortBy: 'tag',
             sortOrder: 'asc',
         })),
@@ -114,14 +113,6 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
-
-jest.mock('@libs/actions/Transaction', () => {
-    const actual = jest.requireActual<typeof TransactionActions>('@libs/actions/Transaction');
-    return {
-        ...actual,
-        mergeTransactionIdsHighlightOnSearchRoute: jest.fn(actual.mergeTransactionIdsHighlightOnSearchRoute),
-    };
-});
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -444,7 +435,7 @@ describe('actions/IOU', () => {
 
     it('handleNavigateAfterExpenseCreate', async () => {
         const mockedIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
-        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.mocked(TransactionActions.mergeTransactionIdsHighlightOnSearchRoute);
+        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
         const activeReportID = '1';
         const transactionID = '1';
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
@@ -851,7 +842,7 @@ describe('actions/IOU', () => {
         it('registers the search-route highlight (not report metadata) when splitting from the Search/Spend page', async () => {
             // Given the user is on the Search (Spend > Expenses) page, where the expense report is never opened
             jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
-            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.mocked(TransactionActions.mergeTransactionIdsHighlightOnSearchRoute);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
             const params = buildBaseParams({
                 transactionData: {
                     reportID: EXPENSE_REPORT_ID,
@@ -975,7 +966,7 @@ describe('actions/IOU', () => {
         it('skips the search-route highlight during a reverse split from the Search/Spend page', async () => {
             // Given the user is on the Search page and this is a reverse split (1 expense, existing child present)
             jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
-            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.mocked(TransactionActions.mergeTransactionIdsHighlightOnSearchRoute);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
             const existingChildTx = {
                 transactionID: 'child-tx-1',
                 reportID: EXPENSE_REPORT_ID,
@@ -1006,7 +997,7 @@ describe('actions/IOU', () => {
             // skipped while offline (it waits for a server re-search), so this rail is the only thing that can
             // highlight the new rows - a reviewer caught the highlight silently disappearing offline.
             jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
-            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.mocked(TransactionActions.mergeTransactionIdsHighlightOnSearchRoute);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
             const params = buildBaseParams({
                 isOffline: true,
                 transactionData: {

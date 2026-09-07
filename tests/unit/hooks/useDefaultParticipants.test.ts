@@ -15,19 +15,19 @@ import {createPolicyExpenseChat, createSelfDM} from '../../utils/collections/rep
 import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockAccountID = 1;
+const ACCOUNT_ID = 1;
 const POLICY_ID = 'policy1';
 
-const mockSelfDMReport: Report = createSelfDM(1, mockAccountID);
+const mockSelfDMReport: Report = createSelfDM(1, ACCOUNT_ID);
 
-const workspaceChat: Report = {...createPolicyExpenseChat(2), policyID: POLICY_ID, ownerAccountID: mockAccountID};
+const workspaceChat: Report = {...createPolicyExpenseChat(2), policyID: POLICY_ID, ownerAccountID: ACCOUNT_ID};
 
 // Auto-reporting is on, so without the track-expense carve-out the default target resolves to the workspace chat.
 const mockDefaultExpensePolicy: Policy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, autoReporting: true};
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: () => ({accountID: mockAccountID, login: 'test@test.com'}),
+    default: () => ({accountID: ACCOUNT_ID, login: 'test@test.com'}),
 }));
 
 jest.mock('@hooks/useDefaultExpensePolicy', () => ({

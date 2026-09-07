@@ -201,13 +201,13 @@ jest.mock('@components/Search/SearchContext', () => ({
     }),
 }));
 
-const mockCurrentUserAccountID = 1;
+const CURRENT_USER_ACCOUNT_ID = 1;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         login: 'test@example.com',
-        accountID: mockCurrentUserAccountID,
+        accountID: CURRENT_USER_ACCOUNT_ID,
         email: 'test@example.com',
     })),
 }));
@@ -264,7 +264,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockSelectedReports = [];
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: mockCurrentUserAccountID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
             id: 'policy1',
             role: CONST.POLICY.ROLE.ADMIN,
@@ -364,7 +364,7 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
         ];
         jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: mockCurrentUserAccountID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '2', policyID: 'policy1'});
     });

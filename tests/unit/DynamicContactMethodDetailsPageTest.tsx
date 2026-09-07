@@ -50,7 +50,9 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => {
 });
 
 jest.mock('@libs/actions/User', () => {
-    const originalModule = jest.requireActual<typeof UserActions>('@libs/actions/User');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const originalModule = jest.requireActual('@libs/actions/User');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...originalModule,
         resetContactMethodValidateCodeSentState: jest.fn(),

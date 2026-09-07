@@ -126,11 +126,11 @@ type Section = {
     sectionIndex?: number;
     data?: Array<Record<string, unknown>>;
 };
-const mockCapturedSectionsList: Section[][] = [];
+const capturedSectionsList: Section[][] = [];
 
 jest.mock('@components/SelectionList/SelectionListWithSections', () => {
     function MockSelectionList(props: {sections?: Section[]}) {
-        mockCapturedSectionsList.push(props.sections ?? []);
+        capturedSectionsList.push(props.sections ?? []);
         return null;
     }
     return MockSelectionList;
@@ -143,7 +143,7 @@ const PHONE_DELEGATE_WITH_SMS_DOMAIN = '+919789942470@expensify.sms';
 const PHONE_DELEGATE_RAW = '+919789942470';
 
 function lastCurrentSelectionRow() {
-    const sections = mockCapturedSectionsList.at(-1) ?? [];
+    const sections = capturedSectionsList.at(-1) ?? [];
     const currentSection = sections.find((section) => section.sectionIndex === 0);
     return currentSection?.data?.at(0);
 }
@@ -158,7 +158,7 @@ function toIconsArray(value: unknown): Array<Record<string, unknown>> | undefine
 describe('BaseVacationDelegateSelectionComponent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockCapturedSectionsList.length = 0;
+        capturedSectionsList.length = 0;
         mockUsePersonalDetailByLogin.mockReturnValue(undefined);
     });
 

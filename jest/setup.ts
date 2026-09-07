@@ -54,6 +54,19 @@ jest.mock('expo-web-browser', () => ({
     maybeCompleteAuthSession: jest.fn(),
 }));
 
+// jest-expo's haste map uses defaultPlatform 'ios', so `@components/ImageSVG` resolves to
+// index.ios.tsx which imports expo-image. expo-image has no jest-expo mock, so requireNativeModule
+// throws. Stub the package so UI tests can load Icon/ImageSVG.
+jest.mock('expo-image', () => ({
+    Image: Object.assign(
+        jest.fn(() => null),
+        {
+            clearMemoryCache: jest.fn(() => Promise.resolve(true)),
+            prefetch: jest.fn(() => Promise.resolve(true)),
+        },
+    ),
+}));
+
 // Mock expo-location — the jest-expo preset replaces all native module methods with jest.fn(async () => {}),
 // which returns undefined instead of a proper PermissionResponse. This causes crashes when code reads .status
 // from the result of requestForegroundPermissionsAsync().

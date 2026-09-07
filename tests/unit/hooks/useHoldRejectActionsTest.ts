@@ -17,8 +17,8 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const TEST_REPORT_ID = '1';
-const mockTestAccountID = 12345;
-const mockTestEmail = 'test@expensify.com';
+const TEST_ACCOUNT_ID = 12345;
+const TEST_EMAIL = 'test@expensify.com';
 
 const mockNavigate = jest.fn();
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -44,7 +44,7 @@ jest.mock('@components/MoneyReportTransactionThreadContext', () => ({
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: jest.fn(() => ({accountID: mockTestAccountID, login: mockTestEmail, email: mockTestEmail})),
+    default: jest.fn(() => ({accountID: TEST_ACCOUNT_ID, login: TEST_EMAIL, email: TEST_EMAIL})),
 }));
 
 jest.mock('@hooks/useGetIOUReportFromReportAction', () => ({

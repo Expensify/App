@@ -9,12 +9,12 @@ import type {View} from 'react-native';
 
 import React, {createRef} from 'react';
 
-const mockCapturedTrapProps: FocusTrapForModalProps[] = [];
+const capturedTrapProps: FocusTrapForModalProps[] = [];
 
 jest.mock('@components/FocusTrap/FocusTrapForModal', () => ({
     __esModule: true,
     default: (props: FocusTrapForModalProps) => {
-        mockCapturedTrapProps.push(props);
+        capturedTrapProps.push(props);
         return props.children;
     },
 }));
@@ -51,9 +51,9 @@ describe('PopoverMenu focus return', () => {
     }
 
     function renderPopoverMenu(overrides: Partial<React.ComponentProps<typeof PopoverMenu>> = {}) {
-        mockCapturedTrapProps.length = 0;
+        capturedTrapProps.length = 0;
         render(createPopoverMenu(overrides));
-        return mockCapturedTrapProps.at(-1);
+        return capturedTrapProps.at(-1);
     }
 
     it('returns focus when the caller opts in, even with the new focus manager on', () => {
@@ -70,12 +70,12 @@ describe('PopoverMenu focus return', () => {
     });
 
     it('updates the focus-return policy when only shouldReturnFocus changes', () => {
-        mockCapturedTrapProps.length = 0;
+        capturedTrapProps.length = 0;
         const {rerender} = render(createPopoverMenu({shouldReturnFocus: false}));
-        expect(mockCapturedTrapProps.at(-1)?.shouldReturnFocus).toBe(false);
+        expect(capturedTrapProps.at(-1)?.shouldReturnFocus).toBe(false);
 
         rerender(createPopoverMenu({shouldReturnFocus: true}));
-        expect(mockCapturedTrapProps.at(-1)?.shouldReturnFocus).toBe(true);
+        expect(capturedTrapProps.at(-1)?.shouldReturnFocus).toBe(true);
     });
 
     it('passes the anchor as the launcher, so a trigger that blurs itself is still restorable', () => {

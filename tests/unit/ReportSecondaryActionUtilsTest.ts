@@ -120,46 +120,6 @@ jest.mock('@libs/PolicyUtils', () => ({
     isGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('@libs/ReportUtils', () => {
-    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
-    return {
-        ...actual,
-        isHoldCreator: jest.fn(actual.isHoldCreator),
-        canHoldUnholdReportAction: jest.fn(actual.canHoldUnholdReportAction),
-        isAwaitingFirstLevelApproval: jest.fn(actual.isAwaitingFirstLevelApproval),
-        isActionCreator: jest.fn(actual.isActionCreator),
-        canEditFieldOfMoneyRequest: jest.fn(actual.canEditFieldOfMoneyRequest),
-        canUserPerformWriteAction: jest.fn(actual.canUserPerformWriteAction),
-        isTrackExpenseReportNew: jest.fn(actual.isTrackExpenseReportNew),
-        getTransactionDetails: jest.fn(actual.getTransactionDetails),
-        isMoneyRequestReportEligibleForMerge: jest.fn(actual.isMoneyRequestReportEligibleForMerge),
-        isIOUReport: jest.fn(actual.isIOUReport),
-        doesReportContainRequestsFromMultipleUsers: jest.fn(actual.doesReportContainRequestsFromMultipleUsers),
-        isCurrentUserSubmitter: jest.fn(actual.isCurrentUserSubmitter),
-        isReportManager: jest.fn(actual.isReportManager),
-        canEditReportPolicy: jest.fn(actual.canEditReportPolicy),
-        isExported: jest.fn(actual.isExported),
-        isSettled: jest.fn(actual.isSettled),
-        isWorkspaceEligibleForReportChange: jest.fn(actual.isWorkspaceEligibleForReportChange),
-    };
-});
-
-jest.mock('@src/libs/ReportActionsUtils', () => {
-    const actual = jest.requireActual<typeof ReportActionsUtils>('@src/libs/ReportActionsUtils');
-    return {
-        ...actual,
-        getOneTransactionThreadReportID: jest.fn(actual.getOneTransactionThreadReportID),
-    };
-});
-
-jest.mock('@src/libs/TransactionUtils', () => {
-    const actual = jest.requireActual<typeof TransactionUtils>('@src/libs/TransactionUtils');
-    return {
-        ...actual,
-        getOriginalTransactionWithSplitInfo: jest.fn(actual.getOriginalTransactionWithSplitInfo),
-    };
-});
-
 describe('getSecondaryAction', () => {
     beforeAll(() => {
         Onyx.init({
@@ -1271,8 +1231,8 @@ describe('getSecondaryAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        jest.mocked(ReportActionsUtils.getOneTransactionThreadReportID).mockReturnValue('12345');
-        jest.mocked(ReportUtils.isHoldCreator).mockReturnValue(true);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue('12345');
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -3077,9 +3037,9 @@ describe('getSecondaryAction', () => {
         });
         const policy = createMock<Policy>({});
 
-        jest.mocked(ReportUtils.canHoldUnholdReportAction).mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
-        jest.mocked(ReportUtils.isAwaitingFirstLevelApproval).mockReturnValueOnce(true);
-        jest.mocked(ReportActionsUtils.getOneTransactionThreadReportID).mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
+        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
+        jest.spyOn(ReportUtils, 'isAwaitingFirstLevelApproval').mockReturnValueOnce(true);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -3111,8 +3071,8 @@ describe('getSecondaryAction', () => {
         });
         const policy = createMock<Policy>({});
 
-        jest.mocked(ReportUtils.canHoldUnholdReportAction).mockReturnValueOnce({canHoldRequest: false, canUnholdRequest: false});
-        jest.mocked(ReportActionsUtils.getOneTransactionThreadReportID).mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
+        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: false, canUnholdRequest: false});
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -3146,9 +3106,9 @@ describe('getSecondaryAction', () => {
         });
         const policy = createMock<Policy>({});
 
-        jest.mocked(ReportUtils.canHoldUnholdReportAction).mockReturnValueOnce({canHoldRequest: false, canUnholdRequest: true});
-        jest.mocked(ReportUtils.isActionCreator).mockReturnValue(true);
-        jest.mocked(ReportActionsUtils.getOneTransactionThreadReportID).mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
+        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: false, canUnholdRequest: true});
+        jest.spyOn(ReportUtils, 'isActionCreator').mockReturnValue(true);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -3991,8 +3951,8 @@ describe('getSecondaryAction', () => {
             },
         ]);
 
-        jest.mocked(ReportActionsUtils.getOneTransactionThreadReportID).mockReturnValue(originalMessageR14932.IOUTransactionID);
-        jest.mocked(ReportUtils.isHoldCreator).mockReturnValue(false);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(originalMessageR14932.IOUTransactionID);
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -4026,8 +3986,8 @@ describe('getSecondaryAction', () => {
             },
         ]);
 
-        jest.mocked(ReportActionsUtils.getOneTransactionThreadReportID).mockReturnValue(originalMessageR14932.IOUTransactionID);
-        jest.mocked(ReportUtils.isHoldCreator).mockReturnValue(false);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(originalMessageR14932.IOUTransactionID);
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -4287,8 +4247,8 @@ describe('getSecondaryAction', () => {
             [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: createMock<ReportNameValuePairs>({}),
         };
 
-        jest.mocked(ReportUtils.canEditFieldOfMoneyRequest).mockReturnValue(true);
-        jest.mocked(ReportUtils.canUserPerformWriteAction).mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -4326,8 +4286,8 @@ describe('getSecondaryAction', () => {
         const reportActions = [actionR14932];
         const policy = createMock<Policy>({});
 
-        jest.mocked(ReportUtils.canEditFieldOfMoneyRequest).mockReturnValue(false);
-        jest.mocked(ReportUtils.canUserPerformWriteAction).mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(false);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -4753,8 +4713,8 @@ describe('getReportAccountingExportActions', () => {
             },
         ]);
 
-        jest.mocked(ReportActionsUtils.getOneTransactionThreadReportID).mockReturnValue(originalMessageR14932.IOUTransactionID);
-        jest.mocked(ReportUtils.isHoldCreator).mockReturnValue(false);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(originalMessageR14932.IOUTransactionID);
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -4821,8 +4781,8 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         const policy = createMock<Policy>({});
 
-        jest.mocked(ReportUtils.canHoldUnholdReportAction).mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
-        jest.mocked(ReportUtils.isAwaitingFirstLevelApproval).mockReturnValueOnce(true);
+        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
+        jest.spyOn(ReportUtils, 'isAwaitingFirstLevelApproval').mockReturnValueOnce(true);
         const result = getSecondaryTransactionThreadActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -4848,7 +4808,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             },
         });
 
-        jest.mocked(ReportUtils.isHoldCreator).mockReturnValue(false);
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
         const result = getSecondaryTransactionThreadActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -4863,7 +4823,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
         // Do not show if admin is the holder
-        jest.mocked(ReportUtils.isHoldCreator).mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
         const result2 = getSecondaryTransactionThreadActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -5300,10 +5260,10 @@ describe('getSecondaryTransactionThreadActions', () => {
         });
 
         function getSelfDMConvertActionsResult(isExpenseSplit: boolean, hasWorkspaceToSubmitTo: boolean, isChatReportArchived = false) {
-            jest.mocked(ReportUtils.isTrackExpenseReportNew).mockReturnValue(true);
+            jest.spyOn(ReportUtils, 'isTrackExpenseReportNew').mockReturnValue(true);
             // An archived self-DM has no write access; mirror that so the shared write-action guard is exercised.
-            jest.mocked(ReportUtils.canUserPerformWriteAction).mockReturnValue(!isChatReportArchived);
-            jest.mocked(TransactionUtils.getOriginalTransactionWithSplitInfo).mockReturnValue({
+            jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(!isChatReportArchived);
+            jest.spyOn(TransactionUtils, 'getOriginalTransactionWithSplitInfo').mockReturnValue({
                 originalTransaction: createMock<Transaction>({}),
                 isBillSplit: false,
                 isExpenseSplit,
@@ -5435,8 +5395,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: createMock<ReportNameValuePairs>({}),
         };
 
-        jest.mocked(ReportUtils.canEditFieldOfMoneyRequest).mockReturnValue(true);
-        jest.mocked(ReportUtils.canUserPerformWriteAction).mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
 
         const result = getSecondaryTransactionThreadActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -5471,8 +5431,8 @@ describe('getSecondaryTransactionThreadActions', () => {
         });
         const policy = createMock<Policy>({});
 
-        jest.mocked(ReportUtils.canEditFieldOfMoneyRequest).mockReturnValue(false);
-        jest.mocked(ReportUtils.canUserPerformWriteAction).mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(false);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
 
         const result = getSecondaryTransactionThreadActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -5510,7 +5470,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            jest.mocked(ReportUtils.getTransactionDetails).mockReturnValue({
+            jest.spyOn(ReportUtils, 'getTransactionDetails').mockReturnValue({
                 amount: -100,
                 created: '2025-01-01',
                 attendees: [],
@@ -5529,7 +5489,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 convertedAmount: -100,
             });
 
-            jest.mocked(ReportUtils.isMoneyRequestReportEligibleForMerge).mockReturnValue(true);
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
             const result = getSecondaryReportActions({
                 currentUserLogin: EMPLOYEE_EMAIL,
@@ -5565,7 +5525,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            jest.mocked(ReportUtils.getTransactionDetails).mockReturnValue({
+            jest.spyOn(ReportUtils, 'getTransactionDetails').mockReturnValue({
                 amount: 100,
                 created: '2025-01-01',
                 attendees: [],
@@ -5584,7 +5544,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 convertedAmount: 100,
             });
 
-            jest.mocked(ReportUtils.isMoneyRequestReportEligibleForMerge).mockReturnValue(true);
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
             const result = getSecondaryReportActions({
                 currentUserLogin: EMPLOYEE_EMAIL,
@@ -5655,7 +5615,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.USER}]);
 
-            jest.mocked(ReportUtils.isMoneyRequestReportEligibleForMerge).mockReturnValue(false);
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
             const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
@@ -5668,7 +5628,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            jest.mocked(ReportUtils.isMoneyRequestReportEligibleForMerge).mockReturnValue(true);
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
             const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
@@ -5694,7 +5654,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             ];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            jest.mocked(ReportUtils.isMoneyRequestReportEligibleForMerge).mockReturnValue(true);
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
             const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
@@ -5719,7 +5679,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             ];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            jest.mocked(ReportUtils.isMoneyRequestReportEligibleForMerge).mockReturnValue(true);
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
             const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
@@ -5743,7 +5703,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            jest.mocked(ReportUtils.isMoneyRequestReportEligibleForMerge).mockReturnValue(true);
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
             const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
@@ -5756,7 +5716,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.USER}]);
 
-            jest.mocked(ReportUtils.isMoneyRequestReportEligibleForMerge).mockReturnValue(false);
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
             const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
@@ -5775,7 +5735,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 {id: 'policy2', role: CONST.POLICY.ROLE.USER},
             ]);
 
-            jest.mocked(ReportUtils.isMoneyRequestReportEligibleForMerge)
+            jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge')
                 .mockReturnValueOnce(true) // First report eligible
                 .mockReturnValueOnce(false); // Second report not eligible
 
@@ -5789,7 +5749,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         describe('preventing merge for transactions belonging to different users', () => {
             beforeEach(() => {
-                jest.mocked(ReportUtils.isMoneyRequestReportEligibleForMerge).mockReturnValue(true);
+                jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
             });
 
             it('should return true when both transactions are unreported', () => {
@@ -5978,15 +5938,15 @@ describe('getSecondaryTransactionThreadActions', () => {
         }>;
 
         const setupMocks = (mocks: MockConfig = {}) => {
-            jest.mocked(ReportUtils.isIOUReport).mockReturnValue(mocks.isIOUReport ?? false);
-            jest.mocked(ReportUtils.doesReportContainRequestsFromMultipleUsers).mockReturnValue(mocks.doesReportContainRequestsFromMultipleUsers ?? false);
-            jest.mocked(ReportUtils.isCurrentUserSubmitter).mockReturnValue(mocks.isCurrentUserSubmitter ?? false);
-            jest.mocked(ReportUtils.isReportManager).mockReturnValue(mocks.isReportManager ?? false);
-            jest.mocked(ReportUtils.canEditReportPolicy).mockReturnValue(mocks.canEditReportPolicy ?? true);
-            jest.mocked(ReportUtils.isExported).mockReturnValue(mocks.isExported ?? false);
-            jest.mocked(ReportUtils.isSettled).mockReturnValue(mocks.isSettled ?? false);
+            jest.spyOn(ReportUtils, 'isIOUReport').mockReturnValue(mocks.isIOUReport ?? false);
+            jest.spyOn(ReportUtils, 'doesReportContainRequestsFromMultipleUsers').mockReturnValue(mocks.doesReportContainRequestsFromMultipleUsers ?? false);
+            jest.spyOn(ReportUtils, 'isCurrentUserSubmitter').mockReturnValue(mocks.isCurrentUserSubmitter ?? false);
+            jest.spyOn(ReportUtils, 'isReportManager').mockReturnValue(mocks.isReportManager ?? false);
+            jest.spyOn(ReportUtils, 'canEditReportPolicy').mockReturnValue(mocks.canEditReportPolicy ?? true);
+            jest.spyOn(ReportUtils, 'isExported').mockReturnValue(mocks.isExported ?? false);
+            jest.spyOn(ReportUtils, 'isSettled').mockReturnValue(mocks.isSettled ?? false);
 
-            const workspaceEligibilityMock = jest.mocked(ReportUtils.isWorkspaceEligibleForReportChange);
+            const workspaceEligibilityMock = jest.spyOn(ReportUtils, 'isWorkspaceEligibleForReportChange');
             const workspaceEligibility = mocks.isWorkspaceEligibleForReportChange ?? true;
             if (typeof workspaceEligibility === 'function') {
                 workspaceEligibilityMock.mockImplementation(workspaceEligibility);

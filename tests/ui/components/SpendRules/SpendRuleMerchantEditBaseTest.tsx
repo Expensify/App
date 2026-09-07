@@ -12,8 +12,8 @@ type InputWrapperMockProps = {onChangeText?: (value: string) => void};
 type ChildrenOnly = {children?: React.ReactNode};
 
 // Captured callbacks across mocks let us drive the form imperatively without rendering the real FormProvider chain.
-let mockCapturedSubmit: (() => void) | null = null;
-let mockCapturedOnChangeText: ((value: string) => void) | null = null;
+let capturedSubmit: (() => void) | null = null;
+let capturedOnChangeText: ((value: string) => void) | null = null;
 
 const mockGoBack = jest.fn<void, [route?: unknown, options?: {shouldSkipFocusRestore?: boolean}]>();
 
@@ -34,7 +34,7 @@ jest.mock('@hooks/useAutoFocusInput', () => () => ({inputCallbackRef: () => {}})
 jest.mock('@components/Form/FormProvider', () => ({
     __esModule: true,
     default: ({children, onSubmit}: FormProviderMockProps) => {
-        mockCapturedSubmit = onSubmit ?? null;
+        capturedSubmit = onSubmit ?? null;
         return children;
     },
 }));
@@ -42,7 +42,7 @@ jest.mock('@components/Form/FormProvider', () => ({
 jest.mock('@components/Form/InputWrapper', () => ({
     __esModule: true,
     default: ({onChangeText}: InputWrapperMockProps) => {
-        mockCapturedOnChangeText = onChangeText ?? null;
+        capturedOnChangeText = onChangeText ?? null;
         return null;
     },
 }));
@@ -75,8 +75,8 @@ function renderEdit(props: Partial<EditProps> = {}, onMerchantDataChange = jest.
 }
 
 beforeEach(() => {
-    mockCapturedSubmit = null;
-    mockCapturedOnChangeText = null;
+    capturedSubmit = null;
+    capturedOnChangeText = null;
     mockGoBack.mockReset();
 });
 
@@ -88,8 +88,8 @@ describe('SpendRuleMerchantEditBase.submit — Navigation.goBack fires with {sho
             merchantMatchTypes: [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO],
         });
 
-        act(() => mockCapturedOnChangeText?.(''));
-        mockCapturedSubmit?.();
+        act(() => capturedOnChangeText?.(''));
+        capturedSubmit?.();
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
         expect(mockGoBack).toHaveBeenCalledWith(undefined, {shouldSkipFocusRestore: true});
@@ -99,7 +99,7 @@ describe('SpendRuleMerchantEditBase.submit — Navigation.goBack fires with {sho
     it('cancel-on-new (new-merchant flow, empty name): still skips restore even though onMerchantDataChange is NOT invoked — the destination form Save button must not be hijacked', () => {
         const {onMerchantDataChange} = renderEdit({merchantIndex: ROUTES.NEW, merchantNames: ['Acme'], merchantMatchTypes: [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS]});
 
-        mockCapturedSubmit?.();
+        capturedSubmit?.();
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
         expect(mockGoBack).toHaveBeenCalledWith(undefined, {shouldSkipFocusRestore: true});
@@ -113,8 +113,8 @@ describe('SpendRuleMerchantEditBase.submit — Navigation.goBack fires with {sho
             merchantMatchTypes: [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO],
         });
 
-        act(() => mockCapturedOnChangeText?.('Acme Inc'));
-        mockCapturedSubmit?.();
+        act(() => capturedOnChangeText?.('Acme Inc'));
+        capturedSubmit?.();
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
         expect(mockGoBack).toHaveBeenCalledWith(undefined, {shouldSkipFocusRestore: true});
@@ -124,8 +124,8 @@ describe('SpendRuleMerchantEditBase.submit — Navigation.goBack fires with {sho
     it('new-merchant add (new flow, non-empty name): skips restore, navigates back, and appends to the arrays — same Enter-hijack defense', () => {
         const {onMerchantDataChange} = renderEdit({merchantIndex: ROUTES.NEW, merchantNames: ['Acme'], merchantMatchTypes: [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS]});
 
-        act(() => mockCapturedOnChangeText?.('Globex'));
-        mockCapturedSubmit?.();
+        act(() => capturedOnChangeText?.('Globex'));
+        capturedSubmit?.();
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
         expect(mockGoBack).toHaveBeenCalledWith(undefined, {shouldSkipFocusRestore: true});

@@ -12,14 +12,6 @@ import {getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} fro
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@libs/API', () => {
-    const actual = jest.requireActual<typeof APIActions>('@libs/API');
-    return {
-        ...actual,
-        write: jest.fn(actual.write),
-    };
-});
-
 const TRANSACTION_ID = 'txn-vendor-test';
 
 const baseTransaction: Transaction = {
@@ -52,8 +44,7 @@ describe('updateMoneyRequestVendor', () => {
     });
 
     beforeEach(() => {
-        writeSpy = jest.mocked(APIActions.write);
-        writeSpy.mockImplementation(jest.fn());
+        writeSpy = jest.spyOn(APIActions, 'write').mockImplementation(jest.fn());
     });
 
     afterEach(async () => {

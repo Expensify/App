@@ -53,14 +53,6 @@ jest.mock('@libs/Navigation/Navigation', () => {
     };
 });
 
-jest.mock('@userActions/IOU/MoneyRequest', () => {
-    const actual = jest.requireActual<typeof MoneyRequestActions>('@userActions/IOU/MoneyRequest');
-    return {
-        ...actual,
-        clearMoneyRequest: jest.fn(actual.clearMoneyRequest),
-    };
-});
-
 function getOptimisticDraft() {
     return new Promise<OnyxEntry<Transaction>>((resolve) => {
         const connection = Onyx.connect({
@@ -146,7 +138,7 @@ describe('IOURequestRedirectToStartPage', () => {
     // returns [] instead of undefined. Checks the clear still includes OPTIMISTIC_TRANSACTION_ID, since an empty
     // list would remove nothing and leave the stale draft behind.
     it('always clears the OPTIMISTIC_TRANSACTION_ID draft even when the selector returns an empty list', async () => {
-        const clearSpy = jest.mocked(MoneyRequestActions.clearMoneyRequest);
+        const clearSpy = jest.spyOn(MoneyRequestActions, 'clearMoneyRequest');
 
         // Given no loaded drafts (validTransactionDraftIDsSelector returns [])
         render(

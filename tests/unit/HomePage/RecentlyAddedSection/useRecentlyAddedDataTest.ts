@@ -29,9 +29,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
-const mockAccountID = 12345;
+const ACCOUNT_ID = 12345;
 const OTHER_ACCOUNT_ID = 67890;
-const mockSnapshotHash = 1;
+const SNAPSHOT_HASH = 1;
 /** A second hash, so a change of account resolves to a different snapshot key. */
 const OTHER_SNAPSHOT_HASH = 2;
 /** Onyx keys error entries by microsecond timestamp; the exact value is irrelevant, only that an entry exists. */
@@ -42,7 +42,7 @@ const LOADED: Partial<SearchResults['search']> = {state: CONST.SEARCH.SNAPSHOT_S
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: jest.fn(() => ({accountID: mockAccountID, login: `${mockAccountID}@test.com`})),
+    default: jest.fn(() => ({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`})),
 }));
 
 jest.mock('@hooks/useNetwork', () => ({
@@ -61,8 +61,8 @@ jest.mock('@libs/actions/Search', () => ({
 
 // Deterministic query/hash so the hook reads a known snapshot key.
 jest.mock('@libs/SearchQueryUtils', () => ({
-    buildQueryStringFromFilterFormValues: jest.fn(() => `type:expense from:${mockAccountID}`),
-    buildSearchQueryJSON: jest.fn(() => ({hash: mockSnapshotHash})),
+    buildQueryStringFromFilterFormValues: jest.fn(() => `type:expense from:${ACCOUNT_ID}`),
+    buildSearchQueryJSON: jest.fn(() => ({hash: SNAPSHOT_HASH})),
 }));
 
 const mockedUseNetwork = jest.mocked(useNetwork);
@@ -105,12 +105,12 @@ function makeQueryJSON(hash: number): SearchQueryJSON {
         hash,
         recentSearchHash: hash,
         similarSearchHash: hash,
-        inputQuery: `type:expense from:${mockAccountID}`,
+        inputQuery: `type:expense from:${ACCOUNT_ID}`,
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
         sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
         view: CONST.SEARCH.VIEW.TABLE,
-        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: String(mockAccountID)},
+        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: String(ACCOUNT_ID)},
         flatFilters: [],
     };
 }
@@ -138,19 +138,19 @@ function setupSnapshot(transactions: Transaction[], reports: Report[], searchMet
         data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
     lastSeededSnapshotData = data;
-    onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${mockSnapshotHash}`] = {data, search: searchMeta};
+    onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {data, search: searchMeta};
 }
 
 /** Mirrors failureData: an error marker and a response code, leaving any stored results untouched. */
 function failSearch() {
-    const previous = onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${mockSnapshotHash}`];
+    const previous = onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`];
     const failed: {data?: Record<string, unknown>; search: Partial<SearchResults['search']>; errors: SearchResults['errors']} = {
         data: lastSeededSnapshotData,
         // `state` reaching `loaded` on a failure is exactly why it cannot be read on its own.
         search: {...lastSeededSearchMeta, isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, responseJsonCode: 0},
         errors: {[ERROR_TIMESTAMP]: 'common.genericErrorMessage'},
     };
-    onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${mockSnapshotHash}`] = previous ? failed : {search: failed.search, errors: failed.errors};
+    onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = previous ? failed : {search: failed.search, errors: failed.errors};
 }
 
 /** Seeds the local `transactions_` collection (mirrors what optimistic expense creation writes to Onyx). */
@@ -175,10 +175,10 @@ beforeEach(() => {
     mockedUseNetwork.mockReturnValue({isOffline: false});
     // Hash follows the account, as in production. A fixed hash would let the hook's `queryJSON` memo hide the change.
     mockedBuildQueryStringFromFilterFormValues.mockImplementation((values) => `type:expense from:${values.from?.at(0) ?? ''}`);
-    mockedBuildSearchQueryJSON.mockImplementation((query) => makeQueryJSON(query.includes(String(OTHER_ACCOUNT_ID)) ? OTHER_SNAPSHOT_HASH : mockSnapshotHash));
-    mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: mockAccountID, login: `${mockAccountID}@test.com`} as CurrentUserPersonalDetails);
+    mockedBuildSearchQueryJSON.mockImplementation((query) => makeQueryJSON(query.includes(String(OTHER_ACCOUNT_ID)) ? OTHER_SNAPSHOT_HASH : SNAPSHOT_HASH));
+    mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
     // Default: a single report owned by the current user that owned transactions can attach to.
-    setupSnapshot([], [makeReport('report_owned', mockAccountID)]);
+    setupSnapshot([], [makeReport('report_owned', ACCOUNT_ID)]);
 });
 
 describe('useRecentlyAddedData — ordering', () => {
@@ -189,7 +189,7 @@ describe('useRecentlyAddedData — ordering', () => {
                 makeTransaction({transactionID: 't3', inserted: '2026-06-03 10:00:00'}),
                 makeTransaction({transactionID: 't2', inserted: '2026-06-02 10:00:00'}),
             ],
-            [makeReport('report_owned', mockAccountID)],
+            [makeReport('report_owned', ACCOUNT_ID)],
         );
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -204,7 +204,7 @@ describe('useRecentlyAddedData — ordering', () => {
                 makeTransaction({transactionID: 'ccc', created: '2026-06-09', inserted: '2026-06-05 10:00:00'}),
                 makeTransaction({transactionID: 'bbb', created: '2026-06-05', inserted: '2026-06-05 10:00:00'}),
             ],
-            [makeReport('report_owned', mockAccountID)],
+            [makeReport('report_owned', ACCOUNT_ID)],
         );
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -220,7 +220,7 @@ describe('useRecentlyAddedData — ordering', () => {
                 makeTransaction({transactionID: 'oldDateRecentInsert', created: '2026-03-01', inserted: '2026-06-09 09:00:00'}),
                 makeTransaction({transactionID: 'recentDateOldInsert', created: '2026-06-08', inserted: '2026-06-08 09:00:00'}),
             ],
-            [makeReport('report_owned', mockAccountID)],
+            [makeReport('report_owned', ACCOUNT_ID)],
         );
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -237,7 +237,7 @@ describe('useRecentlyAddedData — row cap', () => {
                 inserted: `2026-06-${String(i + 1).padStart(2, '0')} 10:00:00`,
             }),
         );
-        setupSnapshot(sevenTransactions, [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot(sevenTransactions, [makeReport('report_owned', ACCOUNT_ID)]);
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
@@ -254,7 +254,7 @@ describe('useRecentlyAddedData — current-user scope', () => {
                 makeTransaction({transactionID: 'mine', reportID: 'report_owned', inserted: '2026-06-02 10:00:00'}),
                 makeTransaction({transactionID: 'theirs', reportID: 'report_other', inserted: '2026-06-03 10:00:00'}),
             ],
-            [makeReport('report_owned', mockAccountID), makeReport('report_other', OTHER_ACCOUNT_ID)],
+            [makeReport('report_owned', ACCOUNT_ID), makeReport('report_other', OTHER_ACCOUNT_ID)],
         );
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -270,7 +270,7 @@ describe('useRecentlyAddedData — unreported expenses', () => {
                 makeTransaction({transactionID: 'reported', reportID: 'report_owned', inserted: '2026-06-01 10:00:00'}),
                 makeTransaction({transactionID: 'unreported', reportID: CONST.REPORT.UNREPORTED_REPORT_ID, inserted: '2026-06-02 10:00:00'}),
             ],
-            [makeReport('report_owned', mockAccountID)],
+            [makeReport('report_owned', ACCOUNT_ID)],
         );
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -281,7 +281,7 @@ describe('useRecentlyAddedData — unreported expenses', () => {
 
 describe('useRecentlyAddedData — locally pending (offline-created) expenses', () => {
     it('surfaces a locally-pending expense that has not yet reached the snapshot', () => {
-        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
         setupLocalTransactions([makeTransaction({transactionID: 'pending', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -291,7 +291,7 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
     });
 
     it('exposes the pending action so the row can render the offline pending treatment', () => {
-        setupSnapshot([], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([], [makeReport('report_owned', ACCOUNT_ID)]);
         setupLocalTransactions([makeTransaction({transactionID: 'pending', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -300,7 +300,7 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
     });
 
     it('does not duplicate an expense present in both the snapshot and the local collection', () => {
-        setupSnapshot([makeTransaction({transactionID: 'shared', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([makeTransaction({transactionID: 'shared', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
         setupLocalTransactions([makeTransaction({transactionID: 'shared', inserted: '2026-06-01 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -309,7 +309,7 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
     });
 
     it('ignores local transactions that are not pending creation (on-demand data is not a source of expenses)', () => {
-        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
         setupLocalTransactions([makeTransaction({transactionID: 'onDemand', inserted: '2026-06-09 10:00:00'})]);
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -319,7 +319,7 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
 
     it('shows a just-created expense from creation through the snapshot catching up, without dropping or duplicating it', () => {
         // Render 1: created offline, pending ADD, not yet in the snapshot.
-        setupSnapshot([], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([], [makeReport('report_owned', ACCOUNT_ID)]);
         setupLocalTransactions([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
 
         const {result, rerender} = renderHook(() => useRecentlyAddedData());
@@ -331,7 +331,7 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['new']);
 
         // Render 3: the refreshed snapshot now carries it (local copy still present), shown exactly once.
-        setupSnapshot([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00'})], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
         setupLocalTransactions([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00'})]);
         rerender({});
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['new']);
@@ -347,7 +347,7 @@ describe('useRecentlyAddedData — split expenses', () => {
                 makeTransaction({transactionID: 'splitParent', reportID: CONST.REPORT.SPLIT_REPORT_ID, inserted: '2026-06-01 10:00:00'}),
                 makeTransaction({transactionID: 'unrelated', reportID: 'report_owned', inserted: '2026-06-02 10:00:00'}),
             ],
-            [makeReport('report_owned', mockAccountID)],
+            [makeReport('report_owned', ACCOUNT_ID)],
         );
         setupLocalTransactions([
             makeTransaction({transactionID: 'splitParent', reportID: CONST.REPORT.SPLIT_REPORT_ID, inserted: '2026-06-01 10:00:00'}),
@@ -362,7 +362,7 @@ describe('useRecentlyAddedData — split expenses', () => {
 
     it('drops the split-parent when only its local copy has been reassigned (snapshot not yet refreshed)', () => {
         // Offline split: the snapshot still holds the original reportID, but the local copy is already reassigned.
-        setupSnapshot([makeTransaction({transactionID: 'splitParent', reportID: 'report_owned', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([makeTransaction({transactionID: 'splitParent', reportID: 'report_owned', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
         setupLocalTransactions([makeTransaction({transactionID: 'splitParent', reportID: CONST.REPORT.SPLIT_REPORT_ID, inserted: '2026-06-01 10:00:00'})]);
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -374,7 +374,7 @@ describe('useRecentlyAddedData — split expenses', () => {
 describe('useRecentlyAddedData — offline-edited expenses', () => {
     it('surfaces the pending action for an expense edited offline, derived from its local pendingFields', () => {
         // The snapshot keeps the stale, pre-edit copy; the offline edit lives only on the local `transactions_` copy.
-        setupSnapshot([makeTransaction({transactionID: 'edited', amount: 1000, merchant: 'Old Merchant', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([makeTransaction({transactionID: 'edited', amount: 1000, merchant: 'Old Merchant', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
         setupLocalTransactions([
             makeTransaction({
                 transactionID: 'edited',
@@ -395,7 +395,7 @@ describe('useRecentlyAddedData — offline-edited expenses', () => {
     });
 
     it('leaves a fully-synced expense without a pending action', () => {
-        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
@@ -405,7 +405,7 @@ describe('useRecentlyAddedData — offline-edited expenses', () => {
 
 describe('useRecentlyAddedData — deleted expenses', () => {
     it('keeps the row visible with a DELETE pending action while the delete is still queued', () => {
-        setupSnapshot([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
         setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -418,7 +418,7 @@ describe('useRecentlyAddedData — deleted expenses', () => {
         // Render 1: the delete is queued, so the local copy carries pendingAction DELETE.
         setupSnapshot(
             [makeTransaction({transactionID: 'doomed', inserted: '2026-06-02 10:00:00'}), makeTransaction({transactionID: 'kept', inserted: '2026-06-01 10:00:00'})],
-            [makeReport('report_owned', mockAccountID)],
+            [makeReport('report_owned', ACCOUNT_ID)],
         );
         setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
 
@@ -432,13 +432,13 @@ describe('useRecentlyAddedData — deleted expenses', () => {
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['kept']);
 
         // Render 3: the refreshed snapshot finally drops it, and it stays gone.
-        setupSnapshot([makeTransaction({transactionID: 'kept', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([makeTransaction({transactionID: 'kept', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
         rerender({});
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['kept']);
     });
 
     it('brings the row back when the delete fails and the local copy is restored without a pending action', () => {
-        setupSnapshot([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)]);
+        setupSnapshot([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
         setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
 
         const {result, rerender} = renderHook(() => useRecentlyAddedData());
@@ -457,7 +457,7 @@ describe('useRecentlyAddedData — amount sign', () => {
     it('preserves the negative sign for self-DM credits/refunds', () => {
         setupSnapshot(
             [makeTransaction({transactionID: 'selfDMCredit', reportID: 'selfDM', amount: 1000, inserted: '2026-06-01 10:00:00'})],
-            [makeReport('selfDM', mockAccountID, {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM})],
+            [makeReport('selfDM', ACCOUNT_ID, {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM})],
         );
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -476,7 +476,7 @@ describe('useRecentlyAddedData — amount sign', () => {
     it('negates the inverted sign of expense-report transactions', () => {
         setupSnapshot(
             [makeTransaction({transactionID: 'expense', reportID: 'report_owned', amount: 1000, inserted: '2026-06-01 10:00:00'})],
-            [makeReport('report_owned', mockAccountID, {type: CONST.REPORT.TYPE.EXPENSE})],
+            [makeReport('report_owned', ACCOUNT_ID, {type: CONST.REPORT.TYPE.EXPENSE})],
         );
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -487,7 +487,7 @@ describe('useRecentlyAddedData — amount sign', () => {
     it('returns the absolute amount for non self-DM, non expense-report transactions', () => {
         setupSnapshot(
             [makeTransaction({transactionID: 'iou', reportID: 'report_iou', amount: -1000, inserted: '2026-06-01 10:00:00'})],
-            [makeReport('report_iou', mockAccountID, {type: CONST.REPORT.TYPE.IOU})],
+            [makeReport('report_iou', ACCOUNT_ID, {type: CONST.REPORT.TYPE.IOU})],
         );
 
         const {result} = renderHook(() => useRecentlyAddedData());
@@ -498,7 +498,7 @@ describe('useRecentlyAddedData — amount sign', () => {
 
 describe('useRecentlyAddedData — empty snapshot', () => {
     it('returns no expenses when the snapshot has not loaded yet', () => {
-        delete onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${mockSnapshotHash}`];
+        delete onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`];
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
@@ -516,10 +516,10 @@ describe('useRecentlyAddedData — status agnostic', () => {
                 makeTransaction({transactionID: 'reimbursed', reportID: 'report_reimbursed', inserted: '2026-06-04 10:00:00'}),
             ],
             [
-                makeReport('report_open', mockAccountID, {statusNum: CONST.REPORT.STATUS_NUM.OPEN, stateNum: CONST.REPORT.STATE_NUM.OPEN}),
-                makeReport('report_submitted', mockAccountID, {statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED}),
-                makeReport('report_approved', mockAccountID, {statusNum: CONST.REPORT.STATUS_NUM.APPROVED, stateNum: CONST.REPORT.STATE_NUM.APPROVED}),
-                makeReport('report_reimbursed', mockAccountID, {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED}),
+                makeReport('report_open', ACCOUNT_ID, {statusNum: CONST.REPORT.STATUS_NUM.OPEN, stateNum: CONST.REPORT.STATE_NUM.OPEN}),
+                makeReport('report_submitted', ACCOUNT_ID, {statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED}),
+                makeReport('report_approved', ACCOUNT_ID, {statusNum: CONST.REPORT.STATUS_NUM.APPROVED, stateNum: CONST.REPORT.STATE_NUM.APPROVED}),
+                makeReport('report_reimbursed', ACCOUNT_ID, {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED}),
             ],
         );
 
@@ -531,7 +531,7 @@ describe('useRecentlyAddedData — status agnostic', () => {
 
 describe('useRecentlyAddedData — surviving a failed search', () => {
     it('keeps the rows it already had when a search fails', () => {
-        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)], LOADED);
+        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
 
         const {result, rerender} = renderHook(() => useRecentlyAddedData());
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
@@ -543,13 +543,13 @@ describe('useRecentlyAddedData — surviving a failed search', () => {
     });
 
     it('replaces the remembered rows once a newer snapshot lands', () => {
-        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)], LOADED);
+        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
 
         const {result, rerender} = renderHook(() => useRecentlyAddedData());
         failSearch();
         rerender({});
 
-        setupSnapshot([makeTransaction({transactionID: 't2', inserted: '2026-06-02 10:00:00'})], [makeReport('report_owned', mockAccountID)], LOADED);
+        setupSnapshot([makeTransaction({transactionID: 't2', inserted: '2026-06-02 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
         rerender({});
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t2']);
@@ -557,7 +557,7 @@ describe('useRecentlyAddedData — surviving a failed search', () => {
     });
 
     it('never shows one account rows to another', () => {
-        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)], LOADED);
+        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
 
         const {result, rerender} = renderHook(() => useRecentlyAddedData());
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
@@ -575,7 +575,7 @@ describe('useRecentlyAddedData — surviving a failed search', () => {
 describe('useRecentlyAddedData — awaiting the first result', () => {
     it('waits while a search is in flight and nothing has been rendered yet', () => {
         // A snapshot that exists but holds no data yet still counts as nothing rendered.
-        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${mockSnapshotHash}`] = {search: {isLoading: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}};
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {search: {isLoading: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}};
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
@@ -584,7 +584,7 @@ describe('useRecentlyAddedData — awaiting the first result', () => {
 
     it('stops waiting for a terminal response that carried no data at all', () => {
         // What finallyData writes on a 460 no-op. Without the `state` clause this would shimmer forever.
-        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${mockSnapshotHash}`] = {search: LOADED};
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {search: LOADED};
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
@@ -594,7 +594,7 @@ describe('useRecentlyAddedData — awaiting the first result', () => {
 
     it('stops waiting when no query could be built, because nothing was ever issued', () => {
         mockedBuildSearchQueryJSON.mockReturnValue(undefined);
-        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${mockSnapshotHash}`] = undefined;
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = undefined;
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
@@ -622,7 +622,7 @@ describe('useRecentlyAddedData — awaiting the first result', () => {
 
     it('stops waiting when offline, because no request was issued', () => {
         mockedUseNetwork.mockReturnValue({isOffline: true});
-        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${mockSnapshotHash}`] = undefined;
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = undefined;
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
@@ -631,7 +631,7 @@ describe('useRecentlyAddedData — awaiting the first result', () => {
 
     it('stops waiting for a snapshot written without a state field', () => {
         // The IOU optimistic update writes `data` plus a `search` object that carries no `state`.
-        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', mockAccountID)], {hasResults: true, isLoading: false});
+        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], {hasResults: true, isLoading: false});
 
         const {result} = renderHook(() => useRecentlyAddedData());
 

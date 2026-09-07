@@ -13,7 +13,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
 
-const mockCurrentUserAccountID = 999;
+const currentUserAccountID = 999;
 const domainID = 19475968;
 const mockPolicyID = '123456';
 const workspaceAccountID = 11111111;
@@ -57,7 +57,7 @@ jest.mock('@hooks/useCardFeeds', () => ({
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: () => ({accountID: mockCurrentUserAccountID}),
+    default: () => ({accountID: currentUserAccountID}),
 }));
 
 describe('useIsAllowedToIssueCompanyCard', () => {
@@ -73,7 +73,7 @@ describe('useIsAllowedToIssueCompanyCard', () => {
     it('should return true if domain feed and access is granted', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf#19475968');
         const domain = createMock<Domain>({});
-        domain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`] = mockCurrentUserAccountID;
+        domain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`] = currentUserAccountID;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, domain);
         jest.mocked(useCardFeeds).mockReturnValue([mockedFeeds, {status: 'loaded'}, undefined, {}, 0]);
         const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));

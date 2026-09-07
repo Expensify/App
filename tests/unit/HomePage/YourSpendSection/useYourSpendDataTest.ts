@@ -42,7 +42,7 @@ import createMock from '../../../utils/createMock';
 
 // Constants
 
-const mockAccountID = 12345;
+const ACCOUNT_ID = 12345;
 const CARD_ID_1 = 11111;
 const CARD_ID_2 = 22222;
 const CARD_LAST_FOUR_1 = '1111';
@@ -58,14 +58,14 @@ const THIRD_PARTY_LAST_FOUR_2 = '4444';
 // These must be valid query strings the search parser accepts, so
 // buildSearchQueryJSON can compute real hashes from them, matching
 // what the hook computes during rendering.
-const APPROVAL_QUERY = `type:expense status:outstanding from:${mockAccountID} reimbursable:yes`;
-const PAYMENT_QUERY = `type:expense status:paid from:${mockAccountID} reimbursable:yes`;
-const CARD_QUERY_1 = `type:expense from:${mockAccountID} cardID:${CARD_ID_1}`;
-const CARD_QUERY_2 = `type:expense from:${mockAccountID} cardID:${CARD_ID_2}`;
-const THIRD_PARTY_QUERY_1 = `type:expense from:${mockAccountID} cardID:${THIRD_PARTY_CARD_ID_1}`;
-const THIRD_PARTY_QUERY_2 = `type:expense from:${mockAccountID} cardID:${THIRD_PARTY_CARD_ID_2}`;
+const APPROVAL_QUERY = `type:expense status:outstanding from:${ACCOUNT_ID} reimbursable:yes`;
+const PAYMENT_QUERY = `type:expense status:paid from:${ACCOUNT_ID} reimbursable:yes`;
+const CARD_QUERY_1 = `type:expense from:${ACCOUNT_ID} cardID:${CARD_ID_1}`;
+const CARD_QUERY_2 = `type:expense from:${ACCOUNT_ID} cardID:${CARD_ID_2}`;
+const THIRD_PARTY_QUERY_1 = `type:expense from:${ACCOUNT_ID} cardID:${THIRD_PARTY_CARD_ID_1}`;
+const THIRD_PARTY_QUERY_2 = `type:expense from:${ACCOUNT_ID} cardID:${THIRD_PARTY_CARD_ID_2}`;
 
-const CARD_GROUP_QUERY = buildCardGroupQuery(mockAccountID);
+const CARD_GROUP_QUERY = buildCardGroupQuery(ACCOUNT_ID);
 
 // Module mocks
 
@@ -92,7 +92,7 @@ jest.mock('@hooks/useNetwork', () => ({
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: jest.fn(() => ({accountID: mockAccountID, login: `${mockAccountID}@test.com`})),
+    default: jest.fn(() => ({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`})),
 }));
 
 jest.mock('@libs/CardUtils', () => ({
@@ -142,7 +142,7 @@ function makeCorporatePolicy(overrides: Partial<Policy> = {}): Policy {
         type: CONST.POLICY.TYPE.CORPORATE,
         role: 'admin',
         owner: 'test@example.com',
-        ownerAccountID: mockAccountID,
+        ownerAccountID: ACCOUNT_ID,
         outputCurrency: CONST.CURRENCY.USD,
         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -194,7 +194,7 @@ function setupCardGroups(groups: CardGroupFixture[], searchOverrides: Partial<Se
             continue;
         }
         data[`${CONST.SEARCH.GROUP_PREFIX}${cardID}`] = {
-            accountID: mockAccountID,
+            accountID: ACCOUNT_ID,
             cardID,
             count,
             total: total ?? 0,
@@ -229,7 +229,7 @@ function makeCardFeedErrors(overrides: Partial<CardFeedErrors> = {}): CardFeedEr
 function makeThirdPartyCards(cards: Array<{cardID: number; lastFourPAN?: string; cardName?: string; bank?: Card['bank']; fundID?: string; lastScrapeResult?: number}>): Card[] {
     return cards.map((c) =>
         createMock<Card>({
-            accountID: mockAccountID,
+            accountID: ACCOUNT_ID,
             bank: c.bank ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
             cardID: c.cardID,
             cardName: c.cardName ?? '480801XXXXXX2554',
@@ -282,7 +282,7 @@ beforeEach(() => {
     });
 
     mockedUseNetwork.mockReturnValue(networkState(false));
-    mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: mockAccountID, login: `${mockAccountID}@test.com`} as CurrentUserPersonalDetails);
+    mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
     mockedGetDisplayableExpensifyCards.mockReturnValue([]);
     mockedGetDisplayableThirdPartyCards.mockReturnValue([]);
     mockedIsPaidGroupPolicy.mockReturnValue(false);
@@ -486,7 +486,7 @@ describe('useYourSpendData — query builder integration', () => {
     it('calls buildAwaitingApprovalQuery with the current user accountID and an empty policyIDs list when the user has no paid group policy', () => {
         mockedIsPaidGroupPolicy.mockReturnValue(false);
         renderHook(() => useYourSpendData());
-        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(mockAccountID, []);
+        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, []);
     });
 
     it('passes the IDs of paid group policies into buildAwaitingApprovalQuery', () => {
@@ -495,7 +495,7 @@ describe('useYourSpendData — query builder integration', () => {
         setupPolicies([policyA, policyB]);
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         renderHook(() => useYourSpendData());
-        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(mockAccountID, expect.arrayContaining(['policy_a', 'policy_b']));
+        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, expect.arrayContaining(['policy_a', 'policy_b']));
     });
 
     it('excludes policies that do not pass isPaidGroupPolicy from the policyIDs list', () => {
@@ -504,18 +504,18 @@ describe('useYourSpendData — query builder integration', () => {
         setupPolicies([paidGroup, otherPolicy]);
         mockedIsPaidGroupPolicy.mockImplementation((p) => p?.id === 'paid_group');
         renderHook(() => useYourSpendData());
-        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(mockAccountID, ['paid_group']);
+        expect(buildAwaitingApprovalQuery).toHaveBeenCalledWith(ACCOUNT_ID, ['paid_group']);
     });
 
     it('calls buildRepaidLast30DaysQuery with the current user accountID', () => {
         renderHook(() => useYourSpendData());
-        expect(buildRepaidLast30DaysQuery).toHaveBeenCalledWith(mockAccountID);
+        expect(buildRepaidLast30DaysQuery).toHaveBeenCalledWith(ACCOUNT_ID);
     });
 
     it('calls buildRecentCardTransactionsQuery with accountID and the card cardID', () => {
         mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
         renderHook(() => useYourSpendData());
-        expect(buildRecentCardTransactionsQuery).toHaveBeenCalledWith(mockAccountID, CARD_ID_1);
+        expect(buildRecentCardTransactionsQuery).toHaveBeenCalledWith(ACCOUNT_ID, CARD_ID_1);
     });
 
     it('exposes awaitingApprovalQuery from the builder return value', () => {
@@ -759,7 +759,7 @@ describe('useYourSpendData — third-party cardRows', () => {
 describe('useYourSpendData — approval cache is keyed by query hash', () => {
     // Second valid query string with a different hash, simulating the user's paid-workspace
     // set changing (which changes the policyID filter and therefore the approval query hash).
-    const APPROVAL_QUERY_B = `type:expense status:outstanding from:${mockAccountID} reimbursable:yes policyID:other_policy`;
+    const APPROVAL_QUERY_B = `type:expense status:outstanding from:${ACCOUNT_ID} reimbursable:yes policyID:other_policy`;
 
     function setupApprovalSnapshotForQuery(query: string, results: SearchResults | undefined) {
         const hash = buildSearchQueryJSON(query)?.hash;
@@ -793,7 +793,7 @@ describe('useYourSpendData — refires search when a relevant report state chang
         return {
             reportID: 'r1',
             policyID: 'policy_1',
-            ownerAccountID: mockAccountID,
+            ownerAccountID: ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             ...overrides,
@@ -859,7 +859,7 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
         return {
             reportID: 'r1',
             policyID: 'policy_1',
-            ownerAccountID: mockAccountID,
+            ownerAccountID: ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             ...overrides,
@@ -920,7 +920,7 @@ describe('useYourSpendData — per-row staleness', () => {
         return {
             reportID: 'r1',
             policyID: 'policy_1',
-            ownerAccountID: mockAccountID,
+            ownerAccountID: ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             ...overrides,
@@ -1105,7 +1105,7 @@ describe('useYourSpendData — per-row staleness', () => {
     });
 
     it('ignores queued commands for reports the user does not own', () => {
-        setupReports([makeReport({ownerAccountID: mockAccountID + 1})]);
+        setupReports([makeReport({ownerAccountID: ACCOUNT_ID + 1})]);
         setupQueue([{command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}}]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.isApprovalStale).toBe(false);
@@ -1142,7 +1142,7 @@ describe('useYourSpendData — summary rows are frozen while offline', () => {
         return {
             reportID: 'r1',
             policyID: 'policy_1',
-            ownerAccountID: mockAccountID,
+            ownerAccountID: ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             ...overrides,
@@ -1236,7 +1236,7 @@ describe('useYourSpendData — summary rows are frozen while offline', () => {
     });
 
     it('drops the frozen approval row when the query hash changes', () => {
-        const APPROVAL_QUERY_B = `type:expense status:outstanding from:${mockAccountID} reimbursable:yes policyID:other_policy`;
+        const APPROVAL_QUERY_B = `type:expense status:outstanding from:${ACCOUNT_ID} reimbursable:yes policyID:other_policy`;
 
         setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
         const {result, rerender} = renderHook(() => useYourSpendData());

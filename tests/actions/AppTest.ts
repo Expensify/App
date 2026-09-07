@@ -27,27 +27,9 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
-jest.mock('@libs/API', () => {
-    const actual = jest.requireActual<typeof API>('@libs/API');
-    return {
-        ...actual,
-        read: jest.fn(actual.read),
-        writeWithNoDuplicatesOpenAppConflictAction: jest.fn(actual.writeWithNoDuplicatesOpenAppConflictAction),
-    };
-});
-
-jest.mock('../../src/libs/actions/App', () => {
-    const actual = jest.requireActual<typeof App>('../../src/libs/actions/App');
-    return {
-        ...actual,
-        triggerFullReconnect: jest.fn(actual.triggerFullReconnect),
-    };
-});
 
 function mockRead() {
-    const readSpy = jest.mocked(API.read);
-    readSpy.mockImplementation(() => {});
-    return readSpy;
+    return jest.spyOn(API, 'read').mockImplementation(() => {});
 }
 
 OnyxUpdateManager();
@@ -128,8 +110,7 @@ describe('actions/App', () => {
     });
 
     test('openApp is not deduped against an in-flight OpenApp when it carries preservation data', async () => {
-        const writeOpenApp = jest.mocked(API.writeWithNoDuplicatesOpenAppConflictAction);
-        writeOpenApp.mockImplementation(() => Promise.resolve());
+        const writeOpenApp = jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockImplementation(() => Promise.resolve());
 
         App.openApp();
         await waitForBatchedUpdates();
@@ -145,7 +126,7 @@ describe('actions/App', () => {
     });
 
     test('trigger full reconnect', async () => {
-        const triggerFullReconnect = jest.mocked(App.triggerFullReconnect);
+        const triggerFullReconnect = jest.spyOn(App, 'triggerFullReconnect');
 
         // When OpenApp runs
         App.openApp();
@@ -165,7 +146,7 @@ describe('actions/App', () => {
     });
 
     test("don't trigger full reconnect", async () => {
-        const triggerFullReconnect = jest.mocked(App.triggerFullReconnect);
+        const triggerFullReconnect = jest.spyOn(App, 'triggerFullReconnect');
 
         // When OpenApp runs
         App.openApp();

@@ -26,13 +26,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/RenderHTML', () => () => null);
-jest.mock('@libs/API', () => {
-    const actual = jest.requireActual<typeof API>('@libs/API');
-    return {
-        ...actual,
-        read: jest.fn(actual.read),
-    };
-});
 
 const DOMAIN_ACCOUNT_ID = 123456;
 const DOMAIN_EMAIL = 'user@test.com';
@@ -44,8 +37,7 @@ const DOMAIN_ADMIN_ACCESS = {
     [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: TEST_USER_ACCOUNT_ID,
 };
 
-const apiReadSpy = jest.mocked(API.read);
-apiReadSpy.mockImplementation(() => {});
+const apiReadSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();
 

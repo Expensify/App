@@ -14,9 +14,9 @@ import React from 'react';
 // the callback and config that ButtonKeyboardShortcut passes to
 // useKeyboardShortcut, letting tests invoke the callback directly — the same
 // pattern used across the ButtonComposed test suite.
-let mockEnterKeyCallback: ((event?: KeyboardEvent) => void) | undefined;
+let enterKeyCallback: ((event?: KeyboardEvent) => void) | undefined;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mockCapturedShortcutConfig: Record<string, any> | undefined;
+let capturedShortcutConfig: Record<string, any> | undefined;
 
 jest.mock('@hooks/useKeyboardShortcut', () =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,8 +24,8 @@ jest.mock('@hooks/useKeyboardShortcut', () =>
     if (shortcut.shortcutKey !== 'Enter' || !config.isActive) {
         return;
     }
-    mockEnterKeyCallback = callback;
-    mockCapturedShortcutConfig = config;
+    enterKeyCallback = callback;
+    capturedShortcutConfig = config;
 });
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -53,8 +53,8 @@ const renderShortcut = (props: Partial<ButtonKeyboardShortcutProps> = {}, button
 
 describe('ButtonKeyboardShortcut', () => {
     beforeEach(() => {
-        mockEnterKeyCallback = undefined;
-        mockCapturedShortcutConfig = undefined;
+        enterKeyCallback = undefined;
+        capturedShortcutConfig = undefined;
     });
 
     afterEach(() => {
@@ -69,7 +69,7 @@ describe('ButtonKeyboardShortcut', () => {
             renderShortcut();
 
             // Then useKeyboardShortcut was called and the callback was captured
-            expect(mockEnterKeyCallback).toBeDefined();
+            expect(enterKeyCallback).toBeDefined();
         });
     });
 
@@ -82,7 +82,7 @@ describe('ButtonKeyboardShortcut', () => {
             renderShortcut({}, {onPress});
 
             // When the Enter key fires
-            mockEnterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
+            enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
 
             // Then onPress is called exactly once
             expect(onPress).toHaveBeenCalledTimes(1);
@@ -94,7 +94,7 @@ describe('ButtonKeyboardShortcut', () => {
             renderShortcut({}, {onPress, isDisabled: true});
 
             // When the Enter key fires
-            mockEnterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
+            enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
 
             // Then validateSubmitShortcut blocks the call
             expect(onPress).not.toHaveBeenCalled();
@@ -106,7 +106,7 @@ describe('ButtonKeyboardShortcut', () => {
             renderShortcut({}, {onPress, isLoading: true});
 
             // When the Enter key fires
-            mockEnterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
+            enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
 
             // Then validateSubmitShortcut blocks the call
             expect(onPress).not.toHaveBeenCalled();
@@ -121,7 +121,7 @@ describe('ButtonKeyboardShortcut', () => {
             renderShortcut({allowBubble: true});
 
             // Then the config passed to useKeyboardShortcut reflects shouldBubble=true
-            expect(mockCapturedShortcutConfig?.shouldBubble).toBe(true);
+            expect(capturedShortcutConfig?.shouldBubble).toBe(true);
         });
 
         it('forwards enterKeyEventListenerPriority as priority', () => {
@@ -129,7 +129,7 @@ describe('ButtonKeyboardShortcut', () => {
             renderShortcut({enterKeyEventListenerPriority: 5});
 
             // Then the config reflects the custom priority
-            expect(mockCapturedShortcutConfig?.priority).toBe(5);
+            expect(capturedShortcutConfig?.priority).toBe(5);
         });
 
         it('is active when isPressOnEnterActive is true regardless of screen focus', () => {
@@ -137,14 +137,14 @@ describe('ButtonKeyboardShortcut', () => {
             renderShortcut({isPressOnEnterActive: true});
 
             // Then the callback was captured — the shortcut is active
-            expect(mockEnterKeyCallback).toBeDefined();
+            expect(enterKeyCallback).toBeDefined();
         });
 
         it('sets shouldPreventDefault to false', () => {
             // The shortcut must not swallow the event so other listeners can still react.
             renderShortcut();
 
-            expect(mockCapturedShortcutConfig?.shouldPreventDefault).toBe(false);
+            expect(capturedShortcutConfig?.shouldPreventDefault).toBe(false);
         });
     });
 

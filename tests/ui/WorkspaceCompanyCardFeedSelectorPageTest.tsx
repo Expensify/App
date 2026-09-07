@@ -14,7 +14,7 @@ import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-const mockPolicyID = 'policy123';
+const POLICY_ID = 'policy123';
 
 let mockIsUserValidated = false;
 let mockIsBlockedToAddNewFeeds = false;
@@ -99,7 +99,7 @@ jest.mock('@hooks/useOtherFeedsForFeedSelector', () => ({
 
 jest.mock('@hooks/usePolicy', () => ({
     __esModule: true,
-    default: () => ({id: mockPolicyID, name: 'Acme'}),
+    default: () => ({id: POLICY_ID, name: 'Acme'}),
 }));
 
 jest.mock('@hooks/usePolicyFeatureWriteAccess', () => ({
@@ -141,14 +141,14 @@ const mockNavigate = jest.mocked(Navigation.navigate);
 const mockClearAddNewCardFlow = jest.mocked(clearAddNewCardFlow);
 
 const expectedUpgradeRoute = () =>
-    ROUTES.WORKSPACE_UPGRADE.getRoute(mockPolicyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(mockPolicyID));
+    ROUTES.WORKSPACE_UPGRADE.getRoute(POLICY_ID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(POLICY_ID));
 
 type WorkspaceCompanyCardFeedSelectorPageScreenProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
 
 const route: WorkspaceCompanyCardFeedSelectorPageScreenProps['route'] = {
     key: 'workspace-company-cards-select-feed',
     name: SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED,
-    params: {policyID: mockPolicyID},
+    params: {policyID: POLICY_ID},
 };
 // The screen does not read navigation; this inert test double only satisfies the navigator-provided prop.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion

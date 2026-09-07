@@ -18,7 +18,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const mockSourcePolicyID = 'source-policy-1';
+const SOURCE_POLICY_ID = 'source-policy-1';
 const TARGET_POLICY_ID = 'target-policy-1';
 const TEST_USER_EMAIL = 'test@expensify.com';
 const TEST_USER_ACCOUNT_ID = 12345;
@@ -76,7 +76,7 @@ jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualNav,
-        useRoute: () => ({params: {policyID: mockSourcePolicyID}}),
+        useRoute: () => ({params: {policyID: SOURCE_POLICY_ID}}),
         useIsFocused: () => true,
         useNavigation: () => ({
             navigate: jest.fn(),
@@ -157,7 +157,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
         jest.clearAllMocks();
         mockOnPressHolder.current = undefined;
         await Onyx.clear();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${mockSourcePolicyID}`, createTestPolicy(mockSourcePolicyID, 'Source Workspace', CONST.POLICY.TYPE.CORPORATE));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, createTestPolicy(SOURCE_POLICY_ID, 'Source Workspace', CONST.POLICY.TYPE.CORPORATE));
         await waitForBatchedUpdates();
     });
 
@@ -170,7 +170,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
         // Collect (Team) target with a Control-only part selected: confirming would bypass the Upgrade step.
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_ID}`, createTestPolicy(TARGET_POLICY_ID, 'Target Workspace', CONST.POLICY.TYPE.TEAM));
         await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
-            sourcePolicyID: mockSourcePolicyID,
+            sourcePolicyID: SOURCE_POLICY_ID,
             targetPolicyIDs: [TARGET_POLICY_ID],
             parts: ['rules'] as Part[],
         });
@@ -184,7 +184,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
         });
         await waitForBatchedUpdates();
 
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(mockSourcePolicyID));
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(SOURCE_POLICY_ID));
         expect(mockCopyPolicySettings).not.toHaveBeenCalled();
         expect(mockDismissModal).not.toHaveBeenCalled();
     });
@@ -193,7 +193,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
         // Corporate (Control) target: the selected Control-only part is already accessible, no upgrade needed.
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_ID}`, createTestPolicy(TARGET_POLICY_ID, 'Target Workspace', CONST.POLICY.TYPE.CORPORATE));
         await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
-            sourcePolicyID: mockSourcePolicyID,
+            sourcePolicyID: SOURCE_POLICY_ID,
             targetPolicyIDs: [TARGET_POLICY_ID],
             parts: ['rules'] as Part[],
         });
@@ -209,6 +209,6 @@ describe('CopyPolicySettingsConfirmPage', () => {
 
         expect(mockCopyPolicySettings).toHaveBeenCalledTimes(1);
         expect(mockDismissModal).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).not.toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(mockSourcePolicyID));
+        expect(mockNavigate).not.toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(SOURCE_POLICY_ID));
     });
 });

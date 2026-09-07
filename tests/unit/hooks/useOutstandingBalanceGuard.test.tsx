@@ -28,7 +28,7 @@ type MockConfirmModalProps = {
     cancelText?: string;
 };
 
-let mockLastModalProps: MockConfirmModalProps | undefined;
+let lastModalProps: MockConfirmModalProps | undefined;
 
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
@@ -36,7 +36,7 @@ jest.mock('@hooks/useLocalize', () => () => ({
 
 jest.mock('@components/ConfirmModal', () => {
     return (props: MockConfirmModalProps) => {
-        mockLastModalProps = props;
+        lastModalProps = props;
         return null;
     };
 });
@@ -68,7 +68,7 @@ describe('useOutstandingBalanceGuard', () => {
     });
 
     beforeEach(async () => {
-        mockLastModalProps = undefined;
+        lastModalProps = undefined;
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
@@ -171,7 +171,7 @@ describe('useOutstandingBalanceGuard', () => {
             });
 
             expect(blocked).toBe(true);
-            expect(mockLastModalProps?.isVisible).toBe(true);
+            expect(lastModalProps?.isVisible).toBe(true);
         });
 
         it('should return false and not open modal when no amount owed', () => {
@@ -189,7 +189,7 @@ describe('useOutstandingBalanceGuard', () => {
             });
 
             expect(blocked).toBe(false);
-            expect(mockLastModalProps?.isVisible).toBeFalsy();
+            expect(lastModalProps?.isVisible).toBeFalsy();
         });
 
         it('should return false when multiple paid policies exist even with amount owed', async () => {
@@ -230,14 +230,14 @@ describe('useOutstandingBalanceGuard', () => {
                 ref.current?.shouldBlockDeletion();
             });
 
-            expect(mockLastModalProps?.isVisible).toBe(true);
+            expect(lastModalProps?.isVisible).toBe(true);
 
             act(() => {
-                mockLastModalProps?.onConfirm?.();
+                lastModalProps?.onConfirm?.();
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION.route);
-            expect(mockLastModalProps?.isVisible).toBe(false);
+            expect(lastModalProps?.isVisible).toBe(false);
         });
 
         it('should close modal on cancel without navigating', async () => {
@@ -256,14 +256,14 @@ describe('useOutstandingBalanceGuard', () => {
                 ref.current?.shouldBlockDeletion();
             });
 
-            expect(mockLastModalProps?.isVisible).toBe(true);
+            expect(lastModalProps?.isVisible).toBe(true);
 
             act(() => {
-                mockLastModalProps?.onCancel?.();
+                lastModalProps?.onCancel?.();
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
-            expect(mockLastModalProps?.isVisible).toBe(false);
+            expect(lastModalProps?.isVisible).toBe(false);
         });
 
         it('should pass correct translation keys to the modal', async () => {
@@ -277,10 +277,10 @@ describe('useOutstandingBalanceGuard', () => {
                 />,
             );
 
-            expect(mockLastModalProps?.title).toBe('workspace.common.delete');
-            expect(mockLastModalProps?.prompt).toBe('workspace.common.outstandingBalanceWarning');
-            expect(mockLastModalProps?.confirmText).toBe('workspace.common.settleBalance');
-            expect(mockLastModalProps?.cancelText).toBe('common.cancel');
+            expect(lastModalProps?.title).toBe('workspace.common.delete');
+            expect(lastModalProps?.prompt).toBe('workspace.common.outstandingBalanceWarning');
+            expect(lastModalProps?.confirmText).toBe('workspace.common.settleBalance');
+            expect(lastModalProps?.cancelText).toBe('common.cancel');
         });
     });
 });

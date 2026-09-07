@@ -29,14 +29,6 @@ type OnResolved = (params: {jsonCode?: string | number}) => void;
 
 jest.mock('@src/libs/Log');
 
-jest.mock('@libs/actions/Reconnect', () => {
-    const actual = jest.requireActual<typeof Reconnect>('@libs/actions/Reconnect');
-    return {
-        ...actual,
-        reconnect: jest.fn(actual.reconnect),
-    };
-});
-
 Onyx.init({
     keys: ONYXKEYS,
 });
@@ -215,7 +207,7 @@ describe('NetworkTests', () => {
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
 
-        const reconnectSpy = jest.mocked(Reconnect.reconnect);
+        const reconnectSpy = jest.spyOn(Reconnect, 'reconnect');
         let mockedXhr: jest.SpiedFunction<typeof HttpUtils.xhr>;
 
         // When we sign in

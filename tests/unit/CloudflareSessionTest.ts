@@ -22,7 +22,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PKCEPair = PKCEModule.PKCEPair;
 
-const mockAuthorizeURL = 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization?mock=1';
+const AUTHORIZE_URL = 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization?mock=1';
 
 // OAuthClient imports CONFIG, whose native dependency is unavailable in the Jest environment.
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: {CLIENT_ID: 'client-123'}}}));
@@ -42,7 +42,7 @@ jest.mock('@libs/CloudflareAccess/OAuthClient', () => ({
     __esModule: true,
     // Keep the real OAuthError class. The terminal/transient split hangs on instanceof
     ...jest.requireActual<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient'),
-    buildAuthorizeURL: jest.fn(() => Promise.resolve(mockAuthorizeURL)),
+    buildAuthorizeURL: jest.fn(() => Promise.resolve(AUTHORIZE_URL)),
     exchangeCode: jest.fn(),
     refreshTokens: jest.fn(),
 }));
@@ -273,7 +273,7 @@ describe('redirectToCloudflareSignIn', () => {
         SessionActions.redirectToCloudflareSignIn('http://localhost/settings/troubleshoot');
         await waitForBatchedUpdates();
 
-        expect(assignSpy).toHaveBeenCalledWith(mockAuthorizeURL);
+        expect(assignSpy).toHaveBeenCalledWith(AUTHORIZE_URL);
         // Then the record must already be readable at the moment the navigation is requested: module memory
         // does not survive the unload, and without the stored verifier the returning code could never be exchanged
         expect(savedBeforeAssign.at(0)).not.toBeNull();

@@ -58,11 +58,11 @@ jest.mock('@components/OfflineWithFeedback', () => {
 
 // Capture the props passed to the MenuItemAvater so the test can assert against `avatarID` directly
 // (rather than re-encoding through `toJSON()`).
-const mockCapturedAvatarProps: Array<Record<string, unknown>> = [];
+const capturedAvatarProps: Array<Record<string, unknown>> = [];
 
 jest.mock('@components/Avatar/UserAvatar', () => {
     function MockUserAvatar(props: Record<string, unknown>) {
-        mockCapturedAvatarProps.push(props);
+        capturedAvatarProps.push(props);
         return null;
     }
     return MockUserAvatar;
@@ -76,13 +76,13 @@ const PHONE_DELEGATE_RAW = '+919789942470';
 const PHONE_DELEGATE_LOCALIZED = '97899 42470';
 
 function lastAvatarProps() {
-    return mockCapturedAvatarProps.at(-1) ?? {};
+    return capturedAvatarProps.at(-1) ?? {};
 }
 
 describe('VacationDelegateMenuItem', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockCapturedAvatarProps.length = 0;
+        capturedAvatarProps.length = 0;
         mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
     });
 
@@ -210,6 +210,6 @@ describe('VacationDelegateMenuItem', () => {
         renderMenuItem();
 
         expect(screen.getByText('common.vacationDelegate')).toBeTruthy();
-        expect(mockCapturedAvatarProps).toHaveLength(0);
+        expect(capturedAvatarProps).toHaveLength(0);
     });
 });

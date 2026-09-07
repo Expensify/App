@@ -21,10 +21,10 @@ type CurrencyOption = {text: string; value: string; keyForList: string; isSelect
 
 type ConfirmButtonOptions = {showButton?: boolean; text?: string; onConfirm?: () => void; isDisabled?: boolean};
 
-let mockCapturedData: CurrencyOption[] = [];
-let mockCapturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
-let mockCapturedCustomListHeader: SelectionListProps<CurrencyOption>['customListHeader'];
-let mockCapturedConfirmButtonOptions: ConfirmButtonOptions | undefined;
+let capturedData: CurrencyOption[] = [];
+let capturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
+let capturedCustomListHeader: SelectionListProps<CurrencyOption>['customListHeader'];
+let capturedConfirmButtonOptions: ConfirmButtonOptions | undefined;
 
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false})));
 
@@ -88,10 +88,10 @@ jest.mock('@components/SelectionList', () => {
         customListHeader?: SelectionListProps<CurrencyOption>['customListHeader'];
         confirmButtonOptions?: ConfirmButtonOptions;
     }) {
-        mockCapturedData = data ?? [];
-        mockCapturedOnSelectRow = onSelectRow;
-        mockCapturedCustomListHeader = customListHeader;
-        mockCapturedConfirmButtonOptions = confirmButtonOptions;
+        capturedData = data ?? [];
+        capturedOnSelectRow = onSelectRow;
+        capturedCustomListHeader = customListHeader;
+        capturedConfirmButtonOptions = confirmButtonOptions;
         return (data ?? []).map((item) => item.text).join(',');
     }
     return MockSelectionList;
@@ -132,10 +132,10 @@ const mockOnyx = (formDraftCurrency?: string, addCardCurrency?: string, billingC
 describe('DynamicPaymentCardCurrencySelectorPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockCapturedData = [];
-        mockCapturedOnSelectRow = undefined;
-        mockCapturedCustomListHeader = undefined;
-        mockCapturedConfirmButtonOptions = undefined;
+        capturedData = [];
+        capturedOnSelectRow = undefined;
+        capturedCustomListHeader = undefined;
+        capturedConfirmButtonOptions = undefined;
         mockUsePermissions.mockReturnValue({isBetaEnabled: () => false});
         mockUseDynamicBackPath.mockReturnValue('settings/subscription/change-billing-currency');
         mockOnyx();
@@ -144,7 +144,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
     it('hides EUR when the EUR billing beta is disabled', () => {
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        const currencies = mockCapturedData.map((option) => option.value);
+        const currencies = capturedData.map((option) => option.value);
         expect(currencies).toEqual(['USD', 'AUD', 'GBP', 'NZD']);
         expect(currencies).not.toContain('EUR');
     });
@@ -154,7 +154,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        expect(mockCapturedData.map((option) => option.value)).toContain('EUR');
+        expect(capturedData.map((option) => option.value)).toContain('EUR');
     });
 
     it('marks the form draft currency as selected', () => {
@@ -162,7 +162,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        const selected = mockCapturedData.filter((option) => option.isSelected);
+        const selected = capturedData.filter((option) => option.isSelected);
         expect(selected).toHaveLength(1);
         expect(selected.at(0)?.value).toBe('AUD');
     });
@@ -172,7 +172,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        expect(mockCapturedData.find((option) => option.isSelected)?.value).toBe('NZD');
+        expect(capturedData.find((option) => option.isSelected)?.value).toBe('NZD');
     });
 
     it('falls back to the billing card currency when both the draft and the add-card form are empty', () => {
@@ -180,24 +180,24 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        expect(mockCapturedData.find((option) => option.isSelected)?.value).toBe('GBP');
+        expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
     });
 
     it('moves the checkmark on select without persisting or navigating (deferred until Save)', () => {
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        const aud = mockCapturedData.find((option) => option.value === 'AUD');
+        const aud = capturedData.find((option) => option.value === 'AUD');
         expect(aud).toBeDefined();
         act(() => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            mockCapturedOnSelectRow?.(aud!);
+            capturedOnSelectRow?.(aud!);
         });
 
         expect(mockSetDraftValues).not.toHaveBeenCalled();
         expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
         expect(mockGoBack).not.toHaveBeenCalled();
 
-        const selected = mockCapturedData.filter((option) => option.isSelected);
+        const selected = capturedData.filter((option) => option.isSelected);
         expect(selected).toHaveLength(1);
         expect(selected.at(0)?.value).toBe('AUD');
     });
@@ -205,16 +205,16 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
     it('writes the chosen currency to both flows and navigates back when Save is tapped', () => {
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        const aud = mockCapturedData.find((option) => option.value === 'AUD');
+        const aud = capturedData.find((option) => option.value === 'AUD');
         expect(aud).toBeDefined();
         act(() => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            mockCapturedOnSelectRow?.(aud!);
+            capturedOnSelectRow?.(aud!);
         });
 
-        expect(mockCapturedConfirmButtonOptions?.showButton).toBe(true);
+        expect(capturedConfirmButtonOptions?.showButton).toBe(true);
         act(() => {
-            mockCapturedConfirmButtonOptions?.onConfirm?.();
+            capturedConfirmButtonOptions?.onConfirm?.();
         });
 
         expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
@@ -227,16 +227,16 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        expect(mockCapturedConfirmButtonOptions?.isDisabled).toBe(true);
+        expect(capturedConfirmButtonOptions?.isDisabled).toBe(true);
 
-        const aud = mockCapturedData.find((option) => option.value === 'AUD');
+        const aud = capturedData.find((option) => option.value === 'AUD');
         expect(aud).toBeDefined();
         act(() => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            mockCapturedOnSelectRow?.(aud!);
+            capturedOnSelectRow?.(aud!);
         });
 
-        expect(mockCapturedConfirmButtonOptions?.isDisabled).toBe(false);
+        expect(capturedConfirmButtonOptions?.isDisabled).toBe(false);
     });
 
     it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {
@@ -244,7 +244,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        const header = mockCapturedCustomListHeader;
+        const header = capturedCustomListHeader;
         expect(header).toBeTruthy();
         if (!React.isValidElement(header)) {
             throw new Error('Expected the captured custom list header to be a React element');
@@ -263,6 +263,6 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         // The default mocked back path is the change-billing-currency screen.
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        expect(mockCapturedCustomListHeader).toBeUndefined();
+        expect(capturedCustomListHeader).toBeUndefined();
     });
 });

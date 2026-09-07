@@ -18,7 +18,9 @@ import type {RefObject} from 'react';
 import createMock from '../../utils/createMock';
 
 jest.mock('@pages/inbox/report/ReportActionCompose/ComposerContext', () => {
-    const actual = jest.requireActual<typeof ComposerContext>('@pages/inbox/report/ReportActionCompose/ComposerContext');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@pages/inbox/report/ReportActionCompose/ComposerContext');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
         useComposerActions: jest.fn(),

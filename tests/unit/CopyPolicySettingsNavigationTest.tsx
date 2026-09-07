@@ -17,11 +17,11 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const mockSourcePolicyID = 'source-policy-1';
+const SOURCE_POLICY_ID = 'source-policy-1';
 const TARGET_POLICY_1_ID = 'target-policy-1';
 const TARGET_POLICY_2_ID = 'target-policy-2';
-const mockTestUserEmail = 'test@expensify.com';
-const mockTestUserAccountID = 12345;
+const TEST_USER_EMAIL = 'test@expensify.com';
+const TEST_USER_ACCOUNT_ID = 12345;
 
 // Capture SelectionList props to test the component's behavior
 type CapturedSelectionListProps = {
@@ -29,13 +29,13 @@ type CapturedSelectionListProps = {
     confirmButtonOptions?: ConfirmButtonOptions<ListItem>;
     onSelectRow?: (item: ListItem) => void;
 };
-let mockCapturedProps: CapturedSelectionListProps | null = null;
+let capturedProps: CapturedSelectionListProps | null = null;
 
 // Mock SelectionList to capture props and avoid navigation issues
 jest.mock('@components/SelectionList', () => ({
     __esModule: true,
     default: (props: CapturedSelectionListProps) => {
-        mockCapturedProps = props;
+        capturedProps = props;
         return null;
     },
 }));
@@ -56,7 +56,7 @@ jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualNav,
-        useRoute: () => ({params: {policyID: mockSourcePolicyID}}),
+        useRoute: () => ({params: {policyID: SOURCE_POLICY_ID}}),
         useIsFocused: () => true,
         useNavigation: () => ({
             navigate: jest.fn(),
@@ -82,7 +82,7 @@ jest.mock('@components/ScreenWrapper', () => ({
 // Mock current user
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: () => ({email: mockTestUserEmail, accountID: mockTestUserAccountID}),
+    default: () => ({email: TEST_USER_EMAIL, accountID: TEST_USER_ACCOUNT_ID}),
 }));
 
 function createTestPolicy(id: string, name: string): Policy {
@@ -93,12 +93,12 @@ function createTestPolicy(id: string, name: string): Policy {
         name,
         type: 'team',
         role: 'admin',
-        owner: mockTestUserEmail,
-        ownerAccountID: mockTestUserAccountID,
+        owner: TEST_USER_EMAIL,
+        ownerAccountID: TEST_USER_ACCOUNT_ID,
         pendingAction: null,
         employeeList: {
-            [mockTestUserEmail]: {
-                email: mockTestUserEmail,
+            [TEST_USER_EMAIL]: {
+                email: TEST_USER_EMAIL,
                 role: 'admin',
             },
         },
@@ -124,7 +124,7 @@ describe('CopyPolicySettingsNavigation', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockCapturedProps = null;
+        capturedProps = null;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -136,30 +136,30 @@ describe('CopyPolicySettingsNavigation', () => {
 
     describe('Route construction', () => {
         it('POLICY_COPY_SETTINGS route should be correctly constructed', () => {
-            const route = ROUTES.POLICY_COPY_SETTINGS.getRoute(mockSourcePolicyID);
-            expect(route).toBe(`policy/${mockSourcePolicyID}/copy-settings`);
+            const route = ROUTES.POLICY_COPY_SETTINGS.getRoute(SOURCE_POLICY_ID);
+            expect(route).toBe(`policy/${SOURCE_POLICY_ID}/copy-settings`);
         });
 
         it('POLICY_COPY_SETTINGS_SELECT_FEATURES route should be correctly constructed', () => {
-            const route = ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(mockSourcePolicyID);
-            expect(route).toBe(`policy/${mockSourcePolicyID}/copy-settings/select-features`);
+            const route = ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(SOURCE_POLICY_ID);
+            expect(route).toBe(`policy/${SOURCE_POLICY_ID}/copy-settings/select-features`);
         });
 
         it('POLICY_COPY_SETTINGS_CONFIRM route should be correctly constructed', () => {
-            const route = ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(mockSourcePolicyID);
-            expect(route).toBe(`policy/${mockSourcePolicyID}/copy-settings/confirm`);
+            const route = ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(SOURCE_POLICY_ID);
+            expect(route).toBe(`policy/${SOURCE_POLICY_ID}/copy-settings/confirm`);
         });
     });
 
     describe('Workspace selection and feature clearing behavior', () => {
         beforeEach(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${mockSourcePolicyID}`, createTestPolicy(mockSourcePolicyID, 'Source Workspace'));
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, createTestPolicy(SOURCE_POLICY_ID, 'Source Workspace'));
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_1_ID}`, createTestPolicy(TARGET_POLICY_1_ID, 'Target Workspace 1'));
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_2_ID}`, createTestPolicy(TARGET_POLICY_2_ID, 'Target Workspace 2'));
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [mockTestUserAccountID]: {
-                    accountID: mockTestUserAccountID,
-                    login: mockTestUserEmail,
+                [TEST_USER_ACCOUNT_ID]: {
+                    accountID: TEST_USER_ACCOUNT_ID,
+                    login: TEST_USER_EMAIL,
                     displayName: 'Test User',
                 },
             } as PersonalDetailsList);
@@ -170,7 +170,7 @@ describe('CopyPolicySettingsNavigation', () => {
             const initialParts: Part[] = ['categories', 'tags'];
 
             await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
-                sourcePolicyID: mockSourcePolicyID,
+                sourcePolicyID: SOURCE_POLICY_ID,
                 targetPolicyIDs: [TARGET_POLICY_1_ID],
                 parts: initialParts,
             });
@@ -186,7 +186,7 @@ describe('CopyPolicySettingsNavigation', () => {
 
             // Trigger onConfirm without changing selection
             act(() => {
-                mockCapturedProps?.confirmButtonOptions?.onConfirm?.();
+                capturedProps?.confirmButtonOptions?.onConfirm?.();
             });
 
             await waitForBatchedUpdates();
@@ -199,7 +199,7 @@ describe('CopyPolicySettingsNavigation', () => {
 
         it('should clear parts when a workspace is removed from selection', async () => {
             await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
-                sourcePolicyID: mockSourcePolicyID,
+                sourcePolicyID: SOURCE_POLICY_ID,
                 targetPolicyIDs: [TARGET_POLICY_1_ID, TARGET_POLICY_2_ID],
                 parts: ['categories'] as Part[],
             });
@@ -214,18 +214,18 @@ describe('CopyPolicySettingsNavigation', () => {
             await waitForBatchedUpdates();
 
             // Find and deselect workspace 2 (toggle it off)
-            const workspace2Item = mockCapturedProps?.data.find((item) => item.keyForList === TARGET_POLICY_2_ID);
+            const workspace2Item = capturedProps?.data.find((item) => item.keyForList === TARGET_POLICY_2_ID);
             expect(workspace2Item).toBeDefined();
             if (workspace2Item) {
                 act(() => {
-                    mockCapturedProps?.onSelectRow?.(workspace2Item);
+                    capturedProps?.onSelectRow?.(workspace2Item);
                 });
                 await waitForBatchedUpdates();
             }
 
             // Trigger onConfirm
             act(() => {
-                mockCapturedProps?.confirmButtonOptions?.onConfirm?.();
+                capturedProps?.confirmButtonOptions?.onConfirm?.();
             });
 
             await waitForBatchedUpdates();
@@ -239,7 +239,7 @@ describe('CopyPolicySettingsNavigation', () => {
 
         it('should preserve parts when workspace selection changes back to original', async () => {
             await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
-                sourcePolicyID: mockSourcePolicyID,
+                sourcePolicyID: SOURCE_POLICY_ID,
                 targetPolicyIDs: [TARGET_POLICY_1_ID, TARGET_POLICY_2_ID],
                 parts: ['categories', 'tags'] as Part[],
             });
@@ -254,30 +254,30 @@ describe('CopyPolicySettingsNavigation', () => {
             await waitForBatchedUpdates();
 
             // First deselect workspace 2 then reselect it (net change: none)
-            const workspace2Item = mockCapturedProps?.data.find((item) => item.keyForList === TARGET_POLICY_2_ID);
+            const workspace2Item = capturedProps?.data.find((item) => item.keyForList === TARGET_POLICY_2_ID);
             expect(workspace2Item).toBeDefined();
             if (workspace2Item) {
                 act(() => {
-                    mockCapturedProps?.onSelectRow?.(workspace2Item);
+                    capturedProps?.onSelectRow?.(workspace2Item);
                 });
                 await waitForBatchedUpdates();
 
                 // Reselect workspace 2
                 act(() => {
-                    mockCapturedProps?.onSelectRow?.(workspace2Item);
+                    capturedProps?.onSelectRow?.(workspace2Item);
                 });
                 await waitForBatchedUpdates();
             }
 
             // Confirm the selection
             act(() => {
-                mockCapturedProps?.confirmButtonOptions?.onConfirm?.();
+                capturedProps?.confirmButtonOptions?.onConfirm?.();
             });
 
             await waitForBatchedUpdates();
 
             // Verify navigation was called
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(mockSourcePolicyID));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(SOURCE_POLICY_ID));
 
             // After toggling twice, the selection should be unchanged, so parts should be preserved
             const copySettings = await getCopyPolicySettings();
@@ -286,7 +286,7 @@ describe('CopyPolicySettingsNavigation', () => {
 
         it('should navigate to SELECT_FEATURES after confirming', async () => {
             await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
-                sourcePolicyID: mockSourcePolicyID,
+                sourcePolicyID: SOURCE_POLICY_ID,
                 targetPolicyIDs: [TARGET_POLICY_1_ID],
                 parts: [],
             });
@@ -302,13 +302,13 @@ describe('CopyPolicySettingsNavigation', () => {
 
             // Trigger onConfirm
             act(() => {
-                mockCapturedProps?.confirmButtonOptions?.onConfirm?.();
+                capturedProps?.confirmButtonOptions?.onConfirm?.();
             });
 
             await waitForBatchedUpdates();
 
             // Verify navigation was called with correct route
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(mockSourcePolicyID));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(SOURCE_POLICY_ID));
         });
     });
 });

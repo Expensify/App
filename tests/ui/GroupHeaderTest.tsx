@@ -31,16 +31,16 @@ const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 /** The header renders its group's own sub-header; capturing its props is how the derived checkbox state and its press are read. */
 type CapturedHeaderProps = {isSelectAllChecked: boolean; isIndeterminate: boolean; onCheckboxPress: () => void};
-const mockCapturedSubHeader: {current: CapturedHeaderProps | null} = {current: null};
+const capturedSubHeader: {current: CapturedHeaderProps | null} = {current: null};
 jest.mock('@components/Search/SearchList/ListItem/CategoryListItemHeader', () => ({
     __esModule: true,
     default: (props: CapturedHeaderProps) => {
-        mockCapturedSubHeader.current = props;
+        capturedSubHeader.current = props;
         return null;
     },
 }));
 
-const checkboxState = () => ({isSelectAllChecked: mockCapturedSubHeader.current?.isSelectAllChecked, isIndeterminate: mockCapturedSubHeader.current?.isIndeterminate});
+const checkboxState = () => ({isSelectAllChecked: capturedSubHeader.current?.isSelectAllChecked, isIndeterminate: capturedSubHeader.current?.isIndeterminate});
 
 const GROUP_KEY = 'Advertising';
 
@@ -125,7 +125,7 @@ describe('GroupHeader', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(() => {
-        mockCapturedSubHeader.current = null;
+        capturedSubHeader.current = null;
         mockedUseResponsiveLayout.mockReturnValue({
             isInLandscapeMode: false,
             isLargeScreenWidth: true,
@@ -170,13 +170,13 @@ describe('GroupHeader', () => {
 
     it('hands the toggle the rows it carries, so a header deselect can reach them', () => {
         const onCheckboxPress = renderGroupHeader(children, select('1', '2', '3'));
-        act(() => mockCapturedSubHeader.current?.onCheckboxPress());
+        act(() => capturedSubHeader.current?.onCheckboxPress());
         expect(onCheckboxPress).toHaveBeenCalledWith(expect.objectContaining({keyForList: GROUP_KEY}), children);
     });
 
     it('hands the toggle no rows while it carries none, which is what makes the group its own unit', () => {
         const onCheckboxPress = renderGroupHeader([], select(GROUP_KEY));
-        act(() => mockCapturedSubHeader.current?.onCheckboxPress());
+        act(() => capturedSubHeader.current?.onCheckboxPress());
         expect(onCheckboxPress).toHaveBeenCalledWith(expect.objectContaining({keyForList: GROUP_KEY}), []);
     });
 });

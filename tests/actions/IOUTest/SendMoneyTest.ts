@@ -14,14 +14,6 @@ import Onyx from 'react-native-onyx';
 import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@src/libs/API', () => {
-    const actual = jest.requireActual<typeof API>('@src/libs/API');
-    return {
-        ...actual,
-        write: jest.fn(actual.write),
-    };
-});
-
 const topMostReportID = '23423423';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -113,8 +105,7 @@ describe('actions/IOU/SendMoney', () => {
         describe('delegateAccountID forwarding', () => {
             it('sets delegateAccountID on the pay IOU action when delegateAccountID is provided', async () => {
                 const DELEGATE_ACCOUNT_ID = 999;
-                const writeSpy = jest.mocked(API.write);
-                writeSpy.mockImplementation(jest.fn());
+                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
                 sendMoneyElsewhere({
                     report: {reportID: ''},

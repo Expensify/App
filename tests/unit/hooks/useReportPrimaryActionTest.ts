@@ -11,12 +11,12 @@ import createMock from '../../utils/createMock';
 
 const mockGetReportPrimaryAction = jest.mocked(getReportPrimaryAction);
 
-const mockReportID = 'report1';
-const mockPolicyID = 'policy1';
+const REPORT_ID = 'report1';
+const POLICY_ID = 'policy1';
 
 // Prefixed with `mock` so they can be referenced inside the hoisted jest.mock factory below.
-const mockHeldTransaction = createMock<Transaction>({transactionID: 'held', reportID: mockReportID, comment: {hold: 'holdID'}});
-const mockPendingDeleteTransaction = createMock<Transaction>({transactionID: 'unheld', reportID: mockReportID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+const mockHeldTransaction = createMock<Transaction>({transactionID: 'held', reportID: REPORT_ID, comment: {hold: 'holdID'}});
+const mockPendingDeleteTransaction = createMock<Transaction>({transactionID: 'unheld', reportID: REPORT_ID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
 
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
@@ -55,8 +55,8 @@ jest.mock('@components/MoneyReportTransactionThreadContext', () => ({
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string) => {
-        if (key === `report_${mockReportID}`) {
-            return [{reportID: mockReportID, type: 'iou', policyID: mockPolicyID, ownerAccountID: 1}];
+        if (key === `report_${REPORT_ID}`) {
+            return [{reportID: REPORT_ID, type: 'iou', policyID: POLICY_ID, ownerAccountID: 1}];
         }
         return [undefined];
     },
@@ -69,7 +69,7 @@ describe('useReportPrimaryAction - offline pending-delete transactions', () => {
     });
 
     it('drops pending-delete transactions from the held-state calculation while online', () => {
-        renderHook(() => useReportPrimaryAction(mockReportID));
+        renderHook(() => useReportPrimaryAction(REPORT_ID));
 
         const passedTransactions = mockGetReportPrimaryAction.mock.calls.at(0)?.at(0)?.reportTransactions;
         expect(passedTransactions).toHaveLength(1);
@@ -78,7 +78,7 @@ describe('useReportPrimaryAction - offline pending-delete transactions', () => {
 
     it('keeps pending-delete transactions while offline so the report is not treated as all-held', () => {
         mockIsOffline = true;
-        renderHook(() => useReportPrimaryAction(mockReportID));
+        renderHook(() => useReportPrimaryAction(REPORT_ID));
 
         const passedTransactions = mockGetReportPrimaryAction.mock.calls.at(0)?.at(0)?.reportTransactions;
         expect(passedTransactions).toHaveLength(2);

@@ -58,27 +58,6 @@ jest.mock('@libs/actions/Welcome');
 // Keep OnyxDerived real initialization below
 jest.mock('@components/LocaleContextProvider');
 
-jest.mock('@libs/ReportUtils', () => {
-    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
-    return {
-        ...actual,
-        buildOptimisticTaskReport: jest.fn(actual.buildOptimisticTaskReport),
-        buildOptimisticCreatedReportAction: jest.fn(actual.buildOptimisticCreatedReportAction),
-        buildOptimisticTaskCommentReportAction: jest.fn(actual.buildOptimisticTaskCommentReportAction),
-        getTaskAssigneeChatOnyxData: jest.fn(actual.getTaskAssigneeChatOnyxData),
-        isHiddenForCurrentUser: jest.fn(actual.isHiddenForCurrentUser),
-        formatReportLastMessageText: jest.fn(actual.formatReportLastMessageText),
-    };
-});
-
-jest.mock('@libs/actions/Report', () => {
-    const actual = jest.requireActual<typeof ReportModule>('@libs/actions/Report');
-    return {
-        ...actual,
-        getMostRecentReportID: jest.fn(actual.getMostRecentReportID),
-    };
-});
-
 const mockWrite = jest.mocked(API.write);
 
 type ReportActionsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
@@ -127,15 +106,15 @@ const mockBuildOptimisticTaskCommentReportAction = jest.fn();
 const mockGetTaskAssigneeChatOnyxData = jest.fn();
 const mockIsHiddenForCurrentUser = jest.fn();
 const mockFormatReportLastMessageText = jest.fn();
-jest.mocked(ReportUtils.buildOptimisticTaskReport).mockImplementation(mockBuildOptimisticTaskReport);
-jest.mocked(ReportUtils.buildOptimisticCreatedReportAction).mockImplementation(mockBuildOptimisticCreatedReportAction);
-jest.mocked(ReportUtils.buildOptimisticTaskCommentReportAction).mockImplementation(mockBuildOptimisticTaskCommentReportAction);
-jest.mocked(ReportUtils.getTaskAssigneeChatOnyxData).mockImplementation(mockGetTaskAssigneeChatOnyxData);
-jest.mocked(ReportUtils.isHiddenForCurrentUser).mockImplementation(mockIsHiddenForCurrentUser);
-jest.mocked(ReportUtils.formatReportLastMessageText).mockImplementation(mockFormatReportLastMessageText);
+jest.spyOn(ReportUtils, 'buildOptimisticTaskReport').mockImplementation(mockBuildOptimisticTaskReport);
+jest.spyOn(ReportUtils, 'buildOptimisticCreatedReportAction').mockImplementation(mockBuildOptimisticCreatedReportAction);
+jest.spyOn(ReportUtils, 'buildOptimisticTaskCommentReportAction').mockImplementation(mockBuildOptimisticTaskCommentReportAction);
+jest.spyOn(ReportUtils, 'getTaskAssigneeChatOnyxData').mockImplementation(mockGetTaskAssigneeChatOnyxData);
+jest.spyOn(ReportUtils, 'isHiddenForCurrentUser').mockImplementation(mockIsHiddenForCurrentUser);
+jest.spyOn(ReportUtils, 'formatReportLastMessageText').mockImplementation(mockFormatReportLastMessageText);
 
 // Spy on API.write but allow calls to go through
-const writeSpy = jest.mocked(API.write);
+const writeSpy = jest.spyOn(API, 'write');
 
 // A report actions map containing a single visible comment — used to exercise the real
 // doesReportHaveVisibleActions instead of mocking it.
@@ -1439,7 +1418,7 @@ describe('actions/Task', () => {
         let getMostRecentReportIDSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            getMostRecentReportIDSpy = jest.mocked(ReportModule.getMostRecentReportID);
+            getMostRecentReportIDSpy = jest.spyOn(ReportModule, 'getMostRecentReportID');
         });
 
         afterEach(() => {
@@ -1672,7 +1651,7 @@ describe('actions/Task', () => {
 
             global.fetch = getGlobalFetchMock();
 
-            getMostRecentReportIDSpy = jest.mocked(ReportModule.getMostRecentReportID);
+            getMostRecentReportIDSpy = jest.spyOn(ReportModule, 'getMostRecentReportID');
 
             await act(async () => {
                 await Onyx.clear();

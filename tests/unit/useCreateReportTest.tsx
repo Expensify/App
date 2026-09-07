@@ -65,9 +65,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
 }));
 
-const mockReportIDCounter = {value: 100};
+const reportIDCounter = {value: 100};
 jest.mock('@libs/ReportUtils', () => ({
-    generateReportID: jest.fn(() => String(++mockReportIDCounter.value)),
+    generateReportID: jest.fn(() => String(++reportIDCounter.value)),
 }));
 
 const mockShouldRestrictUserBillableActions = jest.fn(() => false);
@@ -117,7 +117,7 @@ function setupUseCreateReportOnyx({activePolicy, emptyReportsConfirmationDismiss
 describe('useCreateReport', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockReportIDCounter.value = 100;
+        reportIDCounter.value = 100;
         mockShouldRestrictUserBillableActions.mockReturnValue(false);
         mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
         setupUseCreateReportOnyx();

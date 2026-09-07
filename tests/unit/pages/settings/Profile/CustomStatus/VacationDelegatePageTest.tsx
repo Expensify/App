@@ -66,11 +66,11 @@ jest.mock('@components/ScreenWrapper', () => {
 
 // Capture the `onSelectRow` callback the page passes to the selection component so the test can
 // invoke it directly without rendering the full SelectionList tree.
-let mockCapturedOnSelectRow: ((option: Participant) => void) | undefined;
+let capturedOnSelectRow: ((option: Participant) => void) | undefined;
 
 jest.mock('@components/BaseVacationDelegateSelectionComponent', () => {
     function MockBaseVacationDelegateSelectionComponent({onSelectRow}: {onSelectRow: (option: Participant) => void}) {
-        mockCapturedOnSelectRow = onSelectRow;
+        capturedOnSelectRow = onSelectRow;
         return null;
     }
     return MockBaseVacationDelegateSelectionComponent;
@@ -85,7 +85,7 @@ const PHONE_DELEGATE_RAW = '+919789942470';
 describe('VacationDelegatePage warning modal', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockCapturedOnSelectRow = undefined;
+        capturedOnSelectRow = undefined;
         mockShowConfirmModal.mockResolvedValue({action: 'CLOSE'});
         mockSetVacationDelegate.mockResolvedValue({jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING});
     });
@@ -93,7 +93,7 @@ describe('VacationDelegatePage warning modal', () => {
     async function selectRowAndFlush(login: string, text?: string) {
         render(<VacationDelegatePage />);
         await act(async () => {
-            mockCapturedOnSelectRow?.({login, text} as Participant);
+            capturedOnSelectRow?.({login, text} as Participant);
         });
     }
 
