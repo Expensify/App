@@ -160,7 +160,6 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
                     shouldPreventDefaultFocusOnSelectRow={false}
                     shouldShowTextInput={shouldShowSearchInput}
                     textInputOptions={textInputOptions}
-                    shouldClearInputWhenHidden
                     shouldStopPropagation
                     canSelectMultiple
                     shouldClearInputOnSelect={false}

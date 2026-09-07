@@ -2,7 +2,6 @@ import Footer from '@components/SelectionList/components/Footer';
 import SelectionListEmptyState from '@components/SelectionList/components/SelectionListEmptyState';
 import TextInput from '@components/SelectionList/components/TextInput';
 import useFlattenedSections, {isItemSelected, shouldTreatItemAsDisabled} from '@components/SelectionList/hooks/useFlattenedSections';
-import useRevealedListReset from '@components/SelectionList/hooks/useRevealedListReset';
 import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
@@ -46,7 +45,6 @@ function BaseSelectionListWithSectionsImpl({
     ref,
     ListItem,
     textInputOptions,
-    shouldClearInputWhenHidden = false,
     searchValueForFocusSync,
     initiallyFocusedItemKey,
     confirmButtonOptions,
@@ -103,8 +101,6 @@ function BaseSelectionListWithSectionsImpl({
     const listRef = useRef<FlashListRef<FlattenedItem<ListItem>> | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
     const {containerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
-
-    const revealedListVersion = useRevealedListReset(listRef, {shouldClearInputWhenHidden, textInputOptions});
 
     const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
         initialFocusedIndex,
@@ -331,7 +327,6 @@ function BaseSelectionListWithSectionsImpl({
                 />
             ) : (
                 <FlashList
-                    key={revealedListVersion}
                     role={getListboxRole(canSelectMultiple)}
                     data={flattenedData}
                     renderItem={renderItem}

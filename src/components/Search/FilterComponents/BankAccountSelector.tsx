@@ -181,7 +181,6 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
                     shouldPreventDefaultFocusOnSelectRow={false}
                     shouldShowTextInput={shouldShowSearchInput}
                     textInputOptions={textInputOptions}
-                    shouldClearInputWhenHidden
                     shouldStopPropagation
                     canSelectMultiple
                     shouldClearInputOnSelect={false}

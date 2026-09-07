@@ -230,7 +230,6 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 shouldPreventAutoScrollOnSelect
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 textInputOptions={textInputOptions}
-                shouldClearInputWhenHidden
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldShowTextInput
