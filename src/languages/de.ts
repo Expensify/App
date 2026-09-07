@@ -2723,8 +2723,8 @@ const translations: TranslationDeepObject<typeof en> = {
         fixBankAccount: {
             title: 'Bankkonto beheben',
             debitBlockedBody:
-                'Ihre Bank hat die Testtransaktionen auf dieses Konto blockiert.<br/><br/>Bitte lassen Sie die folgenden ACH-IDs von Expensify auf die Whitelist setzen:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Senden Sie anschließend die unten stehenden Testtransaktionen erneut.',
-            insufficientFundsBody: 'Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen. Sobald wieder Geld verfügbar ist, verwenden Sie die Schaltfläche unten.',
+                'Ihre Bank hat die Testtransaktionen zu diesem Konto blockiert.<br/><br/>Bitte lassen Sie die ACH-IDs von Expensify auf die Whitelist setzen:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Senden Sie anschließend die Testtransaktionen unten erneut.',
+            insufficientFundsBody: 'Testtransaktionen sind aufgrund unzureichender Kontodeckung fehlgeschlagen. Sobald wieder Geld verfügbar ist, verwenden Sie die Schaltfläche unten.',
             resendButton: 'Transaktionen erneut senden',
             successTitle: 'Transaktionen gesendet!',
             successBody: 'Prüfen Sie Ihr Bankkonto in den nächsten 1–2 Werktagen.',
@@ -10778,6 +10778,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             aBankAccountIsLocked: 'Ein Bankkonto ist gesperrt',
             completeHrSetup: 'HR-Einrichtung abschließen',
             theresAProblemWithAnHRConnection: 'Es gibt ein Problem mit einer HR-Verbindung',
+            aBankAccountFailedValidation: 'Ein Bankkonto hat die Validierung nicht bestanden',
         },
     },
     emptySearchView: {
