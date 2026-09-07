@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -37,6 +38,7 @@ function XeroFxExpenseAccountSelectorPage({policy}: WithPolicyConnectionsProps) 
     const {syncReimbursedReports} = config?.sync ?? {};
     const fxExpenseAccount = config?.fxExpenseAccount;
     const xeroSelectorOptions = getXeroExpenseAccounts(data?.expenseAccounts, fxExpenseAccount);
+    const {filteredData, textInputOptions} = useSelectionListSearch(xeroSelectorOptions);
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
@@ -68,7 +70,8 @@ function XeroFxExpenseAccountSelectorPage({policy}: WithPolicyConnectionsProps) 
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="XeroFxExpenseAccountSelectorPage"
-            data={xeroSelectorOptions}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             shouldBeBlocked={!syncReimbursedReports || !isGlobalReimbursementFXEnabled}
             onSelectRow={updateAccount}
