@@ -63,6 +63,22 @@ function requireCallArgument(call: unknown, index: number): unknown {
 jest.mock('@libs/GoogleTagManager');
 
 OnyxUpdateManager();
+/** Build the index-keyed object shape the rules API uses for lists */
+function indexMap<T>(...values: T[]): Record<string, T> {
+    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+}
+
+async function getRulesCollection(): Promise<OnyxCollection<Rule>> {
+    let collection: OnyxCollection<Rule> = {};
+    await TestHelper.getOnyxData({
+        key: ONYXKEYS.COLLECTION.RULE,
+        callback: (value) => {
+            collection = value ?? {};
+        },
+    });
+    return collection;
+}
+
 describe('actions/Policy', () => {
     beforeAll(() => {
         Onyx.init({
@@ -626,7 +642,13 @@ describe('actions/Policy', () => {
                 address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
                 isTravelEnabled: true,
                 tax: {trackingEnabled: true},
-                rules: {codingRules: {rule1: {filters: {left: 'merchant', operator: 'eq', right: 'Acme'}, category: 'Travel'}}},
+            };
+            const sourceRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: fakePolicy.id,
+                triggers: indexMap(CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
+                actions: indexMap({name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Travel'}),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
@@ -658,6 +680,7 @@ describe('actions/Policy', () => {
                     codingRules: true,
                 },
                 localCurrency: 'USD',
+                rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -677,7 +700,19 @@ describe('actions/Policy', () => {
             expect(policy?.address).toEqual(fakePolicy.address);
             expect(policy?.isTravelEnabled).toBe(true);
             expect(policy?.tax).toEqual(fakePolicy.tax);
-            expect(policy?.rules).toEqual({codingRules: fakePolicy.rules?.codingRules});
+
+            // Merchant rules are copied into the rules collection as new rules scoped to the duplicate,
+            // rather than onto the duplicated policy object.
+            const duplicatedRules = Object.values((await getRulesCollection()) ?? {}).filter((rule) => rule?.scopeID === policyID);
+            expect(duplicatedRules).toHaveLength(1);
+            expect(duplicatedRules.at(0)).toMatchObject({
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policyID,
+                triggers: sourceRule.triggers,
+                filters: sourceRule.filters,
+                actions: sourceRule.actions,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
         });
 
         it('duplicate workspace with 3+ members creates optimistic announce chat using currentUserAccountID', async () => {
@@ -3372,11 +3407,6 @@ describe('actions/Policy', () => {
             expect(policy?.pendingFields?.areRulesEnabled).toBeFalsy();
         });
     });
-
-    /** Build the index-keyed object shape the rules API uses for lists */
-    function indexMap<T>(...values: T[]): Record<string, T> {
-        return Object.fromEntries(values.map((value, index) => [String(index), value]));
-    }
 
     describe('setWorkspaceApprovalMode', () => {
         it('should delete the policy approval workflow rules but keep its expense default rules when disabling approvals', async () => {

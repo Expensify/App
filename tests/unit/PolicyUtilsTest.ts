@@ -3424,23 +3424,26 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('rules.codingRules', () => {
-            it('returns true when codingRules has entries', () => {
-                const policy = createMock<Policy>({
-                    rules: {
-                        codingRules: {
-                            rule1: {
-                                ruleID: 'rule1',
-                                filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
-                            },
-                        },
-                    },
-                });
-                expect(hasConfiguredRules(policy)).toBe(true);
+        describe('merchant rules', () => {
+            const policy = createMock<Policy>({id: 'policy1', rules: {}});
+            const merchantRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: 'policy1',
+                triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
+                actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
+            };
+
+            it('returns true when the policy has a merchant rule', () => {
+                expect(hasConfiguredRules(policy, undefined, {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: merchantRule})).toBe(true);
             });
 
-            it('returns false when codingRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {codingRules: {}}}))).toBe(false);
+            it('returns false when the collection holds no rule for this policy', () => {
+                expect(hasConfiguredRules(policy, undefined, {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: {...merchantRule, scopeID: 'another-policy'}})).toBe(false);
+            });
+
+            it('returns false when the collection is empty', () => {
+                expect(hasConfiguredRules(policy, undefined, {})).toBe(false);
             });
         });
 

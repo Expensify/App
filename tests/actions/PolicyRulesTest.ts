@@ -469,6 +469,7 @@ describe('actions/PolicyRules', () => {
     describe('setMerchantRule', () => {
         it('writes the rule under its own key, scoped to the policy', async () => {
             const fakePolicy = createRandomPolicy(0);
+            mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             setMerchantRule(fakePolicy.id, {merchantToMatch: 'Starbucks', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, category: 'Coffee'}, fakePolicy);
@@ -486,11 +487,18 @@ describe('actions/PolicyRules', () => {
                 filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
                 actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
             });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const savedRule = Object.values((await getRules()) ?? {}).at(0);
+            expect(savedRule?.pendingAction).toBeFalsy();
         });
 
         it('drops an action for a field the edit cleared, rather than merging it with the previous value', async () => {
             const fakePolicy = createRandomPolicy(0);
             const ruleID = 'merchantRule1';
+            mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             setMerchantRule(fakePolicy.id, {merchantToMatch: 'Starbucks', category: 'Coffee', tag: 'Team A'}, fakePolicy, ruleID);
@@ -523,12 +531,18 @@ describe('actions/PolicyRules', () => {
             const fakePolicy = createRandomPolicy(0);
             const ruleID = 'merchantRule1';
             const rule = buildMerchantRuleForPolicy(fakePolicy.id);
+            mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`, rule);
 
             deleteMerchantRule(ruleID, rule);
             await waitForBatchedUpdates();
 
             expect((await getRules())?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            expect((await getRules())?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]).toBeFalsy();
         });
     });
 

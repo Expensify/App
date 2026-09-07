@@ -1,13 +1,19 @@
 import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Rule} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
+
+/** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
+function toIndexMap<T>(values: T[]): Record<string, T> {
+    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+}
 
 const currentUserLogin = 'member@example.com';
 const mockIcon: IconAsset = () => null;
@@ -265,30 +271,50 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.workflows')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
-    it('shows an error indicator when rules have errors', () => {
-        const policy = createMock<Policy>({
-            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
-            areRulesEnabled: true,
-            rules: {
-                codingRules: {
-                    rule: {
-                        ruleID: 'rule',
-                        filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
-                        errors: {error: 'Whoops'},
-                    },
-                },
-            },
-        });
+    it('shows an error indicator when a merchant rule failed to save', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areRulesEnabled: true});
+        const failedRule: Rule = {
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: policy.id,
+            triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
+            filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
+            actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
+            errors: {error: 'Whoops'},
+        };
 
         const items = getWorkspaceMenuItems({
             policy,
             policyID: policy.id,
             currentUserLogin,
             icons,
+            rules: {[`${ONYXKEYS.COLLECTION.RULE}rule`]: failedRule},
             convertToDisplayString: () => '',
         });
 
         expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('shows no error indicator when the failed rule belongs to another policy', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areRulesEnabled: true});
+        const otherPolicyRule: Rule = {
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: 'another-policy',
+            triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
+            filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
+            actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
+            errors: {error: 'Whoops'},
+        };
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            rules: {[`${ONYXKEYS.COLLECTION.RULE}rule`]: otherPolicyRule},
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.brickRoadIndicator).toBeUndefined();
     });
 
     it('shows an information indicator when Merge HR setup is incomplete', () => {
