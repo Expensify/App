@@ -6,6 +6,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import deferNavigate from '@libs/Navigation/deferNavigate';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -52,12 +53,6 @@ type SubscriberProps = Omit<ProviderProps, 'children'> & {
 
 const NO_OP: NavigateGlobalCreateFn = () => {};
 const NavigateGlobalCreateContext = createContext<NavigateGlobalCreateFn>(NO_OP);
-
-// Queue navigation on the microtask instead of navigating synchronously: a sync navigate runs inside the shutter's
-// touch handler, so on release the touch resolves to the scan page's back button and pops the flow back to the scan step.
-function deferNavigate(fn: () => void) {
-    Promise.resolve().then(fn);
-}
 
 function useNavigateGlobalCreate(): NavigateGlobalCreateFn {
     return useContext(NavigateGlobalCreateContext);
