@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useEnvironment from '@hooks/useEnvironment';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -59,6 +60,7 @@ function SearchMergeReports() {
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isProduction} = useEnvironment();
 
     const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
 
@@ -196,6 +198,10 @@ function SearchMergeReports() {
     const onSelection = (item: ListItem) => {
         setDestinationReportID(item.reportID);
     };
+
+    if (isProduction) {
+        return null;
+    }
 
     return (
         <StepScreenWrapper
