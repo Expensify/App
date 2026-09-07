@@ -319,7 +319,10 @@ describe.each([
         if (!focused) {
             throw new Error('Expected focused central screen');
         }
-        split.state = buildNavigationState('central-history', 1, [{...focused, key: 'stale-central', params: {[scopeKey]: 'other-scope'}}, focused]);
+        split.state = buildNavigationState('central-history', 1, [
+            {...focused, key: 'stale-central', params: {[scopeKey]: 'other-scope'}},
+            {...focused, key: 'focused-central'},
+        ]);
         expect(getMinimalAction(matchingAction(), state).action).toMatchObject({type: 'NAVIGATE', target: 'central-history'});
     });
 
@@ -330,7 +333,10 @@ describe.each([
         if (!focused) {
             throw new Error('Expected focused central screen');
         }
-        split.state = buildNavigationState('unknown-scope', 1, [focused, {...focused, key: 'unknown-central', params: undefined}]);
+        split.state = buildNavigationState('unknown-scope', 1, [
+            {...focused, key: 'focused-central'},
+            {...focused, key: 'unknown-central', params: undefined},
+        ]);
         expect(getMinimalAction(differentAction(), state).action.type).toBe('NAVIGATE');
         const unmountedState = buildState();
         getSplitRoute(unmountedState).state = undefined;
@@ -345,9 +351,15 @@ describe.each([
             throw new Error('Expected focused central screen');
         }
         const sidebarName = scopeKey === 'policyID' ? SCREENS.WORKSPACE.INITIAL : SCREENS.DOMAIN.INITIAL;
-        split.state = buildNavigationState('sidebar-authority', 1, [{key: 'sidebar', name: sidebarName, params: {[scopeKey]: 'other-scope'}}, focused]);
+        split.state = buildNavigationState('sidebar-authority', 1, [
+            {key: 'sidebar', name: sidebarName, params: {[scopeKey]: 'other-scope'}},
+            {...focused, key: 'focused-central'},
+        ]);
         expect(getMinimalAction(matchingAction(), state).action).toMatchObject({type: 'PUSH', target: 'workspace-state'});
-        split.state = buildNavigationState('sidebar-unknown', 1, [{key: 'sidebar', name: sidebarName}, focused]);
+        split.state = buildNavigationState('sidebar-unknown', 1, [
+            {key: 'sidebar', name: sidebarName},
+            {...focused, key: 'focused-central'},
+        ]);
         expect(getMinimalAction(differentAction(), state).action.type).toBe('NAVIGATE');
     });
 });
