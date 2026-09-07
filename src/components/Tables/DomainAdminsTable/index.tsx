@@ -3,7 +3,6 @@ import Table from '@components/Table';
 
 import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -63,11 +62,8 @@ type DomainAdminsTableProps = {
 
 export default function DomainAdminsTable({domainAccountID, admins, requests}: DomainAdminsTableProps) {
     const {translate, localeCompare} = useLocalize();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<DomainAdminsTableRowData, DomainAdminsTableColumnKey>>(null);
     useDomainHighlightOnReturn(domainAccountID, 'admins', tableRef);
-
-    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const domainAdminsTableColumns: Array<TableColumn<DomainAdminsTableColumnKey>> = [
         {
@@ -121,7 +117,6 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
                 <DomainAdminsTableGroupHeaderRow
                     item={item}
                     rowIndex={index}
-                    shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 />
             );
         }
@@ -131,7 +126,6 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
                 <DomainAdminRequestsTableRow
                     item={item}
                     rowIndex={index}
-                    shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 />
             );
         }
@@ -140,7 +134,6 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
             <DomainAdminsTableRow
                 item={item}
                 rowIndex={index}
-                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             />
         );
     };

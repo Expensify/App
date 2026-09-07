@@ -1,4 +1,4 @@
-import {hasDomainAdminsErrors, hasDomainGroupsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
+import {getDomainBrickRoadIndicator, hasDomainAdminsErrors, hasDomainGroupsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
 
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
 
@@ -49,15 +49,6 @@ type GetDomainMenuItemsParams = {
     icons: DomainMenuIconMap;
 };
 
-function getDomainAdminsBrickRoadIndicator(domainErrors?: DomainErrors, hasPendingAdminRequests?: boolean) {
-    if (hasDomainAdminsErrors(domainErrors)) {
-        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    }
-    if (hasPendingAdminRequests) {
-        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-    }
-}
-
 /**
  * Menu order is significant because it controls the on-screen layout. Callers attach navigation actions so those actions can retain page-specific lifecycle handling.
  */
@@ -75,7 +66,7 @@ function getDomainMenuItems({domainAccountID, domainErrors, hasPendingAdminReque
             icon: icons.UserShield,
             route: ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID),
             screenName: SCREENS.DOMAIN.ADMINS,
-            brickRoadIndicator: getDomainAdminsBrickRoadIndicator(domainErrors, hasPendingAdminRequests),
+            brickRoadIndicator: getDomainBrickRoadIndicator(hasDomainAdminsErrors(domainErrors), hasPendingAdminRequests),
         },
         {
             translationKey: 'domain.groups.title',

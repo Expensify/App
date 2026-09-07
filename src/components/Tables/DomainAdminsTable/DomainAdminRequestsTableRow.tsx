@@ -2,6 +2,7 @@ import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Button from '@components/ButtonComposed';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useLocalize from '@hooks/useLocalize';
@@ -20,14 +21,12 @@ type DomainAdminRequestsTableRowProps = {
 
     /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
-    shouldUseNarrowTableLayout: boolean;
 };
 
-export default function DomainAdminRequestsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: DomainAdminRequestsTableRowProps) {
+export default function DomainAdminRequestsTableRow({item, rowIndex}: DomainAdminRequestsTableRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowTableLayout} = useTableContext<DomainAdminRequestRowData>();
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 

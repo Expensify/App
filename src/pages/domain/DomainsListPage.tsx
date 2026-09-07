@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearStaleDomainFromFailedCreation} from '@libs/actions/Domain';
-import {hasDomainErrors} from '@libs/DomainUtils';
+import {getDomainBrickRoadIndicator, hasDomainErrors} from '@libs/DomainUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -22,22 +22,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasPendingAdminRequestsSelector, isAdminSelector} from '@src/selectors/Domain';
 import {accountIDSelector} from '@src/selectors/Session';
-import type DomainErrors from '@src/types/onyx/DomainErrors';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-
-function getDomainBrickRoadIndicator(domainErrors: DomainErrors | undefined, hasPendingAdminRequestsToReview: boolean) {
-    if (hasDomainErrors(domainErrors)) {
-        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    }
-    if (hasPendingAdminRequestsToReview) {
-        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-    }
-}
 
 function DomainsListPage() {
     const styles = useThemeStyles();
@@ -100,7 +90,7 @@ function DomainsListPage() {
                 errors: domainErrors?.errors,
                 pendingAction: domain.pendingAction,
                 disabled: domain.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                brickRoadIndicator: getDomainBrickRoadIndicator(domainErrors, isDomainAdmin && hasPendingAdminRequestsSelector(domain)),
+                brickRoadIndicator: getDomainBrickRoadIndicator(hasDomainErrors(domainErrors), isDomainAdmin && hasPendingAdminRequestsSelector(domain)),
                 action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
             });
         }

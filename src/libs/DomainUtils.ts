@@ -68,6 +68,18 @@ function hasPendingDomainAdminRequestsToReview(domain: OnyxEntry<Domain>, curren
 }
 
 /**
+ * Resolves the brick road indicator for a domain section, prioritizing errors over pending admin requests.
+ */
+function getDomainBrickRoadIndicator(hasErrors: boolean, hasPendingAdminRequestsToReview?: boolean) {
+    if (hasErrors) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    }
+    if (hasPendingAdminRequestsToReview) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
+}
+
+/**
  * Checks if domain has any admin settings errors (technical contact email or billing card errors).
  */
 function hasDomainAdminsSettingsErrors(domainErrors?: DomainErrors): boolean {
@@ -138,4 +150,5 @@ export {
     hasDomainGroupsErrors,
     hasDomainGroupDetailsErrors,
     getMemberCustomRowProps,
+    getDomainBrickRoadIndicator,
 };

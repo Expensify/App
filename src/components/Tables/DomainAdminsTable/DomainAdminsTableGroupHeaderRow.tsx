@@ -1,5 +1,6 @@
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import {useTableContext} from '@components/Table/TableContext';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,13 +16,11 @@ type DomainAdminsTableGroupHeaderRowProps = {
 
     /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
-    shouldUseNarrowTableLayout: boolean;
 };
 
-export default function DomainAdminsTableGroupHeaderRow({item, rowIndex, shouldUseNarrowTableLayout}: DomainAdminsTableGroupHeaderRowProps) {
+export default function DomainAdminsTableGroupHeaderRow({item, rowIndex}: DomainAdminsTableGroupHeaderRowProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowTableLayout} = useTableContext<DomainAdminGroupHeaderRowData>();
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 

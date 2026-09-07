@@ -31,7 +31,7 @@ type PolicyIndicatorChecksResult = {
     policyInfoStatus: IndicatorStatus | undefined;
 
     /** The domain error indicator status. */
-    domainStatus: IndicatorStatus | undefined;
+    domainErrorStatus: IndicatorStatus | undefined;
 
     /** The domain info indicator status. */
     domainInfoStatus: IndicatorStatus | undefined;
@@ -94,7 +94,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
 
     const [policyErrorStatus] = activePolicyErrorCheck ?? [];
     const [policyInfoStatus] = activePolicyInfoCheck ?? [];
-    const [domainStatus] = activeDomainCheck ?? [];
+    const [domainErrorStatus] = activeDomainCheck ?? [];
     const [domainInfoStatus] = activeDomainInfoCheck ?? [];
 
     const indicatorPolicyID = activePolicyErrorCheck?.[1]?.id ?? activePolicyInfoCheck?.[1]?.id;
@@ -102,7 +102,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     return {
         policyErrorStatus,
         policyInfoStatus,
-        domainStatus,
+        domainErrorStatus,
         domainInfoStatus,
         indicatorPolicyID,
     };
