@@ -8470,7 +8470,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 completeSetup: 'Completa configurazione',
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Connesso. ${setupLink ? `<a href="${setupLink}">Completa la configurazione</a>` : 'Completa configurazione'} per importare i dipendenti.</muted-text-label>`,
-                groups: {title: 'Gruppi', description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro'},
+                groups: {
+                    title: 'Gruppi',
+                    description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro',
+                    staleSelectionError: (providerName: string) =>
+                        `Alcuni dei gruppi che hai selezionato non esistono più in ${providerName}, quindi i loro dipendenti hanno smesso di sincronizzarsi.`,
+                    updateSelectionLink: 'Aggiorna i tuoi gruppi.',
+                },
             },
             notSync: 'Non sincronizzato',
             authenticationError: (providerName: string) => `Impossibile connettersi a ${providerName} a causa di una connessione scaduta.`,

@@ -47,6 +47,22 @@ function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
     return syncDone && hasGroups && !setupComplete;
 }
 
+/**
+ * True when the admin's saved Merge HR group selection points at groups the HR system no longer has.
+ * The cached list is re-fetched on every sync, so a selected ID missing from it means the group is
+ * gone and its employees have stopped syncing. An empty cache means there is nothing to compare
+ * against rather than that every selection is stale.
+ */
+function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
+    const mergeHR = policy?.connections?.merge_hris;
+    const selectedGroupIDs = mergeHR?.config?.groups;
+    const availableGroups = mergeHR?.data?.groups;
+    if (!selectedGroupIDs?.length || !availableGroups?.length) {
+        return false;
+    }
+    return selectedGroupIDs.some((groupID) => !availableGroups.some((group) => group.id === groupID));
+}
+
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
 function getConnectedHRProvider(policy?: OnyxEntry<Policy>): HRProviderInfo | null {
     if (isGustoConnected(policy)) {
@@ -166,7 +182,7 @@ function shouldShowHRConnectionError(policy: OnyxEntry<Policy>, isSyncInProgress
         return true;
     }
     if (connectedProvider.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        return hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
+        return hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) || hasStaleMergeHRGroups(policy);
     }
     return hasSynchronizationErrorMessage(policy, connectedProvider.connectionName, isSyncInProgress);
 }
@@ -176,6 +192,7 @@ export {
     getHRApprovalMode,
     getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
+    hasStaleMergeHRGroups,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
     isGustoConnected,

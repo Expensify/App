@@ -8543,7 +8543,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 completeSetup: 'Terminer la configuration',
                 setupIncomplete: (setupLink: string | undefined) =>
                     `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
-                groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
+                groups: {
+                    title: 'Groupes',
+                    description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail',
+                    staleSelectionError: (providerName: string) =>
+                        `Certains des groupes que vous avez sélectionnés n'existent plus dans ${providerName}, de sorte que leurs employés ont cessé de se synchroniser.`,
+                    updateSelectionLink: 'Mettez à jour vos groupes.',
+                },
             },
             notSync: 'Non synchronisé',
             authenticationError: (providerName: string) => `Connexion à ${providerName} impossible en raison d'une connexion expirée.`,
