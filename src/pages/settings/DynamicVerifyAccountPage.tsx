@@ -36,6 +36,7 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
             navigateForwardTo={forwardPath}
             handleClose={isJoinWorkspaceTask ? returnToOriginReport : undefined}
             onValidationSuccess={isJoinWorkspaceTask ? getAccessiblePolicies : undefined}
+            shouldShowCloseButton={isJoinWorkspaceTask}
         />
     );
 }

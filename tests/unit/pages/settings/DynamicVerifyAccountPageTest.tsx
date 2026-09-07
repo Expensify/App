@@ -66,8 +66,8 @@ describe('DynamicVerifyAccountPage', () => {
         expect(mockVerifyAccountPageBase).toHaveBeenCalledWith(
             expect.objectContaining({
                 navigateForwardTo: ROUTES.ONBOARDING_WORKSPACES.getRoute(),
-                handleClose: expect.any(Function),
                 onValidationSuccess: getAccessiblePolicies,
+                shouldShowCloseButton: true,
             }),
         );
     });
@@ -79,8 +79,8 @@ describe('DynamicVerifyAccountPage', () => {
         expect(mockVerifyAccountPageBase).toHaveBeenCalledWith(
             expect.objectContaining({
                 navigateForwardTo: undefined,
-                handleClose: undefined,
                 onValidationSuccess: undefined,
+                shouldShowCloseButton: false,
             }),
         );
     });
