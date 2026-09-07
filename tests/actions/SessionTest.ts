@@ -902,8 +902,9 @@ describe('Session', () => {
             expect(session?.signedInWithSAML).toBe(false);
         });
 
-        test('signInWithShortLivedAuthToken navigates to exitTo once signed in', async () => {
-            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken'});
+        test('signInWithShortLivedAuthToken navigates to exitTo once the same login is signed in', async () => {
+            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'User@saml.example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
@@ -912,6 +913,20 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(navigateSpy).toHaveBeenCalledWith('/search?q=status:outstanding', {waitForTransition: true});
+            jest.restoreAllMocks();
+        });
+
+        test('signInWithShortLivedAuthToken does not navigate to exitTo when another login signs in', async () => {
+            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'other@example.com'});
+            await waitForBatchedUpdates();
+            jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            expect(navigateSpy).not.toHaveBeenCalled();
             jest.restoreAllMocks();
         });
     });

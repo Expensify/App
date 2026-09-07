@@ -886,7 +886,7 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo
     if (exitTo) {
         // exitTo is a path the navigator produced, so it is always a valid route.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        handleExitToNavigation(exitTo as Route);
+        handleExitToNavigation(exitTo as Route, credentials.login);
     }
 }
 
@@ -1559,8 +1559,12 @@ function waitForUserSignIn(): Promise<boolean> {
     });
 }
 
-function handleExitToNavigation(exitTo: Route) {
+function handleExitToNavigation(exitTo: Route, login?: string) {
     waitForUserSignIn().then(() => {
+        // A failed sign-in leaves this waiting, so a later sign-in by another account must not land on this page.
+        if (login && deprecatedSession.email?.toLowerCase() !== login.toLowerCase()) {
+            return;
+        }
         Navigation.waitForProtectedRoutes().then(() => {
             Navigation.goBack(ROUTES.HOME, {waitForTransition: true});
             Navigation.navigate(exitTo, {waitForTransition: true});
