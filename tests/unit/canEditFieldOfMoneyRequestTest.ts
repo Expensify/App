@@ -4,7 +4,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import Onyx from 'react-native-onyx';
@@ -581,7 +581,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
 
-            const setUpOnyx = async (reportPolicy: Policy, report = approvedReport, reportAction = approvedReportAction) => {
+            const setUpOnyx = async (reportPolicy: Policy, report: Report = approvedReport, reportAction = approvedReportAction) => {
                 const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [reportPolicy], (p) => p.id);
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
