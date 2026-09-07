@@ -19,9 +19,10 @@ function useScreenBoundDynamicRoute(): (dynamicRouteSuffixWithParams: string) =>
     const [focusedBasePath, setFocusedBasePath] = useState<string | undefined>();
     useFocusEffect(() => {
         // On a cold start the focus effect can run before the navigation container is ready, when getActiveRoute
-        // still returns an empty string. Latching it would shadow the route path seed until the next blur and focus.
+        // still returns an empty string or the bare root. Latching either would shadow the route path seed until
+        // the next blur and focus, and a root base drops the rest of the path from every route built here.
         const activeRoute = Navigation.getActiveRoute();
-        if (!activeRoute) {
+        if (!activeRoute || activeRoute === '/') {
             return;
         }
         setFocusedBasePath(activeRoute);
