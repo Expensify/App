@@ -1744,6 +1744,9 @@ function getOnboardingTaskCompletionOnSuccessData(
         // The parent command already completes the task on the backend, so an extra CompleteTask request would be
         // both redundant and impossible to roll back when that command fails.
         false,
+        // The backend attributes this completion to Concierge, so the optimistic action is built as Concierge too to
+        // avoid a wrong-owner flash.
+        CONST.ACCOUNT_ID.CONCIERGE,
     );
 
     // `optimisticData` holds the completion itself and `successData` only clears its pending state. Applying both once
