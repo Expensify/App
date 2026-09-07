@@ -115,6 +115,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     let walletBrickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
     if (
         hasLockedBankAccount ||
+        hasValidationFailedBankAccount(bankAccountList) ||
         hasPaymentMethodError(bankAccountList, fundList, allCards, session, policies) ||
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
@@ -122,13 +123,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    } else if (
-        hasPartiallySetupBankAccount(bankAccountList) ||
-        hasPersonalBankAccountMissingInfo(bankAccountList) ||
-        hasValidationFailedBankAccount(bankAccountList) ||
-        hasPendingCardAction ||
-        hasVirtualCardMissingDetails
-    ) {
+    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList) || hasPendingCardAction || hasVirtualCardMissingDetails) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
