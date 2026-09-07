@@ -13,7 +13,7 @@ import SCREENS from '@src/SCREENS';
 
 import type {InitialState} from '@react-navigation/native';
 
-import React from 'react';
+import React, {createContext, useContext} from 'react';
 
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 
@@ -80,10 +80,16 @@ function buildWorkspaceNavigationState(...workspaceSplits: WorkspaceScopeRoute[]
     };
 }
 
+const TestNarrowLayoutContext = createContext(true);
+
 function renderCentralOnlySplits(...workspaceSplits: WorkspaceScopeRoute[]) {
     // Mount two root entries first, matching an in-app cross-tab deep link. A cold root adds a sidebar.
     const initialState: InitialState = {index: 1, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}, {name: NAVIGATORS.TAB_NAVIGATOR}]};
-    const view = render(<TestNavigationContainer initialState={initialState} />);
+    const view = render(
+        <TestNarrowLayoutContext.Provider value>
+            <TestNavigationContainer initialState={initialState} />
+        </TestNarrowLayoutContext.Provider>,
+    );
     act(() => {
         navigationRef.resetRoot({
             index: 1,
@@ -139,6 +145,11 @@ describe('Go back on the narrow layout', () => {
         });
 
         it('keeps workspace identity coherent after cross-scope navigation, widening, and Back', () => {
+            // Context updates reach memoized navigation screens, as the real responsive hook does.
+            mockedUseResponsiveLayout.mockImplementation(function useTestResponsiveLayout() {
+                const shouldUseNarrowLayout = useContext(TestNarrowLayoutContext);
+                return {...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout};
+            });
             const categoriesA = {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.WORKSPACE.CATEGORIES, params: {policyID: 'policy-a'}}]}};
             const {view, initialState} = renderCentralOnlySplits(categoriesA);
             const originalSplit = getActiveWorkspaceState()?.routes.at(0);
@@ -152,13 +163,11 @@ describe('Go back on the narrow layout', () => {
             expect(afterNavigate?.routes.at(-1)?.state?.routes.at(-1)?.params).toMatchObject({policyID: 'policy-b'});
 
             mockedGetIsNarrowLayout.mockReturnValue(false);
-            mockedUseResponsiveLayout.mockReturnValue({
-                ...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE,
-                shouldUseNarrowLayout: false,
-                isSmallScreenWidth: false,
-                isLargeScreenWidth: true,
-            });
-            view.rerender(<TestNavigationContainer initialState={initialState} />);
+            view.rerender(
+                <TestNarrowLayoutContext.Provider value={false}>
+                    <TestNavigationContainer initialState={initialState} />
+                </TestNarrowLayoutContext.Provider>,
+            );
             act(() => {
                 Navigation.goBack();
             });
