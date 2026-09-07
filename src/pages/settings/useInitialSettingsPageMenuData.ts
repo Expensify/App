@@ -15,7 +15,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo, hasValidationFailedBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import {showPermissionErrorAlert} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
@@ -122,7 +122,13 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList) || hasPendingCardAction || hasVirtualCardMissingDetails) {
+    } else if (
+        hasPartiallySetupBankAccount(bankAccountList) ||
+        hasPersonalBankAccountMissingInfo(bankAccountList) ||
+        hasValidationFailedBankAccount(bankAccountList) ||
+        hasPendingCardAction ||
+        hasVirtualCardMissingDetails
+    ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 

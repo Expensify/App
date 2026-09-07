@@ -193,6 +193,10 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isBankAccountPartiallySetup(bankAccount?.accountData?.state));
 }
 
+function hasValidationFailedBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED);
+}
+
 const PERSONAL_INFO_STEP = {
     NAME: 1,
     ADDRESS: 2,
@@ -342,6 +346,7 @@ export {
     getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
+    hasValidationFailedBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
     isUserAddressVerificationRequired,
