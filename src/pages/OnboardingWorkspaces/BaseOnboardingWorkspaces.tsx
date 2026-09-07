@@ -49,7 +49,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {joinWorkspaceMessages} = useOnboardingMessages();
+    const {onboardingMessages, joinWorkspaceMessages} = useOnboardingMessages();
     const [showAll, setShowAll] = useState(false);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -117,14 +117,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         // Reached from a Concierge task rather than as an onboarding step. Onboarding is already finished, so
         // completing it again would post the whole welcome message and task list a second time - just join and return
         // the user to wherever they opened this from.
-        if (hasCompletedGuidedSetupFlow) {
+        if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
             returnToOriginReport();
             return;
         }
 
         completeOnboarding({
-            engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
-            onboardingMessage: joinWorkspaceMessages.joinWorkspace,
+            engagementChoice: onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+            onboardingMessage: isJoiningCompanyWorkspace ? joinWorkspaceMessages.joinWorkspace : onboardingMessages[onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
             companySize: onboardingCompanySize,
