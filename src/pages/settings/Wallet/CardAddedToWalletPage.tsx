@@ -41,7 +41,7 @@ function CardAddedToWalletPage({
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={CardAddedToWalletPage.displayName}
+            testID={'CardAddedToWalletPage'}
         >
             <HeaderWithBackButton
                 title={translate('cardPage.cardAddedToWalletPage.title')}
