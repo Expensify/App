@@ -837,9 +837,9 @@
 "../../src/libs/actions/Travel.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TravelBilling.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/UnreportedExpenses.tsx"	"no-restricted-syntax"	1
-"../../src/libs/actions/User.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../src/libs/actions/User.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/User.ts"	"no-restricted-imports"	1
-"../../src/libs/actions/User.ts"	"no-restricted-syntax"	8
+"../../src/libs/actions/User.ts"	"no-restricted-syntax"	7
 "../../src/libs/actions/VacationDelegate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/Wallet.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/actions/Wallet.ts"	"no-restricted-syntax"	1
