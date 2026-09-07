@@ -769,8 +769,6 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT]: {
         policyID: string;
@@ -1417,9 +1415,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         taxID: string;
     };
-    [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: {
         policyID: string;
     };
@@ -1662,6 +1657,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName?: string;
     };
+    [SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
         categoryName?: string;
@@ -1795,6 +1793,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: {
         policyID: string;
         ruleID: string;
+        /** Set when editing a category tax default, so the picker returns to that editor. */
+        categoryName?: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_VENDOR]: {
         policyID: string;
@@ -1819,6 +1819,15 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES]: {
         policyID: string;
         ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH]: {
+        policyID: string;
+        ruleID: string;
+        categoryName?: string;
+    };
+    [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
+        policyID: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;
@@ -2977,9 +2986,6 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVOICES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {

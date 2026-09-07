@@ -70,6 +70,7 @@ import {
     isTaxCodeCustomized,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
+    shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
@@ -4647,5 +4648,27 @@ describe('getConnectedIntegrationFromConnections', () => {
     it('ignores non-accounting connections (e.g. HR integrations)', () => {
         const {connections} = createMock<Policy>({connections: {gusto: {data: {}}}});
         expect(getConnectedIntegrationFromConnections(connections)).toBeUndefined();
+    });
+});
+
+describe('shouldHideDynamicExternalWorkflowPeople', () => {
+    it('returns false when the policy is undefined', () => {
+        expect(shouldHideDynamicExternalWorkflowPeople(undefined)).toBe(false);
+    });
+
+    it('returns true for a Dynamic External Workflow policy with the flag set', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, dynamicExternalWorkflowHidePeople: true};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(true);
+    });
+
+    // The backend only returns the flag when it is `true`, so an absent flag is the normal DEW case.
+    it('returns false for a Dynamic External Workflow policy without the flag', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+
+    it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
     });
 });
