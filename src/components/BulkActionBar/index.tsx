@@ -8,22 +8,33 @@ import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useInvertedThemePreference from '@hooks/useInvertedThemePreference';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import Accessibility from '@libs/Accessibility';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Animated, {Easing, Keyframe} from 'react-native-reanimated';
 
 import type {BulkActionBarProps} from './types';
 
 import BulkActionBarButton from './BulkActionBarButton';
 import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popoverPosition';
+
+// The bar appears in a spot nothing else occupies, so it rises the last few pixels into place to draw the eye there.
+const SlideIn = new Keyframe({
+    from: {opacity: 0, transform: [{translateY: CONST.BULK_ACTION_BAR.SLIDE_IN_DISTANCE}]},
+    to: {opacity: 1, transform: [{translateY: 0}], easing: Easing.bezier(0.76, 0.0, 0.24, 1.0).factory()},
+}).duration(CONST.BULK_ACTION_BAR.SLIDE_IN_DURATION);
 
 /**
  * The bar's contents. Everything here takes its colors from the theme it is rendered under, which `BulkActionBar`
@@ -37,15 +48,22 @@ function BulkActionBarContent<TValueType>({selectedCount, isSelectedCountLoading
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'DownArrow', 'ThreeDots', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
+    const {isMediumScreenWidth} = useResponsiveLayout();
 
     const moreAnchorRef = useRef<View | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
     const [moreMenuAnchorPosition, setMoreMenuAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
 
     // Only the highest-priority actions are given a button of their own; the rest stay reachable behind "More".
-    const hasMoreMenu = options.length > CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS;
-    const inlineOptions = hasMoreMenu ? options.slice(0, CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS) : options;
-    const moreOptions = hasMoreMenu ? options.slice(CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS) : [];
+    // One fewer fits at the in-between widths, where three buttons would squeeze the bar.
+    const maxInlineActions = isMediumScreenWidth ? CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS_MEDIUM_SCREEN : CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS;
+    const hasMoreMenu = options.length > maxInlineActions;
+    const inlineOptions = hasMoreMenu ? options.slice(0, maxInlineActions) : options;
+    const moreOptions = hasMoreMenu ? options.slice(maxInlineActions) : [];
+
+    // Esc dismisses the selection, as it does for this kind of bulk-select bar elsewhere. It sits below the default
+    // priority so that an open menu's own Esc handling closes the menu first rather than clearing the selection.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {priority: 1});
 
     useEffect(() => {
         if (!moreAnchorRef.current || !isMoreMenuVisible) {
@@ -60,14 +78,15 @@ function BulkActionBarContent<TValueType>({selectedCount, isSelectedCountLoading
             ref={barRef}
             style={styles.bulkActionBar}
         >
-            {isSelectedCountLoading ? (
-                <ActivityIndicator
-                    color={theme.spinner}
-                    style={styles.mr1}
-                />
-            ) : (
-                <Text style={[styles.textLabel, styles.textStrong, styles.mr1]}>{translate('workspace.common.selected', {count: selectedCount})}</Text>
-            )}
+            {/* Sized for a three-digit count so the bar keeps still as the selection grows, and so swapping the
+                spinner for the count does not resize it either. */}
+            <View style={styles.bulkActionBarCount}>
+                {isSelectedCountLoading ? (
+                    <ActivityIndicator color={theme.spinner} />
+                ) : (
+                    <Text style={[styles.textLabel, styles.textStrong]}>{translate('workspace.common.selected', {count: selectedCount})}</Text>
+                )}
+            </View>
             {inlineOptions.map((option) => (
                 <BulkActionBarButton
                     key={option.text}
@@ -143,9 +162,11 @@ function BulkActionBarContent<TValueType>({selectedCount, isSelectedCountLoading
 function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, options, onClearSelection, onSubItemSelected, barRef, style}: BulkActionBarProps<TValueType>) {
     const styles = useThemeStyles();
     const invertedTheme = useInvertedThemePreference();
+    const isReducedMotionEnabled = Accessibility.useReducedMotion();
 
     return (
-        <View
+        <Animated.View
+            entering={isReducedMotionEnabled ? undefined : SlideIn}
             style={[styles.bulkActionBarLayer, style]}
             pointerEvents="box-none"
         >
@@ -163,7 +184,7 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
                     />
                 </ThemeStylesProvider>
             </ThemeProvider>
-        </View>
+        </Animated.View>
     );
 }
 

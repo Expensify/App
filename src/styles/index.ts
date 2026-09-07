@@ -5432,6 +5432,14 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: CONST.BULK_ACTION_BAR.HEIGHT + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
         },
 
+        // Wide enough for a three-digit count, so the bar does not resize as the selection grows past 9 or 99 — a
+        // selection can cover far more rows than are on screen. Also keeps the width steady while the count loads.
+        bulkActionBarCount: {
+            minWidth: 88,
+            marginRight: 4,
+            justifyContent: 'center',
+        },
+
         // Matches the height of the bar's buttons: as the tallest item in the row it would otherwise set the bar's height.
         bulkActionBarCloseButton: {
             height: variables.componentSizeSmall,
