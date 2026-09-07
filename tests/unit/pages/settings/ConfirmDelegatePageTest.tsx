@@ -90,11 +90,11 @@ jest.mock('@components/Text', () => {
     return MockText;
 });
 
-jest.mock('@components/MenuItem', () => {
-    function MockMenuItem({title, description}: {title: string; description: string}) {
-        return `title=${title}|description=${description}`;
+jest.mock('@components/Avatar/UserAvatar', () => {
+    function MockUserAvatar() {
+        return null;
     }
-    return MockMenuItem;
+    return MockUserAvatar;
 });
 
 jest.mock('@components/MenuItemWithTopDescription', () => {
@@ -126,7 +126,7 @@ describe('ConfirmDelegatePage', () => {
 
         const output = renderPage();
 
-        expect(output).toContain(`title=${FORMATTED_SMS_LOGIN}`);
+        expect(output).toContain(FORMATTED_SMS_LOGIN);
         expect(output).not.toContain(CONST.SMS.DOMAIN);
     });
 
@@ -135,7 +135,7 @@ describe('ConfirmDelegatePage', () => {
 
         const output = renderPage();
 
-        expect(output).toContain(`title=${FORMATTED_SMS_LOGIN}`);
+        expect(output).toContain(FORMATTED_SMS_LOGIN);
         expect(output).not.toContain(CONST.SMS.DOMAIN);
     });
 
@@ -146,7 +146,7 @@ describe('ConfirmDelegatePage', () => {
 
         // `formatPhoneNumber` returns a non-phone string untouched apart from swapping its spaces for
         // non-breaking ones, which is what the 41 other call sites wrapping a display name already do.
-        expect(output).toContain('title=Ada\u00A0Lovelace');
-        expect(output).toContain(`description=${FORMATTED_SMS_LOGIN}`);
+        expect(output).toContain('Ada\u00A0Lovelace');
+        expect(output).toContain(FORMATTED_SMS_LOGIN);
     });
 });

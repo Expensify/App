@@ -520,7 +520,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 customUnitID: '1000000000001',
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                 attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                rates: {SRC_RATE: {customUnitRateID: 'SRC_RATE', name: 'IRS', rate: 67, enabled: true, currency: 'USD'}},
+                rates: {SRC_RATE: {customUnitRateID: 'SRC_RATE', name: 'Default Rate', rate: 67, enabled: true, currency: 'USD'}},
             };
             const sourcePerDiemUnit: CustomUnit = {
                 customUnitID: '1000000000002',
@@ -529,7 +529,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 rates: {SRC_PD_RATE: {customUnitRateID: 'SRC_PD_RATE', name: 'NYC', rate: 100, enabled: true, currency: 'USD'}},
             };
 
-            it("uses target's existing distance unit ID when target already has one", () => {
+            it("writes source rates under the target's existing unit and rate IDs when the names match", () => {
                 const sourcePolicy = makeSourcePolicy({customUnits: {[sourceDistanceUnit.customUnitID]: sourceDistanceUnit}});
                 const targetExistingDistanceID = '2000000000001';
                 const targetPolicy = makeTargetPolicy({
@@ -538,7 +538,10 @@ describe('actions/Policy/CopyPolicySettings', () => {
                             customUnitID: targetExistingDistanceID,
                             name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                             attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
-                            rates: {OLD: {customUnitRateID: 'OLD', name: 'old', rate: 1, enabled: true, currency: 'EUR'}},
+                            rates: {
+                                TGT_RATE: {customUnitRateID: 'TGT_RATE', name: 'Default Rate', rate: 0.55, enabled: true, currency: 'EUR'},
+                                OLD: {customUnitRateID: 'OLD', name: 'Team offsite', rate: 0.3, enabled: true, currency: 'EUR'},
+                            },
                         },
                     },
                 });
@@ -549,23 +552,54 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.customUnits).toBeDefined();
                 expect(Object.keys(policy?.customUnits ?? {})).toEqual([targetExistingDistanceID]);
                 expect(policy?.customUnits?.[targetExistingDistanceID]?.customUnitID).toBe(targetExistingDistanceID);
-                expect(policy?.customUnits?.[targetExistingDistanceID]?.rates).toEqual(sourceDistanceUnit.rates);
+                // The source's 'Default Rate' lands on the target's rate ID, and the target's unmatched rate is dropped
+                expect(policy?.customUnits?.[targetExistingDistanceID]?.rates).toEqual({
+                    TGT_RATE: {...sourceDistanceUnit.rates.SRC_RATE, customUnitRateID: 'TGT_RATE'},
+                });
                 expect(policy?.pendingFields?.customUnits).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             });
 
-            it('generates a new unit ID when target has no distance unit', () => {
+            it("omits source rates the target has no rate of the same name for, so the server's IDs don't duplicate them", () => {
+                const expiredGovernmentRate = {customUnitRateID: 'SRC_EXPIRED', name: '2026 US', rate: 72.5, enabled: true, currency: 'USD'};
+                const activeGovernmentRate = {customUnitRateID: 'SRC_ACTIVE', name: 'Jul 1, 2026 US', rate: 76, enabled: true, currency: 'USD'};
+                const sourcePolicy = makeSourcePolicy({
+                    customUnits: {
+                        [sourceDistanceUnit.customUnitID]: {
+                            ...sourceDistanceUnit,
+                            rates: {
+                                SRC_DEFAULT: {customUnitRateID: 'SRC_DEFAULT', name: 'Default Rate', rate: 67, enabled: true, currency: 'USD'},
+                                SRC_EXPIRED: expiredGovernmentRate,
+                                SRC_ACTIVE: activeGovernmentRate,
+                            },
+                        },
+                    },
+                });
+                const targetExistingDistanceID = '2000000000001';
+                const targetPolicy = makeTargetPolicy({
+                    customUnits: {
+                        [targetExistingDistanceID]: {
+                            customUnitID: targetExistingDistanceID,
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                            rates: {TGT_DEFAULT: {customUnitRateID: 'TGT_DEFAULT', name: 'Default Rate', rate: 0.55, enabled: true, currency: 'EUR'}},
+                        },
+                    },
+                });
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
+
+                const policy = getOptimisticPolicy(optimisticData);
+                expect(Object.keys(policy?.customUnits?.[targetExistingDistanceID]?.rates ?? {})).toEqual(['TGT_DEFAULT']);
+            });
+
+            it('omits the distance unit entirely when the target has none, since Auth mints its ID', () => {
                 const sourcePolicy = makeSourcePolicy({customUnits: {[sourceDistanceUnit.customUnitID]: sourceDistanceUnit}});
                 const targetPolicy = makeTargetPolicy({customUnits: {}});
 
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
 
                 const policy = getOptimisticPolicy(optimisticData);
-                const unitIDs = Object.keys(policy?.customUnits ?? {});
-                expect(unitIDs).toHaveLength(1);
-                expect(unitIDs.at(0)).not.toBe(sourceDistanceUnit.customUnitID);
-                expect(unitIDs.at(0)).toMatch(/^[0-9A-F]{13}$/);
-                // A freshly generated ID should be reused as the customUnitID inside the unit
-                expect(policy?.customUnits?.[unitIDs.at(0) ?? '']?.customUnitID).toBe(unitIDs.at(0));
+                expect(policy?.customUnits).toEqual({});
             });
 
             it("preserves target's existing per-diem unit ID independently of distance", () => {
@@ -580,13 +614,13 @@ describe('actions/Policy/CopyPolicySettings', () => {
                             customUnitID: targetExistingDistanceID,
                             name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                             attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
-                            rates: {},
+                            rates: {TGT_RATE: {customUnitRateID: 'TGT_RATE', name: 'Default Rate', rate: 0.55, enabled: true, currency: 'EUR'}},
                         },
                         [targetExistingPerDiemID]: {
                             customUnitID: targetExistingPerDiemID,
                             name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
                             attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                            rates: {},
+                            rates: {TGT_PD_RATE: {customUnitRateID: 'TGT_PD_RATE', name: 'NYC', rate: 85, enabled: true, currency: 'EUR'}},
                         },
                     },
                 });
@@ -595,8 +629,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 const policy = getOptimisticPolicy(optimisticData);
                 expect(Object.keys(policy?.customUnits ?? {}).sort()).toEqual([targetExistingDistanceID, targetExistingPerDiemID].sort());
-                expect(policy?.customUnits?.[targetExistingDistanceID]?.rates).toEqual(sourceDistanceUnit.rates);
-                expect(policy?.customUnits?.[targetExistingPerDiemID]?.rates).toEqual(sourcePerDiemUnit.rates);
+                expect(policy?.customUnits?.[targetExistingDistanceID]?.rates).toEqual({TGT_RATE: {...sourceDistanceUnit.rates.SRC_RATE, customUnitRateID: 'TGT_RATE'}});
+                expect(policy?.customUnits?.[targetExistingPerDiemID]?.rates).toEqual({TGT_PD_RATE: {...sourcePerDiemUnit.rates.SRC_PD_RATE, customUnitRateID: 'TGT_PD_RATE'}});
             });
         });
 
@@ -665,15 +699,15 @@ describe('actions/Policy/CopyPolicySettings', () => {
                     customUnitID: '1000000000001',
                     name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                    rates: {NEW_RATE: {customUnitRateID: 'NEW_RATE', name: 'New', rate: 67, enabled: true, currency: 'USD'}},
+                    rates: {NEW_RATE: {customUnitRateID: 'NEW_RATE', name: 'Default Rate', rate: 67, enabled: true, currency: 'USD'}},
                 };
                 const targetDistanceUnit: CustomUnit = {
                     customUnitID: '2000000000001',
                     name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
                     rates: {
-                        OLD_RATE_A: {customUnitRateID: 'OLD_RATE_A', name: 'OldA', rate: 50, enabled: true, currency: 'EUR'},
-                        OLD_RATE_B: {customUnitRateID: 'OLD_RATE_B', name: 'OldB', rate: 30, enabled: false, currency: 'EUR'},
+                        OLD_RATE_A: {customUnitRateID: 'OLD_RATE_A', name: 'Default Rate', rate: 0.55, enabled: true, currency: 'EUR'},
+                        OLD_RATE_B: {customUnitRateID: 'OLD_RATE_B', name: 'Team offsite', rate: 0.3, enabled: false, currency: 'EUR'},
                     },
                 };
 
@@ -683,10 +717,11 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
                 const policy = getOptimisticPolicy(optimisticData);
 
-                // The optimistic unit is keyed by target's existing ID, with source's rates (no old rates)
+                // The optimistic unit is keyed by target's existing ID and carries only the name-matched rate,
+                // under the target's rate ID, with the source's values
                 const optimisticUnit = policy?.customUnits?.[targetDistanceUnit.customUnitID];
-                expect(optimisticUnit?.rates).toEqual(sourceDistanceUnit.rates);
-                expect(optimisticUnit?.rates).not.toHaveProperty('OLD_RATE_A');
+                expect(optimisticUnit?.rates).toEqual({OLD_RATE_A: {...sourceDistanceUnit.rates.NEW_RATE, customUnitRateID: 'OLD_RATE_A'}});
+                expect(optimisticUnit?.rates).not.toHaveProperty('NEW_RATE');
                 expect(optimisticUnit?.rates).not.toHaveProperty('OLD_RATE_B');
             });
 

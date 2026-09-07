@@ -2176,9 +2176,6 @@ type DualEntryExport = {
     /** Account used when exporting company card expenses. */
     creditCardAccountID: string;
 
-    /** Account used when exporting Expensify Card expenses. */
-    expensifyCardAccountID: string;
-
     /**
      * Whether card transactions should be exported to multiple
      * accounts based on card program mappings.
@@ -2989,15 +2986,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
-        /** Configuration for collecting employee deposit account details for reimbursement outside of Expensify */
-        reimbursement?: {
-            /** Whether reimbursement is enabled for the policy */
-            enabled?: boolean;
-
-            /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, unknown>;
-        };
-
         /** The set reimburser for the policy */
         reimburser?: string;
 
@@ -3056,6 +3044,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The approval mode set up on this policy */
         approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 
+        /** Whether the approval workflow (people) UI should be hidden for this Dynamic External Workflow policy. The backend only returns it when it is `true`. */
+        dynamicExternalWorkflowHidePeople?: boolean;
+
         /** Whether transactions should be billable by default */
         defaultBillable?: boolean;
 
@@ -3079,9 +3070,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
-
-        /** Whether new uncategorized expenses get a category picked for them automatically. Defaults to true when unset. */
-        autoCategorizeNewExpenses?: boolean;
 
         /** Whether to show category GL codes when selecting a category */
         showCategoryGLCodes?: boolean;
