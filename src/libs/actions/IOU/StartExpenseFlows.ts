@@ -1,3 +1,6 @@
+/**
+ * Starters for the expense-creation flows: the add-expense dropdown options, the draft-transaction/participant-selector flow, and the draft-workspace confirmation flow.
+ */
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
@@ -245,8 +248,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 
     removeDraftTransactionsByIDs(draftTransactionIDs);
 
-    // Moved verbatim from ReportUtils, where an eslint-seatbelt allowance covered this. `transaction` is an OnyxEntry, so the
-    // spread widens to a partial and the assertion is the pre-existing behaviour rather than something introduced here.
+    // `transaction` is an OnyxEntry, so spreading it widens the object to a partial and the `as Transaction` assertion is required.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see above
     createDraftTransaction({
         ...transaction,
